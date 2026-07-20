@@ -1,0 +1,146 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  quality-and-test:
+    name: Quality Gates + Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ['1.22', '1.23', '1.24']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+
+    - name: Install linters
+      run: |
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        go install github.com/uudashr/gocognit/cmd/gocognit@latest
+        go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+
+    - name: Build all packages
+      run: go build ./...
+
+    - name: go vet
+      run: go vet ./...
+
+    - name: staticcheck
+      run: staticcheck ./...
+
+    - name: Cyclomatic complexity check (threshold 15)
+      run: |
+        ! gocyclo -over 15 . 2>&1 | grep -q . || \
+          (echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 .; exit 1)
+
+    - name: Cognitive complexity check (threshold 15)
+      run: |
+        ! gocognit -over 15 . 2>&1 | grep -q . || \
+          (echo "FAIL: cognitive complexity exceeds 15 in:"; gocognit -over 15 .; exit 1)
+
+    - name: Test with race detection
+      run: go test -timeout 60s -race -count=1 -run "^Test[^C]" ./...
+
+    - name: Test coverage
+      run: |
+        go test -timeout 60s -coverprofile=coverage.out -run "^Test[^C]" ./...
+        go tool cover -func=coverage.out
+        echo "Threshold: 60%"
+        go tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//' | \
+          awk '{if($$1 < 60) {print "FAIL: coverage " $$1 "% < 60%"; exit 1}}'
+
+  build-cli:
+    name: Build CLI Binaries
+    runs-on: ubuntu-latest
+    needs: quality-and-test
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Build CLI (${{ matrix.goos }}/${{ matrix.goarch }})
+      run: |
+        mkdir -p build
+        ext=""
+        if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
+          go build -ldflags="-s -w" \
+          -o "build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}${ext}" \
+          ./cmd/frigolite/
+        ls -lh "build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
+
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: frigolite-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}*
+        if-no-files-found: error
+
+  compat-test:
+    name: SQLite Compatibility
+    runs-on: ubuntu-latest
+    needs: [quality-and-test]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.24'
+        cache: true
+
+    - name: Install sqlite3
+      run: sudo apt-get update && sudo apt-get install -y sqlite3
+
+    - name: Run compatibility tests
+      run: go test -v -timeout 60s -run "^TestCompat" ./...
+
+  release:
+    name: Create Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [build-cli, compat-test]
+
+    steps:
+    - name: Download all built binaries
+      uses: actions/download-artifact@v4
+      with:
+        pattern: frigolite-*
+        path: build/
+        merge-multiple: true
+
+    - name: List artifacts
+      run: ls -lh build/
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: build/*
+        generate_release_notes: true
