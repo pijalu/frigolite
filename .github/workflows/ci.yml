@@ -91,11 +91,11 @@ jobs:
         mkdir -p build
         ext=""
         if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
+        cd cmd/frigolite
         GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} \
           go build -ldflags="-s -w" \
-          -o "build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}${ext}" \
-          ./cmd/frigolite/
-        ls -lh "build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
+          -o "../../build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}${ext}" .
+        ls -lh "../../build/frigolite-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
 
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
