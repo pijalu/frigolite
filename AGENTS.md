@@ -81,3 +81,27 @@ python3 /tmp/convert_final3.py
 - No commented-out code blocks
 - All exported symbols have GoDoc comments
 - Tests are self-contained (no external file deps)
+
+## SOLID / MUST Test
+
+A `frigolite_solid_test.go` enforces architecture rules automatically in CI:
+
+| Principle | Test | What it checks |
+|-----------|------|----------------|
+| **S**ingle Responsibility | `TestSOLID_SingleResponsibility` | Each `internal/` package has a focused scope; exported symbol counts are monitored |
+| **D**ependency Inversion | `TestSOLID_ImportBoundaries` | High-level packages (`exec`) only import lower-level ones; no upward or circular imports |
+| **I**nterface Segregation | Manual review | Interfaces are small and focused (e.g., `io.ReaderAt`, `io.WriterAt`) |
+| **O**pen/Closed + **L**iskov | Compile-time checks | `var _ Interface = (*Type)(nil)` patterns verify substitutability |
+
+### Running the SOLID test
+
+```bash
+go test -run TestSOLID_ ./...
+```
+
+### Adding a new internal package
+
+1. Assign a layer number in `internalLayers` map in `frigolite_solid_test.go`
+2. Ensure it only imports from its own layer or lower
+3. Run `go test -run TestSOLID_ImportBoundaries` to verify
+4. Update `AGENTS.md` architecture diagram if needed

@@ -40,14 +40,14 @@ jobs:
     - name: staticcheck
       run: staticcheck ./...
 
-    - name: Cyclomatic complexity check (threshold 15)
+    - name: Cyclomatic complexity check (threshold 15, excludes test files)
       run: |
-        ! gocyclo -over 15 . 2>&1 | grep -q . || \
+        ! gocyclo -over 15 $(find . -name '*.go' ! -name '*_test.go') 2>&1 | grep -q . || \
           (echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 .; exit 1)
 
-    - name: Cognitive complexity check (threshold 15)
+    - name: Cognitive complexity check (threshold 15, excludes test files)
       run: |
-        ! gocognit -over 15 . 2>&1 | grep -q . || \
+        ! gocognit -over 15 $(find . -name '*.go' ! -name '*_test.go') 2>&1 | grep -q . || \
           (echo "FAIL: cognitive complexity exceeds 15 in:"; gocognit -over 15 .; exit 1)
 
     - name: Test with race detection

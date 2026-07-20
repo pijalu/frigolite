@@ -28,6 +28,8 @@ subset of SQL. Zero external dependencies, zero CGO, zero sqlite3 CLI needed.
 
 ## Quick Start
 
+### Native API
+
 ```go
 package main
 
@@ -63,6 +65,49 @@ func main() {
     }
 }
 ```
+
+### database/sql Driver
+
+Frigolite implements the standard `database/sql` interface, letting you use
+typed scans, placeholders, prepared statements, and connection pooling:
+
+```go
+package main
+
+import (
+    "database/sql"
+    "fmt"
+    "log"
+
+    _ "github.com/pijalu/frigolite/frigodb"
+)
+
+func main() {
+    db, err := sql.Open("frigolite", ":memory:")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close()
+
+    // Create a table
+    db.Exec("CREATE TABLE users (id INTEGER, name TEXT, age INTEGER)")
+
+    // Insert with placeholders
+    db.Exec("INSERT INTO users VALUES (?, ?, ?)", 1, "Alice", 30)
+
+    // Query and scan into typed variables
+    var id int
+    var name string
+    var age int
+    row := db.QueryRow("SELECT * FROM users WHERE id = ?", 1)
+    if err := row.Scan(&id, &name, &age); err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("id=%d name=%s age=%d\n", id, name, age)
+}
+```
+
+See `_examples/native/` and `_examples/driver/` for complete examples.
 
 ## CLI Shell
 
@@ -100,18 +145,29 @@ make bench
 ```
 frigolite/
 ├── frigolite.go              # Public API: Open/Close/Exec/Query
+├── frigolite_test.go          # Integration tests
+├── frigolite_solid_test.go    # SOLID architecture verification tests
+├── frigolite_*_test.go        # Feature-specific tests (50+ tests)
+├── frigolite_sqlite_compat_test.go  # 778 auto-generated SQLite compat tests
+│
 ├── internal/
-│   ├── util/                 # Varint encoding, CRC32, value comparison
-│   ├── storage/              # SQLite file format (pages, cells, records, header)
-│   ├── pager/                # Page cache, file I/O, in-memory store
-│   ├── btree/                # B+Tree with cursor (insert, delete, seek)
-│   ├── sql/                  # SQL lexer and recursive-descent parser
-│   ├── exec/                 # Query execution engine
-│   ├── schema/               # Schema table management (sqlite_schema)
-│   ├── function/             # Scalar and aggregate SQL functions
-│   └── vtab/                 # Virtual table module system
-├── cmd/frigolite/            # Interactive CLI shell
-└── benchmarks/               # Performance benchmarks
+│   ├── util/      # Varint, CRC32, value comparison
+│   ├── storage/   # SQLite file format (pages, cells, records, header)
+│   ├── pager/     # Page cache, file I/O, in-memory store
+│   ├── btree/     # B+Tree with cursor (insert, delete, seek)
+│   ├── sql/       # Lexer + recursive-descent parser → AST
+│   ├── exec/      # Query execution engine
+│   ├── schema/    # sqlite_schema table management
+│   ├── function/  # Scalar + aggregate SQL functions (60+ functions)
+│   └── vtab/      # Virtual table module system (generate_series, etc.)
+│
+├── frigodb/                  # database/sql driver wrapper
+├── _examples/
+│   ├── native/               # Native API example
+│   └── driver/               # database/sql driver example
+├── cmd/frigolite/            # Interactive CLI shell (separate module)
+├── benchmarks/               # Performance benchmarks
+└── build/                    # CLI binary output
 ```
 
 ## SQL Support

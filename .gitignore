@@ -1,7 +1,10 @@
 # Binaries
 /build/
-frigolite
-frigolite.exe
+/frigolite
+/frigolite.exe
+
+# Binary in CLI module (built by go build without Makefile)
+cmd/frigolite/frigolite
 
 # Test artifacts
 *.db

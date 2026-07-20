@@ -62,12 +62,14 @@ staticcheck:
 	staticcheck ./...
 
 # gocognit: report functions with high cognitive complexity (>15)
+# Exclude test files — tests naturally handle many cases.
 gocognit:
-	gocognit -over 15 . || true
+	gocognit -over 15 $(shell find . -name '*.go' ! -name '*_test.go') || true
 
 # gocyclo: report functions with high cyclomatic complexity (>15)
+# Exclude test files — tests naturally handle many cases.
 gocyclo:
-	gocyclo -over 15 . || true
+	gocyclo -over 15 $(shell find . -name '*.go' ! -name '*_test.go') || true
 
 # Lint: run all linters
 lint: vet staticcheck gocognit gocyclo
@@ -75,11 +77,11 @@ lint: vet staticcheck gocognit gocyclo
 # Quality gate: fail if any quality check fails
 quality: vet staticcheck
 	@echo "Checking cognitive complexity (threshold 15)..."
-	@! gocognit -over 15 . 2>&1 | grep -q . || \
+	@! gocognit -over 15 $(shell find . -name '*.go' ! -name '*_test.go') 2>&1 | grep -q . || \
 		(echo "FAIL: cognitive complexity exceeds 15 in:"; gocognit -over 15 .; exit 1)
 	@echo "OK"
 	@echo "Checking cyclomatic complexity (threshold 15)..."
-	@! gocyclo -over 15 . 2>&1 | grep -q . || \
+	@! gocyclo -over 15 $(shell find . -name '*.go' ! -name '*_test.go') 2>&1 | grep -q . || \
 		(echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 .; exit 1)
 	@echo "OK"
 	@echo "Running quality checks on CLI module..."
