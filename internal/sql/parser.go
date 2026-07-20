@@ -80,49 +80,60 @@ func (p *Parser) Parse() StmtList {
 func (p *Parser) parseStatement() Stmt {
 	switch p.cur.Type {
 	case TokenKeyword:
-		switch p.cur.Value {
-		case "SELECT":
-			return p.parseSelect()
-		case "INSERT":
-			return p.parseInsert()
-		case "UPDATE":
-			return p.parseUpdate()
-		case "DELETE":
-			return p.parseDelete()
-		case "CREATE":
-			return p.parseCreate()
-		case "DROP":
-			return p.parseDrop()
-		case "BEGIN":
-			return p.parseBegin()
-		case "COMMIT":
-			return p.parseCommit()
-		case "ROLLBACK":
-			return p.parseRollback()
-		case "PRAGMA":
-			return p.parsePragma()
-		case "ALTER":
-			return p.parseAlter()
-		case "ATTACH":
-			return p.parseAttach()
-		case "VACUUM":
-			return p.parseVacuum()
-		case "REINDEX":
-			return p.parseReindex()
-		case "SAVEPOINT":
-			return p.parseSavepoint()
-		case "RELEASE":
-			return p.parseSavepoint()
-		case "EXPLAIN":
-			return p.parseExplain()
-		case "ANALYZE":
-			return p.parseAnalyze()
-		default:
-			p.setErr("unexpected keyword: %s", p.cur.Value)
-			return nil
-		}
+		return p.parseKeywordStmt()
 	default:
 		p.setErr("unexpected token: %v (%s)", p.cur.Type, p.cur.Value)
+		return nil
+	}
+}
+
+func (p *Parser) parseKeywordStmt() Stmt {
+	switch p.cur.Value {
+	case "SELECT":
+		return p.parseSelect()
+	case "INSERT":
+		return p.parseInsert()
+	case "UPDATE":
+		return p.parseUpdate()
+	case "DELETE":
+		return p.parseDelete()
+	case "CREATE":
+		return p.parseCreate()
+	case "DROP":
+		return p.parseDrop()
+	case "ALTER":
+		return p.parseAlter()
+	default:
+		return p.parseKeywordStmtTail()
+	}
+}
+
+func (p *Parser) parseKeywordStmtTail() Stmt {
+	switch p.cur.Value {
+	case "BEGIN":
+		return p.parseBegin()
+	case "COMMIT":
+		return p.parseCommit()
+	case "ROLLBACK":
+		return p.parseRollback()
+	case "PRAGMA":
+		return p.parsePragma()
+	case "ATTACH":
+		return p.parseAttach()
+	case "VACUUM":
+		return p.parseVacuum()
+	case "REINDEX":
+		return p.parseReindex()
+	case "SAVEPOINT":
+		return p.parseSavepoint()
+	case "RELEASE":
+		return p.parseSavepoint()
+	case "EXPLAIN":
+		return p.parseExplain()
+	case "ANALYZE":
+		return p.parseAnalyze()
+	default:
+		p.setErr("unexpected keyword: %s", p.cur.Value)
 		return nil
 	}
 }
@@ -1053,26 +1064,33 @@ func (p *Parser) parseCompareExpr() Expr {
 }
 
 func (p *Parser) tryCompareOp(left Expr) Expr {
-	switch {
-	case p.cur.Type == TokenEq, p.cur.Type == TokenNeq:
+	if p.cur.Type == TokenEq || p.cur.Type == TokenNeq ||
+		p.cur.Type == TokenLt || p.cur.Type == TokenGt ||
+		p.cur.Type == TokenLe || p.cur.Type == TokenGe {
 		return p.binaryOp(left)
-	case p.cur.Type == TokenLt, p.cur.Type == TokenGt,
-		p.cur.Type == TokenLe, p.cur.Type == TokenGe:
-		return p.binaryOp(left)
-	case p.cur.Type == TokenKeyword && p.cur.Value == "IS":
+	}
+	return p.tryCompareKeywordOp(left)
+}
+
+func (p *Parser) tryCompareKeywordOp(left Expr) Expr {
+	if p.cur.Type != TokenKeyword {
+		return nil
+	}
+	switch p.cur.Value {
+	case "IS":
 		return p.parseIsOp(left)
-	case p.cur.Type == TokenKeyword && p.cur.Value == "NOT":
+	case "NOT":
 		return p.tryNotOp(left)
-	case p.cur.Type == TokenKeyword && p.cur.Value == "IN":
+	case "IN":
 		return p.parseInOp(left)
-	case p.cur.Type == TokenKeyword && p.cur.Value == "BETWEEN":
+	case "BETWEEN":
 		return p.parseBetweenOp(left)
-	case p.cur.Type == TokenKeyword && p.cur.Value == "LIKE":
+	case "LIKE":
 		return p.parseLikeOp(left)
-	case p.cur.Type == TokenKeyword && p.cur.Value == "NOTNULL":
+	case "NOTNULL":
 		p.next()
 		return &IsNotNull{Operand: left}
-	case p.cur.Type == TokenKeyword && p.cur.Value == "ISNULL":
+	case "ISNULL":
 		p.next()
 		return &IsNull{Operand: left}
 	default:

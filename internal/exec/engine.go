@@ -55,6 +55,15 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return e.execUpdate(s)
 	case *sql.DeleteStmt:
 		return e.execDelete(s)
+	case *sql.CommitStmt:
+		return e.execCommit()
+	default:
+		return e.execOtherDDL(stmt)
+	}
+}
+
+func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
+	switch s := stmt.(type) {
 	case *sql.CreateTableStmt:
 		return e.execCreateTable(s)
 	case *sql.CreateIndexStmt:
@@ -79,8 +88,6 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return e.execAlterTable(s)
 	case *sql.ExplainStmt:
 		return e.execExplain(s)
-	case *sql.CommitStmt:
-		return e.execCommit()
 	default:
 		// Begin, Rollback, Attach, Vacuum, Reindex, Savepoint — all no-ops
 		return &Result{}
@@ -1220,6 +1227,15 @@ func (e *Engine) evalExpr(expr sql.Expr, row map[string]interface{}) (interface{
 		return nil, nil
 	case *sql.ColumnRef:
 		return evalColumnRef(v, row)
+	case *sql.FuncCall:
+		return e.evalFuncCall(v, row)
+	default:
+		return e.evalComplexExpr(expr, row)
+	}
+}
+
+func (e *Engine) evalComplexExpr(expr sql.Expr, row map[string]interface{}) (interface{}, error) {
+	switch v := expr.(type) {
 	case *sql.BinaryOp:
 		return e.evalBinaryOp(v, row)
 	case *sql.UnaryOp:
@@ -1240,8 +1256,6 @@ func (e *Engine) evalExpr(expr sql.Expr, row map[string]interface{}) (interface{
 		return e.evalCaseExpr(v, row)
 	case *sql.CastExpr:
 		return e.evalCastExpr(v, row)
-	case *sql.FuncCall:
-		return e.evalFuncCall(v, row)
 	default:
 		return nil, fmt.Errorf("unknown expression type: %T", expr)
 	}

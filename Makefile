@@ -61,26 +61,26 @@ vet:
 staticcheck:
 	staticcheck ./...
 
-# gocognit: report functions with high cognitive complexity (>20)
+# gocognit: report functions with high cognitive complexity (>15)
 gocognit:
-	gocognit -over 20 . || true
+	gocognit -over 15 . || true
 
-# gocyclo: report functions with high cyclomatic complexity (>20)
+# gocyclo: report functions with high cyclomatic complexity (>15)
 gocyclo:
-	gocyclo -over 20 . || true
+	gocyclo -over 15 . || true
 
 # Lint: run all linters
 lint: vet staticcheck gocognit gocyclo
 
 # Quality gate: fail if any quality check fails
 quality: vet staticcheck
-	@echo "Checking cognitive complexity (threshold 20)..."
-	@! gocognit -over 20 . 2>&1 | grep -q . || \
-		(echo "FAIL: cognitive complexity exceeds 20 in:"; gocognit -over 20 .; exit 1)
+	@echo "Checking cognitive complexity (threshold 15)..."
+	@! gocognit -over 15 . 2>&1 | grep -q . || \
+		(echo "FAIL: cognitive complexity exceeds 15 in:"; gocognit -over 15 .; exit 1)
 	@echo "OK"
-	@echo "Checking cyclomatic complexity (threshold 20)..."
-	@! gocyclo -over 20 . 2>&1 | grep -q . || \
-		(echo "FAIL: cyclomatic complexity exceeds 20 in:"; gocyclo -over 20 .; exit 1)
+	@echo "Checking cyclomatic complexity (threshold 15)..."
+	@! gocyclo -over 15 . 2>&1 | grep -q . || \
+		(echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 .; exit 1)
 	@echo "OK"
 	@echo "Running quality checks on CLI module..."
 	cd $(CMD_DIR) && go vet ./... && echo "  CLI vet: OK"
