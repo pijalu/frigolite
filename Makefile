@@ -108,3 +108,10 @@ demo-basic:
 
 demo-bulk:
 	go run ./cmd/demo/bulk/
+
+# Run examples
+example-native:
+	go run ./_examples/native/
+
+example-driver:
+	go run ./_examples/driver/
