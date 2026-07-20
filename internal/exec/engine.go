@@ -1238,8 +1238,17 @@ func (e *Engine) collectUpdateChanges(rootPage uint32, colIndex map[string]int, 
 }
 
 func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, s *sql.UpdateStmt, row map[string]interface{}) *updateChange {
-	values := make([]interface{}, len(rec.Values))
+	// Allocate values array large enough to hold all columns,
+	// not just those present in the current record.
+	maxIdx := len(rec.Values)
+	for _, idx := range colIndex {
+		if idx+1 > maxIdx {
+			maxIdx = idx + 1
+		}
+	}
+	values := make([]interface{}, maxIdx)
 	copy(values, rec.Values)
+
 	for _, a := range s.Assignments {
 		idx, ok := colIndex[a.Column]
 		if !ok {
@@ -1249,7 +1258,7 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 		if err != nil {
 			return nil
 		}
-		if idx >= 0 {
+		if idx >= 0 && idx < len(values) {
 			values[idx] = v
 		}
 	}
@@ -1764,15 +1773,16 @@ func (e *Engine) findNextRowID(rootPage uint32) int64 {
 }
 
 func (e *Engine) parseColumnDefs(createSQL string) []sql.ColumnDef {
-	// Parse column definitions from CREATE TABLE SQL
 	parser := sql.NewParser(createSQL)
 	stmts := parser.Parse()
-	if len(stmts) > 0 {
-		if ct, ok := stmts[0].(*sql.CreateTableStmt); ok {
-			return ct.Columns
-		}
+	if len(stmts) == 0 {
+		return nil
 	}
-	return nil
+	ct, ok := stmts[0].(*sql.CreateTableStmt)
+	if !ok || ct == nil {
+		return nil
+	}
+	return ct.Columns
 }
 
 // --- Value arithmetic helpers ---

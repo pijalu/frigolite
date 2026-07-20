@@ -120,6 +120,9 @@ type ColumnDef struct {
 	PrimaryKey bool
 	AutoInc    bool
 	Unique     bool
+	OnConflict string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE
+	Collate    string
+	References string
 	Default    Expr
 }
 

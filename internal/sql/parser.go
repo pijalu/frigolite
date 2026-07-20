@@ -3,6 +3,7 @@ package sql
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // Parser turns a token stream into AST nodes.
@@ -794,29 +795,135 @@ func (p *Parser) parseColumnDefs() []ColumnDef {
 	return cols
 }
 
-func (p *Parser) parseColumnType() string {
-	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-		t := p.cur.Value
-		p.next()
-		return t
+// isTypeContinuation returns true if word is a multi-word type continuation
+// (e.g. "FLOATING" in "FLOATING POINT").
+func isTypeContinuation(word string) bool {
+	switch word {
+	case "UNSIGNED", "SIGNED", "CHARACTER", "VARYING", "PRECISION",
+		"POINT", "NATIONAL", "DOUBLE":
+		return true
 	}
-	return ""
+	return false
+}
+
+// isConstraintStart returns true if word is a SQL keyword that starts
+// a column constraint, not a type name.
+func isConstraintStart(word string) bool {
+	switch word {
+	case "PRIMARY", "NOT", "DEFAULT", "UNIQUE", "CHECK", "REFERENCES",
+		"COLLATE", "CONSTRAINT":
+		return true
+	}
+	return false
+}
+
+func (p *Parser) parseColumnType() string {
+	if p.cur.Type != TokenIdentifier && p.cur.Type != TokenKeyword {
+		return ""
+	}
+	if isConstraintStart(p.cur.Value) {
+		return ""
+	}
+
+	parts := []string{p.cur.Value}
+	p.next()
+	for p.cur.Type == TokenKeyword || p.cur.Type == TokenIdentifier {
+		if isConstraintStart(p.cur.Value) {
+			break
+		}
+		if !isTypeContinuation(p.cur.Value) {
+			break
+		}
+		parts = append(parts, p.cur.Value)
+		p.next()
+	}
+
+	// Optional type arguments: VARCHAR(123) or VARCHAR(123,456)
+	if p.cur.Type == TokenLParen {
+		p.next()
+		skipParenValue(p)
+		if p.cur.Type == TokenComma {
+			p.next()
+			skipParenValue(p)
+		}
+		if p.cur.Type == TokenRParen {
+			p.next()
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+// skipParenValue skips a single token inside parenthesized type arguments.
+func skipParenValue(p *Parser) {
+	if p.cur.Type == TokenNumber || p.cur.Type == TokenKeyword || p.cur.Type == TokenIdentifier {
+		p.next()
+	}
 }
 
 func (p *Parser) parseColumnConstraints(col *ColumnDef) {
 	for {
-		if p.cur.Type == TokenKeyword && p.cur.Value == "PRIMARY" {
-			p.parsePrimaryKeyConstraint(col)
-		} else if p.cur.Type == TokenKeyword && p.cur.Value == "NOT" {
-			p.parseNotNullConstraint(col)
-		} else if p.cur.Type == TokenKeyword && p.cur.Value == "DEFAULT" {
-			p.parseDefaultConstraint(col)
-		} else if p.cur.Type == TokenKeyword && p.cur.Value == "UNIQUE" {
-			col.Unique = true
-			p.next()
-		} else {
+		if p.cur.Type != TokenKeyword {
 			break
 		}
+		switch p.cur.Value {
+		case "PRIMARY":
+			p.parsePrimaryKeyConstraint(col)
+		case "NOT":
+			p.parseNotNullConstraint(col)
+		case "DEFAULT":
+			p.parseDefaultConstraint(col)
+		case "UNIQUE":
+			col.Unique = true
+			p.next()
+		case "CHECK":
+			p.parseCheckConstraint(col)
+		case "REFERENCES":
+			p.parseReferencesConstraint(col)
+		case "COLLATE":
+			p.next()
+			if p.cur.Type == TokenKeyword || p.cur.Type == TokenIdentifier {
+				col.Collate = p.cur.Value
+				p.next()
+			}
+		default:
+			return // not a constraint keyword
+		}
+	}
+	// Optional ON CONFLICT clause after any constraint
+	if p.cur.Type == TokenKeyword && p.cur.Value == "ON" {
+		p.parseOnConflictColumnConstraint(col)
+	}
+}
+
+func (p *Parser) parseOnConflictColumnConstraint(col *ColumnDef) {
+	p.next() // skip ON
+	if p.cur.Type == TokenKeyword && p.cur.Value == "CONFLICT" {
+		p.next()
+		if p.cur.Type == TokenKeyword {
+			switch p.cur.Value {
+			case "REPLACE", "ABORT", "FAIL", "ROLLBACK", "IGNORE":
+				col.OnConflict = p.cur.Value
+				p.next()
+			}
+		}
+	}
+}
+
+func (p *Parser) parseCheckConstraint(col *ColumnDef) {
+	p.next() // skip CHECK
+	if p.cur.Type == TokenLParen {
+		p.next()
+		p.parseExpr() // consume the check expression
+		p.expect(TokenRParen)
+	}
+}
+
+func (p *Parser) parseReferencesConstraint(col *ColumnDef) {
+	// Basic REFERENCES support - consume the clause
+	p.next() // skip REFERENCES
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		col.References = p.cur.Value
+		p.next()
 	}
 }
 

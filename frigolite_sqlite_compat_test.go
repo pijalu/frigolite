@@ -7,6 +7,17 @@ import (
 // Auto-generated SQLite compatibility test suite
 // Only includes SQL-related tests (C API and extension tests excluded)
 
+// Auto-generated from 8_3_names.test
+func TestSQLite_f_8_3_names(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("COMMIT;\n    SELECT length(x) FROM t1")
+	_ = db.Exec("COMMIT;\n    SELECT sum(x) FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ATTACH 'file:./test2.db?8_3_names=1' AS db2;\n    CREATE TABLE db2.t2(y);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t2 VALUES(4);\n    COMMIT;\n    SELECT * FROM t1, t2 ORDER BY x, y")
+	_ = db.Query("PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));")
+	_ = db.Query("PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;")
+	_ = db.Exec("ROLLBACK;\n    SELECT length(x) FROM t1")
+}
 // Auto-generated from affinity2.test
 func TestSQLite_affinity2(t *testing.T) {
 	db := setupDB(t)
@@ -167,6 +178,183 @@ func TestSQLite_alias(t *testing.T) {
 	_ = db.Query("SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99")
 	_ = db.Query("SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99 AND y!=55")
 }
+// Auto-generated from alter.test
+func TestSQLite_alter(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE [T1] RENAME to [-t1-];\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;")
+	_ = db.Exec("ALTER TABLE aux.t4 RENAME TO t5;\n      SELECT * FROM aux.t5 WHERE b = 'aux';")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));")
+	_ = db.Exec("ALTER TABLE t11 ADD COLUMN abc;")
+	_ = db.Exec("ALTER TABLE t11b ADD COLUMN abc;")
+	_ = db.Exec("ALTER TABLE t11c ADD COLUMN abc;")
+	_ = db.Exec("ALTER TABLE t16a RENAME TO t16a_rn;\n  SELECT * FROM t16a_rn ORDER BY a;")
+	_ = db.Exec("ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;")
+	_ = db.Exec("ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;")
+	_ = db.Exec("ALTER TABLE t4 RENAME TO t5;\n      SELECT * FROM t4 WHERE a = 'aux';")
+	_ = db.Exec("ALTER TABLE t6 RENAME TO t7;\n    INSERT INTO t7 VALUES(4, 5, 6);")
+	_ = db.Exec("ALTER TABLE t7 RENAME TO t8;\n    INSERT INTO t8 VALUES(4, 5, 6);")
+	_ = db.Exec("ALTER TABLE t8 RENAME TO t9;\n    INSERT INTO t9 VALUES(4, 5, 6);")
+	_ = db.Exec("ALTER TABLE tbl1 RENAME TO tbl2;\n    DELETE FROM tbl2;\n    INSERT INTO tbl2 VALUES(NULL);\n    SELECT a FROM tbl2;")
+	_ = db.Exec("ALTER TABLE tbl1 RENAME TO tbl2;\n    INSERT INTO tbl2 VALUES('d', 'e', 'f');")
+	_ = db.Exec("ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;")
+	_ = db.Exec("ALTER TABLE tbl2 RENAME TO tbl3;\n    INSERT INTO tbl3 VALUES('g', 'h', 'i');")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;")
+	_ = db.Exec("CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;")
+	_ = db.Exec("CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE VIRTUAL TABLE t2 USING rtree(id,x0,x1);\n    INSERT INTO t1 VALUES(1,'apple'),(2,'fig'),(3,'pear');\n    INSERT INTO t2 VALUES(1,1.0,2.0),(2,2.0,3.0),(3,1.5,3.5);\n    CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN\n      DELETE FROM t2 WHERE id ...")
+	_ = db.Exec("CREATE TABLE t1(a TEXT COLLATE BINARY);\n    ALTER TABLE t1 ADD COLUMN b INTEGER COLLATE NOCASE;\n    INSERT INTO t1 VALUES(1,'-2');\n    INSERT INTO t1 VALUES(5.4e-08,'5.4e-08');\n    SELECT typeof(a), a, typeof(b), b FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a,b);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;")
+	_ = db.Exec("CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER T...")
+	_ = db.Exec("CREATE TABLE t12(a, b, c);\n    CREATE VIEW v1 AS SELECT * FROM t12;")
+	_ = db.Exec("CREATE TABLE t16a(a TEXT, b REAL, c INT, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t16a VALUES('abc',1.25,99);\n  ALTER TABLE t16a ADD COLUMN d TEXT DEFAULT 'xyzzy';\n  INSERT INTO t16a VALUES('cba',5.5,98,'fizzle');\n  SELECT * FROM t16a ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t2(a INTEGER);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    ALTER TABLE t2 ADD COLUMN b INTEGER DEFAULT 9;\n    SELECT sum(b) FROM t2;")
+	_ = db.Exec("CREATE TABLE t3(p,q,r);")
+	_ = db.Exec("CREATE TABLE t4(a PRIMARY KEY, b, c);\n      CREATE TABLE aux.t4(a PRIMARY KEY, b, c);\n      CREATE INDEX i4 ON t4(b);\n      CREATE INDEX aux.i4 ON t4(b);")
+	_ = db.Exec("CREATE TABLE t6(a, b, c);\n    -- Different case for the table name in the trigger.\n    CREATE TRIGGER trig1 AFTER INSERT ON T6 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;")
+	_ = db.Exec("CREATE TABLE tbl1   (a, b, c);\n    INSERT INTO tbl1 VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TABLE tbl1(a INTEGER PRIMARY KEY AUTOINCREMENT);\n    INSERT INTO tbl1 VALUES(10);")
+	_ = db.Exec("CREATE TABLE tbl1(a, b, c);\n    INSERT INTO tbl1 VALUES('x', 'y', 'z');")
+	_ = db.Exec("CREATE TEMP TABLE objlist(type, name, tbl_name);\n      INSERT INTO objlist SELECT type, name, tbl_name FROM sqlite_master;\n      INSERT INTO objlist \n          SELECT type, name, tbl_name FROM temp.sqlite_master \n          WHERE NAME!='objlist';\n      SELECT type, name, tbl_name FROM objlist...")
+	_ = db.Exec("CREATE TRIGGER trig2 AFTER INSERT ON main.t7 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;\n    INSERT INTO t7 VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TRIGGER trig3 AFTER INSERT ON main.'t8'BEGIN\n      SELECT trigfunc('trig3', new.a, new.b, new.c);\n    END;\n    INSERT INTO t8 VALUES(1, 2, 3);")
+	_ = db.Exec("DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';")
+}
+// Auto-generated from alter2.test
+func TestSQLite_alter2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b);")
+	_ = db.Exec("CREATE INDEX abc_i ON abc(c);")
+	_ = db.Exec("CREATE INDEX i1 ON t2(b);\n      SELECT a FROM t2 WHERE b = X'ABCD';")
+	_ = db.Exec("CREATE TABLE abc(a, b);\n    INSERT INTO abc VALUES(1, 2);\n    INSERT INTO abc VALUES(3, 4);\n    INSERT INTO abc VALUES(5, 6);")
+	_ = db.Exec("CREATE TABLE abc2(a, b, c);\n      INSERT INTO abc2 VALUES(1, 2, 10);\n      INSERT INTO abc2 VALUES(3, 4, NULL);\n      INSERT INTO abc2 VALUES(5, 6, NULL);\n      CREATE VIEW abc2_v AS SELECT * FROM abc2;\n      SELECT * FROM abc2_v;")
+	_ = db.Exec("CREATE TABLE abc3(a, b);")
+	_ = db.Exec("CREATE TABLE abc3(a, b);\n      CREATE TABLE blog(o, n);\n      CREATE TRIGGER abc3_t AFTER UPDATE OF b ON abc3 BEGIN\n        INSERT INTO blog VALUES(old.b, new.b);\n      END;")
+	_ = db.Exec("CREATE TABLE clog(o, n);\n      CREATE TRIGGER abc3_t2 AFTER UPDATE OF c ON abc3 BEGIN\n        INSERT INTO clog VALUES(old.c, new.c);\n      END;\n      UPDATE abc3 SET c = a*2;\n      SELECT * FROM clog;")
+	_ = db.Exec("CREATE TABLE t1(a, b);")
+	_ = db.Exec("CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES('a');\n      INSERT INTO t2 VALUES('b');\n      INSERT INTO t2 VALUES('c');\n      INSERT INTO t2 VALUES('d');")
+	_ = db.Exec("CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)||' '||\n          new.b||' '||typeof(new.b)||' '||new.c||' '||typeof(new.c) \n      );\n      END;")
+	_ = db.Exec("CREATE TRIGGER trig2 BEFORE DELETE ON t1 BEGIN\n      SELECT set_val(\n          old.b||' '||typeof(old.b)||' '||old.c||' '||typeof(old.c)\n      );\n      END;")
+	_ = db.Exec("DELETE FROM t1 WHERE a = 2;")
+	_ = db.Exec("DELETE FROM t2 WHERE a = 'c';\n      SELECT a FROM t2 WHERE b = X'ABCD';")
+	_ = db.Exec("DROP TABLE abc2;\n      DROP VIEW abc2_v;")
+	_ = db.Exec("DROP TABLE abc;")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO abc3 VALUES(1, 4);\n      UPDATE abc3 SET b = 2 WHERE b = 4;\n      SELECT * FROM blog;")
+	_ = db.Exec("INSERT INTO abc3 VALUES(3, 4);\n      INSERT INTO abc3 VALUES(5, 6);")
+	_ = db.Query("SELECT * FROM abc WHERE c = 10;")
+	_ = db.Query("SELECT * FROM abc2_v;")
+	_ = db.Query("SELECT * FROM abc3;")
+	_ = db.Query("SELECT * FROM abc;")
+	_ = db.Query("SELECT * FROM blog;")
+	_ = db.Query("SELECT * FROM t1 LIMIT 1;")
+	_ = db.Query("SELECT 1 FROM sqlite_master LIMIT 1;")
+	_ = db.Query("SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;")
+	_ = db.Query("SELECT c FROM abc ORDER BY c;")
+	_ = db.Query("SELECT count(b) FROM t2 WHERE b = X'ABCD';")
+	_ = db.Query("SELECT quote(a), quote(b), quote(c) FROM t2 LIMIT 1;")
+	_ = db.Query("SELECT sum(a), c FROM abc GROUP BY c;")
+	_ = db.Query("SELECT typeof(d) FROM abc;")
+	_ = db.Exec("UPDATE abc SET c = 10 WHERE a = 1;\n    SELECT * FROM abc;")
+	_ = db.Exec("UPDATE abc SET d = 11 WHERE c IS NULL AND a<4;\n    SELECT * FROM abc;")
+	_ = db.Exec("UPDATE abc3 SET b = b*2 WHERE a<4;\n      SELECT * FROM abc3;")
+	_ = db.Exec("UPDATE t1 SET c = 10 WHERE a = 1;\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;")
+	_ = db.Exec("VACUUM")
+}
+// Auto-generated from alter3.test
+func TestSQLite_alter3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE abc ADD d INTEGER;")
+	_ = db.Exec("ALTER TABLE abc ADD e")
+	_ = db.Exec("ALTER TABLE abc ADD e DEFAULT 10;")
+	_ = db.Exec("ALTER TABLE abc ADD f DEFAULT NULL;")
+	_ = db.Exec("ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;")
+	_ = db.Exec("ALTER TABLE aux.t1 ADD COLUMN d DEFAULT 1000;\n      SELECT sql FROM aux.sqlite_master;")
+	_ = db.Exec("ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=1);")
+	_ = db.Exec("ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=3);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c CHECK(a!=1);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c CHECK(a!=3);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c DEFAULT 'c';\n      INSERT INTO t1(a, b) VALUES(3, 4);\n      SELECT * FROM log;")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=1);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=3);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL;")
+	_ = db.Exec("ALTER TABLE t1 ADD c DEFAULT 'hello world';\n    SELECT * FROM t1;")
+	_ = db.Exec("ALTER TABLE t1 ADD c;\n    SELECT * FROM t1;")
+	_ = db.Exec("ALTER TABLE t1 ADD d CHECK (a>d);\n    SELECT sql FROM sqlite_master WHERE tbl_name = 't1';")
+	_ = db.Exec("ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=1);")
+	_ = db.Exec("ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=3);")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n        ALTER TABLE abc ADD d DEFAULT NULL;")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;")
+	_ = db.Exec("CREATE TABLE main.t1(a, b);\n    ALTER TABLE t1 ADD c;\n    SELECT sql FROM sqlite_master WHERE tbl_name = 't1';")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n      CREATE TABLE log(trig, a, b);\n\n      CREATE TRIGGER t1_a AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('a', new.a, new.b);\n      END;\n      CREATE TEMP TRIGGER t1_b AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('b', new.a, new.b);\n      END...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1 AS SELECT * FROM t1;\n      PRAGMA aux.schema_version = 30;\n      SELECT sql FROM aux.sqlite_master;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1,2);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1, 2), ('null!',NULL), (3,4);")
+	_ = db.Exec("CREATE TABLE t2(a, b, UNIQUE(a, b));\n      ALTER TABLE t2 ADD c REFERENCES t1(c)  ;\n      SELECT sql FROM sqlite_master WHERE tbl_name = 't2' AND type = 'table';")
+	_ = db.Exec("CREATE TABLE t3(a, b, UNIQUE(a, b));\n    ALTER TABLE t3 ADD COLUMN c VARCHAR(10, 20);\n    SELECT sql FROM sqlite_master WHERE tbl_name = 't3' AND type = 'table';")
+	_ = db.Exec("CREATE TABLE t4(c1);")
+	_ = db.Exec("CREATE TEMP TABLE t0(m,n);\n  INSERT INTO t0 VALUES(1, 2), ('null!',NULL), (3,4);\n  ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t2(x,y);\n  INSERT INTO t2 VALUES(1, 2), ('null!',NULL), (3,4);")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE abc; \n    DROP TABLE t1; \n    DROP TABLE t3;")
+	_ = db.Exec("DROP TABLE aux.t1;\n      DROP TABLE t1;")
+	_ = db.Exec("DROP TABLE t1;")
+	_ = db.Query("PRAGMA aux.schema_version;")
+	_ = db.Query("PRAGMA schema_version = 10;")
+	_ = db.Query("PRAGMA schema_version = 20;")
+	_ = db.Query("PRAGMA schema_version;")
+}
+// Auto-generated from alter4.test
+func TestSQLite_alter4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE abc ADD d INTEGER;")
+	_ = db.Exec("ALTER TABLE abc ADD e")
+	_ = db.Exec("ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;")
+	_ = db.Exec("ALTER TABLE aux.t1 ADD COLUMN d DEFAULT 1000;\n      SELECT sql FROM aux.sqlite_master;")
+	_ = db.Exec("ALTER TABLE fff ADD COLUMN g;")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c DEFAULT 'c';\n      INSERT INTO t1(a, b) VALUES(3, 4);\n      SELECT * FROM log ORDER BY trig, a, b;")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN f REFERENCES t1;")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN g REFERENCES t1 DEFAULT 4;")
+	_ = db.Exec("ALTER TABLE t1 ADD c DEFAULT 'hello world';\n    SELECT * FROM t1;")
+	_ = db.Exec("ALTER TABLE t1 ADD c;\n    SELECT * FROM t1;")
+	_ = db.Exec("ALTER TABLE t1 ADD d CHECK (a>d);\n    SELECT sql FROM sqlite_temp_master WHERE tbl_name = 't1';")
+	_ = db.Exec("ALTER TABLE t2 ADD COLUMN g;")
+	_ = db.Exec("ALTER TABLE t5 ADD COLUMN c INTEGER DEFAULT (-(-9223372036854775808));\n  SELECT typeof(c), c FROM t5;")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t1(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t1(c,d) VALUES(1,2);\n  PRAGMA foreign_keys = on;\n  ALTER TABLE t1 ADD COLUMN e;")
+	_ = db.Exec("CREATE TABLE t5(\n    a INTEGER DEFAULT -9223372036854775808,\n    b INTEGER DEFAULT (-(-9223372036854775808))\n  );\n  INSERT INTO t5 DEFAULT VALUES;")
+	_ = db.Exec("CREATE TABLE temp.t1(a, b);\n    ALTER TABLE t1 ADD c;\n    SELECT sql FROM sqlite_temp_master WHERE tbl_name = 't1';")
+	_ = db.Exec("CREATE TABLE temp.t1(a, b);\n    INSERT INTO t1 VALUES(1,2);")
+	_ = db.Exec("CREATE TEMP TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_temp_master;")
+	_ = db.Exec("CREATE TEMP TABLE t1(a, b);\n      CREATE TEMP TABLE log(trig, a, b);\n\n      CREATE TRIGGER t1_a AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('a', new.a, new.b);\n      END;\n      CREATE TEMP TRIGGER t1_b AFTER INSERT ON t1 BEGIN\n        INSERT INTO log VALUES('b', new.a, new.b);...")
+	_ = db.Exec("CREATE TEMP TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1 AS SELECT * FROM t1;\n      PRAGMA aux.schema_version = 30;\n      SELECT sql FROM aux.sqlite_master;")
+	_ = db.Exec("CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TEMP TABLE t2(a, b, UNIQUE(a, b));\n      ALTER TABLE t2 ADD c REFERENCES t1(c)  ;\n      SELECT sql FROM sqlite_temp_master\n       WHERE tbl_name = 't2' AND type = 'table';")
+	_ = db.Exec("CREATE TEMP TABLE t4(c1);")
+	_ = db.Exec("CREATE TEMPORARY TABLE t3(a, b, UNIQUE(a, b));\n    ALTER TABLE t3 ADD COLUMN c VARCHAR(10, 20);\n    SELECT sql FROM sqlite_temp_master\n     WHERE tbl_name = 't3' AND type = 'table';")
+	_ = db.Exec("CREATE TEMPORARY VIEW v1 AS SELECT * FROM t1;")
+	_ = db.Exec("CREATE VIRTUAL TABLE fff USING fts5(f);")
+	_ = db.Exec("DROP TABLE abc; \n    DROP TABLE t1; \n    DROP TABLE t3;")
+	_ = db.Exec("DROP TABLE aux.t1;\n      DROP TABLE t1;")
+	_ = db.Exec("DROP TABLE t1;")
+	_ = db.Query("PRAGMA aux.schema_version;")
+	_ = db.Query("PRAGMA schema_version = 10;")
+	_ = db.Query("PRAGMA schema_version = 20;")
+	_ = db.Query("PRAGMA schema_version;")
+	_ = db.Query("SELECT * FROM aux.t1;")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT sql FROM sqlite_temp_master WHERE name = 't4';")
+	_ = db.Query("SELECT sql FROM sqlite_temp_master;")
+	_ = db.Query("SELECT sql FROM temp.sqlite_master WHERE tbl_name = 't1';")
+	_ = db.Query("SELECT sql FROM temp.sqlite_master;")
+}
 // Auto-generated from alterauth.test
 func TestSQLite_alterauth(t *testing.T) {
 	db := setupDB(t)
@@ -182,6 +370,96 @@ func TestSQLite_alterauth2(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("$sql")
 	_ = db.Exec("CREATE TABLE t1(a, b, c); \n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    DELETE FROM t1 WHERE a<new.a;\n  END;\n\n  CREATE TEMP TRIGGER tr2 AFTER UPDATE OF a, b ON t1 BEGIN\n    UPDATE t1 SET a=a+1 WHERE new.b<b;\n  END;")
+}
+// Auto-generated from altercol.test
+func TestSQLite_altercol(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE \"blob\" RENAME COLUMN \"a1\" TO [where];")
+	_ = db.Exec("ALTER TABLE \"blob\" RENAME COLUMN \"rid\" TO \"a1\";")
+	_ = db.Exec("ALTER TABLE a1 RENAME x TO xxx;")
+	_ = db.Exec("ALTER TABLE a1 RENAME xxx TO x;")
+	_ = db.Exec("ALTER TABLE a1 RENAME y TO yyy;\n  SELECT sql FROM sqlite_master WHERE type='view';")
+	_ = db.Exec("ALTER TABLE b2 RENAME x TO hello;\n  SELECT sql FROM sqlite_master WHERE name='xxx';")
+	_ = db.Exec("ALTER TABLE ft RENAME a TO z;")
+	_ = db.Exec("ALTER TABLE p1 RENAME \"silly name\" TO reasonable;\n  SELECT sql FROM sqlite_master WHERE name IN ('c1', 'c2', 'p1');")
+	_ = db.Exec("ALTER TABLE p1 RENAME d TO \"silly name\";\n  SELECT sql FROM sqlite_master WHERE name IN ('c1', 'p1');")
+	_ = db.Exec("ALTER TABLE sqlite_stat1 RENAME idx TO theindex;")
+	_ = db.Exec("ALTER TABLE sqlite_stat1 RENAME tbl TO thetable;")
+	_ = db.Exec("ALTER TABLE t1 RENAME COLUMN \"big c\" TO reallybigc;")
+	_ = db.Exec("ALTER TABLE t1 RENAME COLUMN b TO d;")
+	_ = db.Exec("ALTER TABLE t1 RENAME COLUMN c TO \"big c\";\n  INSERT INTO t1 VALUES(4, 0, 0);\n  SELECT * FROM t2;")
+	_ = db.Exec("ALTER TABLE t1 RENAME COLUMN e TO eeee;")
+	_ = db.Exec("ALTER TABLE t1 RENAME a TO b;")
+	_ = db.Exec("ALTER TABLE t1 RENAME a TO f;\n  SELECT sql FROM sqlite_master WHERE name = 'v2';")
+	_ = db.Exec("ALTER TABLE t1 RENAME c TO d;")
+	_ = db.Exec("ALTER TABLE t2 RENAME COLUMN a TO b;")
+	_ = db.Exec("ALTER TABLE t2 RENAME COLUMN f TO \"big f\";\n  INSERT INTO t1 VALUES(4, 0, 20456);\n  SELECT * FROM t2;")
+	_ = db.Exec("ALTER TABLE t2 RENAME d TO a;")
+	_ = db.Exec("ALTER TABLE t3 RENAME COLUMN a TO b;")
+	_ = db.Exec("ALTER TABLE t3 RENAME b TO biglongname;\n  SELECT sql FROM sqlite_master WHERE name='t3';")
+	_ = db.Exec("ALTER TABLE t4 RENAME y TO abc;\n  SELECT sql FROM sqlite_master WHERE name='t4';")
+	_ = db.Exec("ALTER TABLE t5 RENAME COLUMN b TO bbb;\n  SELECT sql FROM sqlite_schema WHERE name='vt5';")
+	_ = db.Exec("ALTER TABLE t5 RENAME b TO big;\n  SELECT big FROM t5;")
+	_ = db.Exec("ALTER TABLE t6 RENAME \"col c\" TO \"col 3\";")
+	_ = db.Exec("ALTER TABLE u7 RENAME x TO xxx;")
+	_ = db.Exec("ALTER TABLE uu7 RENAME x TO xxx;")
+	_ = db.Exec("ALTER TABLE v1 RENAME a TO z;")
+	_ = db.Exec("ALTER TABLE v2 RENAME c TO y;")
+	_ = db.Exec("ALTER TABLE x1 RENAME COLUMN t TO ttt;")
+	_ = db.Exec("ALTER TABLE x1 RENAME b TO bbb;\n    SELECT sql FROM sqlite_master;")
+	_ = db.Exec("ALTER TABLE x1 RENAME c TO ccc;")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a);\n  CREATE TABLE aux.log(v);\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log VALUES(new.a);\n  END;\n  INSERT INTO t1 VALUES(111);\n  SELECT v FROM log;")
+	_ = db.Exec("BEGIN;\n  PRAGMA writable_schema=ON;\n  ALTER TABLE t1 RENAME COLUMN e TO eeee;\n  PRAGMA writable_schema=OFF;\n  SELECT name FROM sqlite_master\n     WHERE (name, sql) NOT IN (SELECT name, sql FROM schema_copy);\n  ROLLBACK;")
+	_ = db.Exec("CREATE TABLE a1(x INTEGER, y TEXT, z BLOB, PRIMARY KEY(x));\n  CREATE TABLE a2(a, b, c);\n  CREATE VIEW v1 AS SELECT x, y, z FROM a1;")
+	_ = db.Exec("CREATE TABLE b1(a, b, c);\n  CREATE TABLE b2(x, y, z);")
+	_ = db.Exec("CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );")
+	_ = db.Exec("CREATE TABLE c(x);\n  INSERT INTO c VALUES(0);\n  CREATE TABLE t6(\"col a\", \"col b\", \"col c\");\n  CREATE TRIGGER zzz AFTER UPDATE OF \"col a\", \"col c\" ON t6 BEGIN\n    UPDATE c SET x=x+1;\n  END;")
+}
+// Auto-generated from altercons.test
+func TestSQLite_altercons(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE abc ADD CHECK (z>=0);")
+	_ = db.Exec("ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);")
+	_ = db.Exec("ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL")
+	_ = db.Exec("ALTER TABLE aux.t1 ALTER z DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';")
+	_ = db.Exec("ALTER TABLE aux.t1 DROP CONSTRAINT bill;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';")
+	_ = db.Exec("ALTER TABLE b1 ADD CONSTRAINT abc CHECK (a!=3);")
+	_ = db.Exec("ALTER TABLE sqlite_schema ALTER sql SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));")
+	_ = db.Exec("ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );")
+	_ = db.Exec("ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);")
+	_ = db.Exec("ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;")
+	_ = db.Exec("ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE t1 DROP CONSTRAINT abc;")
+	_ = db.Exec("ALTER TABLE t2 ADD CONSTRAINT william CHECK (z!='');\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';")
+	_ = db.Exec("ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;")
+	_ = db.Exec("ALTER TABLE t2 ALTER x DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';")
+	_ = db.Exec("ALTER TABLE t2 ALTER x SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';")
+	_ = db.Exec("ALTER TABLE t2 DROP CONSTRAINT ccc")
+	_ = db.Exec("ALTER TABLE t2 DROP CONSTRAINT ddd")
+	_ = db.Exec("ALTER TABLE t2 DROP CONSTRAINT william;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';")
+	_ = db.Exec("ALTER TABLE t3 ALTER b SET NOT NULL")
+	_ = db.Exec("ALTER TABLE temp.x1 ALTER c SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE v1 ALTER a DROP NOT NULL")
+	_ = db.Exec("ALTER TABLE v1 ALTER a SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE v1 RENAME a TO c;")
+	_ = db.Exec("ALTER TABLE x1 ALTER b SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE x1 ALTER d SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE x1 ALTER rowid SET NOT NULL;")
+	_ = db.Exec("ALTER TABLE x2 ALTER c SET NOT NULL;")
+	_ = db.Exec("CREATE TABLE abc(x,y);")
+	_ = db.Exec("CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);")
+	_ = db.Exec("CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);")
+	_ = db.Exec("CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');")
+	_ = db.Exec("CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);")
+	_ = db.Exec("CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);")
+	_ = db.Exec("CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);")
+	_ = db.Exec("CREATE TABLE x1(a, b, c);")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT a, b FROM x1;")
 }
 // Auto-generated from altercons2.test
 func TestSQLite_altercons2(t *testing.T) {
@@ -361,6 +639,12 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	_ = db.Query("PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;")
 	_ = db.Query("PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux....")
 }
+// Auto-generated from altermalloc.test
+func TestSQLite_altermalloc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t1echo RENAME TO t1_echo")
+}
 // Auto-generated from altermalloc2.test
 func TestSQLite_altermalloc2(t *testing.T) {
 	db := setupDB(t)
@@ -374,6 +658,70 @@ func TestSQLite_altermalloc2(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(abcd, efgh);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE abcd>efgh;")
 	_ = db.Query("PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);")
 	_ = db.Query("SELECT * FROM sqlite_master")
+}
+// Auto-generated from altermalloc3.test
+func TestSQLite_altermalloc3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t1 DROP COLUMN c")
+	_ = db.Exec("ALTER TABLE t2 RENAME TO t2x;")
+	_ = db.Exec("CREATE TABLE t2(k,v);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (k,v)= (\n       (WITH cte1(a) AS ( SELECT 1 FROM ( SELECT * FROM t2 ) )\n       SELECT a FROM cte1\n    ), 1);\n  END;\n\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET k=1 FROM t2 AS one, t2 ...")
+	_ = db.Exec("CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one...")
+	_ = db.Query("SELECT * FROM sqlite_master")
+}
+// Auto-generated from alterqf.test
+func TestSQLite_alterqf(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);")
+	_ = db.Exec("CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one...")
+	_ = db.Query("SELECT sqlite_rename_quotefix('main', $before)")
+}
+// Auto-generated from altertab.test
+func TestSQLite_altertab(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE a RENAME TO e;")
+	_ = db.Exec("ALTER TABLE a RENAME a TO e;")
+	_ = db.Exec("ALTER TABLE abc RENAME TO y1_segments;")
+	_ = db.Exec("ALTER TABLE aux.p1 RENAME TO ppp;")
+	_ = db.Exec("ALTER TABLE aux.t1 RENAME TO t2;\n  SELECT name, tbl_name FROM sqlite_temp_master;")
+	_ = db.Exec("ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;")
+	_ = db.Exec("ALTER TABLE fff RENAME TO ggg;")
+	_ = db.Exec("ALTER TABLE idx2 RENAME x TO y;\n  SELECT sql FROM sqlite_master;")
+	_ = db.Exec("ALTER TABLE json_each RENAME TO t4;")
+	_ = db.Exec("ALTER TABLE main.t1 RENAME TO t2;\n  SELECT name, tbl_name FROM sqlite_temp_master;")
+	_ = db.Exec("ALTER TABLE main.t1 RENAME TO t3;")
+	_ = db.Exec("ALTER TABLE main.t2 RENAME TO t3;")
+	_ = db.Exec("ALTER TABLE mytable RENAME TO mytable_renamed;")
+	_ = db.Exec("ALTER TABLE mytable_renamed RENAME TO mytable2;")
+	_ = db.Exec("ALTER TABLE t0 RENAME COLUMN c0 TO c1;")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c INT DEFAULT 78;\n  SELECT * FROM t1;")
+	_ = db.Exec("ALTER TABLE t1 RENAME COLUMN a TO b;")
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t1new;")
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t1x;")
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t2")
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t2;")
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t3;")
+	_ = db.Exec("ALTER TABLE t1 RENAME TO tt1;")
+	_ = db.Exec("ALTER TABLE t1 RENAME a TO a2; -- fails in v3")
+	_ = db.Exec("ALTER TABLE t1x RENAME q TO x;")
+	_ = db.Exec("ALTER TABLE t2 RENAME TO one;")
+	_ = db.Exec("ALTER TABLE t2 RENAME TO t2new;")
+	_ = db.Exec("ALTER TABLE t2 RENAME TO t3;")
+	_ = db.Exec("ALTER TABLE t2 RENAME TO t5;")
+	_ = db.Exec("ALTER TABLE t2 RENAME b TO y;")
+	_ = db.Exec("ALTER TABLE temp.t9 RENAME TO 't1234567890'")
+	_ = db.Exec("ALTER TABLE txx RENAME TO \"t xx\";\n  SELECT * FROM vvv;")
+	_ = db.Exec("ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'")
+	_ = db.Exec("ALTER TABLE y1 RENAME TO z1;")
+	_ = db.Exec("ALTER TABLE y1_segments RENAME TO abc;")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABL...")
+	_ = db.Exec("BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;")
+	_ = db.Exec("CREATE TABLE a(a);\n  CREATE VIEW b AS SELECT(SELECT *FROM c JOIN a USING(d, a, a, a) JOIN a) IN();")
+	_ = db.Exec("CREATE TABLE a(b);\n  CREATE VIEW c AS \n      SELECT NULL INTERSECT \n      SELECT NULL ORDER BY\n      likelihood(NULL, (d, (SELECT c)));")
 }
 // Auto-generated from altertab2.test
 func TestSQLite_altertab2(t *testing.T) {
@@ -488,6 +836,82 @@ func TestSQLite_amatch1(t *testing.T) {
 	_ = db.Query("SELECT word, distance FROM t3\n     WHERE word MATCH 'joxxph' AND distance<=300;")
 	_ = db.Query("SELECT word, distance FROM t4\n       WHERE word MATCH 'josxph' AND distance<300;")
 }
+// Auto-generated from analyze.test
+func TestSQLite_analyze(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx...")
+	_ = db.Exec("CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tb...")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0...")
+	_ = db.Exec("CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT I...")
+	_ = db.Exec("DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;")
+	_ = db.Exec("DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;")
+	_ = db.Exec("INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Query("PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema...")
+	_ = db.Query("PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;")
+	_ = db.Query("PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';")
+	_ = db.Query("SELECT * FROM sqlite_stat1")
+	_ = db.Query("SELECT * FROM sqlite_stat1 WHERE idx NOT NULL")
+	_ = db.Query("SELECT * FROM t4 WHERE x=1234;")
+	_ = db.Query("SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;")
+	_ = db.Query("SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'")
+}
+// Auto-generated from analyze3.test
+func TestSQLite_analyze3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t2(x TEXT, y);\n      INSERT INTO t2 SELECT * FROM t1;\n      CREATE INDEX i2 ON t2(x);\n    COMMIT;\n    ANALYZE;")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t3(y TEXT, x INTEGER);\n      INSERT INTO t3 SELECT y, x FROM t1;\n      CREATE INDEX i3 ON t3(x);\n    COMMIT;\n    ANALYZE;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(x INTEGER, y);\n    CREATE INDEX i1 ON t1(x);")
+	_ = db.Exec("COMMIT;\n    ANALYZE;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat4 VALUES\n     ('t1','t1','1','2','2',X'03000103'),\n     ('t1','sqlite_autoindex_t1_1','1','2','2',X'03000103');\n  ANALYZE sqlite_schema;\n  PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANAL...")
+	_ = db.Exec("CREATE TABLE t1(a, b, c)")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;")
+	_ = db.Exec("CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');")
+	_ = db.Exec("CREATE TABLE t2(d, e, f)")
+	_ = db.Exec("CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1,1,'0000');\n  CREATE INDEX t0b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND hex(1);")
+	_ = db.Exec("DROP TABLE t1")
+	_ = db.Exec("INSERT INTO t1 VALUES($i+100, $i)")
+	_ = db.Exec("INSERT INTO t1 VALUES($i, $i, $i)")
+	_ = db.Exec("INSERT INTO t1 VALUES($i, $t)")
+	_ = db.Query("PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE b LIKE $like")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE b LIKE '%a'")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE b LIKE 'a%'")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t1 WHERE x>0 AND x<1100;")
+	_ = db.Query("SELECT count(*) FROM t2 WHERE x>1 AND x<2;\n  SELECT count(*) FROM t2 WHERE x>0 AND x<99;")
+	_ = db.Query("SELECT count(*) FROM t3 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t3 WHERE x>0 AND x<1100")
+	_ = db.Query("SELECT count(*)>0 FROM sqlite_stat4;")
+	_ = db.Query("SELECT sum(y) FROM t1 WHERE x>$l AND x<$u")
+	_ = db.Query("SELECT sum(y) FROM t1 WHERE x>0 AND x<1100")
+	_ = db.Query("SELECT sum(y) FROM t1 WHERE x>200 AND x<300")
+	_ = db.Query("SELECT sum(y) FROM t2 WHERE x>0 AND x<99")
+	_ = db.Query("SELECT sum(y) FROM t2 WHERE x>12 AND x<20")
+	_ = db.Query("SELECT sum(y) FROM t3 WHERE x>$l AND x<$u")
+	_ = db.Query("SELECT sum(y) FROM t3 WHERE x>0 AND x<1100")
+	_ = db.Query("SELECT sum(y) FROM t3 WHERE x>200 AND x<300")
+	_ = db.Query("SELECT typeof($l), typeof($u), sum(y) FROM t2 WHERE x>$l AND x<$u")
+	_ = db.Exec("sql {db db")
+}
 // Auto-generated from analyze4.test
 func TestSQLite_analyze4(t *testing.T) {
 	db := setupDB(t)
@@ -546,6 +970,51 @@ func TestSQLite_analyze8(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);")
 	_ = db.Exec("INSERT INTO t1 VALUES($a,$b,$c,$i)")
 	_ = db.Query("SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 0 AND 100000;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 800000 AND 900000;")
+}
+// Auto-generated from analyze9.test
+func TestSQLite_analyze9(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ANALYZE")
+	_ = db.Exec("ANALYZE main.t1")
+	_ = db.Exec("ANALYZE temp.t1;")
+	_ = db.Exec("ANALYZE;")
+	_ = db.Exec("ANALYZE;\n  SELECT lindex(nEq, 0) FROM sqlite_stat4;")
+	_ = db.Exec("ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';")
+	_ = db.Exec("ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';")
+	_ = db.Exec("ANALYZE;\n  UPDATE sqlite_stat4 SET ndlt = '0 0 0';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 3;")
+	_ = db.Exec("ANALYZE;\n  UPDATE sqlite_stat4 SET neq = '0 0 0';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 1;")
+	_ = db.Exec("ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;")
+	_ = db.Exec("ANALYZE;\n  UPDATE sqlite_stat4 SET nlt = '0 0 0';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 5;")
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(o,t INTEGER PRIMARY KEY);\n    CREATE INDEX i1 ON t1(o);")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT IN...")
+	_ = db.Exec("COMMIT;\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;")
+	_ = db.Exec("CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;")
+	_ = db.Exec("CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);")
+	_ = db.Exec("CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;")
+	_ = db.Exec("CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;")
+	_ = db.Exec("CREATE TABLE t1(a, b INTEGER, c)")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEM...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sq...")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('some text', 14, NULL);\n  INSERT INTO t1 VALUES(22.0, NULL, x'656667');\n  CREATE INDEX i1 ON t1(a, b, c);\n  ANALYZE;\n  SELECT test_decode(sample) FROM sqlite_stat4;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t...")
+	_ = db.Exec("CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);")
+	_ = db.Exec("CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;")
+	_ = db.Exec("CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_...")
+	_ = db.Exec("CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) S...")
+	_ = db.Exec("CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;")
+	_ = db.Exec("CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);")
 }
 // Auto-generated from analyzeC.test
 func TestSQLite_analyzeC(t *testing.T) {
@@ -613,6 +1082,22 @@ func TestSQLite_analyzeE(t *testing.T) {
 	_ = db.Query("SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i2' AND neq='1000 1';")
 	_ = db.Query("SELECT format('(%s)',a) FROM t1 WHERE t1.a <= CAST(zeroblob(5) AS TEXT);")
 }
+// Auto-generated from analyzeF.test
+func TestSQLite_analyzeF(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(a, c) SELECT x, x FROM c;\n  UPDATE t1 SET b=printf('x%02x',a/500) WHERE a>4000;\n  UPDATE t1 SET b='xyz' where a>...")
+	_ = db.Query("SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;")
+	_ = db.Query("SELECT * FROM t1 WHERE x = dstr() AND y = 11;")
+	_ = db.Query("SELECT * FROM t1 WHERE x = error('error one') AND y = 4;")
+	_ = db.Query("SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)")
+	_ = db.Query("SELECT * FROM t1 WHERE x = test_zeroblob(1100000) AND y = 4;")
+	_ = db.Query("SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;")
+	_ = db.Exec("UPDATE t1 SET y=y+1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)")
+	_ = db.Query("explain query plan\n  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;\n  /*                  v---- Should be \"=\", not \">\"  */")
+}
 // Auto-generated from analyzeG.test
 func TestSQLite_analyzeG(t *testing.T) {
 	db := setupDB(t)
@@ -669,6 +1154,75 @@ func TestSQLite_atomic2(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM t1; PRAGMA integrity_check")
 	_ = db.Exec("WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n    INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;")
 }
+// Auto-generated from attach.test
+func TestSQLite_attach(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH '' AS noname;\n    ATTACH ':memory:' AS inmem;\n    BEGIN;\n    CREATE TABLE noname.noname(x);\n    CREATE TABLE inmem.inmem(y);\n    CREATE TABLE main.main(z);\n    COMMIT;\n    SELECT name FROM noname.sqlite_master;\n    SELECT name FROM inmem.sqlite_master;")
+	_ = db.Exec("ATTACH ':memory:' AS a$i")
+	_ = db.Exec("ATTACH 'test.db' AS db2;\n    ATTACH 'test.db' AS db3;\n    ATTACH 'test.db' AS db4;\n    ATTACH 'test.db' AS db5;\n    ATTACH 'test.db' AS db6;\n    ATTACH 'test.db' AS db7;\n    ATTACH 'test.db' AS db8;\n    ATTACH 'test.db' AS db9;")
+	_ = db.Exec("ATTACH 'test.db' as MAIN;")
+	_ = db.Exec("ATTACH 'test.db' as main;")
+	_ = db.Exec("ATTACH 'test2.db' AS db2;")
+	_ = db.Exec("ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;")
+	_ = db.Exec("ATTACH 'test4.db' AS aux1;\n    CREATE TABLE aux1.t1(a, b);\n    INSERT INTO aux1.t1 VALUES(1, 2);\n    ATTACH 'test4.db' AS aux2;\n    SELECT * FROM aux2.t1;")
+	_ = db.Exec("ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    INSERT INTO main.t3 VALUES(15,16);")
+	_ = db.Exec("ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;")
+	_ = db.Exec("ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.t3;")
+	_ = db.Exec("ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.v3;")
+	_ = db.Exec("ATTACH DATABASE 'test2.db' AS two;\n    SELECT * FROM two.t2;")
+	_ = db.Exec("ATTACH printf('file:%09000x/x.db?mode=memory&cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;")
+	_ = db.Exec("COMMIT;\n    SELECT * FROM aux2.t1;")
+	_ = db.Exec("CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;")
+	_ = db.Exec("CREATE TABLE $m.t1(a INTEGER PRIMARY KEY, b);")
+	_ = db.Exec("CREATE TABLE $m.t2(a INTEGER PRIMARY KEY, b);")
+	_ = db.Exec("CREATE TABLE Table1 (col TEXT NOT NULL PRIMARY KEY);\n  ATTACH ':memory:' AS db2;\n  CREATE TABLE db2.Table2(col1 INTEGER, col2 INTEGER, col3 INTEGER, col4);\n  CREATE UNIQUE INDEX db2.idx_col1_unique ON Table2 (col1);\n  CREATE UNIQUE INDEX db2.idx_col23_unique ON Table2 (col2, col3);\n  CREATE ...")
+	_ = db.Exec("CREATE TABLE base(x);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x);\n      CREATE TABLE t2(a,b);\n      CREATE TRIGGER x1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2(a,b) SELECT key, value FROM json_each(NEW.x);\n      END;\n      INSERT INTO t1(x) VALUES('{\"a\":1")
+	_ = db.Exec("CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t3(a,b);\n    CREATE UNIQUE INDEX t3i1b ON t3(a);\n    INSERT INTO t3 VALUES(9,10);\n    SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;")
+	_ = db.Exec("CREATE TABLE t4(x);\n    INSERT INTO t3 VALUES(6,7);\n    INSERT INTO t4 VALUES('db2.6');\n    INSERT INTO t4 VALUES('db2.13');")
+	_ = db.Exec("CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;")
+	_ = db.Exec("CREATE TABLE t4(y);\n    INSERT INTO main.t3 VALUES(11,12);\n    INSERT INTO t4 VALUES('main.11');")
+	_ = db.Exec("CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;")
+	_ = db.Exec("CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;")
+	_ = db.Exec("CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;")
+	_ = db.Exec("CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;")
+	_ = db.Exec("DETACH DATABASE db2;")
+	_ = db.Exec("DETACH DATABASE two;\n    SELECT * FROM t1;")
+	_ = db.Exec("DETACH db2")
+	_ = db.Exec("DETACH db2;")
+	_ = db.Exec("DETACH db5;")
+	_ = db.Exec("INSERT INTO db2.t3 VALUES(9,10);\n    SELECT * FROM db2.t3;")
+	_ = db.Exec("INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;")
+}
+// Auto-generated from attach2.test
+func TestSQLite_attach2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;")
+	_ = db.Exec("ATTACH 'test.db3' AS aux;\n    SELECT * FROM t3;\n    SELECT * FROM t2;")
+	_ = db.Exec("ATTACH 'test.db4' AS aux;")
+	_ = db.Exec("ATTACH 'test.db4' AS aux;\n    SELECT * FROM t4;")
+	_ = db.Exec("ATTACH 'test2.db' as file2")
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE tbl(a, b, c);\n    CREATE TABLE aux.tbl(a, b, c);\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    DROP TABLE aux.tbl;\n    DROP TABLE tbl;\n    ROLLBACK;")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);")
+	_ = db.Exec("DETACH t2")
+	_ = db.Exec("INSERT INTO file2.t1 VALUES(1, 2)")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+	_ = db.Query("PRAGMA database_list")
+	_ = db.Query("PRAGMA encoding = 'utf16';\n    ATTACH 'test.db2' AS aux;\n    SELECT * FROM t2;")
+	_ = db.Query("PRAGMA lock_status")
+	_ = db.Query("SELECT * FROM file2.t1")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Exec("rollback")
+}
 // Auto-generated from attach3.test
 func TestSQLite_attach3(t *testing.T) {
 	db := setupDB(t)
@@ -709,6 +1263,91 @@ func TestSQLite_attach3(t *testing.T) {
 	_ = db.Query("SELECT * FROM sqlite_master WHERE name = 't3';")
 	_ = db.Exec("create temp table dummy(dummy)")
 }
+// Auto-generated from attach4.test
+func TestSQLite_attach4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'x.db' AS next;")
+	_ = db.Exec("ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);")
+	_ = db.Exec("DETACH DATABASE aux;")
+	_ = db.Exec("DROP TRIGGER tr1;")
+	_ = db.Query("PRAGMA database_list")
+}
+// Auto-generated from attachmalloc.test
+func TestSQLite_attachmalloc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DETACH three")
+}
+// Auto-generated from auth.test
+func TestSQLite_auth(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t5 DROP COLUMN new_col_1;")
+	_ = db.Exec("ALTER TABLE t5 DROP COLUMN new_col_1;\n     SELECT 1 FROM sqlite_schema WHERE name='t5' AND sql LIKE '%new_col_1%';")
+	_ = db.Exec("ATTACH $::attachfilename AS test1")
+	_ = db.Exec("ATTACH ':mem' || 'ory:' AS test1")
+	_ = db.Exec("ATTACH ':memory:' as di205;\n  CREATE TABLE di205.t1(x);\n  CREATE INDEX di205.t1x ON t1(x);")
+	_ = db.Exec("ATTACH DATABASE ':memory:' AS test1")
+	_ = db.Exec("ATTACH DATABASE 'test.db' AS two")
+	_ = db.Exec("CREATE TABLE t3(a PRIMARY KEY, b, c);\n    CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n    CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);")
+	_ = db.Exec("CREATE TABLE t3(x INTEGER PRIMARY KEY, y, z)")
+	_ = db.Exec("CREATE TABLE t4(a,b,c);\n      CREATE INDEX t4i1 ON t4(a);\n      CREATE INDEX t4i2 ON t4(b,a,c);\n      INSERT INTO t4 VALUES(1,2,3);\n      ANALYZE;")
+	_ = db.Exec("CREATE TABLE t5 ( x );\n      CREATE TRIGGER t5_tr1 AFTER INSERT ON t5 BEGIN \n        UPDATE t5 SET x = 1 WHERE NEW.x = 0;\n      END;")
+	_ = db.Exec("CREATE TABLE t5(x)")
+	_ = db.Exec("CREATE TABLE t6(a,b,c,d,e,f,g,h);\n    INSERT INTO t6 VALUES(1,2,3,4,5,6,7,8);")
+	_ = db.Exec("CREATE TABLE t7(a, b, c);\n  CREATE VIEW v7 AS SELECT * FROM t7;")
+	_ = db.Exec("CREATE TABLE tx(a1,a2,b1,b2,c1,c2);\n      CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n        INSERT INTO tx VALUES(OLD.a,NEW.a,OLD.b,NEW.b,OLD.c,NEW.c);\n      END;\n      UPDATE t2 SET a=a+1;\n      SELECT * FROM tx;")
+	_ = db.Exec("CREATE TEMP TABLE t3(a PRIMARY KEY, b, c);\n      CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n      CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);")
+	_ = db.Exec("CREATE TRIGGER r3 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NULL);\n    END;\n    SELECT * FROM v1;")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT a+b AS x FROM t2;\n    CREATE TABLE v1chng(x1,x2);\n    CREATE TRIGGER r2 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NEW.x);\n    END;\n    SELECT * FROM v1;")
+	_ = db.Exec("DELETE FROM tx;\n      UPDATE t2 SET a=a+100;\n      SELECT * FROM tx;")
+	_ = db.Exec("DELETE FROM v1 WHERE x=117")
+	_ = db.Exec("DETACH DATABASE test1")
+	_ = db.Exec("DETACH DATABASE test1;")
+	_ = db.Exec("DETACH DATABASE two")
+	_ = db.Exec("DETACH di205;")
+	_ = db.Exec("DETACH test1")
+	_ = db.Exec("DROP INDEX di205.t1x;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a,b);\n       INSERT INTO t1 VALUES(1,2),(3,4),(5,6);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x,y1); INSERT INTO t1 VALUES(1,'a');\n  CREATE TABLE t2(x,y2); INSERT INTO t2 VALUES(99,'z');")
+	_ = db.Exec("DROP TABLE t3;")
+	_ = db.Exec("DROP TABLE t5")
+	_ = db.Exec("DROP TABLE tx;")
+	_ = db.Exec("DROP TABLE tx;\n    DELETE FROM t2 WHERE a=1 AND b=2 AND c=3;\n    SELECT name FROM sqlite_master;")
+	_ = db.Exec("DROP TABLE v1chng;")
+	_ = db.Exec("INSERT INTO t2 VALUES(1,2,3);")
+	_ = db.Exec("INSERT INTO t2 VALUES(11, 2, 33)")
+	_ = db.Exec("INSERT INTO t2 VALUES(7, 8, 9);")
+	_ = db.Exec("INSERT INTO t3 VALUES(44,55,66)")
+	_ = db.Exec("INSERT INTO t5 (x) values(0)")
+	_ = db.Query("PRAGMA database_list")
+	_ = db.Exec("REINDEX BINARY;")
+}
+// Auto-generated from auth2.test
+func TestSQLite_auth2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);")
+	_ = db.Exec("CREATE TABLE t2(x,y,z);")
+	_ = db.Exec("CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  DELETE FROM t2;\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t2 SELECT * FROM t1;")
+	_ = db.Query("SELECT a, b FROM v2;")
+	_ = db.Query("SELECT b, a FROM v2;")
+}
+// Auto-generated from auth3.test
+func TestSQLite_auth3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);")
+	_ = db.Exec("CREATE TEMPORARY TABLE TempTable (\n        key TEXT NOT NULL ON CONFLICT FAIL UNIQUE ON CONFLICT REPLACE,\n        value TEXT NOT NULL ON CONFLICT FAIL);\n    ALTER TABLE TempTable RENAME TO DoNotRead;\n    SELECT name FROM temp.sqlite_master;")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    DELETE FROM t1;\n    SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t1")
+}
 // Auto-generated from autoanalyze1.test
 func TestSQLite_autoanalyze1(t *testing.T) {
 	db := setupDB(t)
@@ -722,6 +1361,85 @@ func TestSQLite_autoanalyze1(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1 WHERE d=45 AND a IN (45,46);")
 	_ = db.Query("SELECT * FROM t1 WHERE d=45 AND a=45;")
 	_ = db.Query("SELECT * FROM t1 WHERE d=45;")
+}
+// Auto-generated from autoinc.test
+func TestSQLite_autoinc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' as aux;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;\n      SELECT 3, * FROM aux.sqlite_sequence;")
+	_ = db.Exec("CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';")
+	_ = db.Exec("CREATE TABLE t1(i INTEGER PRIMARY KEY AUTOINCREMENT, j);\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, j);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, j);\n\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t2 VALUES(NULL, 2);\n  INSERT INTO t3 VALUES(NULL, 3);\n\n  SELECT n...")
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TEMP TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      SELECT 1, name FROM sqlite_master WHERE type='table';\n      SELECT 2, name FROM sqlite_temp_master WHERE type='table';")
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    SELECT name FROM sqlite_master WHERE type='table';")
+	_ = db.Exec("CREATE TABLE t11(a INTEGER PRIMARY KEY AUTOINCREMENT,b UNIQUE);\n  INSERT INTO t11(a,b) VALUES(2,3),(5,6),(4,3),(1,2)\n    ON CONFLICT(b) DO UPDATE SET a=a+1000;\n  SELECT seq FROM sqlite_sequence WHERE name='t11';")
+	_ = db.Exec("CREATE TABLE t2(d, e INTEGER PRIMARY KEY AUTOINCREMENT, f);\n    INSERT INTO t2(d) VALUES(1);\n    SELECT * FROM sqlite_sequence;")
+	_ = db.Exec("CREATE TABLE t2(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    INSERT INTO t2 VALUES(NULL, 1);\n    CREATE TABLE t3(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t3 SELECT * FROM t2 WHERE y>1;\n\n    SELECT * FROM sqlite_sequence WHERE name='t3';")
+	_ = db.Exec("CREATE TABLE t3(g INTEGER PRIMARY KEY AUTOINCREMENT, h);\n    INSERT INTO t3(h) VALUES(1);\n    SELECT * FROM sqlite_sequence;")
+	_ = db.Exec("CREATE TABLE t3928(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      CREATE TRIGGER t3928r1 BEFORE INSERT ON t3928 BEGIN\n        INSERT INTO t3928(b) VALUES('before1');\n        INSERT INTO t3928(b) VALUES('before2');\n      END;\n      CREATE TRIGGER t3928r2 AFTER INSERT ON t3928 BEGIN\n        I...")
+	_ = db.Exec("CREATE TABLE t3928b(x);\n      INSERT INTO t3928b VALUES(100);\n      INSERT INTO t3928b VALUES(200);\n      INSERT INTO t3928b VALUES(300);\n      DELETE FROM t3928;\n      CREATE TABLE t3928c(y INTEGER PRIMARY KEY AUTOINCREMENT, z);\n      CREATE TRIGGER t3928br1 BEFORE DELETE ON t3928b BEGIN\n...")
+	_ = db.Exec("CREATE TABLE t4(m INTEGER PRIMARY KEY AUTOINCREMENT, n);\n      CREATE TABLE t5(o, p INTEGER PRIMARY KEY AUTOINCREMENT);")
+	_ = db.Exec("CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(2147483647,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';")
+	_ = db.Exec("CREATE TABLE t6(v INTEGER PRIMARY KEY AUTOINCREMENT, w);\n      INSERT INTO t6 VALUES(9223372036854775807,1);\n      SELECT seq FROM main.sqlite_sequence WHERE name='t6';")
+	_ = db.Exec("CREATE TABLE t7(x INTEGER, y REAL, PRIMARY KEY(x AUTOINCREMENT));\n    INSERT INTO t7(y) VALUES(123);\n    INSERT INTO t7(y) VALUES(234);\n    DELETE FROM t7;\n    INSERT INTO t7(y) VALUES(345);\n    SELECT * FROM t7;")
+	_ = db.Exec("CREATE TABLE ta69637_1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n      CREATE TABLE ta69637_2(z);\n      CREATE TRIGGER ra69637_1 AFTER INSERT ON ta69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+1);\n      END;\n      INSERT INTO ta69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;")
+	_ = db.Exec("CREATE TEMP TABLE t2 AS SELECT y FROM t1;")
+	_ = db.Exec("CREATE TEMP TABLE t2(p INTEGER PRIMARY KEY AUTOINCREMENT, q);\n      INSERT INTO t2 SELECT * FROM t1;\n      DROP TABLE t1;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;")
+	_ = db.Exec("CREATE VIEW va69637_2 AS SELECT * FROM ta69637_2;\n      CREATE TRIGGER ra69637_2 INSTEAD OF INSERT ON va69637_2 BEGIN\n        INSERT INTO ta69637_1(y) VALUES(new.z+10000);\n      END;\n      INSERT INTO va69637_2 VALUES(123);\n      SELECT * FROM ta69637_1;")
+	_ = db.Exec("DELETE FROM sqlite_sequence WHERE name='t1';\n    INSERT INTO t1 VALUES(NULL,5);\n    SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM sqlite_sequence;\n  CREATE TABLE t10a(a INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE);\n  INSERT INTO t10a VALUES(888,9999);\n  CREATE TABLE t10b(x INTEGER PRIMARY KEY AUTOINCREMENT, y UNIQUE);\n  INSERT INTO t10b SELECT * FROM t10a;\n  SELECT * FROM sqlite_sequence;")
+	_ = db.Exec("DELETE FROM t1 WHERE y=567;\n    SELECT * FROM sqlite_sequence;")
+	_ = db.Exec("DELETE FROM t1 WHERE y>=3;\n    INSERT INTO t1 SELECT NULL, y+2 FROM t1;\n    SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n      INSERT INTO t1 SELECT NULL, y FROM t2;\n      SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES(NULL,1);\n    SELECT * FROM sqlite_sequence;")
+	_ = db.Exec("DELETE FROM t1;\n    SELECT * FROM sqlite_sequence;")
+	_ = db.Exec("DROP TABLE t1;\n    SELECT name FROM sqlite_sequence;")
+	_ = db.Exec("DROP TABLE t2;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;")
+	_ = db.Exec("DROP TABLE t2;\n    SELECT name FROM sqlite_sequence;")
+	_ = db.Exec("DROP TABLE t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;")
+	_ = db.Exec("DROP TABLE t3;\n    SELECT name FROM sqlite_sequence;")
+	_ = db.Exec("DROP TRIGGER t3928r1;\n      DROP TRIGGER t3928r2;\n      CREATE TRIGGER t3928r3 BEFORE UPDATE ON t3928 \n        WHEN typeof(new.b)=='integer' BEGIN\n           INSERT INTO t3928(b) VALUES('before-int-' || new.b);\n      END;\n      CREATE TRIGGER t3928r4 AFTER UPDATE ON t3928 \n        WHEN typ...")
+	_ = db.Exec("INSERT INTO t1 SELECT * FROM t3;\n      SELECT 1, * FROM main.sqlite_sequence;\n      SELECT 2, * FROM temp.sqlite_sequence;")
+}
+// Auto-generated from autoindex1.test
+func TestSQLite_autoindex1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE accounts(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    account_name TEXT,\n    account_type TEXT,\n    data_set TEXT\n  );\n  CREATE TABLE data(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    package_id INTEGER REFERENCES package(_id),\n    mimetype_id INTEGER REFERENCES mimety...")
+	_ = db.Exec("CREATE TABLE flock_owner(\n    owner_rec_id INTEGER CONSTRAINT flock_owner_key PRIMARY KEY,\n    flock_no VARCHAR(6) NOT NULL REFERENCES flock (flock_no),\n    owner_person_id INTEGER NOT NULL REFERENCES person (person_id),\n    owner_change_date TEXT, last_changed TEXT NOT NULL,\n    CONSTRAINT ...")
+	_ = db.Exec("CREATE TABLE messages (ROWID INTEGER PRIMARY KEY AUTOINCREMENT, message_id, document_id BLOB, in_reply_to, remote_id INTEGER, sender INTEGER, subject_prefix, subject INTEGER, date_sent INTEGER, date_received INTEGER, date_created INTEGER, date_last_viewed INTEGER, mailbox INTEGER, remote_mailbox ...")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(c INT, d INT);\n  CREATE TABLE t3(e TEXT, f TEXT);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 2);\n  INSERT INTO t3 VALUES('abc', 'def');")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT, x INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,90),(1,3,91),(1,4,92);\n  CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n  CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n  CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n  INS...")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 SELECT a+2, b+22 FROM t1;\n    INSERT INTO t1 SELECT a+4, b+44 FROM t1;\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 SELECT a, 900+b FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW agg2 AS SELECT a, sum(b) AS m FROM t2 GROUP BY a;\n  EXPLAIN QUERY PLAN\n  SELECT t1.z, agg2.m\n    FROM t1 JOIN agg2 ON t1.y=agg2.m\n   WHERE t1.x IN (1,2,3);")
+	_ = db.Exec("CREATE TABLE t11(w);\n  CREATE TABLE t12(y);\n  INSERT INTO t11 VALUES(NULL);\n  INSERT INTO t12 VALUES('notnull');")
+	_ = db.Exec("CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES(1,2);\n    INSERT INTO t4 VALUES(2,3);")
+	_ = db.Exec("CREATE TABLE t5(a, b, c);")
+	_ = db.Exec("CREATE TABLE t501(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t502(x INTEGER PRIMARY KEY, y);\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t501',null,'1000000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t502',null,'1000');\n  ANALYZE sqlite_master;")
+	_ = db.Exec("CREATE TABLE t920(x);\n  INSERT INTO t920 VALUES(3),(4),(5);\n  SELECT * FROM t920,(SELECT 0 FROM t920),(VALUES(9)) WHERE 5 IN (x);")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT * FROM \n        data JOIN mimetypes ON (data.mimetype_id=mimetypes._id) \n             JOIN raw_contacts ON (data.raw_contact_id=raw_contacts._id) \n             JOIN accounts ON (raw_contacts.account_id=accounts._id)\n   WHERE mimetypes._id=10 AND data14 IS NOT NULL;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;")
+	_ = db.Exec("INSERT INTO t4 SELECT a+$n, b+$n FROM t4")
+	_ = db.Query("PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;")
+	_ = db.Query("PRAGMA automatic_index=OFF;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;")
+	_ = db.Query("PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;")
+	_ = db.Query("PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;")
+	_ = db.Query("SELECT * FROM t1 LEFT JOIN t2 ON (t2.c=+t1.a) LEFT JOIN t3 ON (t2.d IS NULL);")
+	_ = db.Query("SELECT * FROM t1, t2 LEFT JOIN t3 ON (t2.d=1) WHERE t2.c = +t1.a;")
+	_ = db.Query("SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")
+	_ = db.Query("SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 O...")
+	_ = db.Query("SELECT count(*) FROM t11 LEFT JOIN t12 WHERE t12.y IS t11.w;")
+	_ = db.Query("SELECT count(*) FROM t4;")
+	_ = db.Query("SELECT d FROM t2 ORDER BY d")
+	_ = db.Query("SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;")
+	_ = db.Exec("UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t2';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN\n  SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a);")
+	_ = db.Exec("UPDATE t2 SET d=d+1")
 }
 // Auto-generated from autoindex2.test
 func TestSQLite_autoindex2(t *testing.T) {
@@ -862,6 +1580,93 @@ func TestSQLite_avfs(t *testing.T) {
 	_ = db.Query("SELECT group_concat(a) as pets FROM (SELECT a FROM t1 ORDER BY a DESC);")
 	_ = db.Query("SELECT integrity_check as ic FROM pragma_integrity_check();")
 }
+// Auto-generated from avtrans.test
+func TestSQLite_avtrans(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN TRANSACTION")
+	_ = db.Exec("BEGIN TRANSACTION 'foo'")
+	_ = db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE t1(a int, b int, c int);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE t2(a int, b int, c int);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n    DROP TABLE t1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE TABLE t2(x int, y int, z int);\n    CREATE INDEX i2x ON t2(x);\n    CREATE INDEX i2y ON t2(y);\n    INSERT INTO t2 VALUES(1,2,3);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a int unique,b,c);\n    COMMIT;\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1 ORDER BY a;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;")
+	_ = db.Exec("BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;")
+	_ = db.Exec("BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT IN...")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;")
+	_ = db.Exec("BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT TRANSACTION")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;")
+	_ = db.Exec("CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;")
+	_ = db.Exec("CREATE TABLE one(a text, b int)")
+	_ = db.Exec("CREATE TABLE t1(a integer primary key,b,c);\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE two(a int PRIMARY KEY, b text);\n    INSERT INTO two VALUES(1,'I');\n    INSERT INTO two VALUES(5,'V');\n    INSERT INTO two VALUES(10,'X');\n    SELECT b FROM two ORDER BY a;")
+	_ = db.Exec("DROP INDEX i1;\n    SELECT * FROM t1 WHERE c<1;")
+	_ = db.Exec("DROP TABLE one;\n    DROP TABLE two;")
+	_ = db.Exec("END")
+	_ = db.Exec("END TRANSACTION")
+	_ = db.Exec("END TRANSACTION;\n    SELECT a FROM two ORDER BY a;")
+	_ = db.Exec("INSERT INTO one(a,b) VALUES('hello', 1)")
+	_ = db.Exec("INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;")
+}
+// Auto-generated from backup.test
+func TestSQLite_backup(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test3.db' AS aux1;\n    CREATE TABLE aux1.t1(a, b);")
+	_ = db.Exec("ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);")
+	_ = db.Exec("BEGIN ; CREATE TABLE t2(a, b);")
+	_ = db.Exec("BEGIN EXCLUSIVE")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSER...")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,100...")
+	_ = db.Exec("BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALU...")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(1, 4);")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM sqlite_master;")
+	_ = db.Exec("BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t${iTab}(a, b, c)")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n      BEGIN;\n        INSERT INTO t1 VALUES(NULL, randomblob(200));\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FRO...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 SELECT a+ 1, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 2, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 4, randstr(1000,1000) FROM t1;\n    I...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t2(a PRIMARY KEY, b)")
+	_ = db.Exec("DELETE FROM t1;\n      PRAGMA incremental_vacuum;")
+	_ = db.Exec("INSERT INTO t1 VALUES($ii, randstr(1000,1000))")
+	_ = db.Exec("INSERT INTO t1 VALUES($ii, randstr(200,200))")
+	_ = db.Query("PRAGMA auto_vacuum = incremental;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VA...")
+	_ = db.Query("PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA lock_status")
+	_ = db.Query("PRAGMA page_count")
+	_ = db.Query("PRAGMA page_size = 1024")
+	_ = db.Query("PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, r...")
+	_ = db.Query("PRAGMA page_size = 2048;\n      VACUUM;")
+	_ = db.Query("PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);")
+	_ = db.Query("PRAGMA page_size = 512")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Exec("UPDATE t1 SET a = a + 1")
+	_ = db.Exec("UPDATE t1 SET b = randomblob(200) WHERE a IN (1, 250)")
+	_ = db.Exec("UPDATE t1 SET b = randstr(1000,1000)")
+	_ = db.Exec("UPDATE t1 SET b = randstr(500,500);")
+	_ = db.Exec("VACUUM")
+	_ = db.Query("pragma page_count")
+}
 // Auto-generated from backup2.test
 func TestSQLite_backup2(t *testing.T) {
 	db := setupDB(t)
@@ -876,6 +1681,69 @@ func TestSQLite_backup4(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(x, y, UNIQUE(x, y));\n  INSERT INTO t1 VALUES('one', 'two');\n  SELECT * FROM t1 WHERE x='one';\n  PRAGMA integrity_check;")
 	_ = db.Query("PRAGMA page_size = 4096;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);")
 	_ = db.Query("SELECT * FROM t1 WHERE x='one';\n  PRAGMA integrity_check;")
+}
+// Auto-generated from backup5.test
+func TestSQLite_backup5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    ATTACH 'test6.db' AS aux6;\n    ATTACH 'test7.db' AS aux7;\n    ATTACH 'test8.db' AS aux8;")
+	_ = db.Exec("CREATE TABLE aux7.t3(a, b);\n  CREATE TABLE aux7.t4(a, b);\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 2);\n  INSERT INTO t4 VALUES(3, 3);\n  CREATE INDEX aux7.i3 ON t3(a);\n  CREATE INDEX aux7.i4 ON t4(a);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(a);\n  ATTACH 'test2.db' AS aux2;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(y, x);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);")
+	_ = db.Exec("DETACH aux")
+	_ = db.Exec("DETACH aux4;")
+	_ = db.Exec("DROP TABLE t2;\n    INSERT INTO t1 VALUES(zeroblob(1000), zeroblob(1000));\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));")
+}
+// Auto-generated from backup_ioerr.test
+func TestSQLite_backup_ioerr(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 SELECT a+ 1, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 2, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 4, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a...")
+	_ = db.Exec("INSERT INTO t1 SELECT a+64, randstr(1000,1000) FROM t1")
+	_ = db.Query("PRAGMA cache_size = 10")
+	_ = db.Query("PRAGMA page_size = $iDestPagesize")
+}
+// Auto-generated from backup_malloc.test
+func TestSQLite_backup_malloc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA cache_size = 10")
+	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 SELECT a+ 1, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 2, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 4, randstr(1000,1000) FROM t1;...")
+	_ = db.Query("PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;")
+	_ = db.Exec("UPDATE t1 SET a = a + 1")
+}
+// Auto-generated from badutf.test
+func TestSQLite_badutf(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA encoding=UTF8")
+}
+// Auto-generated from basexx1.test
+func TestSQLite_basexx1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE bs(b blob, num);\n  INSERT INTO bs SELECT randomblob(4000 + n%3), n \n   FROM ( \n     WITH RECURSIVE seq(n) AS (\n      VALUES(1) UNION ALL SELECT n+1\n      FROM seq WHERE n<100\n     ) SELECT n FROM seq);\n  SELECT num FROM bs WHERE base64(base64(b))!=b;\n  SELECT num FROM bs WHER...")
+	_ = db.Exec("CREATE TEMP TABLE junk(j text, rank int);\n  INSERT INTO junk VALUES ('',0),(' ',1),('~',2);\n  SELECT len, base64(j.j||base64(b)||j.j)=b, base85(j.j||base85(b)||j.j)=b\n  FROM rb r, junk j WHERE j.rank=(r.len+r.len/25)%3 ORDER BY len;")
+	_ = db.Exec("CREATE TEMP TABLE rb( len int, b blob ) STRICT;\n  INSERT INTO rb(len) VALUES (1),(2),(3),(4),(5),(150),(151),(152),(153),(1054);\n  UPDATE rb SET b = randomblob(len);\n  SELECT len, base64(base64(b))=b, base85(base85(b))=b\n  FROM rb ORDER BY len;")
+	_ = db.Query("SELECT base64(x'')||base85(x'');")
+	_ = db.Query("SELECT base64(x'000102030405');\n  SELECT base64(x'0001020304');\n  SELECT base64(x'00010203');")
+	_ = db.Query("SELECT base64(zeroblob(2000_000_000))")
+	_ = db.Query("SELECT base85(x'000102030405');\n  SELECT base85(x'0001020304');\n  SELECT base85(x'00010203');")
+	_ = db.Query("SELECT base85(zeroblob(2000_000_000))")
+	_ = db.Query("SELECT hex(base64(' AAECAwQF '));\n  SELECT hex(base64(' AAECAwQ'));\n  SELECT hex(base64('AAECAw '));")
+	_ = db.Query("SELECT hex(base64('AAECAwQF'));\n  SELECT hex(base64('AAECAwQ='));\n  SELECT hex(base64('AAECAw=='));")
+	_ = db.Query("SELECT hex(base85('##/2,#2/'));\n  SELECT hex(base85('##/2,#*'));\n  SELECT hex(base85('##/2,'));\n  SELECT hex(base85(' ##/2,#2/ '));\n  SELECT hex(base85(' ##/2,#*'));\n  SELECT hex(base85('##/2, '));")
+	_ = db.Query("SELECT hex(x'01'||base64('')||base85('')||x'02');")
+	_ = db.Query("SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_b...")
+	_ = db.Query("SELECT is_base85(1);")
+	_ = db.Query("SELECT is_base85(1.1);")
+	_ = db.Query("SELECT is_base85(NULL) IS NULL;")
+	_ = db.Query("SELECT is_base85(x'00');")
+	_ = db.Query("SELECT len, base64(b) FROM rb WHERE len>200;")
+	_ = db.Query("SELECT len, base85(b) FROM rb WHERE len>200;")
+	_ = db.Query("SELECT length(base85(b))=1335 FROM rb WHERE len=1054;")
+	_ = db.Exec("WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c wHERE n<5000)\n  SELECT sum(length(base64(randomblob(n)))) FROM c;")
 }
 // Auto-generated from bestindex1.test
 func TestSQLite_bestindex1(t *testing.T) {
@@ -998,6 +1866,40 @@ func TestSQLite_bestindexB(t *testing.T) {
 	_ = db.Exec("INSERT INTO y1 VALUES(5, 6) RETURNING rowid;")
 	_ = db.Query("SELECT * FROM x1")
 }
+// Auto-generated from bestindexC.test
+func TestSQLite_bestindexC(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(2, 2);\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command t1);")
+	_ = db.Exec("CREATE TEMP TABLE t_unionall AS \n    SELECT * FROM x1 UNION ALL SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_intersect AS \n    SELECT * FROM x1 INTERSECT SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_union AS \n    SELECT * FROM x1 UNION SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_except AS \n    SEL...")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING tcl(vtab_command \"a b c d e f\");\n  CREATE VIRTUAL TABLE x2 USING tcl(vtab_command \"A B C D E F a b\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING tcl(vtab_command \"a b c d e f\");\n  CREATE VIRTUAL TABLE x2 USING tcl(vtab_command \"a b e f\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING tcl(vtab_command t1);\n  CREATE TABLE t1(a, b, c, d);")
+	_ = db.Exec("CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"1 2 3 4 5 6 7 8 9 10\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"CREATE TABLE x1(insert)\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"PRAGMA page_size=1024\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE y1 USING tcl(vtab_command 1);")
+	_ = db.Exec("DELETE FROM t1;\n\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(0, 'x', 'y', 'z', 'zero');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(1, 'x', 'y', 'Z', 'one');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(2, 'x', 'Y', 'z', 'two');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(3, 'x', 'Y', 'Z', 'three...")
+	_ = db.Exec("INSERT INTO t1(rowid, a, b, c, d) VALUES(1, 'x', 'y', 'z', 'one');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(2, 'X', 'Y', 'Z', 'two');\n  SELECT * FROM x1 WHERE (a, b, c) = ('X', 'Y', 'Z');")
+	_ = db.Query("SELECT (SELECT a FROM x1 WHERE t1.x=t1.y LIMIT 10) FROM t1")
+	_ = db.Query("SELECT (SELECT a FROM x1 WHERE x1.a=1 LIMIT 1) FROM t1")
+	_ = db.Query("SELECT (SELECT a FROM x1 WHERE x1.a=1) FROM t1")
+	_ = db.Query("SELECT (SELECT a FROM x1 WHERE x1.a=555 LIMIT 2) FROM t1")
+	_ = db.Query("SELECT * FROM generate_series(1, 5) WHERE value = (value & 14) LIMIT 3")
+	_ = db.Query("SELECT * FROM x1 \n    EXCEPT\n  SELECT * FROM x2\n  LIMIT 3")
+	_ = db.Query("SELECT * FROM x1 \n  WHERE a='x' COLLATE nocase AND b='y' COLLATE nocase AND c='z'COLLATE nocase;")
+	_ = db.Query("SELECT * FROM x1 LIMIT 50")
+	_ = db.Query("SELECT * FROM x1 WHERE (a, b, c) = (?, ?, ?);")
+	_ = db.Query("SELECT * FROM x1 WHERE a='x' AND b='y' AND c='z';")
+	_ = db.Query("SELECT * FROM x1 WHERE b=c LIMIT 5")
+	_ = db.Query("SELECT * FROM y1 LIMIT 5 OFFSET 3")
+	_ = db.Query("SELECT * FROM y1 WHERE a = '2' LIMIT 3")
+	_ = db.Query("SELECT * FROM y1 WHERE a = COALESCE('8', a) LIMIT 3")
+	_ = db.Query("SELECT d FROM x1 \n    WHERE a='x' AND ((b='y' AND c='z') OR (b='Y' AND c='z' COLLATE nocase))")
+	_ = db.Query("SELECT d FROM x1 \n    WHERE a='x' COLLATE nocase \n    AND ((b='y' AND c='z') OR (b='Y' AND c='z' COLLATE nocase))")
+	_ = db.Query("SELECT value FROM generate_series(1,10) WHERE value>2 LIMIT 4 OFFSET 1;")
+}
 // Auto-generated from bestindexD.test
 func TestSQLite_bestindexD(t *testing.T) {
 	db := setupDB(t)
@@ -1114,6 +2016,58 @@ func TestSQLite_bigsort(t *testing.T) {
 	defer db.Close()
 	_ = db.Query("PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);")
 	_ = db.Query("PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  BEGIN;\n  WITH data(x,y) AS (\n    SELECT 1, zeroblob(10000)\n    UNION ALL\n    SELECT x+1, y FROM data WHERE x < 300000\n  )\n  INSERT INTO t1 SELECT * FROM data;\n  COMMIT;")
+}
+// Auto-generated from bind.test
+func TestSQLite_bind(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c);")
+	_ = db.Exec("CREATE TABLE t2(a,b,c,d,e,f);")
+	_ = db.Exec("CREATE TABLE t3(x BLOB);")
+	_ = db.Exec("CREATE TABLE t4(a,b,c,d,e,f,g,h);")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("DELETE FROM t4")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("SELECT  hex(a), hex(b), hex(c) FROM t1")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t2")
+	_ = db.Query("SELECT * FROM t4")
+	_ = db.Query("SELECT hex(a), hex(b), hex(c) FROM t1")
+	_ = db.Query("SELECT quote(cast(x_coalesce(x) AS blob)) FROM t3")
+	_ = db.Query("SELECT rowid, * FROM t1")
+	_ = db.Query("SELECT typeof(a), typeof(b), typeof(c) FROM t1")
+	_ = db.Query("SELECT typeof(x), length(x), quote(x),\n             length(cast(x AS BLOB)), quote(cast(x AS BLOB)) FROM t3")
+	_ = db.Query("pragma encoding")
+}
+// Auto-generated from bind2.test
+func TestSQLite_bind2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a REAL);\n  INSERT INTO t1 VALUES(42.0);\n  SELECT * FROM t1;")
+	_ = db.Exec("UPDATE t1 SET a=43;")
+}
+// Auto-generated from bindxfer.test
+func TestSQLite_bindxfer(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c);")
+}
+// Auto-generated from blob.test
+func TestSQLite_blob(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i1 ON t1(a);")
+	_ = db.Exec("CREATE TABLE t1(a BLOB, b BLOB);\n    INSERT INTO t1 VALUES(X'123456', x'7890ab');\n    INSERT INTO t1 VALUES(X'CDEF12', x'345678');")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1 where a = X'123456'")
+	_ = db.Query("SELECT * FROM t1 where a = X'CD12'")
+	_ = db.Query("SELECT * FROM t1 where a = X'CDEF12'")
+	_ = db.Query("SELECT X'01020304';")
+	_ = db.Query("SELECT x'';")
+	_ = db.Query("SELECT x'0123456789abcdefABCDEF';")
+	_ = db.Query("SELECT x'ABCDEF';")
+	_ = db.Query("SELECT x'abcdEF12';")
 }
 // Auto-generated from bloom1.test
 func TestSQLite_bloom1(t *testing.T) {
@@ -1345,6 +2299,18 @@ func TestSQLite_btree02(t *testing.T) {
 	_ = db.Query("SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL")
 	_ = db.Query("SELECT printf('(%s,%s)',quote(a),quote(b)) FROM t1")
 }
+// Auto-generated from btreefault.test
+func TestSQLite_btreefault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b);\n  CREATE INDEX i1 ON t1(b);\n  CREATE TABLE t2(x, y);")
+	_ = db.Exec("DELETE FROM t1 WHERE i=25")
+	_ = db.Exec("INSERT INTO t1 VALUES(25, 25, 25);\n  INSERT INTO t2 VALUES(25, 'a'), (25, 'b'), (25, 'c');")
+	_ = db.Query("PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblo...")
+	_ = db.Query("PRAGMA incremental_vacuum = 10")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b")
+}
 // Auto-generated from busy.test
 func TestSQLite_busy(t *testing.T) {
 	db := setupDB(t)
@@ -1357,6 +2323,41 @@ func TestSQLite_busy(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;")
 	_ = db.Exec("WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT i FROM s;")
 }
+// Auto-generated from cache.test
+func TestSQLite_cache(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');")
+	_ = db.Query("PRAGMA cache_size = 0;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;")
+	_ = db.Query("PRAGMA cache_size = 1;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;")
+	_ = db.Query("SELECT * FROM abc")
+	_ = db.Query("SELECT * FROM t1 UNION SELECT * FROM t2;")
+}
+// Auto-generated from cacheflush.test
+func TestSQLite_cacheflush(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t4(x, y);\n  INSERT INTO t4 VALUES('A', 'B');\n  BEGIN;\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t4 VALUES('C', 'D');")
+	_ = db.Exec("BEGIN;\n      SELECT * FROM t1;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t4 VALUES('E', 'F');")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);")
+	_ = db.Exec("COMMIT;\n  CREATE TABLE t2(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t2 VALUES('a', 'b');")
+	_ = db.Exec("COMMIT;\n  CREATE TABLE t3(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t2 VALUES('c', 'd');\n    INSERT INTO t3 VALUES('i', 'ii');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));")
+	_ = db.Exec("CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';")
+	_ = db.Exec("INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Exec("ROLLBACK TO one;")
+	_ = db.Exec("ROLLBACK TO two;")
+	_ = db.Exec("ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;")
+	_ = db.Exec("SAVEPOINT two;\n    UPDATE tb SET b = upper(b);")
+	_ = db.Query("SELECT a FROM t1")
+	_ = db.Query("SELECT count(*) FROM t1;\n  SELECT count(*) FROM t2;")
+}
 // Auto-generated from cachespill.test
 func TestSQLite_cachespill(t *testing.T) {
 	db := setupDB(t)
@@ -1367,12 +2368,274 @@ func TestSQLite_cachespill(t *testing.T) {
 	_ = db.Exec("ROLLBACK")
 	_ = db.Exec("ROLLBACK;\n    PRAGMA cache_spill = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<200\n      ) INSERT INTO t1 SELECT randomblob(900) FROM s;")
 }
+// Auto-generated from capi2.test
+func TestSQLite_capi2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN TRANSACTION;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE a1(message_id, name , UNIQUE(message_id, name) );\n    INSERT INTO a1 VALUES(1, 1);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c)")
+	_ = db.Exec("CREATE TABLE tab1(col1, col2);")
+	_ = db.Exec("CREATE UNIQUE INDEX i1 ON t1(a)")
+	_ = db.Exec("CREATE VIEW view1 AS SELECT * FROM  tab1;")
+	_ = db.Exec("CREATE VIEW view2 AS SELECT * FROM tab1 limit 10 offset 10;")
+	_ = db.Exec("INSERT INTO t1 VALUES(2,3,4);\n    SELECT * FROM t1;")
+	_ = db.Exec("ROLLBACK; SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t2")
+	_ = db.Query("SELECT * FROM t2 ORDER BY a")
+	_ = db.Query("SELECT count(*) FROM t1")
+}
+// Auto-generated from capi3.test
+func TestSQLite_capi3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'int');\n    INSERT INTO t1 VALUES(2, 'notatype');")
+	_ = db.Exec("COMMIT;\n    SELECT a FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);")
+	_ = db.Exec("CREATE TABLE t1(a);")
+	_ = db.Exec("CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);")
+	_ = db.Exec("CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n    INSERT INTO t2 VALUES(3);")
+	_ = db.Exec("CREATE TABLE t4(x);\n  INSERT INTO t4 VALUES('abcdefghij');")
+	_ = db.Exec("CREATE TABLE tablename(x)")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Query("PRAGMA lock_status")
+	_ = db.Query("PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT a FROM t2;")
+	_ = db.Query("pragma encoding")
+}
+// Auto-generated from capi3b.test
+func TestSQLite_capi3b(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from capi3c.test
+func TestSQLite_capi3c(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'int');\n    INSERT INTO t1 VALUES(2, 'notatype');")
+	_ = db.Exec("COMMIT;\n    SELECT a FROM t1;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a)")
+	_ = db.Exec("CREATE INDEX i2 ON t2(a)")
+	_ = db.Exec("CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);")
+	_ = db.Exec("CREATE TABLE t1(a);")
+	_ = db.Exec("CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);")
+	_ = db.Exec("CREATE TABLE t11(a VARCHAR(10), b INTEGER);\n  CREATE TABLE t12(a VARCHAR(15), b FLOAT);")
+	_ = db.Exec("CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n    INSERT INTO t2 VALUES(3);")
+	_ = db.Exec("CREATE TABLE t3(x,y);\n     INSERT INTO t3 VALUES(1,2);")
+	_ = db.Exec("CREATE TABLE t5(a INTEGER, b STRING, c DATETIME)")
+	_ = db.Exec("CREATE TABLE tablename(x)")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,'one');\n    INSERT INTO t1 VALUES(2,'two');\n    INSERT INTO t1 VALUES(3,'three');\n    INSERT INTO t1 VALUES(4,'four');")
+	_ = db.Exec("DROP INDEX i1")
+	_ = db.Exec("DROP INDEX i2")
+	_ = db.Exec("DROP TABLE t3")
+	_ = db.Query("PRAGMA lock_status")
+	_ = db.Query("PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT a FROM t2;")
+	_ = db.Query("pragma encoding")
+}
+// Auto-generated from capi3d.test
+func TestSQLite_capi3d(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' AS mem1")
+	_ = db.Exec("CREATE TABLE t1(x)")
+	_ = db.Exec("CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 VALUES(1,2,3);")
+	_ = db.Exec("CREATE TABLE t4(x,y);\n  BEGIN;")
+	_ = db.Exec("DETACH mem1")
+	_ = db.Exec("INSERT INTO t1 VALUES(6); INSERT INTO t1 VALUES(7);")
+	_ = db.Exec("VACUUM")
+}
+// Auto-generated from carray01.test
+func TestSQLite_carray01(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;")
+}
+// Auto-generated from carray02.test
+func TestSQLite_carray02(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('0xFFFF');\n  SELECT * FROM t1, carray WHERE carray.pointer = t1.x;")
+	_ = db.Query("SELECT * FROM carray")
+	_ = db.Query("SELECT * FROM carray('0xFFFF')")
+	_ = db.Query("SELECT * FROM carray('0xFFFF', 5)")
+}
+// Auto-generated from carrayfault.test
+func TestSQLite_carrayfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a);")
+}
+// Auto-generated from cast.test
+func TestSQLite_cast(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');\n  SELECT CAST(4 AS NUMERIC);")
+	_ = db.Exec("CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v1(c0, c1) AS \n    SELECT CAST(0.0 AS NUMERIC), COUNT(*) OVER () FROM t0;\n  SELECT v1.c0 FROM v1, t0 WHERE v1.c0=0;")
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc');\n    SELECT a, CAST(a AS integer) FROM t1;")
+	_ = db.Exec("CREATE VIEW v2 AS VALUES(CAST(44 AS REAL)),(55);\n    SELECT type FROM pragma_table_info('v2');")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0 (c0 TEXT);\n  INSERT INTO t0(c0) VALUES ('1.0');\n  SELECT CAST(c0 AS NUMERIC) FROM t0;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a NUMERIC);\n  INSERT INTO t1 VALUES\n     ('9000000000000000001'),\n     ('9000000000000000001 '),\n     (' 9000000000000000001'),\n     (' 9000000000000000001 ');\n  SELECT * FROM t1;")
+	_ = db.Exec("DROP VIEW v1;\n    CREATE VIEW v1 AS SELECT CAST(44 AS REAL) AS 'm' UNION ALL SELECT 55;\n    SELECT name, type FROM pragma_table_info('v1');")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("PRAGMA encoding='utf16'")
+	_ = db.Query("SELECT '' - 1;")
+	_ = db.Query("SELECT '' - 2851427734582196970;")
+	_ = db.Query("SELECT '.'+0;")
+	_ = db.Query("SELECT '123abc'")
+	_ = db.Query("SELECT * FROM (SELECT CAST(44 AS REAL) AS 'm' UNION ALL SELECT 55);")
+	_ = db.Query("SELECT * FROM (VALUES(CAST(44 AS REAL)),(55));")
+	_ = db.Query("SELECT * FROM dual CROSS JOIN (SELECT CAST(44 AS REAL) AS 'm'\n                                 UNION ALL SELECT 55);")
+	_ = db.Query("SELECT * FROM dual CROSS JOIN (VALUES(CAST(44 AS REAL)),(55));")
+	_ = db.Query("SELECT * FROM v1;")
+	_ = db.Query("SELECT * FROM v2;")
+	_ = db.Query("SELECT -'.';")
+	_ = db.Query("SELECT -CAST('.' AS numeric);")
+	_ = db.Query("SELECT 0 - 2851427734582196970;")
+	_ = db.Query("SELECT 123")
+	_ = db.Query("SELECT 123.456")
+	_ = db.Query("SELECT CAST('   -123.456' AS real)")
+	_ = db.Query("SELECT CAST('   123' AS integer)")
+	_ = db.Query("SELECT CAST('+' AS NUMERIC);")
+	_ = db.Query("SELECT CAST('+0.0' AS numeric);")
+	_ = db.Query("SELECT CAST('-' AS NUMERIC);")
+	_ = db.Query("SELECT CAST('-0' AS NUMERIC);")
+	_ = db.Query("SELECT CAST('-0.0' AS numeric);")
+	_ = db.Query("SELECT CAST('-1.0' AS numeric);")
+	_ = db.Query("SELECT CAST('-9223372036854774800' AS integer)")
+	_ = db.Query("SELECT CAST('-9223372036854774800' AS numeric)")
+	_ = db.Query("SELECT CAST('-9223372036854774800' AS real)")
+	_ = db.Query("SELECT CAST('-9223372036854775808' AS integer);\n  SELECT CAST('-9223372036854775809' AS integer);\n  SELECT CAST('-12345678901234567890123' AS INTEGER);")
+	_ = db.Query("SELECT CAST('.' AS numeric);")
+	_ = db.Query("SELECT CAST('/' AS NUMERIC);")
+	_ = db.Query("SELECT CAST('0.0' AS numeric);")
+	_ = db.Query("SELECT CAST('1' AS REAL)")
+}
+// Auto-generated from cffault.test
+func TestSQLite_cffault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      UPDATE t1 SET b=b+1;")
+	_ = db.Exec("BEGIN;\n      UPDATE t1 SET b=b-1;")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c, b);\n  INSERT INTO t1 VALUES(1, 2,  randomblob(600));\n  INSERT INTO t1 VALUES(3, 4,  randomblob(600));\n  INSERT INTO t1 VALUES(5, 6,  randomblob(600));\n  INSERT INTO t1 VALUES(7, 8,  randomblob(600))...")
+	_ = db.Exec("INSERT INTO t1 VALUES(11, 12, randomblob(600))")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT a, b FROM t1")
+}
+// Auto-generated from changes.test
+func TestSQLite_changes(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES(-1)")
+	_ = db.Query("SELECT count(*) FROM t1")
+	_ = db.Exec("WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;")
+}
+// Auto-generated from changes2.test
+func TestSQLite_changes2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE log(t);")
+	_ = db.Exec("CREATE TABLE t3(x);")
+	_ = db.Exec("DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');")
+	_ = db.Exec("INSERT INTO t1 VALUES (1, 'v1'), (2, 'v2');")
+	_ = db.Exec("INSERT INTO t1 VALUES (3, 'v1'), (4, 'v2');")
+	_ = db.Query("SELECT * FROM log;")
+}
+// Auto-generated from check.test
+func TestSQLite_check(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));")
+	_ = db.Exec("CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;")
+	_ = db.Exec("CREATE TABLE t1(\n      x INTEGER CHECK( x<5 ),\n      y REAL CHECK( y>x )\n    );")
+	_ = db.Exec("CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK( b>a ),\n    c INTEGER NOT NULL CONSTRAINT 'c-check' CHECK( c>rowid*2 ),\n    d INTEGER NOT NULL CONSTRAINT 'd-check' CHECK( d BETWEEN b AND c )\n  );\n  INSERT INTO t1(a,b,c,d) VALUES(1,2,4,3),(2,4,6,...")
+	_ = db.Exec("CREATE TABLE t1(a TEXT, CHECK(a=+a));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE VIEW v1(y) AS SELECT x FROM t1;\n  PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t2 (x , CHECK((NOT (x ISNULL) )));\n  REPLACE INTO t2 VALUES (hex(randomblob(100000)));")
+	_ = db.Exec("CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );")
+	_ = db.Exec("CREATE TABLE t2b(\n      x INTEGER CHECK( typeof(coalesce(x,0))=='integer' ) CONSTRAINT one,\n      y TEXT PRIMARY KEY constraint two,\n      z INTEGER,\n      UNIQUE(x,z) constraint three\n    );")
+	_ = db.Exec("CREATE TABLE t2c(\n      x INTEGER CONSTRAINT x_one CONSTRAINT x_two\n          CHECK( typeof(coalesce(x,0))=='integer' )\n          CONSTRAINT x_two CONSTRAINT x_three,\n      y INTEGER, z INTEGER,\n      CONSTRAINT u_one UNIQUE(x,y,z) CONSTRAINT u_two\n    );")
+	_ = db.Exec("CREATE TABLE t4(x, y,\n      CHECK (\n           x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10\n      )\n    );")
+	_ = db.Exec("CREATE TABLE t6(a CHECK (myfunc(a)))")
+	_ = db.Exec("CREATE TABLE t810(a, CHECK( main.t810.a>0 ));\n  CREATE TABLE t811(b, CHECK( xyzzy.t811.b BETWEEN 5 AND 10 ));")
+	_ = db.Exec("DELETE FROM t1 WHERE x IS NULL OR x!=3;\n    UPDATE t1 SET x=2 WHERE x==3;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t2b;\n    DROP TABLE IF EXISTS t2c;\n    DROP TABLE IF EXISTS t2n;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a<>+a)));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a=+a)));\n  INSERT INTO t1(a) VALUES(NULL);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a BETWEEN +a AND 999999));\n  INSERT INTO t1(a) VALUES(NULL),(5);\n  SELECT quote(a) FROM t1 ORDER BY rowid;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a BETWEEN 0 AND +a));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a NOT BETWEEN +a AND 999999));\n  INSERT INTO t1(a) VALUES(NULL);\n  SELECT quote(a) FROM t1 ORDER BY rowid;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a NOT BETWEEN 0 AND +a));\n  INSERT INTO t1(a) VALUES(NULL);\n  SELECT quote(a) FROM t1 ORDER BY rowid;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a<>+a));\n  INSERT INTO t1(a) VALUES(NULL);")
+	_ = db.Exec("INSERT  INTO t1 VALUES (NULL);")
+	_ = db.Exec("INSERT INTO t1 VALUES (NULL);")
+	_ = db.Exec("INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1(a) VALUES('xyz');")
+	_ = db.Exec("INSERT INTO t1(a) VALUES(123);")
+	_ = db.Exec("INSERT INTO t1(a) VALUES(456);")
+	_ = db.Exec("INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t2(a) VALUES('abc');")
+	_ = db.Exec("INSERT INTO t2(b, a) VALUES(1, 'abc'||'');")
+	_ = db.Exec("INSERT INTO t2(b, a) VALUES(2, 'abc');")
+	_ = db.Exec("INSERT INTO t3 VALUES(1,2,3);\n    SELECT * FROM t3;")
+	_ = db.Exec("INSERT INTO t4 VALUES(1,10);\n    SELECT * FROM t4")
+	_ = db.Exec("INSERT INTO t6 VALUES(11)")
+	_ = db.Exec("INSERT INTO t6 VALUES(8)")
+	_ = db.Exec("INSERT INTO t6 VALUES(9)")
+	_ = db.Exec("INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;")
+}
+// Auto-generated from checkfault.test
+func TestSQLite_checkfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );")
+	_ = db.Exec("INSERT INTO t1 VALUES ('ABCDEFG')")
+	_ = db.Exec("INSERT INTO t2(a) VALUES('abc')")
+}
 // Auto-generated from chunksize.test
 func TestSQLite_chunksize(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);")
 	_ = db.Query("PRAGMA wal_checkpoint")
+}
+// Auto-generated from cksumvfs.test
+func TestSQLite_cksumvfs(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, $text, NULL);")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob($ii))")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  DELETE FROM t1;")
+	_ = db.Query("PRAGMA page_size = 4096;")
+	_ = db.Query("PRAGMA wal_checkpoint;")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT count(*) FROM t1;")
+	_ = db.Query("SELECT count(b) FROM t1")
+	_ = db.Exec("WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT NULL, randomblob(5000), randomblob(i) FROM s;\n  SELECT count(*) FROM t1;")
+}
+// Auto-generated from close.test
+func TestSQLite_close(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');")
 }
 // Auto-generated from closure01.test
 func TestSQLite_closure01(t *testing.T) {
@@ -1413,6 +2676,51 @@ func TestSQLite_coalesce(t *testing.T) {
 	_ = db.Query("SELECT ifnull(ifnull(d+c+b,d+c),d) FROM t1 ORDER BY a;")
 	_ = db.Query("SELECT ifnull(nullif(a,4),99)\n      FROM t1 ORDER BY a;")
 	_ = db.Query("pragma vdbe_listing=on;\n    SELECT coalesce(\n      CASE WHEN b=2 THEN 123 END,\n      CASE WHEN b=3 THEN 234 END,\n      CASE WHEN c=3 THEN 345 WHEN c=33 THEN 456 END,\n      d\n    )\n    FROM t1 ORDER BY a;")
+}
+// Auto-generated from collate1.test
+func TestSQLite_collate1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE c5(\n      id INTEGER PRIMARY KEY,\n      a TEXT COLLATE binary COLLATE nocase COLLATE rtrim,\n      b TEXT COLLATE nocase COLLATE binary,\n      c TEXT COLLATE rtrim COLLATE binary COLLATE rtrim COLLATE nocase\n    );\n    INSERT INTO c5 VALUES(1, 'abc','abc','abc');\n    INSERT INT...")
+	_ = db.Exec("CREATE TABLE collate1t1(a COLLATE hex, b);\n    INSERT INTO collate1t1 VALUES( '0x5', 5 );\n    INSERT INTO collate1t1 VALUES( '1', 1 );\n    INSERT INTO collate1t1 VALUES( '0x45', 69 );\n    INSERT INTO collate1t1 VALUES( NULL, NULL );\n    SELECT * FROM collate1t1 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE collate1t1(c1 numeric, c2 text);\n    INSERT INTO collate1t1 VALUES(1, 1);\n    INSERT INTO collate1t1 VALUES(12, 12);\n    INSERT INTO collate1t1 VALUES(NULL, NULL);\n    INSERT INTO collate1t1 VALUES(101, 101);")
+	_ = db.Exec("CREATE TABLE collate1t1(c1, c2);\n    INSERT INTO collate1t1 VALUES('5', '0x11');\n    INSERT INTO collate1t1 VALUES('5', '0xA');\n    INSERT INTO collate1t1 VALUES(NULL, NULL);\n    INSERT INTO collate1t1 VALUES('7', '0xA');\n    INSERT INTO collate1t1 VALUES('11', '0x11');\n    INSERT INTO coll...")
+	_ = db.Exec("CREATE TABLE collate1t1(c1, c2);\n    INSERT INTO collate1t1 VALUES(45, hex(45));\n    INSERT INTO collate1t1 VALUES(NULL, NULL);\n    INSERT INTO collate1t1 VALUES(281, hex(281));")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x COLLATE x FROM t2;\n  SELECT a,b,z,y,'' FROM t1 JOIN v1a ON b IS NOT FALSE;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);")
+	_ = db.Exec("CREATE TABLE x1(a);\n  SELECT a FROM x1 ORDER BY a COLLATE \"\"\"\"\"\"\"\";")
+	_ = db.Exec("DELETE FROM p1 WHERE rowid = 1")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 COLLATE RTRIM, c1 BLOB UNIQUE,\n                  PRIMARY KEY (c0, c1)) WITHOUT ROWID;\n  INSERT INTO t0 VALUES (123, 3), (' ', 1), ('	', 2), ('', 4);\n  SELECT * FROM t0 WHERE c1 = 1;")
+	_ = db.Exec("DROP TABLE collate1t1;")
+	_ = db.Exec("INSERT INTO p1 VALUES('abb');\n  INSERT INTO p1 VALUES('wxz');\n  INSERT INTO p1 VALUES('wxy');\n\n  INSERT INTO c1 VALUES(2, 'abb');\n  INSERT INTO c1 VALUES(3, 'wxz');\n  INSERT INTO c1 VALUES(4, 'WXY');\n  SELECT x, y FROM c1 ORDER BY y COLLATE \"\"\"\"\"\"\"\";")
+	_ = db.Exec("INSERT INTO p1 VALUES('abc'); \n  INSERT INTO c1 VALUES(1, 'ABC');")
+	_ = db.Query("PRAGMA foreign_keys = ON;\n  CREATE TABLE p1(a PRIMARY KEY COLLATE '\"\"\"');\n  CREATE TABLE c1(x, y REFERENCES p1);")
+	_ = db.Query("SELECT \"\"\"\"\"\"\"\";")
+	_ = db.Query("SELECT ' ' > char(20) COLLATE rtrim;")
+	_ = db.Query("SELECT '' < char(20) COLLATE rtrim;")
+	_ = db.Query("SELECT 'abc' UNION ALL SELECT 'DEF'\n    ORDER BY 1 COLLATE binary COLLATE binary COLLATE binary COLLATE nocase;")
+	_ = db.Query("SELECT 'abc' UNION ALL SELECT 'DEF'\n    ORDER BY 1 COLLATE nocase COLLATE nocase COLLATE nocase COLLATE binary;")
+	_ = db.Query("SELECT 'abc' UNION ALL SELECT 'DEF'\n    ORDER BY 1 COLLATE nocase COLLATE nocase COLLATE nocase COLLATE nocase;")
+	_ = db.Query("SELECT (c1||'') COLLATE numeric FROM collate1t1 ORDER BY 1;")
+	_ = db.Query("SELECT * FROM (\n        SELECT b COLLATE nocase IN (SELECT c FROM t2) FROM t1\n    );")
+	_ = db.Query("SELECT * FROM collate1t1 ORDER BY 1;")
+	_ = db.Query("SELECT * FROM collate1t1 ORDER BY collate1t1.a;")
+	_ = db.Query("SELECT * FROM collate1t1 ORDER BY main.collate1t1.a;")
+	_ = db.Query("SELECT 0 UNION SELECT 0 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";")
+	_ = db.Query("SELECT a COLLATE binary as c1, b as c2\n      FROM collate1t1 ORDER BY c1;")
+	_ = db.Query("SELECT a FROM x1 ORDER BY 1 COLLATE \"\"\"\"\"\"\"\";")
+	_ = db.Query("SELECT a as c1, b as c2 FROM collate1t1 ORDER BY c1 COLLATE binary;")
+	_ = db.Query("SELECT a as c1, b as c2 FROM collate1t1 ORDER BY c1;")
+	_ = db.Query("SELECT c1 COLLATE binary, c2 COLLATE hex\n      FROM collate1t1\n     ORDER BY 1, 2;")
+	_ = db.Query("SELECT c1 COLLATE binary, c2 COLLATE hex\n      FROM collate1t1 \n     ORDER BY 1 DESC, 2 DESC;")
+	_ = db.Query("SELECT c1 COLLATE hex, c2 COLLATE binary\n      FROM collate1t1 \n     ORDER BY 1 COLLATE binary ASC, 2 COLLATE hex ASC;")
+	_ = db.Query("SELECT c1 COLLATE hex, c2 FROM collate1t1 \n     ORDER BY 1 COLLATE numeric, 2 COLLATE hex;")
+	_ = db.Query("SELECT c1 COLLATE numeric, c2 COLLATE hex\n      FROM collate1t1 \n     ORDER BY 1, 2;")
+	_ = db.Query("SELECT c1 COLLATE numeric, c2 FROM collate1t1 \n     ORDER BY 1, 2 COLLATE hex;")
+	_ = db.Query("SELECT c1 FROM collate1t1 ORDER BY 1;")
+	_ = db.Query("SELECT c1, c2\n      FROM collate1t1 ORDER BY 1 COLLATE binary DESC, 2 COLLATE hex;")
+	_ = db.Query("SELECT c1, c2 COLLATE hex FROM collate1t1 \n     ORDER BY 1 COLLATE numeric, 2;")
+	_ = db.Query("SELECT c1, c2 FROM collate1t1 \n        ORDER BY 1 COLLATE binary ASC, 2 COLLATE hex ASC;")
 }
 // Auto-generated from collate2.test
 func TestSQLite_collate2(t *testing.T) {
@@ -1574,6 +2882,13 @@ func TestSQLite_collate6(t *testing.T) {
 	_ = db.Query("SELECT 1 FROM sqlite_master WHERE name COLLATE nocase = 'hello';")
 	_ = db.Exec("UPDATE abc SET a = 'four' WHERE a = 'one';\n    CREATE TRIGGER abc_t2 AFTER UPDATE ON abc BEGIN\n      INSERT INTO def SELECT * FROM abc WHERE a < new.a COLLATE nocase;\n    END;\n    SELECT * FROM def;")
 }
+// Auto-generated from collate7.test
+func TestSQLite_collate7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);")
+	_ = db.Query("SELECT * FROM abc16 WHERE a < 'abc';")
+}
 // Auto-generated from collate8.test
 func TestSQLite_collate8(t *testing.T) {
 	db := setupDB(t)
@@ -1669,6 +2984,14 @@ func TestSQLite_collateB(t *testing.T) {
 	_ = db.Query("SELECT *,'|' FROM t3, t1, t2 WHERE x2=b AND x1=a AND a=1;")
 	_ = db.Query("SELECT *,'|' FROM t3, t2, t1 WHERE b=x2 AND a=x1 AND 1=a;")
 }
+// Auto-generated from colmeta.test
+func TestSQLite_colmeta(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);")
+	_ = db.Exec("CREATE TABLE abc4(a, b INTEGER PRIMARY KEY AUTOINCREMENT, c);")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT * FROM abc2;")
+}
 // Auto-generated from colname.test
 func TestSQLite_colname(t *testing.T) {
 	db := setupDB(t)
@@ -1692,6 +3015,12 @@ func TestSQLite_colname(t *testing.T) {
 	_ = db.Query("PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=OFF;\n    CREATE VIEW v3 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v4 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;")
 	_ = db.Query("PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=ON;\n    CREATE VIEW v5 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v6 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;")
 	_ = db.Query("SELECT x.* FROM sqlite_master X LIMIT 1;")
+}
+// Auto-generated from columncount.test
+func TestSQLite_columncount(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x, y, z);\n  INSERT INTO t1 VALUES('a', 'b', 'c');")
 }
 // Auto-generated from conflict.test
 func TestSQLite_conflict(t *testing.T) {
@@ -1821,6 +3150,39 @@ func TestSQLite_contrib01(t *testing.T) {
 	_ = db.Query("SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n      FROM T1, T2\n     WHERE T1.B = T2.B\n       AND T1.C = T2.C\n     GROUP BY T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H\n     ORDER BY +max(t1.c);")
 	_ = db.Query("SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n     FROM T1, T2\n    WHERE T1.B = T2.B\n      AND T1.C = T2.C\n    GROUP BY T2.A, T2.B, T1.F, T1.D, T1.E, T1.G, T1.H\n    ORDER BY +max(t1.c);")
 }
+// Auto-generated from corrupt.test
+func TestSQLite_corrupt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SEL...")
+	_ = db.Exec("CREATE INDEX i1 ON t1(b)")
+	_ = db.Exec("DELETE FROM t1 WHERE rowid=1")
+	_ = db.Exec("INSERT INTO t1 VALUES( randomblob(10) )")
+	_ = db.Exec("INSERT INTO t1 VALUES($i, $text)")
+	_ = db.Exec("INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');")
+	_ = db.Query("PRAGMA page_size = 1024")
+	_ = db.Query("PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);")
+	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));")
+	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));")
+	_ = db.Query("PRAGMA page_size = 1024; CREATE TABLE t1(x);")
+	_ = db.Query("PRAGMA schema_version")
+	_ = db.Query("SELECT rootpage FROM sqlite_master WHERE name = 't1'")
+	_ = db.Query("SELECT rootpage FROM sqlite_master WHERE name = 't1i1'")
+	_ = db.Exec("UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;")
+}
+// Auto-generated from corrupt2.test
+func TestSQLite_corrupt2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$::presql INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(2500));\n  PRAGMA freelist_count;")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(randomblob(3500));\n  DELETE FROM t1;")
+	_ = db.Query("PRAGMA auto_vacuum = full;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(NULL, randstr(50,50));")
+	_ = db.Query("PRAGMA auto_vacuum=0;\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);")
+	_ = db.Query("PRAGMA freelist_count")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA integrity_check;\n  PRAGMA freelist_count;")
+}
 // Auto-generated from corrupt3.test
 func TestSQLite_corrupt3(t *testing.T) {
 	db := setupDB(t)
@@ -1835,6 +3197,12 @@ func TestSQLite_corrupt4(t *testing.T) {
 	_ = db.Query("PRAGMA freelist_count")
 	_ = db.Query("PRAGMA page_size = 512;\n  CREATE TABLE t1(a, b, c);")
 	_ = db.Query("PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;")
+}
+// Auto-generated from corrupt5.test
+func TestSQLite_corrupt5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a,b);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET name=NULL, sql=NULL WHERE name='i1';")
 }
 // Auto-generated from corrupt6.test
 func TestSQLite_corrupt6(t *testing.T) {
@@ -1880,6 +3248,15 @@ func TestSQLite_corruptB(t *testing.T) {
 	_ = db.Query("SELECT rootpage FROM sqlite_master")
 	_ = db.Query("SELECT rootpage FROM sqlite_master WHERE name = 't2'")
 }
+// Auto-generated from corruptC.test
+func TestSQLite_corruptC(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 VALUES (1, $blob)")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FR...")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Exec("UPDATE t1 SET y=1")
+}
 // Auto-generated from corruptD.test
 func TestSQLite_corruptD(t *testing.T) {
 	db := setupDB(t)
@@ -1887,6 +3264,12 @@ func TestSQLite_corruptD(t *testing.T) {
 	_ = db.Exec("DELETE FROM t1 WHERE a = 10;\n    DELETE FROM t1 WHERE a = 20;\n    DELETE FROM t1 WHERE a = 30;\n    DELETE FROM t1 WHERE a = 40;")
 	_ = db.Exec("INSERT INTO t1 VALUES($ii, $ii * $ii)")
 	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);")
+}
+// Auto-generated from corruptE.test
+func TestSQLite_corruptE(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FR...")
 }
 // Auto-generated from corruptF.test
 func TestSQLite_corruptF(t *testing.T) {
@@ -1915,12 +3298,46 @@ func TestSQLite_corruptH(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1 WHERE a IN (1, 2)")
 	_ = db.Query("SELECT name, rootpage FROM sqlite_master")
 }
+// Auto-generated from corruptI.test
+func TestSQLite_corruptI(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE r(x);\n    INSERT INTO r VALUES('ABCDEFGHIJK');\n    CREATE INDEX r1 ON r(x);")
+	_ = db.Exec("CREATE TABLE t100(x);\n    DROP TABLE t100;")
+	_ = db.Exec("DELETE FROM t1 WHERE rowid=2")
+	_ = db.Exec("INSERT INTO t1 VALUES(5, 'klmnopqrst')")
+	_ = db.Exec("INSERT INTO t1 VALUES(7, 'klmnopqrst')")
+	_ = db.Exec("INSERT INTO t1 VALUES(9, 'klmnopqrst');")
+	_ = db.Query("PRAGMA auto_vacuum=0;\n     PRAGMA page_size = 512;\n     CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n     WITH s(a, b) AS (\n       SELECT 2, 'abcdefghij'\n       UNION ALL\n       SELECT a+2, b FROM s WHERe a < 40\n     )\n     INSERT INTO t1 SELECT * FROM s;")
+	_ = db.Query("PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('a', 'A');\n  INSERT INTO t1 VALUES('b', 'A');\n  INSERT INTO t1 VALUES('c', 'A');\n  SELECT name FROM sqlite_master;")
+	_ = db.Query("PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA page_count")
+	_ = db.Query("PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;")
+	_ = db.Query("PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));")
+	_ = db.Query("PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');")
+	_ = db.Query("PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');")
+	_ = db.Query("PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';")
+}
 // Auto-generated from corruptJ.test
 func TestSQLite_corruptJ(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;")
 	_ = db.Query("PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;")
+}
+// Auto-generated from corruptK.test
+func TestSQLite_corruptK(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(20));")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(90));")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(900));")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA page_size=1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);")
+	_ = db.Query("PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(100));   -- make this into a free slot\n  INSERT INTO t1 VALUES(randomblob(27));    -- this one will be corrupt\n  INSERT INTO t1 VALUES(randomblo...")
+	_ = db.Query("PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(20));    -- free this one\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(20));    -- and this one\n  INSERT INTO t1...")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data = hex2blob('\n   000: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00 SQLite format 3.\n   010: 04 00 01 01 20 40 20 20 00 00 3e d9 00 00 00 06 .... @  ..>.....\n   020: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04 ................\n   030: 0f 00 00 00 00 00 00 00...")
 }
 // Auto-generated from corruptL.test
 func TestSQLite_corruptL(t *testing.T) {
@@ -2061,6 +3478,17 @@ func TestSQLite_countofview(t *testing.T) {
 	_ = db.Query("select count(*) from (\n    select c from t2 union all select f from t3\n  )")
 	_ = db.Query("select count(*) from (\n    select c from t2 union all select f from t3 limit 1 offset 1\n  )")
 }
+// Auto-generated from coveridxscan.test
+func TestSQLite_coveridxscan(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;")
+	_ = db.Query("SELECT a FROM t1")
+	_ = db.Query("SELECT a, c FROM t1")
+	_ = db.Query("SELECT a, c FROM t1;")
+	_ = db.Query("SELECT b FROM t1")
+	_ = db.Query("SELECT b FROM t1;")
+}
 // Auto-generated from crash.test
 func TestSQLite_crash(t *testing.T) {
 	db := setupDB(t)
@@ -2111,6 +3539,16 @@ func TestSQLite_crash4(t *testing.T) {
 	_ = db.Exec("INSERT INTO a(id,name) VALUES(9,'nine')")
 	_ = db.Exec("UPDATE A SET name='new text for row 3' WHERE id=3")
 }
+// Auto-generated from crash5.test
+func TestSQLite_crash5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE UNIQUE INDEX i1 ON t1(a);")
+	_ = db.Exec("DELETE FROM t1;  -- This will put page 4 on the free list.\n              INSERT INTO t1 VALUES('111111111', '2222222222', '33333333');\n              INSERT INTO t1 SELECT * FROM t1;                     -- 2\n              INSERT INTO t1 SELECT * FROM t1;                     -- 4\n              ...")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);")
+	_ = db.Query("pragma integrity_check")
+}
 // Auto-generated from crash6.test
 func TestSQLite_crash6(t *testing.T) {
 	db := setupDB(t)
@@ -2146,6 +3584,27 @@ func TestSQLite_crash8(t *testing.T) {
 	_ = db.Query("SELECT b FROM main.ab WHERE a = 1")
 	_ = db.Query("SELECT count(*) FROM t1;\n    PRAGMA integrity_check")
 	_ = db.Exec("UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;")
+}
+// Auto-generated from crashM.test
+func TestSQLite_crashM(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'file:test2.db?8_3_names=1' AS aux;\n\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n\n  CREATE TABLE aux.t2(x, y);\n  CREATE INDEX aux.t2x ON t2(x);\n  CREATE INDEX aux.t2y ON t2(y);\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHER...")
+	_ = db.Query("PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;")
+}
+// Auto-generated from createtab.test
+func TestSQLite_createtab(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b,c UNIQUE);\n  CREATE INDEX x1 ON t1(a);\n  CREATE VIEW v1 AS SELECT a+b AS x FROM t1;")
+	_ = db.Exec("CREATE TABLE t2(a,b);\n      INSERT INTO t2 VALUES(1,2);\n      SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t3(a,b);\n      INSERT INTO t3 VALUES(4,5);\n      SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(a,b);\n      INSERT INTO t4 VALUES('abc','xyz');\n      SELECT * FROM t4;")
+	_ = db.Exec("CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT true; END;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("PRAGMA page_size=1024;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n      INSERT INTO t1 VALUES(1, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(2, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(3, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(4, hex(randomblob(200)));\n   ...")
+	_ = db.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1")
 }
 // Auto-generated from cse.test
 func TestSQLite_cse(t *testing.T) {
@@ -2211,6 +3670,16 @@ func TestSQLite_csv01(t *testing.T) {
 	_ = db.Query("SELECT rowid FROM t1;")
 	_ = db.Query("SELECT rowid, a FROM t3;")
 }
+// Auto-generated from ctime.test
+func TestSQLite_ctime(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA compile_options")
+	_ = db.Query("SELECT sqlite_compileoption_used($opt)")
+	_ = db.Query("SELECT sqlite_compileoption_used('OMIT_COMPILEOPTION_DIAGS');")
+	_ = db.Query("SELECT sqlite_compileoption_used('SQLITE_OMIT_COMPILEOPTION_DIAGS');")
+	_ = db.Query("SELECT sqlite_compileoption_used('THREADSAFE=');")
+}
 // Auto-generated from cursorhint.test
 func TestSQLite_cursorhint(t *testing.T) {
 	db := setupDB(t)
@@ -2242,6 +3711,32 @@ func TestSQLite_dataversion1(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1")
 	_ = db.Exec("UPDATE t1 SET x=x+1;")
 	_ = db.Exec("UPDATE t2 SET y=y+1;")
+}
+// Auto-generated from date.test
+func TestSQLite_date(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size = 1024;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1.1);")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT a==b FROM (SELECT current_timestamp AS a,\n                               sleeper(), current_timestamp AS b);")
+	_ = db.Query("SELECT c - a FROM (SELECT julianday('now') AS a,\n                               sleeper(), julianday('now') AS c);")
+	_ = db.Query("SELECT datetime('2000-05-29 14:16:00','localtime');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00 +00:00','utc','utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00 -00:00','utc','utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00+00:00','utc','utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00-00:00','utc','utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00+00:00','utc','utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00+05:00');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00+05:00', 'utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00-00:00','utc','utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00Z', 'localtime');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00Z', 'localtime','localtime');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00Z', 'utc', 'localtime');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00Z', 'utc', 'localtime', 'utc');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00:00Z', 'utc','localtime','utc','localtime');")
+	_ = db.Query("SELECT datetime('2000-10-29 12:00Z','utc','utc');")
+	_ = db.Query("SELECT strftime('%Y-%m-%d %H:%M:%f', julianday('2006-09-24T10:50:26.047'))")
+	_ = db.Query("SELECT strftime('%s','2003-10-22 12:34:00')")
 }
 // Auto-generated from date2.test
 func TestSQLite_date2(t *testing.T) {
@@ -2329,6 +3824,44 @@ func TestSQLite_dbfuzz001(t *testing.T) {
 	_ = db.Query("PRAGMA writable_schema=on; \n    PRAGMA integrity_check;")
 	_ = db.Query("PRAGMA writable_schema=on; PRAGMA integrity_check")
 }
+// Auto-generated from dbpage.test
+func TestSQLite_dbpage(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;")
+	_ = db.Exec("ATTACH ':memory:' AS aux1;\n  PRAGMA aux1.page_size=4096;\n  CREATE TABLE aux1.t2(a,b,c);\n  INSERT INTO t2 VALUES(11,12,13);\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage('aux1');")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);")
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("CREATE TABLE aux1.x3(x,y,z);\n  INSERT INTO x3(x,y,z) VALUES(1,'main',1),(2,'aux1',1);\n  SELECT pgno, schema, substr(data,1,6)\n    FROM sqlite_dbpage, x3\n   WHERE sqlite_dbpage.schema=x3.y AND sqlite_dbpage.pgno=x3.z\n   ORDER BY x3.x;")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b) SELECT x, printf('%d-x%.*c',x,x,'x') FROM c;\n    PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );")
+	_ = db.Exec("CREATE TABLE x1(x);")
+	_ = db.Exec("CREATE TEMP TABLE saved_content(x);\n  INSERT INTO saved_content(x) SELECT data FROM sqlite_dbpage WHERE pgno=4;\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=4;")
+	_ = db.Exec("DELETE FROM saved_content;\n  INSERT INTO saved_content(x) \n     SELECT data FROM sqlite_dbpage WHERE schema='aux1' AND pgno=2;")
+	_ = db.Exec("INSERT INTO sqlite_dbpage values($page_count, NULL);")
+	_ = db.Exec("INSERT INTO sqlite_dbpage values($pgno, $data);")
+	_ = db.Query("PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;")
+	_ = db.Query("PRAGMA auto_vacuum=NONE;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  PRAGMA page_count;")
+	_ = db.Query("PRAGMA aux1.integrity_check;")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA page_count;\n  SELECT * FROM t1;")
+	_ = db.Exec("SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;")
+	_ = db.Query("SELECT * FROM sqlite_temp_schema, sqlite_dbpage;")
+	_ = db.Query("SELECT * FROM t2;")
+	_ = db.Query("SELECT pgno FROM sqlite_dbpage WHERE pgno=4294967297")
+	_ = db.Query("SELECT pgno FROM sqlite_dbpage WHERE pgno=555")
+	_ = db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=0;")
+	_ = db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=2;")
+	_ = db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=4;")
+	_ = db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=5;")
+	_ = db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage('main') ORDER BY pgno;")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data=$data WHERE pgno=$ii")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content)\n   WHERE pgno=2 AND schema='aux1';")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=2 AND schema='aux1';")
+}
 // Auto-generated from dbpagefault.test
 func TestSQLite_dbpagefault(t *testing.T) {
 	db := setupDB(t)
@@ -2344,6 +3877,33 @@ func TestSQLite_dbpagefault(t *testing.T) {
 	_ = db.Query("PRAGMA trusted_schema = 1;")
 	_ = db.Query("PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;")
 	_ = db.Exec("UPDATE sqlite_dbpage SET data = (\n      SELECT data FROM sqlite_dbpage WHERE pgno=($pgno-1)\n    ) WHERE pgno = $pgno;")
+}
+// Auto-generated from dbstatus.test
+func TestSQLite_dbstatus(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t2(y);")
+	_ = db.Exec("CREATE TEMP TABLE tt(a, b, c);\n      INSERT INTO tt VALUES(1, 2, 3);")
+	_ = db.Exec("INSERT INTO t1 VALUES(zeroblob(9000));")
+	_ = db.Query("PRAGMA auto_vacuum=NONE;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES(1, 2, 3);")
+}
+// Auto-generated from dbstatus2.test
+func TestSQLite_dbstatus2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i1 ON data(a)")
+	_ = db.Exec("CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;")
+	_ = db.Exec("INSERT INTO t1 VALUES(4, randomblob(600))")
+	_ = db.Exec("INSERT INTO t1 VALUES(5, randomblob(600))")
+	_ = db.Query("PRAGMA journal_mode = WAL")
+	_ = db.Query("PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);")
+	_ = db.Query("PRAGMA mmap_size = 0")
+	_ = db.Query("PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, randomblob(600));\n  INSERT INTO t1 VALUES(2, randomblob(600));\n  INSERT INTO t1 VALUES(3, randomblob(600));")
+	_ = db.Query("PRAGMA temp_store = file;\n    PRAGMA cache_size = -1024;")
+	_ = db.Query("SELECT a, b FROM data ORDER BY a")
+	_ = db.Query("SELECT b FROM t1 WHERE a=2")
 }
 // Auto-generated from decimal.test
 func TestSQLite_decimal(t *testing.T) {
@@ -2390,6 +3950,25 @@ func TestSQLite_decimal(t *testing.T) {
 	_ = db.Query("SELECT ieee754(ieee754_from_blob(x'0000000000000001'));")
 	_ = db.Query("SELECT ieee754(ieee754_from_blob(x'7fefffffffffffff'));")
 }
+// Auto-generated from default.test
+func TestSQLite_default(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE Table0 (Col0 DEFAULT (RAISE(IGNORE) )  ) ; \n  INSERT INTO Table0 DEFAULT VALUES ;")
+	_ = db.Exec("CREATE TABLE t1 (a,b DEFAULT(random() NOTNULL IN (RAISE(IGNORE),2,3)));\n  INSERT INTO t1(a) VALUES(1);")
+	_ = db.Exec("CREATE TABLE t1(\n        a INTEGER,\n        b BLOB DEFAULT x'6869'\n      );\n      INSERT INTO t1(a) VALUES(1);\n      SELECT * from t1;")
+	_ = db.Exec("CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';")
+	_ = db.Exec("CREATE TABLE t2(\n      x INTEGER,\n      y INTEGER DEFAULT NULL\n    );\n    INSERT INTO t2(x) VALUES(1);\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t2(a TEXT, b TEXT DEFAULT(98+coalesce(5,:xyz)));")
+	_ = db.Exec("CREATE TABLE t2(a TEXT, b TEXT DEFAULT(:xyz));")
+	_ = db.Exec("CREATE TABLE t2(a TEXT, b TEXT DEFAULT(abs(:xyz)));")
+	_ = db.Exec("CREATE TABLE t3(\n    a INTEGER PRIMARY KEY AUTOINCREMENT,\n    b INT DEFAULT 12345 UNIQUE NOT NULL CHECK( b>=0 AND b<99999 ),\n    c VARCHAR(123,456) DEFAULT 'hello' NOT NULL ON CONFLICT REPLACE,\n    d REAL,\n    e FLOATING POINT(5,10) DEFAULT 4.36,\n    f NATIONAL CHARACTER(15) COLLATE RTRIM,...")
+	_ = db.Exec("CREATE TABLE t300(\n    a INT DEFAULT 2147483647,\n    b INT DEFAULT 2147483648,\n    c INT DEFAULT +9223372036854775807,\n    d INT DEFAULT -2147483647,\n    e INT DEFAULT -2147483648,\n    f INT DEFAULT -9223372036854775808,\n    g INT DEFAULT (-(-9223372036854775808)),\n    h INT DEFAULT (-(-9...")
+	_ = db.Exec("CREATE TABLE t4(c DEFAULT 'abc');\n      PRAGMA table_info(t4);")
+	_ = db.Exec("DELETE FROM t3;\n  INSERT INTO t3 DEFAULT VALUES;\n  SELECT * FROM t3;")
+	_ = db.Exec("INSERT INTO t1(a) VALUES('xyzzy');\n  SELECT a, quote(b) FROM t1;")
+	_ = db.Exec("INSERT INTO t4 DEFAULT VALUES;\n      PRAGMA table_info(t4);")
+}
 // Auto-generated from delete.test
 func TestSQLite_delete(t *testing.T) {
 	db := setupDB(t)
@@ -2434,6 +4013,17 @@ func TestSQLite_delete(t *testing.T) {
 	_ = db.Exec("INSERT INTO table1 VALUES(2,4)")
 	_ = db.Exec("INSERT INTO table1 VALUES(3,8)")
 	_ = db.Exec("INSERT INTO table1 VALUES(4,16)")
+}
+// Auto-generated from delete2.test
+func TestSQLite_delete2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE q(s string, id string, constraint pk_q primary key(id));\n    BEGIN;\n    INSERT INTO q(s,id) VALUES('hello','id.1');\n    INSERT INTO q(s,id) VALUES('goodbye','id.2');\n    INSERT INTO q(s,id) VALUES('again','id.3');\n    END;\n    SELECT * FROM q;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n    INSERT INTO t2 VALUES(5, 6);")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Query("SELECT * FROM q WHERE id='id.1';")
+	_ = db.Query("SELECT * FROM q;")
+	_ = db.Query("SELECT CASE WHEN c = 5 THEN b ELSE NULL END AS b, c, d FROM t1, t2")
 }
 // Auto-generated from delete3.test
 func TestSQLite_delete3(t *testing.T) {
@@ -2485,6 +4075,67 @@ func TestSQLite_delete_db(t *testing.T) {
 	_ = db.Exec("CREATE TABLE x1(a, b);\n      WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n      INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n      BEGIN;\n        UPDATE x1 SET a=randomblob(101)")
 	_ = db.Exec("CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)")
 	_ = db.Query("PRAGMA auto_vacuum = 0;")
+}
+// Auto-generated from descidx1.test
+func TestSQLite_descidx1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i2 ON t1(a DESC);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(a ASC, b DESC, c ASC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,1,0);\n    INSERT INTO t1 VALUES(1,2,1);\n    INSERT INTO t1 VALUES(1,3,4);")
+	_ = db.Exec("CREATE TABLE t2(a INT, b TEXT, c BLOB, d REAL);\n      CREATE INDEX i3 ON t2(a ASC, b DESC, c ASC);\n      CREATE INDEX i4 ON t2(b DESC, a ASC, d DESC);\n      INSERT INTO t2 VALUES(1,'one',x'31',1.0);\n      INSERT INTO t2 VALUES(2,'two',x'3232',2.0);\n      INSERT INTO t2 VALUES(3,'three',x'333...")
+	_ = db.Exec("CREATE TABLE t3(a,b,c,d);\n    CREATE INDEX t3i1 ON t3(a DESC, b ASC, c DESC, d ASC);\n    INSERT INTO t3 VALUES(0,0,0,0);\n    INSERT INTO t3 VALUES(0,0,0,1);\n    INSERT INTO t3 VALUES(0,0,1,0);\n    INSERT INTO t3 VALUES(0,0,1,1);\n    INSERT INTO t3 VALUES(0,1,0,0);\n    INSERT INTO t3 VALUES...")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;")
+	_ = db.Query("PRAGMA legacy_file_format=OFF")
+	_ = db.Query("SELECT a FROM t1 WHERE b>3 AND b<7;")
+	_ = db.Query("SELECT a FROM t1 WHERE b>=3 AND b<=7;")
+	_ = db.Query("SELECT b FROM t1 WHERE a>3 AND a<=7;")
+	_ = db.Query("SELECT b FROM t1 WHERE a>=3 AND a<7;")
+	_ = db.Query("SELECT b FROM t1 WHERE a>=3 AND a<=7;")
+	_ = db.Query("SELECT d FROM t2 ORDER BY a;")
+	_ = db.Query("SELECT d FROM t2 WHERE a=2 AND b<'two';")
+	_ = db.Query("SELECT d FROM t2 WHERE a=2 AND b<='two';")
+	_ = db.Query("SELECT d FROM t2 WHERE a=2 AND b>'two';")
+	_ = db.Query("SELECT d FROM t2 WHERE a=2 AND b>='two';")
+	_ = db.Query("SELECT d FROM t2 WHERE a>2 ORDER BY a;")
+	_ = db.Query("SELECT d FROM t2 WHERE a>=2 ORDER BY a;")
+	_ = db.Exec("VACUUM")
+	_ = db.Exec("VACUUM;")
+}
+// Auto-generated from descidx2.test
+func TestSQLite_descidx2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i2 ON t1(a DESC);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;")
+	_ = db.Query("PRAGMA legacy_file_format=OFF")
+	_ = db.Query("SELECT a FROM t1 WHERE b>3 AND b<7;")
+	_ = db.Query("SELECT a FROM t1 WHERE b>=3 AND b<=7;")
+	_ = db.Query("SELECT b FROM t1 WHERE a>3 AND a<=7;")
+	_ = db.Query("SELECT b FROM t1 WHERE a>=3 AND a<7;")
+	_ = db.Query("SELECT b FROM t1 WHERE a>=3 AND a<=7;")
+}
+// Auto-generated from descidx3.test
+func TestSQLite_descidx3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(i INTEGER PRIMARY KEY,a,b,c,d);\n    CREATE INDEX t1i1 ON t1(a DESC, b ASC, c DESC);\n    CREATE INDEX t1i2 ON t1(b DESC, c ASC, d DESC);")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, NULL, NULL, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 2, 2, 2, 2);\n    INSERT INTO t1 VALUES(3, 3, 3, 3, 3);\n    INSERT INTO t1 VALUES(4, 2.5, 2.5, 2.5, 2.5);\n    INSERT INTO t1 VALUES(5, -5, -5, -5, -5);\n    INSERT INTO t1 VALUES(6, 'six', 'six', 'six', 'six');\n   ...")
+	_ = db.Query("PRAGMA legacy_file_format=OFF")
+	_ = db.Query("SELECT i FROM t1 ORDER BY a DESC;")
+	_ = db.Query("SELECT i FROM t1 ORDER BY a;")
+	_ = db.Query("SELECT i FROM t1 WHERE a<=x'7979';")
+	_ = db.Query("SELECT i FROM t1 WHERE a=1 AND b>-9999 AND b<x'ffffffff'")
+	_ = db.Query("SELECT i FROM t1 WHERE a=1 AND b>0 AND b<'zzz'")
+	_ = db.Query("SELECT i FROM t1 WHERE a>-99;")
+	_ = db.Query("SELECT i FROM t1 WHERE b>-9999 AND b<x'ffffffff'")
+	_ = db.Query("SELECT i FROM t1 WHERE b>0 AND b<'zzz'")
+	_ = db.Exec("UPDATE t1 SET a=1;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';")
+	_ = db.Exec("UPDATE t1 SET a=1;\n    SELECT i FROM t1 ORDER BY a;")
+	_ = db.Exec("UPDATE t1 SET a=2 WHERE i<6;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';")
+	_ = db.Exec("UPDATE t1 SET b=2;\n      SELECT i FROM t1 WHERE a IN (1,2) AND b>0 AND b<'zzz';")
 }
 // Auto-generated from diskfull.test
 func TestSQLite_diskfull(t *testing.T) {
@@ -2592,6 +4243,135 @@ func TestSQLite_e_blobbytes(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;")
 }
+// Auto-generated from e_blobclose.test
+func TestSQLite_e_blobclose(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN ; SELECT * FROM x1")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, $dots);\n  INSERT INTO x1 VALUES(-10, $dots);\n  INSERT INTO x1 VALUES(-100, $dots);\n  INSERT INTO x1 VALUES(-1000, $dots);\n  INSERT INTO x1 VALUES(-10000, $dots);")
+	_ = db.Exec("INSERT INTO x1 VALUES(1, 'abc');\n    SELECT * FROM x1 WHERE a=1;")
+	_ = db.Exec("INSERT INTO x1 VALUES(15, val())")
+	_ = db.Query("PRAGMA lock_status")
+	_ = db.Query("SELECT * FROM x1 WHERE a = 15")
+	_ = db.Query("SELECT * FROM x1 WHERE a IN (1, -10);")
+	_ = db.Query("SELECT * FROM x1 WHERE a=-10")
+	_ = db.Query("SELECT a, val() FROM x1 LIMIT 1")
+}
+// Auto-generated from e_blobopen.test
+func TestSQLite_e_blobopen(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE main.t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TEMP TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n\n  CREATE TABLE main.x1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TE...")
+	_ = db.Exec("CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c UNIQUE);\n  INSERT INTO b1 VALUES(1, '1234567890', 1);\n  INSERT INTO b1 VALUES(2, '1234567890', 2);\n  INSERT INTO b1 VALUES(3, '1234567890', 3);\n  INSERT INTO b1 VALUES(4, '1234567890', 4);\n  INSERT INTO b1 VALUES(5, '1234567890', 5);\n  INSERT INTO...")
+	_ = db.Exec("CREATE TABLE b3(x INTEGER PRIMARY KEY, y TEXT, z INTEGER);\n  INSERT INTO b3 VALUES(22, '..........', NULL);")
+	_ = db.Exec("CREATE TABLE c2(i INTEGER PRIMARY KEY, j);\n  INSERT INTO c2 VALUES(10, zeroblob(24));")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('abcd', 152);\n  INSERT INTO t1 VALUES(NULL, X'00010203');\n  INSERT INTO t1 VALUES('', 154.2);\n\n  CREATE TABLE t2(x PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 'blob');\n\n  CREATE TABLE t3(a PRIMARY KEY, b, c, d, e, f, UNIQUE(e, f...")
+	_ = db.Exec("DELETE FROM b1 WHERE a = 1")
+	_ = db.Exec("DELETE FROM b1 WHERE a = 2")
+	_ = db.Exec("DELETE FROM b2 WHERE a = 1")
+	_ = db.Exec("DELETE FROM b2 WHERE a = 2")
+	_ = db.Exec("INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5)")
+	_ = db.Exec("INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6)")
+	_ = db.Exec("INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5)")
+	_ = db.Exec("INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6)")
+	_ = db.Query("PRAGMA foreign_keys = ON")
+	_ = db.Query("SELECT * FROM b3;")
+	_ = db.Query("SELECT c FROM x1 WHERE a=$iRow;")
+	_ = db.Query("SELECT j FROM c2")
+	_ = db.Exec("UPDATE b1 SET c = 42 WHERE a=4")
+	_ = db.Exec("UPDATE b1 SET c = 43 WHERE a=3")
+	_ = db.Exec("UPDATE b2 SET c = 42 WHERE a=4")
+	_ = db.Exec("UPDATE b2 SET c = 43 WHERE a=3")
+	_ = db.Exec("UPDATE b3 SET z = 'not null';")
+}
+// Auto-generated from e_blobwrite.test
+func TestSQLite_e_blobwrite(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, $dots);\n  INSERT INTO t1 VALUES(-2, $dots);\n  INSERT INTO t1 VALUES(-3, $dots);\n  INSERT INTO t1 VALUES(-4, $dots);\n  INSERT INTO t1 VALUES(-5, $dots);\n  INSERT INTO t1 VALUES(-6, $dots);")
+	_ = db.Exec("CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES($dots, 43);\n  INSERT INTO t2 VALUES($dots, 44);\n  INSERT INTO t2 VALUES($dots, 45);")
+	_ = db.Exec("CREATE TABLE t3(i INTEGER PRIMARY KEY, j TEXT, k TEXT);\n  INSERT INTO t3 VALUES(1, $dots, $dots);\n  INSERT INTO t3 VALUES(2, $dots, $dots);\n  SELECT * FROM t3 WHERE i=1;")
+	_ = db.Exec("DELETE FROM t2 WHERE b=43")
+	_ = db.Query("SELECT * FROM t3 WHERE i=1;")
+	_ = db.Query("SELECT * FROM t3 WHERE i=2;")
+	_ = db.Query("SELECT 1, 2, 3")
+	_ = db.Exec("UPDATE t3 SET j = 'xyz' WHERE i=2;\n  SELECT * FROM t3 WHERE i=2;")
+	_ = db.Exec("UPDATE t3 SET k = 'xyz' WHERE i=1;\n  SELECT * FROM t3 WHERE i=1;")
+}
+// Auto-generated from e_changes.test
+func TestSQLite_e_changes(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$sql")
+	_ = db.Exec("-- None of the inserts on table log were counted.\n  SELECT count(*) FROM log")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);")
+	_ = db.Exec("CREATE TABLE log(log);\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER v1_i INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE T...")
+	_ = db.Exec("CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_ai AFTER INSERT ON p1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  CREATE TRIGGER tr_au AFTER UPDATE ON...")
+	_ = db.Exec("CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U...")
+	_ = db.Exec("CREATE TABLE r1(a UNIQUE, b UNIQUE);\n  INSERT INTO r1 VALUES('i', 'i');\n  INSERT INTO r1 VALUES('ii', 'ii');\n  INSERT INTO r1 VALUES('iii', 'iii');\n  INSERT INTO r1 VALUES('iv', 'iv');\n  INSERT INTO r1 VALUES('v', 'v');\n  INSERT INTO r1 VALUES('vi', 'vi');\n  INSERT INTO r1 VALUES('vii', 'v...")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 0);\n  INSERT INTO t1 VALUES(3, 0);\n  CREATE TRIGGER t1_a_u AFTER UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.b || ' -> ' || new.b || ' c = ' || changes() );\n  END;\n  CREATE TABLE ...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER ...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(y);")
+	_ = db.Exec("DELETE FROM p1;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n\n  CREATE TABLE c1(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE SET NULL);\n  CREATE TABLE c2(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE SET DEFAULT);\n  CREATE TABLE c3(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE CA...")
+	_ = db.Exec("DELETE FROM q1;\n  INSERT INTO q2 VALUES('x', 'y');\n  SELECT * FROM q1;")
+	_ = db.Exec("INSERT INTO q2 VALUES('x', 'y');\n  SELECT * FROM q1;")
+	_ = db.Exec("INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);")
+	_ = db.Exec("INSERT INTO t1 VALUES(-1, -1)")
+	_ = db.Exec("INSERT INTO t2 VALUES('a'), ('b');\n  UPDATE t1 SET b = my_changes('update');\n  SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM c1;\n  SELECT * FROM c2;\n  SELECT * FROM c3;")
+	_ = db.Query("SELECT * FROM c4;\n  SELECT * FROM c5;\n  SELECT * FROM c6;")
+	_ = db.Query("SELECT * FROM log;")
+	_ = db.Query("SELECT * FROM r1 ORDER BY a;")
+	_ = db.Query("SELECT * FROM t1;")
+}
+// Auto-generated from e_createtable.test
+func TestSQLite_e_createtable(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS auxa;\n  ATTACH 'test.db3' AS auxb;")
+	_ = db.Exec("BEGIN; INSERT INTO t4 VALUES(5, 6)")
+	_ = db.Exec("CREATE TABLE t1(a, b PRIMARY KEY);\n  CREATE TABLE t2(a, b, c, UNIQUE(b, c));")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE auxa.t3(a, b);\n  CREATE TABLE auxa.t4(a, b);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g BIGINT, h VARCHAR(10));\n  CREATE TABLE t4(i BLOB, j ANYOLDATA);\n  CREATE TABLE t5(k FLOAT, l INTEGER);\n  CREATE TABLE t6(m DEFAULT 10, n DEFAULT 5, PRIMARY KEY(m, n));\n  CREATE TABLE t7(x INTEGER PRIMARY KEY);\n  CREA...")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(0,          'zero');\n  INSERT INTO t1 VALUES(45.5,       'one');\n  INSERT INTO t1 VALUES('brambles', 'two');\n  INSERT INTO t1 VALUES(X'ABCDEF',  'three');\n\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y));\n  INSERT INTO t2 VALUES(0,     ...")
+	_ = db.Exec("CREATE TABLE t1(x VARCHAR(10), y INTEGER, z DOUBLE);\n  CREATE TABLE t2(a DATETIME, b STRING, c REAL);\n  CREATE TABLE t3(o, t);")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  CREATE TABLE auxb.t2(x, y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 1;\n  END;\n  CREATE TRIGGER auxb.tr2 AFTER INSERT ON t2 BEGIN\n    SELECT 1;\n  END;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('i',   'one');\n  INSERT INTO t1 VALUES('ii',  'two');\n  INSERT INTO t1 VALUES('iii', 'three');")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('one', 'first');\n  INSERT INTO t1 VALUES('two', 'second');\n  INSERT INTO t1 VALUES('three', 'third');")
+	_ = db.Exec("CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES('ten', 10);\n\n  CREATE TABLE t11(a, b INTEGER PRIMARY KEY);\n  INSERT INTO t11 VALUES('ten', 10);")
+	_ = db.Exec("CREATE TABLE t12(a, b, c);\n  INSERT INTO t12 VALUES(randomblob(30000),randomblob(30000),randomblob(30000));")
+	_ = db.Exec("CREATE TABLE t12(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t12 VALUES(5, 'five');")
+	_ = db.Exec("CREATE TABLE t1_ab(a PRIMARY KEY ON CONFLICT ABORT, b);\n  CREATE TABLE t1_ro(a PRIMARY KEY ON CONFLICT ROLLBACK, b);\n  CREATE TABLE t1_ig(a PRIMARY KEY ON CONFLICT IGNORE, b);\n  CREATE TABLE t1_fa(a PRIMARY KEY ON CONFLICT FAIL, b);\n  CREATE TABLE t1_re(a PRIMARY KEY ON CONFLICT REPLACE, b);...")
+	_ = db.Exec("CREATE TABLE t2(a, b, c)")
+	_ = db.Exec("CREATE TABLE t2(oid, b);\n  CREATE TABLE t3(a, _rowid_);\n  CREATE TABLE t4(a, b, rowid);\n\n  INSERT INTO t2 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'four');\n\n  INSERT INTO t3 VALUES('five', 'six');\n  INSERT INTO t3 VALUES('seven', 'eight');\n\n  INSERT INTO t4 VALUES('nine', ...")
+	_ = db.Exec("CREATE TABLE t2(x PRIMARY KEY)")
+	_ = db.Exec("CREATE TABLE t2(x PRIMARY KEY, y)")
+	_ = db.Exec("CREATE TABLE t3(i, j, UNIQUE(i, j) )")
+	_ = db.Exec("CREATE TABLE t3(s, u INTEGER PRIMARY KEY, v);\n  INSERT INTO t3 VALUES(1, NULL, 2);\n  INSERT INTO t3 VALUES('x', NULL, 'y');\n  SELECT u FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(\n    a DEFAULT NULL,\n    b DEFAULT 'string constant',\n    c DEFAULT X'424C4F42',\n    d DEFAULT 1,\n    e DEFAULT -1,\n    f DEFAULT 3.14,\n    g DEFAULT -3.14,\n    h DEFAULT ( substr('abcd', 0, 2) || 'cd' ),\n    i DEFAULT CURRENT_TIME,\n    j DEFAULT CURRENT_DATE,\n    k DEF...")
+	_ = db.Exec("CREATE TABLE t4(a, b CHECK (b!=10));\n  INSERT INTO t4 VALUES(1, 2);\n  INSERT INTO t4 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t4(s, u INT PRIMARY KEY, v) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(1, NULL, 2);")
+	_ = db.Exec("CREATE TABLE t5(\n    a DEFAULT NULL,  \n    b DEFAULT 'text value',  \n    c DEFAULT X'424C4F42',\n    d DEFAULT -45678.6,\n    e DEFAULT 394507\n  );")
+	_ = db.Exec("CREATE TABLE t5(a NOT NULL ON CONFLICT IGNORE, b NOT NULL ON CONFLICT ABORT);")
+	_ = db.Exec("CREATE TABLE t5(s, u INT PRIMARY KEY NOT NULL, v);\n  INSERT INTO t5 VALUES(1, NULL, 2);")
+	_ = db.Exec("CREATE TABLE t6(a DEFAULT ( nextint() ), b DEFAULT ( nextint() ));")
+	_ = db.Exec("CREATE TABLE t6(a, b); --ok")
+	_ = db.Exec("CREATE TABLE t6(pk INT primary key);\n  CREATE TABLE t7(pk BIGINT primary key);\n  CREATE TABLE t8(pk SHORT INTEGER primary key);\n  CREATE TABLE t9(pk UNSIGNED INTEGER primary key);")
+	_ = db.Exec("CREATE TABLE t6(s INT, u INT PRIMARY KEY, v INT) STRICT;\n  INSERT INTO t6 VALUES(1, NULL, 2);")
+	_ = db.Exec("CREATE TABLE t7(\n    a DEFAULT CURRENT_TIME, \n    b DEFAULT CURRENT_DATE, \n    c DEFAULT CURRENT_TIMESTAMP\n  );")
+	_ = db.Exec("CREATE TABLE t7(a, b) WITHOUT ROWID; --Error, no PRIMARY KEY")
+	_ = db.Exec("CREATE TABLE t7(s INT, u INT PRIMARY KEY NOT NULL, v INT) STRICT;\n  INSERT INTO t7 VALUES(1, NULL, 2);")
+	_ = db.Exec("CREATE TABLE t8(a COLLATE nocase, b COLLATE rtrim, c COLLATE binary, d);\n  INSERT INTO t8 VALUES('abc',   'abc',   'abc',   'abc');\n  INSERT INTO t8 VALUES('abc  ', 'abc  ', 'abc  ', 'abc  ');\n  INSERT INTO t8 VALUES('ABC  ', 'ABC  ', 'ABC  ', 'ABC  ');\n  INSERT INTO t8 VALUES('ABC',   'ABC',...")
+	_ = db.Exec("CREATE TABLE x1(a TEXT, b INTEGER CHECK( b>0 ));\n  CREATE TABLE t1(a TEXT, b INTEGER, CHECK( b>0 ));\n  INSERT INTO x1 VALUES('x', 'xx');\n  INSERT INTO x1 VALUES('y', 'yy');\n  INSERT INTO t1 SELECT * FROM x1;\n\n  CREATE TABLE x2(a CHECK( a||b ), b);\n  CREATE TABLE t2(a, b, CHECK( a||b ));\n ...")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("DELETE FROM t10")
+	_ = db.Exec("DELETE FROM t11")
+}
 // Auto-generated from e_delete.test
 func TestSQLite_e_delete(t *testing.T) {
 	db := setupDB(t)
@@ -2639,6 +4419,141 @@ func TestSQLite_e_dropview(t *testing.T) {
 	_ = db.Query("SELECT * FROM v2")
 	_ = db.Query("SELECT * FROM v3")
 }
+// Auto-generated from e_expr.test
+func TestSQLite_e_expr(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS dbname;\n  CREATE TABLE dbname.tblname(cname);")
+	_ = db.Exec("CREATE TABLE t1(\n    a TEXT     COLLATE NOCASE,\n    b          COLLATE REVERSE,\n    c INTEGER,\n    d BLOB\n  );\n  INSERT INTO t1 VALUES('abc', 'cba', 55, 34.5);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(NULL, NULL);")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('one', 'two');\n    INSERT INTO t2 VALUES('three', NULL);\n    INSERT INTO t2 VALUES(4, 5.0);")
+	_ = db.Exec("CREATE TABLE t2(x, w1, r1, w2, r2, r3);\n  INSERT INTO t2 VALUES(1, 1, 'R1', 2, 'R2', 'R3');\n  INSERT INTO t2 VALUES(2, 1, 'R1', 2, 'R2', 'R3');\n  INSERT INTO t2 VALUES(3, 1, 'R1', 2, 'R2', 'R3');")
+	_ = db.Exec("CREATE TABLE t24(a COLLATE NOCASE, b);\n  INSERT INTO t24 VALUES('aaa', 1);\n  INSERT INTO t24 VALUES('bbb', 2);\n  INSERT INTO t24 VALUES('ccc', 3);")
+	_ = db.Exec("CREATE TABLE t3(a TEXT, b REAL, c INTEGER);\n  INSERT INTO t3 VALUES(X'555655', '1.23abc', 4.5);\n  SELECT typeof(a), a, typeof(b), b, typeof(c), c FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(x, y);\n  INSERT INTO t4 VALUES(1, 'one');\n  INSERT INTO t4 VALUES(2, 'two');\n  INSERT INTO t4 VALUES(3, 'three');")
+	_ = db.Query("PRAGMA case_sensitive_like = 0")
+	_ = db.Query("PRAGMA case_sensitive_like = 1")
+	_ = db.Query("PRAGMA encoding = 'utf-16be'")
+	_ = db.Query("PRAGMA encoding = 'utf-16le'")
+	_ = db.Query("SELECT \n    typeof(CAST(X'555655' as TEXT)), CAST(X'555655' as TEXT),\n    typeof(CAST('1.23abc' as REAL)), CAST('1.23abc' as REAL),\n    typeof(CAST(4.5 as INTEGER)), CAST(4.5 as INTEGER)")
+	_ = db.Query("SELECT  'abcd' != 'ABCD'      COLLATE nocase")
+	_ = db.Query("SELECT  'abcd' < 'bbbb'    COLLATE reverse")
+	_ = db.Query("SELECT  'abcd' <= 'bbbb'   COLLATE reverse")
+	_ = db.Query("SELECT  'abcd' <> 'ABCD'      COLLATE nocase")
+	_ = db.Query("SELECT  'abcd' =  'ABCD'  COLLATE nocase")
+	_ = db.Query("SELECT  'abcd' == 'ABCD'  COLLATE nocase")
+	_ = db.Query("SELECT  'abcd' > 'bbbb'    COLLATE reverse")
+	_ = db.Query("SELECT  'abcd' >= 'bbbb'   COLLATE reverse")
+	_ = db.Query("SELECT  'abcd' IS 'ABCD'  COLLATE nocase")
+	_ = db.Query("SELECT  'abcd' IS NOT 'ABCD'  COLLATE nocase")
+	_ = db.Query("SELECT  1 != (0 BETWEEN 0 AND 2)")
+	_ = db.Query("SELECT  1 != 0  BETWEEN 0 AND 2")
+	_ = db.Query("SELECT  5 BETWEEN 0 AND (0 != 1)")
+	_ = db.Query("SELECT  5 BETWEEN 0 AND 0  != 1")
+	_ = db.Query("SELECT  6 BETWEEN 4 AND (8 == 1)")
+	_ = db.Query("SELECT  6 BETWEEN 4 AND (8 LIKE 1)")
+	_ = db.Query("SELECT  6 BETWEEN 4 AND 8 == 1")
+	_ = db.Query("SELECT  6 BETWEEN 4 AND 8 LIKE 1")
+	_ = db.Query("SELECT  72%-5")
+	_ = db.Query("SELECT  72%5")
+	_ = db.Query("SELECT 'A' LIKE 'a'")
+	_ = db.Query("SELECT 'A' LIKE 'a' ESCAPE ''")
+	_ = db.Query("SELECT 'A' LIKE 'a' ESCAPE '12'")
+	_ = db.Query("SELECT 'A' LIKE 'a' ESCAPE 'x'")
+	_ = db.Query("SELECT 'ABC%xyz' LIKE 'ABC\\%X%' ESCAPE '\\'")
+	_ = db.Query("SELECT 'ABC%xyz' LIKE 'ABC\\%x%' ESCAPE '\\'")
+	_ = db.Query("SELECT 'ABCxyz' GLOB 'abc*'")
+}
+// Auto-generated from e_fkey.test
+func TestSQLite_e_fkey(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$sql")
+	_ = db.Exec("ALTER TABLE 'p 1 \"parent one\"' RENAME TO p")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c DEFAULT 'xxx' REFERENCES t2")
+	_ = db.Exec("BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      DROP TABLE p;")
+	_ = db.Exec("BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);")
+	_ = db.Exec("BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;")
+	_ = db.Exec("BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;")
+	_ = db.Exec("BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t0(a PRIMARY KEY);\n    INSERT INTO t0 VALUES('xxx');")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t0(a PRIMARY KEY, b);\n    INSERT INTO t0 VALUES('x0', NULL);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;")
+	_ = db.Exec("COMMIT;\n    PRAGMA foreign_keys = OFF;\n    BEGIN;\n      PRAGMA foreign_keys = ON;\n      DELETE FROM t1;\n      PRAGMA foreign_keys;")
+	_ = db.Exec("COMMIT;\n    SELECT * FROM king;")
+	_ = db.Exec("CREATE TABLE 'p 1 \"parent one\"'(a REFERENCES 'p 1 \"parent one\"', b, PRIMARY KEY(b));\n\n    CREATE TABLE c1(c, d REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c2(e, f, FOREIGN KEY(f) REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c3(e, 'f col 2',...")
+	_ = db.Exec("CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songa...")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUE...")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean M...")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER NOT NULL,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );")
+	_ = db.Exec("CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n    INSERT INTO artist VAL...")
+	_ = db.Exec("CREATE TABLE c(j REFERENCES p)")
+	_ = db.Exec("CREATE TABLE c1(c REFERENCES nosuchtable, d);\n\n    CREATE TABLE p2(a, b, UNIQUE(a, b));\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p2(a, x));\n\n    CREATE TABLE p3(a PRIMARY KEY, b);\n    CREATE TABLE c3(c REFERENCES p3(b), d);\n\n    CREATE TABLE p4(a PRIMARY KEY, b);\n    CREATE...")
+	_ = db.Exec("CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);")
+	_ = db.Exec("CREATE TABLE nosuchtable(x PRIMARY KEY)")
+	_ = db.Exec("CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;")
+	_ = db.Exec("CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;")
+	_ = db.Exec("CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO...")
+	_ = db.Exec("CREATE TABLE p(a, b, PRIMARY KEY(a, b))")
+	_ = db.Exec("CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TAB...")
+	_ = db.Exec("CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;")
+	_ = db.Exec("CREATE TABLE p(i PRIMARY KEY)")
+	_ = db.Exec("CREATE TABLE p(i PRIMARY KEY);\n    CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;")
+	_ = db.Exec("CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);")
+	_ = db.Exec("CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);")
+	_ = db.Exec("CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VA...")
+}
+// Auto-generated from e_fts3.test
+func TestSQLite_e_fts3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA encoding = '$enc'")
+	_ = db.Query("PRAGMA table_info(data)")
+	_ = db.Query("PRAGMA table_info(mail)")
+	_ = db.Query("PRAGMA table_info(names)")
+	_ = db.Query("PRAGMA table_info(pages)")
+	_ = db.Query("PRAGMA table_info(papers)")
+	_ = db.Query("PRAGMA table_info(simpledata)")
+	_ = db.Query("PRAGMA table_info(t9a)")
+	_ = db.Query("PRAGMA table_info(t9b)")
+	_ = db.Query("PRAGMA table_info(t9c)")
+	_ = db.Query("SELECT * FROM docs WHERE $hit")
+	_ = db.Query("SELECT * FROM docs WHERE body MATCH 'title:linux driver'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH '\"lin* app*\"'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH '\"linux applications\"'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH '(sqlite OR database) library'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'database NOT sqlite'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'database and sqlite'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'database sqlite'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'lin*'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'linux'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'sqlite -database'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'sqlite AND database'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'sqlite OR database library'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'sqlite OR database'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'sqlite'")
+	_ = db.Query("SELECT * FROM docs WHERE docs MATCH 'title:linux problems'")
+	_ = db.Query("SELECT * FROM docs WHERE docs.docs MATCH 'sqlite'")
+	_ = db.Query("SELECT * FROM docs WHERE main.docs.docs MATCH 'sqlite'")
+	_ = db.Query("SELECT * FROM mail WHERE body MATCH 'feedback'")
+	_ = db.Query("SELECT * FROM mail WHERE mail MATCH 'slow'")
+	_ = db.Query("SELECT * FROM mail WHERE mail MATCH 'software'")
+	_ = db.Query("SELECT * FROM mail WHERE rowid = 15;                -- Fast. Rowid lookup.\n  SELECT * FROM mail WHERE body MATCH 'sqlite';       -- Fast. Full-text query.\n  SELECT * FROM mail WHERE mail MATCH 'search';       -- Fast. Full-text query.\n  SELECT * FROM mail WHERE rowid BETWEEN 15 AND 20;   -- Sl...")
+	_ = db.Query("SELECT * FROM mail WHERE subject MATCH 'software'")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM t10 WHERE t10 MATCH 'table*'")
+	_ = db.Query("SELECT * FROM t10 WHERE x MATCH 'rename*'")
+	_ = db.Query("SELECT * FROM t11 WHERE t11 MATCH 'table*'")
+	_ = db.Query("SELECT * FROM t11 WHERE x MATCH 'rename*'")
+	_ = db.Query("SELECT * FROM t6 WHERE t6 MATCH ''")
+	_ = db.Query("SELECT * FROM t6 WHERE t6 MATCH NULL")
+}
 // Auto-generated from e_insert.test
 func TestSQLite_e_insert(t *testing.T) {
 	db := setupDB(t)
@@ -2650,6 +4565,18 @@ func TestSQLite_e_insert(t *testing.T) {
 	_ = db.Exec("INSERT INTO a1 VALUES('x', 'y');")
 	_ = db.Exec("INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');")
 	_ = db.Query("SELECT * FROM a4")
+}
+// Auto-generated from e_reindex.test
+func TestSQLite_e_reindex(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(x);\n  CREATE INDEX i1_a ON t1(x COLLATE collA);\n  CREATE INDEX i1_b ON t1(x COLLATE collB);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n  INSERT INTO t1 VALUES('four');\n  INSERT INTO t1 VAL...")
+	_ = db.Exec("CREATE TABLE collA(x);\n  CREATE INDEX icolla_a ON collA(x COLLATE collA);\n  CREATE INDEX icolla_b ON collA(x COLLATE collB);\n\n  INSERT INTO collA SELECT x FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b, a);")
+	_ = db.Exec("DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Exec("REINDEX;\n  PRAGMA integrity_check;")
 }
 // Auto-generated from e_resolve.test
 func TestSQLite_e_resolve(t *testing.T) {
@@ -2678,6 +4605,66 @@ func TestSQLite_e_resolve(t *testing.T) {
 	_ = db.Query("SELECT * FROM temp.t1")
 	_ = db.Query("SELECT * FROM xxx.n1")
 }
+// Auto-generated from e_select.test
+func TestSQLite_e_select(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE a1(one PRIMARY KEY, two);\n  INSERT INTO a1 VALUES(1, 1);\n  INSERT INTO a1 VALUES(2, 3);\n  INSERT INTO a1 VALUES(3, 6);\n  INSERT INTO a1 VALUES(4, 10);\n\n  CREATE TABLE a2(one PRIMARY KEY, three);\n  INSERT INTO a2 VALUES(1, 1);\n  INSERT INTO a2 VALUES(3, 2);\n  INSERT INTO a2 V...")
+	_ = db.Exec("CREATE TABLE b1(one PRIMARY KEY, two);\n  INSERT INTO b1 VALUES(1, 'o');\n  INSERT INTO b1 VALUES(4, 'f');\n  INSERT INTO b1 VALUES(3, 't');\n  INSERT INTO b1 VALUES(2, 't');\n  INSERT INTO b1 VALUES(5, 'f');\n  INSERT INTO b1 VALUES(7, 's');\n  INSERT INTO b1 VALUES(6, 's');\n\n  CREATE TABLE b2...")
+	_ = db.Exec("CREATE TABLE c1(up, down);\n  INSERT INTO c1 VALUES('x', 1);\n  INSERT INTO c1 VALUES('x', 2);\n  INSERT INTO c1 VALUES('x', 4);\n  INSERT INTO c1 VALUES('x', 8);\n  INSERT INTO c1 VALUES('y', 16);\n  INSERT INTO c1 VALUES('y', 32);\n\n  CREATE TABLE c2(i, j);\n  INSERT INTO c2 VALUES(1, 0);\n  I...")
+	_ = db.Exec("CREATE TABLE d1(x, y, z);\n\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(2, 5, -1);\n  INSERT INTO d1 VALUES(1, 2, 8);\n  INSERT INTO d1 VALUES(1, 2, 7);\n  INSERT INTO d1 VALUES(2, 4, 93);\n  INSERT INTO d1 VALUES(1, 2, -20);\n  INSERT INTO d1 VALUES(1, 4, 93);\n  INSERT INTO d1 V...")
+	_ = db.Exec("CREATE TABLE d3(a);\n  INSERT INTO d3 VALUES('text');\n  INSERT INTO d3 VALUES(14.1);\n  INSERT INTO d3 VALUES(13);\n  INSERT INTO d3 VALUES(X'78787878');\n  INSERT INTO d3 VALUES(15);\n  INSERT INTO d3 VALUES(12.9);\n  INSERT INTO d3 VALUES(null);\n\n  CREATE TABLE d4(x COLLATE nocase);\n  INSER...")
+	_ = db.Exec("CREATE TABLE d5(a, b);\n  CREATE TABLE d6(c, d);\n  CREATE TABLE d7(e, f);\n \n  INSERT INTO d5 VALUES(1, 'f');\n  INSERT INTO d6 VALUES(2, 'e');\n  INSERT INTO d7 VALUES(3, 'd');\n  INSERT INTO d5 VALUES(4, 'c');\n  INSERT INTO d6 VALUES(5, 'b');\n  INSERT INTO d7 VALUES(6, 'a');\n\n  CREATE TAB...")
+	_ = db.Exec("CREATE TABLE f1(a, b);\n  INSERT INTO f1 VALUES(26, 'z');\n  INSERT INTO f1 VALUES(25, 'y');\n  INSERT INTO f1 VALUES(24, 'x');\n  INSERT INTO f1 VALUES(23, 'w');\n  INSERT INTO f1 VALUES(22, 'v');\n  INSERT INTO f1 VALUES(21, 'u');\n  INSERT INTO f1 VALUES(20, 't');\n  INSERT INTO f1 VALUES(19, ...")
+	_ = db.Exec("CREATE TABLE h1(a, b);\n  INSERT INTO h1 VALUES(1, 'one');\n  INSERT INTO h1 VALUES(1, 'I');\n  INSERT INTO h1 VALUES(1, 'i');\n  INSERT INTO h1 VALUES(4, 'four');\n  INSERT INTO h1 VALUES(4, 'IV');\n  INSERT INTO h1 VALUES(4, 'iv');\n\n  CREATE TABLE h2(x COLLATE nocase);\n  INSERT INTO h2 VALUE...")
+	_ = db.Exec("CREATE TABLE j1(a, b, c);\n  CREATE TABLE j2(e, f);\n  CREATE TABLE j3(g);")
+	_ = db.Exec("CREATE TABLE q1(a TEXT, b INTEGER, c);\n  CREATE TABLE q2(d NUMBER, e BLOB);\n  CREATE TABLE q3(f REAL, g);\n\n  INSERT INTO q1 VALUES(16, -87.66, NULL);\n  INSERT INTO q1 VALUES('legible', 94, -42.47);\n  INSERT INTO q1 VALUES('beauty', 36, NULL);\n\n  INSERT INTO q2 VALUES('legible', 1);\n  INS...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'one');\n  INSERT INTO t1 VALUES('b', 'two');\n  INSERT INTO t1 VALUES('c', 'three');\n\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('a', 'I');\n  INSERT INTO t2 VALUES('b', 'II');\n  INSERT INTO t2 VALUES('c', 'III');\n\n  CREATE TABLE t...")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);")
+	_ = db.Exec("CREATE TABLE t10(x, y);\n  INSERT INTO t10 VALUES(1, 'true');\n  INSERT INTO t10 VALUES(0, 'false');")
+	_ = db.Exec("CREATE TABLE t5(a COLLATE nocase, b COLLATE binary);\n  INSERT INTO t5 VALUES('AA', 'cc');\n  INSERT INTO t5 VALUES('BB', 'dd');\n  INSERT INTO t5 VALUES(NULL, NULL);\n  CREATE TABLE t6(a COLLATE binary, b COLLATE nocase);\n  INSERT INTO t6 VALUES('aa', 'cc');\n  INSERT INTO t6 VALUES('bb', 'DD')...")
+	_ = db.Exec("CREATE TABLE t7(a, b, c);\n  CREATE TABLE t8(a, d, e);\n\n  INSERT INTO t7 VALUES('x', 'ex',  24);\n  INSERT INTO t7 VALUES('y', 'why', 25);\n\n  INSERT INTO t8 VALUES('x', 'abc', 24);\n  INSERT INTO t8 VALUES('z', 'ghi', 26);")
+	_ = db.Exec("CREATE TABLE w1(a TEXT, b NUMBER);\n  CREATE TABLE w2(a, b TEXT);\n\n  INSERT INTO w1 VALUES('1', 4.1);\n  INSERT INTO w2 VALUES(1, 4.1);")
+	_ = db.Exec("CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d, e);\n  CREATE TABLE x3(f, g, h, i);\n\n  -- x1: 3 rows, 2 columns\n  INSERT INTO x1 VALUES(24, 'converging');\n  INSERT INTO x1 VALUES(NULL, X'CB71');\n  INSERT INTO x1 VALUES('blonds', 'proprietary');\n\n  -- x2: 2 rows, 3 columns\n  INSERT INTO x2...")
+	_ = db.Exec("CREATE TABLE x1(k, x, y, z);\n  INSERT INTO x1 VALUES(1, 'relinquished', 'aphasia', 78.43);\n  INSERT INTO x1 VALUES(2, X'A8E8D66F',    X'07CF',   -81);\n  INSERT INTO x1 VALUES(3, -22,            -27.57,    NULL);\n  INSERT INTO x1 VALUES(4, NULL,           'bygone',  'picky');\n  INSERT INTO x1...")
+	_ = db.Exec("CREATE TABLE xx(x, y);\n  INSERT INTO xx VALUES('IiJlsIPepMuAhU', X'10B00B897A15BAA02E3F98DCE8F2');\n  INSERT INTO xx VALUES(NULL, -16.87);\n  INSERT INTO xx VALUES(-17.89, 'linguistically');")
+	_ = db.Exec("CREATE TABLE y1(a COLLATE nocase, b COLLATE binary, c);\n  INSERT INTO y1 VALUES('Abc', 'abc', 'aBC');")
+	_ = db.Exec("CREATE TABLE z1(a, b, c);\n  CREATE TABLE z2(d, e);\n  CREATE TABLE z3(a, b);\n\n  INSERT INTO z1 VALUES(51.65, -59.58, 'belfries');\n  INSERT INTO z1 VALUES(-5, NULL, 75);\n  INSERT INTO z1 VALUES(-2.2, -23.18, 'suiters');\n  INSERT INTO z1 VALUES(NULL, 67, 'quartets');\n  INSERT INTO z1 VALUES(...")
+	_ = db.Query("SELECT * FROM t1 AS x, t1 AS y")
+	_ = db.Query("SELECT * FROM t1, t2")
+	_ = db.Query("SELECT * FROM x1, x2")
+	_ = db.Query("SELECT * FROM x2 JOIN x3")
+	_ = db.Query("SELECT * FROM x3 CROSS JOIN x1")
+	_ = db.Query("SELECT * FROM x3 INNER JOIN x3 AS x4")
+	_ = db.Query("SELECT a FROM d3 ORDER BY a")
+	_ = db.Query("SELECT a FROM d3 ORDER BY a DESC")
+	_ = db.Query("SELECT count(*) FROM t1, t2 ON (t1.a=t2.a) USING (a)")
+	_ = db.Query("SELECT count(*) FROM t1, t2 USING (a) ON (t1.a=t2.a)")
+	_ = db.Query("SELECT k FROM x1 LEFT JOIN x2 USING(k)")
+	_ = db.Query("SELECT k FROM x1 LEFT JOIN x2 USING(k) WHERE x2.k IS NULL")
+	_ = db.Query("SELECT k FROM x1 LEFT JOIN x2 USING(k) WHERE x2.k ORDER BY +k")
+	_ = db.Query("SELECT k FROM x1 NATURAL JOIN x2 WHERE x2.k")
+	_ = db.Query("SELECT k FROM x1 NATURAL JOIN x2 WHERE x2.k-3")
+	_ = db.Query("SELECT k FROM x1 WHERE '1'||z")
+	_ = db.Query("SELECT k FROM x1 WHERE x")
+	_ = db.Query("SELECT k FROM x1 WHERE x IS NULL")
+	_ = db.Query("SELECT k FROM x1 WHERE y")
+}
+// Auto-generated from e_select2.test
+func TestSQLite_e_select2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES(2, 'B');\n  INSERT INTO t1 VALUES(1, 'A');\n  INSERT INTO t1 VALUES(4, 'D');\n  INSERT INTO t1 VALUES(NULL, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n\n  INSERT INTO t2 VALUES(1, 'A'...")
+	_ = db.Exec("CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');")
+}
+// Auto-generated from e_totalchanges.test
+func TestSQLite_e_totalchanges(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$sql")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX t2_y ON t2(y);")
+	_ = db.Exec("DELETE FROM t1;\n  DELETE FROM t2;")
+}
 // Auto-generated from e_update.test
 func TestSQLite_e_update(t *testing.T) {
 	db := setupDB(t)
@@ -2699,6 +4686,50 @@ func TestSQLite_e_update(t *testing.T) {
 	_ = db.Query("SELECT 'main', tbl_name FROM main.sqlite_master WHERE type = 'table';\n  SELECT 'temp', tbl_name FROM sqlite_temp_master WHERE type = 'table';\n  SELECT 'aux', tbl_name FROM aux.sqlite_master WHERE type = 'table';")
 	_ = db.Query("SELECT * FROM t3")
 }
+// Auto-generated from e_uri.test
+func TestSQLite_e_uri(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('ko');")
+	_ = db.Exec("CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('ok');")
+}
+// Auto-generated from e_vacuum.test
+func TestSQLite_e_vacuum(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;")
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n      INSERT INTO t1 VALUES(1, randomblob(400));\n      INSERT INTO t1 SELECT a+1,  randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+2,  randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+4,  randomblob(400) FROM t1;\n      INSERT INTO t1 SEL...")
+	_ = db.Exec("CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;")
+	_ = db.Exec("CREATE TABLE t5(x, y INTEGER PRIMARY KEY);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;")
+	_ = db.Exec("CREATE VIRTUAL TABLE temp.stat USING dbstat")
+	_ = db.Exec("DELETE FROM t1 WHERE a%2;\n    INSERT INTO t1 SELECT b, a FROM t2 WHERE a%2;\n    UPDATE t1 SET b=randomblob(600) WHERE (a%2)==0;")
+	_ = db.Exec("DELETE FROM t1;\n    DELETE FROM t2;")
+	_ = db.Exec("DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;")
+	_ = db.Exec("DROP TABLE t5;\n  CREATE TABLE t5(x);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;")
+	_ = db.Exec("DROP TABLE t5;\n  CREATE TABLE t5(x,y,z);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  UPDATE t5 SET y=x, z=random();\n  DELETE FROM t5 WHERE x = 'y';\n  CREATE INDEX t5x ON t5(x);\n  CREATE UNIQUE INDEX t5y ON t5(y);\n  CREATE INDEX t5z...")
+	_ = db.Exec("DROP TABLE temp.stat")
+	_ = db.Query("PRAGMA auto_vacuum")
+	_ = db.Query("PRAGMA auto_vacuum = FULL")
+	_ = db.Query("PRAGMA auto_vacuum = NONE")
+	_ = db.Query("PRAGMA freelist_count")
+	_ = db.Query("PRAGMA journal_mode = delete")
+	_ = db.Query("PRAGMA journal_mode = wal")
+	_ = db.Query("PRAGMA page_size ; PRAGMA auto_vacuum")
+	_ = db.Query("PRAGMA page_size = 1024")
+	_ = db.Query("PRAGMA page_size = 1024;")
+	_ = db.Query("PRAGMA page_size = 2048")
+	_ = db.Exec("SAVEPOINT x")
+	_ = db.Query("SELECT a FROM t1")
+	_ = db.Query("SELECT pageno FROM stat WHERE name = 't1' ORDER BY pageno")
+	_ = db.Exec("VACUUM")
+	_ = db.Exec("VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;")
+	_ = db.Exec("VACUUM aux;")
+	_ = db.Exec("VACUUM;\n  SELECT rowid, x FROM t4;")
+	_ = db.Exec("VACUUM;\n  SELECT rowid, x FROM t5;")
+}
 // Auto-generated from e_wal.test
 func TestSQLite_e_wal(t *testing.T) {
 	db := setupDB(t)
@@ -2718,6 +4749,52 @@ func TestSQLite_e_wal(t *testing.T) {
 	_ = db.Query("PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA locking_mode = NORMAL;\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(5, 6);")
 	_ = db.Query("PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t1;")
 	_ = db.Query("PRAGMA locking_mode = NORMAL;\n  SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from e_walauto.test
+func TestSQLite_e_walauto(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b)")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(100), randomblob(100))")
+	_ = db.Query("PRAGMA auto_vacuum = 0")
+	_ = db.Query("PRAGMA journal_mode = WAL")
+	_ = db.Query("PRAGMA wal_autocheckpoint = $value")
+}
+// Auto-generated from e_walckpt.test
+func TestSQLite_e_walckpt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES(...")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.jou...")
+	_ = db.Exec("BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);")
+	_ = db.Exec("INSERT INTO t1 VALUES('xyz')")
+	_ = db.Exec("INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4)")
+	_ = db.Exec("INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;")
+	_ = db.Query("PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Query("SELECT * FROM sqlite_master")
+}
+// Auto-generated from e_walhook.test
+func TestSQLite_e_walhook(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(x);\n    PRAGMA aux.journal_mode = wal;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    COMMIT;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);")
+	_ = db.Exec("INSERT INTO t1 VALUES(10)")
+	_ = db.Exec("INSERT INTO t1 VALUES(11)")
+	_ = db.Exec("INSERT INTO t1 VALUES(12)")
+	_ = db.Exec("INSERT INTO t1 VALUES(2)")
+	_ = db.Exec("INSERT INTO t1 VALUES(5)")
+	_ = db.Exec("INSERT INTO t1 VALUES(6)")
+	_ = db.Exec("INSERT INTO t1 VALUES(7)")
+	_ = db.Exec("INSERT INTO t1 VALUES(8)")
+	_ = db.Exec("INSERT INTO t1 VALUES(9)")
+	_ = db.Exec("INSERT INTO t2 VALUES('a')")
+	_ = db.Query("PRAGMA journal_mode = wal")
+	_ = db.Query("PRAGMA wal_autocheckpoint = 1000")
 	_ = db.Query("SELECT * FROM t1")
 }
 // Auto-generated from emptytable.test
@@ -2749,12 +4826,97 @@ func TestSQLite_enc(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM ab WHERE a = $::cp200;")
 	_ = db.Exec("WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;")
 }
+// Auto-generated from enc2.test
+func TestSQLite_enc2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE abc(a, b, c);")
+	_ = db.Exec("CREATE TABLE t1(a varchar collate test_collate);")
+	_ = db.Exec("CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');")
+	_ = db.Exec("CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');")
+	_ = db.Exec("CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('sqlite');")
+	_ = db.Exec("INSERT INTO t1 VALUES('three','III',3);\n    INSERT INTO t1 VALUES('four','IV',4);\n    INSERT INTO t1 VALUES('five','V',5);")
+	_ = db.Exec("INSERT INTO t1 VALUES('two', 'II', 2);")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("PRAGMA encoding = 'UTF-16';\n    SELECT * FROM sqlite_master;")
+	_ = db.Query("PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE abc(a, b, c);\n    PRAGMA encoding;")
+	_ = db.Query("PRAGMA encoding = 'UTF-16le';\n    PRAGMA encoding;")
+	_ = db.Query("PRAGMA encoding = 'UTF-8'")
+	_ = db.Query("PRAGMA encoding = 'UTF-8';\n    CREATE TABLE abc(a, b, c);")
+	_ = db.Query("PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;")
+	_ = db.Query("PRAGMA encoding = \\")
+	_ = db.Query("PRAGMA encoding;")
+	_ = db.Query("PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);")
+	_ = db.Query("PRAGMA encoding=UTF16be")
+	_ = db.Query("PRAGMA encoding=UTF16le")
+	_ = db.Query("PRAGMA encoding=UTF8")
+	_ = db.Query("PRAGMA encoding=UTF8;\n  CREATE TEMP TABLE t1(x);\n  INSERT INTO t1 VALUES('this is a test');\n  PRAGMA encoding=UTF16;\n  SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM sqlite_master;")
+	_ = db.Query("SELECT * FROM sqlite_master;\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1 WHERE a = 'four';")
+	_ = db.Query("SELECT * FROM t1 WHERE a = 'one';")
+	_ = db.Query("SELECT * FROM t1 WHERE a IN ('one', 'two');")
+	_ = db.Query("SELECT * FROM t5 ORDER BY 1 COLLATE test_collate")
+	_ = db.Query("SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;")
+	_ = db.Query("SELECT name FROM sqlite_master")
+	_ = db.Query("SELECT test_function('sqlite')")
+	_ = db.Query("pragma encoding = 'UTF-16BE'")
+	_ = db.Query("pragma encoding = 'UTF-16LE'")
+	_ = db.Query("pragma encoding = 'UTF-8'")
+}
+// Auto-generated from enc3.test
+func TestSQLite_enc3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc''123',5);\n    SELECT * FROM t1")
+	_ = db.Exec("CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES(x'61006200630064006500');\n      SELECT CAST(a AS text) FROM t2 WHERE CAST(a AS text) LIKE 'abc%';")
+	_ = db.Exec("DELETE FROM t1;\n      INSERT INTO t1 VALUES(x'616263646566',NULL);\n      SELECT * FROM t1")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("PRAGMA encoding=utf16le;\n      PRAGMA encoding;")
+	_ = db.Query("SELECT 1 FROM sqlite_master LIMIT 1")
+	_ = db.Query("SELECT CAST(x'61006200630064006500' AS text);")
+	_ = db.Query("SELECT quote(x) || ' ' || quote(y) FROM t1")
+	_ = db.Query("SELECT rowid FROM t2\n       WHERE CAST(a AS text) LIKE CAST(x'610062002500' AS text);")
+}
+// Auto-generated from enc4.test
+func TestSQLite_enc4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("PRAGMA encoding = \\")
+	_ = db.Query("select 1+1.")
+}
+// Auto-generated from eqp.test
+func TestSQLite_eqp(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("-- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    siz...")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a)")
+	_ = db.Exec("CREATE INDEX i2 ON t1(a, b)")
+	_ = db.Exec("CREATE INDEX i3 ON t1(b)")
+	_ = db.Exec("CREATE INDEX i4 ON t2(c)")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT, ex TEXT)")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT, ex TEXT);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(a INT, b INT, ex TEXT);\n  CREATE TABLE t3(a INT, b INT, ex TEXT);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);")
+	_ = db.Exec("CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);")
+	_ = db.Exec("CREATE TABLE t2(c INT, d INT, ex TEXT)")
+	_ = db.Exec("INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;")
+}
 // Auto-generated from eqp2.test
 func TestSQLite_eqp2(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  CREATE INDEX t1_a ON t1(a);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE INDEX t2_x ON t2(x);\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<999)\n  INSERT INTO t1 SELECT i%33, i FROM s;\n\n  WITH s(i) AS ( SELECT 0...")
 	_ = db.Exec("CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX i1 ON t1(a, b, c);")
+}
+// Auto-generated from errmsg.test
+func TestSQLite_errmsg(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');")
+	_ = db.Exec("CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');")
 }
 // Auto-generated from errofst1.test
 func TestSQLite_errofst1(t *testing.T) {
@@ -2774,6 +4936,74 @@ func TestSQLite_eval(t *testing.T) {
 	_ = db.Query("SELECT * FROM t2")
 	_ = db.Query("SELECT test_eval('SELECT ''abcdefghij''')")
 	_ = db.Query("SELECT x, test_eval('SELECT max(x) FROM t1 WHERE x<' || x) FROM t1 LIMIT 5")
+}
+// Auto-generated from exclusive.test
+func TestSQLite_exclusive(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test3.db' as aux2;")
+	_ = db.Exec("ATTACH 'test4.db' as aux3;")
+	_ = db.Exec("BEGIN;\n      UPDATE abc SET a = 1, b = 2, c = 3;\n      ROLLBACK;\n      SELECT * FROM abc;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT IN...")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    PRAGMA locking_mode = exclusive;")
+	_ = db.Exec("CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);")
+	_ = db.Exec("DETACH aux;\n      DETACH aux2;\n      DETACH aux3;")
+	_ = db.Exec("INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;")
+	_ = db.Exec("INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;")
+	_ = db.Exec("INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;")
+	_ = db.Exec("INSERT INTO abc VALUES(7, 8, 9);")
+	_ = db.Exec("INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;")
+	_ = db.Query("PRAGMA default_cache_size = 10;")
+	_ = db.Query("PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;")
+	_ = db.Query("PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;")
+	_ = db.Query("PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;")
+	_ = db.Query("PRAGMA locking_mode = NORMAL;\n    DROP TABLE t3;\n    DROP TABLE abc;")
+	_ = db.Query("PRAGMA locking_mode = exclusive;")
+	_ = db.Query("PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;")
+	_ = db.Query("PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);")
+	_ = db.Query("PRAGMA locking_mode = normal;")
+	_ = db.Query("PRAGMA locking_mode = normal;\n      SELECT * FROM abc;")
+	_ = db.Query("PRAGMA locking_mode = normal;\n    SELECT * FROM abc;")
+	_ = db.Exec("ROLLBACK;")
+	_ = db.Query("SELECT * FROM abc;")
+	_ = db.Query("SELECT count(*) FROM t3;")
+	_ = db.Query("SELECT count(*), md5sum(x) FROM t3")
+	_ = db.Query("pragma aux.locking_mode = normal;")
+	_ = db.Query("pragma locking_mode = exclusive;")
+	_ = db.Query("pragma locking_mode = exclusive;\n      ATTACH 'test2.db' as aux;")
+	_ = db.Query("pragma locking_mode = invalid;")
+	_ = db.Query("pragma locking_mode = normal;")
+	_ = db.Query("pragma locking_mode;")
+	_ = db.Query("pragma locking_mode;\n    pragma main.locking_mode;\n    pragma temp.locking_mode;")
+	_ = db.Query("pragma main.locking_mode = normal;")
+}
+// Auto-generated from exclusive2.test
+func TestSQLite_exclusive2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SE...")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) VALUES(randstr(10, 400));\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n    INSERT INTO t1(a) SELECT randstr(10, 400) FROM t1;\n  ...")
+	_ = db.Exec("INSERT INTO t1 VALUES(randstr(200, 200));")
+	_ = db.Query("PRAGMA cache_size")
+	_ = db.Query("PRAGMA cache_size=1000;")
+	_ = db.Query("PRAGMA locking_mode = exclusive;")
+	_ = db.Query("PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));")
+	_ = db.Query("PRAGMA locking_mode = normal")
+	_ = db.Query("PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));")
+	_ = db.Query("SELECT count(*), md5sum(a) FROM t1")
+	_ = db.Exec("UPDATE t1 SET b=a, a=0;")
+}
+// Auto-generated from exec.test
+func TestSQLite_exec(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;")
 }
 // Auto-generated from existsexpr.test
 func TestSQLite_existsexpr(t *testing.T) {
@@ -2832,6 +5062,59 @@ func TestSQLite_existsexpr2(t *testing.T) {
 	_ = db.Query("SELECT a,b,c FROM t1 WHERE b=2 ORDER BY a")
 	_ = db.Query("SELECT x, y FROM t2 WHERE EXISTS (\n    SELECT 1 FROM t1 WHERE b=x\n  )")
 }
+// Auto-generated from existsfault.test
+func TestSQLite_existsfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);")
+	_ = db.Query("SELECT * FROM sqlite_schema")
+	_ = db.Query("SELECT count(*) FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x) AND y!=11")
+}
+// Auto-generated from expr.test
+func TestSQLite_expr(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN; UPDATE test1 SET %s; SELECT %s FROM test1; ROLLBACK;")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');")
+	_ = db.Exec("CREATE TABLE test1(a int, b int);")
+	_ = db.Exec("CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")
+	_ = db.Exec("CREATE TABLE test1(i1 int, i2 int, t1 text, t2 text)")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  SELECT count(*) FROM t1\n   WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);")
+	_ = db.Exec("DROP TABLE test1")
+	_ = db.Exec("INSERT INTO test1 VALUES(1,2,'hello','world')")
+	_ = db.Exec("INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')")
+	_ = db.Query("SELECT \"\" <= '';")
+	_ = db.Query("SELECT '' <= \"\";")
+	_ = db.Query("SELECT '9223372036854775807'+0")
+	_ = db.Query("SELECT '9223372036854775807.0'+0")
+	_ = db.Query("SELECT '9223372036854775808'+0")
+	_ = db.Query("SELECT * FROM test1 ORDER BY a")
+	_ = db.Query("SELECT 0+'9223372036854775807'")
+	_ = db.Query("SELECT 0+'9223372036854775807.0'")
+	_ = db.Query("SELECT 0+'9223372036854775808'")
+	_ = db.Query("SELECT 1 IS #1;")
+	_ = db.Query("SELECT 12345678901234567890;")
+	_ = db.Query("SELECT CURRENT_DATE")
+	_ = db.Query("SELECT CURRENT_DATE==date('now');")
+	_ = db.Query("SELECT CURRENT_TIME")
+	_ = db.Query("SELECT CURRENT_TIME==time('now');")
+	_ = db.Query("SELECT CURRENT_TIMESTAMP")
+	_ = db.Query("SELECT CURRENT_TIMESTAMP==datetime('now');")
+	_ = db.Query("SELECT a FROM test1 WHERE %s ORDER BY a")
+	_ = db.Query("SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);")
+	_ = db.Query("SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (NOT NOT x);")
+	_ = db.Query("SELECT count(*) FROM t1\n   WHERE (x OR (8==9)) != (NOT NOT x);")
+	_ = db.Query("SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND 0),a)\n  FROM dual LEFT JOIN t1;")
+	_ = db.Query("SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;")
+	_ = db.Query("SELECT implies_nonnull_row( (b=1 AND a=2)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;")
+	_ = db.Query("SELECT round(-('-'||'123'))")
+	_ = db.Query("SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n     WHERE x")
+	_ = db.Query("SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n   WHERE x")
+	_ = db.Query("SELECT sum(NOT x) FROM t1\n     WHERE x")
+	_ = db.Query("SELECT sum(NOT x) FROM t1\n   WHERE x")
+	_ = db.Query("SELECT typeof(+000000009223372036854775807)")
+}
 // Auto-generated from expr2.test
 func TestSQLite_expr2(t *testing.T) {
 	db := setupDB(t)
@@ -2860,6 +5143,40 @@ func TestSQLite_exprfault2(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;")
 	_ = db.Exec("UPDATE t3 SET (d,d,d,d, a )=(SELECT EXISTS(SELECT 1 NOT IN(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT (SELECT max( 1 IN(SELECT x NOT IN(SELECT 1 NOT IN(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(...")
+}
+// Auto-generated from expridx1.test
+func TestSQLite_expridx1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));")
+	_ = db.Exec("CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);")
+	_ = db.Exec("CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);")
+	_ = db.Exec("CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z...")
+	_ = db.Exec("DELETE FROM t1 WHERE a=$a")
+	_ = db.Exec("DELETE FROM t1 WHERE a=$ii")
+	_ = db.Exec("DELETE FROM t1 WHERE a=20;")
+	_ = db.Exec("DELETE FROM t1 WHERE a=25;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1 VALUES(5,  15.0);\n  INSERT INTO t1 VALUES(10, 20.0);\n  INSERT INTO t1 VALUES(15, 20.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 20.0);\n  INSERT INTO t1 VALUES(30, 20.0);\n  INSERT INTO t1 VALUES(35, 25.0);\n\n  UPDATE x1 SET b=19.0 WHE...")
+	_ = db.Exec("DELETE FROM y1 WHERE a=4;")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Exec("UPDATE x1 SET b=-4.000000000000001 WHERE a=2;          -- -1 ULP\n  UPDATE x1 SET b=-4.000000000000002 WHERE a=3;          -- -2 ULP\n  UPDATE x1 SET b=-4.000000000000003 WHERE a=4;          -- -3 ULP\n  UPDATE x1 SET b=-3.9999999999999996 WHERE a=5;         -- 1 ULP\n  UPDATE x1 SET b=-3.9999999...")
+	_ = db.Exec("UPDATE x1 SET b=21.0 WHERE rowid=20;")
+	_ = db.Exec("UPDATE x1 SET b=26.0 WHERE rowid=25;\n  PRAGMA integrity_check;")
+	_ = db.Exec("UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.99999999999999...")
+	_ = db.Exec("UPDATE x1 SET c=19 WHERE rowid=2;")
+	_ = db.Exec("UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0")
+	_ = db.Exec("UPDATE z1 SET b=-4.0 WHERE b=4.0;\n  PRAGMA integrity_check;")
+}
+// Auto-generated from expridx2.test
+func TestSQLite_expridx2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, '{a: 10, b: 20, c: 30")
 }
 // Auto-generated from extension01.test
 func TestSQLite_extension01(t *testing.T) {
@@ -2985,6 +5302,81 @@ func TestSQLite_filterfault(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);")
 	_ = db.Query("SELECT sum(a) FILTER (WHERE b<5),\n           count() FILTER (WHERE d!=c) \n      FROM t1 GROUP BY c ORDER BY 1;")
 }
+// Auto-generated from fkey1.test
+func TestSQLite_fkey1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE Foo (\n    Id INTEGER PRIMARY KEY, \n    ParentId INTEGER REFERENCES Foo(Id) ON DELETE CASCADE, C1\n  );\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (1, null, 'A');\n  INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 1, 'A-2-1');\n  INSERT OR REPLACE INTO Foo(Id, Pa...")
+	_ = db.Exec("CREATE TABLE p1(x, y);\n  CREATE UNIQUE INDEX p1x ON p1(x) WHERE y<2;\n  INSERT INTO p1 VALUES(1, 1);\n  CREATE TABLE c1(a REFERENCES p1(x));")
+	_ = db.Exec("CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );")
+	_ = db.Exec("CREATE TABLE t1(a REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  CREATE TABLE t2(a TEXT PRIMARY KEY);\n  PRAGMA writable_schema=ON;\n  CREATE TABLE sqlite_stat1(tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  UPDATE sqlite_schema SET name='sqlite_autoindex_sqlite_stat1_1'...")
+	_ = db.Exec("CREATE TABLE t11(\n    x INTEGER PRIMARY KEY, \n    parent REFERENCES t11 ON DELETE CASCADE\n  );\n  INSERT INTO t11 VALUES (1, NULL), (2, 1), (3, 2);")
+	_ = db.Exec("CREATE TABLE t2(\n      x INTEGER PRIMARY KEY,\n      y TEXT\n    );")
+	_ = db.Exec("CREATE TABLE t3(\n      a INTEGER REFERENCES t2,\n      b INTEGER REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );")
+	_ = db.Exec("CREATE TABLE t4(a integer primary key);\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n ...")
+	_ = db.Exec("CREATE TABLE t5(a PRIMARY KEY, b, c);\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);")
+	_ = db.Exec("CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);")
+	_ = db.Exec("CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);")
+	_ = db.Exec("CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);")
+	_ = db.Exec("CREATE UNIQUE INDEX p1x2 ON p1(x);\n  INSERT INTO c1 VALUES(1);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a,b,c AS(1),d, FOREIGN KEY(c,d,b,a,b,d,b,c) REFERENCES t0);\n  PRAGMA foreign_key_check;")
+	_ = db.Exec("INSERT INTO c1 VALUES(1);")
+	_ = db.Exec("INSERT OR REPLACE INTO Foo(Id, ParentId, C1) VALUES (2, 3, 'A-2-3');")
+	_ = db.Exec("INSERT OR REPLACE INTO t11 VALUES (2, 3);")
+	_ = db.Exec("INSERT OR REPLACE INTO t11 VALUES(2,3);")
+	_ = db.Query("PRAGMA foreign_keys = ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\", \"\"\"3\" PRIMARY KEY);\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" REFERENCES \"\"\"1\" ON DELETE RESTRICT);\n  DELETE FROM \"\"\"1\";")
+	_ = db.Query("PRAGMA foreign_keys=OFF;\n  CREATE TABLE t1(a,b,c,FOREIGN KEY(a,a,a,a,a,a,a,a,a,a,a,a,a,a) REFERENCES t0);\n  INSERT INTO t1 VALUES(1,2,3);\n  PRAGMA foreign_key_check;")
+	_ = db.Query("PRAGMA foreign_keys=ON;\n  CREATE TABLE \"\"\"1\"(\"\"\"2\" TEXT PRIMARY KEY, \"\"\"3\" TEXT);\n  INSERT INTO \"\"\"1\"(\"\"\"2\",\"\"\"3\") VALUES('abc','def');\n  CREATE TABLE \"\"\"4\"(\"\"\"5\" TEXT REFERENCES \"\"\"1\" ON DELETE CASCADE);\n  INSERT INTO \"\"\"4\"(\"\"\"5\") VALUES('abc');\n ...")
+	_ = db.Query("PRAGMA foreign_keys=ON;\n  CREATE TABLE \"xx1\"(\"xx2\" TEXT PRIMARY KEY, \"xx3\" TEXT);\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('abc','def');\n  CREATE TABLE \"xx4\"(\"xx5\" TEXT REFERENCES \"xx1\" ON DELETE CASCADE);\n  INSERT INTO \"xx4\"(\"xx5\") VALUES('abc');\n  INSERT INTO \"xx1\"(...")
+	_ = db.Query("PRAGMA table_info=\"\"\"1\";")
+	_ = db.Query("PRAGMA writable_schema=ON;\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE sqlite_stat1 (tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  PRAGMA writable_schema=OFF;\n  CREATE TABLE sqlsim4(stat PRIMARY KEY);;\n  CREATE TABLE t1(sqlsim7 REFERENCES sqlite_stat1 ON DELETE CASCA...")
+	_ = db.Exec("REINDEX;")
+}
+// Auto-generated from fkey2.test
+func TestSQLite_fkey2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t4")
+	_ = db.Exec("ATTACH ':memory:' AS aux;\n      CREATE TABLE aux.t1(a PRIMARY KEY);\n      CREATE TABLE aux.t2(a, b);\n      INSERT INTO aux.t2(a,b) VALUES(1,2);")
+	_ = db.Exec("BEGIN;\n        INSERT INTO cc VALUES(2, 2);")
+	_ = db.Exec("BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);")
+	_ = db.Exec("BEGIN;\n        INSERT INTO pp VALUES(3, 'three');")
+	_ = db.Exec("BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;")
+	_ = db.Exec("BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint")
+	_ = db.Exec("BEGIN;\n    DELETE FROM pp WHERE a = 2;")
+	_ = db.Exec("COMMIT ; SELECT * FROM cc")
+	_ = db.Exec("COMMIT ; SELECT * FROM pp")
+	_ = db.Exec("COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;")
+	_ = db.Exec("CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    );\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );")
+	_ = db.Exec("CREATE TABLE aux.t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TABLE aux.t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TABLE aux.t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);")
+	_ = db.Exec("CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;")
+	_ = db.Exec("CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;")
+	_ = db.Exec("CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );")
+	_ = db.Exec("CREATE TABLE high(\"a'b!\" PRIMARY KEY, b);\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );")
+	_ = db.Exec("CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;")
+	_ = db.Exec("CREATE TABLE i(i INTEGER PRIMARY KEY);\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;")
+	_ = db.Exec("CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY);\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');")
+	_ = db.Exec("CREATE TABLE i(i TEXT PRIMARY KEY);        -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');")
+	_ = db.Exec("CREATE TABLE long(a, b PRIMARY KEY, c);\n      CREATE TABLE short(d, e, f REFERENCES long);\n      CREATE TABLE mid(g, h, i REFERENCES long DEFERRABLE INITIALLY DEFERRED);")
+	_ = db.Exec("CREATE TABLE main(id INTEGER PRIMARY KEY);\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);")
+	_ = db.Exec("CREATE TABLE nought(a, b PRIMARY KEY, c);\n      CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      );")
+	_ = db.Exec("CREATE TABLE one(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);")
+	_ = db.Exec("CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TABLE pp(a PRIMARY KEY, b);\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp);")
+	_ = db.Exec("CREATE TABLE pp(a PRIMARY KEY, b);\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);")
+	_ = db.Exec("CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c));\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);")
+	_ = db.Exec("CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c));\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INS...")
+	_ = db.Exec("CREATE TABLE pp(x, y, PRIMARY KEY(x, y));\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));")
+	_ = db.Exec("CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    );\n    CREATE TABLE t2(node PRIMARY KEY, parent);\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSE...")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    );\n    DELETE FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b));\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, rowid, _rowid_, oid);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100, 'abc', 'def', 'ghi');\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY);\n      CREATE TABLE t2(a, b);\n      INSERT INTO t2 VALUES(1,2);")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1);\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2);\n      CREATE TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);")
+}
 // Auto-generated from fkey3.test
 func TestSQLite_fkey3(t *testing.T) {
 	db := setupDB(t)
@@ -3018,6 +5410,13 @@ func TestSQLite_fkey3(t *testing.T) {
 	_ = db.Exec("UPDATE t8 SET d = 1;")
 	_ = db.Exec("UPDATE t8 SET d = 2;")
 	_ = db.Exec("UPDATE t8 SET e = 2;")
+}
+// Auto-generated from fkey4.test
+func TestSQLite_fkey4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(c REFERENCES t1 DEFERRABLE INITIALLY DEFERRED, d);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);")
+	_ = db.Query("SELECT * FROM t2")
 }
 // Auto-generated from fkey5.test
 func TestSQLite_fkey5(t *testing.T) {
@@ -3064,6 +5463,88 @@ func TestSQLite_fkey5(t *testing.T) {
 	_ = db.Query("PRAGMA foreign_key_check(c13);")
 	_ = db.Query("PRAGMA foreign_key_check(c14);")
 }
+// Auto-generated from fkey6.test
+func TestSQLite_fkey6(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      INSERT INTO t2 VALUES(1,0),(2,1);\n      CREATE VIRTUAL TABLE t3 USING fts5(a, b, content='', tokendata=1);\n      INSERT INTO t3 VALUES(3,3);\n      PRAGMA defer_foreign_keys=ON;\n      DELETE FROM t2;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    DELETE FROM p1 WHERE a=2;")
+	_ = db.Exec("BEGIN;\n    DELETE FROM p2 WHERE a=1;")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t1 WHERE x=1;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO c1 VALUES(123);\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO p1 VALUES(123, 'one two three');\n  COMMIT;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DELETE FROM p1;\n    DROP TABLE c1;\n  COMMIT;\n  PRAGMA defer_foreign_keys;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DELETE FROM p1;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DELETE FROM p2 WHERE a=1;\n  COMMIT;\n  SELECT * FROM p2;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DROP TABLE p1;\n    PRAGMA vdbe_trace = 0;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO c1 VALUES('three');\n    DROP TABLE c1;\n  COMMIT;\n  PRAGMA defer_foreign_keys;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;")
+	_ = db.Exec("BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n  COMMIT;")
+	_ = db.Exec("BEGIN;\n    UPDATE p2 SET a=a-1;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE p1(a INTEGER PRIMARY KEY, b UNIQUE);\n  CREATE TABLE c1(x REFERENCES p1(b));\n\n  INSERT INTO p1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO c1 VALUES('two');\n\n  PRAGMA foreign_keys = 1;\n  PRAGMA defer_foreign_keys = 1;")
+	_ = db.Exec("CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');")
+	_ = db.Exec("CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(x, y REFERENCES p2 ON DELETE RESTRICT ON UPDATE RESTRICT);\n  INSERT INTO p2 VALUES(1, 'one');\n  INSERT INTO p2 VALUES(2, 'two');\n  INSERT INTO c2 VALUES('i', 1);")
+	_ = db.Exec("CREATE TABLE t2(\n        y INTEGER PRIMARY KEY,\n        z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED\n    );")
+	_ = db.Exec("CREATE TRIGGER p2t AFTER DELETE ON p2 BEGIN\n    INSERT INTO p2 VALUES(old.a, 'deleted!');\n  END;")
+	_ = db.Exec("DELETE FROM t2 WHERE y=1;")
+	_ = db.Exec("DROP TABLE p1;\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_schema \n      VALUES('table', 't1', 't1', 2, 'CREATE TABLE t1(x INTEGER PRIMARY KEY)');")
+	_ = db.Query("PRAGMA defer_foreign_keys;")
+	_ = db.Query("PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;")
+	_ = db.Query("PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;")
+	_ = db.Query("PRAGMA foreign_keys = 1;\n    PRAGMA writable_schema = 1;")
+	_ = db.Query("PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);")
+	_ = db.Query("PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t...")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Exec("ROLLBACK;")
+}
+// Auto-generated from fkey7.test
+func TestSQLite_fkey7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE p4 (id INTEGER NOT NULL PRIMARY KEY);\n    INSERT INTO p4 VALUES(1), (2), (3);\n\n    CREATE TABLE c4(x INTEGER REFERENCES p4(id) DEFERRABLE INITIALLY DEFERRED);\n    CREATE INDEX c4_x ON c4(x);\n    INSERT INTO c4 VALUES(1), (2), (3);\n\n    ANALYZE;\n    INSERT INTO p4(id) VALUES(4);")
+	_ = db.Exec("CREATE TABLE pX(x PRIMARY KEY);\n    CREATE TABLE cX(a INTEGER PRIMARY KEY, b REFERENCES pX);")
+	_ = db.Exec("INSERT INTO cX VALUES(11, zeroblob(40));")
+	_ = db.Exec("INSERT INTO parent VALUES(123);\n  INSERT OR FAIL INTO child VALUES(123), (123);")
+	_ = db.Exec("INSERT OR FAIL INTO child VALUES(123), (123);")
+	_ = db.Query("PRAGMA foreign_key_check;")
+	_ = db.Query("PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));")
+	_ = db.Query("PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );")
+	_ = db.Query("SELECT * FROM child;")
+	_ = db.Exec("UPDATE par SET a=? WHERE b=?")
+	_ = db.Exec("UPDATE par SET a=?,b=?,c=? WHERE b=?")
+	_ = db.Exec("UPDATE par SET b=? WHERE a=?")
+	_ = db.Exec("UPDATE par SET c=? WHERE b=?")
+}
+// Auto-generated from fkey8.test
+func TestSQLite_fkey8(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALU...")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);")
+	_ = db.Exec("BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;")
+	_ = db.Exec("CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);")
+	_ = db.Exec("DELETE FROM aux.p1 WHERE a=123;")
+	_ = db.Exec("DELETE FROM p3 WHERE a=1")
+	_ = db.Exec("DELETE FROM t2 WHERE a=1;")
+	_ = db.Exec("INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;")
+	_ = db.Exec("INSERT OR REPLACE INTO t1 VALUES(10000, 20000);")
+	_ = db.Exec("INSERT OR REPLACE INTO t1 VALUES(20000, 20000);")
+	_ = db.Query("PRAGMA foreign_keys = 1;")
+	_ = db.Query("PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );")
+	_ = db.Query("PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);")
+	_ = db.Query("PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);")
+	_ = db.Query("PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;")
+	_ = db.Query("PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN ol...")
+	_ = db.Query("PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COM...")
+	_ = db.Query("PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one...")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("SELECT * FROM aux.c1;")
+	_ = db.Query("SELECT * FROM aux.p1;")
+	_ = db.Exec("UPDATE aux.p1 SET pid = pid * 10;")
+}
 // Auto-generated from fordelete.test
 func TestSQLite_fordelete(t *testing.T) {
 	db := setupDB(t)
@@ -3082,6 +5563,24 @@ func TestSQLite_fordelete(t *testing.T) {
 	_ = db.Query("SELECT * FROM x1;")
 	_ = db.Query("SELECT * FROM x2;")
 	_ = db.Query("SELECT name, rootpage FROM sqlite_master")
+}
+// Auto-generated from format4.test
+func TestSQLite_format4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSER...")
+	_ = db.Query("PRAGMA legacy_file_format=OFF")
+	_ = db.Exec("UPDATE t1 SET x0=1, x1=1, x2=1, x3=1, x4=1, x5=1, x6=1, x7=1, x8=1, x9=1")
+	_ = db.Exec("UPDATE t1 SET x0=2, x1=2, x2=2, x3=2, x4=2, x5=2, x6=2, x7=2, x8=2, x9=2")
+}
+// Auto-generated from fpconv1.test
+func TestSQLite_fpconv1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT 1.23 * 2.34;")
+	_ = db.Query("SELECT 1.23 - 2.34;")
+	_ = db.Exec("WITH RECURSIVE\n       /* Number of random floating-point values to try.\n       ** On a circa 2021 Ryzen 5950X running Mint Linux, and\n       ** compiled with -O0 -DSQLITE_DEBUG, this test runs at\n       ** about 150000 cases per second  ------------------vvvvvvv */\n    c(x) AS (VALUES(1) UNI...")
+	_ = db.Exec("WITH RECURSIVE\n    c(x,s) AS MATERIALIZED (VALUES(1,random()&0xffefffffffffffff)\n               UNION ALL\n               SELECT x+1,random()&0xffefffffffffffff\n                 FROM c WHERE x<1_000_000),\n    fp(y,s) AS (\n       SELECT ieee754_from_int(s),s FROM c\n    ),\n    fp2(yt,y,s) AS...")
 }
 // Auto-generated from fts-9fd058691.test
 func TestSQLite_fts_9fd058691(t *testing.T) {
@@ -3263,6 +5762,19 @@ func TestSQLite_fts3ah(t *testing.T) {
 	_ = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH $xterm")
 	_ = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'something'")
 }
+// Auto-generated from fts3ai.test
+func TestSQLite_fts3ai(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 (rowid, content) VALUES(1, 'one')")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("PRAGMA encoding = \"UTF-16le\";\n  CREATE VIRTUAL TABLE t1 USING fts3(content);")
+	_ = db.Query("SELECT content FROM t1 WHERE rowid = 1")
+	_ = db.Query("SELECT content FROM t1 WHERE rowid = 2")
+	_ = db.Query("SELECT content FROM t1 WHERE rowid = 3")
+	_ = db.Query("SELECT content FROM t1 WHERE rowid = 4")
+	_ = db.Query("SELECT content FROM t1 WHERE rowid = 5")
+}
 // Auto-generated from fts3aj.test
 func TestSQLite_fts3aj(t *testing.T) {
 	db := setupDB(t)
@@ -3321,6 +5833,95 @@ func TestSQLite_fts3an(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM ft WHERE x MATCH 'abc*'")
 	_ = db.Query("SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
 	_ = db.Exec("UPDATE ft SET x = 'abc' || rowid")
+}
+// Auto-generated from fts3ao.test
+func TestSQLite_fts3ao(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE aux.t1 RENAME TO t2")
+	_ = db.Exec("ALTER TABLE t1 RENAME to fts_t1;")
+	_ = db.Exec("ALTER TABLE t4 RENAME TO t5;")
+	_ = db.Exec("ALTER TABLE t7 RENAME TO t8;\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n    CREATE VIRTUAL TABLE aux.t1 USING fts3(a, b, c);\n    INSERT INTO aux.t1(a, b, c) VALUES(\n      'neung song sahm', 'neung see', 'neung see song'\n    );")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t4 VALUES('jumped over the');")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t5 VALUES('Down came a jumbuck to drink at that billabong');\n      ALTER TABLE t5 RENAME TO t6;\n      INSERT INTO t6 VALUES('Down came the troopers, one, two, three');\n    ROLLBACK;\n    SELECT * FROM t5;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO fts_t1(a, b, c) VALUES('one two three', 'one four', 'one two');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n    INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one two');\n    SELECT a, b, c FROM t1 WHERE c MATCH 'two';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n  INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one four two');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts3;\n    INSERT INTO t4 VALUES('the quick brown fox');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t7 USING FTS4;\n  INSERT INTO t7 VALUES('coined by a German clinician');\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';")
+	_ = db.Exec("INSERT INTO t5 VALUES('lazy dog');")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t5")
+	_ = db.Query("SELECT a FROM fts_t1")
+	_ = db.Query("SELECT a, b, c FROM aux.t1 WHERE a MATCH 'song';")
+	_ = db.Query("SELECT a, b, c FROM fts_t1 WHERE c MATCH 'four';")
+	_ = db.Query("SELECT a, b, c FROM t1 WHERE c MATCH 'two';")
+	_ = db.Query("SELECT a, b, c FROM t1 WHERE c MATCH 'two';\n    CREATE TABLE t3(a, b, c);\n    SELECT a, b, c FROM t1 WHERE  c  MATCH 'two';")
+	_ = db.Query("SELECT a, b, c FROM t2 WHERE a MATCH 'song';")
+	_ = db.Query("SELECT rowid, snippet( fts_t1 ) FROM fts_t1 WHERE a MATCH 'four';")
+	_ = db.Query("SELECT rowid, snippet(fts_t1) FROM fts_t1 WHERE a MATCH 'four';")
+	_ = db.Query("SELECT rowid, snippet(t1) FROM t1 WHERE a MATCH 'four';")
+	_ = db.Query("SELECT rowid, snippet(t1) FROM t1 WHERE b MATCH 'four';")
+	_ = db.Query("SELECT rowid, snippet(t1) FROM t1 WHERE c MATCH 'four';")
+	_ = db.Query("SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH 'the'")
+	_ = db.Query("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
+}
+// Auto-generated from fts3atoken.test
+func TestSQLite_fts3atoken(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t110(a,b);\n  CREATE TRIGGER r110 AFTER INSERT ON t110 BEGIN\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;\n  END;")
+	_ = db.Exec("CREATE VIEW v110(x) AS\n      SELECT fts3_tokenizer('tok110', fts3_tokenizer('simple')) IS NULL;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts4(tokenize=\"   \");")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts4(tokenize=\"\");")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts4(tokenize=);")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts3(name,TOKENIZE icu en_US);\n    insert into x1 (name) values (NULL);\n    insert into x1 (name) values (NULL);\n    delete from x1;")
+	_ = db.Exec("INSERT INTO t1(content) VALUES('There was movement at the station');\n    INSERT INTO t1(content) VALUES('For the word has passed around');\n    INSERT INTO t1(content) VALUES('That the colt from ol regret had got');\n    SELECT content FROM t1 WHERE content MATCH 'movement'")
+	_ = db.Exec("INSERT INTO t110(a,b) VALUES(1,2);")
+	_ = db.Exec("INSERT INTO x1 VALUES($str)")
+	_ = db.Query("SELECT * FROM t110;")
+	_ = db.Query("SELECT * FROM v110;")
+	_ = db.Query("SELECT fts3_tokenizer($blah2name) == fts3_tokenizer($simplename),\n           typeof(fts3_tokenizer($blah2name)),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer($simplename)),\n           typeof(fts3_tokenizer('simple'));")
+	_ = db.Query("SELECT fts3_tokenizer('blah') == fts3_tokenizer('simple');")
+	_ = db.Query("SELECT fts3_tokenizer('blah', fts3_tokenizer('simple')) IS NULL;")
+	_ = db.Query("SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer($blah2name)),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer($simplename)),\n           typeof(fts3_tokenizer('simple'));")
+	_ = db.Query("SELECT fts3_tokenizer('blah2', $simple) IS NULL;")
+	_ = db.Query("SELECT fts3_tokenizer(NULL);")
+	_ = db.Query("SELECT fts3_tokenizer(NULL, X'12345678');")
+	_ = db.Query("SELECT fts3_tokenizer(NULL, X'1234567812345678');")
+	_ = db.Query("SELECT fts3_tokenizer_internal_test()")
+	_ = db.Query("SELECT fts3_tokenizer_test('icu', $locale, $input)")
+	_ = db.Query("SELECT fts3_tokenizer_test('icu', 'I don''t see how');")
+	_ = db.Query("SELECT fts3_tokenizer_test('porter', 'I don''t see how');")
+	_ = db.Query("SELECT fts3_tokenizer_test('simple', 'I don''t see how');")
+}
+// Auto-generated from fts3atoken2.test
+func TestSQLite_fts3atoken2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);")
+	_ = db.Exec("CREATE VIRTUAL TABLE x2 USING fts3(col, tokenize=mytok2);")
+	_ = db.Exec("CREATE VIRTUAL TABLE x3 USING fts3(col, tokenize=mytok3);")
+	_ = db.Query("SELECT fts3_tokenizer('mytok', $blob)")
+	_ = db.Query("SELECT typeof( fts3_tokenizer($bound) );")
+	_ = db.Query("SELECT typeof( fts3_tokenizer('mytok3', $blob) );")
+	_ = db.Query("SELECT typeof( fts3_tokenizer('simple') );")
+}
+// Auto-generated from fts3auto.test
+func TestSQLite_fts3auto(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 VALUES($a, $b, $c, $d)")
+	_ = db.Exec("INSERT INTO t1 VALUES($doc, null)")
+	_ = db.Exec("INSERT INTO t1 VALUES($x)")
+	_ = db.Exec("INSERT INTO t1(a, b) VALUES($a, $b)")
+	_ = db.Exec("INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES...")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('optimize')")
+	_ = db.Query("PRAGMA table_info($tbl)")
+	_ = db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'on* NEAR/3 fi*'")
+	_ = db.Query("SELECT docid, * FROM $tbl")
+	_ = db.Exec("UPDATE t1_stat SET value=x'' WHERE id=0")
 }
 // Auto-generated from fts3aux1.test
 func TestSQLite_fts3aux1(t *testing.T) {
@@ -3491,6 +6092,107 @@ func TestSQLite_fts3conf(t *testing.T) {
 	_ = db.Exec("UPDATE OR REPLACE t3 SET docid = 3 WHERE docid=2;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'")
 	_ = db.Exec("UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'")
 }
+// Auto-generated from fts3corrupt.test
+func TestSQLite_fts3corrupt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a);\n  INSERT INTO f(f) VALUES('nodesize=24');\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n  ...")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';")
+	_ = db.Exec("CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n  COMMIT;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');")
+	_ = db.Exec("DROP TABLE t1;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;")
+	_ = db.Exec("INSERT INTO f(f) VALUES('merge=2,2');")
+	_ = db.Exec("INSERT INTO t1 VALUES($s)")
+	_ = db.Exec("INSERT INTO t1 VALUES($w)")
+	_ = db.Exec("INSERT INTO t1 VALUES('four')")
+	_ = db.Exec("INSERT INTO t1 VALUES('one')")
+	_ = db.Exec("INSERT INTO t1 VALUES('three')")
+	_ = db.Exec("INSERT INTO t1 VALUES('two')")
+	_ = db.Exec("INSERT INTO t1 VALUES('world');")
+	_ = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'hello'")
+	_ = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'world'")
+	_ = db.Exec("UPDATE f_segments SET block = (\n    SELECT block FROM f_segments WHERE blockid=1\n  ) WHERE blockid=2")
+	_ = db.Exec("UPDATE t1_segdir SET root = $blob")
+	_ = db.Exec("UPDATE t1_segdir SET root = $blob;\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';")
+	_ = db.Exec("UPDATE t1_segdir SET root = X'FFFFFFFFFFFFFFFF';\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';")
+	_ = db.Exec("UPDATE t1_stat SET value = NULL;\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';")
+	_ = db.Exec("UPDATE t1_stat SET value = X'0000';\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';")
+}
+// Auto-generated from fts3corrupt2.test
+func TestSQLite_fts3corrupt2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING FTS3(a, b);")
+	_ = db.Exec("INSERT INTO t2 VALUES($d, $d)")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES('nodesize=32')")
+	_ = db.Query("SELECT count(*) FROM t2_segments")
+	_ = db.Query("SELECT rowid, length(block), block FROM t2_segments")
+	_ = db.Query("SELECT rowid, length(root), root FROM t2_segdir")
+	_ = db.Exec("UPDATE t2_segdir SET root = $b2 WHERE rowid = $rowid")
+	_ = db.Exec("UPDATE t2_segdir SET root = $blob WHERE rowid = $rowid")
+	_ = db.Exec("UPDATE t2_segments SET block = $b2 WHERE rowid = $rowid")
+	_ = db.Exec("UPDATE t2_segments SET block = $blob WHERE rowid = $rowid")
+}
+// Auto-generated from fts3corrupt3.test
+func TestSQLite_fts3corrupt3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES($doc1);\n    INSERT INTO t2 VALUES($doc2);\n    INSERT INTO t2 VALUES($doc3);\n  COMMIT;")
+	_ = db.Query("PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;")
+	_ = db.Query("SELECT quote(root) from t1_segdir;")
+	_ = db.Query("SELECT quote(root) from t2_segdir;")
+	_ = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'one'")
+	_ = db.Exec("UPDATE t1_segdir SET root = X'00036F6E650EFFFFFFFFFFFFFFFFFFFFFFFF0200';")
+}
+// Auto-generated from fts3corrupt4.test
+func TestSQLite_fts3corrupt4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#  UPDATE t1 SET b=((- '' )) WHERE a MATCH '0*t';\n#")
+	_ = db.Exec("BEGIN;\n        INSERT INTO ft VALUES('abc' || $i);\n        INSERT INTO ft VALUES('abc' || $i || 'x' );\n        INSERT INTO ft VALUES('abc' || $i || 'xx' );\n      COMMIT")
+	_ = db.Exec("BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('aback');\n    INSERT INTO ft VALUES('abaft');\n    INSERT INTO ft VALUES('abandon');\n  COMMIT;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1(t1) SELECT x FROM t2;\n    UPDATE t1 SET b=quote(zeroblob(200)) WHERE a MATCH 'thread*';")
+	_ = db.Exec("COMMIT;\n    SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;")
+	_ = db.Exec("CREATE VIRTUAL TABLE Table0 USING fts3();\n  INSERT INTO Table0_segdir VALUES(1,NULL,1,NULL,NULL,NULL);")
+	_ = db.Exec("CREATE VIRTUAL TABLE def USING fts3(xyz);\n  INSERT INTO def_segdir VALUES(0,0,0,0,0, X'0001310301c9000103323334050d81');")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a, b);")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_stat VALUES (1,x'11014101000101c5c5014b010164c5014b010101c50101c5c5010201010101014101000101c5c5014b010101c5014b010101c50101c5c501010100c50101c5c5010101010101e40201010101014101000...")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00'...")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'0001ff000001ff000001ff000001ff000001ff00c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5bec5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5');")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (28,0,0,0,'0 0',x'00');\n  INSERT INTO f_segdir VALUES (0,241,0,0,'0 0',x'0001000030310000f1');")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b,tokenize=icu);\n    CREATE TABLE 'f_docsize'(docid INTEGER PRIMARY KEY, size BLOB);\n    CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n    INSERT INTO f VALUES (1, '1234');\n    INSERT INTO f_stat VALUES (1,x'0000000165656565db6569746565c5c52bc5...")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f6...")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t0 USING fts3(\n    col0 INTEGER PRIMARY KEY,\n    col1 VARCHAR(8),\n    col2 BINARY,\n    col3 BINARY\n  );\n  INSERT INTO t0_content VALUES(1,1,'1234','aaaa','bbbb');\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'0001310307820001033233340501010102000004616161610501010202...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t0 USING fts3(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'0001310301c9000103323334050d8000f200000461616161050101020200000462626262050101030200');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY, col1, col2 ,col3 );\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',\n      X'0001310301020001033233340500010102000004616161bc050101020200000462626262050101030200'\n  );")
+	_ = db.Exec("CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'00013103010200010332333405010201ba00000461616161050101020200000462626262050101030200');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3();\n  INSERT INTO t1 VALUES('one two three');\n  UPDATE t1_segdir SET start_block = 1;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a, content=\"\");\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 665',X'000261640303040002086970697363696e670301080001056c6971756103020c00050269700304040001036d65740301060001036e6a6d03080900010375746503050300000663696c6c756d0306020001066f6d6d6f646f0304070002096e7365...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 835',X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c030102020003...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\nINSERT INTO t1_segdir VALUES(0,0,0,0,'0 592',X'00016dcb048ce6fbd3b2d68bfebf0101020200808080808080808020010202008080808080808080100102020080808080808080800801020200808080808080808004010202008080808080808080020102020080808080808080800101020200808080808080...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;")
+	_ = db.Exec("INSERT INTO Table0(Table0) VALUES('optimize');")
+	_ = db.Exec("INSERT INTO f VALUES (0,x'00');")
+	_ = db.Exec("INSERT INTO f(f) VALUES ('integrity-check');")
+	_ = db.Exec("INSERT INTO f(f) VALUES ('merge=107,2');")
+	_ = db.Exec("INSERT INTO f(f) VALUES ('merge=59,59');")
+	_ = db.Exec("INSERT INTO f_segdir VALUES(0,2,1111,0,0,X'00');\n  INSERT INTO f_segdir VALUES(0,3,0   ,0,0,X'00013003010200');")
+	_ = db.Exec("INSERT INTO ft VALUES('abc' || $i)")
+	_ = db.Exec("INSERT INTO ft(ft) VALUES('merge=1,4');")
+	_ = db.Exec("INSERT INTO ft(ft) VALUES('merge=1,4');\n  SELECT count(*) FROM ft_segdir;\n  SELECT count(*) FROM ft_segments;")
+	_ = db.Exec("INSERT INTO t1(t1) SELECT x FROM t2;")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('optimize');")
+	_ = db.Exec("INSERT INTO t1_segdir VALUES(0,0,0,0,0,X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301...")
+	_ = db.Exec("INSERT INTO x1(x1) VALUES( 'merge=1' )")
+	_ = db.Exec("INSERT INTO x1(x1) VALUES('nodesize=24'),('merge=3,4');\n  INSERT INTO x1(x1) VALUES( 'merge=3,4' ),('merge=3,4');")
+	_ = db.Query("PRAGMA integrity_check;")
+}
 // Auto-generated from fts3corrupt5.test
 func TestSQLite_fts3corrupt5(t *testing.T) {
 	db := setupDB(t)
@@ -3532,6 +6234,114 @@ func TestSQLite_fts3corrupt7(t *testing.T) {
 	_ = db.Query("SELECT 0 FROM t1 WHERE t1 MATCH 'rtree NEAR rtree\"json1 enable\"';")
 	_ = db.Query("SELECT count(*) FROM t WHERE t MATCH 'a NEAR/100 b';")
 	_ = db.Query("SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';")
+}
+// Auto-generated from fts3cov.test
+func TestSQLite_fts3cov(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(x);\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('Is the night chilly and dark?');\n      INSERT INTO t1 VALUES('The night is chilly, but not dark.');\n      INSERT INTO t1 VALUES('The thin gray cloud is spread on high,...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t14 USING fts4(a, b);\n  INSERT INTO t14 VALUES('one two three', 'one three four');\n  INSERT INTO t14 VALUES('a b c', 'd e a');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t15 USING fts4(a, b, c);\n  INSERT INTO t15 VALUES('abc def ghi', 'abc2 def2 ghi2', 'abc3 def3 ghi3');\n  INSERT INTO t15 VALUES('abc2 def2 ghi2', 'abc2 def2 ghi2', 'abc def3 ghi3');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t17 USING fts4;\n  INSERT INTO t17(content) VALUES('one one one');\n  UPDATE t17_segdir SET root = X'00036F6E65FFFFFFFFFFFFFFFFFFFFFF02030300'")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(x);\n    INSERT INTO t3(t3) VALUES('nodesize=24');\n    INSERT INTO t3(t3) VALUES('maxpending=100');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts3(x);\n    INSERT INTO t4(t4) VALUES('nodesize=24');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5 USING fts3(x)")
+	_ = db.Exec("CREATE VIRTUAL TABLE t7 USING fts3(a, b, c);\n    INSERT INTO t7 VALUES('A', 'B', 'C');\n    UPDATE t7 SET docid = 5;\n    SELECT docid, * FROM t7;")
+	_ = db.Exec("CREATE VIRTUAL TABLE xx USING fts3")
+	_ = db.Exec("CREATE VIRTUAL TABLE xx USING fts3;\n    INSERT INTO xx VALUES('one two three');\n    INSERT INTO xx VALUES('four five six');\n    DELETE FROM xx WHERE docid = 1;")
+	_ = db.Exec("DELETE FROM t1_segments WHERE blockid = $left_child")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('The moon is behind, and at the full;');\n      INSERT INTO t1 VALUES('And yet she looks both small and dull.');\n      INSERT INTO t1 VALUES('The night is chill, the cloud is gray:');\n      INSERT INTO t1 VALUES(...")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('optimize');\n    SELECT substr(hex(root), 1, 2) FROM t1_segdir;")
+	_ = db.Exec("INSERT INTO t1_segments VALUES($left_child, NULL)")
+	_ = db.Exec("INSERT INTO t4 VALUES('extra!')")
+	_ = db.Exec("INSERT INTO t4 VALUES('more extra!')")
+	_ = db.Exec("INSERT INTO t7 VALUES('D', 'E', 'F');\n    UPDATE t7 SET docid = 1 WHERE docid = 6;\n    SELECT docid, * FROM t7;")
+	_ = db.Exec("INSERT INTO xx(xx) VALUES('optimize')")
+	_ = db.Query("SELECT * FROM t16 WHERE t16 MATCH 'invisible'")
+	_ = db.Query("SELECT * FROM t17 WHERE t17 MATCH 'one'")
+	_ = db.Query("SELECT * FROM xx WHERE xx MATCH 'two'")
+	_ = db.Query("SELECT count(*) FROM t5_segdir")
+	_ = db.Query("SELECT rowid FROM t14 WHERE docid MATCH 'one'")
+	_ = db.Query("SELECT rowid FROM t14 WHERE rowid MATCH 'one'")
+	_ = db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"e a\"'")
+	_ = db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"e b\"'")
+	_ = db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"one four\"'")
+	_ = db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"one two three\"'")
+	_ = db.Query("SELECT rowid FROM t15 WHERE t15 MATCH '\"abc* def2\"'")
+}
+// Auto-generated from fts3d.test
+func TestSQLite_fts3d(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE fts RENAME TO xyz;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;")
+	_ = db.Exec("ALTER TABLE xyz RENAME TO ott;\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1 (rowid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (rowid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (rowid, c) VALUES (3, 'This is a test');\n\n  UPDATE t1 SET c = 'This is a test one' WHERE ...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE 1=1; -- Delete each row rath...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  DROP TABL...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (docid, c) VALUES (1, 'This is a test');\n  INSERT INTO t1 (docid, c) VALUES (2, 'That was a test');\n  INSERT INTO t1 (docid, c) VALUES (3, 'This is a test');\n  DELETE FROM t1 WHERE docid IN (1,3);\n  SELECT OP...")
+	_ = db.Exec("INSERT INTO xyz(xyz) VALUES('merge=2,2')")
+	_ = db.Query("PRAGMA encoding=UTF16be;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;")
+	_ = db.Query("PRAGMA encoding=UTF16le;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;")
+	_ = db.Query("PRAGMA encoding=UTF8;\n    CREATE VIRTUAL TABLE fts USING fts3(a,b,c);\n    SELECT name FROM sqlite_master WHERE name GLOB '???_*' ORDER BY 1;")
+	_ = db.Query("SELECT OFFSETS(t1) FROM t1\n     WHERE t1 MATCH 'this OR that OR was OR a OR is OR test' ORDER BY docid;")
+	_ = db.Query("SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;")
+	_ = db.Query("SELECT c FROM t1")
+	_ = db.Query("SELECT level, idx FROM t1_segdir ORDER BY level, idx;")
+	_ = db.Exec("UPDATE t1_segdir SET level = 2 WHERE level = 1 AND idx = 0;\n    SELECT OPTIMIZE(t1) FROM t1 LIMIT 1;\n    SELECT level, idx FROM t1_segdir ORDER BY level, idx;")
+}
+// Auto-generated from fts3defer.test
+func TestSQLite_fts3defer(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    INSERT INTO x3 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x...")
+	_ = db.Exec("BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING FTS3")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING FTS4")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3)")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4;\n  BEGIN;\n    INSERT INTO t1 VALUES('this is a dog');\n    INSERT INTO t1 VALUES('an instance of a phrase');\n    INSERT INTO t1 VALUES('an instance of a longer phrase');\n    INSERT INTO t1 VALUES($aaa);\n  COMMIT;")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;")
+	_ = db.Exec("CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELEC...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1")
+	_ = db.Exec("DROP TABLE t1")
+	_ = db.Exec("DROP TABLE x3")
+	_ = db.Exec("INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;")
+	_ = db.Exec("INSERT INTO t1 VALUES($doc)")
+	_ = db.Exec("INSERT INTO t1 VALUES('')")
+	_ = db.Query("SELECT * FROM x2 WHERE x2 MATCH 'a b c d e f g h i j k l m n o p q r s';")
+	_ = db.Query("SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';")
+	_ = db.Query("SELECT count(*) FROM t1_segments WHERE length(block)>10000")
+	_ = db.Query("SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;")
+	_ = db.Query("SELECT count(*) FROM x1 WHERE x1 MATCH '\"d e f\"'")
+}
+// Auto-generated from fts3defer2.test
+func TestSQLite_fts3defer2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT...")
+	_ = db.Exec("DROP TABLE t1")
+	_ = db.Exec("INSERT INTO t1 VALUES('a b c d e f a x y');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1(t1) VALUES('optimize');")
+	_ = db.Exec("INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');")
+	_ = db.Exec("INSERT INTO t3(t3) VALUES('rebuild');")
+	_ = db.Query("SELECT content FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';")
+	_ = db.Query("SELECT content FROM t1 WHERE t1 MATCH 'f (e a)';")
+	_ = db.Query("SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;")
+	_ = db.Query("SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';")
+	_ = db.Query("SELECT mit(matchinfo(t2, 'pcxnal')) FROM t2 WHERE t2 MATCH 'a b';")
+	_ = db.Query("SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'e \"g z\"';")
+	_ = db.Query("SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';")
+	_ = db.Query("SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g z';")
+	_ = db.Query("SELECT rowid, length(matchinfo(t3)) FROM t3 \n  WHERE t3 MATCH '(a NEAR b NEAR a NEAR b NEAR a)'")
+	_ = db.Query("SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';")
+	_ = db.Query("SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)'")
+	_ = db.Query("SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';")
+	_ = db.Query("SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';")
+	_ = db.Query("SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)';")
+	_ = db.Query("SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';")
+	_ = db.Query("SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/2 a)';")
+	_ = db.Query("SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';")
 }
 // Auto-generated from fts3defer3.test
 func TestSQLite_fts3defer3(t *testing.T) {
@@ -3731,11 +6541,113 @@ func TestSQLite_fts3join(t *testing.T) {
 	_ = db.Query("SELECT docid FROM ft1, t1 WHERE ft1 MATCH y AND id=1 ORDER BY docid;")
 	_ = db.Query("SELECT docid FROM ft1, t1 WHERE ft1 MATCH y AND id=1;")
 }
+// Auto-generated from fts3malloc.test
+func TestSQLite_fts3malloc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts3(a, b)")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter)")
+	_ = db.Exec("DELETE FROM ft WHERE docid>=32")
+	_ = db.Exec("DROP TABLE ft1;\n    DROP TABLE ft2;\n    DROP TABLE ft3;\n    DROP TABLE ft4;\n    DROP TABLE ft6;\n    DROP TABLE ft7;")
+	_ = db.Exec("INSERT INTO ft VALUES($a, $b)")
+	_ = db.Query("SELECT a FROM ft")
+}
+// Auto-generated from fts3matchinfo.test
+func TestSQLite_fts3matchinfo(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE ft2 USING fts4;\n  INSERT INTO ft2 VALUES('a b c d e');\n  INSERT INTO ft2 VALUES('f a b c d');\n  SELECT snippet(ft2, '[', ']', '', -1, 1) FROM ft2 WHERE ft2 MATCH 'c';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(matchinfo=fts3);\n  SELECT name FROM sqlite_master WHERE type = 'table';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t10 USING fts4;\n  INSERT INTO t10 VALUES('first record');\n  INSERT INTO t10 VALUES('second record');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t11 USING fts4;\n  INSERT INTO t11(t11) VALUES('nodesize=24');\n  INSERT INTO t11 VALUES('quitealongstringoftext');\n  INSERT INTO t11 VALUES('anotherquitealongstringoftext');\n  INSERT INTO t11 VALUES('athirdlongstringoftext');\n  INSERT INTO t11 VALUES('andonemoreforgoodluc...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t12 USING fts4;\n  INSERT INTO t12 VALUES('a b c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT mit(matchinfo(t2)) FROM t2 WHERE t2 MATCH 'I';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(mtchinfo=fts3);\n  INSERT INTO t3(mtchinfo) VALUES('Beside the lake, beneath the trees');\n  SELECT mtchinfo FROM t3;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts4(x, y);\n  INSERT INTO t4 VALUES('a b c d e', 'f g h i j');\n  INSERT INTO t4 VALUES('f g h i j', 'a b c d e');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t7 USING fts3(a, b);\n  INSERT INTO t7 VALUES('u v w', 'x y z');\n\n  CREATE VIRTUAL TABLE t8 USING fts4(a, b, matchinfo=fts3);\n  INSERT INTO t8 VALUES('u v w', 'x y z');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t9 USING fts4;\n  INSERT INTO t9 VALUES(\n    'this record is used to try to dectect corruption'\n  );\n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';")
+	_ = db.Exec("CREATE VIRTUAL TABLE tt USING fts3(x, y);\n  INSERT INTO tt VALUES('c d a c d d', 'e a g b d a');   -- 1\n  INSERT INTO tt VALUES('c c g a e b', 'c g d g e c');   -- 2\n  INSERT INTO tt VALUES('b e f d e g', 'b a c b c g');   -- 3\n  INSERT INTO tt VALUES('a c f f g d', 'd b f d e g');   -- 4\n  ...")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts4(matchinfo=fs3);")
+	_ = db.Exec("CREATE VIRTUAL TABLE x2 USING fts4(matchinfo=fts5);")
+	_ = db.Exec("CREATE VIRTUAL TABLE x2 USING fts4(mtchinfo=fts3);")
+	_ = db.Exec("CREATE VIRTUAL TABLE xx USING FTS4;")
+	_ = db.Exec("DROP TABLE t10;\n  CREATE VIRTUAL TABLE t10 USING fts4(idx, value);\n  INSERT INTO t10 values (1, 'one'),(2, 'two'),(3, 'three');\n  SELECT docId, t10.*\n    FROM t10\n    JOIN (SELECT 1 AS idx UNION SELECT 2 UNION SELECT 3) AS x\n   WHERE t10 MATCH x.idx\n     AND matchinfo(t10) not null\n   GRO...")
+	_ = db.Exec("INSERT INTO t1(content) VALUES('I wandered lonely as a cloud');\n  INSERT INTO t1(content) VALUES('That floats on high o''er vales and hills,');\n  INSERT INTO t1(content) VALUES('When all at once I saw a crowd,');\n  INSERT INTO t1(content) VALUES('A host, of golden daffodils,');\n  SELECT mit(m...")
+	_ = db.Exec("INSERT INTO t11 VALUES('')")
+	_ = db.Exec("INSERT INTO t11(t11) VALUES('optimize')")
+	_ = db.Exec("INSERT INTO t12 VALUES('a d c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';")
+	_ = db.Exec("INSERT INTO t12 VALUES('a d d a');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';")
+	_ = db.Exec("INSERT INTO t5(t5) VALUES('optimize')")
+	_ = db.Exec("INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';")
+	_ = db.Query("SELECT * FROM xx WHERE xx MATCH 'a b c';")
+	_ = db.Query("SELECT * FROM xx WHERE xx MATCH 'abc';")
+	_ = db.Query("SELECT matchinfo(t7, 'a') FROM t7 WHERE t7 MATCH 'x y'")
+	_ = db.Query("SELECT matchinfo(t7, 'l') FROM t7 WHERE t7 MATCH 'x y'")
+	_ = db.Query("SELECT matchinfo(t7, 'n') FROM t7 WHERE t7 MATCH 'x y'")
+	_ = db.Query("SELECT matchinfo(t8, 'l') FROM t8 WHERE t8 MATCH 'x y'")
+	_ = db.Query("SELECT mit(matchinfo(t11, 'nxa')) FROM t11 WHERE t11 MATCH 'a*'")
+	_ = db.Query("SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr")
+	_ = db.Query("SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr")
+	_ = db.Query("SELECT typeof(matchinfo(t10)), length(matchinfo(t10)) \n  FROM t10 WHERE t10 MATCH 'record'")
+	_ = db.Query("SELECT typeof(matchinfo(t10)), length(matchinfo(t10)) FROM t10 WHERE docid=1;")
+	_ = db.Query("SELECT typeof(matchinfo(t10)), length(matchinfo(t10)) FROM t10;")
+	_ = db.Exec("UPDATE t11_stat SET value = NULL;")
+	_ = db.Exec("UPDATE t11_stat SET value = X'00';")
+	_ = db.Exec("UPDATE t11_stat SET value = X'0000';")
+}
 // Auto-generated from fts3matchinfo2.test
 func TestSQLite_fts3matchinfo2(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t_content(col0 INTEGER);\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0 VALUES (1, '1234','aaaa','bbbb');\n  SELECT hex(matchinfo(t0,'yxy'))  FROM t0 WHERE t0 MATCH  x'2b0a312b0a312a312a2a0b5d0a0b0b0a312a0a0b...")
+}
+// Auto-generated from fts3misc.test
+func TestSQLite_fts3misc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    INSERT INTO vt0 VALUES (0);\n    INSERT INTO vt0(vt0) VALUES('optimize');\n  COMMIT;")
+	_ = db.Exec("CREATE VIRTUAL TABLE f USING fts3(a,b);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_stat VALUES (1,x'3b3b3b3b3b3b3b28ffffffffffffffffff1807f9073481f1d43bc93b3b3b3b3b3b3b3b3b3b18073b3b3b3b3b3b3b9b003b');")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts4(c0, c1, order=DESC, prefix=1);\n  INSERT INTO ft VALUES('a b c d', 'hello world');\n  INSERT INTO ft VALUES('negative', 'positive');\n  INSERT INTO ft VALUES('hello world', 'a b c d');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one', 'i');\n  INSERT INTO t1 VALUES('one', 'ii');\n  INSERT INTO t1 VALUES('two', 'i');\n  INSERT INTO t1 VALUES('two', 'ii');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 using fts4(mailcontent);\n  insert into t1(rowid, mailcontent) values\n      (-4764623217061966105, 'we are going to upgrade'),\n      (8324454597464624651, 'we are going to upgrade');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3;\n  INSERT INTO t3 VALUES('a b c');\n  INSERT INTO t3 VALUES('d e f');\n  INSERT INTO t3 VALUES('a b d');\n  INSERT INTO t3 VALUES('1 2 3 4 5 6 7 8 9 10 11');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INT...")
+	_ = db.Exec("CREATE VIRTUAL TABLE vt0 USING fts3(c0);\n  INSERT INTO vt0 VALUES (x'00');")
+	_ = db.Exec("CREATE VIRTUAL TABLE vt0 USING fts4(c0, order=ASC);\n  INSERT INTO vt0(c0) VALUES (0), (0);")
+	_ = db.Exec("CREATE VIRTUAL TABLE vt0 USING fts4(c0, order=DESC);\n  INSERT INTO vt0(c0) VALUES (0), (0);")
+	_ = db.Exec("CREATE VIRTUAL TABLE vt0 USING fts4(c0, prefix=1);")
+	_ = db.Exec("CREATE VIRTUAL TABLE xyz USING fts3();")
+	_ = db.Exec("INSERT INTO f(f) VALUES ('merge=69,59');")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('integrity-check');")
+	_ = db.Exec("INSERT INTO vt0(vt0) VALUES('integrity-check');")
+	_ = db.Query("PRAGMA page_size = 512;\n    CREATE VIRTUAL TABLE t4 USING fts4;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<8000 )\n    INSERT INTO t4 SELECT 'a b c a b c a b c' FROM s;")
+	_ = db.Query("SELECT * FROM t3 WHERE t3 MATCH '\"a b c\" OR \"a b x y\"' ORDER BY docid DESC")
+	_ = db.Query("SELECT * FROM t3 WHERE t3 MATCH '\"a b x y\"' ORDER BY docid DESC")
+	_ = db.Query("SELECT * FROM t3 WHERE t3 MATCH '\"a* b* x* a*\"'")
+	_ = db.Query("SELECT * FROM xyz WHERE xyz MATCH 'a NEAR/4294836224 a';")
+	_ = db.Query("SELECT a.a, b.b FROM t1 a, t1 b WHERE a.t1 MATCH 'two' AND b.t1 MATCH 'i'")
+	_ = db.Query("SELECT count(*) FROM t4 WHERE t4 MATCH '\"a b c\" OR \"c a b\"'")
+	_ = db.Query("SELECT quote(value) from t4_stat where id=0")
+	_ = db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'upgrade';")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH '\"a b c\"'")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH '\"e f\"'")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH '\"f e\"'")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH '\"g h i\"'")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH '\"i h\"'")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH 'e' AND rowid BETWEEN '11.5' AND '48.2';")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH 'e' AND rowid BETWEEN 11.5 AND 48.2;")
+	_ = db.Query("SELECT rowid FROM t2 WHERE t2 MATCH 'e' AND rowid BETWEEN NULL AND 45;")
+	_ = db.Query("SELECT rowid FROM t3 WHERE t3 MATCH '\"2 3 4 5 6 7 8 9\"'")
+	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'a NEAR/3 b NEAR/4 c'")
+	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'a NEAR/4 b NEAR/3 c'")
+	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'a NEAR/4 b NEAR/4 c'")
+	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'x OR a NEAR/3 b NEAR/3 c'")
+	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'x OR y NEAR/3 b NEAR/3 c'")
+	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'y NEAR/4 b NEAR/4 c'")
 }
 // Auto-generated from fts3near.test
 func TestSQLite_fts3near(t *testing.T) {
@@ -3849,6 +6761,38 @@ func TestSQLite_fts3prefix2(t *testing.T) {
 	_ = db.Query("PRAGMA page_size = 512")
 	_ = db.Query("SELECT * FROM t1 WHERE t1 MATCH 'T*';")
 }
+// Auto-generated from fts3query.test
+func TestSQLite_fts3query(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE VIRTUAL TABLE foobar using FTS3(description, tokenize porter);\n    INSERT INTO foobar (description) values ('\n      Filed under: Emerging Technologies, EV/Plug-in, Hybrid, Chevrolet, GM, \n      ZENN 2011 Chevy Volt - Click above for high-res image gallery There are \n      16 days left ...")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft4 USING fts4(x);\n  CREATE TABLE t4(x);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(x);\n    BEGIN;\n      INSERT INTO t1 VALUES('The source code for SQLite is in the public');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING FTS4;\n  INSERT INTO t2 VALUES('it was the first time in history');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING FTS4(a, b);\n  INSERT INTO t3 VALUES('no gestures', 'another intriguing discovery by observing the hand gestures (called beats) people make while speaking. Research has shown that such gestures do more than add visual emphasis to our words (many people gesture while ...")
+	_ = db.Exec("CREATE VIRTUAL TABLE zoink USING fts3;\n    INSERT INTO zoink VALUES('The apple falls far from the tree');")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(number INTEGER PRIMARY KEY, date);\n    CREATE INDEX i1 ON t1(date);\n    CREATE VIRTUAL TABLE ft USING fts3(title);\n    CREATE TABLE bt(title);")
+	_ = db.Exec("DROP TABLE t2")
+	_ = db.Exec("INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');")
+	_ = db.Query("SELECT docid FROM foobar WHERE description MATCH '\"high sp d\"'")
+	_ = db.Query("SELECT docid FROM zoink WHERE zoink MATCH '(apple oranges) AND apple'")
+	_ = db.Query("SELECT docid FROM zoink WHERE zoink MATCH 'apple AND (oranges apple)'")
+	_ = db.Query("SELECT matchinfo(t2, 'abcd') FROM t2 WHERE t2 MATCH 'history'")
+	_ = db.Query("SELECT mit(matchinfo(foobar)) FROM foobar WHERE foobar MATCH 'the'")
+	_ = db.Query("SELECT rowid FROM ft4 WHERE rowid < $ii")
+	_ = db.Query("SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC")
+	_ = db.Query("SELECT rowid FROM ft4 WHERE rowid > $ii")
+	_ = db.Query("SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC")
+	_ = db.Query("SELECT rowid FROM t4")
+	_ = db.Query("SELECT rowid FROM t4 WHERE rowid < $ii")
+	_ = db.Query("SELECT rowid FROM t4 WHERE rowid < $ii ORDER BY +rowid DESC")
+	_ = db.Query("SELECT rowid FROM t4 WHERE rowid > $ii")
+	_ = db.Query("SELECT rowid FROM t4 WHERE rowid > $ii ORDER BY +rowid DESC")
+	_ = db.Query("SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast")
+	_ = db.Query("SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n     ORDER BY +rowid DESC")
+	_ = db.Exec("UPDATE t2_content SET c0content = X'1234'")
+}
 // Auto-generated from fts3rank.test
 func TestSQLite_fts3rank(t *testing.T) {
 	db := setupDB(t)
@@ -3868,6 +6812,49 @@ func TestSQLite_fts3rnd(t *testing.T) {
 	_ = db.Exec("DELETE FROM t1 WHERE rowid = $rowid")
 	_ = db.Exec("INSERT INTO t1(docid, a, b, c) VALUES($rowid, $a, $b, $c)")
 	_ = db.Query("SELECT docid FROM t1 WHERE t1 MATCH $match")
+}
+// Auto-generated from fts3shared.test
+func TestSQLite_fts3shared(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('j k l');")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t2(rowid, a, b) VALUES(2, 'j k l', 'm n o');")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES('The steersman''s face by his lamp gleamed white;');")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(x);\n  BEGIN;\n  INSERT INTO t1 VALUES('We listened and looked sideways up!');\n  INSERT INTO t1 VALUES('Fear at my heart, as at a cup,');\n  INSERT INTO t1 VALUES('My life-blood seemed to sip!');\n  INSERT INTO t1 VALUES('The stars were dim, and thick the night...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4;\n    CREATE TABLE t2ext(a, b);\n    CREATE VIRTUAL TABLE t2 USING fts4(content=t2ext);\n    CREATE VIRTUAL TABLE t1aux USING fts4aux(t1);\n    CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n\n    INSERT INTO t1   VALUES('a b c');\n    INSERT INTO t2(rowid, a, b...")
+}
+// Auto-generated from fts3snippet.test
+func TestSQLite_fts3snippet(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('xxx xxx xxx xxx');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('one two three four five');\n  INSERT INTO t2 VALUES('two three four five one');\n  INSERT INTO t2 VALUES('three four five one two');\n  INSERT INTO t2 VALUES('four five one two three');\n  INSERT INTO t2 VALUES('five one two three four');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('[one two three]');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts4;\n  INSERT INTO t4 VALUES('a b c d');\n  SELECT snippet(t4, '[', ']', '...', 0, 0) FROM t4 WHERE t4 MATCH 'b';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5 USING fts3(x);\n  INSERT INTO t5 VALUES('a1 a2 a3');\n  INSERT INTO t5 VALUES('a4 a5 a6');\n  INSERT INTO t5 VALUES('a70 a71 a72');")
+	_ = db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES($v1, $numbers);\n      INSERT INTO ft VALUES($v1, NULL);")
+	_ = db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );")
+	_ = db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);")
+	_ = db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x, y);")
+	_ = db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES($ten);\n      INSERT INTO ft VALUES($ten || ' ' || $ten);")
+	_ = db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');")
+	_ = db.Exec("INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n  ...")
+	_ = db.Exec("INSERT INTO ft VALUES('one' || $commas || 'two')")
+	_ = db.Exec("INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2)")
+	_ = db.Exec("INSERT INTO t2 VALUES('six');")
+	_ = db.Query("PRAGMA encoding = \\")
+	_ = db.Query("SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC")
+	_ = db.Query("SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'")
+	_ = db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'one OR two OR three';")
+	_ = db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'one';")
+	_ = db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'three';")
+	_ = db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'two';")
+	_ = db.Query("SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH \n  'a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9 OR a10 OR ' ||\n  'a11 OR a12 OR a13 OR a14 OR a15 OR a16 OR a17 OR a18 OR a19 OR a10 OR ' ||\n  'a21 OR a22 OR a23 OR a24 OR a25 OR a26 OR a27 OR a28 OR a29 OR a20 OR ' ||\n  'a31 OR a32 O...")
+	_ = db.Query("SELECT snippet(t5, '[', ']', -1, 0) FROM t5 WHERE t5 MATCH 'a5'")
+	_ = db.Exec("UPDATE ft SET b = NULL")
+	_ = db.Exec("UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers")
 }
 // Auto-generated from fts3snippet2.test
 func TestSQLite_fts3snippet2(t *testing.T) {
@@ -3954,6 +6941,71 @@ func TestSQLite_fts4aa(t *testing.T) {
 	_ = db.Exec("UPDATE t1_stat SET value=x'010101' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';")
 	_ = db.Exec("UPDATE t1_stat SET value=x'01010101' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';")
 }
+// Auto-generated from fts4check.test
+func TestSQLite_fts4check(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n  CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5 VALUES('And down by Kosiosko, where the reed-banks sweep');\n  INSERT INTO t5 VALUES('and sway, and the rolling plains are wide, the');\n  INSERT INTO t5 VALUES('man from snowy river is a household name today,');...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5 USING fts4(a, prefix=\"1,2,3\");\n  INSERT INTO t5(t5) VALUES('integrity-check');")
+	_ = db.Exec("INSERT INTO $tbl ($tbl) VALUES('integrity-check')")
+	_ = db.Exec("INSERT INTO t1 (t1) VALUES('integrity-check')")
+	_ = db.Exec("INSERT INTO t2 (t2) VALUES('integrity-check')")
+	_ = db.Exec("INSERT INTO t3 (t3) VALUES('integrity-check')")
+	_ = db.Exec("INSERT INTO t3(x, y, langid) \n      SELECT x, y, (docid%9)*4 FROM t1 WHERE docid=$docid;")
+	_ = db.Exec("INSERT INTO t5(t5) VALUES('integrity-check');")
+	_ = db.Exec("INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');")
+	_ = db.Query("PRAGMA integrity_check(t2);")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';")
+	_ = db.Query("SELECT docid FROM t1 ORDER BY 1 ASC")
+}
+// Auto-generated from fts4content.test
+func TestSQLite_fts4content(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';")
+	_ = db.Exec("CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);")
+	_ = db.Exec("CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREAT...")
+	_ = db.Exec("CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('O S W W F U C R Q I C N P Z Y Y E Y Y E');  -- 1\n  INSERT INTO t2 VALUES('Y X U V L B E H Y J C Y A I A P V F V K');  -- 2\n  INSERT INTO t2 VALUES('P W I N J H I I N I F B K D U Q B Z S F');  -- 3\n  INSERT INTO t2 VALUES('N R O R H J R H G M D I U ...")
+	_ = db.Exec("CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);")
+	_ = db.Exec("CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);")
+	_ = db.Exec("CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';")
+	_ = db.Exec("CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;")
+	_ = db.Exec("CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;")
+	_ = db.Exec("CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');")
+	_ = db.Exec("CREATE VIRTUAL TABLE aa USING tcl(vtab_command);")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts4(content=vt);\n  INSERT INTO ft(ft) VALUES('rebuild');")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft2 USING fts4(content=t2);\n  INSERT INTO ft2(ft2) VALUES('rebuild');\n\n  -- Modify the backing table a bit: Row 17 is missing and the contents \n  -- of row 20 do not match the FTS index contents. \n  DELETE FROM t2 WHERE rowid = 17;\n  UPDATE t2 SET x = 'a b c d e f g h i...")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(d...")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VA...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts4(content=x1);")
+	_ = db.Exec("DELETE FROM ft WHERE docid=2")
+	_ = db.Exec("DELETE FROM ft1 WHERE docid=1;")
+	_ = db.Exec("DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';")
+	_ = db.Exec("DROP TABLE ft1;\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1, b);\n  PRAGMA table_info(ft1);")
+	_ = db.Exec("DROP TABLE ft6;\n  SELECT * FROM t5;")
+	_ = db.Exec("DROP TABLE t7;\n  CREATE TABLE t7(x);")
+	_ = db.Exec("DROP TABLE t7;\n  SELECT * FROM ft7;")
+	_ = db.Exec("INSERT INTO aa VALUES('one two three');")
+	_ = db.Exec("INSERT INTO ft1(ft1) VALUES('rebuild')")
+	_ = db.Exec("INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'")
+	_ = db.Exec("INSERT INTO ft10(ft10) VALUES('rebuild');")
+	_ = db.Exec("INSERT INTO ft3 VALUES('a b c', 'd e f');")
+	_ = db.Exec("INSERT INTO ft3(docid, x, y) VALUES(21, 'a b c', 'd e f');\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';")
+	_ = db.Exec("INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid...")
+	_ = db.Exec("INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize")
+	_ = db.Exec("INSERT INTO ft4(rowid, x) SELECT rowid, * FROM ft4x;\n  SELECT id, quote(value) FROM ft4_stat")
+	_ = db.Exec("INSERT INTO ft4x VALUES('M G M F T');\n  INSERT INTO ft4x VALUES('Z Q C A U');\n  INSERT INTO ft4x VALUES('N L L V');\n  INSERT INTO ft4x VALUES('T F D X D');\n  INSERT INTO ft4x VALUES('Z H I S D');\n\n  SELECT id, quote(value) FROM ft4x_stat")
+	_ = db.Exec("INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');")
+	_ = db.Exec("INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4x_stat;\n  SELECT docid, quote(size) FROM ft4x_docsize")
+}
 // Auto-generated from fts4docid.test
 func TestSQLite_fts4docid(t *testing.T) {
 	db := setupDB(t)
@@ -3972,6 +7024,51 @@ func TestSQLite_fts4docid(t *testing.T) {
 	_ = db.Query("SELECT rowid FROM t1 WHERE rowid = +'5'")
 	_ = db.Query("SELECT rowid FROM t1 WHERE rowid = +5")
 	_ = db.Query("SELECT rowid FROM t1 WHERE rowid = 5")
+}
+// Auto-generated from fts4growth.test
+func TestSQLite_fts4growth(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;")
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts3;")
+	_ = db.Exec("CREATE VIRTUAL TABLE x3 USING fts4")
+	_ = db.Exec("CREATE VIRTUAL TABLE x5 USING fts4;\n  INSERT INTO x5 SELECT words FROM t1 LIMIT 100 OFFSET 0;\n  INSERT INTO x5 SELECT words FROM t1 LIMIT 100 OFFSET 25;\n  INSERT INTO x5 SELECT words FROM t1 LIMIT 100 OFFSET 50;\n  INSERT INTO x5 SELECT words FROM t1 LIMIT 100 OFFSET 75;\n  SELECT count(*) FRO...")
+	_ = db.Exec("CREATE VIRTUAL TABLE x6 USING fts4;\n  INSERT INTO x6 SELECT words FROM t1;\n  INSERT INTO x6 SELECT words FROM t1;\n  INSERT INTO x6 SELECT words FROM t1;\n  INSERT INTO x6 SELECT words FROM t1;\n  INSERT INTO x6 SELECT words FROM t1;\n  INSERT INTO x6 SELECT words FROM t1;\n  SELECT level, idx,...")
+	_ = db.Exec("DELETE FROM x2 WHERE docid = $d")
+	_ = db.Exec("DELETE FROM x2 WHERE docid=$id;\n      INSERT INTO x2(docid, content) SELECT $id, words FROM t1 WHERE docid=$id;")
+	_ = db.Exec("DELETE FROM x3")
+	_ = db.Exec("DELETE FROM x3 WHERE docid = $iDoc")
+	_ = db.Exec("DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;")
+	_ = db.Exec("DROP TABLE IF EXISTS x4;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x4 USING fts4(words);")
+	_ = db.Exec("INSERT INTO x1 VALUES($L)")
+	_ = db.Exec("INSERT INTO x1(x1) VALUES('merge=4,4');\n    SELECT level, end_block, length(root) FROM x1_segdir;")
+	_ = db.Exec("INSERT INTO x1(x1) VALUES('optimize');\n  SELECT level, end_block, length(root) FROM x1_segdir;")
+	_ = db.Exec("INSERT INTO x2 SELECT words FROM t1 LIMIT 50;\n  SELECT level, idx, end_block FROM x2_segdir")
+	_ = db.Exec("INSERT INTO x2(docid, content) SELECT $id, words FROM t1 WHERE docid=$id")
+	_ = db.Exec("INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=$id")
+	_ = db.Exec("INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=$r")
+	_ = db.Exec("INSERT INTO x2(x2) VALUES('merge=1000,4');\n  SELECT end_block FROM x2_segdir WHERE level=3;")
+	_ = db.Exec("INSERT INTO x2(x2) VALUES('merge=4,4');\n  SELECT count(*) FROM x2_segdir WHERE level=2;\n  SELECT count(*) FROM x2_segdir WHERE level=3;")
+	_ = db.Exec("INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir")
+	_ = db.Exec("INSERT INTO x3(x3) VALUES('merge=500,10')")
+	_ = db.Exec("INSERT INTO x3(x3) VALUES('optimize')")
+	_ = db.Exec("INSERT INTO x4 SELECT words FROM t1")
+	_ = db.Exec("INSERT INTO x4(x4) VALUES('merge=10,2');\n  SELECT count(*) FROM x4_segdir;")
+	_ = db.Exec("INSERT INTO x4(x4) VALUES('merge=1000,2');\n  SELECT count(*) FROM x4_segdir;")
+	_ = db.Exec("INSERT INTO x5 SELECT words FROM t1 LIMIT 100 OFFSET 100;\n  SELECT level, idx, end_block FROM x5_segdir;")
+	_ = db.Exec("INSERT INTO x5 SELECT words FROM t1;\n  SELECT level, idx, end_block FROM x5_segdir;")
+	_ = db.Exec("INSERT INTO x5(x5) VALUES('merge=2,4');\n  SELECT level, idx, end_block FROM x5_segdir;")
+	_ = db.Exec("INSERT INTO x5(x5) VALUES('merge=200,4');\n  SELECT level, idx, end_block FROM x5_segdir;")
+	_ = db.Exec("INSERT INTO x6(x6) VALUES('merge=25,4');\n  SELECT level, idx, end_block FROM x6_segdir;")
+	_ = db.Exec("INSERT INTO x6(x6) VALUES('merge=2500,2');\n  SELECT level, idx, start_block, leaves_end_block, end_block FROM x6_segdir;")
+	_ = db.Exec("INSERT INTO x6(x6) VALUES('merge=2500,4');\n  SELECT level, idx, start_block, leaves_end_block, end_block FROM x6_segdir;")
+	_ = db.Exec("REPLACE INTO x3(docid, content) VALUES($iDoc, $L)")
+	_ = db.Query("SELECT count(*) FROM x2_segdir WHERE level=2;\n  SELECT count(*) FROM x2_segdir WHERE level=3;")
+	_ = db.Query("SELECT count(*) FROM x3_segdir")
+	_ = db.Query("SELECT docid FROM t1")
+	_ = db.Query("SELECT docid FROM t1 LIMIT -1 OFFSET 20")
+	_ = db.Query("SELECT docid FROM t1 LIMIT 2")
+	_ = db.Query("SELECT end_block FROM x2_segdir WHERE level=3;\n  INSERT INTO x2(x2) VALUES('merge=4,4');\n  SELECT end_block FROM x2_segdir WHERE level=3;\n  INSERT INTO x2(x2) VALUES('merge=4,4');\n  SELECT end_block FROM x2_segdir WHERE level=3;")
 }
 // Auto-generated from fts4growth2.test
 func TestSQLite_fts4growth2(t *testing.T) {
@@ -4008,6 +7105,51 @@ func TestSQLite_fts4intck1(t *testing.T) {
 	_ = db.Query("PRAGMA integrity_check(t2);")
 	_ = db.Query("PRAGMA integrity_check;")
 }
+// Auto-generated from fts4langid.test
+func TestSQLite_fts4langid(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("COMMIT;\n  INSERT INTO vt0(vt0) VALUES('integrity-check');")
+	_ = db.Exec("CREATE TABLE data(x, y, l);\n    INSERT INTO data(rowid, x, y, l) SELECT docid, x, y, l FROM t2;")
+	_ = db.Exec("CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;")
+	_ = db.Exec("CREATE TABLE t8c(a, b);\n  CREATE VIRTUAL TABLE t8 USING fts4(content=t8c, languageid=langid);\n  INSERT INTO t8(docid, a, b) VALUES(-1, 'one two three', 'x y z');\n  SELECT docid FROM t8 WHERE t8 MATCH 'one x' AND langid=0")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=lang_id);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4(content=t3_data, languageid=l);\n  INSERT INTO t2(t2) VALUES('rebuild');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l)")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('abc');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts4(\n        tokenize=testtokenizer, \n        languageid=lid\n    );")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5 USING fts4(languageid=lid);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');")
+	_ = db.Exec("CREATE VIRTUAL TABLE vt0 USING fts4(c0, languageid=\"lid\");\n  INSERT INTO vt0 VALUES ('a'), ('b');\n  BEGIN;\n    UPDATE vt0 SET lid = 1 WHERE lid=0;")
+	_ = db.Exec("DELETE FROM t6;\n    SELECT count(*) FROM t6_segdir;\n    SELECT count(*) FROM t6_segments;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content)          VALUES('a b c');\n  INSERT INTO t1(content, lang_id) VALUES('a b c', 1);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(languageid=lang_id);\n  INSERT INTO t1(content, lang_id) VALUES('A', 13);\n  INSERT INTO t1(content, lang_id) VALUES('B', 13);\n  INSERT INTO t1(content, lang_id) VALUES('C', 13);\n  INSERT INTO t1(content, lang_id) VALUES('D', 13);\n  INSERT I...")
+	_ = db.Exec("DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);")
+	_ = db.Exec("DROP TABLE t3_data;")
+	_ = db.Exec("INSERT INTO t1(a, b) VALUES('aaa', 'bbb')")
+	_ = db.Exec("INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 'xyz')")
+	_ = db.Exec("INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 4)")
+	_ = db.Exec("INSERT INTO t1(content, lang_id) VALUES('123', -1);")
+	_ = db.Exec("INSERT INTO t2(docid, x, y, l) SELECT rowid, x, y, l FROM t3_data;")
+	_ = db.Exec("INSERT INTO t2(docid, x, y, l) VALUES($i, $x, $y, $iLangid)")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES('optimize');\n  SELECT count(*) FROM t2_segdir;")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES('rebuild')")
+	_ = db.Exec("INSERT INTO t4(content, lid) VALUES('hello world', 101)")
+	_ = db.Exec("INSERT INTO t4(docid, content, lid) VALUES($i, 'The Quick Brown Fox', $i)")
+	_ = db.Exec("INSERT INTO t5(docid, content, lid) VALUES(\n          $lid, 'My language is ' || $lid, $lid\n      )")
+	_ = db.Exec("INSERT INTO t6(content, lid) VALUES(\n        'I (row '||$i||') belong to language N!', $lid\n      );")
+	_ = db.Exec("INSERT INTO t6(content, lid) VALUES('zero zero zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero zero one', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero one zero', $lid);\n    INSERT INTO t6(content, lid) VALUES('zero one one', $lid);\n    INSERT INTO t6(content, lid) VALUES('...")
+	_ = db.Exec("INSERT INTO t6(t6) VALUES('merge=100,3');\n    INSERT INTO t6(t6) VALUES('merge=100,3');\n    SELECT docid FROM t6 WHERE t6 MATCH '\"zero zero\"' AND lid=$lid;")
+	_ = db.Exec("INSERT INTO t6(t6) VALUES('optimize')")
+	_ = db.Exec("INSERT INTO vt0(vt0) VALUES('integrity-check');\n  PRAGMA integrity_check;")
+	_ = db.Query("SELECT count(*) FROM t4 WHERE t4 MATCH 'fox' AND lid=$i;")
+	_ = db.Query("SELECT count(*) FROM t6_segdir;\n    SELECT count(*) FROM t6_segments;")
+	_ = db.Query("SELECT docid FROM t1")
+	_ = db.Query("SELECT docid FROM t2 WHERE t2 MATCH $query AND l = $langid")
+	_ = db.Query("SELECT docid FROM t4 WHERE t4 MATCH 'Quick' AND lid=1;")
+	_ = db.Query("SELECT docid FROM t4 WHERE t4 MATCH 'quick' AND lid=1;")
+	_ = db.Query("SELECT docid FROM t4 WHERE t4 MATCH 'quick';")
+}
 // Auto-generated from fts4lastrowid.test
 func TestSQLite_fts4lastrowid(t *testing.T) {
 	db := setupDB(t)
@@ -4020,12 +7162,61 @@ func TestSQLite_fts4lastrowid(t *testing.T) {
 	_ = db.Exec("INSERT INTO t1(rowid, str) SELECT rowid+10, x FROM x1;\n  SELECT last_insert_rowid();")
 	_ = db.Exec("INSERT INTO t1(rowid, str) VALUES(-22, 'some more text');\n  SELECT last_insert_rowid();")
 }
+// Auto-generated from fts4merge.test
+func TestSQLite_fts4merge(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        INSERT INTO t1 VALUES($a);\n        INSERT INTO t1 VALUES($b);\n      COMMIT;\n      BEGIN;\n        INSERT INTO t1 VALUES($c);\n        INSERT INTO t1 VALUES($d);\n      COMMIT;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(a, order=DESC);\n  INSERT INTO t1(a) VALUES (0);\n  INSERT INTO t1(a) VALUES (0);\n  UPDATE t1 SET a = NULL;")
+	_ = db.Exec("DELETE FROM t4_stat WHERE rowid=1;\n    INSERT INTO t4(t4) VALUES('merge=1,12');\n    SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level;")
+	_ = db.Exec("INSERT INTO $tbl ($tbl) VALUES('integrity-check')")
+	_ = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1')")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,2');\n      INSERT INTO t1(t1) VALUES('merge=1,2');")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,4')")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,4');")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,5');\n    INSERT INTO t1(t1) VALUES('merge=1,5');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,6');\n    INSERT INTO t1(t1) VALUES('merge=1,6');\n    SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level;\n    SELECT quote(value) from t1_stat WHERE rowid=1;")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,6');\n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level;\n    SELECT quote(value) from t1_stat WHERE rowid=1;")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=2,10')")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=200,10')")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES($arg);")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES('merge=1000000,2');\n    SELECT level, group_concat(idx, ' ') FROM t2_segdir GROUP BY level")
+	_ = db.Exec("INSERT INTO t4(t4) VALUES('merge=1,16');\n      SELECT level, group_concat(idx, ' ') FROM t4_segdir GROUP BY level;")
+	_ = db.Query("PRAGMA page_size = 512")
+	_ = db.Query("SELECT docid FROM t1")
+	_ = db.Query("SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+	_ = db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'zero one two three'")
+	_ = db.Query("SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level")
+	_ = db.Query("SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level;")
+	_ = db.Query("SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level;\n    SELECT quote(value) from t1_stat WHERE rowid=1;")
+	_ = db.Query("SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level")
+	_ = db.Query("SELECT level, string_agg(idx, ' ') FROM t2_segdir GROUP BY level")
+	_ = db.Query("SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level")
+	_ = db.Query("SELECT quote(value) FROM t4_stat WHERE rowid=1")
+	_ = db.Query("SELECT quote(value) from t1_stat WHERE rowid=1")
+}
 // Auto-generated from fts4merge2.test
 func TestSQLite_fts4merge2(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=1,2')")
 	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=32,4')")
+}
+// Auto-generated from fts4merge4.test
+func TestSQLite_fts4merge4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;")
+	_ = db.Exec("DELETE FROM t2")
+	_ = db.Exec("INSERT INTO t1 VALUES('a b c d e f g h i j k l');")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('merge=8,50');\n    COMMIT")
+	_ = db.Exec("INSERT INTO t1(t1) VALUES('optimize')")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES($am)")
+	_ = db.Query("SELECT count(*) FROM t1_segdir;")
+	_ = db.Query("SELECT level, count(*) FROM t2_segdir GROUP BY level")
 }
 // Auto-generated from fts4merge5.test
 func TestSQLite_fts4merge5(t *testing.T) {
@@ -4098,6 +7289,29 @@ func TestSQLite_fts4onepass(t *testing.T) {
 	_ = db.Exec("INSERT INTO ft2(ft2) VALUES('integrity-check');")
 	_ = db.Query("SELECT rowid, content FROM ft2")
 }
+// Auto-generated from fts4opt.test
+func TestSQLite_fts4opt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n  INSERT INTO fts (rowid, t) VALUES (2, 'test');\n  INSERT INTO fts (fts) VALUES ('optimize');\n  COMMIT;\n  SELECT level, idx FROM fts_segdir;")
+	_ = db.Exec("CREATE TABLE t1(docid, words)")
+	_ = db.Exec("CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\")")
+	_ = db.Exec("DELETE FROM t2 WHERE docid = $docid")
+	_ = db.Exec("DELETE FROM t2;")
+	_ = db.Exec("INSERT INTO fts (fts) VALUES ('optimize')")
+	_ = db.Exec("INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');")
+	_ = db.Exec("INSERT INTO fts (rowid, t) VALUES (3, 'xyz')")
+	_ = db.Exec("INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT count(*) FROM fts_segdir;")
+	_ = db.Exec("INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT rowid FROM fts WHERE fts MATCH 'test';")
+	_ = db.Exec("INSERT INTO t2(docid, words) VALUES($docid, $words)")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES('integrity-check')")
+	_ = db.Exec("INSERT INTO t2(t2) VALUES('merge=5,2')")
+	_ = db.Exec("INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;")
+	_ = db.Exec("INSERT OR REPLACE INTO t2(docid, words) VALUES($docid, $words)")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT level, count(*) FROM t2_segdir GROUP BY level")
+}
 // Auto-generated from fts4record.test
 func TestSQLite_fts4record(t *testing.T) {
 	db := setupDB(t)
@@ -4130,6 +7344,37 @@ func TestSQLite_fts4umlaut(t *testing.T) {
 	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'")
 	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q")
 }
+// Auto-generated from fts4unicode.test
+func TestSQLite_fts4unicode(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT INTO t1 SELECT * FROM t1;\n  INSERT I...")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft1 USING fts3tokenize(\n    \"unicode61\", \"tokenchars=@.\", \"separators=1234567890\"\n  );\n  SELECT token FROM ft1 WHERE input = 'berlin@street123sydney.road';")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x);\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61, x, y);\n  INSERT INTO t1 VALUES(NULL, 'a b c');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t12 USING fts4(tokenize=unicode61);\n  INSERT INTO t12 VALUES('abc' || char(0) || 'def');\n  SELECT hex(CAST(content AS blob)) FROM t12;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t12aux USING fts4aux(t12);\n  SELECT * FROM t12aux;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING fts4(tokenize=unicode61, x);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts4(tokenize=unicode61 \"remove_diacritics=0\");\n  INSERT INTO t4 SELECT * FROM t3;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t5aux USING fts4aux(t5);\n    INSERT INTO t5 VALUES('one two three/four.five.six');\n    SELECT * FROM t5aux;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t6aux USING fts4aux(t6);\n    INSERT INTO t6 VALUES('alpha=beta\"gamma/delta[epsilon]zeta');\n    SELECT * FROM t6aux;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t7aux USING fts4aux(t7);\n    INSERT INTO t7 VALUES('alephxbeth\\xC4gimel');\n    SELECT * FROM t7aux;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(tokenize=unicode61\n    \"tokenchars=xyz\" \"tokenchars=.=\" \"separators=.=\" \"separators=xy\"\n    \"separators=a\" \"separators=a\" \"tokenchars=a\" \"tokenchars=a\"\n  );\n\n  INSERT INTO t1 VALUES('oneatwoxthreeyfour');\n  INSER...")
+	_ = db.Exec("DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(tokenize=unicode61 \"separators=aB\");\n  INSERT INTO t2 VALUES('oneatwoBthree');\n  INSERT INTO t2 VALUES('onebtwoAthree');\n  CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n  SELECT * FROM t2aux;")
+	_ = db.Exec("DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;")
+	_ = db.Exec("INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);")
+	_ = db.Exec("INSERT INTO t12(t12) VALUES('integrity-check');")
+	_ = db.Exec("INSERT INTO t2 VALUES($d)")
+	_ = db.Query("SELECT * FROM t1 WHERE t1 MATCH 'a b';")
+	_ = db.Query("SELECT * FROM t2 WHERE t2 MATCH $q")
+	_ = db.Query("SELECT hex(CAST(content AS blob)) FROM t12 WHERE t12 MATCH 'abc'")
+	_ = db.Query("SELECT rowid FROM t3 WHERE t3 MATCH 'a';")
+	_ = db.Query("SELECT rowid FROM t3 WHERE t3 MATCH 'o';")
+	_ = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'a';")
+	_ = db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'o';")
+	_ = db.Query("SELECT snippet(t1, '[', ']') FROM t1 WHERE t1 MATCH 'b'")
+	_ = db.Query("SELECT snippet(t2, '[', ']', '...') FROM t2 WHERE t2 MATCH $q")
+}
 // Auto-generated from fts4upfrom.test
 func TestSQLite_fts4upfrom(t *testing.T) {
 	db := setupDB(t)
@@ -4140,6 +7385,51 @@ func TestSQLite_fts4upfrom(t *testing.T) {
 	_ = db.Exec("UPDATE ft SET b=o.c FROM ft AS o WHERE (ft.a == char(unicode(o.a)+1))")
 	_ = db.Exec("UPDATE ft SET c=v FROM changes WHERE a=k;")
 	_ = db.Exec("create view changes(k, v) AS \n      VALUES( 'd', 'dewberry' ) UNION ALL\n      VALUES( 'c', 'clementine' ) UNION ALL\n      VALUES( 'b', 'blueberry' ) UNION ALL\n      VALUES( 'a', 'apricot' ) \n    ;")
+}
+// Auto-generated from func.test
+func TestSQLite_func(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("10*$i+100")
+	_ = db.Exec("ALTER TABLE t33a RENAME COLUMN a TO aaa;\n  SELECT sql FROM sqlite_master WHERE name='r1';")
+	_ = db.Exec("CREATE TABLE t0(c0 CHECK(ABS(-9223372036854775808)));\n  PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES...")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,1.2345678901234,-12345.67890);\n      INSERT INTO t1 VALUES(3,-2,-5);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(1,2,3);\n      INSERT INTO t1 VALUES(2,12345678901234,-1234567890);\n      INSERT INTO t1 VALUES(3,-2,-5);")
+	_ = db.Exec("CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;")
+	_ = db.Exec("CREATE TABLE t2(a);\n     INSERT INTO t2 VALUES(1);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(345);\n     INSERT INTO t2 VALUES(NULL);\n     INSERT INTO t2 VALUES(67890);\n     SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t28(x, y DEFAULT(nosuchfunc(1)));")
+	_ = db.Exec("CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);")
+	_ = db.Exec("CREATE TABLE t29b(a,b,c,d,e,f,g,h,i);\n  INSERT INTO t29b \n   VALUES(1, hex(randomblob(2000)), null, 0, 1, '', zeroblob(0),'x',x'01');\n  SELECT typeof(c), typeof(d), typeof(e), typeof(f),\n         typeof(g), typeof(h), typeof(i) FROM t29b;")
+	_ = db.Exec("CREATE TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;")
+	_ = db.Exec("CREATE TABLE t33a(a,b);\n  CREATE TABLE t33b(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.a),new.b);\n  END;")
+	_ = db.Exec("CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('abc', 'def');\n    INSERT INTO t4 VALUES('ghi', 'jkl');")
+	_ = db.Exec("CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(test_destructor('hello'));\n    INSERT INTO t4 VALUES(test_destructor('world'));\n    SELECT min(test_destructor(x)), max(test_destructor(x)) FROM t4;")
+	_ = db.Exec("CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(-99);\n    INSERT INTO t5 VALUES(10000);\n    SELECT sum(x) FROM t5;")
+	_ = db.Exec("CREATE TABLE t6(x INTEGER);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)+1) from t6;")
+	_ = db.Exec("CREATE TABLE tbl1(t1 text)")
+	_ = db.Exec("CREATE TABLE tbl2(a, b);")
+	_ = db.Exec("CREATE TEMP TABLE t3 AS SELECT a FROM t2 ORDER BY a DESC;\n      SELECT min('z+'||a||'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOP') FROM t3;")
+	_ = db.Exec("CREATE VIEW v33(y) AS SELECT testdirectonly(15);\n  SELECT * FROM v33;")
+	_ = db.Exec("DELETE FROM t5;\n    SELECT sum(x), total(x) FROM t5;")
+	_ = db.Exec("DELETE FROM tbl1")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;")
+	_ = db.Exec("DROP TABLE t4;")
+	_ = db.Query("EXPLAIN SELECT sum(a) FROM t2;")
+	_ = db.Exec("INSERT INTO t33a VALUES(1,2);")
+	_ = db.Exec("INSERT INTO t5 VALUES(0.0);\n      SELECT sum(x) FROM t5;")
+	_ = db.Exec("INSERT INTO t5 VALUES(123);\n    SELECT sum(x), total(x) FROM t5")
+	_ = db.Exec("INSERT INTO t5 VALUES(NULL);\n    SELECT sum(x), total(x) FROM t5")
+	_ = db.Exec("INSERT INTO t6 VALUES(1<<62);\n    SELECT sum(x) - ((1<<62)*2.0+1) from t6;")
+	_ = db.Query("PRAGMA encoding")
+	_ = db.Query("SELECT 'BEGIN-'||group_concat(t1) FROM tbl1")
+	_ = db.Query("SELECT * FROM (SELECT testdirectonly(15)) AS v33;")
+	_ = db.Query("SELECT 123 -> 456")
+	_ = db.Query("SELECT 123 ->> 456")
+	_ = db.Query("SELECT LENGTH(REPLACE($::str, 'C', $::rep));")
+	_ = db.Query("SELECT abs(a) FROM t2")
+	_ = db.Query("SELECT abs(t1) FROM tbl1")
+	_ = db.Query("SELECT char(), length(char()), typeof(char())")
 }
 // Auto-generated from func2.test
 func TestSQLite_func2(t *testing.T) {
@@ -4186,6 +7476,37 @@ func TestSQLite_func2(t *testing.T) {
 	_ = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 1)")
 	_ = db.Query("SELECT SUBSTR('Supercalifragilisticexpialidocious', 2, 2)")
 }
+// Auto-generated from func3.test
+func TestSQLite_func3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("EXPLAIN SELECT likelihood(min(1.0+'2.0',4*11), 0.5)")
+	_ = db.Query("EXPLAIN SELECT likely(min(1.0+'2.0',4*11))")
+	_ = db.Query("EXPLAIN SELECT min(1.0+'2.0',4*11)")
+	_ = db.Query("EXPLAIN SELECT unlikely(min(1.0+'2.0',4*11))")
+	_ = db.Query("SELECT likelihood('test-string', 0.5);")
+	_ = db.Query("SELECT likelihood(-9223372036854775808, 0.5);")
+	_ = db.Query("SELECT likelihood(123, 1.0), likelihood(456, 0.0);")
+	_ = db.Query("SELECT likelihood(14.125, 0.5);")
+	_ = db.Query("SELECT likelihood(9223372036854775807, 0.5);")
+	_ = db.Query("SELECT likelihood(CAST(1 AS INT),0.5)=='1';")
+	_ = db.Query("SELECT likelihood(NULL, 0.5);")
+	_ = db.Query("SELECT likely('test-string');")
+	_ = db.Query("SELECT likely(-9223372036854775808);")
+	_ = db.Query("SELECT likely(14.125);")
+	_ = db.Query("SELECT likely(9223372036854775807);")
+	_ = db.Query("SELECT likely(CAST(1 AS INT))=='1';")
+	_ = db.Query("SELECT likely(NULL);")
+	_ = db.Query("SELECT quote(likelihood(x'010203000405', 0.5));")
+	_ = db.Query("SELECT quote(likely(x'010203000405'));")
+	_ = db.Query("SELECT quote(unlikely(x'010203000405'));")
+	_ = db.Query("SELECT unlikely('test-string');")
+	_ = db.Query("SELECT unlikely(-9223372036854775808);")
+	_ = db.Query("SELECT unlikely(14.125);")
+	_ = db.Query("SELECT unlikely(9223372036854775807);")
+	_ = db.Query("SELECT unlikely(CAST(1 AS INT))=='1';")
+	_ = db.Query("SELECT unlikely(NULL);")
+}
 // Auto-generated from func4.test
 func TestSQLite_func4(t *testing.T) {
 	db := setupDB(t)
@@ -4230,6 +7551,16 @@ func TestSQLite_func4(t *testing.T) {
 	_ = db.Query("SELECT tointeger(18446744073709551616);")
 	_ = db.Query("SELECT tointeger(2147483647 + 1);")
 	_ = db.Query("SELECT tointeger(2147483647 - 1);")
+}
+// Auto-generated from func5.test
+func TestSQLite_func5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,2),(3,4),(5,6),(7,8);\n  SELECT x, y FROM t2 WHERE x+5=5+x ORDER BY +x;")
+	_ = db.Query("PRAGMA encoding=UTF16le;\n  CREATE TABLE t1(x,a,b,c);\n  INSERT INTO t1 VALUES(1,'ab','cd',1);\n  INSERT INTO t1 VALUES(2,'gh','ef',5);\n  INSERT INTO t1 VALUES(3,'pqr','fuzzy',99);\n  INSERT INTO t1 VALUES(4,'abcdefg','xy',22);\n  INSERT INTO t1 VALUES(5,'shoe','mayer',2953);\n  SELECT x FROM t1...")
+	_ = db.Query("SELECT x FROM t1 WHERE a='abcdefg' OR c=instr('abcdefg',b) ORDER BY +x;")
+	_ = db.Query("SELECT x, y FROM t2\n   WHERE x+counter1('hello')=counter1('hello')+x\n   ORDER BY +x;")
+	_ = db.Query("SELECT x, y FROM t2\n   WHERE x+counter2('hello')=$cvalue+x\n   ORDER BY +x;")
 }
 // Auto-generated from func6.test
 func TestSQLite_func6(t *testing.T) {
@@ -4324,6 +7655,14 @@ func TestSQLite_func9(t *testing.T) {
 	_ = db.Query("SELECT unistr('G\\u00e4ste');")
 	_ = db.Query("SELECT unistr_quote(unistr('G\\u00e4ste'));")
 }
+// Auto-generated from fuzz-oss1.test
+func TestSQLite_fuzz_oss1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE Resource (ID INTEGER NOT NULL PRIMARY KEY, Uri TEXT NOT\nNULL, UNIQUE (Uri));\nCREATE VIRTUAL TABLE fts USING fts4;\nCREATE TABLE \"mfo:Action\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mfo:Enclosure\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:remoteLink\" INTEGER, \"mfo:rem...")
+	_ = db.Exec("CREATE TABLE parameters (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_uuid_parent TEXT NOT NULL DEFAULT '',t_name TEXT NOT NULL,t_value TEXT NOT NULL DEFAULT '',b_blob BLOB,d_lastmodifdate DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,i_tmp INTEGER NOT NULL DEFAULT 0);\nCREATE TABLE doctransaction (...")
+	_ = db.Exec("DETACH x IS #1;")
+}
 // Auto-generated from fuzz.test
 func TestSQLite_fuzz(t *testing.T) {
 	db := setupDB(t)
@@ -4360,6 +7699,14 @@ func TestSQLite_fuzz2(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);")
 	_ = db.Query("SELECT quote(t) FROM t0")
+}
+// Auto-generated from fuzz3.test
+func TestSQLite_fuzz3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    CREATE INDEX i1 ON t1(a, b, c);\n    CREATE INDEX i2 ON t2(d, e, f);")
+	_ = db.Query("SELECT md5sum(a, b, c) FROM t1")
+	_ = db.Query("SELECT md5sum(d, e, f) FROM t2")
 }
 // Auto-generated from fuzz4.test
 func TestSQLite_fuzz4(t *testing.T) {
@@ -4443,6 +7790,14 @@ func TestSQLite_fuzzerfault(t *testing.T) {
 	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n    SELECT word FROM x1 WHERE word MATCH 'xax';")
 	_ = db.Query("SELECT 1 FROM t1_a LEFT JOIN t3 ON ((1+1) AND k=1)")
 	_ = db.Query("SELECT count(*) FROM x2 WHERE word MATCH 'abc';")
+}
+// Auto-generated from gcfault.test
+func TestSQLite_gcfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');")
+	_ = db.Query("SELECT group_concat(e, (SELECT s FROM s WHERE i=1)) FROM e")
+	_ = db.Query("SELECT string_agg(e, (SELECT s FROM s WHERE i=2)) FROM e")
 }
 // Auto-generated from gencol1.test
 func TestSQLite_gencol1(t *testing.T) {
@@ -4541,6 +7896,51 @@ func TestSQLite_hidden(t *testing.T) {
 	_ = db.Query("SELECT a, b, __hidden__c FROM v1;")
 	_ = db.Exec("VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;")
 }
+// Auto-generated from hook.test
+func TestSQLite_hook(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$sql")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN d;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO aux.t3 SELECT * FROM t1;\n      UPDATE t3 SET b = 'two or so' WHERE a = 2;\n      DELETE FROM t3 WHERE 1; -- Avoid the truncate optimization (for now)")
+	_ = db.Exec("BEGIN;\n    ROLLBACK;")
+	_ = db.Exec("CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a > 1;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(100), (200), (300), (400);")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t1w(a INT PRIMARY KEY, b) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE t2(a, b INTEGER PRIMARY KEY);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX idx1 ON t1(a);\n    CREATE INDEX idx2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);")
+	_ = db.Exec("CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END...")
+	_ = db.Exec("CREATE TABLE t2(a,b);")
+	_ = db.Exec("CREATE TABLE t2(c INTEGER PRIMARY KEY, d);\n      CREATE TRIGGER t1_trigger AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        UPDATE t2 SET d = d || ' via trigger' WHERE new.a = c;\n        DELETE FROM t2 WHERE new.a = c;\n      END;")
+	_ = db.Exec("CREATE TABLE t3(a, b INTEGER PRIMARY KEY);")
+	_ = db.Exec("CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);")
+	_ = db.Exec("CREATE TABLE t4(a UNIQUE, b);\n    INSERT INTO t4 VALUES(1, 'a');\n    INSERT INTO t4 VALUES(2, 'b');")
+	_ = db.Exec("CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;")
+	_ = db.Exec("CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;")
+	_ = db.Exec("CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES('one', 'two');\n    INSERT INTO t7 VALUES('three', 'four');\n    ALTER TABLE t7 ADD COLUMN c DEFAULT NULL;")
+	_ = db.Exec("CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('one', 'two');\n    INSERT INTO t8 VALUES('three', 'four');\n    ALTER TABLE t8 ADD COLUMN c DEFAULT 'xxx';")
+	_ = db.Exec("CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c)")
+	_ = db.Exec("CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT RAISE(IGNORE); END;")
+	_ = db.Exec("DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);")
+	_ = db.Exec("DELETE FROM t3")
+	_ = db.Exec("DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VAL...")
+	_ = db.Exec("DROP TRIGGER r1;")
+	_ = db.Exec("DROP TRIGGER t1_trigger;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1w SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(4, 'four');\n    DELETE FROM t1 WHERE b = 'two';\n    UPDATE t1 SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1 WHERE 1; -- Avoid the truncate optimization (for now)")
+	_ = db.Exec("INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t1 VALUES(15, 16);")
+	_ = db.Exec("INSERT INTO t1w VALUES(4, 'four');\n    DELETE FROM t1w WHERE b = 'two';\n    UPDATE t1w SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1w WHERE 1; -- Avoid the truncate optimization (for now)")
+	_ = db.Exec("INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 SELECT a+1, b+1 FROM t2;\n    INSERT INTO t2 SELECT a+2, b+2 FROM t2;")
+	_ = db.Exec("INSERT INTO t2 VALUES(5,6);")
+	_ = db.Exec("INSERT INTO t2 VALUES(7,8);")
+	_ = db.Exec("INSERT INTO t3 SELECT * FROM t2")
+	_ = db.Exec("INSERT INTO t3 SELECT a, b FROM t2")
+}
 // Auto-generated from hook2.test
 func TestSQLite_hook2(t *testing.T) {
 	db := setupDB(t)
@@ -4593,6 +7993,68 @@ func TestSQLite_ieee754(t *testing.T) {
 	_ = db.Query("SELECT ieee754(0.0), hex(ieee754_to_blob(ieee754(0,-1075)));")
 	_ = db.Query("SELECT ieee754(1,1024), ieee754(4503599627370495,972);")
 	_ = db.Query("SELECT ieee754(4503599627370495,973) is null;")
+}
+// Auto-generated from imposter1.test
+func TestSQLite_imposter1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;")
+	_ = db.Exec("CREATE TABLE xt1(a,b,c,d)")
+	_ = db.Exec("CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;")
+	_ = db.Exec("CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(ol...")
+	_ = db.Exec("DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;")
+	_ = db.Exec("DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=99 WHERE rowid IN (5,7,9);\n  SELECT c FROM t1 ORDER BY c;")
+	_ = db.Exec("DELETE FROM t1;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n   INSERT INTO t1(a,b,c,d) SELECT i,i,i,i FROM c;\n  UPDATE xt1c SET c=NULL WHERE rowid=5;\n  PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA writable_schema=on;\n  DELETE FROM xt1 WHERE rowid=5;\n  INSERT INTO xt1(rowid,a,b,c,d) VALUES(99,'hello',1099,2022,NULL);\n  SELECT * FROM chnglog ORDER BY rowid;")
+	_ = db.Query("SELECT a,b,c,d FROM t1 EXCEPT SELECT rowid,b,c,d FROM xt1;\n  SELECT rowid,b,c,d FROM xt1 EXCEPT SELECT a,b,c,d FROM t1;")
+	_ = db.Query("SELECT rowid FROM xt1 WHERE a IS NOT NULL;")
+	_ = db.Exec("UPDATE xt1 SET c=99 WHERE rowid IN (5,7,9);\n  PRAGMA integrity_check;")
+}
+// Auto-generated from in.test
+func TestSQLite_in(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE a(id INTEGER);\n    INSERT INTO a VALUES(1);\n    INSERT INTO a VALUES(2);\n    INSERT INTO a VALUES(3);\n    CREATE TABLE b(id INTEGER);\n    INSERT INTO b VALUES(NULL);\n    INSERT INTO b VALUES(3);\n    INSERT INTO b VALUES(4);\n    INSERT INTO b VALUES(5);...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a int, b int);")
+	_ = db.Exec("COMMIT;\n    SELECT count(*) FROM t1;")
+	_ = db.Exec("CREATE INDEX i1 ON t7(a);\n    CREATE INDEX i2 ON t7(b);\n    CREATE INDEX i3 ON t7(c);")
+	_ = db.Exec("CREATE INDEX i5 ON b(id);\n    SELECT * FROM a WHERE id NOT IN (SELECT id FROM b);")
+	_ = db.Exec("CREATE TABLE c1(a);\n  INSERT INTO c1 VALUES(1), (2), (4), (3);")
+	_ = db.Exec("CREATE TABLE t0(c0);\n  SELECT COUNT(*) FROM t0 ORDER BY (t0.c0 IN ());")
+	_ = db.Exec("CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);")
+	_ = db.Exec("CREATE TABLE t4 AS SELECT a FROM tb;\n    SELECT * FROM t4;")
+	_ = db.Exec("CREATE TABLE t5(\n      a INTEGER,\n      CHECK( a IN (111,222,333) )\n    );\n    INSERT INTO t5 VALUES(111);\n    SELECT * FROM t5;")
+	_ = db.Exec("CREATE TABLE t6(a,b NUMERIC);\n    INSERT INTO t6 VALUES(1,2);\n    INSERT INTO t6 VALUES(2,3);\n    SELECT * FROM t6 WHERE b IN (2);")
+	_ = db.Exec("CREATE TABLE t7(a, b, c NOT NULL);\n    INSERT INTO t7 VALUES(1,    1, 1);\n    INSERT INTO t7 VALUES(2,    2, 2);\n    INSERT INTO t7 VALUES(3,    3, 3);\n    INSERT INTO t7 VALUES(NULL, 4, 4);\n    INSERT INTO t7 VALUES(NULL, 5, 5);")
+	_ = db.Exec("CREATE TABLE ta(a INTEGER PRIMARY KEY, b);\n    INSERT INTO ta VALUES(1,1);\n    INSERT INTO ta VALUES(2,2);\n    INSERT INTO ta VALUES(3,3);\n    INSERT INTO ta VALUES(4,4);\n    INSERT INTO ta VALUES(6,6);\n    INSERT INTO ta VALUES(8,8);\n    INSERT INTO ta VALUES(10,\n       'This is a key th...")
+	_ = db.Exec("CREATE TABLE tb(a INTEGER PRIMARY KEY, b);\n    INSERT INTO tb VALUES(1,1);\n    INSERT INTO tb VALUES(2,2);\n    INSERT INTO tb VALUES(3,3);\n    INSERT INTO tb VALUES(5,5);\n    INSERT INTO tb VALUES(7,7);\n    INSERT INTO tb VALUES(9,9);\n    INSERT INTO tb VALUES(11,\n       'This is a key th...")
+	_ = db.Exec("CREATE TABLE x1(a, b);\n  INSERT INTO x1(a) VALUES(1), (2), (3), (4), (5), (6);\n  CREATE INDEX x1i ON x1(a, b);")
+	_ = db.Exec("CREATE VIEW t5 AS\n    SELECT 1 AS b\n     WHERE (SELECT count(0=NOT+a COLLATE NOCASE IN (SELECT 0))\n              FROM t4\n             GROUP BY a);\n  SELECT * FROM t5;")
+	_ = db.Exec("DELETE FROM t1 WHERE b IN (SELECT b FROM t1 WHERE a>8)")
+	_ = db.Exec("DELETE FROM t1 WHERE b NOT IN (SELECT b FROM t1 WHERE a>4)")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE);\n  INSERT INTO t0(c0) VALUES (1);\n  SELECT * FROM t0 WHERE '1' IN (t0.c0);")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE);\n  INSERT INTO t0(c0) VALUES(2.0625E00);\n  SELECT 1 FROM t0 WHERE c0 IN ('2.0625');")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE IF NOT EXISTS t1(id INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1);\n  SELECT a.id FROM t1 AS a JOIN t1 AS b ON a.id=b.id WHERE a.id IN (1,2,3);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT PRIMARY KEY, y INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n    INSERT INTO t1(x,y) SELECT x, x*100 FROM c;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INT);\n  INSERT INTO t2 VALUES(2),(4),(6);\n  SELECT...")
+	_ = db.Exec("DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t2 VALUES(1,11);\n  INSERT INTO t2 VALUES(2,22);\n  INSERT INTO t2 VALUES(3,33);\n  SELECT b, a IN (3,4,5) FROM t2 ORDER BY b;")
+	_ = db.Exec("DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(x INTEGER PRIMARY KEY);\n  INSERT INTO t3 VALUES(8);\n  SELECT CASE WHEN x NOT IN (5,6,7) THEN 'yes' ELSE 'no' END FROM t3;\n  SELECT CASE WHEN x NOT IN (NULL,6,7) THEN 'yes' ELSE 'no' END FROM t3;")
+	_ = db.Exec("DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a INTEGER PRIMARY KEY, b INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t4(a,b) SELECT x, x+100 FROM c;\n  SELECT b FROM t4 WHERE a IN (3,null,8) ORDER BY +b;")
+	_ = db.Exec("DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(a TEXT, b INT);\n  INSERT INTO t4(a,b) VALUES('abc',0),('ABC',1),('def',2);\n  CREATE INDEX t4x ON t4(a, +a COLLATE NOCASE);\n  SELECT a0.a, group_concat(a1.a) AS b\n    FROM t4 AS a0 JOIN t4 AS a1\n   GROUP BY a0.a\n  HAVING (SELECT sum( (a1.a == +a0.a...")
+	_ = db.Exec("DROP TABLE IF EXISTS t5;\n  DROP TABLE IF EXISTS t6;\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, name TEXT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, name TEXT, t5_id INT);\n  INSERT INTO t5 VALUES(1,'Alice'),(2,'Emma');\n  INSERT INTO t6 VALUES(1,'Bob',1),(2,'Cindy',1),(3,'Dave',2);\n  SELECT a...")
+	_ = db.Exec("DROP TABLE t0;\n  CREATE TABLE t0(c0 TEXT, c1 REAL, c2, PRIMARY KEY(c2, c0, c1));\n  CREATE INDEX i0 ON t0(c1 IN (c0));\n  INSERT INTO t0(c0, c2) VALUES (0, NULL) ON CONFLICT(c2, c1, c0) DO NOTHING;\n  PRAGMA integrity_check;")
+	_ = db.Exec("INSERT INTO t1 VALUES('hello', 'world');\n    SELECT * FROM t1\n    WHERE a IN (\n       'Do','an','IN','with','a','constant','RHS','but','where','the',\n       'has','many','elements','We','need','to','test','that',\n       'collisions','hash','table','are','resolved','properly',\n       'This',...")
+	_ = db.Query("SELECT\n      2 IN (SELECT a FROM t7),\n      6 IN (SELECT a FROM t7),\n      2 IN (SELECT b FROM t7),\n      6 IN (SELECT b FROM t7),\n      2 IN (SELECT c FROM t7),\n      6 IN (SELECT c FROM t7)")
+	_ = db.Query("SELECT\n      2 NOT IN (SELECT a FROM t7),\n      6 NOT IN (SELECT a FROM t7),\n      2 NOT IN (SELECT b FROM t7),\n      6 NOT IN (SELECT b FROM t7),\n      2 NOT IN (SELECT c FROM t7),\n      6 NOT IN (SELECT c FROM t7)")
+	_ = db.Query("SELECT \n    1 IN (NULL, 1, 2),     -- The value 1 is a member of the set, return true.\n    3 IN (NULL, 1, 2),     -- Ambiguous, return NULL.\n    1 NOT IN (NULL, 1, 2), -- The value 1 is a member of the set, return false.\n    3 NOT IN (NULL, 1, 2)  -- Ambiguous, return NULL.")
+	_ = db.Query("SELECT (1 IN (2 IS TRUE));")
+	_ = db.Query("SELECT * FROM c1 WHERE a IN (SELECT a FROM c1) ORDER BY 1")
+	_ = db.Query("SELECT * FROM t1 WHERE x IN ((((((SELECT a FROM t2))))));")
+	_ = db.Query("SELECT * FROM t1 WHERE x IN (((SELECT a FROM t2)));")
+	_ = db.Query("SELECT * FROM t1 WHERE x IN ((SELECT a FROM t2));")
+	_ = db.Query("SELECT * FROM t6 WHERE +a IN ('2');")
+	_ = db.Query("SELECT * FROM t6 WHERE +b IN ('2');")
+	_ = db.Query("SELECT * FROM t6 WHERE a IN ('2');")
 }
 // Auto-generated from in2.test
 func TestSQLite_in2(t *testing.T) {
@@ -4740,6 +8202,76 @@ func TestSQLite_in7(t *testing.T) {
 	_ = db.Exec("WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2")
 	_ = db.Query("explain $sql")
 }
+// Auto-generated from incrblob.test
+func TestSQLite_incrblob(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.files(name, text);\n      INSERT INTO aux.files VALUES('this one', zeroblob($::size));")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE blobs(k PRIMARY KEY, v BLOB, i INTEGER);\n      DELETE FROM blobs;\n      INSERT INTO blobs VALUES('one', $::str || randstr(500,500), 45);\n      COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO blobs(k, v, i) VALUES('a', 'different', 'connection');")
+	_ = db.Exec("BEGIN;\n    DROP TABLE blobs;\n    CREATE TABLE t1 (a, b, c, d BLOB);\n    INSERT INTO t1(a, b, c, d) VALUES(1, 2, 3, 4);\n    COMMIT;")
+	_ = db.Exec("CREATE TABLE blobs(k PRIMARY KEY, v BLOB);\n    INSERT INTO blobs VALUES('one', X'0102030405060708090A');\n    INSERT INTO blobs VALUES('two', X'0A090807060504030201');")
+	_ = db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY, b);        -- root@page4")
+	_ = db.Exec("CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, 2);")
+	_ = db.Exec("CREATE VIEW blobs_view AS SELECT k, v, i FROM blobs")
+	_ = db.Exec("CREATE VIRTUAL TABLE blobs_echo USING echo(blobs)")
+	_ = db.Exec("DELETE FROM t1 WHERE a = 123;\n    PRAGMA INCREMENTAL_VACUUM(0);")
+	_ = db.Exec("INSERT INTO blobs(k, v, i) VALUES(123, 567.765, NULL);")
+	_ = db.Exec("INSERT INTO blobs(k, v, i) VALUES(X'010203040506070809', 'hello', 'world');")
+	_ = db.Exec("INSERT INTO blobs(rowid, k, v) VALUES(3, 'three', $::str);")
+	_ = db.Exec("INSERT INTO t1 VALUES(314159, 'sqlite')")
+	_ = db.Exec("INSERT INTO t2 VALUES(456, $::otherdata);")
+	_ = db.Query("PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, $::data);")
+	_ = db.Query("PRAGMA auto_vacuum;")
+	_ = db.Query("PRAGMA mmap_size = 0")
+	_ = db.Query("SELECT * FROM blobs WHERE rowid = 4;")
+	_ = db.Query("SELECT b FROM t1 WHERE a = 314159")
+	_ = db.Query("SELECT d FROM t1;")
+	_ = db.Query("SELECT i FROM blobs")
+	_ = db.Query("SELECT rootpage FROM sqlite_master;")
+	_ = db.Query("SELECT rowid FROM blobs ORDER BY rowid")
+	_ = db.Query("SELECT v FROM blobs WHERE rowid = 1;")
+	_ = db.Exec("UPDATE t1 SET d = 15;")
+	_ = db.Exec("UPDATE t1 SET d = zeroblob(10000);")
+}
+// Auto-generated from incrblob2.test
+func TestSQLite_incrblob2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE blobs(id INTEGER PRIMARY KEY, data BLOB);\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));")
+	_ = db.Exec("CREATE TABLE t1(id INTEGER PRIMARY KEY, data BLOB);")
+	_ = db.Exec("CREATE TABLE t2(B BLOB);\n    INSERT INTO t2 VALUES(zeroblob(10 * 1024 * 1024));")
+	_ = db.Exec("CREATE TABLE t3(a INTEGER UNIQUE, b TEXT);\n    INSERT INTO t3 VALUES(1, 'aaaaaaaaaaaaaaaaaaaa');\n    INSERT INTO t3 VALUES(2, 'bbbbbbbbbbbbbbbbbbbb');\n    INSERT INTO t3 VALUES(3, 'cccccccccccccccccccc');\n    INSERT INTO t3 VALUES(4, 'dddddddddddddddddddd');\n    INSERT INTO t3 VALUES(5, 'eee...")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("DELETE FROM t1 WHERE id = 14")
+	_ = db.Exec("DELETE FROM t1 WHERE id >=1 AND id <= 25")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES(1, zeroblob(100));")
+	_ = db.Exec("INSERT INTO blobs VALUES(5, zeroblob(10240));")
+	_ = db.Exec("INSERT INTO t1 SELECT NULL, data FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES($ii, $data)")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'abcde');")
+	_ = db.Exec("INSERT OR REPLACE INTO t1 VALUES(92, zeroblob(1000))")
+	_ = db.Query("PRAGMA read_uncommitted=1")
+	_ = db.Query("SELECT rowid FROM t2")
+	_ = db.Exec("UPDATE OR REPLACE t1 SET id = 65 WHERE id = 35")
+	_ = db.Exec("UPDATE t1 SET data = data || '' WHERE id = 3")
+	_ = db.Exec("UPDATE t1 SET id = 102 WHERE id = 15")
+}
+// Auto-generated from incrblob3.test
+func TestSQLite_incrblob3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));")
+	_ = db.Exec("CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));")
+	_ = db.Exec("CREATE TABLE t2(x)")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT * FROM blobs")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('rules to open a column to which');")
+	_ = db.Exec("INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);")
+	_ = db.Query("PRAGMA foreign_keys = 0")
+	_ = db.Exec("UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1")
+}
 // Auto-generated from incrblob4.test
 func TestSQLite_incrblob4(t *testing.T) {
 	db := setupDB(t)
@@ -4770,6 +8302,59 @@ func TestSQLite_incrblobfault(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE blob(x INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blob VALUES(1, 'hello world');\n  INSERT INTO blob VALUES(2, 'world hello');\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO bl...")
+}
+// Auto-generated from incrcorrupt.test
+func TestSQLite_incrcorrupt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT i, randomblob(600) FROM data LIMIT 20;\n  PRAGMA page_count;")
+	_ = db.Query("PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(a PRIMARY KEY, b);\n\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT i, randomblob(600) FROM data LIMIT 20;\n  PRAGMA page_count;")
+	_ = db.Query("PRAGMA incremental_vacuum;")
+}
+// Auto-generated from incrvacuum.test
+func TestSQLite_incrvacuum(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES($::str);\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO tbl1 VALUES($::str);\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;")
+	_ = db.Exec("COMMIT;\n    PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    DROP TABLE t1;")
+	_ = db.Exec("CREATE TABLE tbl1(a, b);\n          INSERT INTO tbl1 VALUES('hello', 'world');")
+	_ = db.Exec("DELETE FROM tbl2;\n    DROP TABLE tbl1;")
+	_ = db.Exec("DROP TABLE IF EXISTS tbl1;\n      DROP TABLE IF EXISTS tbl2;\n      PRAGMA incremental_vacuum;\n      CREATE TABLE tbl1(a, b);\n      CREATE TABLE tbl2(a, b);\n      BEGIN;")
+	_ = db.Exec("DROP TABLE abc;\n    DELETE FROM tbl2;")
+	_ = db.Exec("DROP TABLE t1;\n    DROP TABLE t2;")
+	_ = db.Exec("DROP TABLE tbl1;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;")
+	_ = db.Exec("INSERT INTO tbl1 VALUES($ii, $ii || $ii)")
+	_ = db.Exec("INSERT INTO tbl2 SELECT * FROM tbl1;\n      COMMIT;\n      DROP TABLE tbl1;")
+	_ = db.Query("PRAGMA auto_vacuum")
+	_ = db.Query("PRAGMA auto_vacuum = 'full';\n    PRAGMA auto_vacuum;")
+	_ = db.Query("PRAGMA auto_vacuum = 'incremental'")
+	_ = db.Query("PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a|...")
+	_ = db.Query("PRAGMA auto_vacuum = 'none'")
+	_ = db.Query("PRAGMA auto_vacuum = 1;")
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n    INSERT INTO tbl2 VALUES('hello world');")
+	_ = db.Query("PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES($::str);\n    COMMIT;")
+	_ = db.Query("PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES(1), (2), (3), (4);\n  \n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( randomblob(1000) );\n    INSERT INTO t2 VALUES( r...")
+	_ = db.Query("PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES($::str);\n    CREATE TABLE tbl1(a, b, c);")
+	_ = db.Query("PRAGMA auto_vacuum = incremental;")
+	_ = db.Query("PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;")
+	_ = db.Query("PRAGMA auto_vacuum;")
+	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET a = a, b = b, c = c;\n    DROP TABLE t2;\n    PRAGMA incremental_vacuum(10);\n    ROLLBACK;")
+	_ = db.Query("PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', $str);\n    INSERT INTO t1 VALUES('b', $str);\n    INSERT INTO t1 VALUES('c', $str);\n    INSERT INTO t1 VALUES('d', $str);\n    INSERT INTO t1 VALUES('e', $str);\n    INSERT...")
+	_ = db.Query("PRAGMA incremental_vacuum")
+	_ = db.Query("PRAGMA incremental_vacuum = 1;")
+	_ = db.Query("PRAGMA incremental_vacuum(\"+3\");")
+	_ = db.Query("PRAGMA incremental_vacuum('1');")
+	_ = db.Query("PRAGMA incremental_vacuum(1);")
+	_ = db.Query("PRAGMA incremental_vacuum(2147483649);")
+	_ = db.Query("PRAGMA incremental_vacuum(5);")
+	_ = db.Query("PRAGMA incremental_vacuum(50);")
+	_ = db.Query("PRAGMA incremental_vacuum=-1;")
+	_ = db.Query("PRAGMA integrity_check;")
 }
 // Auto-generated from incrvacuum2.test
 func TestSQLite_incrvacuum2(t *testing.T) {
@@ -4802,6 +8387,66 @@ func TestSQLite_incrvacuum3(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode = $jrnl_mode")
 	_ = db.Query("SELECT count(*) FROM t1")
 }
+// Auto-generated from incrvacuum_ioerr.test
+func TestSQLite_incrvacuum_ioerr(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#     PRAGMA auto_vacuum = 'full';\n#     PRAGMA cache_size = 10;\n#     BEGIN;\n#     CREATE TABLE abc(a, UNIQUE(a));\n#")
+	_ = db.Exec("DELETE FROM a WHERE oid")
+	_ = db.Exec("INSERT INTO a VALUES($ii, randstr(800,1500));")
+	_ = db.Exec("INSERT INTO abc VALUES(randstr(1500,1500))")
+	_ = db.Query("PRAGMA auto_vacuum = 'full';\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a, UNIQUE(a));")
+	_ = db.Query("PRAGMA auto_vacuum = 'incremental';\n    BEGIN;\n    CREATE TABLE a(i integer, b blob);\n    INSERT INTO a VALUES(1, randstr(1500,1500));\n    INSERT INTO a VALUES(2, randstr(1500,1500));")
+	_ = db.Query("PRAGMA page_size = 1024;\n      PRAGMA locking_mode = exclusive;\n      PRAGMA auto_vacuum = 'incremental';\n      BEGIN;\n      CREATE TABLE a(i integer, b blob);")
+	_ = db.Query("pragma freelist_count")
+	_ = db.Query("pragma incremental_vacuum(5)")
+	_ = db.Query("pragma page_count")
+}
+// Auto-generated from index.test
+func TestSQLite_index(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX \"t6i2\" ON t6(c);\n    DROP INDEX \"t6i2\";")
+	_ = db.Exec("CREATE INDEX idx1 ON tab1(a)")
+	_ = db.Exec("CREATE INDEX index1 ON sqlite_master(name)")
+	_ = db.Exec("CREATE INDEX index1 ON test1(f1)")
+	_ = db.Exec("CREATE INDEX index1 ON test1(f1, f2, f4, f3)")
+	_ = db.Exec("CREATE INDEX index1 ON test1(f4)")
+	_ = db.Exec("CREATE INDEX index1 ON test2(g1)")
+	_ = db.Exec("CREATE INDEX index9 ON test1(cnt)")
+	_ = db.Exec("CREATE INDEX indext ON test1(cnt)")
+	_ = db.Exec("CREATE INDEX indext ON test1(power)")
+	_ = db.Exec("CREATE INDEX t4i1 ON t4(a);\n    SELECT a FROM t4 WHERE a==0 ORDER BY b")
+	_ = db.Exec("CREATE INDEX test1 ON test2(g1)")
+	_ = db.Exec("CREATE TABLE t1(a int, b int);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(2,4);\n    INSERT INTO t1 VALUES(3,8);\n    INSERT INTO t1 VALUES(1,12);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;")
+	_ = db.Exec("CREATE TABLE t3(\n      a text,\n      b int,\n      c float,\n      PRIMARY KEY(b)\n    );")
+	_ = db.Exec("CREATE TABLE t4(a NUM,b);\n    INSERT INTO t4 VALUES('0.0',1);\n    INSERT INTO t4 VALUES('0.00',2);\n    INSERT INTO t4 VALUES('abc',3);\n    INSERT INTO t4 VALUES('-1.0',4);\n    INSERT INTO t4 VALUES('+1.0',5);\n    INSERT INTO t4 VALUES('0',6);\n    INSERT INTO t4 VALUES('00000',7);\n    SELE...")
+	_ = db.Exec("CREATE TABLE t5(\n      a int UNIQUE,\n      b float PRIMARY KEY,\n      c varchar(10),\n      UNIQUE(a,c)\n   );\n   INSERT INTO t5 VALUES(1,2,3);\n   SELECT * FROM t5;")
+	_ = db.Exec("CREATE TABLE t6(a,b,c);\n    CREATE INDEX t6i1 ON t6(a,b);\n    INSERT INTO t6 VALUES('','',1);\n    INSERT INTO t6 VALUES('',NULL,2);\n    INSERT INTO t6 VALUES(NULL,'',3);\n    INSERT INTO t6 VALUES('abc',123,4);\n    INSERT INTO t6 VALUES(123,'abc',5);\n    SELECT c FROM t6 ORDER BY a,b;")
+	_ = db.Exec("CREATE TABLE t7(a UNIQUE PRIMARY KEY);\n      CREATE TABLE t8(a UNIQUE PRIMARY KEY ON CONFLICT ROLLBACK);\n      INSERT INTO t7 VALUES(1);\n      INSERT INTO t8 VALUES(1);")
+	_ = db.Exec("CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';")
+	_ = db.Exec("CREATE TABLE tab1(a int)")
+	_ = db.Exec("CREATE TABLE test1(a,b);\n    CREATE INDEX index1 ON test1(a);\n    CREATE INDEX index2 ON test1(b);\n    CREATE INDEX index3 ON test1(a,b);\n    DROP TABLE test1;\n    SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name;")
+	_ = db.Exec("CREATE TABLE test1(cnt int, power int)")
+	_ = db.Exec("CREATE TABLE test1(f1 int, f2 int primary key)")
+	_ = db.Exec("CREATE TABLE test1(f1 int, f2 int)")
+	_ = db.Exec("CREATE TABLE test1(f1 int, f2 int, f3 int)")
+	_ = db.Exec("CREATE TABLE test1(f1 int, f2 int, f3 int, f4 int, f5 int)")
+	_ = db.Exec("CREATE TABLE test2(g1 real, g2 real)")
+	_ = db.Exec("DELETE FROM t1 WHERE b = 2 OR b = 4 OR b = 6 OR b = 8;")
+	_ = db.Exec("DELETE FROM t1 WHERE b IN (2, 4, 6, 8);")
+	_ = db.Exec("DELETE FROM t1 WHERE b=12;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;")
+	_ = db.Exec("DELETE FROM t1 WHERE b=1;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;")
+	_ = db.Exec("DELETE FROM t1 WHERE b=2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;")
+	_ = db.Exec("DELETE FROM t1 WHERE b>2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES (1,1);\n    INSERT INTO t1 VALUES (1,2);\n    INSERT INTO t1 VALUES (1,3);\n    INSERT INTO t1 VALUES (1,4);\n    INSERT INTO t1 VALUES (1,5);\n    INSERT INTO t1 VALUES (1,6);\n    INSERT INTO t1 VALUES (1,7);\n    INSERT INTO t1 VALUES (1,8);\n    INSE...")
+	_ = db.Exec("DELETE FROM t1;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP INDEX \"t6i1\";")
+	_ = db.Exec("DROP INDEX index1")
+	_ = db.Exec("DROP INDEX index9")
+	_ = db.Exec("DROP INDEX indext")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b TEXT);\n  CREATE UNIQUE INDEX IF NOT EXISTS x1 ON t1(b==0);\n  CREATE INDEX IF NOT EXISTS x2 ON t1(a || 0) WHERE b;\n  INSERT INTO t1(a,b) VALUES('a',1),('a',0);\n  SELECT a, b, '|' FROM t1;")
+}
 // Auto-generated from index2.test
 func TestSQLite_index2(t *testing.T) {
 	db := setupDB(t)
@@ -4811,6 +8456,33 @@ func TestSQLite_index2(t *testing.T) {
 	_ = db.Query("SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5, c6 LIMIT 5")
 	_ = db.Query("SELECT count(*) FROM t1")
 	_ = db.Query("SELECT round(sum(c1000)) FROM t1")
+}
+// Auto-generated from index3.test
+func TestSQLite_index3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d, e, \n                  PRIMARY KEY('a'), UNIQUE('b' COLLATE nocase DESC));\n  CREATE INDEX t1c ON t1('c');\n  CREATE INDEX t1d ON t1('d' COLLATE binary ASC);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<30)\n    INSERT INTO t1(...")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b='ab005xy' COLLATE nocase;")
+	_ = db.Query("PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'")
+	_ = db.Query("SELECT a FROM t1 WHERE b='ab005xy' COLLATE nocase;")
+	_ = db.Query("SELECT name FROM sqlite_master WHERE tbl_name LIKE 't2_' ORDER BY name")
+	_ = db.Query("SELECT name FROM sqlite_master WHERE tbl_name='t1' ORDER BY name")
+}
+// Auto-generated from index4.test
+func TestSQLite_index4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(102));\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     8\n    INSERT INTO t1 SELEC...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(14);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(15);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(16);\n  COMMIT;")
+	_ = db.Exec("BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('a');\n    INSERT INTO t1 VALUES('b');\n    INSERT INTO t1 VALUES('c');\n    INSERT INTO t1 VALUES('d');\n    INSERT INTO t1 VALUES('e');\n    INSERT INTO t1 VALUES('f');\n    INSERT INTO t1 VALUES('g');\n    INSERT IN...")
+	_ = db.Exec("BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('a');\n  COMMIT;\n  CREATE INDEX i1 ON t1(x); \n  PRAGMA integrity_check")
+	_ = db.Exec("BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n  COMMIT;\n  CREATE INDEX i1 ON t1(x); \n  PRAGMA integrity_check")
+	_ = db.Exec("CREATE INDEX i1 ON t1(x);")
+	_ = db.Exec("CREATE UNIQUE INDEX i3 ON t2(x);")
+	_ = db.Query("PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);")
+	_ = db.Query("PRAGMA integrity_check")
 }
 // Auto-generated from index5.test
 func TestSQLite_index5(t *testing.T) {
@@ -4916,6 +8588,17 @@ func TestSQLite_index8(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b,c,d)\n     SELECT x/10, x%10, x%19, x FROM c;\n  CREATE INDEX t1abc ON t1(a,b,c);\n  SELECT * FROM t1 WHERE c=4 ORDER BY a, b LIMIT 2;")
 	_ = db.Exec("DROP INDEX t1abc;\n  CREATE INDEX t1abd ON t1(a,b,d);\n  SELECT * FROM t1 WHERE c=4 ORDER BY a, b LIMIT 2;")
 	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE c=4 ORDER BY a, b LIMIT 2;")
+}
+// Auto-generated from index9.test
+func TestSQLite_index9(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111")
+	_ = db.Exec("CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807")
+	_ = db.Exec("CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;")
+	_ = db.Query("EXPLAIN $sql")
+	_ = db.Query("SELECT name FROM sqlite_master WHERE rootpage IN ($in) ORDER BY 1")
 }
 // Auto-generated from indexA.test
 func TestSQLite_indexA(t *testing.T) {
@@ -5092,6 +8775,24 @@ func TestSQLite_indexexpr3(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a, j);\n  INSERT INTO t1 VALUES(1, '{x:\"one\"")
 	_ = db.Query("EXPLAIN $sql")
 }
+// Auto-generated from indexfault.test
+func TestSQLite_indexfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(202));\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --     8\n    INSERT INTO t1 SELEC...")
+	_ = db.Exec("BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(t,u,v,w,x,y,z);\n    INSERT INTO t1 VALUES(\n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30)\n    );\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(...")
+	_ = db.Exec("BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1; ...")
+	_ = db.Exec("BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1; ...")
+	_ = db.Exec("CREATE INDEX i1 ON t1(t,u,v,w,x,y,z)")
+	_ = db.Exec("CREATE INDEX i1 ON t1(x)")
+	_ = db.Exec("CREATE TABLE reallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyreallyre...")
+}
+// Auto-generated from init.test
+func TestSQLite_init(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT sqlite_compileoption_used('THREADSAFE=0')")
+}
 // Auto-generated from insert.test
 func TestSQLite_insert(t *testing.T) {
 	db := setupDB(t)
@@ -5201,6 +8902,51 @@ func TestSQLite_insert3(t *testing.T) {
 	_ = db.Query("SELECT * FROM log2 ORDER BY x;")
 	_ = db.Query("SELECT name FROM sqlite_master WHERE type = 'table'")
 }
+// Auto-generated from insert4.test
+func TestSQLite_insert4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;")
+	_ = db.Exec("CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE src(x,y,z, CONSTRAINT c1 CHECK(rowid<=5));\n  CREATE TABLE dest(x,y,z, CONSTRAINT c2 CHECK(rowid<=5));\n  INSERT INTO src(x) VALUES(22),(33),(44);\n  UPDATE src SET y=x+100, z=x*100;\n  INSERT INTO dest(x) VALUES(55),(66),(77);\n  UPDATE dest SET y=x+100, z=x*100;\n  PRAGMA integrity...")
+	_ = db.Exec("CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);")
+	_ = db.Exec("CREATE TABLE t4(a, b, UNIQUE(a,b))")
+	_ = db.Exec("CREATE TABLE t6a(x CHECK( x<>'abc' ));\n    INSERT INTO t6a VALUES('ABC');\n    SELECT * FROM t6a;")
+	_ = db.Exec("CREATE TABLE t6b(x CHECK( x<>'abc' COLLATE nocase ));")
+	_ = db.Exec("CREATE TABLE t7a(x INTEGER PRIMARY KEY); INSERT INTO t7a VALUES(123);\n      CREATE TABLE t7b(y INTEGER REFERENCES t7a);\n      CREATE TABLE t7c(z INT);  INSERT INTO t7c VALUES(234);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;")
+	_ = db.Exec("CREATE TABLE t8(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n  CREATE TEMP TABLE x(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );")
+	_ = db.Exec("CREATE TABLE t9(a, b, c);\n  CREATE INDEX t9a ON t9(a);\n  CREATE INDEX t9b ON t9(b) WHERE c=0;\n\n  INSERT INTO t9 VALUES(1, 1, 1);\n  INSERT INTO t9 VALUES(2, 2, 2);\n  INSERT INTO t9 VALUES(3, 3, 3);\n\n  CREATE TABLE t10(a, b, c);\n  CREATE INDEX t10a ON t10(a);\n  CREATE INDEX t10b ON t10(b)...")
+	_ = db.Exec("DELETE FROM t1;\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;")
+	_ = db.Exec("DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;")
+	_ = db.Exec("DELETE FROM t7b;\n      PRAGMA foreign_keys=ON;")
+	_ = db.Exec("DELETE FROM t7b; DELETE FROM t7c;\n      INSERT INTO t7c VALUES(123);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;")
+	_ = db.Exec("DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;")
+	_ = db.Exec("DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;")
+	_ = db.Exec("DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SE...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELE...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n   ...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n ...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(5 COLLATE xyzzy) UNION SELECT 0;")
+	_ = db.Exec("DROP TABLE dest;\n    DROP TABLE src;")
+	_ = db.Exec("DROP TABLE t6b;\n    CREATE TABLE t6b(x CHECK( x COLLATE nocase <>'abc' ));")
+	_ = db.Exec("INSERT INTO dest SELECT * FROM src;")
+	_ = db.Exec("INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;")
+	_ = db.Exec("INSERT INTO t4 VALUES(NULL,0);\n      INSERT INTO t4 VALUES(NULL,1);\n      INSERT INTO t4 VALUES(NULL,1);\n      VACUUM;")
+	_ = db.Exec("INSERT INTO x     SELECT * FROM t8")
+	_ = db.Exec("INSERT INTO x     SELECT * FROM t8  RETURNING *")
+	_ = db.Exec("INSERT INTO x SELECT * FROM t8")
+}
 // Auto-generated from insert5.test
 func TestSQLite_insert5(t *testing.T) {
 	db := setupDB(t)
@@ -5262,6 +9008,16 @@ func TestSQLite_instr(t *testing.T) {
 	_ = db.Query("SELECT instr('abc€xyzzy','xyz');")
 	_ = db.Query("SELECT instr('abc€xyzzy','€xyz');")
 	_ = db.Query("SELECT instr('xä€y',x'79');")
+}
+// Auto-generated from instrfault.test
+func TestSQLite_instrfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;")
+	_ = db.Exec("CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);")
+	_ = db.Query("SELECT instr($::HAYSTACK, $::NEEDLE) FROM t1")
+	_ = db.Query("SELECT instr(h, n) FROM t1")
+	_ = db.Query("SELECT rowid FROM h1 WHERE instr(a,b)")
 }
 // Auto-generated from intarray.test
 func TestSQLite_intarray(t *testing.T) {
@@ -5353,6 +9109,31 @@ func TestSQLite_intpkey(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1 WHERE b=='hello'")
 	_ = db.Query("SELECT * FROM t1 WHERE b=='y' AND rowid<0")
 }
+// Auto-generated from intreal.test
+func TestSQLite_intreal(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i2 ON t2(a);\n  SELECT substr(a,1,4) FROM t2 WHERE a = CAST(836627109860825358 AS REAL);")
+	_ = db.Exec("CREATE TABLE t0 (c0 REAL, c1);\n  CREATE UNIQUE INDEX i0 ON t0(c1, 0 | c0);\n  INSERT INTO t0(c0) VALUES (4750228396194493326), (0);\n  UPDATE OR REPLACE t0 SET c0 = 'a', c1 = '';\n  SELECT * FROM t0 ORDER BY t0.c1;\n  PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');")
+	_ = db.Exec("CREATE TABLE t1(a REAL, b AS ('expr') );")
+	_ = db.Exec("CREATE TABLE t2(a REAL);\n  INSERT INTO t2 VALUES( 836627109860825358 );\n  SELECT substr(a,1,4) FROM t2 WHERE a = CAST(836627109860825358 AS REAL);")
+	_ = db.Exec("INSERT INTO t1 SELECT REPLACE(4, '', 'expr');")
+	_ = db.Exec("INSERT INTO t1 VALUES( REPLACE(0, '', 'expr') );")
+	_ = db.Query("SELECT 'a'||intreal(11)||'z';")
+	_ = db.Query("SELECT * FROM t0, t1 \n  WHERE (\n        t1.c1 >= CAST(8366271098608253588 AS REAL) \n    AND t1.c1 <= CAST(8366271098608253588 AS REAL)\n  );")
+	_ = db.Query("SELECT * FROM t0, t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));")
+	_ = db.Query("SELECT * FROM t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));")
+	_ = db.Query("SELECT intreal(5);")
+	_ = db.Query("SELECT intreal(5)=5, 6=intreal(6);")
+	_ = db.Query("SELECT intreal(7)=7.0, 8.0=intreal(8);")
+	_ = db.Query("SELECT max(1.0,intreal(2),3.0), max(1,intreal(2),3);")
+	_ = db.Query("SELECT max(1.0,intreal(2),intreal(3),4.0),\n         max(1,intreal(2),intreal(3),4);")
+	_ = db.Query("SELECT max(1.0,intreal(4),3.0), max(1,intreal(4),3);")
+	_ = db.Query("SELECT max(1.0,intreal(5),intreal(3),4.0),\n         max(1,intreal(5),intreal(3),4);")
+	_ = db.Query("SELECT typeof(a), a FROM t1;")
+	_ = db.Query("SELECT typeof(intreal(9));")
+}
 // Auto-generated from io.test
 func TestSQLite_io(t *testing.T) {
 	db := setupDB(t)
@@ -5398,6 +9179,30 @@ func TestSQLite_io(t *testing.T) {
 	_ = db.Query("PRAGMA locking_mode = normal;\n    INSERT INTO abc VALUES(13, 14);")
 	_ = db.Query("PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT...")
 }
+// Auto-generated from ioerr.test
+func TestSQLite_ioerr(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' as aux;\n        CREATE TABLE tx(a, b);\n        CREATE TABLE aux.ty(a, b);")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES('abc', 123);\n    INSERT INTO t1 VALUES('def', 123);\n    INSERT INTO t1 VALUES('ghi', 123);\n    INSERT INTO t1 SELECT (a+500)%900, 'good string' FROM t1;")
+	_ = db.Exec("BEGIN;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);")
+	_ = db.Exec("CREATE TABLE t1(x)")
+	_ = db.Exec("DELETE FROM t1 WHERE oid > 85;\n    COMMIT;")
+	_ = db.Exec("INSERT INTO abc (a1) VALUES(NULL)")
+	_ = db.Exec("INSERT INTO abc VALUES(randstr(100,100));")
+	_ = db.Exec("INSERT INTO t1 VALUES($v)")
+	_ = db.Exec("INSERT INTO t1 VALUES(:i, 'hello world');")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(1100));")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(2000));")
+	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500)); -- Page 4 is overflow")
+	_ = db.Query("PRAGMA page_size = 1024")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("pragma auto_vacuum")
+}
 // Auto-generated from ioerr2.test
 func TestSQLite_ioerr2(t *testing.T) {
 	db := setupDB(t)
@@ -5408,6 +9213,35 @@ func TestSQLite_ioerr2(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
 	_ = db.Query("SELECT md5sum(a, b) FROM t1")
 }
+// Auto-generated from ioerr3.test
+func TestSQLite_ioerr3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1(id, name) VALUES (1,\n'A1234567890B1234567890C1234567890D1234567890E1234567890F1234567890G1234567890H1234567890I1234567890J1234567890K1234567890L1234567890M1234567890N1234567890O1234567890P1234567890Q1234567890R1234567890'\n      );")
+}
+// Auto-generated from ioerr4.test
+func TestSQLite_ioerr4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DELETE FROM a;\n    PRAGMA freelist_count;")
+	_ = db.Exec("INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) F...")
+	_ = db.Query("PRAGMA auto_vacuum;")
+	_ = db.Query("PRAGMA auto_vacuum=INCREMENTAL")
+	_ = db.Query("PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);")
+	_ = db.Query("PRAGMA freelist_count")
+	_ = db.Query("PRAGMA incremental_vacuum(5)")
+}
+// Auto-generated from ioerr5.test
+func TestSQLite_ioerr5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');")
+	_ = db.Exec("CREATE INDEX i1 ON a(id, name);")
+	_ = db.Exec("CREATE TABLE A(Id INTEGER, Name TEXT)")
+	_ = db.Query("SELECT count(*) FROM a")
+	_ = db.Query("pragma locking_mode=exclusive")
+	_ = db.Query("pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;")
+}
 // Auto-generated from ioerr6.test
 func TestSQLite_ioerr6(t *testing.T) {
 	db := setupDB(t)
@@ -5417,6 +9251,91 @@ func TestSQLite_ioerr6(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(x);\n    CREATE TABLE t2(x);")
 	_ = db.Exec("CREATE TABLE t3(x)")
 	_ = db.Query("PRAGMA integrity_check")
+}
+// Auto-generated from istrue.test
+func TestSQLite_istrue(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));")
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY, y BOOLEAN);\n  INSERT INTO t1 VALUES(1, true),(2, false),(3, null);\n  SELECT x FROM t1 WHERE y IS TRUE;")
+	_ = db.Exec("CREATE TABLE t2(\n     a INTEGER PRIMARY KEY,\n     b BOOLEAN DEFAULT true,\n     c BOOLEAN DEFAULT(true),\n     d BOOLEAN DEFAULT false,\n     e BOOLEAN DEFAULT(false)\n  );\n  INSERT INTO t2 DEFAULT VALUES;\n  SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t7(\n      a INTEGER PRIMARY KEY,\n      b BOOLEAN DEFAULT false,\n      c BOOLEAN DEFAULT true\n    );\n    INSERT INTO t7(a) VALUES(1);\n    INSERT INTO t7(a,b,c) VALUES(2,true,false);\n    ALTER TABLE t7 ADD COLUMN d BOOLEAN DEFAULT false;\n    ALTER TABLE t7 ADD COLUMN e BOOLEAN ...")
+	_ = db.Exec("CREATE TABLE t8(a INT, true INT, false INT, d INT);\n  INSERT INTO t8(a,true,false,d) VALUES(5,6,7,8),(4,3,2,1),('a','b','c','d');\n  SELECT * FROM t8 ORDER BY false;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);")
+	_ = db.Exec("DROP TABLE t2;\n  CREATE TABLE t2(\n     a INTEGER PRIMARY KEY,\n     b BOOLEAN CHECK(b IS TRUE),\n     c BOOLEAN CHECK(c IS FALSE),\n     d BOOLEAN CHECK(d IS NOT TRUE),\n     e BOOLEAN CHECK(e IS NOT FALSE)\n  );\n  INSERT INTO t2 VALUES(1,true,false,null,null);\n  SELECT * FROM t2;")
+	_ = db.Exec("DROP TABLE t2;\n  CREATE TABLE t2(\n     a INTEGER PRIMARY KEY,\n     b BOOLEAN DEFAULT(not true),\n     c BOOLEAN DEFAULT(not false)\n  );\n  INSERT INTO t2(a) VALUES(99);\n  SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO False VALUES(4,5,6);")
+	_ = db.Exec("INSERT INTO False VALUES(5,6,7);")
+	_ = db.Exec("INSERT INTO t2 VALUES(2,false,false,null,null);")
+	_ = db.Exec("INSERT INTO t2 VALUES(2,true,false,null,false);")
+	_ = db.Exec("INSERT INTO t2 VALUES(2,true,false,true,null);")
+	_ = db.Exec("INSERT INTO t2 VALUES(2,true,true,null,null);")
+	_ = db.Query("SELECT 0.5 IS TRUE COLLATE NOCASE;\n  SELECT 0.5 IS TRUE COLLATE RTRIM;\n  SELECT 0.5 IS TRUE COLLATE BINARY;\n\n  SELECT 0.5 IS TRUE;\n  SELECT 0.5 COLLATE NOCASE IS TRUE;\n  SELECT 0.0 IS FALSE;\n\n  SELECT 0.0 IS FALSE COLLATE NOCASE;\n  SELECT 0.0 IS FALSE COLLATE RTRIM;\n  SELECT 0.0 IS FALS...")
+	_ = db.Query("SELECT 5 IN (false.false) FROM false;")
+	_ = db.Query("SELECT 9 IN (false.false) FROM false;")
+	_ = db.Query("SELECT 9 IN (false.false) FROM t8;")
+	_ = db.Query("SELECT 9 IN (false.false);")
+	_ = db.Query("SELECT x FROM t1 WHERE false;")
+	_ = db.Query("SELECT x FROM t1 WHERE true;")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS FALSE OR (8==$X)")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS FALSE;")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NOT FALSE OR (8==$X);")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NOT FALSE;")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NOT NULL OR (8==$X);")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NOT NULL;")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NOT TRUE OR (8==$X);")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NOT TRUE;")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NULL OR (8==$X);")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS NULL;")
+	_ = db.Query("SELECT x FROM t1 WHERE y IS TRUE OR (8==$X)")
+	_ = db.Query("SELECT x IS FALSE FROM t1;")
+	_ = db.Query("SELECT x IS TRUE FROM t1;")
+	_ = db.Query("SELECT x,\n         y IS TRUE, y IS FALSE, y is NULL,\n         y IS NOT TRUE, y IS NOT FALSE, y IS NOT NULL, '|'\n    FROM t1 ORDER BY x;")
+}
+// Auto-generated from join.test
+func TestSQLite_join(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t12(a,b);\n    INSERT INTO t12 VALUES(1,11);\n    INSERT INTO t12 VALUES(2,22);\n    CREATE TABLE t13(b,c);\n    INSERT INTO t13 VALUES(22,222);\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t5(a INTEGER PRIMARY KEY);\n    CREATE TABLE t6(a INTEGER);\n    INSERT INTO t6 VALUES(NULL);\n    INSERT INTO t6 VALUES(NULL);\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * F...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t9(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    CREATE TABLE t10(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    CREATE TABLE t11(p INTEGER PRIMARY KEY, q);\n   ...")
+	_ = db.Exec("BEGIN;\n    create table centros (id integer primary key, centro);\n    INSERT INTO centros VALUES(1,'xxx');\n    create table usuarios (id integer primary key, nombre, apellidos,\n    idcentro integer);\n    INSERT INTO usuarios VALUES(1,'a','aa',1);\n    INSERT INTO usuarios VALUES(2,'b','bb',1...")
+	_ = db.Exec("CREATE INDEX ccc ON cc(c);\n  SELECT * FROM aa LEFT JOIN bb, cc WHERE cc.c=aa.a;")
+	_ = db.Exec("CREATE INDEX t1x ON t1(0) WHERE NULL IN (c1);\n  SELECT * FROM t0 LEFT JOIN t1 WHERE NULL IN (c1);")
+	_ = db.Exec("CREATE TABLE a(value TEXT);\n    INSERT INTO a(value) SELECT value FROM json_each('[\"a\", \"b\", null]');\n    CREATE TABLE b(value TEXT);\n    INSERT INTO b(value) SELECT value FROM json_each('[\"a\", \"c\", null]');\n    SELECT a.value, b.value FROM a RIGHT JOIN b ON a.value = b.value;")
+	_ = db.Exec("CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n\n  INSERT INTO aa VALUES(45);\n  INSERT INTO cc VALUES(45);\n  INSERT INTO cc VALUES(45);")
+	_ = db.Exec("CREATE TABLE t0(a INT); INSERT INTO t0(a) VALUES (1);\n  CREATE TABLE t1(b INT); INSERT INTO t1(b) VALUES (2);\n  CREATE VIEW v2(c) AS SELECT 3 FROM t1;\n  SELECT * FROM t1 JOIN v2 ON 0     FULL OUTER JOIN t0 ON true;")
+	_ = db.Exec("CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  CREATE VIEW v0 AS SELECT a FROM t1 LEFT JOIN t0;\n  INSERT INTO t1 VALUES (1);")
+	_ = db.Exec("CREATE TABLE t0(a, b);\n  CREATE INDEX t0a ON t0(a);\n  INSERT INTO t0 VALUES(10,10),(10,11),(10,12);\n  SELECT DISTINCT c FROM t0 LEFT JOIN (SELECT a+1 AS c FROM t0) ORDER BY c ;")
+	_ = db.Exec("CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0 AS SELECT (NULL AND 5) as c0 FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);\n  SELECT count(*)  FROM v0 LEFT JOIN t0 ON v0.c0;")
+	_ = db.Exec("CREATE TABLE t0(c0);\n    INSERT INTO t0(c0) VALUES(123);\n    CREATE VIEW v0(c0) AS SELECT 0 GROUP BY 1;\n    SELECT t0.c0, v0.c0, vt0.name\n     FROM v0, t0 LEFT JOIN pragma_table_info('t0') AS vt0\n       ON vt0.name LIKE 'c0'\n     WHERE v0.c0 == 0;")
+	_ = db.Exec("CREATE TABLE t0(w INT);\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT UNIQUE);\n  CREATE VIEW v0(z) AS SELECT CAST(x AS INT) FROM t1 LEFT JOIN t2 ON true;\n  INSERT INTO t1(x) VALUES(123);\n  INSERT INTO t2(y) VALUES(NULL);")
+	_ = db.Exec("CREATE TABLE t0(z INT);         INSERT INTO t0 VALUES(1),(2);\n  CREATE TABLE t1(a INT);         INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);         INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT, d INT);  INSERT INTO t3 VALUES(3,4);\n  CREATE TABLE t4(e INT);         INSERT INTO t4 ...")
+	_ = db.Exec("CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(1,2),(3,4);\n  CREATE TABLE t2(x INT, y INT);\n  SELECT *, 'x'\n    FROM t1 LEFT JOIN t2\n   WHERE CASE WHEN FALSE THEN a=x ELSE 1 END;")
+	_ = db.Exec("CREATE TABLE t1(a INT,b INT,c INT);  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  CREATE TABLE t2(d INT,e INT);        INSERT INTO t2 VALUES(NULL,NULL);\n  CREATE INDEX x2 ON t1(c,b);\n  CREATE TABLE t3(x INT);              INSERT INTO t3 VALUES(NULL);")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY, e INT);\n  CREATE VIEW t3(a,b,c,d,e) AS SELECT * FROM t1 LEFT JOIN t2 ON d=c;\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t2 VALUES(1,5);\n  INSERT INTO t4 VALUES(...")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, x);\n  CREATE TABLE t2(b INT);\n  CREATE INDEX t1aa ON t1(a, a);\n\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t2 VALUES(1);")
+	_ = db.Exec("CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1(a) VALUES(0);\n  CREATE VIEW v0(c) AS SELECT t2.b FROM t1 LEFT JOIN t2;")
+	_ = db.Exec("CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  CREATE VIEW v2 AS SELECT a, 1 AS b FROM t1;\n  CREATE TABLE t3(x);\n  INSERT INTO t3 VALUES(2),(4);\n  SELECT *, '|' FROM t3 LEFT JOIN v2 ON a=x WHERE b=1;")
+	_ = db.Exec("CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    INSERT INTO t1 VALUES(3,4,5);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1);\n  CREATE TABLE t2(a2 INTEGER PRIMARY KEY, b2);\n  CREATE TABLE t3(a3 INTEGER PRIMARY KEY, b3);\n  CREATE TABLE t4(a4 INTEGER PRIMARY KEY, b4);\n  INSERT INTO t1 VALUES(1,11),(2,12),(3,13),       (5,15);\n  INSERT INTO t2 VALUES(1,21),       (3,23),(4,...")
+	_ = db.Exec("CREATE TABLE t1(c0 INT , c1 INT); INSERT INTO t1(c0, c1) VALUES(NULL,11);\n  CREATE TABLE t2(c0 INT NOT NULL);\n  CREATE TABLE t2n(c0 INT);\n  CREATE TABLE t3(x INT);           INSERT INTO t3(x) VALUES(3);\n  CREATE TABLE t4(y INT);           INSERT INTO t4(y) VALUES(4);\n  CREATE TABLE t5(c0 INT...")
+	_ = db.Exec("CREATE TABLE t1(c1);\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  SELECT * FROM t0 LEFT JOIN t1 WHERE NULL IN (c1);")
+	_ = db.Exec("CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, c2 INTEGER);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c3 INTEGER);\n  INSERT INTO t1(id) VALUES(456);\n  INSERT INTO t3(id) VALUES(1),(2);\n  SELECT t1.id, x2.id, x3.id\n  FROM t1\n  LEFT JOIN (SELECT * FROM t2)...")
+	_ = db.Exec("CREATE TABLE t14(x);\n  INSERT INTO t14 VALUES('abcdefghij');")
+	_ = db.Exec("CREATE TABLE t2(b,c,d);\n    INSERT INTO t2 VALUES(1,2,3);\n    INSERT INTO t2 VALUES(2,3,4);\n    INSERT INTO t2 VALUES(3,4,5);\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t21(a,b,c);\n      CREATE TABLE t22(p,q);\n      CREATE INDEX i22 ON t22(q);\n      SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n         (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);")
+	_ = db.Exec("CREATE TABLE t23(a, b, c);\n      CREATE TABLE t24(a, b, c);\n      INSERT INTO t23 VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TABLE t3(c,d,e);\n    INSERT INTO t3 VALUES(2,3,4);\n    INSERT INTO t3 VALUES(3,4,5);\n    INSERT INTO t3 VALUES(4,5,6);\n    SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(a,b);\n  CREATE TABLE t5(a,c);\n  CREATE TABLE t6(a,d);\n  SELECT * FROM t5 JOIN ((t4 JOIN (t5 JOIN t6)) t7);")
+	_ = db.Exec("CREATE TABLE t4(d,e,f);\n    INSERT INTO t4 VALUES(2,3,4);\n    INSERT INTO t4 VALUES(3,4,5);\n    INSERT INTO t4 VALUES(4,5,6);\n    SELECT * FROM t4;")
+	_ = db.Exec("CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INT...")
+	_ = db.Exec("CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;")
+	_ = db.Exec("DELETE FROM t1;\n  DELETE FROM t2 WHERE d IS NOT NULL;\n  DELETE FROM t3;\n  SELECT * FROM t2 JOIN (SELECT b FROM t2 LEFT JOIN t1\n                       ON c IN (SELECT x FROM t3)) AS t99 ON b IN (1,2,3);")
+	_ = db.Exec("DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n  INSERT INTO t1 VALUES(4,3,5);\n  INSERT INTO t2 VALUES(1,2);\n  INSERT INTO t3 VALUES(5);\n  SELECT * FROM t2 JOIN (SELECT b FROM t2 LEFT JOIN t1\n                       ON c IN (SELECT x FROM t3)) AS t99 ON b IS NULL;")
 }
 // Auto-generated from join2.test
 func TestSQLite_join2(t *testing.T) {
@@ -5999,6 +9918,51 @@ func TestSQLite_journal3(t *testing.T) {
 	_ = db.Exec("CREATE TABLE tx(y, z)")
 	_ = db.Exec("ROLLBACK")
 }
+// Auto-generated from jrnlmode.test
+func TestSQLite_jrnlmode(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' as aux2;")
+	_ = db.Exec("ATTACH ':memory:' as aux3;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);")
+	_ = db.Exec("ATTACH 'test3.db' AS aux2;\n      PRAGMA aux2.journal_mode=persist;")
+	_ = db.Exec("BEGIN IMMEDIATE")
+	_ = db.Exec("BEGIN IMMEDIATE;\n      INSERT OR IGNORE INTO main.x SELECT * FROM a.x;\n      COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n     ...")
+	_ = db.Exec("BEGIN;\n      UPDATE t1 SET a = randomblob(1000);")
+	_ = db.Exec("BEGIN;\n      UPDATE t2 SET a = randomblob(1000);")
+	_ = db.Exec("BEGIN;\n      UPDATE t3 SET a = randomblob(1000);")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;\n        SELECT * FROM t4;")
+	_ = db.Exec("CREATE TABLE main.t1(a, b, c);\n      CREATE TABLE aux.t2(a, b, c);\n      CREATE TABLE aux2.t3(a, b, c);")
+	_ = db.Exec("CREATE TABLE t1(x)")
+	_ = db.Exec("CREATE TABLE t2(y)")
+	_ = db.Exec("CREATE TABLE t3(z)")
+	_ = db.Exec("CREATE TABLE t4(w)")
+	_ = db.Exec("CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4);")
+	_ = db.Exec("DELETE FROM abc")
+	_ = db.Exec("DETACH aux1;\n      DETACH aux2;\n      DETACH aux3;")
+	_ = db.Exec("INSERT INTO abc VALUES(1, 2, randomblob(2000))")
+	_ = db.Exec("INSERT INTO t1 VALUES(123)")
+	_ = db.Exec("INSERT INTO t2 VALUES(456)")
+	_ = db.Query("PRAGMA aux.journal_size_limit")
+	_ = db.Query("PRAGMA aux.journal_size_limit = 10240")
+	_ = db.Query("PRAGMA aux.journal_size_limit = 999999999999")
+	_ = db.Query("PRAGMA aux1.journal_mode = DELETE;")
+	_ = db.Query("PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);")
+	_ = db.Query("PRAGMA journal_mode = DELETE;\n        BEGIN IMMEDIATE; INSERT INTO t4 VALUES(1,2); COMMIT;")
+	_ = db.Query("PRAGMA journal_mode = MEMORY;\n        BEGIN;\n          INSERT INTO t4 VALUES(3, 4);")
+	_ = db.Query("PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;")
+	_ = db.Query("PRAGMA journal_mode = TRUNCATE;")
+	_ = db.Query("PRAGMA journal_mode = delete;")
+	_ = db.Query("PRAGMA journal_mode = memory;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 1024;\n      PRAGMA user_version = 5;\n      PRAGMA user_version;")
+	_ = db.Query("PRAGMA journal_mode = off")
+	_ = db.Query("PRAGMA journal_mode = off;")
+	_ = db.Query("PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;")
+	_ = db.Query("PRAGMA journal_mode = persist;")
+}
 // Auto-generated from jrnlmode2.test
 func TestSQLite_jrnlmode2(t *testing.T) {
 	db := setupDB(t)
@@ -6320,6 +10284,72 @@ func TestSQLite_keyword1(t *testing.T) {
 	_ = db.Query("SELECT * FROM $kw ORDER BY \\")
 	_ = db.Query("SELECT b FROM t1 INDEXED BY $kw WHERE a=2")
 }
+// Auto-generated from lastinsert.test
+func TestSQLite_lastinsert(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();")
+	_ = db.Exec("INSERT INTO t2 VALUES(123456789012345,0)")
+}
+// Auto-generated from laststmtchanges.test
+func TestSQLite_laststmtchanges(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    DELETE FROM t3;\n    SELECT changes();")
+	_ = db.Exec("CREATE TABLE t3(a, b, c);\n    INSERT INTO t3 VALUES(1, 2, 3);\n    INSERT INTO t3 VALUES(4, 5, 6);")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Exec("ROLLBACK;\n    BEGIN;\n    DELETE FROM t3 WHERE a IS NOT NULL;\n    SELECT changes();")
+	_ = db.Exec("ROLLBACK;\n    CREATE INDEX t3_i1 ON t3(a);\n    BEGIN;\n    DELETE FROM t3;\n    SELECT changes();")
+	_ = db.Query("SELECT total_changes()")
+	_ = db.Query("SELECT total_changes();\n    DELETE FROM t3;\n    SELECT total_changes();")
+	_ = db.Query("select changes()")
+	_ = db.Exec("update t0 set x=3 where x=4")
+}
+// Auto-generated from like.test
+func TestSQLite_like(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i1 ON t1(x);")
+	_ = db.Exec("CREATE INDEX t11bb ON t11(b COLLATE binary);")
+	_ = db.Exec("CREATE INDEX t11cnc ON t11(c COLLATE nocase);\n    CREATE INDEX t11cb ON t11(c COLLATE binary);")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER COLLATE NOCASE);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(' 1x');\n  INSERT INTO t1 VALUES(' 1-');")
+	_ = db.Exec("CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES(1,'abc'),(2,'ABC'),(3,'Abc');\n  CREATE VIEW t2 AS SELECT * FROM t1 WHERE y LIKE 'a%';\n  SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t1(x TEXT);")
+	_ = db.Exec("CREATE TABLE t10(\n        a INTEGER PRIMARY KEY,\n        b INTEGER COLLATE nocase UNIQUE,\n        c NUMBER COLLATE nocase UNIQUE,\n        d BLOB COLLATE nocase UNIQUE,\n        e COLLATE nocase UNIQUE,\n        f TEXT COLLATE nocase UNIQUE\n      );\n      INSERT INTO t10 VALUES(1,1,1,1,1,1);...")
+	_ = db.Exec("CREATE TABLE t10b(\n        a INTEGER PRIMARY KEY,\n        b INTEGER UNIQUE,\n        c NUMBER UNIQUE,\n        d BLOB UNIQUE,\n        e UNIQUE,\n        f TEXT UNIQUE\n      );\n      INSERT INTO t10b SELECT * FROM t10;")
+	_ = db.Exec("CREATE TABLE t11(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE nocase,\n      c TEXT COLLATE binary\n    );\n    INSERT INTO t11 VALUES(1, 'a','a');\n    INSERT INTO t11 VALUES(2, 'ab','ab');\n    INSERT INTO t11 VALUES(3, 'abc','abc');\n    INSERT INTO t11 VALUES(4, 'abcd','abcd');\n    I...")
+	_ = db.Exec("CREATE TABLE t12nc(id INTEGER, x TEXT UNIQUE COLLATE nocase);\n  INSERT INTO t12nc VALUES(1,'abcde'),(2,'uvwxy'),(3,'ABCDEF');\n  CREATE TABLE t12b(id INTEGER, x TEXT UNIQUE COLLATE binary);\n  INSERT INTO t12b VALUES(1,'abcde'),(2,'uvwxy'),(3,'ABCDEF');\n  SELECT id FROM t12nc WHERE x LIKE 'abc%...")
+	_ = db.Exec("CREATE TABLE t15(x TEXT COLLATE nocase, y, PRIMARY KEY(x));\n  INSERT INTO t15(x,y) VALUES\n    ('abcde',1), ('ab%de',2), ('a_cde',3),\n    ('uvwxy',11),('uvwx%',12),('uvwx_',13),\n    ('_bcde',21),('%bcde',22),\n    ('abcd_',31),('abcd%',32),\n    ('ab%xy',41);\n  SELECT y FROM t15 WHERE x LIKE ...")
+	_ = db.Exec("CREATE TABLE t2(x TEXT COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1 ORDER BY rowid;\n    CREATE INDEX i2 ON t2(x COLLATE NOCASE);")
+	_ = db.Exec("CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('abcdef');\n    INSERT INTO t8 VALUES('ghijkl');\n    INSERT INTO t8 VALUES('mnopqr');\n    SELECT 1, x FROM t8 WHERE x LIKE '%h%';\n    SELECT 2, x FROM t8 WHERE x LIKE '%h%' ESCAPE 'x';")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x TEXT);\n  INSERT INTO t1 VALUES\n    (1,'abcde'),\n    (2,'abc_'),\n    (3,'abc__'),\n    (4,'abc%'),\n    (5,'abc%%');\n  SELECT id FROM t1 WHERE x LIKE 'abc%%' ESCAPE '%';")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT id FROM t12b WHERE x LIKE 'abc%' COLLATE binary ORDER BY +id;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT id FROM t12b WHERE x LIKE 'abc%' COLLATE nocase ORDER BY +id;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT id FROM t12b WHERE x LIKE 'abc%' ORDER BY +id;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT id FROM t12nc WHERE x LIKE 'abc%' COLLATE binary ORDER BY +id;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT id FROM t12nc WHERE x LIKE 'abc%' COLLATE nocase ORDER BY +id;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT id FROM t12nc WHERE x LIKE 'abc%' ORDER BY +id;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE '/%bc%' ESCAPE '/';")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '';")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '/';")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'ab/%d%' ESCAPE '//';")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT y FROM t15 WHERE x LIKE 'abx%%' ESCAPE 'x' ORDER BY +y")
+	_ = db.Exec("INSERT INTO t1 VALUES(:str)")
+	_ = db.Exec("INSERT INTO t2 VALUES($x2)")
+	_ = db.Query("PRAGMA case_sensitive_like;  -- No argument, does not change setting.\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;")
+	_ = db.Query("PRAGMA case_sensitive_like; -- no argument; does not change setting\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;")
+	_ = db.Query("PRAGMA case_sensitive_like=OFF;")
+	_ = db.Query("PRAGMA case_sensitive_like=OFF;\n    CREATE INDEX t11b ON t11(b);")
+	_ = db.Query("PRAGMA case_sensitive_like=OFF;\n    DROP INDEX t11b;\n    CREATE INDEX t11bnc ON t11(b COLLATE nocase);")
+	_ = db.Query("PRAGMA case_sensitive_like=OFF;\n  SELECT * FROM t2;")
+	_ = db.Query("PRAGMA case_sensitive_like=ON;")
+	_ = db.Query("PRAGMA case_sensitive_like=ON;\n  SELECT * FROM t2;")
+	_ = db.Query("PRAGMA case_sensitive_like=off")
+	_ = db.Query("PRAGMA case_sensitive_like=off;")
+	_ = db.Query("PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');")
+	_ = db.Query("PRAGMA case_sensitive_like=off;\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;")
+	_ = db.Query("PRAGMA case_sensitive_like=on")
+}
 // Auto-generated from like2.test
 func TestSQLite_like2(t *testing.T) {
 	db := setupDB(t)
@@ -6503,6 +10533,56 @@ func TestSQLite_literal2(t *testing.T) {
 	_ = db.Query("SELECT 123_456")
 	_ = db.Query("SELECT 123__456")
 }
+// Auto-generated from loadext.test
+func TestSQLite_loadext(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT sqlite3_status('MEMORY_USED') AS mused")
+}
+// Auto-generated from lock.test
+func TestSQLite_lock(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN TRANSACTION")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n    COMMIT;")
+	_ = db.Exec("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
+	_ = db.Exec("CREATE TABLE t1(a int, b int)")
+	_ = db.Exec("CREATE TABLE t2(x int, y int)")
+	_ = db.Exec("CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');")
+	_ = db.Exec("CREATE TEMP TABLE t3(x);\n      SELECT * FROM t3;")
+	_ = db.Exec("DELETE FROM t4")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,2)")
+	_ = db.Exec("INSERT INTO t2 VALUES(8,9)")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA journal_mode = truncate;\n    BEGIN;\n    UPDATE t4 SET a = 10 WHERE 0;\n    COMMIT;")
+	_ = db.Query("PRAGMA lock_status")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t2")
+	_ = db.Query("SELECT * FROM t3;")
+	_ = db.Query("SELECT * FROM t4")
+	_ = db.Query("SELECT a FROM t1")
+	_ = db.Query("SELECT a FROM t4 ORDER BY a")
+	_ = db.Query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+	_ = db.Exec("UPDATE t1 SET a = 0 WHERE 0")
+	_ = db.Exec("UPDATE t1 SET a=0 WHERE 0")
+	_ = db.Exec("UPDATE t1 SET a=b, b=a")
+	_ = db.Exec("UPDATE t2 SET x=y, y=x")
+}
+// Auto-generated from lock2.test
+func TestSQLite_lock2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      SELECT * FROM sqlite_master;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE abc(a, b, c);")
+	_ = db.Exec("CREATE TABLE def(d, e, f)")
+	_ = db.Query("SELECT * FROM sqlite_master;")
+	_ = db.Query("SELECT * FROM sqlite_master;\n      COMMIT;")
+	_ = db.Query("pragma lock_status")
+	_ = db.Query("select * from sqlite_master")
+}
 // Auto-generated from lock3.test
 func TestSQLite_lock3(t *testing.T) {
 	db := setupDB(t)
@@ -6515,6 +10595,46 @@ func TestSQLite_lock3(t *testing.T) {
 	_ = db.Exec("INSERT INTO t1 VALUES(2)")
 	_ = db.Query("SELECT * FROM t1")
 }
+// Auto-generated from lock4.test
+func TestSQLite_lock4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;\n     INSERT INTO t1 VALUES(1);")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("INSERT INTO t1 VALUES(2);")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t1(x);")
+}
+// Auto-generated from lock5.test
+func TestSQLite_lock5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE")
+	_ = db.Exec("BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;")
+	_ = db.Query("PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;")
+	_ = db.Query("PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA mmap_size = 0")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t1;\n    ROLLBACK;")
+}
+// Auto-generated from lock6.test
+func TestSQLite_lock6(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        SELECT * FROM sqlite_master;")
+	_ = db.Query("PRAGMA lock_proxy_file;")
+	_ = db.Query("PRAGMA lock_proxy_file=\":auto:\";\n        select * from sqlite_master;\n        PRAGMA lock_proxy_file;")
+	_ = db.Query("PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;")
+	_ = db.Query("PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;")
+	_ = db.Query("pragma lock_status")
+	_ = db.Query("select * from sqlite_master")
+}
 // Auto-generated from lock7.test
 func TestSQLite_lock7(t *testing.T) {
 	db := setupDB(t)
@@ -6522,6 +10642,14 @@ func TestSQLite_lock7(t *testing.T) {
 	_ = db.Exec("COMMIT")
 	_ = db.Exec("CREATE TABLE t1(a, b)")
 	_ = db.Query("PRAGMA lock_status")
+}
+// Auto-generated from lookaside.test
+func TestSQLite_lookaside(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(w,x,y,z);")
+	_ = db.Exec("CREATE TABLE t2(x);")
+	_ = db.Query("SELECT 1")
 }
 // Auto-generated from main.test
 func TestSQLite_main(t *testing.T) {
@@ -6534,11 +10662,130 @@ func TestSQLite_main(t *testing.T) {
 	_ = db.Exec("create table T1(X REAL);  /* C-style comments allowed */\n    insert into T1 values(0.5);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5e-002);\n    insert into T1 values(5e-002);\n    insert into T1 values(-5.0e-2);\n    insert into T1 values(-5.1e-2);\n    insert into T1 valu...")
 	_ = db.Query("select \\$hi\\u1234x")
 }
+// Auto-generated from malloc.test
+func TestSQLite_malloc(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' as aux;")
+	_ = db.Exec("BEGIN;\n      DELETE FROM t1;\n    ROLLBACK;")
+	_ = db.Exec("CREATE TABLE abc(a PRIMARY KEY, b)")
+	_ = db.Exec("CREATE TABLE abc(a, b)")
+	_ = db.Exec("CREATE TABLE abc(a, b, c)")
+	_ = db.Exec("CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('fghij');\n  INSERT INTO t1 VALUES('pqrst');\n  INSERT INTO t1 VALUES('abcde');\n  INSERT INTO t1 VALUES('uvwxy');\n  INSERT INTO t1 VALUES('klmno');")
+	_ = db.Exec("CREATE TABLE t1(a, b COLLATE string_compare);\n      INSERT INTO t1 VALUES(10, 'string');\n      INSERT INTO t1 VALUES(10, 'string2');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW a002 AS SELECT *, sum(b) AS m FROM t2 GROUP BY a;")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(randstr(500,500));\n    INSERT INTO t1 VALUES(randstr(500,500));\n    INSERT INTO t1 VALUES(randstr(500,500));")
+	_ = db.Exec("CREATE TABLE t1(x);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || $::big);\n  INSERT INTO t1 VALUES('pqrst' || $::big);\n  INSERT INTO t1 VALUES('abcde' || $::big);\n  INSERT INTO t1 VALUES('uvwxy' || $::big);\n  INSERT INTO t1 VALUES('klmno' || $::big);\n  CREA...")
+	_ = db.Exec("INSERT INTO abc VALUES(randstr(100,100), randstr(1000,1000))")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, randomblob(210))")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4)")
+	_ = db.Query("PRAGMA cache_size = 10")
+	_ = db.Query("PRAGMA cache_size = 10;\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      CREATE TABLE abc(a, b, c);\n      CREATE INDEX abc_i ON abc(a, b, c);\n      INSERT INTO abc \n        VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n      INSERT INTO abc \n        SELECT randstr...")
+	_ = db.Query("PRAGMA encoding = \"UTF16be\";\n    CREATE TABLE abc(a, b, c);")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA locking_mode")
+	_ = db.Query("PRAGMA locking_mode = normal;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    COMMIT;\n    PRAGMA locking_mode = exclusive;")
+	_ = db.Query("PRAGMA locking_mode = normal;\n    UPDATE t1 SET a = a + 3;")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Query("SELECT * FROM abc LIMIT 10")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM sqlite_master;")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1 ORDER BY 1 COLLATE utf16bin;")
+	_ = db.Query("SELECT * FROM t1 WHERE a = ('abcde' || $::big)")
+	_ = db.Query("SELECT * FROM t1; \n      SELECT * FROM t2;")
+	_ = db.Query("SELECT [string repeat longcolumnname 10] FROM sqlite_master")
+	_ = db.Query("SELECT a FROM abc ORDER BY a")
+	_ = db.Query("SELECT t1.z, a002.m\n    FROM t1 JOIN a002 ON t1.y=a002.m\n    WHERE t1.x IN (1,2,3);")
+	_ = db.Exec("UPDATE abc SET a = 0 WHERE oid%2")
+	_ = db.Exec("UPDATE abc SET b = b - 1 WHERE a = $a")
+	_ = db.Exec("UPDATE t1 SET a = a + 3")
+}
+// Auto-generated from malloc3.test
+func TestSQLite_malloc3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA cache_size = 10")
+	_ = db.Query("SELECT * FROM abc")
+	_ = db.Query("SELECT * FROM abc ORDER BY a DESC;")
+	_ = db.Query("SELECT * FROM def, ghi WHERE d = g;")
+	_ = db.Query("SELECT * FROM ghi")
+	_ = db.Query("SELECT * FROM tbl2, def WHERE d = x;")
+	_ = db.Query("SELECT * FROM v1 WHERE d = g;")
+	_ = db.Query("SELECT a, b, c FROM abc")
+	_ = db.Query("SELECT a, count(*) FROM abc GROUP BY a;")
+	_ = db.Query("SELECT count(*) FROM abc")
+	_ = db.Query("SELECT min(\n          (oid == a) AND 'String value ' || a == b AND a == length(c) \n      ) FROM abc;")
+	_ = db.Query("SELECT name, tbl_name FROM sqlite_master ORDER BY name;\n      SELECT * FROM abc;")
+	_ = db.Query("SELECT name, tbl_name FROM sqlite_master;")
+	_ = db.Query("SELECT tbl_name FROM sqlite_master;")
+}
+// Auto-generated from malloc4.test
+func TestSQLite_malloc4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE tbl(\n    the_first_reasonably_long_column_name that_also_has_quite_a_lengthy_type\n  );\n  INSERT INTO tbl VALUES(\n    'An extra long string. Far too long to be stored in NBFS bytes.'\n  );")
+}
+// Auto-generated from malloc5.test
+func TestSQLite_malloc5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES('abcdefghi', 1234567890, NULL);\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE def(d, e, f);\n    SELECT * FROM abc;")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM abc;")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM def;")
+	_ = db.Exec("BEGIN;\n    UPDATE abc SET c = randstr(100,100) \n    WHERE rowid = 1 OR rowid = (SELECT max(rowid) FROM abc);")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("COMMIT;\n    BEGIN;\n    SELECT * FROM abc;")
+	_ = db.Exec("COMMIT;\n    PRAGMA temp_store = memory;\n    SELECT * FROM abc ORDER BY a;")
+	_ = db.Exec("DELETE FROM abc;")
+	_ = db.Exec("INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO def VALUES(10,11,12);")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);")
+	_ = db.Query("PRAGMA cache_size")
+	_ = db.Query("PRAGMA cache_size=1")
+	_ = db.Query("PRAGMA cache_size=2000")
+	_ = db.Query("PRAGMA cache_size=2; SELECT * FROM sqlite_master")
+	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA default_cache_size=2;")
+	_ = db.Query("PRAGMA temp_store = memory;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randstr(50,50), randstr(75,75), randstr(100,100));\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT...")
+	_ = db.Query("SELECT * FROM abc")
+	_ = db.Query("SELECT * FROM abc; COMMIT")
+	_ = db.Query("SELECT * FROM def; COMMIT")
+	_ = db.Query("SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;")
+	_ = db.Query("SELECT count(*), sum(a), sum(b) FROM abc;")
+}
+// Auto-generated from mallocA.test
+func TestSQLite_mallocA(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a COLLATE NOCASE,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(1,2,4);\n  INSERT INTO t1 VALUES(2,3,4);\n  CREATE INDEX t1i1 ON t1(a);\n  CREATE INDEX t1i2 ON t1(b,c);\n  CREATE TABLE t2(x,y,z);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- row...")
+	_ = db.Query("PRAGMA cache_size = 5;")
+	_ = db.Query("SELECT rowid FROM t1 WHERE a='abc' AND b<'y'")
+	_ = db.Query("SELECT rowid FROM t1 WHERE a='abc' AND b='x'")
+	_ = db.Exec("WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 1000\n    )\n    SELECT count(x), length(y) FROM r GROUP BY (x%5)")
+}
+// Auto-generated from mallocC.test
+func TestSQLite_mallocC(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);")
+	_ = db.Exec("ROLLBACK;")
+}
 // Auto-generated from mallocH.test
 func TestSQLite_mallocH(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(x UNIQUE, y);\n    INSERT INTO t1 VALUES(1,2);")
+}
+// Auto-generated from mallocI.test
+func TestSQLite_mallocI(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("Select CAST(1 AS blob)")
 }
 // Auto-generated from mallocK.test
 func TestSQLite_mallocK(t *testing.T) {
@@ -6551,6 +10798,18 @@ func TestSQLite_mallocK(t *testing.T) {
 	_ = db.Query("SELECT * FROM x1 WHERE a = (SELECT 1)")
 	_ = db.Query("SELECT * FROM x2 WHERE x = str('19') AND y = str('4')")
 	_ = db.Query("SELECT DISTINCT c FROM t3 WHERE b BETWEEN '.xx..' AND '.xxxx'")
+}
+// Auto-generated from mallocM.test
+func TestSQLite_mallocM(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);")
+	_ = db.Query("SELECT 'abc' FROM ( SELECT 'xyz' FROM t1 WHERE (SELECT 1) )")
+	_ = db.Query("SELECT instr (x'00', zeroblob(1))")
+	_ = db.Query("SELECT instr (zeroblob(1), x'00')")
+	_ = db.Query("SELECT instr(x'', x'')")
+	_ = db.Query("SELECT instr(x'', x'1234')")
+	_ = db.Query("SELECT instr(x'12345678', x'')")
 }
 // Auto-generated from manydb.test
 func TestSQLite_manydb(t *testing.T) {
@@ -6602,6 +10861,32 @@ func TestSQLite_memdb(t *testing.T) {
 	_ = db.Query("SELECT x FROM t2")
 	_ = db.Query("SELECT x FROM t3")
 }
+// Auto-generated from memdb1.test
+func TestSQLite_memdb1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' AS aux1")
+	_ = db.Exec("CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    PRAGMA schema_version = 0;")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);")
+	_ = db.Exec("CREATE TABLE t2(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t2(x, y) SELECT x, randomblob(1000) FROM c;\n  DROP TABLE t2;\n  PRAGMA page_count;")
+	_ = db.Exec("CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;")
+	_ = db.Exec("CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES('hello','world!');\n  PRAGMA integrity_check;\n  SELECT * FROM t4;")
+	_ = db.Exec("CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3,4); SELECT * FROM t1")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);")
+	_ = db.Query("PRAGMA auto_vacuum = off;\n  VACUUM;")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA journal_mode=TRUNCATE;\n  PRAGMA journal_mode=OFF;\n  PRAGMA journal_mode=DELETE;\n  PRAGMA journal_mode=WAL;\n  PRAGMA journal_mode=PERSIST;\n  PRAGMA journal_mode=MEMORY;\n  PRAGMA journal_mode=OFF;\n  PRAGMA journal_mode=DELETE;")
+	_ = db.Query("PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1")
+	_ = db.Query("PRAGMA wal_checkpoint;")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT x FROM t")
+	_ = db.Query("SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;")
+	_ = db.Exec("VACUUM;\n  PRAGMA page_count;")
+}
 // Auto-generated from memdb2.test
 func TestSQLite_memdb2(t *testing.T) {
 	db := setupDB(t)
@@ -6631,6 +10916,27 @@ func TestSQLite_memjournal2(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);")
 	_ = db.Exec("SAVEPOINT one; \n      UPDATE t1 SET b=randomblob(700) WHERE a<=$jj;")
 	_ = db.Exec("SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;")
+}
+// Auto-generated from memsubsys1.test
+func TestSQLite_memsubsys1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);")
+	_ = db.Exec("DELETE FROM t2")
+	_ = db.Exec("INSERT INTO t1 SELECT a+$i, a+b*100 FROM t2")
+	_ = db.Exec("INSERT INTO t2 SELECT * FROM t1")
+	_ = db.Query("PRAGMA page_size")
+	_ = db.Query("SELECT count(*) FROM t1")
+}
+// Auto-generated from memsubsys2.test
+func TestSQLite_memsubsys2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x, y);\n    CREATE TABLE t2(a, b);\n    CREATE INDEX i1 ON t1(x,y);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 200);")
+	_ = db.Exec("DELETE FROM t2")
+	_ = db.Exec("INSERT INTO t1 SELECT a+$i, a+b*100 FROM t2")
+	_ = db.Exec("INSERT INTO t2 SELECT * FROM t1")
+	_ = db.Query("SELECT count(*) FROM t1")
 }
 // Auto-generated from merge1.test
 func TestSQLite_merge1(t *testing.T) {
@@ -6682,6 +10988,51 @@ func TestSQLite_minmax(t *testing.T) {
 	_ = db.Query("SELECT max(b) FROM t7 WHERE a=5;")
 	_ = db.Query("SELECT max(c) FROM t7 WHERE a=4 AND b=10;")
 	_ = db.Query("SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5")
+}
+// Auto-generated from minmax2.test
+func TestSQLite_minmax2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4)...")
+	_ = db.Exec("CREATE INDEX i6 ON t6(x DESC);\n    SELECT coalesce(min(x),-1) FROM t6;")
+	_ = db.Exec("CREATE INDEX t1i1 ON t1(x DESC)")
+	_ = db.Exec("CREATE TABLE t11(a,b,c);\n  INSERT INTO t11(a,b,c) VALUES(1,10,5),(2,8,11),(3,1,4),(4,20,1),(5,16,4);\n  CREATE INDEX t11bc ON t11(b+c);\n  SELECT max(b+c) FROM t11;")
+	_ = db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t3(x INTEGER UNIQUE NOT NULL);\n    SELECT coalesce(min(x),999) FROM t3;")
+	_ = db.Exec("CREATE TABLE t4(a TEXT);\n    INSERT INTO t4 VALUES('1234');\n    INSERT INTO t4 VALUES('234');\n    INSERT INTO t4 VALUES('34');\n    SELECT min(a), max(a) FROM t4;")
+	_ = db.Exec("CREATE TABLE t5(a INTEGER);\n    INSERT INTO t5 VALUES('1234');\n    INSERT INTO t5 VALUES('234');\n    INSERT INTO t5 VALUES('34');\n    SELECT min(a), max(a) FROM t5;")
+	_ = db.Exec("CREATE TABLE t6(x);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 VALUES(NULL);\n    SELECT coalesce(min(x),-1) FROM t6;")
+	_ = db.Exec("DELETE FROM t6 WHERE x NOT NULL;\n    SELECT count(*) FROM t6;")
+	_ = db.Exec("INSERT INTO t11(a,b,c) VALUES(6,NULL,0),(7,0,NULL);\n  SELECT a, min(b+c) FROM t11;")
+	_ = db.Exec("INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)")
+	_ = db.Exec("INSERT INTO t2 VALUES(max_a_t2()+1,999)")
+	_ = db.Exec("INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6...")
+	_ = db.Query("SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);")
+	_ = db.Query("SELECT * FROM (SELECT max(x) FROM t1);")
+	_ = db.Query("SELECT * FROM (SELECT min(x) FROM t1);")
+	_ = db.Query("SELECT a, max(b+c) FROM t11;")
+	_ = db.Query("SELECT a, min(b+c) FROM t11;")
+	_ = db.Query("SELECT b FROM t2 WHERE a=(SELECT max(a) FROM t2)")
+	_ = db.Query("SELECT b FROM t2 WHERE a=max_a_t2()")
+	_ = db.Query("SELECT coalesce(max(rowid),999) FROM t3 WHERE rowid<25;")
+	_ = db.Query("SELECT coalesce(max(rowid),999) FROM t3;")
+	_ = db.Query("SELECT coalesce(max(x),999) FROM t3;")
+	_ = db.Query("SELECT coalesce(min(rowid),999) FROM t3;")
+	_ = db.Query("SELECT coalesce(min(x+0),-1), coalesce(max(x+0),-1) FROM\n        (SELECT * FROM t1 UNION SELECT NULL as 'x', NULL as 'y')")
+	_ = db.Query("SELECT count(x) FROM t6;")
+	_ = db.Query("SELECT max(a) FROM t2")
+	_ = db.Query("SELECT max(a) FROM t2 LIMIT 0")
+	_ = db.Query("SELECT max(a) FROM t2 LIMIT 1,100")
+	_ = db.Query("SELECT max(a) FROM t2 LIMIT 3")
+	_ = db.Query("SELECT max(b+c) FROM t11")
+	_ = db.Query("SELECT max(c+b) FROM t11")
+	_ = db.Query("SELECT max(rowid) FROM t4 UNION SELECT max(rowid) FROM t5")
+	_ = db.Query("SELECT max(x) FROM t1")
+	_ = db.Query("SELECT max(x) FROM t1;")
+	_ = db.Query("SELECT max(x) FROM t3 LIMIT 0")
+	_ = db.Query("SELECT max(x) FROM t6;")
+	_ = db.Query("SELECT max(y) FROM t1")
+	_ = db.Query("SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 EXCEPT SELECT max(rowid) FROM t5\n      )")
 }
 // Auto-generated from minmax3.test
 func TestSQLite_minmax3(t *testing.T) {
@@ -6752,6 +11103,51 @@ func TestSQLite_minmax4(t *testing.T) {
 	_ = db.Query("SELECT p, min(q) FROM t1;")
 	_ = db.Query("SELECT p, min(q) FROM t1;\n    SELECT p FROM (SELECT p, min(q) FROM t1);")
 	_ = db.Query("SELECT v0.c0, MIN(v0.c1) FROM v0;")
+}
+// Auto-generated from misc1.test
+func TestSQLite_misc1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE agger(one text, two text, three text, four text);\n    INSERT INTO agger VALUES(1, 'one', 'hello', 'yes');\n    INSERT INTO agger VALUES(2, 'two', 'howdy', 'no');\n    INSERT INTO agger VALUES(3, 'thr', 'howareya', 'yes');\n    INSERT INTO agger VALUES(4, 'two...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE RealTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TABLE TempTable(TestID INTEGER PRIMARY KEY, TestString TEXT);\n    CREATE TEMP TRIGGER trigTest_1 AFTER UPDATE ON TempTable BEGIN\n      INSERT INTO RealTable(TestString) \n         SELECT new.TestSt...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSE...")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE INDEX manycol_idx1 ON manycol(x99)")
+	_ = db.Exec("CREATE TABLE dup1(a,b,c);\n  INSERT INTO dup1(a,b,c,a,b,c) VALUES(1,2,3,4,5,6);\n  SELECT a,b,c FROM dup1;")
+	_ = db.Exec("CREATE TABLE t0(x INTEGER DEFAULT(0==0) NOT NULL);\n  REPLACE INTO t0(x) VALUES('');\n  SELECT rowid, quote(x) FROM t0;")
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;")
+	_ = db.Exec("CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE UNIQUE INDEX t1x ON t1(x) WHERE x=1;\n  INSERT OR ABORT INTO t1 DEFAULT VALUES;\n  UPDATE OR REPLACE t1 SET x = 1;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;")
+	_ = db.Exec("CREATE TABLE t19 AS SELECT 1, 2 AS '', 3;\n  SELECT * FROM t19;")
+	_ = db.Exec("CREATE TABLE t19b AS SELECT 4 AS '', 5 AS '',  6 AS '';\n  SELECT * FROM t19b;")
+	_ = db.Exec("CREATE TABLE t19c(x TEXT);\n  CREATE TABLE t19d AS SELECT * FROM t19c UNION ALL SELECT 1234;\n  SELECT x, typeof(x) FROM t19d;")
+	_ = db.Exec("CREATE TABLE t5(a,b,c,PRIMARY KEY(a,b));\n    INSERT INTO t5 VALUES(1,2,3);\n    SELECT * FROM t5 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t6(a INT UNIQUE, b TEXT UNIQUE);\n    INSERT INTO t6 VALUES('0','0.0');\n    SELECT * FROM t6;")
+	_ = db.Exec("CREATE TABLE t7(x INTEGER, y TEXT, z);\n    INSERT INTO t7 VALUES(0,0,1);\n    INSERT INTO t7 VALUES(0.0,0,2);\n    INSERT INTO t7 VALUES(0,0.0,3);\n    INSERT INTO t7 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t7 ORDER BY z;")
+	_ = db.Exec("CREATE TABLE t8(x TEXT COLLATE numeric, y INTEGER COLLATE text, z);\n    INSERT INTO t8 VALUES(0,0,1);\n    INSERT INTO t8 VALUES(0.0,0,2);\n    INSERT INTO t8 VALUES(0,0.0,3);\n    INSERT INTO t8 VALUES(0.0,0.0,4);\n    SELECT DISTINCT x, y FROM t8 ORDER BY z;")
+	_ = db.Exec("CREATE TABLE t9(x,y);\n       INSERT INTO t9 VALUES('one',1);\n       INSERT INTO t9 VALUES('two',2);\n       INSERT INTO t9 VALUES('three',3);\n       INSERT INTO t9 VALUES('four',4);\n       INSERT INTO t9 VALUES('five',5);\n       INSERT INTO t9 VALUES('six',6);\n       INSERT INTO t9 VALUES('...")
+	_ = db.Exec("DELETE FROM manycol WHERE x98=1234")
+	_ = db.Exec("DELETE FROM manycol WHERE x98=998")
+	_ = db.Exec("DELETE FROM manycol WHERE x99=500")
+	_ = db.Exec("DELETE FROM manycol WHERE x99=599")
+	_ = db.Exec("DROP TABLE IF EXISTS abc;\n  CREATE TABLE abc(a, b, c);\n  SELECT randomblob(min(max(coalesce(EXISTS (SELECT 1 FROM ( SELECT (SELECT 2147483647) NOT IN (SELECT 2147483649 UNION ALL SELECT DISTINCT -1) IN (SELECT 2147483649), 'fault', (SELECT ALL -1 INTERSECT SELECT 'experiments') IN (SELECT ALL 5...")
+	_ = db.Exec("DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  DROP TABLE t4;")
+	_ = db.Exec("INSERT INTO test VALUES(1);\n    SELECT rowid, a FROM test;")
+	_ = db.Exec("INSERT INTO test VALUES(5);\n    SELECT rowid, a FROM test;")
+	_ = db.Exec("INSERT INTO test VALUES(NULL);\n    SELECT rowid, a FROM test;")
+	_ = db.Exec("INSERT OR IGNORE INTO t6 VALUES('y',0);\n      SELECT * FROM t6;")
+	_ = db.Exec("INSERT OR IGNORE INTO t6 VALUES(0.0,'x');\n      SELECT * FROM t6;")
+	_ = db.Query("SELECT ''+3 FROM (SELECT ''+5);")
+	_ = db.Query("SELECT '0'=='0.0'")
+	_ = db.Query("SELECT '0'==0.0")
+	_ = db.Query("SELECT '12345678901234567890'=='12345678901234567891'")
+	_ = db.Query("SELECT * FROM t3 ORDER BY a;")
+	_ = db.Query("SELECT * FROM t4")
+	_ = db.Query("SELECT * FROM t5 ORDER BY a;")
+	_ = db.Query("SELECT abort+asc,max(key,pragma,temp) FROM t4")
 }
 // Auto-generated from misc2.test
 func TestSQLite_misc2(t *testing.T) {
@@ -6835,6 +11231,74 @@ func TestSQLite_misc3(t *testing.T) {
 	_ = db.Query("SELECT count(CASE WHEN b IN ('abc','xyz') THEN 'x' END) FROM t3")
 	_ = db.Query("SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3 ORDER BY a+1);")
 }
+// Auto-generated from misc4.test
+func TestSQLite_misc4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;")
+	_ = db.Exec("CREATE TABLE Table1(ID integer primary key, Value TEXT);\n    INSERT INTO Table1 VALUES(1, 'x');\n    CREATE TABLE Table2(ID integer NOT NULL, Value TEXT);\n    INSERT INTO Table2 VALUES(1, 'z');\n    INSERT INTO Table2 VALUES (1, 'a');")
+	_ = db.Exec("CREATE TABLE ab(a TEXT, b TEXT);\n      INSERT INTO ab VALUES('01', '1');")
+	_ = db.Exec("CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(1);\n    CREATE TABLE def(d, e, f, PRIMARY KEY(d, e));")
+	_ = db.Exec("CREATE TABLE t0(a,b);\n  INSERT INTO t0 VALUES(1,0),(2,0);\n  UPDATE t0 SET b=9 WHERE a AND (SELECT a FROM t0 WHERE a);\n  SELECT * FROM t0 ORDER BY +a;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);")
+	_ = db.Exec("CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;")
+	_ = db.Exec("DROP TABLE t2")
+	_ = db.Query("SELECT * FROM temp.t2;")
+	_ = db.Query("SELECT ID, Value FROM Table1\n         UNION SELECT ID, max(Value) FROM Table2 GROUP BY 1\n      ORDER BY 1, 2;")
+	_ = db.Query("SELECT a FROM abc LEFT JOIN def ON (abc.a=def.d);")
+	_ = db.Exec("create table a(key varchar, data varchar);\n      create table b(key varchar, period integer);\n      insert into a values('01','data01');\n      insert into a values('+1','data+1');\n      \n      insert into b values ('01',1);\n      insert into b values ('01',2);\n      insert into b values ('...")
+	_ = db.Exec("create table t4(a,b);\n      create table t5(a,c);\n      insert into t4 values (1,2);\n      insert into t5 values (1,3);\n      create view myview as select t4.a a from t4 inner join t5 on t4.a=t5.a;\n      create table problem as select * from myview;")
+	_ = db.Query("select * from ab, (select b from ab) as x where x.b = ab.a;")
+}
+// Auto-generated from misc5.test
+func TestSQLite_misc5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      create table t2(x unique);\n      create table t2_temp(x);\n      insert into t2_temp values(1);\n      insert into t2_temp select x*2 from t2_temp;\n      insert into t2_temp select x*4 from t2_temp;\n      insert into t2_temp select x*16 from t2_temp;\n      insert into t2_temp se...")
+	_ = db.Exec("CREATE TABLE logs(msg TEXT, timestamp INTEGER, dbtime TEXT);")
+	_ = db.Exec("CREATE TABLE songs(songid, artist, timesplayed);\n      INSERT INTO songs VALUES(1,'one',1);\n      INSERT INTO songs VALUES(2,'one',2);\n      INSERT INTO songs VALUES(3,'two',3);\n      INSERT INTO songs VALUES(4,'three',5);\n      INSERT INTO songs VALUES(5,'one',7);\n      INSERT INTO songs V...")
+	_ = db.Exec("CREATE TABLE t1(x)")
+	_ = db.Exec("CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(-18);\n    INSERT INTO t3 VALUES(-17);\n    INSERT INTO t3 VALUES(-16);\n    INSERT INTO t3 VALUES(-15);\n    INSERT INTO t3 VALUES(-14);\n    INSERT INTO t3 VALUES(-13);\n    INSERT INTO t3 VALUES(-12);\n    INSERT INTO t3 VALUES(-11);\n    INSERT I...")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Query("SELECT .1")
+	_ = db.Query("SELECT .4e+1")
+	_ = db.Query("SELECT 2.")
+	_ = db.Query("SELECT 3.e0")
+	_ = db.Query("SELECT name, type FROM sqlite_master WHERE name IS NULL\n      UNION\n      SELECT type, name FROM sqlite_master WHERE type IS NULL\n      ORDER BY 1, 2, 1, 2, 1, 2")
+	_ = db.Query("SELECT name, type FROM sqlite_master WHERE name IS NULL\n      UNION\n      SELECT type, name FROM sqlite_master WHERE type IS NULL\n      ORDER BY 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2")
+	_ = db.Exec("create table t2(x unique);\n      insert into t2 values(1);\n      insert or ignore into t2 select x*2 from t2;\n      insert or ignore into t2 select x*4 from t2;\n      insert or ignore into t2 select x*16 from t2;\n      insert or ignore into t2 select x*256 from t2;\n      insert or ignore in...")
+	_ = db.Query("select x from t2 order by x;")
+}
+// Auto-generated from misc7.test
+func TestSQLite_misc7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;")
+	_ = db.Exec("BEGIN;\n        DELETE FROM t3 WHERE (oid%3)==0;")
+	_ = db.Exec("BEGIN;\n      PRAGMA cache_size = 10;\n      INSERT INTO t3 VALUES( randstr(100, 100), randstr(100, 100) );\n      UPDATE t3 SET a = b;\n    COMMIT;")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE abc(a PRIMARY KEY, b, c);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE table_1 (col_10);\n    CREATE TABLE table_2 (\n      col_1, col_2, col_3, col_4, col_5,\n      col_6, col_7, col_8, col_9, col_10\n    );\n    SELECT a.col_10\n    FROM\n      (SELECT table_1.col_10 AS col_10 FROM table_1) a,\n      (SELECT table_1.col_10, table_2.col_9 AS qcol_9\n  ...")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;")
+	_ = db.Exec("DELETE FROM abc WHERE rowid > 12;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;")
+	_ = db.Exec("DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;")
+	_ = db.Exec("DETACH aux;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;")
+	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SE...")
+	_ = db.Query("PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    CREATE TABLE aux.hello(world);\n    SELECT name FROM aux.sqlite_master;")
+	_ = db.Query("PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;")
+	_ = db.Query("SELECT * \n    FROM (SELECT name+1 AS one FROM sqlite_master LIMIT 1 OFFSET 1) \n    WHERE one LIKE 'hello%';")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1 WHERE a = 1;")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT count(*) FROM t3;")
+	_ = db.Query("SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';")
+	_ = db.Query("SELECT t1.a, t2.a FROM t1, t1 AS t2 ORDER BY 2 LIMIT 1;")
+	_ = db.Query("pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = $pending_byte_page\n          WHERE type = 'table' AND name = 't3';")
+}
 // Auto-generated from misc8.test
 func TestSQLite_misc8(t *testing.T) {
 	db := setupDB(t)
@@ -6855,6 +11319,13 @@ func TestSQLite_misc8(t *testing.T) {
 	_ = db.Query("SELECT quote(eval('SELECT * FROM t1 ORDER BY a'));")
 	_ = db.Query("SELECT quote(eval('SELECT d FROM t1 ORDER BY a'));")
 }
+// Auto-generated from misuse.test
+func TestSQLite_misuse(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);")
+	_ = db.Query("SELECT * FROM t1")
+}
 // Auto-generated from mjournal.test
 func TestSQLite_mjournal(t *testing.T) {
 	db := setupDB(t)
@@ -6868,6 +11339,30 @@ func TestSQLite_mjournal(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1")
 	_ = db.Query("SELECT * FROM t1;")
 	_ = db.Query("SELECT type, name, tbl_name, sql FROM sqlite_schema")
+}
+// Auto-generated from mmap1.test
+func TestSQLite_mmap1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(rblob(500), rblob(500));\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FRO...")
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(5...")
+	_ = db.Query("PRAGMA auto_vacuum = 2;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n\n  PRAGMA auto_vacuum;\n  SELECT * FROM t1;")
+	_ = db.Query("PRAGMA auto_vacuum;\n    SELECT count(*) FROM t1;")
+	_ = db.Query("PRAGMA mmap_size = 67108864;")
+	_ = db.Query("PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n  SELECT * FROM t1;\n  BEGIN;")
+	_ = db.Query("PRAGMA wal_checkpoint;")
+	_ = db.Query("SELECT * FROM t2 ORDER BY a, b")
+}
+// Auto-generated from mmap2.test
+func TestSQLite_mmap2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b, UNIQUE(a, b));\n      INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), r...")
+	_ = db.Query("PRAGMA mmap_size = 8000000")
+	_ = db.Query("SELECT count(*) FROM t1;\n      PRAGMA integrity_check;")
 }
 // Auto-generated from mmap3.test
 func TestSQLite_mmap3(t *testing.T) {
@@ -6883,6 +11378,14 @@ func TestSQLite_mmap3(t *testing.T) {
 	_ = db.Query("PRAGMA quick_check;\n    PRAGMA mmap_size;")
 	_ = db.Query("SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15")
 }
+// Auto-generated from mmapcorrupt.test
+func TestSQLite_mmapcorrupt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t0 SELECT * FROM t1;")
+	_ = db.Query("PRAGMA mmap_size = 1000000;\n  SELECT sql FROM sqlite_schema LIMIT 1;\n  SELECT * FROM t0;")
+	_ = db.Query("PRAGMA page_size = 16384;\n  CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t0(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('B');")
+}
 // Auto-generated from mmapfault.test
 func TestSQLite_mmapfault(t *testing.T) {
 	db := setupDB(t)
@@ -6891,6 +11394,134 @@ func TestSQLite_mmapfault(t *testing.T) {
 	_ = db.Exec("INSERT INTO t1 VALUES(a_string(200), a_string(300))")
 	_ = db.Exec("INSERT INTO t1 VALUES(a_string(201), a_string(301))")
 	_ = db.Query("PRAGMA mmap_size = 1000000;\n    PRAGMA cache_size = 5;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n      INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n      INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n      INSERT INTO t1 SELECT...")
+}
+// Auto-generated from mmapwarm.test
+func TestSQLite_mmapwarm(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(500) FROM s;\n  PRAGMA page_count;")
+	_ = db.Query("PRAGMA mmap_size = 1000000")
+	_ = db.Query("SELECT * FROM sqlite_master")
+}
+// Auto-generated from multiplex.test
+func TestSQLite_multiplex(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 'one');\n        INSERT INTO t1 VALUES(2, randomblob($g_chunk_size));")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, randomblob(1000));")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob($g_chunk_size));\n    INSERT INTO t1 VALUES(2, randomblob($g_chunk_size));")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(1100));\n    INSERT INTO t1 VALUES(2, randomblob(1100));")
+	_ = db.Exec("CREATE TABLE t2(a, b)")
+	_ = db.Exec("CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');")
+	_ = db.Exec("CREATE TABLE t3(a, b)")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES('r', 's')")
+	_ = db.Exec("INSERT INTO t1 VALUES('t', 'u')")
+	_ = db.Exec("INSERT INTO t1 VALUES('v', 'w')")
+	_ = db.Exec("INSERT INTO t1 VALUES('x', 'y')")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, randomblob(4000));\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, randomblob(4000));\n    INSERT INTO t1 VALUES(5, 'five');\n    INSERT INTO t1 VALUES(6, randomblob($g_chunk_size));\n    INSERT INTO t1 VALUES(7,...")
+	_ = db.Exec("INSERT INTO t1 VALUES(2, randomblob(65536));")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, randomblob(1100))")
+	_ = db.Exec("INSERT INTO t1 VALUES(randomblob(500), randomblob(500))")
+	_ = db.Exec("INSERT INTO t2 VALUES(zeroblob(200000))")
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));")
+	_ = db.Query("PRAGMA journal_mode = $jmode;")
+	_ = db.Query("PRAGMA multiplex_enabled;\n  PRAGMA multiplex_filecount;\n  PRAGMA multiplex_chunksize;")
+	_ = db.Query("PRAGMA multiplex_filecount;\n  PRAGMA multiplex_chunksize;")
+	_ = db.Query("PRAGMA page_size = 1024;\n        PRAGMA auto_vacuum = off;")
+	_ = db.Query("PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);")
+	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);")
+	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');")
+	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;")
+	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA auto_vacuum=OFF;")
+	_ = db.Query("SELECT * FROM t1 WHERE a=1")
+	_ = db.Query("SELECT * FROM t1 WHERE a=3")
+	_ = db.Query("SELECT * FROM t1 WHERE a=5")
+	_ = db.Query("SELECT a,length(b) FROM t1 WHERE a=2")
+	_ = db.Query("SELECT a,length(b) FROM t1 WHERE a=4")
+	_ = db.Query("SELECT b FROM t1 WHERE a=1")
+	_ = db.Query("SELECT length(b) FROM t1 WHERE a=2")
+	_ = db.Exec("VACUUM")
+}
+// Auto-generated from multiplex3.test
+func TestSQLite_multiplex3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(15), randomblob(2000));\n    INSERT INTO t1 SELECT randomblob(15), randomblob(2000) FROM t1;    --   2\n    INSERT INTO t1 SELECT randomblob(15), randomblob(2000) FROM t1;    --   4\n    INSERT INTO t1 SELECT randomblob(15),...")
+	_ = db.Query("PRAGMA cache_size = 10")
+	_ = db.Query("PRAGMA journal_mode = truncate")
+	_ = db.Query("PRAGMA synchronous = off")
+	_ = db.Query("SELECT md5sum(a, b) FROM t1 ORDER BY a")
+	_ = db.Exec("UPDATE t1 SET a=randomblob(12), b=randomblob(1400) WHERE rowid=5*$iTest")
+	_ = db.Exec("UPDATE t1 SET a=randomblob(12), b=randomblob(1500) WHERE (rowid%32)=0")
+}
+// Auto-generated from multiplex4.test
+func TestSQLite_multiplex4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(250000));")
+	_ = db.Exec("DELETE FROM t1;\n    VACUUM;")
+	_ = db.Query("EXPLAIN PRAGMA multiplex_truncate=0;")
+	_ = db.Exec("INSERT INTO t1(x) VALUES(randomblob(250000));")
+	_ = db.Query("PRAGMA multiplex_truncate")
+	_ = db.Query("PRAGMA multiplex_truncate=0")
+	_ = db.Query("PRAGMA multiplex_truncate=1")
+	_ = db.Query("PRAGMA multiplex_truncate=ON;\n    DROP TABLE t1;\n    VACUUM;")
+	_ = db.Query("PRAGMA multiplex_truncate=off")
+	_ = db.Query("PRAGMA multiplex_truncate=on")
+}
+// Auto-generated from mutex1.test
+func TestSQLite_mutex1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO abc VALUES(1, 2, 3);")
+	_ = db.Query("SELECT * FROM abc")
+	_ = db.Query("SELECT 1, 2, 3")
+}
+// Auto-generated from nan.test
+func TestSQLite_nan(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DELETE FROM T1;")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("DELETE FROM t1;\n      INSERT INTO t1 VALUES(0.5);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size=1024;\n      VACUUM;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e+10000');\n    SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e+9999');\n    SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e-10000');\n    SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e-2147483650');\n    SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e-9999');\n    SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e2147483650');\n    SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES($big)")
+	_ = db.Exec("INSERT INTO t1 VALUES($small)")
+	_ = db.Exec("INSERT INTO t1 VALUES(-1234.5[string repeat 0 10000]12345)")
+	_ = db.Exec("INSERT INTO t1 VALUES(-[string repeat 9 307].0)")
+	_ = db.Exec("INSERT INTO t1 VALUES(-[string repeat 9 308].0)")
+	_ = db.Exec("INSERT INTO t1 VALUES(-[string repeat 9 309].0)")
+	_ = db.Exec("INSERT INTO t1 VALUES(1234.5[string repeat 0 10000]12345)")
+	_ = db.Exec("INSERT INTO t1 VALUES([string repeat 9 307].0)")
+	_ = db.Exec("INSERT INTO t1 VALUES([string repeat 9 308].0)")
+	_ = db.Exec("INSERT INTO t1 VALUES([string repeat 9 309].0)")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);")
+	_ = db.Query("SELECT CAST(x AS text), typeof(x) FROM t1")
+	_ = db.Query("SELECT cast('-1e999' AS real);")
+	_ = db.Query("SELECT decimal_exp(x), typeof(x) FROM t1")
+	_ = db.Query("SELECT x, typeof(x) FROM t1")
+	_ = db.Exec("UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;")
+	_ = db.Exec("UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;")
+}
+// Auto-generated from nockpt.test
+func TestSQLite_nockpt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE y1(a PRIMARY KEY, b UNIQUE, c);\n  INSERT INTO y1 VALUES('a', 'b', 'c');\n  INSERT INTO y1 VALUES('d', 'e', 'f');")
+	_ = db.Query("PRAGMA auto_vacuum=OFF;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE c1(x, y, z);\n  INSERT INTO c1 VALUES(1, 2, 3);")
+	_ = db.Query("PRAGMA integrity_check; \n    SELECT * FROM y1;")
+	_ = db.Query("PRAGMA main.journal_mode")
+	_ = db.Query("PRAGMA main.journal_mode = delete")
+	_ = db.Query("SELECT * FROM c1")
+	_ = db.Exec("UPDATE y1 SET c='g' WHERE a='d';\n  PRAGMA wal_checkpoint;")
 }
 // Auto-generated from nolock.test
 func TestSQLite_nolock(t *testing.T) {
@@ -6901,6 +11532,60 @@ func TestSQLite_nolock(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode=WAL;\n       CREATE TABLE t1(x);\n       INSERT INTO t1 VALUES('youngling');\n       SELECT * FROM t1;")
 	_ = db.Query("PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('catbird');\n      SELECT * FROM t1;")
 	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from normalize.test
+func TestSQLite_normalize(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");")
+	_ = db.Exec("DROP TABLE t1;")
+}
+// Auto-generated from notify1.test
+func TestSQLite_notify1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS two")
+	_ = db.Exec("BEGIN ; INSERT INTO t1 VALUES(1, 2)")
+	_ = db.Exec("BEGIN ; INSERT INTO t2 VALUES(1, 2)")
+	_ = db.Exec("BEGIN ; INSERT INTO t3 VALUES(1, 2)")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(5, 6);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(7, 8);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t2 VALUES(1, 2);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t2 VALUES(3, 4);")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t2;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;\n    BEGIN EXCLUSIVE;")
+	_ = db.Exec("CREATE TABLE main.t1(a, b);\n    CREATE TABLE aux2.t2(a, b);\n    CREATE TABLE aux3.t3(a, b);")
+	_ = db.Exec("CREATE TABLE t1(a, b)")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES('a', 'b');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('I', 'II');")
+	_ = db.Exec("DROP TABLE t1; CREATE TABLE t1(a, b)")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t2")
+}
+// Auto-generated from notify2.test
+func TestSQLite_notify2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;\n      CREATE TABLE main.t1(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE aux2.t2(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE aux3.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 SELECT NULL, 0;\n      INSERT INTO t2 SELECT NULL...")
+	_ = db.Query("SELECT (SELECT max(a) FROM t1)\n           + (SELECT max(a) FROM t2)\n           + (SELECT max(a) FROM t3)")
+}
+// Auto-generated from notify3.test
+func TestSQLite_notify3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('t1 A', 't1 B');")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');")
 }
 // Auto-generated from notnull.test
 func TestSQLite_notnull(t *testing.T) {
@@ -7301,6 +11986,12 @@ func TestSQLite_orderbyB(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(a TEXT, b TEXT, c INT);\n  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t1(a,b,c) SELECT char(p,p), char(q,q), n FROM\n            (SELECT ((n-1)%4)+0x61 AS p, abs(n*2-9+(n>=5))+0x60 AS q, n FRO...")
 }
+// Auto-generated from oserror.test
+func TestSQLite_oserror(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT * FROM sqlite_master")
+}
 // Auto-generated from ovfl.test
 func TestSQLite_ovfl(t *testing.T) {
 	db := setupDB(t)
@@ -7308,6 +11999,63 @@ func TestSQLite_ovfl(t *testing.T) {
 	_ = db.Exec("INSERT INTO t1 VALUES($c1, $c2)")
 	_ = db.Query("PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;")
 	_ = db.Query("SELECT sum(length(c2)) FROM t1;")
+}
+// Auto-generated from pager1.test
+func TestSQLite_pager1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES(17, 'Lenin');\n    INSERT INTO t1 VALUES(22, 'Stalin');\n    INSERT INTO t1 VALUES(53, 'Khrushchev');")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SEL...")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t3(a, b);\n    INSERT INTO t3 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    UPDATE t3 SET b = randomblob(1501);")
+	_ = db.Exec("ATTACH 'test.db2' AS two;\n  SELECT * FROM t2;")
+	_ = db.Exec("ATTACH 'test.db3' AS three;\n  SELECT * FROM t3;")
+	_ = db.Exec("BEGIN EXCLUSIVE;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;")
+	_ = db.Exec("BEGIN;\n        CREATE TABLE t6(a, b);")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t1(a, b);")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t2(a, b);")
+	_ = db.Exec("BEGIN;\n      DELETE FROM x1 WHERE rowid<32;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(64, 'Brezhnev');\n      INSERT INTO t2 SELECT * FROM t1;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t2 VALUES('xxxx');")
+	_ = db.Exec("BEGIN;\n      INSERT INTO x1 VALUES('William');\n      INSERT INTO x1 VALUES('Anne');\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      SAVEPOINT abc;\n        CREATE TABLE t1(a, b);\n      ROLLBACK TO abc;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      SAVEPOINT one;\n        UPDATE z SET y = y||x;\n      ROLLBACK TO one;\n    COMMIT;\n    SELECT count(*) FROM z;")
+	_ = db.Exec("BEGIN;\n      SELECT * FROM t2;")
+	_ = db.Exec("BEGIN;\n      UPDATE ab SET b = a_string(301);\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t2(x);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(1, randomblob(10000));")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(2, a_string($strsize));\n    DELETE FROM t1 WHERE oid=2;\n    COMMIT;\n    PRAGMA integrity_check;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ROLLBACK;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;\n    INSERT INTO t1(rowid, a, b) SELECT a+3, b, b FROM t1;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t11 VALUES(1, 2);\n    PRAGMA max_page_count = 13;")
+	_ = db.Exec("BEGIN;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum=50;\n  PRAGMA page_count;\n  PRAGMA max_page_count=2;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("COMMIT;\n      SELECT * FROM t2;")
+	_ = db.Exec("COMMIT;\n      SELECT * FROM t5;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(b);\n  UPDATE t1 SET b = a_string(400);")
+	_ = db.Exec("CREATE TABLE ko(c DEFAULT 'abc', b DEFAULT 'def');\n      INSERT INTO ko DEFAULT VALUES;")
+	_ = db.Exec("CREATE TABLE one(two, three);\n    INSERT INTO one VALUES('a', 'b');")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE counter(\n      i CHECK (i<5), \n      u CHECK (u<10)\n    );\n    INSERT INTO counter VALUES(0, 0);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE counter SET i = i+1;\n    END;\n    CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        PRAGMA writable_schema = 1;\n        UPDATE sqlite_master SET rootpage=5 WHERE tbl_name = 't1';\n        PRAGMA writable_schema = 0;\n        ALTER TABLE t1 RENAME TO x1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT ...")
+	_ = db.Exec("CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('one');\n      INSERT INTO t1 VALUES('two');\n      BEGIN;\n        INSERT INTO t1 VALUES('three');\n        INSERT INTO t1 VALUES('four');")
+	_ = db.Exec("CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      SELECT * FROM t1;")
+}
+// Auto-generated from pager2.test
+func TestSQLite_pager2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("COMMIT ; BEGIN")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    ROLLBACK;\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1(j) VALUES(randomblob(1500))")
+	_ = db.Query("PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(zeroblob(5000), zeroblob(5000));\n    DELETE FROM t1;\n    PRAGMA incremental_vacuum;")
+	_ = db.Query("PRAGMA cache_size = 10;\n      CREATE TABLE t1(i INTEGER PRIMARY KEY, j blob);")
+	_ = db.Query("SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;")
+	_ = db.Query("SELECT COALESCE(max(i), 0) FROM t1;\n        PRAGMA integrity_check;")
 }
 // Auto-generated from pager4.test
 func TestSQLite_pager4(t *testing.T) {
@@ -7324,6 +12072,64 @@ func TestSQLite_pager4(t *testing.T) {
 	_ = db.Exec("UPDATE t1 SET a=537;\n  SELECT * FROM t1;")
 	_ = db.Exec("UPDATE t1 SET a=948;")
 }
+// Auto-generated from pagerfault.test
+func TestSQLite_pagerfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#     BEGIN;\n#       UPDATE t1 SET x=x+4 WHERE x=1;\n#       SAVEPOINT one;\n#         UPDATE t1 SET x=x+4 WHERE x=2;\n#         SAVEPOINT three;\n#           UPDATE t1 SET x=x+4 WHERE x=3;\n#           SAVEPOINT four;\n#             UPDATE t1 SET x=x+4 WHERE x=4;\n#         RELEASE three;\n#   ...")
+	_ = db.Exec("#     CREATE TABLE t1(x, y, UNIQUE(x, y));\n#     INSERT INTO t1 VALUES(1, randomblob(1501));\n#     INSERT INTO t1 VALUES(2, randomblob(1502));\n#     INSERT INTO t1 VALUES(3, randomblob(1503));\n#     INSERT INTO t1 VALUES(4, randomblob(1504));\n#     INSERT INTO t1 \n#       SELECT x, randombl...")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE aux.t2(a, b);")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 S...")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    SELECT count(*) FROM t2;\n    SELECT count(*) FROM t1;")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      DROP TABLE t1;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n      CREATE TABLE aux.t2 AS SELECT * FROM t1;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES( randomblob(4000) );\n      DELETE FROM t1;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4); \n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(a_string(2000), a_string(2000));\n      INSERT INTO t1 VALUES(a_string(2000), a_string(2000));")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(randomblob(900));\n      INSERT INTO t1 VALUES(randomblob(900));\n      DROP TABLE t3;\n      DROP TABLE t2;\n      SAVEPOINT abc;\n        PRAGMA incremental_vacuum;")
+	_ = db.Exec("BEGIN;\n      UPDATE t4 SET x = x+1;\n      UPDATE t6 SET x = x+1;\n      SAVEPOINT one;\n        UPDATE t3 SET x = x+1;\n        SAVEPOINT two;\n          DROP TABLE t2;\n      ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t3;\n    SELECT * FROM t4;\n    SELECT * FROM t6;")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t1 WHERE a>32;")
+	_ = db.Exec("BEGIN; INSERT INTO t1 VALUES(a_string(333), a_string(555)); COMMIT;\n      BEGIN; INSERT INTO t1 VALUES(a_string(333), a_string(555)); COMMIT;")
+	_ = db.Exec("CREATE TABLE qq(x);\n    INSERT INTO qq VALUES('Herbert');\n    INSERT INTO qq VALUES('Macalister');\n    INSERT INTO qq VALUES('Mackenzie');\n    INSERT INTO qq VALUES('Lilley');\n    INSERT INTO qq VALUES('Palmer');")
+	_ = db.Exec("CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));")
+	_ = db.Exec("CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1862, 'Botha');\n    INSERT INTO t1 VALUES(1870, 'Smuts');\n    INSERT INTO t1 VALUES(1866, 'Hertzog');")
+	_ = db.Exec("CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));")
+	_ = db.Exec("CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY);")
+	_ = db.Exec("CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FR...")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x, y UNIQUE)")
+	_ = db.Exec("CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 10;")
+	_ = db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  4\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    ...")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT * FROM t1; \n    DELETE FROM t1;")
+	_ = db.Exec("CREATE TABLE x(a, b)")
+	_ = db.Exec("CREATE TABLE x(y);\n    INSERT INTO x VALUES('z');\n    SELECT * FROM x;")
+	_ = db.Exec("CREATE TABLE xx(a, b)")
+	_ = db.Exec("CREATE TEMP TABLE t1(a, b)")
+	_ = db.Exec("DELETE FROM t1 WHERE a>32")
+	_ = db.Exec("INSERT INTO t0 SELECT a+1, b FROM t0")
+	_ = db.Exec("INSERT INTO t0 SELECT a+2, b FROM t0")
+	_ = db.Exec("INSERT INTO t0 SELECT a||'x', b||'x' FROM t0")
+	_ = db.Exec("INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES(101, 'Latham')")
+}
+// Auto-generated from pagerfault2.test
+func TestSQLite_pagerfault2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(5, 6);\n      SAVEPOINT abc;\n        UPDATE t1 SET a = a||'x' WHERE rowid<3700;")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES (a_string(2000000), a_string(2500000))")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));")
+	_ = db.Query("PRAGMA cache_size = 20;\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(401), a_string(402));\n      SAVEPOINT abc;")
+	_ = db.Exec("ROLLBACK TO abc")
+	_ = db.Exec("UPDATE t1 SET a = a||'x' WHERE rowid>=3700 AND rowid<=4200")
+}
 // Auto-generated from pagerfault3.test
 func TestSQLite_pagerfault3(t *testing.T) {
 	db := setupDB(t)
@@ -7331,6 +12137,12 @@ func TestSQLite_pagerfault3(t *testing.T) {
 	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 2048;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(1200));\n    PRAGMA page_count;")
 	_ = db.Query("PRAGMA page_size = 1024;\n    VACUUM;")
 	_ = db.Query("PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;")
+}
+// Auto-generated from pageropt.test
+func TestSQLite_pageropt(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;")
 }
 // Auto-generated from pagesize.test
 func TestSQLite_pagesize(t *testing.T) {
@@ -7359,6 +12171,21 @@ func TestSQLite_pagesize(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM t1")
 	_ = db.Exec("VACUUM")
 }
+// Auto-generated from parser1.test
+func TestSQLite_parser1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );")
+	_ = db.Exec("CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b) REFERENCES t1(a)\n  );\n  INSERT INTO t1 VALUES('abc',NULL),('xyz','abc');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE no...")
+	_ = db.Exec("CREATE TABLE t300(id INTEGER PRIMARY KEY);\n  CREATE TABLE t301(\n    id INTEGER PRIMARY KEY,\n    c1 INTEGER NOT NULL,\n    c2 INTEGER NOT NULL,\n    c3 BOOLEAN NOT NULL DEFAULT 0,\n    FOREIGN KEY(c1) REFERENCES t300(id) ON DELETE CASCADE ON UPDATE RESTRICT\n        /* no comma */\n    FOREIGN ...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND $zero FROM t1;")
+	_ = db.Query("SELECT max(x) AND 0 FROM t1;")
+	_ = db.Query("SELECT max(x) IN () FROM t1;")
+	_ = db.Query("SELECT max(x) NOT IN () FROM t1;")
+	_ = db.Exec("UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b ASC) REFERENCES t1(a)\n  )' WHERE name='t1';\n  SELECT name FROM sqlite_master WHERE sql LIKE '%ASC%';")
+	_ = db.Exec("WITH RECURSIVE\n    c(x ASC) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;")
+	_ = db.Exec("WITH RECURSIVE\n    c(x COLLATE binary) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n  SELECT x FROM c;")
+}
 // Auto-generated from pcache.test
 func TestSQLite_pcache(t *testing.T) {
 	db := setupDB(t)
@@ -7374,6 +12201,14 @@ func TestSQLite_pcache(t *testing.T) {
 	_ = db.Exec("ROLLBACK")
 	_ = db.Query("SELECT * FROM sqlite_master")
 	_ = db.Query("SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT *...")
+}
+// Auto-generated from pcache2.test
+func TestSQLite_pcache2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b);\n     CREATE TABLE t2(x,y);\n     INSERT INTO t1 VALUES(1, zeroblob(800));\n     INSERT INTO t1 VALUES(2, zeroblob(800));\n     INSERT INTO t2 SELECT * FROM t1;\n     INSERT INTO t1 SELECT x+2, y FROM t2;\n     INSERT INTO t2 SELECT a+10, b FROM t1;\n     INSERT INTO t1 SELE...")
+	_ = db.Query("PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
+	_ = db.Query("PRAGMA page_size = 4096;\n  CREATE TABLE t1(x);")
 }
 // Auto-generated from pendingrace.test
 func TestSQLite_pendingrace(t *testing.T) {
@@ -7423,6 +12258,148 @@ func TestSQLite_percentile(t *testing.T) {
 	_ = db.Exec("WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  SELECT median(iif(n%2,0.1,1.0)) FROM c;")
 	_ = db.Exec("WITH RECURSIVE t1(n,x) AS (\n    VALUES(1,1.0)\n    UNION ALL\n    SELECT n+1, if(n%2,n*2.0,999998.0-2.0*n) FROM t1 WHERE n<1000000\n  ) SELECT median(x) FROM t1;")
 }
+// Auto-generated from pragma.test
+func TestSQLite_pragma(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN c CHECK (1);\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);")
+	_ = db.Exec("ALTER TABLE t1 ADD COLUMN e;")
+	_ = db.Exec("ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_count;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;")
+	_ = db.Exec("ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;")
+	_ = db.Exec("ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check")
+	_ = db.Exec("ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check")
+	_ = db.Exec("ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;")
+	_ = db.Exec("BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;")
+	_ = db.Exec("CREATE INDEX t3i1 ON t3(a,b);")
+	_ = db.Exec("CREATE INDEX t3i2 ON t3(b,a);\n  PRAGMA index_info='t3i2';\n  DROP INDEX t3i2;")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;")
+	_ = db.Exec("CREATE TABLE newtable(a, b, c);")
+	_ = db.Exec("CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','two'),\n    (3, 'three','three','three'),\n    (4, 'four','four','four'),\n    (5, 'five','fiv...")
+	_ = db.Exec("CREATE TABLE t1(a INT, b AS (a*2) NOT NULL);\n  CREATE TEMP TABLE t2(a PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2x ON t2(c,b);\n  PRAGMA integrity_check;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n      CREATE INDEX t1a ON t1(a);\n      INSERT INTO t1 VALUES(1,1),(2,2),(3,3),(2,4),(NULL,5),(NULL,6);\n      PRAGMA writable_schema=ON;\n      UPDATE sqlite_master SET sql='CREATE UNIQUE INDEX t1a ON t1(a)'\n        WHERE name='t1a';\n      UPDATE sqlite_master SET sql='C...")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);")
+	_ = db.Exec("CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)")
+	_ = db.Exec("CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)")
+	_ = db.Exec("CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);")
+	_ = db.Exec("CREATE TABLE t3(a,b UNIQUE)")
+	_ = db.Exec("CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;")
+	_ = db.Exec("CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);")
+	_ = db.Exec("CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);")
+	_ = db.Exec("CREATE TABLE test_table(\n      one INT NOT NULL DEFAULT -1, \n      two text,\n      three VARCHAR(45, 65) DEFAULT 'abcde',\n      four REAL DEFAULT X'abcdef',\n      five DEFAULT CURRENT_TIME\n    );")
+	_ = db.Exec("CREATE TABLE trial(col_main);\n      CREATE TEMP TABLE trial(col_temp);")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;")
+	_ = db.Exec("DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;")
+	_ = db.Exec("DETACH t2")
+	_ = db.Exec("DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);")
+	_ = db.Exec("DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);")
+}
+// Auto-generated from pragma2.test
+func TestSQLite_pragma2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;")
+	_ = db.Exec("BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    PRAGMA freelist_count;")
+	_ = db.Exec("CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;")
+	_ = db.Exec("DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;")
+	_ = db.Exec("DROP TABLE abc;\n    PRAGMA freelist_count;")
+	_ = db.Exec("INSERT INTO aux.abc VALUES(1, 2, $::val);\n      PRAGMA aux.freelist_count;")
+	_ = db.Query("PRAGMA auto_vacuum=0")
+	_ = db.Query("PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;")
+	_ = db.Query("PRAGMA aux.freelist_count;\n      PRAGMA main.freelist_count;\n      PRAGMA freelist_count;")
+	_ = db.Query("PRAGMA cache_spill(-51);\n  PRAGMA cache_spill;")
+	_ = db.Query("PRAGMA cache_spill=NO;\n  PRAGMA cache_spill;")
+	_ = db.Query("PRAGMA cache_spill=OFF;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;")
+	_ = db.Query("PRAGMA cache_spill=ON; -- Applies to all databases\n  BEGIN;\n  UPDATE t2 SET c=c-1;\n  PRAGMA lock_status;")
+	_ = db.Query("PRAGMA freelist_count = 500;\n      PRAGMA freelist_count;")
+	_ = db.Query("PRAGMA freelist_count;")
+	_ = db.Query("PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;")
+	_ = db.Query("PRAGMA main.freelist_count;")
+	_ = db.Query("PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400...")
+	_ = db.Query("PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;")
+	_ = db.Exec("ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;")
+	_ = db.Exec("ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;")
+	_ = db.Exec("ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;")
+	_ = db.Exec("ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;")
+	_ = db.Exec("ROLLBACK;\n  PRAGMA cache_spill=OFF;\n  ATTACH 'test2.db' AS aux1;\n  PRAGMA aux1.cache_size=50;\n  BEGIN;\n  UPDATE t2 SET c=c+1;\n  PRAGMA lock_status;")
+}
+// Auto-generated from pragma3.test
+func TestSQLite_pragma3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;")
+	_ = db.Exec("BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;")
+	_ = db.Exec("COMMIT;\n    PRAGMA data_version;")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;")
+	_ = db.Exec("DELETE FROM t1 WHERE a>300")
+	_ = db.Query("PRAGMA data_version")
+	_ = db.Query("PRAGMA data_version;")
+	_ = db.Query("PRAGMA data_version;\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      CREATE TABLE t4(x,y,z);\n      INSERT INTO t4 VALUES(123,456,789);\n      PRAGMA data_version;\n      COMMIT;\n      PRAGMA data_version;")
+	_ = db.Query("PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;")
+	_ = db.Query("PRAGMA data_version;\n      SELECT * FROM t3;\n      SELECT * FROM t4;")
+	_ = db.Query("PRAGMA data_version;\n      SELECT * FROM t4;")
+	_ = db.Query("PRAGMA data_version;\n    SELECT * FROM t1;")
+	_ = db.Query("PRAGMA data_version;\n  BEGIN IMMEDIATE;\n  PRAGMA data_version;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(100),(200),(300);\n  PRAGMA data_version;\n  COMMIT;\n  SELECT * FROM t1;\n  PRAGMA data_version;")
+	_ = db.Query("PRAGMA data_version;\n  BEGIN IMMEDIATE;\n  PRAGMA data_version;\n  INSERT INTO t1 VALUES(400),(500);\n  PRAGMA data_version;\n  COMMIT;\n  SELECT * FROM t1;\n  PRAGMA data_version;\n  PRAGMA shrink_memory;")
+	_ = db.Query("PRAGMA data_version; SELECT * FROM t1;")
+	_ = db.Query("PRAGMA journal_mode=WAL")
+	_ = db.Query("PRAGMA main.data_version=1234;\n  PRAGMA main.data_version;")
+	_ = db.Query("PRAGMA temp.data_version;")
+	_ = db.Query("SELECT * FROM t1;\n  PRAGMA data_version;")
+	_ = db.Exec("UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
+}
+// Auto-generated from pragma4.test
+func TestSQLite_pragma4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);")
+	_ = db.Exec("CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n  INSERT INTO main.c1 VALUES(1, 2, 3);\n  INSERT INTO aux.c2 VALUES(4, 5, 6);")
+	_ = db.Exec("CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);")
+	_ = db.Exec("CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT);")
+	_ = db.Exec("CREATE TABLE t4(a DEFAULT 'abc' /* comment */, b DEFAULT -1 -- comment\n     , c DEFAULT +4.0 /* another comment */\n  );\n  PRAGMA table_info = t4;")
+	_ = db.Exec("CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT abs(a) FROM t1;\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_schema\n       SET sql=replace(sql,'abs(a)','nosuchfunc(a)')\n     WHERE name='v1';\n    PRAGMA writable_schema=RESET;")
+	_ = db.Exec("DROP INDEX i1")
+	_ = db.Exec("DROP INDEX i2")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INT PRIMARY KEY, b INT);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT REFERENCES t1);\n    SELECT t.name, f.\"table\", f.\"from\", i.name, i.pk\n      FROM pragma_table_list() AS t\n           JOIN pragma_foreign_key_l...")
+	_ = db.Exec("DROP TABLE c1")
+	_ = db.Exec("DROP TABLE c2")
+	_ = db.Exec("DROP TABLE t1")
+	_ = db.Exec("DROP TABLE t2")
+	_ = db.Query("EXPLAIN PRAGMA integrity_check")
+	_ = db.Query("PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;")
+	_ = db.Query("PRAGMA table_info = t1")
+	_ = db.Query("PRAGMA table_info = t2")
+	_ = db.Query("PRAGMA table_info(t1)")
+	_ = db.Query("PRAGMA table_info(t2)")
+	_ = db.Query("PRAGMA table_list;")
+	_ = db.Query("SELECT * FROM main.sqlite_master, aux.sqlite_master")
+	_ = db.Query("SELECT * FROM pragma_foreign_key_list('c1')")
+	_ = db.Query("SELECT * FROM pragma_foreign_key_list('c2')")
+	_ = db.Query("SELECT * FROM pragma_index_info('i1')")
+	_ = db.Query("SELECT * FROM pragma_index_info('i2')")
+	_ = db.Query("SELECT * FROM pragma_index_list('t1')")
+	_ = db.Query("SELECT * FROM pragma_index_list('t2')")
+	_ = db.Query("SELECT * FROM pragma_table_info('t1')")
+	_ = db.Query("SELECT * FROM pragma_table_info('t2')")
+	_ = db.Query("SELECT pragma_t4.name, pragma_t3.name \n      FROM pragma_t4 RIGHT JOIN pragma_t3 ON (pragma_t4.name=pragma_t3.name);")
+	_ = db.Query("SELECT t4.name, t3.name \n    FROM pragma_table_info('t4') t4 \n    RIGHT JOIN pragma_table_info('t3') t3 ON (t4.name=t3.name);")
+	_ = db.Query("pragma foreign_key_check('c1')")
+	_ = db.Query("pragma foreign_key_check('c2')")
+}
 // Auto-generated from pragma5.test
 func TestSQLite_pragma5(t *testing.T) {
 	db := setupDB(t)
@@ -7443,6 +12420,12 @@ func TestSQLite_pragma6(t *testing.T) {
 	_ = db.Query("PRAGMA integrity_check;")
 	_ = db.Query("PRAGMA quick_check;")
 }
+// Auto-generated from pragmafault.test
+func TestSQLite_pragmafault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b, CHECK(a!=b));\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);")
+}
 // Auto-generated from prefixes.test
 func TestSQLite_prefixes(t *testing.T) {
 	db := setupDB(t)
@@ -7453,6 +12436,51 @@ func TestSQLite_prefixes(t *testing.T) {
 	_ = db.Query("SELECT prefix_length(null,'abc');")
 	_ = db.Query("SELECT prefix_length(zeroblob(15000),zeroblob(5000));")
 	_ = db.Exec("WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k<=$INPUT)\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k<=substr($INPUT, 1, prefix_length(finder.str, $INPUT))\n        ) FROM finder WHERE length(finder.str)>0\n      )\n    SELECT str FR...")
+}
+// Auto-generated from printf.test
+func TestSQLite_printf(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT format('%!.0e',-1e100);")
+	_ = db.Query("SELECT format('%!.20g', 13.0);")
+	_ = db.Query("SELECT format('%,.0f %,.0f',12345e+10, 12345e+11);")
+	_ = db.Query("SELECT format('%.30f',1.0000000000000000076e-50);")
+	_ = db.Query("SELECT format('%.3e', 199990000.0);")
+	_ = db.Query("SELECT format('%.3f', 199990000.0);")
+	_ = db.Query("SELECT format('%.3g', 199990000.0);")
+	_ = db.Query("SELECT format('%.4e', 199990000.0);")
+	_ = db.Query("SELECT format('%.4f', 199990000.0);")
+	_ = db.Query("SELECT format('%.4g', 199990000.0);")
+	_ = db.Query("SELECT format('%.5e', 199990000.0);")
+	_ = db.Query("SELECT format('%.5f', 199990000.0);")
+	_ = db.Query("SELECT format('%.5g', 199990000.0);")
+	_ = db.Query("SELECT format('%0.0f %#0.0f',0.0, 0.0);")
+	_ = db.Query("SELECT format('%0.0f %0.0g %0.0g', 0.9, 0.09, 1.9);")
+	_ = db.Query("SELECT format('1-%j-2-%J-3',null,null);")
+	_ = db.Query("SELECT format('<%!-6.2J>','いち, に, さん');")
+	_ = db.Query("SELECT format('<%!-6.2j>','いち, に, さん');")
+	_ = db.Query("SELECT format('<%!-6J>','いち');")
+	_ = db.Query("SELECT format('<%!-6j>','いち');")
+	_ = db.Query("SELECT format('<%!6.2J>','いち, に, さん');")
+	_ = db.Query("SELECT format('<%!6.2j>','いち, に, さん');")
+	_ = db.Query("SELECT format('<%!6J>','いち');")
+	_ = db.Query("SELECT format('<%!6j>','いち');")
+	_ = db.Query("SELECT format('<%.0J>','abcdef');")
+	_ = db.Query("SELECT format('<%.1J>','abcdef');")
+	_ = db.Query("SELECT format('<%.4j>','a\"b\"c');")
+	_ = db.Query("SELECT format('<%.7j>','abc\"\"\"def');")
+	_ = db.Query("SELECT format('<%6.8J>','いち, に, さん');")
+	_ = db.Query("SELECT format('<%6.8j>','いち, に, さん');")
+	_ = db.Query("SELECT format('<%6J>','いち');")
+	_ = db.Query("SELECT format('<%6j>','いち');")
+	_ = db.Query("SELECT format('<%j>','abc'||char(0x1f)||'def');")
+	_ = db.Query("SELECT format('{\"%!.3j\":5")
+	_ = db.Query("SELECT format('{\"%.6j\":5")
+	_ = db.Query("SELECT format('{%!.3J:5")
+	_ = db.Query("SELECT format('{%.6J:5")
+	_ = db.Query("SELECT length( format('%,.249f', -5.0e-300) );")
+	_ = db.Query("SELECT printf('%.*g',2147483647,0.01);")
+	_ = db.Exec("WITH RECURSIVE c(n,t) AS (\n    VALUES(1,char(1))\n    UNION ALL\n    SELECT n+1, t||char(n+1) FROM c WHERE n<0x7e\n  )\n  SELECT hex(format('{\"a\":%J")
 }
 // Auto-generated from printf2.test
 func TestSQLite_printf2(t *testing.T) {
@@ -7513,6 +12541,41 @@ func TestSQLite_progress(t *testing.T) {
 	_ = db.Query("SELECT a, b, c FROM abc")
 	_ = db.Query("SELECT count(*) FROM t1")
 	_ = db.Query("SELECT sum(a) FROM t1")
+}
+// Auto-generated from ptrchng.test
+func TestSQLite_ptrchng(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY, y BLOB);\n    INSERT INTO t1 VALUES(1, 'abc');\n    INSERT INTO t1 VALUES(2, \n       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234356789');\n    INSERT INTO t1 VALUES(3, x'626c6f62');\n    INSERT INTO t1 VALUES(4,\n x'000102030405060708090a0b0c...")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'bytes', 'blob') FROM t1")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=1")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=2")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=3")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text') FROM t1 WHERE x=4")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text16') FROM t1 WHERE x=1")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text16') FROM t1 WHERE x=2")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text16') FROM t1 WHERE x=3")
+	_ = db.Query("SELECT pointer_change(y, 'blob', 'noop', 'text16') FROM t1 WHERE x=4")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'bytes', 'blob') FROM t1")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'bytes', 'text') FROM t1")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=1")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=2")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=3")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'blob') FROM t1 WHERE x=4")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'text16') FROM t1 WHERE x=1")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'text16') FROM t1 WHERE x=2")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'text16') FROM t1 WHERE x=3")
+	_ = db.Query("SELECT pointer_change(y, 'text', 'noop', 'text16') FROM t1 WHERE x=4")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'bytes16', 'blob') FROM t1")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'blob') FROM t1")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'blob') FROM t1 WHERE x=1")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'blob') FROM t1 WHERE x=2")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'blob') FROM t1 WHERE x=3")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'blob') FROM t1 WHERE x=4")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'text') FROM t1 WHERE x=1")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'text') FROM t1 WHERE x=2")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'text') FROM t1 WHERE x=3")
+	_ = db.Query("SELECT pointer_change(y, 'text16', 'noop', 'text') FROM t1 WHERE x=4")
 }
 // Auto-generated from pushdown.test
 func TestSQLite_pushdown(t *testing.T) {
@@ -7628,6 +12691,26 @@ func TestSQLite_quota(t *testing.T) {
 	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;")
 	_ = db.Query("SELECT count(*) FROM sqlite_master")
 }
+// Auto-generated from quote.test
+func TestSQLite_quote(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;")
+	_ = db.Exec("CREATE TABLE t1(x, y, z);")
+	_ = db.Exec("DROP TABLE '@abc'")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1('b');\n    ALTER TABLE t1 DROP COLUMN b;")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 'w');\n  SELECT * FROM t1 WHERE z='w';")
+	_ = db.Exec("INSERT INTO xyz VALUES(1, 2, 'null');")
+	_ = db.Exec("INSERT INTO xyz VALUES(1, 2, 3);")
+	_ = db.Query("PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";")
+	_ = db.Query("SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'")
+	_ = db.Query("SELECT sql FROM sqlite_master;")
+	_ = db.Exec("UPDATE '@abc' SET '#xyz'=11")
+}
 // Auto-generated from randexpr1.test
 func TestSQLite_randexpr1(t *testing.T) {
 	db := setupDB(t)
@@ -7672,6 +12755,13 @@ func TestSQLite_randexpr1(t *testing.T) {
 	_ = db.Query("SELECT  -17+c-(abs(t1.a)/abs(t1.c))-case when t1.a<>c then case when exists(select 1 from t1 where 11 not between + -d and d and 13 not between 13 and 17 or not  -f<=19 or (t1.a)<a or t1.a>(11)) and 11<t1.b then t1.e else coalesce((select case when t1.f not in (c,t1.c,t1.e) then (select +count(*)...")
 	_ = db.Query("SELECT  -17+c-(abs(t1.a)/abs(t1.c))-case when t1.a<>c then case when exists(select 1 from t1 where 11 not between + -d and d and 13 not between 13 and 17 or not  -f<=19 or (t1.a)<a or t1.a>(11)) and 11<t1.b then t1.e else coalesce((select case when t1.f not in (c,t1.c,t1.e) then (select +count(*)...")
 	_ = db.Query("SELECT  -19 & t1.c*coalesce((select max(+(select cast(avg(case when  -e+t1.d in (select t1.e*a from t1 union select a from t1) then t1.b when 17 in (select t1.a from t1 union select 11 from t1) then 19 else 11 end-19+a+t1.f) AS integer)+count(distinct t1.a) from t1)+(t1.b)) from t1 where (19) not...")
+}
+// Auto-generated from rdonly.test
+func TestSQLite_rdonly(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t1;")
 }
 // Auto-generated from readonly.test
 func TestSQLite_readonly(t *testing.T) {
@@ -7805,6 +12895,24 @@ func TestSQLite_reservebytes(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;")
 	_ = db.Exec("VACUUM")
 }
+// Auto-generated from resetdb.test
+func TestSQLite_resetdb(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('one', 'two');\n      PRAGMA encoding;")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=4096;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t1(a,b) SELECT x, randomblob(300) FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  SELECT sum(a), sum(leng...")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=8192;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<20)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1300) FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b...")
+	_ = db.Query("PRAGMA encoding = 'utf16'")
+	_ = db.Query("PRAGMA encoding = 'utf8';\n    CREATE TABLE t1(a, b);\n    PRAGMA encoding;")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1), (2), (3), (4);")
+	_ = db.Query("PRAGMA page_count;\n  PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA page_size=512;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c) SELECT x, randomblob(100),randomblob(100) FROM c;\n  P...")
+	_ = db.Query("SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_count;")
+	_ = db.Query("SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data=\n    X'53514C69746520666F726D61742033000200030100402020000000000000001300000000000000000000000300000004000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000D00000003017C0001D801AC017C0000000000000000000000000000000...")
+	_ = db.Exec("UPDATE sqlite_dbpage SET data=randomblob(8192) WHERE pgno=1;\n  PRAGMA quick_check")
+}
 // Auto-generated from resolver01.test
 func TestSQLite_resolver01(t *testing.T) {
 	db := setupDB(t)
@@ -7820,6 +12928,51 @@ func TestSQLite_resolver01(t *testing.T) {
 	_ = db.Query("SELECT count(*), substr(m,2,1) AS mx FROM t5 GROUP BY mx ORDER BY 1, 2;")
 	_ = db.Query("SELECT min(name) AS name FROM t61 GROUP BY lower(name);")
 }
+// Auto-generated from returning1.test
+func TestSQLite_returning1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;")
+	_ = db.Exec("BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;")
+	_ = db.Exec("CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1(a,b) VALUES(1,2);\n  INSERT INTO t2(x,y) VALUES(1,30);")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1...")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;")
+	_ = db.Exec("CREATE TABLE t1(a);\n  CREATE TABLE t2(b,c);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(3,40);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  CREATE TEMP TABLE t2(x,y,z);\n  INSERT INTO t2 SELECT * FROM t1 RETURNING *;")
+	_ = db.Exec("CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(x INT, y INT);\n  INSERT INTO t1 VALUES(1),(2),(4),(9);\n  INSERT INTO t2 VALUES(3,7), (4,25), (5,99);\n  UPDATE t1 SET id=id+y FROM t2 WHERE t1.id=t2.x RETURNING t2.*;")
+	_ = db.Exec("CREATE TABLE t1(x INT, y INT)")
+	_ = db.Exec("CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);")
+	_ = db.Exec("CREATE TABLE t1(xyz);\n  CREATE TABLE t2(a as (1+1), b);")
+	_ = db.Exec("CREATE TABLE t1_a(a, b);\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a;\n\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n  INSERT INTO t1_a VALUES('x', 'y');\n\n  CREATE TABLE log(op, r, a, b);")
+	_ = db.Exec("CREATE TABLE t2(x,y,z);\n  INSERT INTO t2 VALUES(11,12,13),(21,'b','c'),(31,'b-value',4.75);")
+	_ = db.Exec("CREATE TABLE t4(a INT, b INT DEFAULT 1234, c INT DEFAULT -16);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n  INSERT INTO t4(a,b,c) VALUES(1,2,3);")
+	_ = db.Exec("CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;")
+	_ = db.Exec("CREATE TEMP TABLE t1(a,b);\n  CREATE TEMP TABLE t2(c,d);\n  CREATE TEMP TABLE t3(e,f);\n  CREATE TEMP TABLE log(op,x,y);\n  CREATE TEMP TRIGGER t1r1 AFTER INSERT ON t1 BEGIN\n     INSERT INTO log(op,x,y) VALUES('I1',new.a,new.b);\n  END;\n  CREATE TEMP TRIGGER t1r2 BEFORE DELETE ON t1 BEGIN\n    ...")
+	_ = db.Exec("CREATE TEMP TABLE t1(a,b);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN SELECT 1; END;\n  DELETE FROM t1 RETURNING *;\n  DROP TRIGGER r1;\n  INSERT INTO t1 VALUES(5,30);")
+	_ = db.Exec("CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;")
+	_ = db.Exec("CREATE TRIGGER tr1 INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO log VALUES('insert', new.rowid, new.a, new.b);\n  END;\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES('update', new.rowid, new.a, new.b);\n  END;")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts5(c);\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('x');")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING rtree(a, b, c);\n  CREATE TABLE t2(x);")
+	_ = db.Exec("DELETE FROM t1 RETURNING x, affinity(x);")
+	_ = db.Exec("DELETE FROM t1 WHERE a<>'xray' RETURNING a, b, '@';")
+	_ = db.Exec("DELETE FROM t1 WHERE c='bellum' RETURNING rowid, *, '|';")
+	_ = db.Exec("DELETE FROM t4;\n  INSERT INTO t4 VALUES(1,2,3),(4,5,6),(7,8,9);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;")
+	_ = db.Exec("INSERT INTO child(parent_id) VALUES(123) RETURNING id;")
+	_ = db.Exec("INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;")
+	_ = db.Exec("INSERT INTO ft VALUES('hello world') RETURNING *")
+	_ = db.Exec("INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);")
+	_ = db.Exec("INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;")
+	_ = db.Exec("INSERT INTO t1 DEFAULT VALUES RETURNING *;")
+	_ = db.Exec("INSERT INTO t1 SELECT * FROM t2 RETURNING *;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one') RETURNING *;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE new.a=t2.b) AS x;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE old.a=t2.b) AS x;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3) RETURNING a, (SELECT c FROM t2 WHERE t1.a=t2.b) AS x;")
+	_ = db.Exec("INSERT INTO t1(a, b) VALUES(1234, 5678) RETURNING rowid;")
+	_ = db.Exec("INSERT INTO t1(a,b,c) VALUES(1,2,3) \n  RETURNING (SELECT b FROM t2);")
+}
 // Auto-generated from returningfault.test
 func TestSQLite_returningfault(t *testing.T) {
 	db := setupDB(t)
@@ -7831,6 +12984,16 @@ func TestSQLite_returningfault(t *testing.T) {
 	_ = db.Query("SELECT * FROM sqlite_schema")
 	_ = db.Query("SELECT * FROM t1")
 }
+// Auto-generated from rollback.test
+func TestSQLite_rollback(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      INSERT INTO t3 VALUES('hello world');")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;")
+	_ = db.Query("SELECT distinct tbl_name FROM sqlite_master;")
+}
 // Auto-generated from rollback2.test
 func TestSQLite_rollback2(t *testing.T) {
 	db := setupDB(t)
@@ -7838,6 +13001,15 @@ func TestSQLite_rollback2(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a<40\n  )\n  INSERT INTO t1 SELECT * FROM data;")
 	_ = db.Query("SELECT int2hex(0), int2hex(100), int2hex(255)")
 	_ = db.Exec("UPDATE t1 SET h = $leader || h;")
+}
+// Auto-generated from rollbackfault.test
+func TestSQLite_rollbackfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN; DELETE FROM t1 WHERE (i%2)")
+	_ = db.Exec("CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a<40\n  )\n  INSERT INTO t1 SELECT * FROM data;")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Query("SELECT int2hex(0), int2hex(100), int2hex(255)")
 }
 // Auto-generated from rowallock.test
 func TestSQLite_rowallock(t *testing.T) {
@@ -8238,6 +13410,96 @@ func TestSQLite_savepointfault(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("SAVEPOINT one;\n    RELEASE one;")
 }
+// Auto-generated from scanstatus.test
+func TestSQLite_scanstatus(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ANALYZE")
+	_ = db.Exec("ANALYZE;\n  SELECT count(*) FROM t1, t2;")
+	_ = db.Exec("CREATE TABLE a1(a, b, c, d);\n  CREATE INDEX a1a ON a1(a);\n  CREATE INDEX a1bc ON a1(b, c);\n\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n<=100)\n  INSERT INTO a1 SELECT x, x, x, x FROM d;")
+	_ = db.Exec("CREATE TABLE p1(x PRIMARY KEY);\n  INSERT INTO p1 VALUES(1), (2), (3), (4);\n  CREATE TABLE c1(y REFERENCES p1);\n  INSERT INTO c1 VALUES(1), (2), (3);\n  PRAGMA foreign_keys=on;")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(0, 1, 'a');\n  INSERT INTO t1 VALUES(1, 0, 'b');\n  INSERT INTO t1 VALUES(2, 1, 'c');\n  INSERT INTO t1 VALUES(3, 0, 'd');\n  INSERT INTO t1 VALUES(4, 1, 'e');\n  INSERT INTO t1 VALUES(5, 0, 'a');\n  INSERT INTO t1 VALUES(6, 1, 'b');...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x PRIMARY KEY, y, z);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT * FROM t2 WHERE x BETWEEN 20 AND 40;\n  END;\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n<=100)\n  INSERT INTO t2 SELECT x, x*2, x*3 FROM d;")
+	_ = db.Exec("CREATE TABLE x1(i INTEGER PRIMARY KEY, j);\n  INSERT INTO x1 VALUES(1, 'one');\n  INSERT INTO x1 VALUES(2, 'two');\n  INSERT INTO x1 VALUES(3, 'three');\n  INSERT INTO x1 VALUES(4, 'four');\n  CREATE INDEX x1j ON x1(j);\n\n  SELECT * FROM x1 WHERE i=2;")
+	_ = db.Exec("CREATE TABLE x2(i INTEGER, j, k);\n  INSERT INTO x2 SELECT i, j, i || ' ' || j FROM x1;\n  CREATE INDEX x2j ON x2(j);\n  CREATE INDEX x2ij ON x2(i, j);\n  SELECT * FROM x2 WHERE j BETWEEN 'three' AND 'two'")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft1 USING fts4;\n    INSERT INTO ft1 VALUES('a d c f g h e i f c');\n    INSERT INTO ft1 VALUES('g c h b g b f f f g');\n    INSERT INTO ft1 VALUES('h h c c h f a e d d');\n    INSERT INTO ft1 VALUES('e j i j i e b c f g');\n    INSERT INTO ft1 VALUES('g f b g j c h a d f');...")
+	_ = db.Exec("DELETE FROM p1 WHERE x=4")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2, 3);")
+	_ = db.Query("SELECT * FROM x1 WHERE j BETWEEN 'three' AND 'two'")
+	_ = db.Query("SELECT * FROM x1 WHERE j<'two'")
+	_ = db.Query("SELECT * FROM x1 WHERE j='two'")
+	_ = db.Query("SELECT * FROM x1 WHERE j>='two'")
+	_ = db.Query("SELECT * FROM x2 WHERE i=1 AND j='two'")
+	_ = db.Query("SELECT * FROM x2 WHERE i=3 AND j='three'")
+	_ = db.Query("SELECT * FROM x2 WHERE i=5 AND j='two'")
+	_ = db.Query("SELECT count(*) FROM a1 AS x, a1 AS y \n  WHERE (x.a BETWEEN 4 AND 12) AND (y.b BETWEEN 1 AND 10)")
+	_ = db.Query("SELECT count(*) FROM a1 WHERE (a BETWEEN 4 AND 12) OR (b BETWEEN 40 AND 60)")
+	_ = db.Query("SELECT count(*) FROM a1 WHERE a IN (1, 5, 10, 15);")
+	_ = db.Query("SELECT count(*) FROM a1 WHERE rowid IN (1, 5, 10, 15);")
+	_ = db.Query("SELECT count(*) FROM ft1 WHERE ft1 MATCH 'd'")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE a IN (0, 1)")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE a IN (SELECT b FROM t1 AS ii)")
+	_ = db.Query("SELECT count(*) FROM t1, t2 WHERE t2.rowid>1;")
+	_ = db.Query("SELECT count(*) FROM t1, t2 WHERE y = c;")
+	_ = db.Query("SELECT count(*) FROM t1, t2;")
+	_ = db.Query("SELECT count(*) FROM t1, t3 WHERE y = c;")
+	_ = db.Query("SELECT count(*) FROM t2 WHERE y = 'j';")
+	_ = db.Query("SELECT d FROM a1 WHERE (a=4 OR b=13)")
+}
+// Auto-generated from scanstatus2.test
+func TestSQLite_scanstatus2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t...")
+	_ = db.Exec("CREATE TABLE t1(x, y);\n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      SELECT 1;\n    END;\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts5(a);\n    INSERT INTO ft VALUES('abc');\n    INSERT INTO ft VALUES('def');\n    INSERT INTO ft VALUES('ghi');")
+	_ = db.Exec("DELETE FROM t1 WHERE x=1;")
+	_ = db.Query("SELECT * FROM sqlite_schema")
+}
+// Auto-generated from schema.test
+func TestSQLite_schema(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3(a, b, c);")
+	_ = db.Exec("CREATE INDEX abc_index ON abc(a);")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);")
+	_ = db.Exec("CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;")
+	_ = db.Exec("CREATE VIEW abcview AS SELECT * FROM abc;")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT * FROM sqlite_master;")
+	_ = db.Exec("DETACH aux;")
+	_ = db.Exec("DROP INDEX abc_index;")
+	_ = db.Exec("DROP TABLE abc;")
+	_ = db.Exec("DROP TRIGGER abc_trig;")
+	_ = db.Exec("DROP VIEW abcview;")
+	_ = db.Exec("DROP VIEW v1;")
+	_ = db.Exec("INSERT INTO abc VALUES(1, 2, 3);")
+	_ = db.Exec("ROLLBACK;\n    CREATE TABLE t4(a, b, c);")
+	_ = db.Query("SELECT * FROM abc")
+}
+// Auto-generated from schema2.test
+func TestSQLite_schema2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux;")
+	_ = db.Exec("CREATE INDEX abc_index ON abc(a);")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);")
+	_ = db.Exec("CREATE TRIGGER abc_trig AFTER INSERT ON abc BEGIN\n        SELECT 1, 2, 3;\n      END;")
+	_ = db.Exec("CREATE VIEW abcview AS SELECT * FROM abc;")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT * FROM sqlite_master;")
+	_ = db.Exec("DETACH aux;")
+	_ = db.Exec("DROP INDEX abc_index;")
+	_ = db.Exec("DROP TABLE abc;")
+	_ = db.Exec("DROP TRIGGER abc_trig;")
+	_ = db.Exec("DROP VIEW abcview;")
+	_ = db.Exec("DROP VIEW v1;")
+	_ = db.Exec("INSERT INTO abc VALUES(1, 2, 3);")
+	_ = db.Query("SELECT * FROM abc")
+}
 // Auto-generated from schema4.test
 func TestSQLite_schema4(t *testing.T) {
 	db := setupDB(t)
@@ -8563,6 +13825,29 @@ func TestSQLite_select6(t *testing.T) {
 	_ = db.Query("SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1)\n    WHERE a>10")
 	_ = db.Query("SELECT a,b,a+b FROM (SELECT avg(x) as 'a', y as 'b' FROM t1 GROUP BY b)\n    ORDER BY a")
 }
+// Auto-generated from select7.test
+func TestSQLite_select7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk...")
+	_ = db.Exec("CREATE TABLE t01(x, y);\n  CREATE TABLE t02(x, y);")
+	_ = db.Exec("CREATE TABLE t3(a REAL);\n    INSERT INTO t3 VALUES(44.0);\n    INSERT INTO t3 VALUES(56.0);")
+	_ = db.Exec("CREATE TABLE t4(a REAL);\n    INSERT INTO t4 VALUES( 2.0 );\n    INSERT INTO t4 VALUES( 3.0 );")
+	_ = db.Exec("CREATE TABLE t5(a TEXT, b INT);\n    INSERT INTO t5 VALUES(123, 456);\n    SELECT typeof(a), a FROM t5 GROUP BY a HAVING a<b;")
+	_ = db.Exec("CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIE...")
+	_ = db.Exec("CREATE VIEW v0 as SELECT x, y FROM t01 UNION SELECT x FROM t02;\n  EXPLAIN QUERY PLAN SELECT * FROM v0 WHERE x='0' OR y;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);")
+	_ = db.Exec("INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n      ...")
+	_ = db.Exec("INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);")
+	_ = db.Query("SELECT (CASE WHEN a=0 THEN 'zero' ELSE a/2 END) AS t FROM t4 GROUP BY t;")
+	_ = db.Query("SELECT * FROM (\n    SELECT * FROM t01 UNION SELECT x FROM t02\n  ) WHERE y=1")
+	_ = db.Query("SELECT * FROM sqlite_master ORDER BY name")
+	_ = db.Query("SELECT a=0, typeof(a) FROM t4")
+	_ = db.Query("SELECT a=0, typeof(a) FROM t4 GROUP BY a")
+	_ = db.Query("SELECT count(*) FROM t1;")
+	_ = db.Exec("create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select ...")
+	_ = db.Query("pragma vdbe_trace = 0;\n    SELECT (CASE WHEN a=0 THEN 0 ELSE (a + 25) / 50 END) AS categ, count(*)\n    FROM t3 GROUP BY categ")
+}
 // Auto-generated from select8.test
 func TestSQLite_select8(t *testing.T) {
 	db := setupDB(t)
@@ -8769,6 +14054,153 @@ func TestSQLite_selectH(t *testing.T) {
 	_ = db.Query("SELECT count(a) FROM v1 WHERE c60=60;")
 	_ = db.Query("SELECT x FROM v1 WHERE c60=60;")
 }
+// Auto-generated from shared.test
+func TestSQLite_shared(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db' AS test")
+	_ = db.Exec("ATTACH 'test1.db' AS test1;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test3.db' AS test3;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    DETACH aux2;\n    DETACH aux3;\n    DETACH aux4;\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.sqlite_master;")
+	_ = db.Exec("ATTACH 'test2.db' AS test2")
+	_ = db.Exec("ATTACH 'test3.db' AS test3;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test1.db' AS test1;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE jkl(j, k, l);")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t2 VALUES(5, 6);")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM ab;")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM abc;")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM test.abc;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);")
+	_ = db.Exec("CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE de(d PRIMARY KEY, e);\n    INSERT INTO ab VALUES('Chiang Mai', 100000);\n    INSERT INTO ab VALUES('Bangkok', 8000000);\n    INSERT INTO de VALUES('Ubon', 120000);\n    INSERT INTO de VALUES('Khon Kaen', 200000);")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a, b, c);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc_mirror(a, b, c);\n    CREATE TEMP TRIGGER BEFORE INSERT ON abc BEGIN \n      INSERT INTO abc_mirror(a, b, c) VALUES(new.a, new.b, new.c);\n    END;\n    INSERT INTO abc VALUES(1, 2, 3);\n    SELECT * FROM abc_mirror;")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(d, e, f);\n    INSERT INTO abc VALUES('i', 'ii', 'iii');\n    INSERT INTO def VALUES('I', 'II', 'III');")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TABLE def(d, e, f)")
+	_ = db.Exec("CREATE TABLE def(d, e, f);\n    INSERT INTO def VALUES('IV', 'V', 'VI');")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE VIEW v1 AS SELECT * FROM t1; \n    CREATE VIEW v2 AS SELECT * FROM t1, v1 \n                      WHERE t1.c=v1.c GROUP BY t1.a ORDER BY v1.b; \n    CREATE TRIGGER tr1 AFTER INSERT ON t1 \n      WHEN new.a!=1\n    BEGIN\n    ...")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n    CREATE TABLE aux2.t2(a, b, c);\n    CREATE TABLE aux3.t3(a, b, c);\n    CREATE TABLE aux4.t4(a, b, c);\n    CREATE TABLE aux5.t5(a, b, c);\n    SELECT count(*) FROM \n      aux2.sqlite_master, \n      aux3.sqlite_master, \n      aux4.sqlite_master, \n      aux5.sqli...")
+	_ = db.Exec("CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);")
+	_ = db.Exec("CREATE TABLE test2.ghi(g, h, i);\n      SELECT 'test.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test2.db:'||name FROM test2.sqlite_master;")
+	_ = db.Exec("CREATE TABLE yy(a, b);\n      INSERT INTO yy VALUES(77, 88);")
+	_ = db.Exec("CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;")
+	_ = db.Exec("CREATE VIEW test1.v1 AS SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM abc WHERE 1;")
+	_ = db.Exec("DELETE FROM seq WHERE i = :i")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("DROP INDEX i1;")
+	_ = db.Exec("DROP TABLE t1")
+	_ = db.Exec("DROP TABLE t1;")
+	_ = db.Exec("DROP TRIGGER trig1;")
+	_ = db.Exec("DROP VIEW v1;")
+	_ = db.Exec("INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;")
+}
+// Auto-generated from shared2.test
+func TestSQLite_shared2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        DELETE FROM numbers;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE numbers(a PRIMARY KEY, b);\n    INSERT INTO numbers(oid) VALUES(NULL);\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SELECT NULL FROM numbers;\n    INSERT INTO numbers(oid) SEL...")
+	_ = db.Exec("CREATE INDEX i1 ON t2(a)")
+	_ = db.Exec("CREATE TABLE t0(a, b);\n    CREATE TABLE t1(a, b DEFAULT 'hello world');")
+	_ = db.Exec("CREATE TABLE t2(a, b, c)")
+	_ = db.Exec("DELETE FROM numbers;")
+	_ = db.Exec("INSERT INTO t1(a) VALUES(1)")
+	_ = db.Exec("ROLLBACK;")
+	_ = db.Query("SELECT a, b FROM t0")
+	_ = db.Query("SELECT count(*) FROM numbers")
+	_ = db.Query("pragma read_uncommitted = 1;")
+}
+// Auto-generated from shared3.test
+func TestSQLite_shared3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    DELETE FROM t1 WHERE 1;\n    PRAGMA incremental_vacuum;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("INSERT INTO t1 VALUES(10, randomblob(10000))")
+	_ = db.Query("PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(randomblob(500), randomblob(500));\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(...")
+	_ = db.Query("PRAGMA main.cache_size")
+	_ = db.Query("PRAGMA main.cache_size = 10;")
+	_ = db.Query("SELECT count(*) FROM sqlite_master")
+}
+// Auto-generated from shared6.test
+func TestSQLite_shared6(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN ; ROLLBACK")
+	_ = db.Exec("BEGIN EXCLUSIVE")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(5, 6);")
+	_ = db.Exec("BEGIN; INSERT INTO t1 VALUES(11, 12);")
+	_ = db.Exec("BEGIN; INSERT INTO t1 VALUES(9, 10);")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;\n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);")
+	_ = db.Exec("COMMIT;\n    BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);")
+	_ = db.Exec("CREATE TABLE t4(a, b)")
+	_ = db.Exec("CREATE TABLE t5(a, b)")
+	_ = db.Query("PRAGMA read_uncommitted = 1")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t2")
+}
+// Auto-generated from shared7.test
+func TestSQLite_shared7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS test2;\n    CREATE TABLE test2.t2(y);")
+	_ = db.Exec("CREATE TABLE t1(x);")
+}
+// Auto-generated from shared8.test
+func TestSQLite_shared8(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n    INSERT INTO t1 VALUES(4, 4);\n    CREATE VIEW v1 AS SELECT a, roman(b) FROM t1;\n    SELECT * FROM v1;")
+	_ = db.Query("PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;")
+	_ = db.Query("SELECT * FROM v1")
+}
+// Auto-generated from shared9.test
+func TestSQLite_shared9(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        SELECT * FROM t1;")
+}
+// Auto-generated from shared_err.test
+func TestSQLite_shared_err(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES('201.201.201.201.201', NULL);\n    UPDATE t1 SET a = '202.202.202.202.202' WHERE a LIKE '201%';\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(6, NULL);\n    ROLLBACK")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("DELETE FROM t1 WHERE 0 = (a % 2);")
+	_ = db.Exec("INSERT INTO t1 SELECT 'string' || a, b FROM t1 WHERE 0 = (a%7);")
+	_ = db.Exec("INSERT INTO t1 SELECT a+1, b FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES($a, $b)")
+	_ = db.Exec("INSERT INTO t1 VALUES(6, NULL);")
+	_ = db.Query("PRAGMA read_uncommitted = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(oid) VALUES(NULL);\n    INSERT INTO t1(oid) SELECT NULL FROM t1;\n    INSERT INTO t1(oid) SELECT NULL FROM t1;\n    INSERT INTO t1(oid) SELECT NULL FROM t1;\n    INSERT INTO t1(oid) SELECT NULL FROM t1;\n    ...")
+	_ = db.Query("PRAGMA read_uncommitted = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));")
+	_ = db.Query("PRAGMA read_uncommitted = 1;\n    CREATE TABLE t1(a,b,c);\n    BEGIN;\n    SELECT * FROM sqlite_master;")
+	_ = db.Query("PRAGMA read_uncommitted = 1;\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("pragma integrity_check")
+}
+// Auto-generated from sharedlock.test
+func TestSQLite_sharedlock(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');")
+	_ = db.Exec("DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 'three')")
+	_ = db.Query("SELECT * FROM t1 ORDER BY rowid")
+	_ = db.Query("SELECT * FROM t2")
+}
 // Auto-generated from shell1.test
 func TestSQLite_shell1(t *testing.T) {
 	db := setupDB(t)
@@ -8821,6 +14253,17 @@ func TestSQLite_shell8(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE sqlar(\n      name TEXT PRIMARY KEY,  -- name of the file\n      mode INT,               -- access permissions\n      mtime INT,              -- last modification time\n      sz INT,                 -- original file size\n      data BLOB               -- compressed content\n    );\n ...")
 }
+// Auto-generated from shell9.test
+func TestSQLite_shell9(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t2 VALUES('two');")
+	_ = db.Exec("CREATE TABLE t4(hello);")
+	_ = db.Exec("CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');")
+	_ = db.Exec("CREATE virtual TABLE r1 USING fts5(x);")
+	_ = db.Query("SELECT * FROM t1;")
+}
 // Auto-generated from shellA.test
 func TestSQLite_shellA(t *testing.T) {
 	db := setupDB(t)
@@ -8834,6 +14277,23 @@ func TestSQLite_shmlock(t *testing.T) {
 	defer db.Close()
 	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);")
 	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from shortread1.test
+func TestSQLite_shortread1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("COMMIT;\n    SELECT count(*) FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a TEXT);\n    BEGIN;\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    INSERT INTO t1 VALUES(hex(randomblob(100)));\n    PRAGMA freelist_count;")
+	_ = db.Exec("DELETE FROM t1 WHERE rowid=1;\n    PRAGMA freelist_count;")
+	_ = db.Exec("INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;")
+}
+// Auto-generated from shrink.test
+func TestSQLite_shrink(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(randomblob(1000000),1);")
+	_ = db.Query("PRAGMA shrink_memory")
+	_ = db.Exec("UPDATE t1 SET y=y+1;")
 }
 // Auto-generated from sidedelete.test
 func TestSQLite_sidedelete(t *testing.T) {
@@ -8949,6 +14409,213 @@ func TestSQLite_skipscan6(t *testing.T) {
 	_ = db.Exec("DROP INDEX ix;\n  CREATE INDEX good on t1(bb, aa, dd DESC);\n  CREATE INDEX bad on t1(aa, bb, cc,  dd DESC);\n  DELETE FROM sqlite_stat1;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('t1','good','2695116 299 264 2');\n  INSERT INTO sqlite_stat1 VALUES('t1','bad','2695116 134755...")
 	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT COUNT(*)\n    FROM t1\n   WHERE bb=21\n     AND aa=1\n     AND dd BETWEEN 1413833728 and 1413837331;")
 }
+// Auto-generated from snapshot.test
+func TestSQLite_snapshot(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN ; PRAGMA application_id")
+	_ = db.Exec("BEGIN;\n        SELECT * FROM t1;")
+	_ = db.Exec("BEGIN;\n        SELECT * FROM t2;")
+	_ = db.Exec("BEGIN;\n      SELECT * FROM t1;")
+	_ = db.Exec("BEGIN; SELECT * FROM t1;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT ; BEGIN ; SELECT * FROM t2")
+	_ = db.Exec("COMMIT;\n      BEGIN;\n        INSERT INTO t2 VALUES('g', 'h');")
+	_ = db.Exec("COMMIT;\n      INSERT INTO t1 VALUES(14);\n      PRAGMA wal_checkpoint;\n      BEGIN;\n        PRAGMA application_id;")
+	_ = db.Exec("COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;")
+	_ = db.Exec("COMMIT;\n      INSERT INTO t3 VALUES('e', 't');\n      BEGIN;")
+	_ = db.Exec("COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('c', 'd');\n    BEGIN;\n      SELECT * FROM t2;")
+	_ = db.Exec("DELETE FROM t1 WHERE a>6")
+	_ = db.Exec("INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');\n      SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(10);\n      COMMIT;")
+	_ = db.Exec("INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    INSERT INTO t1 VALUES(13);\n    BEGIN; \n      PRAGMA application_id;")
+	_ = db.Exec("INSERT INTO t1 VALUES(11, 12);\n      SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(14);\n      BEGIN;\n        PRAGMA application_id;")
+	_ = db.Exec("INSERT INTO t2 VALUES('e', 'f');")
+	_ = db.Exec("INSERT INTO t3 VALUES('f', 's'); \n      BEGIN;")
+	_ = db.Exec("INSERT INTO t3 VALUES('s', 'e');\n      INSERT INTO t3 VALUES('n', 't');\n      BEGIN;\n        SELECT * FROM t3;")
+	_ = db.Exec("INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;")
+	_ = db.Query("PRAGMA journal_mode = DELETE")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);")
+	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);")
+	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE t3(i, j);\n    INSERT INTO t3 VALUES('o', 't');\n    INSERT INTO t3 VALUES('t', 'f');\n    BEGIN;\n      SELECT * FROM t3;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      PRAGMA user_version;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t2")
+	_ = db.Query("SELECT * FROM t3")
+}
+// Auto-generated from snapshot2.test
+func TestSQLite_snapshot2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA aux.journal_mode = wal;\n    CREATE TABLE aux.t2(x, y);")
+	_ = db.Exec("BEGIN;\n      SELECT * FROM sqlite_master;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);")
+	_ = db.Exec("CREATE TABLE t2(x);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t2 VALUES('abc');\n  INSERT INTO t2 VALUES('def');\n  INSERT INTO t2 VALUES('ghi');")
+	_ = db.Exec("INSERT INTO t1 VALUES('e', 'f')")
+	_ = db.Exec("INSERT INTO t1 VALUES(10, 11, 12)")
+	_ = db.Exec("INSERT INTO t1 VALUES(3);")
+	_ = db.Exec("INSERT INTO t1 VALUES(7, 8, 9)")
+	_ = db.Exec("INSERT INTO t2 VALUES('jkl')")
+	_ = db.Query("PRAGMA aux.journal_mode = delete;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');")
+	_ = db.Query("PRAGMA wal_checkpoint")
+	_ = db.Query("PRAGMA wal_checkpoint = RESTART")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
+	_ = db.Query("SELECT * FROM t2;\n    BEGIN;")
+}
+// Auto-generated from snapshot3.test
+func TestSQLite_snapshot3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("CREATE TABLE t1(y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Query("PRAGMA wal_checkpoint")
+	_ = db.Query("PRAGMA wal_checkpoint = truncate")
+	_ = db.Query("SELECT * FROM sqlite_master")
+}
+// Auto-generated from snapshot4.test
+func TestSQLite_snapshot4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      SELECT count(*) FROM t1;")
+	_ = db.Exec("COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;")
+	_ = db.Query("PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, randomblob(400));\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 2 UNION ALL SELECT i+1 FROM s WHERE i<100\n  ) \n  INSERT INTO t1 SELECT i, randomblob(400) FROM s;")
+	_ = db.Query("SELECT count(*) FROM t1")
+}
+// Auto-generated from snapshot_fault.test
+func TestSQLite_snapshot_fault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n    INSERT INTO t1 VALUES(1, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(2, randomblob(500), randomblob(500));\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, randomblob(500), randomblob(500));\n    BEGIN;\n      SELECT a FR...")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t1 VALUES('def');")
+	_ = db.Query("PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 500 * 9500 ));\n  PRAGMA user_version = 211;")
+	_ = db.Query("PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 5000 ));\n  PRAGMA user_version = 211;")
+	_ = db.Query("PRAGMA wal_checkpoint")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT a FROM t1;\n      PRAGMA integrity_check;")
+	_ = db.Query("SELECT count(*) FROM sqlite_master")
+	_ = db.Exec("UPDATE t1 SET b=randomblob(501), c=randomblob(501) WHERE a=1;\n    INSERT INTO t1 VALUES(4, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(5, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(6, randomblob(500), randomblob(500));")
+	_ = db.Exec("UPDATE t1 SET b=randomblob(501), c=randomblob(501) WHERE a=1;\n    INSERT INTO t1 VALUES(4, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(5, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(6, randomblob(500), randomblob(500));\n    BEGIN;")
+}
+// Auto-generated from snapshot_up.test
+func TestSQLite_snapshot_up(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      SELECT * FROM t1")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT ; BEGIN")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);")
+	_ = db.Exec("DELETE FROM t1 WHERE a = 4;")
+	_ = db.Exec("INSERT INTO t1 VALUES(10, 11, 12);")
+	_ = db.Exec("INSERT INTO t1 VALUES(13, 14, 15);")
+	_ = db.Exec("INSERT INTO t1 VALUES(16, 17, 18)")
+	_ = db.Exec("INSERT INTO t1 VALUES(19, 20, 21)")
+	_ = db.Query("PRAGMA wal_checkpoint")
+	_ = db.Query("PRAGMA wal_checkpoint = restart")
+	_ = db.Query("PRAGMA wal_checkpoint;\n    DELETE FROM t1 WHERE a = 1;")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from softheap1.test
+func TestSQLite_softheap1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t2 AS SELECT * FROM t1;")
+	_ = db.Query("PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;")
+	_ = db.Query("PRAGMA integrity_check;")
+	_ = db.Query("PRAGMA soft_heap_limit")
+	_ = db.Query("PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;")
+	_ = db.Query("PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;")
+	_ = db.Query("PRAGMA soft_heap_limit=123456; PRAGMA soft_heap_limit;")
+	_ = db.Exec("ROLLBACK;")
+}
+// Auto-generated from sort.test
+func TestSQLite_sort(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE blob;\n#")
+	_ = db.Exec("#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE clob;\n#")
+	_ = db.Exec("#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE integer;\n#")
+	_ = db.Exec("#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE numeric;\n#")
+	_ = db.Exec("#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE text;\n#")
+	_ = db.Exec("#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE varchar;\n#")
+	_ = db.Exec("#    SELECT substr(v,2,99)+0.0 FROM t1 ORDER BY 1;\n#")
+	_ = db.Exec("CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INT...")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f...")
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(1);\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);")
+	_ = db.Exec("CREATE TABLE t10(a, b);")
+	_ = db.Exec("CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES('AGLIENTU',1);\n    INSERT INTO t2 VALUES('AGLIE`',2);\n    INSERT INTO t2 VALUES('AGNA',3);\n    SELECT a, b FROM t2 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t4(\n      a INTEGER,\n      b VARCHAR(30)\n    );\n    INSERT INTO t4 VALUES(1,1);\n    INSERT INTO t4 VALUES(2,2);\n    INSERT INTO t4 VALUES(11,11);\n    INSERT INTO t4 VALUES(12,12);\n    SELECT a FROM t4 ORDER BY 1;")
+	_ = db.Exec("CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;")
+	_ = db.Exec("CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;")
+	_ = db.Exec("CREATE TABLE t7(c INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(1);\n    INSERT INTO t7 VALUES(2);\n    INSERT INTO t7 VALUES(3);\n    INSERT INTO t7 VALUES(4);")
+	_ = db.Exec("CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;")
+	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t2 VALUES('aglientu',1);\n    INSERT INTO t2 VALUES('aglie`',2);\n    INSERT INTO t2 VALUES('agna',3);\n    SELECT a, b FROM t2 ORDER BY a;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n  SELECT a FROM t1 JOIN t2\n   WHERE a IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)\n     AND a=CASE WHEN d IS NOT NULL THEN e ELSE f END\n   ORDER BY a;")
+	_ = db.Exec("INSERT INTO t1 VALUES(9,'x2.7',3,'IX',4.0e5);\n    INSERT INTO t1 VALUES(10,'x5.0e10',3,'X',-4.0e5);\n    INSERT INTO t1 VALUES(11,'x-4.0e9',3,'XI',4.1e4);\n    INSERT INTO t1 VALUES(12,'x01234567890123456789',3,'XII',-4.2e3);\n    SELECT n FROM t1 ORDER BY n;")
+	_ = db.Exec("INSERT INTO t10 VALUES( $i/10, $i%10 )")
+	_ = db.Query("PRAGMA cache_size = 20")
+	_ = db.Query("PRAGMA cache_size = 5")
+	_ = db.Query("PRAGMA cache_size = 5;\n  SELECT a, b FROM t10 ORDER BY a;")
+	_ = db.Query("SELECT * FROM sqlite_master ORDER BY sql;")
+	_ = db.Query("SELECT ALL n FROM t1 ORDER BY n ASC")
+	_ = db.Query("SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;")
+	_ = db.Query("SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;")
+	_ = db.Query("SELECT a, b FROM t10 ORDER BY a, b")
+	_ = db.Query("SELECT a, b FROM t10 ORDER BY a;")
+	_ = db.Query("SELECT a, b FROM t2 ORDER BY a DESC;")
+	_ = db.Query("SELECT b FROM t4 ORDER BY 1")
+	_ = db.Query("SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;")
+	_ = db.Query("SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;")
+	_ = db.Query("SELECT b FROM v4 ORDER BY 1;")
+	_ = db.Query("SELECT c FROM t7 WHERE c<3 ORDER BY c DESC;")
+	_ = db.Query("SELECT c FROM t7 WHERE c<=3 ORDER BY c DESC;")
+	_ = db.Query("SELECT count(*) FROM t1")
+}
+// Auto-generated from sort2.test
+func TestSQLite_sort2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 10000\n    ) INSERT INTO t1 SELECT * FROM r;")
+	_ = db.Exec("CREATE UNIQUE INDEX i1 ON t1(b, a);")
+	_ = db.Exec("CREATE UNIQUE INDEX i2 ON t1(a);")
+	_ = db.Query("PRAGMA cache_size = 5;\n      WITH r(x,y) AS (\n          SELECT 1, randomblob(100)\n          UNION ALL\n          SELECT x+1, randomblob(100) FROM r\n          LIMIT 1000000\n          )\n        SELECT count(x), length(y) FROM r GROUP BY (x%5)")
+	_ = db.Query("PRAGMA cache_size = 5;\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 100000\n    )\n    SELECT count(x), length(y) FROM r GROUP BY (x%5)")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA threads=7")
+}
+// Auto-generated from sort3.test
+func TestSQLite_sort3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);")
+	_ = db.Query("PRAGMA cache_size = 5;\n  CREATE TABLE t11(a, b);\n  INSERT INTO t11 VALUES(randomblob(5000), NULL);\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --2\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --3\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --4\n  INSE...")
+	_ = db.Query("SELECT * FROM t11 ORDER BY b")
+	_ = db.Exec("WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);")
+}
+// Auto-generated from sort4.test
+func TestSQLite_sort4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DROP TABLE IF EXISTS t1")
+	_ = db.Query("PRAGMA cache_size = $a(-cachesize)")
+	_ = db.Query("PRAGMA compile_options")
+	_ = db.Query("PRAGMA threads")
+	_ = db.Query("PRAGMA threads=5")
+}
 // Auto-generated from sort5.test
 func TestSQLite_sort5(t *testing.T) {
 	db := setupDB(t)
@@ -8968,6 +14635,48 @@ func TestSQLite_sorterref(t *testing.T) {
 	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d, PRIMARY KEY(c)) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(3, 4);\n\n  INSERT INTO t2 VALUES(1, 'one');\n  INSERT INTO t2 VALUES(3, 'three');")
 	_ = db.Query("SELECT * FROM t1 LEFT JOIN t2 ON (a=c) ORDER BY b;")
 	_ = db.Query("SELECT * FROM t1 ORDER BY b;")
+}
+// Auto-generated from sortfault.test
+func TestSQLite_sortfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a);")
+	_ = db.Exec("CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE UNIQUE INDEX i1 ON t1(a,b,c)")
+	_ = db.Exec("INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;")
+	_ = db.Query("PRAGMA cache_size = 5")
+	_ = db.Query("PRAGMA cache_size = 5;")
+	_ = db.Query("PRAGMA threads=$nWorker")
+	_ = db.Query("SELECT * FROM t1 ORDER BY a")
+	_ = db.Exec("WITH r(x,y) AS (\n            SELECT 300, $::str2\n            UNION ALL\n            SELECT x-1, $::str2 FROM r\n            LIMIT 300\n        )\n        SELECT count(x), length(y) FROM r GROUP BY y, (x%5)")
+	_ = db.Exec("WITH r(x,y) AS (\n          SELECT 1, $::str\n          UNION ALL\n          SELECT x+1, $::str FROM r\n          LIMIT 200\n      )\n      SELECT count(x), length(y) FROM r GROUP BY (x%5)")
+	_ = db.Exec("WITH r(x,y) AS (\n          SELECT 100, $::str\n          UNION ALL\n          SELECT x-1, $::str FROM r\n          LIMIT 100\n      )\n      SELECT count(x), length(y) FROM r GROUP BY y COLLATE utf16bin, (x%5)")
+}
+// Auto-generated from speed1.test
+func TestSQLite_speed1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA cache_size=8192;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);")
+	_ = db.Query("SELECT c FROM t1 ORDER BY random() LIMIT 50000")
+	_ = db.Query("SELECT name FROM sqlite_master ORDER BY 1;")
+}
+// Auto-generated from speed1p.test
+func TestSQLite_speed1p(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 VALUES($i,$r,$x)")
+	_ = db.Exec("INSERT INTO t2 VALUES($i,$r,$x)")
+	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA cache_size=500;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);")
+	_ = db.Query("SELECT c FROM t1 ORDER BY random() LIMIT 50000")
+	_ = db.Query("SELECT c FROM t1 WHERE a=$id")
+	_ = db.Query("SELECT c FROM t1 WHERE c=$c")
+	_ = db.Query("SELECT c FROM t1 WHERE rowid=$id")
+	_ = db.Query("SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr")
+	_ = db.Query("SELECT count(*), avg(b) FROM t1 WHERE c LIKE $pattern")
+	_ = db.Query("SELECT name FROM sqlite_master ORDER BY 1;")
+	_ = db.Exec("UPDATE t1 SET b=$r WHERE a=$i")
+	_ = db.Exec("UPDATE t1 SET b=b*2 WHERE a>=$lwr AND a<$upr")
+	_ = db.Exec("UPDATE t1 SET c=$x WHERE a=$i")
 }
 // Auto-generated from speed2.test
 func TestSQLite_speed2(t *testing.T) {
@@ -9130,6 +14839,38 @@ func TestSQLite_sqldiff1(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY);")
 	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);")
 	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;")
+}
+// Auto-generated from sqllimits1.test
+func TestSQLite_sqllimits1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);")
+	_ = db.Exec("CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    INSERT INTO t4 VALUES(2);\n    INSERT INTO t4 SELECT 2+x FROM t4;")
+	_ = db.Exec("CREATE TABLE trig (a INTEGER, b INTEGER);")
+	_ = db.Exec("CREATE TRIGGER update_b BEFORE UPDATE ON trig\n      FOR EACH ROW BEGIN\n        INSERT INTO trig VALUES (65, 'update_b');\n      END;\n\n    CREATE TRIGGER update_a AFTER UPDATE ON trig\n      FOR EACH ROW BEGIN\n        INSERT INTO trig VALUES (65, 'update_a');\n      END;\n\n    CREATE TRIGGER...")
+	_ = db.Exec("DROP TABLE abc;")
+	_ = db.Exec("DROP TABLE t4")
+	_ = db.Exec("DROP VIEW IF EXISTS v1")
+	_ = db.Exec("INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);")
+	_ = db.Exec("INSERT INTO trig VALUES (1,1);")
+	_ = db.Query("PRAGMA auto_vacuum")
+	_ = db.Query("PRAGMA encoding = 'utf16';")
+	_ = db.Query("PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n ...")
+	_ = db.Query("PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);")
+	_ = db.Query("PRAGMA max_page_count = 1000;")
+	_ = db.Query("PRAGMA max_page_count;")
+	_ = db.Query("SELECT $::string LIKE $::pattern;")
+	_ = db.Query("SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n    SELECT 1,2,3,4,5,6,7,8,9,10\n  )\n  ))))")
+	_ = db.Query("SELECT COUNT(*) FROM trig;")
+	_ = db.Query("SELECT count(*) FROM sqlite_master;")
+}
+// Auto-generated from sqllog.test
+func TestSQLite_sqllog(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES($a, $b);\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(4, 5);\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(6, 7);\n  SELECT * FROM t1;")
 }
 // Auto-generated from starschema1.test
 func TestSQLite_starschema1(t *testing.T) {
@@ -9316,6 +15057,51 @@ func TestSQLite_subjournal(t *testing.T) {
 	_ = db.Query("PRAGMA integrity_check")
 	_ = db.Query("PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);")
 }
+// Auto-generated from subquery.test
+func TestSQLite_subquery(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n   ...")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a);\n    SELECT a, x FROM t1, t2 WHERE t1.a = (SELECT x);")
+	_ = db.Exec("CREATE INDEX t4i ON t4(x);\n    SELECT * FROM t4 WHERE x IN (SELECT a FROM t3);")
+	_ = db.Exec("CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    size INT,\n    uuid TEXT\n  );\n  CREATE TABLE delta(\n    rid INTEGER PRIMARY KEY,\n    srcid INT\n  );\n  CREATE INDEX delta_i1 ON delta(srcid);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n      INSERT INTO t1 VALUES(1,2);\n      CREATE VIEW v1 AS SELECT b FROM t1 WHERE a>0;\n      CREATE TABLE t2(p,q);\n      INSERT INTO t2 VALUES(2,9);\n      SELECT * FROM v1 WHERE EXISTS(SELECT * FROM t2 WHERE p=v1.b);")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(p,q);\n    INSERT INTO t2 VALUES(2,9);")
+	_ = db.Exec("CREATE TABLE t1(aa TEXT, bb INT, cc TEXT);\n  CREATE INDEX x11 on t1(bb);\n  CREATE INDEX x12 on t1(aa);\n  CREATE TABLE t2(aa TEXT, xx INT);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES('t1', 'x11', '156789 28');\n  INSERT INTO sqlite_stat1(tbl, idx, stat) VALUES(...")
+	_ = db.Exec("CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(1),(1);\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 100) FROM t1;")
+	_ = db.Exec("CREATE TABLE t2(c, d);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n    SELECT a, (SELECT d FROM t2 WHERE a=c) FROM t1 GROUP BY a;")
+	_ = db.Exec("CREATE TABLE t3(a INTEGER);\n    INSERT INTO t3 VALUES(10);\n\n    CREATE TABLE t4(x TEXT);\n    INSERT INTO t4 VALUES('10.0');")
+	_ = db.Exec("CREATE TABLE t3(a PRIMARY KEY);\n    INSERT INTO t3 VALUES(10);")
+	_ = db.Exec("CREATE TABLE t3(a PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, 2);\n    INSERT INTO t3 VALUES(3, 1);")
+	_ = db.Exec("CREATE TABLE t3(a TEXT);\n    INSERT INTO t3 VALUES('10');")
+	_ = db.Exec("CREATE TABLE t3(a TEXT);\n    INSERT INTO t3 VALUES('XX');")
+	_ = db.Exec("CREATE TABLE t34(x,y);\n    INSERT INTO t34 VALUES(106,4), (107,3), (106,5), (107,5);\n    SELECT a.x, avg(a.y)\n      FROM t34 AS a\n     GROUP BY a.x\n     HAVING NOT EXISTS( SELECT b.x, avg(b.y)\n                          FROM t34 AS b\n                         GROUP BY b.x\n                  ...")
+	_ = db.Exec("CREATE TABLE t35a(x); INSERT INTO t35a VALUES(1),(2),(3);\n    CREATE TABLE t35b(y); INSERT INTO t35b VALUES(98), (99);\n    SELECT max((SELECT avg(y) FROM t35b)) FROM t35a;")
+	_ = db.Exec("CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES('one',1);\n    INSERT INTO t4 VALUES('two',2);\n    INSERT INTO t4 VALUES('three',3);\n    INSERT INTO t4 VALUES('four',4);\n    CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,11);\n    INSERT INTO t5 VALUES(2,22);\n    INSERT INTO t5 VALUES(3,...")
+	_ = db.Exec("CREATE TABLE t5 (val int, period text PRIMARY KEY);\n    INSERT INTO t5 VALUES(5, '2001-3');\n    INSERT INTO t5 VALUES(10, '2001-4');\n    INSERT INTO t5 VALUES(15, '2002-1');\n    INSERT INTO t5 VALUES(5, '2002-2');\n    INSERT INTO t5 VALUES(10, '2002-3');\n    INSERT INTO t5 VALUES(15, '2002-...")
+	_ = db.Exec("CREATE TABLE t7(c7);\n    INSERT INTO t7 VALUES(1);\n    INSERT INTO t7 VALUES(2);\n    INSERT INTO t7 VALUES(3);\n    CREATE TABLE t8(c8);\n    INSERT INTO t8 VALUES(100);\n    INSERT INTO t8 VALUES(200);\n    INSERT INTO t8 VALUES(300);\n    CREATE TABLE t9(c9);\n    INSERT INTO t9 VALUES(10000...")
+	_ = db.Exec("CREATE TABLE t8(a TEXT, b INT);\n  SELECT (SELECT 0 FROM (SELECT * FROM t1)) AS x WHERE x;\n  SELECT (SELECT 0 FROM (SELECT * FROM (SELECT 0))) AS x WHERE x;")
+	_ = db.Exec("DELETE FROM t1;\n    SELECT (SELECT a FROM t1);")
+	_ = db.Exec("DROP TABLE t3;")
+	_ = db.Exec("DROP TABLE t3;\n    DROP TABLE t4;")
+	_ = db.Exec("DROP TABLE t5;")
+	_ = db.Query("EXPLAIN QUERY PLAN\n    SELECT * FROM t4 WHERE x IN (SELECT a FROM t3);")
+	_ = db.Exec("INSERT INTO t1 VALUES(2);\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 1) FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(2, 4);\n    SELECT max(a), (SELECT d FROM t2 WHERE a=c) FROM t1;")
+	_ = db.Exec("INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1)")
+	_ = db.Query("SELECT\n       a.x,\n       avg(a.y),\n       NOT EXISTS ( SELECT b.x, avg(b.y)\n                      FROM t34 AS b\n                      GROUP BY b.x\n                     HAVING avg(a.y) > avg(b.y)),\n       EXISTS ( SELECT c.x, avg(c.y)\n                  FROM t34 AS c\n                  GRO...")
+	_ = db.Query("SELECT (SELECT (SELECT c7+c8+max(c9) FROM t9) FROM t8) FROM t7")
+	_ = db.Query("SELECT (SELECT (SELECT c7+max(c8)+c9 FROM t9) FROM t8) FROM t7")
+	_ = db.Query("SELECT (SELECT (SELECT c7+max(c8+c9) FROM t9) FROM t8) FROM t7")
+	_ = db.Query("SELECT (SELECT (SELECT max(c7)+c8+c9 FROM t9) FROM t8) FROM t7")
+	_ = db.Query("SELECT (SELECT (SELECT max(c7)+max(c8)+max(c9) FROM t9) FROM t8) FROM t7")
+	_ = db.Query("SELECT (SELECT (SELECT max(c7+c8+c9) FROM t9) FROM t8) FROM t7")
+	_ = db.Query("SELECT (SELECT 10);")
+	_ = db.Query("SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 0) FROM t1;")
+	_ = db.Query("SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 2) FROM t1;")
+	_ = db.Query("SELECT (SELECT a FROM t1);")
+}
 // Auto-generated from subquery2.test
 func TestSQLite_subquery2(t *testing.T) {
 	db := setupDB(t)
@@ -9487,6 +15273,20 @@ func TestSQLite_swarmvtabfault(t *testing.T) {
 	_ = db.Exec("CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n        'VALUES\n        (\"test.db1\", \"t1\", 1, 10),\n        (\"test.db2\", \"t1\", 11, 20)\n        ', 'fetch_db'\n    );")
 	_ = db.Query("SELECT a FROM xyz")
 }
+// Auto-generated from symlink.test
+func TestSQLite_symlink(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        INSERT INTO t1 VALUES(1);")
+	_ = db.Exec("COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);")
+	_ = db.Exec("CREATE TABLE t1(x)")
+	_ = db.Exec("CREATE TABLE t1(x, y);")
+	_ = db.Exec("CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);")
+	_ = db.Exec("DELETE FROM t1;\n    PRAGMA journal_mode = delete;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
+}
 // Auto-generated from symlink2.test
 func TestSQLite_symlink2(t *testing.T) {
 	db := setupDB(t)
@@ -9541,6 +15341,96 @@ func TestSQLite_sysfault(t *testing.T) {
 	_ = db.Query("PRAGMA mmap_size = 1000000;")
 	_ = db.Query("PRAGMA synchronous=OFF;\n    CREATE TABLE t1(a, b);\n    BEGIN;\n      SELECT * FROM t1;")
 	_ = db.Query("SELECT * FROM t1;")
+}
+// Auto-generated from tabfunc01.test
+func TestSQLite_tabfunc01(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t1(a,b,c);\n  SELECT * FROM aux1.generate_series(1,4)")
+	_ = db.Exec("CREATE TABLE t0(x);\n  INSERT INTO t0(x) VALUES(123),(456),(789);\n  SELECT * FROM t0 ORDER BY x;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TABLE t2(y);")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(2),(3);\n  SELECT *, '|' FROM t1, generate_series(1,x) ORDER BY 1, 2")
+	_ = db.Exec("CREATE TABLE t600(a INTEGER PRIMARY KEY, b TEXT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t600(a,b) SELECT x, printf('(%03d)',x) FROM c;\n  SELECT b FROM t600 WHERE a IN generate_series(2,52,10);")
+	_ = db.Exec("CREATE VIEW v1(a,b) AS VALUES(1,2),(3,4);\n  SELECT * FROM v1;")
+	_ = db.Exec("CREATE VIEW v2(x) AS SELECT value FROM generate_series(1,5);\n  SELECT * FROM v2;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING generate_series;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(value INT);\n  INSERT INTO t1 VALUES (1),(2),(3);\n  SELECT t1.value, t2.value\n    FROM t1 RIGHT JOIN generate_series(1,3,1) AS t2 USING(value);")
+	_ = db.Query("PRAGMA table_xinfo(generate_series);")
+	_ = db.Query("SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT -1 OFFSET 0;")
+	_ = db.Query("SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT -1 OFFSET 5;")
+	_ = db.Query("SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT 10 OFFSET 5;")
+	_ = db.Query("SELECT * FROM (generate_series(1,5,2)) AS x LIMIT 10;")
+	_ = db.Query("SELECT * FROM generate_series WHERE start IN (1,7) AND stop=20 AND step=10\n  ORDER BY +1;")
+	_ = db.Query("SELECT * FROM generate_series(0) LIMIT 5;")
+	_ = db.Query("SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 1;")
+	_ = db.Query("SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;")
+	_ = db.Query("SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC;")
+	_ = db.Query("SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n  LIMIT 1 OFFSET 0;")
+	_ = db.Query("SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808);")
+	_ = db.Query("SELECT * FROM generate_series(0,0,0);")
+	_ = db.Query("SELECT * FROM generate_series(0,32,5) ORDER BY rowid DESC;")
+	_ = db.Query("SELECT * FROM generate_series(1,10) WHERE step=3;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,1) LIMIT 100 OFFSET 10;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,1) LIMIT 3 OFFSET 3;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 4;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 5;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 6;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 7;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;")
+	_ = db.Query("SELECT * FROM generate_series(1,11,2);")
+	_ = db.Query("SELECT * FROM generate_series(1,9);")
+	_ = db.Query("SELECT * FROM generate_series(1,9,2);")
+	_ = db.Query("SELECT * FROM generate_series(1,9,2,11);")
+	_ = db.Query("SELECT * FROM generate_series(11,1,-1) LIMIT 100 OFFSET 10;")
+	_ = db.Query("SELECT * FROM generate_series(11,1,-1) LIMIT 100 OFFSET 9223372036854775807;")
+	_ = db.Query("SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 1;")
+	_ = db.Query("SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 2;")
+	_ = db.Query("SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 9223372036854775807;")
+}
+// Auto-generated from table.test
+func TestSQLite_table(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#   pragma vdbe_trace = 0;\n#")
+	_ = db.Exec("ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat1;\n    DROP TABLE IF EXISTS sqlite_stat2;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_stat*';")
+	_ = db.Exec("ATTACH 'test2.db' as aux;")
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;\n  PRAGMA integrity_check;")
+	_ = db.Exec("CREATE INDEX test3 ON test2(one)")
+	_ = db.Exec("CREATE TABLE \"create\" (f1 int)")
+	_ = db.Exec("CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO [t3\"xyz] VALUES(1,2,3);\n    SELECT * FROM [t3\"xyz];")
+	_ = db.Exec("CREATE TABLE 'Spaces In This Name!'(x int)")
+	_ = db.Exec("CREATE TABLE BIG(xyz foo)")
+	_ = db.Exec("CREATE TABLE Big(xyz foo)")
+	_ = db.Exec("CREATE TABLE TEST2(one text)")
+	_ = db.Exec("CREATE TABLE aux.t1(a, b, c)")
+	_ = db.Exec("CREATE TABLE bIg(xyz foo)")
+	_ = db.Exec("CREATE TABLE biG(xyz foo)")
+	_ = db.Exec("CREATE TABLE savepoint(release);\n    INSERT INTO savepoint(release) VALUES(10);\n    UPDATE savepoint SET release = 5;\n    SELECT release FROM savepoint;")
+	_ = db.Exec("CREATE TABLE sqlite_master(two text)")
+	_ = db.Exec("CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;")
+	_ = db.Exec("CREATE TABLE t10(\"col.1\" [char.3]);\n    CREATE TABLE t11 AS SELECT * FROM t10;\n    SELECT sql FROM sqlite_master WHERE name = 't11';")
+	_ = db.Exec("CREATE TABLE t12(\n      a INTEGER,\n      b VARCHAR(10),\n      c VARCHAR(1,10),\n      d VARCHAR(+1,-10),\n      e VARCHAR (+1,-10),\n      f \"VARCHAR (+1,-10, 5)\",\n      g BIG INTEGER\n    );\n    CREATE TABLE t13 AS SELECT * FROM t12;\n    SELECT sql FROM sqlite_master WHERE name = 't13';")
+	_ = db.Exec("CREATE TABLE t16(x DEFAULT(max(1)));\n  INSERT INTO t16(x) VALUES(123);\n  SELECT rowid, x FROM t16;")
+	_ = db.Exec("CREATE TABLE t19 AS SELECT * FROM sqlite_master;\n  SELECT name FROM t19 ORDER BY name;")
+	_ = db.Exec("CREATE TABLE t7(\n       a integer primary key,\n       b number(5,10),\n       c character varying (8),\n       d VARCHAR(9),\n       e clob,\n       f BLOB,\n       g Text,\n       h\n    );\n    INSERT INTO t7(a) VALUES(1);\n    SELECT typeof(a), typeof(b), typeof(c), typeof(d),\n           ty...")
+	_ = db.Exec("CREATE TABLE t8 AS SELECT b, h, a as i, (SELECT f FROM t7) as j FROM t7;")
+	_ = db.Exec("CREATE TABLE t8 AS SELECT b, h, a as i, f as j FROM t7;")
+	_ = db.Exec("CREATE TABLE t9(a, b, c)")
+	_ = db.Exec("CREATE TABLE tablet8(\n       a integer primary key,\n       tm text DEFAULT CURRENT_TIME,\n       dt text DEFAULT CURRENT_DATE,\n       dttm text DEFAULT CURRENT_TIMESTAMP\n    );\n    SELECT * FROM tablet8;")
+	_ = db.Exec("CREATE TABLE test1 (\n      one varchar(10),\n      two text\n    )")
+	_ = db.Exec("CREATE TABLE test1(\"f1 ho\" int)")
+	_ = db.Exec("CREATE TABLE test1(f1 int)")
+	_ = db.Exec("CREATE TABLE test2(one text)")
+	_ = db.Exec("CREATE TABLE test3(two text)")
+	_ = db.Exec("CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      [14_vac] boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )")
+	_ = db.Exec("DROP INDEX test3")
+	_ = db.Exec("DROP TABLE \"TEST1\"")
+	_ = db.Exec("DROP TABLE \"create\"")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  BEGIN;\n  CREATE TABLE t1 AS SELECT zeroblob(2e20);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES(1),(2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x TEXT, y TEXT);\n  INSERT INTO t2(x,y) VALUES(3,4);\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS\n    SELECT a AS p, coalesce(y,a) AS q FROM t1 LEFT JOIN t...")
+	_ = db.Exec("DROP TABLE aux.t1;")
 }
 // Auto-generated from tableopts.test
 func TestSQLite_tableopts(t *testing.T) {
@@ -9705,6 +15595,104 @@ func TestSQLite_temptable3(t *testing.T) {
 	defer db.Close()
 	_ = db.Query("PRAGMA cache_size = 1;\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x UNIQUE);\n  INSERT INTO t2 VALUES(1), (2), (3);\n  DROP TABLE t1;\n  PRAGMA integrity_check;")
 	_ = db.Query("PRAGMA cache_size = 1;\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( randomblob(800) );\n  INSERT INTO t1 VALUES( randomblob(800) );\n  CREATE TABLE t2(x);\n  PRAGMA integrity_check;")
+}
+// Auto-generated from temptrigger.test
+func TestSQLite_temptrigger(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH ':memory:' AS db$ii")
+	_ = db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n    CREATE TEMP TABLE tt2(a, b);\n    CREATE TEMP TRIGGER tr2 AFTER INSERT ON aux.t2 BEGIN\n      INSERT INTO tt2 VALUES(new.a, new.b);\n    END;")
+	_ = db.Exec("BEGIN; CREATE TABLE t3(a, b); ROLLBACK;")
+	_ = db.Exec("CREATE TABLE a1(e, f);\n  INSERT INTO m1 VALUES(7, 8);")
+	_ = db.Exec("CREATE TABLE db$ii.tbl(a, b, c)")
+	_ = db.Exec("CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN\n    SELECT 1,2,3;\n  END;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN SELECT 1,2,3; END;")
+	_ = db.Exec("CREATE TABLE t2(a, b)")
+	_ = db.Exec("CREATE TABLE t3(a, b)")
+	_ = db.Exec("CREATE TEMP TABLE t1(x);")
+	_ = db.Exec("CREATE TEMP TRIGGER tr$ii AFTER INSERT ON db$ii.tbl BEGIN\n        INSERT INTO db$jj.tbl VALUES(new.b, new.c, new.a);\n      END;")
+	_ = db.Exec("CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 VALUES(new.a, new.b);\n  END;\n\n  INSERT INTO m1 VALUES(5, 6);\n  SELECT * FROM aux.a1;")
+	_ = db.Exec("CREATE TEMP TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;\n\n  INSERT INTO main.t2 VALUES('x', 'y');\n  SELECT * FROM aux.t1;")
+	_ = db.Exec("CREATE TEMP TRIGGER tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;\n\n  UPDATE aux.t1 SET e=1, f=2;\n  SELECT * FROM t2;")
+	_ = db.Exec("CREATE TEMP TRIGGER trd$ii BEFORE DELETE ON db$ii.tbl BEGIN\n        DELETE FROM db$jj.tbl;\n      END;")
+	_ = db.Exec("CREATE TEMP TRIGGER tru$ii AFTER UPDATE ON db$ii.tbl BEGIN\n        UPDATE db$jj.tbl SET a=new.b, b=new.c, c=new.a;\n      END;")
+	_ = db.Exec("CREATE TRIGGER aux.tr2 AFTER UPDATE ON aux.t1 BEGIN\n    UPDATE main.t2 SET c=new.e, d=new.f;\n  END;")
+	_ = db.Exec("CREATE TRIGGER tr1 AFTER INSERT ON t2 BEGIN\n    INSERT INTO aux.t1 VALUES(new.c, new.d);\n  END;")
+	_ = db.Exec("CREATE TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;")
+	_ = db.Exec("DELETE FROM db0.tbl")
+	_ = db.Exec("DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;")
+	_ = db.Exec("DROP TABLE t1")
+	_ = db.Exec("DROP TRIGGER tr1")
+	_ = db.Exec("DROP TRIGGER tr1;\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n\n  DELETE FROM aux.a1;\n  DELETE FROM main.a1;\n  INSERT INTO aux.a1 VALUES('hello', 'world');")
+	_ = db.Exec("DROP TRIGGER tr1;\n  CREATE TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;")
+	_ = db.Exec("DROP TRIGGER tr2")
+	_ = db.Exec("INSERT INTO aux.t2 VALUES(1, 2);\n    SELECT * FROM aux.t2;")
+	_ = db.Exec("INSERT INTO aux.t2 VALUES(3, 4);\n    SELECT * FROM aux.t2;")
+	_ = db.Exec("INSERT INTO db0.tbl VALUES('a', 'b', 'c');")
+	_ = db.Exec("INSERT INTO m1 VALUES(9, 10);\n  SELECT * FROM main.a1;")
+	_ = db.Exec("INSERT INTO main.t1 VALUES('a', 'b');\n  CREATE TEMP TRIGGER tr3 AFTER DELETE ON t2 BEGIN\n    DELETE FROM aux.t1;\n  END;\n\n  DELETE FROM main.t2;\n  SELECT * FROM aux.t1;")
+	_ = db.Exec("INSERT INTO main.t1 VALUES(1);")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+	_ = db.Exec("INSERT INTO t1 VALUES(10, 20);\n    SELECT * FROM tt1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4)")
+}
+// Auto-generated from thread001.test
+func TestSQLite_thread001(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE ab(a INTEGER PRIMARY KEY, b);\n      CREATE INDEX ab_i ON ab(b);\n      INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab;\n      SELECT count(*) FROM ab;")
+	_ = db.Exec("INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("SELECT \n            (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n            (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))")
+	_ = db.Query("SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))")
+	_ = db.Query("SELECT \n        (SELECT md5sum(a, b) FROM ab WHERE a < (SELECT max(a) FROM ab)) ==\n        (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))")
+	_ = db.Query("SELECT count(*) FROM ab;")
+}
+// Auto-generated from thread002.test
+func TestSQLite_thread002(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS aux1.t2(a,b)")
+	_ = db.Exec("CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);")
+	_ = db.Exec("DROP TABLE IF EXISTS aux1.t2")
+	_ = db.Exec("INSERT INTO aux1.t1(v) SELECT sum(v) FROM aux2.t1")
+	_ = db.Exec("INSERT INTO aux2.t1(v) SELECT sum(v) FROM aux3.t1")
+	_ = db.Exec("INSERT INTO aux3.t1(v) SELECT sum(v) FROM aux1.t1")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("SELECT * FROM aux1.t1")
+	_ = db.Query("SELECT * FROM aux2.t1")
+	_ = db.Query("SELECT * FROM aux3.t1")
+	_ = db.Query("SELECT count(*) FROM t1")
+}
+// Auto-generated from thread003.test
+func TestSQLite_thread003(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b, c);")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a, b); \n    COMMIT;")
+	_ = db.Exec("INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
+	_ = db.Query("PRAGMA cache_size = 15")
+}
+// Auto-generated from thread004.test
+func TestSQLite_thread004(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a, b, c)")
+}
+// Auto-generated from thread005.test
+func TestSQLite_thread005(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux")
+	_ = db.Exec("CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);")
+	_ = db.Exec("CREATE TABLE t1(a, b)")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE b IS NULL")
+	_ = db.Exec("zSql {db {")
 }
 // Auto-generated from thread1.test
 func TestSQLite_thread1(t *testing.T) {
@@ -10236,6 +16224,14 @@ func TestSQLite_tkt_b351d95f9(t *testing.T) {
 	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y BETWEEN 'xy' AND 'xz' FROM t2 ORDER BY x;")
 	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;")
 }
+// Auto-generated from tkt-b72787b1.test
+func TestSQLite_tkt_b72787b1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS t4(q)")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;")
+	_ = db.Query("SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;")
+}
 // Auto-generated from tkt-b75a9ca6b0.test
 func TestSQLite_tkt_b75a9ca6b0(t *testing.T) {
 	db := setupDB(t)
@@ -10353,6 +16349,14 @@ func TestSQLite_tkt_f777251dc7a(t *testing.T) {
 	_ = db.Exec("INSERT OR ROLLBACK INTO t1 VALUES(1)")
 	_ = db.Query("SELECT * FROM t3")
 	_ = db.Query("SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1")
+}
+// Auto-generated from tkt-f7b4edec.test
+func TestSQLite_tkt_f7b4edec(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;")
+	_ = db.Exec("CREATE TABLE t1(x, y);")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
 }
 // Auto-generated from tkt-f973c7ac31.test
 func TestSQLite_tkt_f973c7ac31(t *testing.T) {
@@ -10519,6 +16523,31 @@ func TestSQLite_tkt1567(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a TEXT PRIMARY KEY);")
 	_ = db.Exec("CREATE TABLE t2(a TEXT PRIMARY KEY, rowid INT) WITHOUT rowid;")
 }
+// Auto-generated from tkt1644.test
+func TestSQLite_tkt1644(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE real_t1(a, b);\n      CREATE TEMP VIEW temp_v1 AS SELECT * FROM real_t1;")
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES(99);\n    CREATE TEMP VIEW v1 AS SELECT * FROM t1;\n    SELECT * FROM v1;")
+	_ = db.Exec("CREATE TEMP TABLE t1(x);")
+	_ = db.Exec("CREATE TEMP TABLE temp_t1(a, b);")
+	_ = db.Exec("CREATE TEMP VIEW temp_v1 AS SELECT * FROM real_t1 LIMIT 10 OFFSET 10;")
+	_ = db.Exec("DROP TABLE temp_t1;")
+	_ = db.Exec("DROP VIEW temp_v1;")
+	_ = db.Exec("DROP VIEW v1;\n    CREATE TEMP VIEW v1 AS SELECT * FROM t2;\n    SELECT * FROM v1;")
+	_ = db.Query("SELECT * FROM t1;")
+}
+// Auto-generated from tkt1667.test
+func TestSQLite_tkt1667(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("DELETE FROM t1 WHERE a = $i;")
+	_ = db.Exec("DELETE FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES($i, randstr(1000, 2000))")
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);")
+}
 // Auto-generated from tkt1873.test
 func TestSQLite_tkt1873(t *testing.T) {
 	db := setupDB(t)
@@ -10602,6 +16631,15 @@ func TestSQLite_tkt2391(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;")
 	_ = db.Query("SELECT count(*) FROM folders WHERE foldername < 'FolderC';")
 }
+// Auto-generated from tkt2409.test
+func TestSQLite_tkt2409(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n        INSERT INTO t1 VALUES($::zShort, $::zLong);")
+	_ = db.Query("PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);")
+	_ = db.Query("PRAGMA cache_size=10;\n    DELETE FROM t1;")
+	_ = db.Query("PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);")
+}
 // Auto-generated from tkt2450.test
 func TestSQLite_tkt2450(t *testing.T) {
 	db := setupDB(t)
@@ -10610,6 +16648,15 @@ func TestSQLite_tkt2450(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM \"t a\", t1;")
 	_ = db.Query("SELECT \"t a\".* FROM \"t a\";")
 	_ = db.Query("SELECT * FROM \"t a\";")
+}
+// Auto-generated from tkt2565.test
+func TestSQLite_tkt2565(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');")
+	_ = db.Exec("CREATE TABLE A(Id INTEGER, Name TEXT)")
+	_ = db.Query("pragma locking_mode=exclusive")
+	_ = db.Query("pragma page_size=512;\n    pragma auto_vacuum=2;\n    pragma cache_size=16;")
 }
 // Auto-generated from tkt2640.test
 func TestSQLite_tkt2640(t *testing.T) {
@@ -10656,6 +16703,17 @@ func TestSQLite_tkt2817(t *testing.T) {
 	_ = db.Exec("CREATE TEMP TABLE tbl(a, b, c);\n    -- INSERT INTO tbl VALUES(1, 'abc', 'def');\n    -- INSERT INTO tbl VALUES(2, 'ghi', 'jkl');")
 	_ = db.Exec("CREATE TEMP TABLE tmp(a, b, c);\n    INSERT INTO tmp VALUES(1, 'abc', 'def');\n    INSERT INTO tmp VALUES(2, 'ghi', 'jkl');")
 }
+// Auto-generated from tkt2820.test
+func TestSQLite_tkt2820(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);")
+	_ = db.Exec("INSERT INTO t1 SELECT a+1 FROM t1 ORDER BY a DESC")
+	_ = db.Query("PRAGMA vdbe_trace=ON")
+	_ = db.Query("SELECT a FROM t1 ORDER BY a")
+	_ = db.Query("SELECT name FROM sqlite_master")
+	_ = db.Query("SELECT name FROM sqlite_master ORDER BY 1")
+}
 // Auto-generated from tkt2822.test
 func TestSQLite_tkt2822(t *testing.T) {
 	db := setupDB(t)
@@ -10694,6 +16752,19 @@ func TestSQLite_tkt2832(t *testing.T) {
 	_ = db.Exec("DELETE FROM t3 WHERE 1")
 	_ = db.Exec("UPDATE OR REPLACE t1 SET a = 1;\n    SELECT * FROM t1;")
 	_ = db.Exec("UPDATE t2 SET b = 5")
+}
+// Auto-generated from tkt2854.test
+func TestSQLite_tkt2854(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test2.db' AS aux")
+	_ = db.Exec("BEGIN EXCLUSIVE")
+	_ = db.Exec("BEGIN IMMEDIATE")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM abc;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE abc(a, b, c);")
+	_ = db.Exec("CREATE TABLE def(d, e, f)")
+	_ = db.Query("SELECT * FROM abc")
 }
 // Auto-generated from tkt2920.test
 func TestSQLite_tkt2920(t *testing.T) {
@@ -10771,6 +16842,14 @@ func TestSQLite_tkt3080(t *testing.T) {
 	_ = db.Query("SELECT name FROM sqlite_master")
 	_ = db.Query("SELECT name FROM sqlite_master;")
 }
+// Auto-generated from tkt3093.test
+func TestSQLite_tkt3093(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n     INSERT INTO t1 VALUES(2);")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1")
+}
 // Auto-generated from tkt3121.test
 func TestSQLite_tkt3121(t *testing.T) {
 	db := setupDB(t)
@@ -10792,6 +16871,15 @@ func TestSQLite_tkt3201(t *testing.T) {
 	_ = db.Query("SELECT l.a, r.a FROM t1 AS l, t1 AS r WHERE l.a < r.a;")
 	_ = db.Query("SELECT l.a, r.a FROM t1 AS l, t2 AS r WHERE l.a < r.a;")
 	_ = db.Query("SELECT t1.a, t1.b, t2.a, t2.b FROM t1, t2;")
+}
+// Auto-generated from tkt3292.test
+func TestSQLite_tkt3292(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b>=1;")
+	_ = db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t2 VALUES(0, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(1, 1, 'hello', x'012345');\n    INSERT INTO t2 VALUES(2, 1, 'hello', x'012345');\n    CREATE INDEX i2 ON t2(b,c,d);\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d...")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 0);\n    INSERT INTO t1 VALUES(4, 2);\n    SELECT * FROM t1 WHERE b>=1;")
+	_ = db.Exec("INSERT INTO t2 VALUES(3, 1, 'hello', x'012344');\n    INSERT INTO t2 VALUES(4, 1, 'hello', x'012346');\n    SELECT a FROM t2 WHERE b=1 AND c='hello' AND d>=x'012345';")
 }
 // Auto-generated from tkt3298.test
 func TestSQLite_tkt3298(t *testing.T) {
@@ -10856,6 +16944,12 @@ func TestSQLite_tkt3424(t *testing.T) {
 	_ = db.Exec("CREATE INDEX udx_orig_code_data ON orig(code, data)")
 	_ = db.Exec("CREATE TABLE names(id INTEGER, data TEXT, code TEXT);\n    INSERT INTO names VALUES(1,'E1','AAA');\n    INSERT INTO names VALUES(2,NULL,'BBB');\n\n    CREATE TABLE orig(code TEXT, data TEXT);\n    INSERT INTO orig VALUES('AAA','E1');\n    INSERT INTO orig VALUES('AAA','E2');\n    INSERT INTO orig...")
 	_ = db.Query("SELECT * FROM \n    names LEFT OUTER JOIN orig\n    ON names.data = orig.data AND names.code = orig.code;")
+}
+// Auto-generated from tkt3442.test
+func TestSQLite_tkt3442(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE listhash(\n       key INTEGER PRIMARY KEY,\n       id TEXT,\n       node INTEGER\n     );\n     CREATE UNIQUE INDEX ididx ON listhash(id);")
 }
 // Auto-generated from tkt3457.test
 func TestSQLite_tkt3457(t *testing.T) {
@@ -11029,6 +17123,14 @@ func TestSQLite_tkt3791(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(x, y DEFAULT(datetime('now')));\n    INSERT INTO t1(x) VALUES(1);\n    SELECT x, length(y) FROM t1;")
 }
+// Auto-generated from tkt3793.test
+func TestSQLite_tkt3793(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randstr(50,50), randstr(50,50));\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT r...")
+	_ = db.Exec("BEGIN;\n    SELECT count(*) FROM t1;")
+	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);")
+}
 // Auto-generated from tkt3810.test
 func TestSQLite_tkt3810(t *testing.T) {
 	db := setupDB(t)
@@ -11065,6 +17167,12 @@ func TestSQLite_tkt3838(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE log(y);\n      CREATE TRIGGER r1 AFTER INSERT ON T1 BEGIN\n        INSERT INTO log VALUES(new.x);\n      END;\n      INSERT INTO t1(x) VALUES(123);\n      ALTER TABLE T1 RENAME TO XYZ2;\n      INSERT INTO xyz2(x) VALUES(456);\n      ALTER TABLE xyz2 RENAME TO pqr3;\n      INSERT INTO...")
 	_ = db.Query("PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ALTER TABLE t1 ADD COLUMN b INTEGER DEFAULT '999';\n    ALTER TABLE t1 ADD COLUMN c REAL DEFAULT '9e99';\n    ALTER TABLE t1 ADD COLUMN d TEXT DEFAULT 'xyzzy';\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM t1;")
+}
+// Auto-generated from tkt3841.test
+func TestSQLite_tkt3841(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE table2 (key TEXT, x TEXT);\n    CREATE TABLE list (key TEXT, value TEXT);\n  \n    INSERT INTO table2 VALUES (\"a\", \"alist\");\n    INSERT INTO table2 VALUES (\"b\", \"blist\");\n    INSERT INTO list VALUES (\"a\", 1);\n    INSERT INTO list VALUES (\"a\", 2);\n    INSERT INTO list ...")
 }
 // Auto-generated from tkt3871.test
 func TestSQLite_tkt3871(t *testing.T) {
@@ -11155,12 +17263,102 @@ func TestSQLite_tkt3997(t *testing.T) {
 	_ = db.Query("SELECT name \n    FROM mytext \n    ORDER BY name COLLATE reverse")
 	_ = db.Exec("create table mytext(name BLOB);\n    INSERT INTO mytext VALUES('abc');\n    INSERT INTO mytext VALUES('acd');\n    INSERT INTO mytext VALUES('afe');")
 }
+// Auto-generated from tkt4018.test
+func TestSQLite_tkt4018(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$sql")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+}
 // Auto-generated from tpch01.test
 func TestSQLite_tpch01(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE NATION  ( N_NATIONKEY  INTEGER NOT NULL,\n                              N_NAME       CHAR(25) NOT NULL,\n                              N_REGIONKEY  INTEGER NOT NULL,\n                              N_COMMENT    VARCHAR(152));\n  CREATE TABLE REGION  ( R_REGIONKEY  INTEGER NOT NULL,\n ...")
 	_ = db.Query("EXPLAIN QUERY PLAN\n       select\n               o_year,\n               sum(case\n                       when nation = 'EGYPT' then volume\n                       else 0\n               end) / sum(volume) as mkt_share\n       from\n               (\n                       select\n              ...")
+}
+// Auto-generated from trace.test
+func TestSQLite_trace(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1b(x TEXT PRIMARY KEY, y);\n     INSERT INTO t1b VALUES('abc','def'),('ghi','jkl'),('mno','pqr');")
+	_ = db.Exec("CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t6([$::t6int],\"?1\"); INSERT INTO t6 VALUES(1,2)")
+	_ = db.Exec("CREATE TRIGGER r1t1 AFTER UPDATE ON t1 BEGIN\n        UPDATE t2 SET a=new.a WHERE rowid=new.rowid;\n      END;\n      CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n        SELECT 'hello';\n      END;")
+	_ = db.Query("PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);")
+	_ = db.Query("PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);")
+	_ = db.Query("SELECT $::t6int, $::t6real, $t6str, $t6blob, $t6null")
+	_ = db.Query("SELECT $::t6int, ?1, $::t6int")
+	_ = db.Query("SELECT '$::t6int', [$::t6int], $::t6int, ?1, \"?1\", $::t6int FROM t6")
+	_ = db.Query("SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT x'3031323334' AS x")
+	_ = db.Query("SELECT y FROM t1b WHERE x GLOB $xyzzy")
+	_ = db.Exec("UPDATE t1 SET a=a+1;")
+}
+// Auto-generated from trace2.test
+func TestSQLite_trace2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE x1 USING fts4;\n    INSERT INTO x1 VALUES('Cloudy, with a high near 16');\n    INSERT INTO x1 VALUES('Wind chill values as low as -13');")
+}
+// Auto-generated from trace3.test
+func TestSQLite_trace3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);")
+	_ = db.Exec("CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );")
+	_ = db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(2,-1);\n    INSERT INTO t1 VALUES(3,0);\n    INSERT INTO t1 VALUES(4,1);\n    INSERT INTO t1 VALUES(5,-2147483648);\n    INSERT INTO t1 VALUES(6,2147483647);\n    INSERT INTO t1 VALUES(7,-9223372036854775808);\n ...")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT a, b FROM t1 ORDER BY a;")
+}
+// Auto-generated from trans.test
+func TestSQLite_trans(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN TRANSACTION")
+	_ = db.Exec("BEGIN TRANSACTION 'foo'")
+	_ = db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE t1(a int, b int, c int);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE t2(a int, b int, c int);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n    DROP TABLE t1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE TABLE t2(x int, y int, z int);\n    CREATE INDEX i2x ON t2(x);\n    CREATE INDEX i2y ON t2(y);\n    INSERT INTO t2 VALUES(1,2,3);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a int unique,b,c);\n    COMMIT;\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1 ORDER BY a;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;")
+	_ = db.Exec("BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;")
+	_ = db.Exec("BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT IN...")
+	_ = db.Exec("BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;")
+	_ = db.Exec("BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;")
+	_ = db.Exec("BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT TRANSACTION")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(a);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;")
+	_ = db.Exec("CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;")
+	_ = db.Exec("CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;")
+	_ = db.Exec("CREATE TABLE one(a text, b int)")
+	_ = db.Exec("CREATE TABLE t1(a integer primary key,b,c);\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE two(a int PRIMARY KEY, b text);\n    INSERT INTO two VALUES(1,'I');\n    INSERT INTO two VALUES(5,'V');\n    INSERT INTO two VALUES(10,'X');\n    SELECT b FROM two ORDER BY a;")
+	_ = db.Exec("DROP INDEX i1;\n    SELECT * FROM t1 WHERE c<1;")
+	_ = db.Exec("DROP TABLE one;\n    DROP TABLE two;")
+	_ = db.Exec("END")
+	_ = db.Exec("END TRANSACTION")
+	_ = db.Exec("END TRANSACTION;\n    SELECT a FROM two ORDER BY a;")
+	_ = db.Exec("INSERT INTO one(a,b) VALUES('hello', 1)")
+	_ = db.Exec("INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;")
 }
 // Auto-generated from trans2.test
 func TestSQLite_trans2(t *testing.T) {
@@ -11372,6 +17570,18 @@ func TestSQLite_trigger6(t *testing.T) {
 	_ = db.Exec("INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;")
 	_ = db.Query("SELECT * FROM log;")
 }
+// Auto-generated from trigger7.test
+func TestSQLite_trigger7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(x, y);")
+	_ = db.Exec("CREATE TABLE t2(x,y,z);\n    CREATE TRIGGER t2r1 AFTER INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r2 BEFORE INSERT ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r3 AFTER UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE TRIGGER t2r4 BEFORE UPDATE ON t2 BEGIN SELECT 1; END;\n    CREATE...")
+	_ = db.Exec("CREATE TRIGGER r1 AFTER UPDATE OF x ON t1 BEGIN\n        SELECT '___update_t1.x___';\n      END;\n      CREATE TRIGGER r2 AFTER UPDATE OF y ON t1 BEGIN\n        SELECT '___update_t1.y___';\n      END;")
+	_ = db.Query("EXPLAIN UPDATE t1 SET rowid=5")
+	_ = db.Query("EXPLAIN UPDATE t1 SET x=5")
+	_ = db.Query("EXPLAIN UPDATE t1 SET y=5")
+	_ = db.Query("PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';")
+}
 // Auto-generated from trigger8.test
 func TestSQLite_trigger8(t *testing.T) {
 	db := setupDB(t)
@@ -11443,6 +17653,51 @@ func TestSQLite_triggerB(t *testing.T) {
 	_ = db.Exec("UPDATE t3 SET c$i='b$i';\n      SELECT * FROM t3_changes ORDER BY rowid DESC LIMIT 1;")
 	_ = db.Exec("UPDATE vx SET y = yy;\n    SELECT * FROM vx;")
 }
+// Auto-generated from triggerC.test
+func TestSQLite_triggerC(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;")
+	_ = db.Exec("BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;")
+	_ = db.Exec("CREATE TABLE   x1  (x);\n\n  CREATE TABLE   x2  (a, b);\n  CREATE TABLE '\"x2\"'(a, b);\n\n  INSERT INTO x2 VALUES(1, 2);\n  INSERT INTO x2 VALUES(3, 4);\n  INSERT INTO '\"x2\"' SELECT * FROM x2;\n\n  CREATE TRIGGER x1ai AFTER INSERT ON x1 BEGIN\n    INSERT INTO \"\"\"x2\"\"\" VALUES('x', 'y');\n...")
+	_ = db.Exec("CREATE TABLE log(a, b)")
+	_ = db.Exec("CREATE TABLE log(t);\n    CREATE TABLE t4(a TEXT,b INTEGER,c REAL);\n    CREATE TRIGGER t4bi BEFORE INSERT ON t4 BEGIN\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                     ...")
+	_ = db.Exec("CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c);\n  CREATE TABLE t4(d);\n  CREATE TABLE t5(e);\n  CREATE TABLE t6(f);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;\n  CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(...")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1 ; END ;\n    SELECT count(*) FROM sqlite_master;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n    CREATE TABLE log(t, a1, b1, c1, a2, b2, c2);\n    CREATE TRIGGER trig1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('before', NULL, NULL, NULL, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER trig2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUE...")
+	_ = db.Exec("CREATE TABLE t10(a, updatecnt DEFAULT 0);\n    CREATE TRIGGER t10_bu BEFORE UPDATE OF a ON t10 BEGIN\n      UPDATE t10 SET updatecnt = updatecnt+1 WHERE rowid = old.rowid;\n    END;\n    INSERT INTO t10(a) VALUES('hello');")
+	_ = db.Exec("CREATE TABLE t11(\n      c1,   c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9, c10,\n      c11, c12, c13, c14, c15, c16, c17, c18, c19, c20,\n      c21, c22, c23, c24, c25, c26, c27, c28, c29, c30,\n      c31, c32, c33, c34, c35, c36, c37, c38, c39, c40\n    );\n\n    CREATE TRIGGER t11_bu BEFORE UPDATE O...")
+	_ = db.Exec("CREATE TABLE t2(a PRIMARY KEY);")
+	_ = db.Exec("CREATE TABLE t3(a, b);\n    CREATE TRIGGER t3i AFTER INSERT ON t3 BEGIN\n      DELETE FROM t3 WHERE rowid = new.rowid;\n    END;\n    CREATE TRIGGER t3d AFTER DELETE ON t3 BEGIN\n      INSERT INTO t3 VALUES(old.a, old.b);\n    END;")
+	_ = db.Exec("CREATE TABLE t4(a, b);\n    CREATE TRIGGER t4t AFTER DELETE ON t4 BEGIN\n      SELECT RAISE(ABORT, 'delete is not supported');\n    END;")
+	_ = db.Exec("CREATE TABLE t5 (a primary key, b, c);\n    INSERT INTO t5 values (1, 2, 3);\n    CREATE TRIGGER au_tbl AFTER UPDATE ON t5 BEGIN\n      UPDATE OR IGNORE t5 SET a = new.a, c = 10;\n    END;")
+	_ = db.Exec("CREATE TABLE t6(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t6 VALUES(1, 2);\n    create trigger r1 after update on t6 for each row begin\n      SELECT 1;\n    end;\n    UPDATE t6 SET a=a;")
+	_ = db.Exec("CREATE TABLE t8(x);\n    CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES(1, 2);\n    INSERT INTO t7 VALUES(3, 4);\n    INSERT INTO t7 VALUES(5, 6);\n    CREATE TRIGGER t7t BEFORE UPDATE ON t7 BEGIN\n      DELETE FROM t7 WHERE a = 1;\n    END;\n    CREATE TRIGGER t7ta AFTER UPDATE ON t7 BEGIN\n ...")
+	_ = db.Exec("CREATE TABLE t9(a,b);\n    CREATE INDEX t9b ON t9(b);\n    INSERT INTO t9 VALUES(1,0);\n    INSERT INTO t9 VALUES(2,1);\n    INSERT INTO t9 VALUES(3,2);\n    INSERT INTO t9 SELECT a+3, a+2 FROM t9;\n    INSERT INTO t9 SELECT a+6, a+5 FROM t9;\n    SELECT a FROM t9 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE xyz(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER xyz_tr BEFORE INSERT ON xyz BEGIN\n    SELECT new.x;\n  END;")
+	_ = db.Exec("CREATE TRIGGER t9r1 AFTER DELETE ON t9 BEGIN\n      DELETE FROM t9 WHERE b=old.a;\n    END;\n    DELETE FROM t9 WHERE b=4;\n    SELECT a FROM t9 ORDER BY a;")
+	_ = db.Exec("CREATE TRIGGER tt1 BEFORE INSERT ON t1 BEGIN \n        INSERT INTO log VALUES(new.a, new.b);\n      END;\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;")
+	_ = db.Exec("CREATE TRIGGER tt2 AFTER INSERT ON t1 BEGIN \n        INSERT INTO log VALUES(new.a, new.b);\n      END;\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;")
+	_ = db.Exec("DELETE FROM log")
+	_ = db.Exec("DELETE FROM log;\n    CREATE TABLE t2(a, b);\n    CREATE VIEW v2 AS SELECT * FROM t2;\n    CREATE TRIGGER tv2 INSTEAD OF INSERT ON v2 BEGIN\n      INSERT INTO log VALUES(new.a, new.b);\n    END;\n    INSERT INTO v2 DEFAULT VALUES;\n    SELECT a, b, a IS NULL, b IS NULL FROM log;")
+	_ = db.Exec("DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log;")
+	_ = db.Exec("DELETE FROM log;\n    UPDATE t1 SET a = 'a';\n    SELECT * FROM log;")
+	_ = db.Exec("DELETE FROM t2")
+	_ = db.Exec("DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b);\n    CREATE UNIQUE INDEX t5i ON t5(b);\n    INSERT INTO t5 VALUES(1, 'a');\n    INSERT INTO t5 VALUES(2, 'b');\n    INSERT INTO t5 VALUES(3, 'c');\n\n    CREATE TABLE t5g(a, b, c);\n    CREATE TRIGGER t5t BEFORE DELETE ON t5...")
+	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE cnt(n);\n    INSERT INTO cnt VALUES(0);\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c, d, e);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE TRIGGER t1r1 AFTER UPDATE ON t1 BEGIN UPDATE cnt SET n=n+1; END;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    INSE...")
+	_ = db.Exec("DROP TRIGGER t5t;\n    CREATE TRIGGER t5t AFTER DELETE ON t5 BEGIN\n      INSERT INTO t5g VALUES(old.a, old.b, (SELECT count(*) FROM t5));\n    END;")
+	_ = db.Exec("DROP TRIGGER t7t;\n    CREATE TRIGGER t7t BEFORE UPDATE ON t7 WHEN (old.rowid!=1 OR new.rowid!=8)\n    BEGIN\n      UPDATE t7 set rowid = 8 WHERE rowid=1;\n    END;")
+	_ = db.Exec("DROP TRIGGER t7t;\n    DROP TRIGGER t7ta;\n    CREATE TRIGGER t7t BEFORE DELETE ON t7 BEGIN\n      UPDATE t7 set rowid = 8 WHERE rowid=1;\n    END;\n    CREATE TRIGGER t7ta AFTER DELETE ON t7 BEGIN\n      INSERT INTO t8 VALUES('after fired ' || old.rowid);\n    END;")
+	_ = db.Exec("DROP TRIGGER tr1")
+	_ = db.Exec("DROP TRIGGER tt1")
+	_ = db.Exec("INSERT INTO node(id, pid, key) VALUES(9, 0, 'test');\n  INSERT INTO node(id, pid, key) VALUES(90, 9, 'test1');\n  INSERT INTO node(id, pid, key) VALUES(900, 90, 'test2');\n  DELETE FROM node WHERE id=9;\n  SELECT * FROM node;")
+	_ = db.Exec("INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;")
+	_ = db.Exec("INSERT INTO t1 VALUES('A', 'B', 'C');\n    SELECT * FROM log;")
+}
 // Auto-generated from triggerD.test
 func TestSQLite_triggerD(t *testing.T) {
 	db := setupDB(t)
@@ -11457,6 +17712,21 @@ func TestSQLite_triggerD(t *testing.T) {
 	_ = db.Exec("DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;")
 	_ = db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(w,x,y,z);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r1', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r2', new.rowid, new.oid, new._rowid_...")
 	_ = db.Exec("INSERT INTO t1 VALUES(100,200,300,400);\n    SELECT * FROM log")
+}
+// Auto-generated from triggerE.test
+func TestSQLite_triggerE(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#   ATTACH 'test.db2' AS aux;\n#   CREATE TABLE aux.t4(x);\n#   INSERT INTO aux.t4 VALUES(5);\n# \n#   CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.a IN (SELECT x FROM aux.t4)\n#   BEGIN\n#     SELECT 1;\n#   END;\n#")
+	_ = db.Exec("CREATE TABLE t1(a);\n    CREATE VIRTUAL TABLE rr USING rtree(id, a, b);\n    CREATE TRIGGER r1 AFTER DELETE ON t1 BEGIN\n      SELECT a FROM t1 NATURAL LEFT JOIN rr;\n    END;\n    DELETE FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);")
+	_ = db.Exec("DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;")
+	_ = db.Exec("DELETE FROM t2;\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES(NULL, 'z');\n  INSERT INTO t3 VALUES(1, 2);\n  SELECT * FROM t3;\n  SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,1);")
+	_ = db.Exec("INSERT INTO t1 VALUES(5,5);")
+	_ = db.Query("PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER I...")
+	_ = db.Query("SELECT * FROM t1")
 }
 // Auto-generated from triggerF.test
 func TestSQLite_triggerF(t *testing.T) {
@@ -11579,6 +17849,17 @@ func TestSQLite_types2(t *testing.T) {
 	_ = db.Query("SELECT $e FROM t1")
 	_ = db.Query("SELECT 1 FROM t1 WHERE $expr")
 	_ = db.Query("SELECT 1 FROM t1 WHERE NOT ($e)")
+}
+// Auto-generated from types3.test
+func TestSQLite_types3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1 VALUES(1.25);\n  SELECT * FROM t1 WHERE NOT x=add_real_type('1.25');")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x TEXT PRIMARY KEY);\n  INSERT INTO t1 VALUES('1');\n  SELECT * FROM t1 WHERE NOT x=upper(1);")
+	_ = db.Query("SELECT * FROM t1 WHERE NOT x=add_int_type('1');")
+	_ = db.Query("SELECT * FROM t1 WHERE NOT x=add_text_type(1);")
+	_ = db.Query("SELECT * FROM t1 WHERE NOT x=add_text_type(1.25);")
+	_ = db.Query("SELECT typeof(:V)")
 }
 // Auto-generated from unhex.test
 func TestSQLite_unhex(t *testing.T) {
@@ -11934,6 +18215,42 @@ func TestSQLite_upfromfault(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1")
 	_ = db.Exec("WITH data(k, v) AS (\n          VALUES(3, 'thirty'), (1, 'ten')\n      )\n      UPDATE t1 SET z=v FROM data WHERE x=k;")
 }
+// Auto-generated from upsert1.test
+func TestSQLite_upsert1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 UNIQUE) WITHOUT ROWID;\n  INSERT OR FAIL INTO t0(c2) VALUES (0), (NULL)\n    ON CONFLICT(c2) DO UPDATE SET c1 = c0;")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t1(b) VALUES(22);\n  INSERT INTO t1 VALUES(2,22) ON CONFLICT (b) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(b);\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(1,99),(99,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES\n    (11, printf('%.9000c','a')),\n    (11, printf('%.9000c','a')),\n    (33, printf('%.9000c','b')),\n    (33, printf('%.9000c','b'));\n  CREATE TABLE t2(x INT UNIQUE, y TEXT);\n  CREATE TRIGGER r1 BEFORE UPDATE ON t2 BEGIN\n    SELECT rai...")
+	_ = db.Exec("CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) WHERE b!=10 DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2),(4,20),(5,20)\n         ON CONFLICT(b) WHERE b>10 DO NOTHING;\n  SELECT *, 'x' FROM t1 ORDER BY b, a;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(2,3) ON CONFLICT(a) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(2,99) ON CONFLICT(a) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(3,4) ON CONFLICT(b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(99,4) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE binary) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(9,10) ON CONFLICT(a+(+b)) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(b) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT OR IGNORE INTO t1(a) VALUES('1'),(1) ON CONFLICT(a) DO NOTHING;\n  PRAGMA integrity_check;")
+	_ = db.Exec("DROP INDEX t1x1;\n  DELETE FROM t1;\n  CREATE UNIQUE INDEX t1x1 ON t1(b) WHERE b>10;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;")
+	_ = db.Exec("DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a TEXT UNIQUE, b INT DEFAULT 1);\n  INSERT INTO t2(a) VALUES('one'),('two'),('three');\n  PRAGMA count_changes=ON;\n  INSERT INTO t2(a) VALUES('one'),('one'),('three'),('four')\n      ON CONFLICT(a) DO UPDATE SET b=b+1;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT, d INT, e INT) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t1a ON t1(a);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  CREATE UNIQUE INDEX t1e ON t1(e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33...")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a INT, b INT, c INT, d INT, e INT);\n  CREATE UNIQUE INDEX t1a ON t1(a);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  CREATE UNIQUE INDEX t1e ON t1(e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(e)...")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT, d INT, e INT);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  CREATE UNIQUE INDEX t1e ON t1(e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(e) DO UPDATE SET c=excl...")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(b UNIQUE, a INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT OR IGNORE INTO t1(a) VALUES('1') ON CONFLICT(a) DO NOTHING;\n  PRAGMA integrity_check;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INT UNIQUE);\n  INSERT INTO t1(x,y) SELECT 1,2 WHERE true\n    ON CONFLICT(x) DO UPDATE SET y=max(t1.y,excluded.y) AND true;\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3) ON CONFLICT(x) DO NOTHING;")
+	_ = db.Exec("INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;")
+	_ = db.Exec("INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE nocase) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(c) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(x) DO NOTHING;\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a) DO NOTHING;")
+	_ = db.Query("PRAGMA count_changes=OFF;\n  SELECT a, b FROM t2 ORDER BY a;")
+}
 // Auto-generated from upsert2.test
 func TestSQLite_upsert2(t *testing.T) {
 	db := setupDB(t)
@@ -12054,6 +18371,34 @@ func TestSQLite_upsertfault(t *testing.T) {
 	_ = db.Exec("INSERT INTO t1 VALUES(3, 2, 2, NULL) ON CONFLICT(b, c) DO\n       UPDATE SET d=d+1;")
 	_ = db.Query("SELECT * FROM sqlite_master")
 }
+// Auto-generated from uri.test
+func TestSQLite_uri(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH $uri AS aux")
+	_ = db.Exec("ATTACH 'file:test.db2?mode=rw' AS aux")
+	_ = db.Exec("ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('...")
+	_ = db.Exec("CREATE TABLE t1(a, b)")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4)")
+	_ = db.Exec("INSERT INTO t2 VALUES('c', 'd')")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from uri2.test
+func TestSQLite_uri2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA compile_options")
+}
+// Auto-generated from utf16align.test
+func TestSQLite_utf16align(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX t1i1 ON t1(spacer, b);")
+	_ = db.Exec("CREATE INDEX t1i2 ON t1(spacer, a);")
+	_ = db.Query("PRAGMA encoding=UTF16;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      spacer TEXT,\n      a TEXT COLLATE utf16_aligned,\n      b TEXT COLLATE utf16_unaligned\n    );\n    INSERT INTO t1(a) VALUES(\"abc\");\n    INSERT INTO t1(a) VALUES(\"defghi\");\n    INSERT INTO t1(a) VALUES(\"jkl...")
+	_ = db.Query("PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));")
+}
 // Auto-generated from vacuum-into.test
 func TestSQLite_vacuum_into(t *testing.T) {
 	db := setupDB(t)
@@ -12076,6 +18421,39 @@ func TestSQLite_vacuum_into(t *testing.T) {
 	_ = db.Exec("VACUUM INTO x;")
 	_ = db.Exec("VACUUM main INTO ':memory:';")
 	_ = db.Exec("VACUUM main INTO 'out.db';")
+}
+// Auto-generated from vacuum.test
+func TestSQLite_vacuum(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("-- The \"SELECT * FROM sqlite_master\" statement ensures that this test\n    -- works when shared-cache is enabled. If shared-cache is enabled, then\n    -- db3 shares a cache with db2 (but not db - it was opened as \n    -- \"./test.db\").\n    SELECT * FROM sqlite_master;\n    SELECT * FROM t7 ...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-...")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE \"abc abc\"(a, b, c);\n    INSERT INTO \"abc abc\" VALUES(1, 2, 3);\n    VACUUM;")
+	_ = db.Exec("CREATE TABLE t1(t);\n    VACUUM;")
+	_ = db.Exec("CREATE TABLE t2(t);\n    CREATE TABLE t3(t);\n    DROP TABLE t2;\n    PRAGMA freelist_count;")
+	_ = db.Exec("CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;")
+	_ = db.Exec("DELETE FROM \"abc abc\";\n      INSERT INTO \"abc abc\" VALUES(X'00112233', NULL, NULL);\n      VACUUM;")
+	_ = db.Exec("DELETE FROM t7;\n    SELECT count(*) FROM t7;")
+	_ = db.Exec("DROP TABLE 'abc abc';\n      CREATE TABLE autoinc(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n      INSERT INTO autoinc(b) VALUES('hi');\n      INSERT INTO autoinc(b) VALUES('there');\n      DELETE FROM autoinc;")
+	_ = db.Exec("INSERT INTO autoinc(b) VALUES('one');\n      INSERT INTO autoinc(b) VALUES('two');")
+	_ = db.Exec("INSERT INTO t7 SELECT * FROM t6;\n    SELECT count(*) FROM t7;")
+	_ = db.Exec("INSERT INTO t7 VALUES(1234567890,'hello','world');")
+	_ = db.Query("PRAGMA auto_vacuum")
+	_ = db.Query("PRAGMA auto_vacuum = 1")
+	_ = db.Query("PRAGMA empty_result_callbacks=on;\n    VACUUM;")
+	_ = db.Query("PRAGMA freelist_count;")
+	_ = db.Query("PRAGMA page_size=1024;\n  VACUUM;\n  PRAGMA page_size;")
+	_ = db.Query("PRAGMA page_size=2048;\n  VACUUM;\n  PRAGMA page_size;")
+	_ = db.Query("PRAGMA page_size=4096;\n  VACUUM;\n  PRAGMA page_size;")
+	_ = db.Query("SELECT * FROM t7 WHERE a=1234567890")
+	_ = db.Exec("VACUUM")
+	_ = db.Exec("VACUUM;")
+	_ = db.Exec("VACUUM;\n    pragma integrity_check;")
+	_ = db.Query("select * from \"abc abc\";")
+	_ = db.Query("select count(*) from \"abc abc\" WHERE a = X'00112233';")
 }
 // Auto-generated from vacuum2.test
 func TestSQLite_vacuum2(t *testing.T) {
@@ -12155,6 +18533,110 @@ func TestSQLite_vacuum6(t *testing.T) {
 	_ = db.Exec("VACUUM")
 	_ = db.Exec("vacuum;")
 }
+// Auto-generated from vacuummem.test
+func TestSQLite_vacuummem(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA cache_size = -2000;\n  CREATE TABLE t1(a, b, c);\n\n  WITH r(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM r WHERE i<100000\n  )\n  INSERT INTO t1 SELECT randomblob(100),randomblob(100),randomblob(100) FROM r;\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX ...")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE +a IS NOT NULL")
+}
+// Auto-generated from values.test
+func TestSQLite_values(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("-- output verified using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   WHERE column1 IS NULL;")
+	_ = db.Exec("-- output verify using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   ORDER BY +d, +column1;")
+	_ = db.Exec("BEGIN;\n  INSERT INTO t1 VALUES\n     (1,2),(3,4),\n     (5,row_number()OVER()),\n     (7,8),(9,10),(11,12),\n     (13,row_number()OVER()),\n     (15,16),(17,18),(19,20),(21,22);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;")
+	_ = db.Exec("BEGIN;\n  INSERT INTO t1 VALUES\n     (1,row_number()OVER()),\n     (2,3), (4,5), (6,7);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;")
+	_ = db.Exec("BEGIN;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6),\n     (7,row_number()OVER()),\n     (9,10), (11,12), (13,14), (15,16);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;")
+	_ = db.Exec("CREATE TABLE a2(a, b, c DEFAULT 'xyz');")
+	_ = db.Exec("CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(11,22);\n  SELECT * FROM t1 LEFT JOIN (VALUES(33,44),(55,66)) AS t2 ON a=b;")
+	_ = db.Exec("CREATE TABLE t1(a, b);")
+	_ = db.Exec("CREATE TABLE t1(a,b);")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('d'), (NULL), (123)")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('x'), ('y');")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('xyz');\n\n  SELECT (\n      VALUES( (max(substr('abc', 1, 1), x)) ),\n      (123),\n      (456)\n      )\n  FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2);")
+	_ = db.Exec("CREATE TABLE t2(x,y);")
+	_ = db.Exec("CREATE TABLE x1(a PRIMARY KEY, b) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE x1(a, b, c);")
+	_ = db.Exec("CREATE TABLE y1(x, y);")
+	_ = db.Exec("CREATE VIEW v1 AS VALUES(1, 2, 3), (4, 5, 6), (7, 8, 9);")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts3(x);")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,13);")
+	_ = db.Exec("DELETE FROM x1")
+	_ = db.Exec("DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d'), ('e')) ))")
+	_ = db.Exec("DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))")
+	_ = db.Exec("DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, 2),\n        (3, 3),\n        (4, 4),\n        (5, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))")
+	_ = db.Exec("DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, $a), (5, 5, $b), (6, 6, $c)")
+	_ = db.Exec("DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)\n  UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;")
+	_ = db.Exec("DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5) \n  UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;")
+	_ = db.Exec("DELETE FROM x1;\n  INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3) UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;")
+	_ = db.Exec("DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (row_number() OVER (), 5);")
+	_ = db.Exec("DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (row_number() OVER (), 6)\n    , (row_number() OVER (), 7)")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1 AS SELECT * FROM (VALUES(1,2), (3,4 IN (1,2,3)));")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a,b);              INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(column1,column2);  INSERT INTO t2 VALUES(11,22),(33,44);\n  CREATE TABLE t3(d,e);              INSERT INTO t3 VALUES(3,4);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(RAISE(IGNORE)),(0);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),(RAISE(ABORT,'error 18.4')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(ABORT,'error 18.3')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);")
+	_ = db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO a2(a) VALUES(3),(4);")
+	_ = db.Exec("INSERT INTO ft VALUES('one'), ('two');")
+	_ = db.Exec("INSERT INTO t1 SELECT 1, 2 UNION ALL VALUES(3, 4), (5, 6);")
+}
+// Auto-generated from valuesfault.test
+func TestSQLite_valuesfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE x1(a, b, c);")
+	_ = db.Exec("INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4);")
+}
+// Auto-generated from view.test
+func TestSQLite_view(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE VIEW IF NOT EXISTS v1 AS SELECT a,b FROM t1;\n    SELECT * FROM v1 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t0(a INT, b TEXT);\n\n  INSERT INTO t0 VALUES(1,'one');\n\n  CREATE VIEW t1      AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;\n  CREATE VIEW t2(a,b) AS SELECT a, b FROM t0 UNION ALL SELECT 2, 2;")
+	_ = db.Exec("CREATE TABLE t0(a);\n  INSERT INTO t0 VALUES(0);\n  CREATE VIEW v1(a) AS SELECT a+1 FROM t0;\n  CREATE VIEW v2(a) AS SELECT a+1 FROM v1;\n  CREATE VIEW v3(a) AS SELECT a+1 FROM v2;\n  CREATE VIEW v4(a) AS SELECT a+1 FROM v3;\n  CREATE VIEW v5(a) AS SELECT a+1 FROM v4;\n  CREATE VIEW v6(a) AS SELE...")
+	_ = db.Exec("CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0) AS SELECT t0.c0 FROM t0;\n  INSERT INTO t0(c0) VALUES ('0');")
+	_ = db.Exec("CREATE TABLE t0(c0 TEXT, c1);\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  CREATE VIEW v0(c0, c1) AS SELECT t0.c0, AVG(t0.c1) FROM t0;")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a,b,c);\n  CREATE VIEW IF NOT EXISTS IF AS SELECT null;")
+	_ = db.Exec("CREATE TABLE t1(x,a,b,c);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t1 VALUES(4,5,6,7);\n    INSERT INTO t1 VALUES(7,8,9,10);\n    SELECT * FROM v1 ORDER BY a;")
+	_ = db.Exec("CREATE TABLE t16(a, b, c UNIQUE);\n  INSERT INTO t16 VALUES(1, 1, 1);\n  INSERT INTO t16 VALUES(2, 2, 2);\n  INSERT INTO t16 VALUES(3, 3, 3);\n  CREATE VIEW v16 AS SELECT max(a) AS mx, min(b) AS mn FROM t16 GROUP BY c;\n\n  SELECT * FROM v16 AS one, v16 AS two WHERE one.mx=1;")
+	_ = db.Exec("CREATE TABLE t2(c,d,e);\n  SELECT name FROM sqlite_schema ORDER BY name;")
+	_ = db.Exec("CREATE TABLE t2(y,a);\n    INSERT INTO t2 VALUES(22,2);\n    INSERT INTO t2 VALUES(33,3);\n    INSERT INTO t2 VALUES(44,4);\n    INSERT INTO t2 VALUES(55,5);\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t25 (x);\n    INSERT INTO t25 (x) VALUES (1);\n    ANALYZE;")
+	_ = db.Exec("CREATE TABLE t3(\"9\" integer, [4] text);\n    INSERT INTO t3 VALUES(1,2);\n    CREATE VIEW v_t3_a AS SELECT a.[9] FROM t3 AS a;\n    CREATE VIEW v_t3_b AS SELECT \"4\" FROM t3;\n    SELECT * FROM v_t3_a;")
+	_ = db.Exec("CREATE TABLE t3(a INTEGER, b TEXT);\n  INSERT INTO t3 VALUES(123, 123);\n  WITH s AS ( VALUES(123), (456) ) SELECT * FROM t3 WHERE b IN s;")
+	_ = db.Exec("CREATE TABLE t4(a COLLATE NOCASE);\n    INSERT INTO t4 VALUES('This');\n    INSERT INTO t4 VALUES('this');\n    INSERT INTO t4 VALUES('THIS');\n    SELECT * FROM t4 WHERE a = 'THIS';")
+	_ = db.Exec("CREATE TABLE t9(x INTEGER);\n  CREATE VIEW v9a AS SELECT x FROM t9;\n  CREATE VIEW v9b AS SELECT * FROM t9;\n  CREATE VIEW v9c(x) AS SELECT x FROM t9;\n  CREATE VIEW v9d(x) AS SELECT * FROM t9;")
+	_ = db.Exec("CREATE TABLE test1(id integer primary key, a);\n    CREATE TABLE test2(id integer, b);\n    INSERT INTO test1 VALUES(1,2);\n    INSERT INTO test2 VALUES(1,3);\n    CREATE VIEW test AS\n      SELECT test1.id, a, b\n      FROM test1 JOIN test2 ON test2.id=test1.id;\n    SELECT * FROM test;")
+	_ = db.Exec("CREATE TABLE x2(b TEXT);\n  CREATE TABLE x1(a TEXT);\n  INSERT INTO x1 VALUES('123');\n  -- Two queries get the same result even though the order of terms\n  -- in the CTE is reversed\n  WITH c(x) AS ( SELECT b FROM x2 UNION SELECT 123 )\n    SELECT count(*) FROM x1 WHERE a IN c; \n  WITH c(x) AS...")
+	_ = db.Exec("CREATE TEMP VIEW v1temp AS SELECT a, b FROM t1;\n  SELECT * FROM v1temp ORDER BY a;")
+	_ = db.Exec("CREATE VIEW v1 AS SELECT a,b FROM t1;\n    SELECT * FROM v1 ORDER BY a;")
+	_ = db.Exec("CREATE VIEW v10 AS \n       SELECT DISTINCT a, count(*) FROM t2 GROUP BY a ORDER BY 2 LIMIT 3;\n    SELECT * FROM v10;")
+	_ = db.Exec("CREATE VIEW v11 AS SELECT * FROM t4;\n    SELECT * FROM v11 WHERE a = 'THIS';")
+	_ = db.Exec("CREATE VIEW v1err(x,y DESC,z) AS SELECT a, b+c, c-b FROM t1;")
+	_ = db.Exec("CREATE VIEW v2 AS SELECT * FROM t1 WHERE a>5")
+	_ = db.Exec("CREATE VIEW v3308a AS SELECT rowid, * FROM t1;")
+	_ = db.Exec("CREATE VIEW v3308b AS SELECT t1.rowid, t1.a, t1.b+t1.c FROM t1;")
+	_ = db.Exec("CREATE VIEW v3308c AS SELECT t1.oid, A, t1.b+t1.c AS x FROM t1;")
+	_ = db.Exec("CREATE VIEW v5 AS\n      SELECT t1.x AS v, t2.y AS w FROM t1 JOIN t2 USING(a);\n    SELECT * FROM v5;")
+	_ = db.Exec("CREATE VIEW v6 AS SELECT pqr, xyz FROM v1;\n    SELECT * FROM v6 ORDER BY xyz;")
+	_ = db.Exec("CREATE VIEW v7(a) AS SELECT pqr+xyz FROM v6;\n    SELECT * FROM v7 ORDER BY a;")
+	_ = db.Exec("CREATE VIEW v8 AS SELECT max(cnt) AS mx FROM\n        (SELECT a%2 AS eo, count(*) AS cnt FROM t1 GROUP BY eo);\n      SELECT * FROM v8;")
+	_ = db.Exec("CREATE VIEW v9 AS \n       SELECT DISTINCT count(*) FROM t2 GROUP BY a ORDER BY 1 LIMIT 3;\n    SELECT * FROM v9;")
+	_ = db.Exec("CREATE VIEW x1 AS SELECT 123 AS '', 234 AS '', 345 AS '';\n  SELECT * FROM x1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP VIEW IF EXISTS v1;\n    CREATE TABLE t1(c1);\n    CREATE VIEW v1 AS SELECT c1 FROM (SELECT t1.c1 FROM t1);")
+	_ = db.Exec("DROP TABLE t25;")
+	_ = db.Exec("DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(w,x,y,z) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;")
+	_ = db.Exec("DROP VIEW IF EXISTS v1err;\n  CREATE VIEW v1err(x,y) AS SELECT a, b+c, c-b FROM t1;\n  SELECT * FROM v1err;")
+	_ = db.Exec("DROP VIEW t1;\n    DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n\n    CREATE VIEW vv1 AS SELECT * FROM t1;\n    CREATE VIEW vv2 AS SELECT * FROM vv1;\n    CREATE VIEW vv3 AS SELECT * FROM vv2;\n    CREATE VIEW vv4 AS SELE...")
+	_ = db.Exec("DROP VIEW test;\n    CREATE VIEW test AS\n      SELECT test1.id, a, b\n      FROM test1 JOIN test2 USING(id);\n    SELECT * FROM test;")
+	_ = db.Exec("DROP VIEW test;\n    CREATE VIEW test AS\n      SELECT test1.id, a, b\n      FROM test1 NATURAL JOIN test2;\n    SELECT * FROM test;")
+}
 // Auto-generated from view2.test
 func TestSQLite_view2(t *testing.T) {
 	db := setupDB(t)
@@ -12163,6 +18645,51 @@ func TestSQLite_view2(t *testing.T) {
 	_ = db.Exec("CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;")
 	_ = db.Exec("CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;")
 	_ = db.Query("SELECT * FROM v1")
+}
+// Auto-generated from vtab1.test
+func TestSQLite_vtab1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS $nm")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE VIRTUAL TABLE aux.e2 USING echo(real_abc);")
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE INDEX i1 ON t2(d);")
+	_ = db.Exec("CREATE TABLE b(a, b, c);\n    CREATE TABLE c(a UNIQUE, b, c);\n    INSERT INTO b VALUES(1, 'A', 'B');\n    INSERT INTO b VALUES(2, 'C', 'D');\n    INSERT INTO b VALUES(3, 'E', 'F');\n    INSERT INTO c VALUES(3, 'G', 'H');\n    CREATE VIRTUAL TABLE echo_c USING echo(c);")
+	_ = db.Exec("CREATE TABLE del(d);\n    CREATE VIRTUAL TABLE e2 USING echo(del);")
+	_ = db.Exec("CREATE TABLE r(a, b, c);\n    CREATE VIRTUAL TABLE e USING echo(r, e_log);\n    SELECT name FROM sqlite_master;")
+	_ = db.Exec("CREATE TABLE real_abc(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE echo_abc USING echo(real_abc);")
+	_ = db.Exec("CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t1 VALUES(1, 'red', 'green');\n    INSERT INTO t1 VALUES(2, 'blue', 'black');\n    INSERT INTO t2 VALUES(1, 'spades', 'clubs');\n    INSERT INTO t2 VALUES(2, 'hearts', 'diamonds');\n    CREATE VIRTUAL TABLE et1 USING echo(t...")
+	_ = db.Exec("CREATE TABLE t1(a, b, c);\n    CREATE VIRTUAL TABLE echo_t1 USING echo(t1);")
+	_ = db.Exec("CREATE TABLE t2(a PRIMARY KEY, b, c);\n    INSERT INTO t2 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(4, 5, 6);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);")
+	_ = db.Exec("CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);")
+	_ = db.Exec("CREATE TABLE t2152b(x,y)")
+	_ = db.Exec("CREATE TABLE t5(a, b);\n    CREATE VIRTUAL TABLE e5 USING echo_v2(t5);\n    BEGIN;\n      INSERT INTO e5 VALUES(1, 2);\n      DROP TABLE e5;\n      SAVEPOINT one;\n      ROLLBACK TO one;\n    COMMIT;")
+	_ = db.Exec("CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  INSERT INTO t6 VALUES(1, 'Peter');\n  INSERT INTO t6 VALUES(2, 'Andrew');\n  INSERT INTO t6 VALUES(3, '8James');\n  INSERT INTO t6 VALUES(4, '8John');\n  INSERT INTO t6 VALUES(5, 'Phillip');\n  INSERT INTO t6 VALUES(6, 'Bartholomew');...")
+	_ = db.Exec("CREATE TABLE t7 (a, b);\n  CREATE TABLE t8 (c, d);\n  CREATE INDEX i2 ON t7(a);\n  CREATE INDEX i3 ON t7(b);\n  CREATE INDEX i4 ON t8(c);\n  CREATE INDEX i5 ON t8(d);\n\n  CREATE VIRTUAL TABLE t7v USING echo(t7);\n  CREATE VIRTUAL TABLE t8v USING echo(t8);")
+	_ = db.Exec("CREATE TABLE t9(a,b,c);\n  CREATE VIRTUAL TABLE t9v USING echo(t9);\n\n  INSERT INTO t9 VALUES(1,2,3);\n  INSERT INTO t9 VALUES(3,2,1);\n  INSERT INTO t9 VALUES(2,2,2);")
+	_ = db.Exec("CREATE TABLE techo(a PRIMARY KEY, b, c);")
+	_ = db.Exec("CREATE TABLE template(a, b, c);")
+	_ = db.Exec("CREATE TABLE treal(a INTEGER, b INTEGER, c); \n    CREATE INDEX treal_idx ON treal(b);\n    CREATE VIRTUAL TABLE t1 USING echo(treal);")
+	_ = db.Exec("CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n    SELECT name FROM sqlite_master WHERE type = 'table';")
+	_ = db.Exec("CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);")
+	_ = db.Exec("CREATE VIRTUAL TABLE e USING echo(r, e_log, virtual 1 2 3 varchar(32));")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING echo(template);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING wholenumber")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1e USING echo(t2)")
+	_ = db.Exec("CREATE VIRTUAL TABLE t4 USING fts3();\n    SAVEPOINT a;\n    INSERT INTO t4 VALUES('a b c');\n    ROLLBACK TO a;\n    RELEASE a;\n    SELECT * FROM t4;")
+	_ = db.Exec("DELETE FROM c")
+	_ = db.Exec("DELETE FROM echo_abc WHERE b = 2;\n    SELECT last_insert_rowid();")
+	_ = db.Exec("DELETE FROM echo_abc;\n    SELECT last_insert_rowid();")
+	_ = db.Exec("DELETE FROM sqlite_master WHERE sql LIKE 'insert%'")
+	_ = db.Exec("DELETE FROM techo WHERE a=5;")
+	_ = db.Exec("DELETE FROM techo;")
+	_ = db.Exec("DROP TABLE del;")
+	_ = db.Exec("DROP TABLE e;\n    SELECT name FROM sqlite_master;")
+	_ = db.Exec("DROP TABLE t1;")
+	_ = db.Exec("DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE et1;\n  DROP TABLE et2;")
 }
 // Auto-generated from vtab2.test
 func TestSQLite_vtab2(t *testing.T) {
@@ -12209,6 +18736,64 @@ func TestSQLite_vtab4(t *testing.T) {
 	_ = db.Query("SELECT * FROM techo;")
 	_ = db.Exec("UPDATE techo SET a = 2;")
 }
+// Auto-generated from vtab5.test
+func TestSQLite_vtab5(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE strings(str COLLATE NOCASE);\n    INSERT INTO strings VALUES('abc1');\n    INSERT INTO strings VALUES('Abc3');\n    INSERT INTO strings VALUES('ABc2');\n    INSERT INTO strings VALUES('aBc4');\n    SELECT str FROM strings ORDER BY 1;")
+	_ = db.Exec("CREATE TABLE treal(a VARCHAR(16), b INTEGER, c FLOAT);\n    INSERT INTO treal VALUES('a', 'b', 'c');\n    CREATE VIRTUAL TABLE techo USING echo(treal);")
+	_ = db.Exec("CREATE VIRTUAL TABLE echo_strings USING echo(strings);\n    SELECT str FROM echo_strings ORDER BY 1;")
+	_ = db.Exec("DELETE FROM techo WHERE b > 'c';\n    SELECT * FROM techo;")
+	_ = db.Exec("DROP TABLE techo;\n    DROP TABLE treal;")
+	_ = db.Exec("INSERT INTO techo VALUES('c', 'd', 'e');\n    SELECT * FROM techo;")
+	_ = db.Query("SELECT * FROM techo;")
+	_ = db.Query("SELECT str||'' FROM echo_strings ORDER BY 1;")
+	_ = db.Exec("UPDATE techo SET a = 10;\n    SELECT * FROM techo;")
+}
+// Auto-generated from vtab6.test
+func TestSQLite_vtab6(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    INSERT INTO t12 VALUES(1,11);\n    INSERT INTO t12 VALUES(2,22);\n    INSERT INTO t13 VALUES(22,222);\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t6 VALUES(NULL);\n    INSERT INTO t6 VALUES(NULL);\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FRO...")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t9 VALUES(1,11);\n    INSERT INTO t9 VALUES(2,22);\n    INSERT INTO t10 VALUES(1,2);\n    INSERT INTO t10 VALUES(3,3);    \n    INSERT INTO t11 VALUES(2,111);\n    INSERT INTO t11 VALUES(3,333);    \n    CREATE VIEW v10_11 AS SELECT x, q FROM t10, t11 WHERE t10.y=t11.p;\n ...")
+	_ = db.Exec("CREATE INDEX ab_i ON ab_r(b);\n    CREATE INDEX bc_i ON bc_r(b);")
+	_ = db.Exec("CREATE INDEX i22 ON real_t22(q);\n    SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n       (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);")
+	_ = db.Exec("CREATE TABLE ab_r(a, b);\n    CREATE TABLE bc_r(b, c);\n\n    CREATE VIRTUAL TABLE ab USING echo(ab_r); \n    CREATE VIRTUAL TABLE bc USING echo(bc_r); \n\n    INSERT INTO ab VALUES(1, 2);\n    INSERT INTO bc VALUES(2, 3);")
+	_ = db.Exec("CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  C...")
+	_ = db.Exec("CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    INSERT INTO t1 VALUES(3,4,5);\n    SELECT * FROM t1;")
+	_ = db.Exec("INSERT INTO t2 VALUES(1,2,3);\n    INSERT INTO t2 VALUES(2,3,4);\n    INSERT INTO t2 VALUES(3,4,5);\n    SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t3 VALUES(2,3,4);\n    INSERT INTO t3 VALUES(3,4,5);\n    INSERT INTO t3 VALUES(4,5,6);\n    SELECT * FROM t3;")
+	_ = db.Exec("INSERT INTO t4 VALUES(2,3,4);\n    INSERT INTO t4 VALUES(3,4,5);\n    INSERT INTO t4 VALUES(4,5,6);\n    SELECT * FROM t4;")
+	_ = db.Exec("INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);...")
+	_ = db.Query("SELECT * FROM t1 CROSS JOIN t2 USING(b,c);")
+	_ = db.Query("SELECT * FROM t1 INNER JOIN t2 USING(b,c);")
+	_ = db.Query("SELECT * FROM t1 LEFT JOIN t2 ON t1.a IS t2.d")
+	_ = db.Query("SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d")
+	_ = db.Query("SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d WHERE t1.a>1")
+	_ = db.Query("SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.d WHERE t2.b IS NULL OR t2.b>1")
+	_ = db.Query("SELECT * FROM t1 NATURAL CROSS JOIN t2;")
+	_ = db.Query("SELECT * FROM t1 NATURAL INNER JOIN t2;")
+	_ = db.Query("SELECT * FROM t1 NATURAL LEFT JOIN t2;")
+	_ = db.Query("SELECT * FROM t1 natural inner join t2;")
+	_ = db.Query("SELECT * FROM t1 natural join t2 natural join t3 WHERE t1.a=1")
+	_ = db.Query("SELECT * FROM t1 natural join t2 natural join t3;")
+	_ = db.Query("SELECT * FROM t1 natural join t2 natural join t4;")
+	_ = db.Query("SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);")
+	_ = db.Query("SELECT * FROM t2 NATURAL LEFT OUTER JOIN t1;")
+	_ = db.Query("SELECT * FROM t6 NATURAL JOIN t5;")
+	_ = db.Query("SELECT * FROM t6, t5 WHERE t6.a<t5.a;")
+	_ = db.Query("SELECT * FROM t6, t5 WHERE t6.a>t5.a;")
+	_ = db.Query("SELECT * FROM t9 LEFT JOIN (SELECT x, q FROM t10, t11 WHERE t10.y=t11.p)\n           ON( a=x);")
+	_ = db.Query("SELECT * FROM v10_11 LEFT JOIN t9 ON( a=x );")
+	_ = db.Query("SELECT a, b, c FROM ab NATURAL JOIN bc;")
+	_ = db.Query("SELECT a, b, c FROM bc NATURAL JOIN ab;")
+	_ = db.Query("SELECT b FROM t1 JOIN t2 USING(b);")
+	_ = db.Query("SELECT b FROM t1 NATURAL JOIN t2;")
+	_ = db.Exec("UPDATE t6 SET a='xyz';\n    SELECT * FROM t6 NATURAL JOIN t5;")
+	_ = db.Exec("UPDATE t6 SET a=1;\n    SELECT * FROM t6 NATURAL JOIN t5;")
+}
 // Auto-generated from vtab7.test
 func TestSQLite_vtab7(t *testing.T) {
 	db := setupDB(t)
@@ -12246,6 +18831,26 @@ func TestSQLite_vtab9(t *testing.T) {
 	_ = db.Exec("#     REPLACE INTO t5(rowid, a) VALUES(1, 'goodbye');\n#     SELECT * FROM t5;\n#")
 	_ = db.Exec("CREATE TABLE t0(a);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n    INSERT INTO t1 SELECT 'hello';\n    SELECT rowid, * FROM t1;")
 	_ = db.Exec("CREATE TABLE t2(a,b,c);\n    CREATE VIRTUAL TABLE t3 USING echo(t2);\n    CREATE TABLE d1(a,b,c);\n    INSERT INTO d1 VALUES(1,2,3);\n    INSERT INTO d1 VALUES('a','b','c');\n    INSERT INTO d1 VALUES(NULL,'x',123.456);\n    INSERT INTO d1 VALUES(x'6869',123456789,-12345);\n    INSERT INTO t3(a,b...")
+}
+// Auto-generated from vtabA.test
+func TestSQLite_vtabA(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1 $columns")
+	_ = db.Exec("CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER)")
+	_ = db.Exec("CREATE VIRTUAL TABLE t1e USING echo(t1)")
+	_ = db.Exec("DELETE FROM t1e;\n  INSERT INTO t1e SELECT 'abc','def';")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT ...")
+	_ = db.Exec("DROP TABLE IF EXISTS t1e;")
+	_ = db.Exec("INSERT INTO t1e SELECT * FROM t1e;")
+	_ = db.Exec("INSERT INTO t1e VALUES('ghi','jkl'),('mno','pqr'),('stu','vwx');")
+	_ = db.Query("PRAGMA table_info($table)")
+	_ = db.Query("PRAGMA table_info(t1e)")
+	_ = db.Query("SELECT * FROM t1e ORDER BY 1;")
+	_ = db.Query("SELECT * FROM t1e;")
+	_ = db.Query("SELECT a, b, c FROM t1e;")
+	_ = db.Query("SELECT a,b,c, '|' FROM t1e ORDER BY 1;")
 }
 // Auto-generated from vtabB.test
 func TestSQLite_vtabB(t *testing.T) {
@@ -12382,6 +18987,39 @@ func TestSQLite_vtab_err(t *testing.T) {
 	_ = db.Exec("BEGIN;\n      CREATE TABLE xyz(x);\n      SELECT a FROM e;\n    COMMIT;")
 	_ = db.Exec("CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);")
 }
+// Auto-generated from vtab_shared.test
+func TestSQLite_vtab_shared(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t4")
+	_ = db.Exec("ALTER TABLE t2 RENAME TO t5")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SELECT * FROM t1;")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);")
+	_ = db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;")
+	_ = db.Exec("CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n      INSERT INTO rt VALUES(1, 2 ,3);\n      SELECT * FROM rt;")
+	_ = db.Exec("CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);")
+	_ = db.Exec("DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;")
+	_ = db.Exec("DROP TABLE ft")
+	_ = db.Exec("DROP TABLE rt")
+	_ = db.Exec("INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;")
+	_ = db.Query("SELECT *  FROM t1")
+	_ = db.Query("SELECT * FROM t0")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3")
+	_ = db.Query("SELECT * FROM t3")
+	_ = db.Query("SELECT * FROM t4")
+	_ = db.Exec("UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;")
+}
+// Auto-generated from vtabdistinct.test
+func TestSQLite_vtabdistinct(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT DISTINCT ix FROM qpvtab WHERE vn='sqlite3_vtab_distinct';")
+	_ = db.Query("SELECT distinct vn, ix FROM qpvtab(3)\n   WHERE +vn IN ('sqlite3_vtab_distinct','nOrderBy');")
+	_ = db.Query("SELECT ix FROM qpvtab WHERE vn='sqlite3_vtab_distinct';")
+	_ = db.Query("SELECT vn, ix FROM qpvtab\n   GROUP BY vn\n  HAVING vn='sqlite3_vtab_distinct';")
+}
 // Auto-generated from vtabdrop.test
 func TestSQLite_vtabdrop(t *testing.T) {
 	db := setupDB(t)
@@ -12393,6 +19031,63 @@ func TestSQLite_vtabdrop(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1")
 	_ = db.Query("SELECT name FROM sqlite_master ORDER BY 1;")
 	_ = db.Query("SELECT name FROM sqlite_master ORDER BY 1;\n    SELECT * FROM t1;\n    SELECT * FROM rt;")
+}
+// Auto-generated from vtabrhs1.test
+func TestSQLite_vtabrhs1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND 'quokka' < a")
+	_ = db.Query("SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a GLOB x'0123'")
+	_ = db.Query("SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a IS NULL")
+	_ = db.Query("SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a<>4.5")
+	_ = db.Query("SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a=12345")
+	_ = db.Query("SELECT typeof(rhs) FROM qpvtab WHERE cn='a' AND a=?2")
+	_ = db.Query("SELECT typeof(rhs) FROM qpvtab WHERE cn='a' AND a=format('abc');")
+}
+// Auto-generated from wal.test
+func TestSQLite_wal(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'attached-$i.db' AS a$i;")
+	_ = db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA main.auto_vacuum = 0;\n      PRAGMA aux.auto_vacuum = 0;\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      PRAGMA main.synchronous = NORMAL;\n      PRAGMA aux.synchronous = NORMAL;")
+	_ = db.Exec("ATTACH 'test2.db' AS t2; PRAGMA journal_mode=WAL;")
+	_ = db.Exec("BEGIN")
+	_ = db.Exec("BEGIN ; SELECT * FROM t1")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t(x);")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 2\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 4\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 8\n      INSERT INTO t1 SELECT blob(900) FROM t1;   -- 16")
+	_ = db.Exec("BEGIN;\n      INSERT INTO t2 VALUES(3, 4);\n      SELECT * FROM t2;")
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t1(a, b);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("BEGIN; DELETE FROM t1")
+	_ = db.Exec("BEGIN; INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("BEGIN; SELECT * FROM t1")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("COMMIT;\n    SELECT * FROM t1;")
+	_ = db.Exec("COMMIT;\n    SELECT * FROM t2;")
+	_ = db.Exec("COMMIT; SELECT * FROM t1")
+	_ = db.Exec("CREATE TABLE a$i.t$i (x);")
+	_ = db.Exec("CREATE TABLE main.t1(a, b, PRIMARY KEY(a, b));\n      CREATE TABLE aux.t2(a, b, PRIMARY KEY(a, b));\n\n      INSERT INTO t2 VALUES(1, randomblob(1000));\n      INSERT INTO t2 VALUES(2, randomblob(1000));\n      INSERT INTO t1 SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    BEGIN;\n    INSERT INTO t2 VALUES(blob(400), blob(400));\n    SAVEPOINT tr;\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  2 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  4 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2...")
+	_ = db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(blob(400), blob(400));\n    SAVEPOINT tr;\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  2 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  4 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  8 */\n...")
+	_ = db.Exec("CREATE TEMP TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);")
+	_ = db.Exec("CREATE TEMP TABLE t3(x UNIQUE);\n    BEGIN;\n      INSERT INTO t2 VALUES(3, 4);\n      INSERT INTO t3 VALUES('abc');")
+	_ = db.Exec("DELETE FROM t$i;")
+	_ = db.Exec("DELETE FROM t1 WHERE rowid<54;\n    PRAGMA wal_checkpoint;")
+	_ = db.Exec("DELETE FROM t1;\n      INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');")
+	_ = db.Exec("DELETE FROM t1;\n      PRAGMA wal_checkpoint;")
+	_ = db.Exec("DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n      SAVEPOINT sp;\n        INSERT INTO t1 VALUES('c', 'd');\n        SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t2;\n    PRAGMA wal_checkpoint;\n    BEGIN;\n      INSERT INTO t2 VALUES('w', 'x');\n      SAVEPOINT save;\n        INSERT INTO t2 VALUES('y', 'z');\n      ROLLBACK TO save;\n    COMMIT;")
+	_ = db.Exec("INSERT INTO t VALUES(randomblob(400))")
+	_ = db.Exec("INSERT INTO t$i VALUES(randomblob(10000));")
+	_ = db.Exec("INSERT INTO t$i VALUES(zeroblob(10000));")
+	_ = db.Exec("INSERT INTO t1 VALUES( blob(900) )")
+	_ = db.Exec("INSERT INTO t1 VALUES( blob(900) );\n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check;")
+	_ = db.Exec("INSERT INTO t1 VALUES('x', 'y');\n    RELEASE tr;")
+	_ = db.Exec("INSERT INTO t1 VALUES('x', 'y');\n    RELEASE tr;\n    COMMIT;")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
 }
 // Auto-generated from wal2.test
 func TestSQLite_wal2(t *testing.T) {
@@ -12486,6 +19181,34 @@ func TestSQLite_wal5(t *testing.T) {
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);\n        CREATE TABLE aux.t2(a, b);\n        INSERT INTO t2 VALUES(1, 2);")
 	_ = db.Exec("CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);\n        CREATE TABLE aux.t2(a, b);\n        INSERT INTO t2 VALUES(1, 2);\n        INSERT INTO t2 VALUES(3, 4);")
+}
+// Auto-generated from wal6.test
+func TestSQLite_wal6(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN IMMEDIATE")
+	_ = db.Exec("BEGIN;\n      INSERT INTO ab VALUES(1, 2);")
+	_ = db.Exec("BEGIN;\n      INSERT INTO ab VALUES(3, 4);")
+	_ = db.Exec("BEGIN;\n    INSERT INTO t2 VALUES(3, 4);")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1")
+	_ = db.Exec("INSERT INTO t1 VALUES('x', 'x')")
+	_ = db.Exec("INSERT INTO t1 VALUES('y', 'y')")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n  CREATE TABLE ab(a PRIMARY KEY, b);")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Query("PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;")
+	_ = db.Query("PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  PRAGMA wal_checkpoint = truncate;")
+	_ = db.Query("PRAGMA wal_checkpoint = passive")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1 ORDER BY a;")
+	_ = db.Query("SELECT * FROM t1;\n    INSERT INTO t1 VALUES(3, 'three');")
+	_ = db.Query("SELECT * FROM t1;\n  COMMIT;\n  INSERT INTO t1 VALUES('x', 'x')")
+	_ = db.Query("SELECT count(*) FROM t1")
+	_ = db.Query("SELECT test3('2.6.4')")
+	_ = db.Query("SELECT test4('3.3.2')")
 }
 // Auto-generated from wal64k.test
 func TestSQLite_wal64k(t *testing.T) {
@@ -12633,6 +19356,56 @@ func TestSQLite_walcrash3(t *testing.T) {
 	_ = db.Query("PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));")
 	_ = db.Query("SELECT count(*) FROM t1")
 }
+// Auto-generated from walcrash4.test
+func TestSQLite_walcrash4(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t[set e] (x)")
+	_ = db.Exec("INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;")
+	_ = db.Query("PRAGMA autovacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  PRAGMA main.synchronous = full;")
+	_ = db.Query("PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);")
+	_ = db.Query("SELECT count(*) FROM t1;\n      PRAGMA integrity_check;")
+}
+// Auto-generated from walfault.test
+func TestSQLite_walfault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 1 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 2 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 4 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 8 */\n    ROLLBACK;\n...")
+	_ = db.Exec("BEGIN;\n      INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 1 */\n      SAVEPOINT spoint;\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 2 */\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 4 */\n        INSERT INTO abc SELECT randomblob(900) FROM abc;   ...")
+	_ = db.Exec("COMMIT")
+	_ = db.Exec("CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n    ...")
+	_ = db.Exec("DELETE FROM abc;\n    PRAGMA wal_checkpoint;")
+	_ = db.Exec("INSERT INTO z VALUES(NULL, NULL)")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('a', 'b');\n      PRAGMA wal_checkpoint;\n      SELECT * FROM t1;")
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;")
+	_ = db.Query("PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));")
+	_ = db.Query("PRAGMA cache_size = 10")
+	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE z SET zzz = randomblob(799);")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE x(y, z, UNIQUE(y, z));\n      INSERT INTO x VALUES(randomblob(100), randomblob(100));\n    COMMIT;\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO x SELECT randomblob(100), randomblob(100) FROM x;\n    INSERT INTO x SELECT randomblob(100),...")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INT...")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(80...")
+	_ = db.Query("PRAGMA journal_mode = delete")
+	_ = db.Query("PRAGMA locking_mode = exclusive")
+	_ = db.Query("PRAGMA locking_mode = exclusive;\n    PRAGMA journal_mode = WAL;\n    INSERT INTO abc VALUES(randomblob(1500));")
+	_ = db.Query("PRAGMA locking_mode = normal;\n    BEGIN;\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;")
+	_ = db.Query("PRAGMA main.journal_mode = WAL")
+	_ = db.Query("PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;")
+	_ = db.Query("PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblo...")
+	_ = db.Query("PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblo...")
+	_ = db.Query("PRAGMA wal_autocheckpoint = 0")
+	_ = db.Query("PRAGMA wal_checkpoint = full;\n    INSERT INTO abc VALUES(randomblob(1500));")
+	_ = db.Exec("ROLLBACK")
+	_ = db.Exec("ROLLBACK TO spoint")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT count(*) FROM abc")
+	_ = db.Query("SELECT count(*) FROM abc;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;")
+	_ = db.Query("SELECT count(*) FROM t1")
+	_ = db.Query("SELECT count(*) FROM x")
+	_ = db.Query("SELECT count(*), sum(length(zzz)) FROM z")
+}
 // Auto-generated from walfault2.test
 func TestSQLite_walfault2(t *testing.T) {
 	db := setupDB(t)
@@ -12641,6 +19414,53 @@ func TestSQLite_walfault2(t *testing.T) {
 	_ = db.Query("PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 30\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;")
 	_ = db.Query("PRAGMA cache_size = 2;\n    BEGIN;\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);\n    UPDATE t1 SET a=randomblob(400);\n    UPDATE t1 SET b=randomblob(400);\n    UPDATE t1 SET a=randomblob(40...")
 	_ = db.Query("PRAGMA wal_checkpoint;\n    PRAGMA journal_size_limit = 10000;\n    PRAGMA synchronous = full;")
+}
+// Auto-generated from walhook.test
+func TestSQLite_walhook(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t2(a, b)")
+	_ = db.Exec("CREATE TABLE t3(a PRIMARY KEY, b)")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one')")
+	_ = db.Exec("INSERT INTO t1 VALUES(2, 'two')")
+	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);")
+	_ = db.Query("PRAGMA synchronous = NORMAL")
+	_ = db.Query("PRAGMA wal_autocheckpoint")
+	_ = db.Query("PRAGMA wal_autocheckpoint = 10")
+	_ = db.Query("PRAGMA wal_checkpoint")
+}
+// Auto-generated from walmode.test
+func TestSQLite_walmode(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ATTACH 'test.db2' AS two")
+	_ = db.Exec("BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;")
+	_ = db.Exec("BEGIN;\n      CREATE TEMP TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA temp.journal_mode;")
+	_ = db.Exec("BEGIN;\n      SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b)")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);")
+	_ = db.Exec("INSERT INTO t1 DEFAULT VALUES")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 2)")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;")
+	_ = db.Exec("INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    PRAGMA temp.journal_mode;")
+	_ = db.Exec("INSERT INTO two.t2 DEFAULT VALUES")
+	_ = db.Query("PRAGMA journal_mode")
+	_ = db.Query("PRAGMA journal_mode = DELETE")
+	_ = db.Query("PRAGMA journal_mode = WAL")
+	_ = db.Query("PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);")
+	_ = db.Query("PRAGMA journal_mode = delete")
+	_ = db.Query("PRAGMA journal_mode = persist")
+	_ = db.Query("PRAGMA journal_mode = wal")
+	_ = db.Query("PRAGMA main.journal_mode")
+	_ = db.Query("PRAGMA main.journal_mode = wal")
+	_ = db.Query("PRAGMA page_size = 1024")
+	_ = db.Query("PRAGMA temp.journal_mode")
+	_ = db.Query("PRAGMA temp.journal_mode = wal")
+	_ = db.Query("PRAGMA two.journal_mode")
+	_ = db.Query("PRAGMA two.journal_mode = DELETE")
+	_ = db.Query("PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM t1")
 }
 // Auto-generated from walnoshm.test
 func TestSQLite_walnoshm(t *testing.T) {
@@ -12713,6 +19533,43 @@ func TestSQLite_walprotocol2(t *testing.T) {
 	_ = db.Query("SELECT * FROM x;")
 	_ = db.Query("SELECT * FROM x;\n  COMMIT;")
 }
+// Auto-generated from walrestart.test
+func TestSQLite_walrestart(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20\n  ) \n  INSERT INTO t1 SELECT NULL, randomblob(600) FROM s;\n  CREATE INDEX i1 ON t1(b);\n  PRAGMA wal_checkpoint;")
+	_ = db.Query("PRAGMA integrity_check")
+	_ = db.Query("PRAGMA wal_checkpoint;")
+	_ = db.Exec("UPDATE t1 SET b=randomblob(600);\n  PRAGMA wal_checkpoint;")
+}
+// Auto-generated from walro2.test
+func TestSQLite_walro2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);")
+	_ = db.Query("SELECT * FROM sqlite_master")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from walrofault.test
+func TestSQLite_walrofault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(b);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES('hello');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('!');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('hello');\n  PRAGMA cache_size = 10;\n  BEGIN;\n    WITH s(i) AS ( SELECT 1 UNION ALL ...")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from walseh1.test
+func TestSQLite_walseh1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 VALUES(5, 6)")
+	_ = db.Exec("INSERT INTO t1 VALUES(7, 8)")
+	_ = db.Query("PRAGMA cache_size = 5;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n      )\n      INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM s;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Query("PRAGMA wal_checkpoint")
+	_ = db.Query("PRAGMA wal_checkpoint = TRUNCATE")
+	_ = db.Query("SELECT * FROM sqlite_schema")
+	_ = db.Query("SELECT * FROM t1")
+}
 // Auto-generated from walsetlk.test
 func TestSQLite_walsetlk(t *testing.T) {
 	db := setupDB(t)
@@ -12769,6 +19626,24 @@ func TestSQLite_walsetlk_recover(t *testing.T) {
 	defer db.Close()
 	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);")
 	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from walsetlk_snapshot.test
+func TestSQLite_walsetlk_snapshot(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("INSERT INTO t1 VALUES(7, 8);\n    COMMIT;")
+	_ = db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);")
+	_ = db.Query("PRAGMA wal_checkpoint;")
+	_ = db.Query("SELECT * FROM t1")
+}
+// Auto-generated from walshared.test
+func TestSQLite_walshared(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100), randomblob(200));\n      INSERT INTO t1 SELECT randomblob(100), randomblob(200) FROM t1;\n      INSERT INTO t1 SELECT randomblob(100), randomblob(200) FROM t1;\n      INSERT INTO t1 SELECT randomblob(100), randomblob(200) FROM t1;")
+	_ = db.Exec("COMMIT")
+	_ = db.Query("PRAGMA cache_size = 10;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(randomblob(100), randomblob(200));")
+	_ = db.Query("PRAGMA integrity_check")
 }
 // Auto-generated from walslow.test
 func TestSQLite_walslow(t *testing.T) {
@@ -13056,6 +19931,23 @@ func TestSQLite_where7(t *testing.T) {
 	_ = db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY,b,c,d,e,f TEXT,g);\n    INSERT INTO t2 VALUES(1,11,1001,1.001,100.1,'bcdefghij','yxwvuts');\n    INSERT INTO t2 VALUES(2,22,1001,2.002,100.1,'cdefghijk','yxwvuts');\n    INSERT INTO t2 VALUES(3,33,1001,3.0029999999999997,100.1,'defghijkl','xwvutsr');\n    INS...")
 	_ = db.Exec("CREATE TABLE t301 (\n      c8 INTEGER PRIMARY KEY,\n      c6 INTEGER,\n      c4 INTEGER,\n      c7 INTEGER,\n      FOREIGN KEY (c4) REFERENCES series(c4)\n  );\n  CREATE INDEX t301_c6 on t301(c6);\n  CREATE INDEX t301_c4 on t301(c4);\n  CREATE INDEX t301_c7 on t301(c7);\n  \n  CREATE TABLE t302 (...")
 }
+// Auto-generated from where8.test
+func TestSQLite_where8(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    CREATE TABLE t3(a INTEGER, b REAL, c TEXT);\n    CREATE TABLE t4(f INTEGER, g REAL, h TEXT);\n    INSERT INTO t3 VALUES('hills', NULL, 1415926535);\n    INSERT INTO t3 VALUES('and', 'of', NULL);\n    INSERT INTO t3 VALUES('have', 'towering', 53594.08128);\n    INSERT INTO t3 VALUES(NU...")
+	_ = db.Exec("CREATE TABLE t1(a, b TEXT, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1,  'one',   'I');\n    INSERT INTO t1 VALUES(2,  'two',   'II');\n    INSERT INTO t1 VALUES(3,  'three', 'III');\n    INSERT INTO t1 VALUES(4,  'four',  'IV');\n    INSERT IN...")
+	_ = db.Exec("CREATE TABLE t2(d, e, f);\n    CREATE INDEX i3 ON t2(d);\n    CREATE INDEX i4 ON t2(e);\n\n    INSERT INTO t2 VALUES(1,  NULL,         'I');\n    INSERT INTO t2 VALUES(2,  'four',       'IV');\n    INSERT INTO t2 VALUES(3,  NULL,         'IX');\n    INSERT INTO t2 VALUES(4,  'sixteen',    'XVI');...")
+	_ = db.Exec("CREATE TABLE t600(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE INDEX t600b ON t600(b);\n  INSERT INTO t600 VALUES('state','screen'),('exact','dolphin'),('green','mercury');\n  SELECT a, b, '|' FROM t600 WHERE a=='state' OR b='mercury' ORDER BY +a;")
+	_ = db.Exec("CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );")
+	_ = db.Exec("CREATE VIRTUAL TABLE e1 USING echo(t1);\n      SELECT b FROM e1;")
+	_ = db.Exec("DROP INDEX IF EXISTS i5;\n    DROP INDEX IF EXISTS i6;\n    DROP INDEX IF EXISTS i7;\n    DROP INDEX IF EXISTS i8;")
+	_ = db.Exec("INSERT INTO tA VALUES(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8); \n    CREATE UNIQUE INDEX tAI ON tA(p);\n    CREATE TABLE tB(x);\n    INSERT INTO tB VALUES('x');")
+	_ = db.Query("SELECT * FROM tA WHERE\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND\n      (p = 1 OR p = 2 OR p = 3) AND n=6 AND o=7")
+	_ = db.Query("SELECT * FROM tA WHERE\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND n=6 AND o=7 AND\n      (p = 1 OR p = 2 OR p = 3)")
+	_ = db.Query("SELECT a, x FROM tA LEFT JOIN tB ON (\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND n=6 AND o=7 AND\n      (p = 1 OR p = 2 OR p = 3)\n    )")
+	_ = db.Query("SELECT c FROM e1 WHERE a=1 OR b='three';")
+}
 // Auto-generated from where9.test
 func TestSQLite_where9(t *testing.T) {
 	db := setupDB(t)
@@ -13311,6 +20203,33 @@ func TestSQLite_whereK(t *testing.T) {
 	_ = db.Query("SELECT a FROM t1 WHERE (b=8 AND c>7) OR b>8 ORDER BY +a;")
 	_ = db.Query("SELECT a FROM t1 WHERE b>8 OR (b=8 AND c>7) ORDER BY +a;")
 }
+// Auto-generated from whereL.test
+func TestSQLite_whereL(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE A(id INTEGER PRIMARY KEY, label TEXT);\n  CREATE TABLE B(id INTEGER PRIMARY KEY, label TEXT, Aid INTEGER);\n  CREATE TABLE C(\n    id INTEGER PRIMARY KEY,\n    xx INTEGER NOT NULL,\n    yy INTEGER,\n    zz INTEGER\n  );\n  CREATE UNIQUE INDEX x2 ON C(yy);\n  CREATE UNIQUE INDEX x4 ON...")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS t0 (c0 BLOB);\n  CREATE TABLE IF NOT EXISTS t1 (c0 INTEGER);\n\n  INSERT INTO t1 VALUES ('1');\n  INSERT INTO t0 VALUES (''), (''), ('2');")
+	_ = db.Exec("CREATE TABLE c3(x COLLATE binary, y COLLATE nocase, z COLLATE binary);\n  CREATE INDEX c3x ON c3(x);\n  INSERT INTO c3 VALUES('ABC', 'ABC', 'abc');\n  SELECT * FROM c3 WHERE x=y AND y=z AND z='abc';")
+	_ = db.Exec("CREATE TABLE t0(c0, c1);\n  CREATE TABLE t1(c2);\n  CREATE INDEX i0 ON t1(NULL);\n  INSERT INTO t1(c2) VALUES (0.2);\n  CREATE VIEW v0(c3) AS SELECT DISTINCT c2 FROM t1;\n  SELECT * FROM v0 LEFT JOIN t0 ON c3<NULL LEFT JOIN t1 ON 1;")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY, b, c, d, e);\n  CREATE TABLE t2(a INT PRIMARY KEY, f, g, h, i);\n  CREATE TABLE t3(a INT PRIMARY KEY, j, k, l, m);\n  CREATE VIEW v4 AS SELECT * FROM t2 UNION ALL SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t1(v INTEGER);\n  WITH RECURSIVE c(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(v) SELECT x FROM c;\n  CREATE INDEX idx ON t1( abs(v) );\n  SELECT v FROM t1 WHERE abs(v)=1 and v=1;")
+	_ = db.Exec("CREATE TABLE t1(x TEXT);\n  CREATE TABLE t2(y TEXT);\n  INSERT INTO t1 VALUES('good'),('bad');\n  INSERT INTO t2 VALUES('good'),('bad');\n  SELECT * FROM t1 JOIN t2 ON x=y\n   WHERE x='good' AND y='good';")
+	_ = db.Exec("CREATE TABLE tableA(\n    ID           int,\n    RunYearMonth int\n  );\n  INSERT INTO tableA VALUES(1,202003),(2,202003),(3,202003),(4,202004),\n    (5,202004),(6,202004),(7,202004),(8,202004);\n  CREATE TABLE tableB (\n    ID           int,\n    RunYearMonth int\n  );\n  INSERT INTO tableB VALU...")
+	_ = db.Exec("CREATE TABLE x(a, b, c);\n  CREATE TABLE y(a, b);\n  INSERT INTO x VALUES (1, 0, 1);\n  INSERT INTO y VALUES (1, 2);\n  SELECT x.a FROM x JOIN y ON x.c = y.a WHERE x.b = 1 AND x.b = 1;")
+	_ = db.Query("PRAGMA automatic_index=OFF;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES('0');\n  CREATE VIEW v0(c0) AS SELECT CAST(0 AS INT) FROM t0;\n  SELECT 200, * FROM t0, v0 WHERE 0 = t0.c0 AND t0.c0 = v0.c0;")
+	_ = db.Query("SELECT *\n    FROM (SELECT 0.0 AS col_0) as subQuery\n    LEFT JOIN t0 ON ((CASE ''\n          WHEN t0.c0 THEN subQuery.col_0\n          ELSE (t0.c0) END) LIKE (((((subQuery.col_0))))))\n    LEFT JOIN t1 ON ((subQuery.col_0) == (false)) WHERE t1.c0;")
+	_ = db.Query("SELECT *\n    FROM (SELECT 0.0 AS col_0) as subQuery\n    LEFT JOIN t0 ON ((CASE ''\n          WHEN t0.c0 THEN subQuery.col_0\n          ELSE (t0.c0) END) LIKE (((((subQuery.col_0))))))\n    LEFT JOIN t1 ON ((subQuery.col_0) == (false));")
+	_ = db.Query("SELECT * FROM (SELECT 1.0 AS abc) WHERE abc LIKE '1.0';")
+	_ = db.Query("SELECT * FROM (SELECT 1.0 AS abc) WHERE abc=1 AND abc LIKE '1.0';")
+	_ = db.Query("SELECT * FROM (SELECT 1.0 AS abc) WHERE abc=1;")
+	_ = db.Query("SELECT * FROM c3 WHERE x='abc' AND y='abc' AND z='abc';")
+	_ = db.Query("SELECT * FROM v0 LEFT JOIN t0 ON c3<NULL LEFT JOIN t1 ON 1 WHERE c2/0.1;")
+	_ = db.Query("SELECT 1\n    FROM A,\n         (SELECT id,xx,yy,zz FROM C) subq,\n         B\n   WHERE A.id=1\n     AND A.id=subq.yy\n     AND B.id=subq.zz;")
+	_ = db.Query("SELECT 1\n    FROM A,\n         (SELECT id,yy,zz FROM C) subq,\n         B\n   WHERE A.id='1'\n     AND A.id=subq.yy\n     AND B.id=subq.zz;")
+	_ = db.Query("SELECT 200, * FROM t0, v0 WHERE 0 = t0.c0 AND v0.c0 = t0.c0;")
+	_ = db.Query("SELECT 200, * FROM t0, v0 WHERE t0.c0 = 0 AND t0.c0 = v0.c0;")
+	_ = db.Query("SELECT 200, * FROM t0, v0 WHERE t0.c0 = 0 AND v0.c0 = t0.c0;")
+}
 // Auto-generated from whereM.test
 func TestSQLite_whereM(t *testing.T) {
 	db := setupDB(t)
@@ -13480,11 +20399,33 @@ func TestSQLite_widetab1(t *testing.T) {
 	_ = db.Query("SELECT sum(c65) FROM t1;")
 	_ = db.Query("SELECT sum(c65) FROM t1;\n  UPDATE t1 SET c65=c65+1 WHERE c00=1000;\n  SELECT sum(c65) FROM t1;\n  ROLLBACK;")
 }
+// Auto-generated from win32lock.test
+func TestSQLite_win32lock(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(4);")
+	_ = db.Exec("COMMIT;")
+	_ = db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);")
+	_ = db.Query("PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;")
+	_ = db.Query("PRAGMA mmap_size=0")
+	_ = db.Query("SELECT x, length(y) FROM t1 ORDER BY rowid")
+}
 // Auto-generated from win32longpath.test
 func TestSQLite_win32longpath(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;")
+}
+// Auto-generated from win32nolock.test
+func TestSQLite_win32nolock(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(3, 4);")
+	_ = db.Exec("BEGIN;\n    SELECT * FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Query("PRAGMA mmap_size = 0")
+	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t1;")
 }
 // Auto-generated from window1.test
 func TestSQLite_window1(t *testing.T) {
@@ -13676,6 +20617,49 @@ func TestSQLite_window5(t *testing.T) {
 	_ = db.Query("SELECT sumint(a) OVER (ORDER BY rowid ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) FROM t1 ORDER BY rowid;")
 	_ = db.Query("SELECT sumint(a) OVER (ORDER BY rowid) FROM t1 ORDER BY rowid;")
 	_ = db.Query("SELECT win(a) OVER (ORDER BY b), median(a) OVER (ORDER BY b) FROM t1;")
+}
+// Auto-generated from window6.test
+func TestSQLite_window6(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("#  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n#  SELECT x, group_concat(x) OVER (ORDER BY x RANGE 2 PRECEDING)\n#  FROM c;\n#")
+	_ = db.Exec("#  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n#  SELECT x, group_concat(x) OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND 2 FOLLOWING)\n#  FROM c;\n#")
+	_ = db.Exec("CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);")
+	_ = db.Exec("CREATE TABLE over(x, over);\n  CREATE TABLE window(x, window);\n  INSERT INTO over VALUES(1, 2), (3, 4), (5, 6);\n  INSERT INTO window VALUES(1, 2), (3, 4), (5, 6);\n  SELECT sum(x) over FROM over")
+	_ = db.Exec("CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');")
+	_ = db.Exec("CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');")
+	_ = db.Exec("CREATE TABLE t4(x, y);")
+	_ = db.Exec("CREATE TABLE window(x COLLATE window);\n  INSERT INTO window VALUES('bob'), ('alice'), ('cate');\n  SELECT * FROM window ORDER BY x COLLATE window;")
+	_ = db.Exec("DROP TABLE window;\n  CREATE TABLE x1(x);\n  INSERT INTO x1 VALUES('bob'), ('alice'), ('cate');\n  CREATE INDEX window ON x1(x COLLATE window);\n  SELECT * FROM x1 ORDER BY x COLLATE window;")
+	_ = db.Query("PRAGMA parser_trace = 1")
+	_ = db.Query("SELECT \"counter\", \"value\", RANK() OVER w AS \"rank\" \n  FROM \"sample\"\n  WINDOW w AS (PARTITION BY \"counter\" ORDER BY \"value\" DESC) \n  ORDER BY \"counter\", RANK() OVER w")
+	_ = db.Query("SELECT \"counter\", \"value\", SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS 2 PRECEDING) \n    FROM \"sample\" \n  ORDER BY \"id\"")
+	_ = db.Query("SELECT * FROM t4 window, t4;")
+	_ = db.Query("SELECT LIKE(\"!\",\"\",\"!\")\"\"WHeRE\"\";")
+	_ = db.Query("SELECT LIKE(\"!\",\"\",\"!\")\"\"window\"\";")
+	_ = db.Query("SELECT LIKE('!', '', '!') x WHERE x;")
+	_ = db.Query("SELECT SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) \n    FROM \"sample\" \n  ORDER BY \"id\"")
+	_ = db.Query("SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;")
+	_ = db.Query("SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)\n    FROM t1 ORDER BY a;")
+	_ = db.Query("SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 FOLLOWING)")
+	_ = db.Query("SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 PRECEDING)")
+	_ = db.Query("SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)")
+	_ = db.Query("SELECT count(*) FROM t1 WHERE x LIKE '!' ESCAPE '!';")
+	_ = db.Query("SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)")
+	_ = db.Query("SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over)")
+	_ = db.Query("SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over);")
+	_ = db.Query("SELECT sum(window) OVER window window FROM window window window window AS (ORDER BY window);")
+	_ = db.Query("SELECT sum(x) over over FROM over WINDOW over AS ()")
+	_ = db.Query("SELECT window('hello world');")
+	_ = db.Query("SELECT y, group_concat(y, '.') OVER win FROM t3\n  WINDOW win AS (\n    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING\n  );")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;")
+	_ = db.Exec("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;")
+	_ = db.Exec("WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);")
 }
 // Auto-generated from window7.test
 func TestSQLite_window7(t *testing.T) {
@@ -14013,6 +20997,51 @@ func TestSQLite_with1(t *testing.T) {
 	_ = db.Exec("WITH RECURSIVE\n    d(x) AS (VALUES(1) UNION ALL SELECT rowid+1 FROM d WHERE rowid<10)\n  SELECT x FROM d;")
 	_ = db.Exec("WITH RECURSIVE\n    i(x) AS (VALUES(1) UNION SELECT count(*) FROM i)\n  SELECT * FROM i;")
 }
+// Auto-generated from with2.test
+func TestSQLite_with2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("$sql")
+	_ = db.Exec("CREATE TABLE t1(a);\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1;\n    ALTER TABLE t1 RENAME COLUMN a TO b;\n    SELECT sql FROM sqlite_schema WHERE ...")
+	_ = db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1),('hello'),(4.25),(NULL),(x'3c626c6f623e');\n    CREATE VIEW v2(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM t1) SELECT * FROM v2) SELECT a) SELECT * from t1;\n    CREATE VIEW v3(c) AS WITH x AS (WITH y AS (WITH z AS(SELECT * FROM v2) SELECT...")
+	_ = db.Exec("CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);")
+	_ = db.Exec("CREATE TABLE t2(i);\n  INSERT INTO t2 VALUES(2);\n  INSERT INTO t2 VALUES(3);\n  INSERT INTO t2 VALUES(5);\n\n  WITH x1   AS (SELECT i FROM t2),\n       i(a) AS (\n         SELECT min(i)-1 FROM x1 UNION SELECT a+1 FROM i WHERE a<10\n       )\n  SELECT a FROM i WHERE a NOT IN x1")
+	_ = db.Exec("CREATE TABLE t3 AS SELECT 3 AS x;\n  CREATE TABLE t4 AS SELECT 4 AS x;\n\n  WITH x1 AS (SELECT * FROM t3),\n       x2 AS (\n         WITH t3 AS (SELECT * FROM t4)\n         SELECT * FROM x1\n       )\n  SELECT * FROM x2;")
+	_ = db.Exec("CREATE TABLE t5(x INTEGER);\n  CREATE TABLE t6(y INTEGER);\n\n  WITH s(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM s WHERE x<49 )\n  INSERT INTO t5 \n  SELECT * FROM s;\n\n  INSERT INTO t6 \n  WITH s(x) AS ( VALUES(2) UNION ALL SELECT x+2 FROM s WHERE x<49 )\n  SELECT * FROM s;")
+	_ = db.Exec("CREATE TABLE t7(y);\n  INSERT INTO t7 VALUES(NULL);\n  CREATE VIEW v AS SELECT * FROM t7 ORDER BY y;")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);")
+	_ = db.Exec("DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT *\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;")
+	_ = db.Exec("DROP VIEW v2;\n    CREATE VIEW v2(c) AS\n        WITH x AS (\n          WITH y AS (\n             WITH z AS(SELECT * FROM t1)\n             SELECT * FROM v2\n          ) SELECT a\n        ) SELECT * from t1, x;\n    SELECT * FROM v2;")
+	_ = db.Exec("INSERT INTO t1 VALUES(55);\n    SELECT * FROM v2;")
+	_ = db.Query("SELECT * FROM t6 WHERE y IN (\n    WITH ss(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM ss WHERE x<49 )\n    SELECT x FROM ss\n  )")
+	_ = db.Query("SELECT * FROM t6 WHERE y IN (SELECT x FROM t5)")
+	_ = db.Query("SELECT 1 AS c WHERE (\n    SELECT (\n      WITH t1(a) AS (VALUES( c ))\n      SELECT ( SELECT t1a.a FROM t1 AS t1a, t1 AS t1x )\n      FROM t1 AS xyz GROUP BY 1\n    )\n  )")
+	_ = db.Exec("WITH\n    cst(rsx, rsy) AS  (\n      SELECT 100, 100\n    ),\n    cst2(minx, maxx, stepx, miny, maxy, stepy, qualitativex, qualitativey) AS (\n      SELECT NULL, NULL, NULL, NULL, NULL, NULL, 0, 0\n    ),\n    ds0(m, n, x, y, x2, y2, title, size, mark, label, markmode) AS (\n      SELECT 1, 2, 3,...")
+	_ = db.Exec("WITH\n    t1(x) AS (SELECT 111),\n    t2(y) AS (SELECT 222),\n    t3(z) AS (SELECT * FROM t2 WHERE false UNION ALL SELECT * FROM t2)\n  SELECT * FROM t1, t3;")
+	_ = db.Exec("WITH \n  i(x) AS ( \n    WITH \n    j(x) AS ( SELECT * FROM i ), \n    i(x) AS ( SELECT * FROM t1 )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;")
+	_ = db.Exec("WITH \n  i(x) AS ( \n    WITH j(x) AS ( SELECT * FROM i )\n    SELECT * FROM j\n  )\n  SELECT * FROM i;")
+	_ = db.Exec("WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM i;")
+	_ = db.Exec("WITH \n  i(x) AS ( SELECT * FROM (SELECT * FROM j) ),\n  j(x) AS ( SELECT * FROM (SELECT * FROM i) )\n  SELECT * FROM j;")
+	_ = db.Exec("WITH \n  i(x) AS ( SELECT * FROM j ),\n  j(x) AS ( SELECT * FROM k ),\n  k(x) AS ( SELECT * FROM i )\n  SELECT * FROM i;")
+	_ = db.Exec("WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM (SELECT * FROM main.t4) WHERE x<10\n  )\n  SELECT * FROM t4;")
+	_ = db.Exec("WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM main.t4 WHERE x<10\n  )\n  SELECT * FROM t4;")
+	_ = db.Exec("WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4 WHERE x<10\n  )\n  SELECT * FROM t4;")
+	_ = db.Exec("WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4, main.t4, t4 WHERE x<10\n  )\n  SELECT * FROM t4;")
+	_ = db.Exec("WITH i(x) AS (\n    VALUES($min) UNION ALL SELECT x+1 FROM i WHERE x < $max\n  )\n  SELECT * FROM i;")
+	_ = db.Exec("WITH i(x) AS (\n    VALUES($min) UNION ALL SELECT x+1 FROM i WHERE x < $max\n  )\n  SELECT x FROM i JOIN i AS j USING (x);")
+	_ = db.Exec("WITH i(x, y) AS ( VALUES(1, (SELECT x FROM i)) )\n  SELECT * FROM i;")
+	_ = db.Exec("WITH q(a) AS (\n    SELECT 1\n    UNION \n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;")
+	_ = db.Exec("WITH q(a) AS (\n    SELECT 1\n    UNION ALL\n    SELECT a+1 FROM q, v WHERE a<5\n  )\n  SELECT * FROM q;")
+	_ = db.Exec("WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, (\n      SELECT x FROM x INTERSECT SELECT y FROM y\n    ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) ),\n  y(y) AS ( VALUES(2) UNION ALL VALUES(4) UNION ALL VALUES(6) )\n\n  ...")
+	_ = db.Exec("WITH r(i) AS (\n    VALUES('.')\n    UNION ALL\n    SELECT i || '.' FROM r, ( SELECT x FROM x WHERE x=2 ) WHERE length(i) < 10\n  ),\n  x(x) AS ( VALUES(1) UNION ALL VALUES(2) UNION ALL VALUES(3) )\n\n  SELECT * FROM r ORDER BY length(i) DESC;")
+	_ = db.Exec("WITH ss AS (SELECT x FROM t5)\n  SELECT * FROM t6 WHERE y IN (SELECT x FROM ss)")
+	_ = db.Exec("WITH ss(x) AS ( VALUES(7) UNION ALL SELECT x+7 FROM ss WHERE x<49 )\n  SELECT * FROM t6 WHERE y IN (SELECT x FROM ss)")
+	_ = db.Exec("WITH x AS (\n      WITH y AS (\n         WITH z AS(SELECT * FROM t1)\n         SELECT * FROM no_such_table\n      ) SELECT a\n    ) SELECT * from t1;")
+	_ = db.Exec("WITH x AS (SELECT * FROM t1)\n  DELETE FROM t2 WHERE;")
+	_ = db.Exec("WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b FROM abc;")
+	_ = db.Exec("WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1 a a a;")
+	_ = db.Exec("WITH x AS (SELECT * FROM t1)\n  INSERT INTO t2 SELECT a, b, FROM t1;")
+}
 // Auto-generated from with3.test
 func TestSQLite_with3(t *testing.T) {
 	db := setupDB(t)
@@ -14090,6 +21119,109 @@ func TestSQLite_withM(t *testing.T) {
 	_ = db.Exec("WITH tmp AS ( SELECT * FROM t1 )\n    SELECT * FROM tmp;")
 	_ = db.Exec("WITH w1 AS ( SELECT * FROM t1 ),\n         w2 AS ( \n           WITH w3 AS ( SELECT * FROM w1 )\n           SELECT * FROM w3\n         )\n    SELECT * FROM w2;")
 	_ = db.Exec("WITH w1(a,b) AS ( \n      SELECT 1, 1\n      UNION ALL\n      SELECT a+1, b + 2*a + 1 FROM w1\n    )\n    SELECT * FROM w1 LIMIT 5;")
+}
+// Auto-generated from without_rowid1.test
+func TestSQLite_without_rowid1(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ANALYZE;\n  SELECT * FROM sqlite_stat1 ORDER BY idx;")
+	_ = db.Exec("CREATE INDEX i46 ON t46(c);")
+	_ = db.Exec("CREATE TABLE dual AS SELECT 'X' AS dummy;\n    EXPLAIN QUERY PLAN SELECT * FROM dual, t1 WHERE a=10 AND b=10;")
+	_ = db.Exec("CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1(a) VALUES(10);\n    ALTER TABLE t1 ADD COLUMN b INT;\n    SELECT * FROM t1 WHERE a=20 OR (a=10 AND b=10);")
+	_ = db.Exec("CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(b);\n\n  CREATE TABLE t2(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i2 ON t2(b);\n\n  INSERT INTO t1 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'two');")
+	_ = db.Exec("CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c,d, PRIMARY KEY(c,a)) WITHOUT ROWID;\n  CREATE INDEX t1bd ON t1(b, d);\n  INSERT INTO t1 VALUES('journal','sherman','ammonia','helena');\n  INSERT INTO t1 VALUES('dynamic','juliet','flipper','command');\n  INSERT INTO t1 VALUES('journal','sherman','gamma','patriot');\n  INSER...")
+	_ = db.Exec("CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;")
+	_ = db.Exec("CREATE TABLE t11(a TEXT PRIMARY KEY, b INT) WITHOUT ROWID;\n  CREATE INDEX t11a ON t11(a COLLATE NOCASE);\n  INSERT INTO t11(a,b) VALUES ('A',1),('a',2);\n  PRAGMA integrity_check;\n  SELECT a FROM t11 ORDER BY a COLLATE binary;")
+	_ = db.Exec("CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';")
+	_ = db.Exec("CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t3(a PRIMARY KEY);\n  CREATE TABLE t4(a PRIMARY KEY);\n\n  INSERT INTO t4 VALUES('i');\n  INSERT INTO t4 VALUES('ii');\n  INSERT INTO t4 VALUES('iii');\n\n  INSERT INTO t3 SELECT * FROM t4;\n  SELECT * FROM t3;")
+	_ = db.Exec("CREATE TABLE t4 (a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 'def');\n  SELECT * FROM t4;")
+	_ = db.Exec("CREATE TABLE t41(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t41 VALUES('abc');\n  CREATE TABLE t42(x);\n  INSERT INTO t42 VALUES('xyz');\n  SELECT t42.rowid FROM t41, t42;")
+	_ = db.Exec("CREATE TABLE t45(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE INDEX i45 ON t45(b);\n\n  INSERT INTO t45 VALUES(2, 'one', 'x');\n  INSERT INTO t45 VALUES(4, 'one', 'x');\n  INSERT INTO t45 VALUES(6, 'one', 'x');\n  INSERT INTO t45 VALUES(8, 'one', 'x');\n  INSERT INTO t45 VALUES(10, 'one', 'x');...")
+	_ = db.Exec("CREATE TABLE t46(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH r(x) AS (\n    SELECT 1 UNION ALL SELECT x+1 FROM r WHERE x<100\n  )\n  INSERT INTO t46 SELECT x / 20, x % 20, x % 10, x FROM r;")
+	_ = db.Exec("CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHE...")
+	_ = db.Exec("CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';")
+	_ = db.Exec("CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';")
+	_ = db.Exec("CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';")
+	_ = db.Exec("CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');")
+	_ = db.Exec("CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TRIGGER t1_tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t1 WHERE a = new.a;\n  END;\n  UPDATE t1 SET c = c+1 WHERE a = 'a';\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t1;\n  INSERT INTO t1 SELECT * FROM t2;\n  SELECT * FROM t1;")
+	_ = db.Exec("DELETE FROM t2 WHERE b=1")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0 (c0 INTEGER PRIMARY KEY DESC, c1 UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  INSERT INTO t0(c0) VALUES (1), (2), (3), (4), (5);\n  REINDEX;\n  PRAGMA integrity_check;")
+	_ = db.Exec("DROP TABLE IF EXISTS t0;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t0(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t0(c0,c1) VALUES('abc','xyz');\n  CREATE TABLE t1(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t1 ...")
+	_ = db.Exec("DROP TABLE t4;\n  CREATE TABLE t4 (b, a COLLATE nocase PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4(a, b) VALUES('abc', 'def');\n  SELECT * FROM t4;")
+	_ = db.Exec("INSERT INTO t2 VALUES('four', 'four');\n  INSERT INTO t2 VALUES('six', 'two');\n  INSERT INTO t1 SELECT * FROM t2;")
+	_ = db.Exec("INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');")
+	_ = db.Exec("INSERT OR REPLACE INTO t1 SELECT * FROM t2;\n  SELECT * FROM t1;")
+	_ = db.Query("PRAGMA writable_schema=ON;\n    CREATE TABLE sqlite_sequence (name PRIMARY KEY) WITHOUT ROWID;\n    PRAGMA writable_schema=OFF;\n    CREATE TABLE c1(x);\n    INSERT INTO sqlite_sequence(name) VALUES('c0'),('c1'),('c2');\n    ALTER TABLE c1 RENAME TO a;\n    SELECT name FROM sqlite_sequence ORDER ...")
+	_ = db.Exec("REPLACE INTO t1 VALUES('dynamic','phone','flipper','harvard');\n  SELECT *, '|' FROM t1 ORDER BY c, a;")
+	_ = db.Query("SELECT * FROM t45 WHERE b='one' AND a<8")
+	_ = db.Query("SELECT * FROM t45 WHERE b='two' AND a>4")
+	_ = db.Query("SELECT * FROM t6 ORDER BY b, a;\n  SELECT * FROM t6 ORDER BY c;")
+	_ = db.Query("SELECT *, '|' FROM t1 ORDER BY +b, d;")
+	_ = db.Query("SELECT *, '|' FROM t1 ORDER BY +c, a;")
+}
+// Auto-generated from without_rowid2.test
+func TestSQLite_without_rowid2(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(\n      a INT PRIMARY KEY,\n      b INT\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    ) WITHOUT rowid;")
+	_ = db.Exec("CREATE TABLE t2(\n      x INT PRIMARY KEY,\n      y TEXT\n    ) WITHOUT rowid;")
+	_ = db.Exec("CREATE TABLE t3(\n      a INT REFERENCES t2,\n      b INT REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );")
+	_ = db.Exec("CREATE TABLE t4(a int primary key) WITHOUT rowid;\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TA...")
+	_ = db.Exec("CREATE TABLE t5(a PRIMARY KEY, b, c) WITHOUT rowid;\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);")
+	_ = db.Exec("CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);")
+	_ = db.Exec("CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);")
+	_ = db.Exec("CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);")
+}
+// Auto-generated from without_rowid3.test
+func TestSQLite_without_rowid3(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("ALTER TABLE t1 RENAME TO t4")
+	_ = db.Exec("ATTACH ':memory:' AS aux;\n      CREATE TABLE aux.t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TABLE aux.t2(a, b);\n      INSERT INTO aux.t2(a,b) VALUES(1,2);")
+	_ = db.Exec("BEGIN;\n        INSERT INTO cc VALUES(2, 2);")
+	_ = db.Exec("BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);")
+	_ = db.Exec("BEGIN;\n        INSERT INTO pp VALUES(3, 'three');")
+	_ = db.Exec("BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;")
+	_ = db.Exec("BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;")
+	_ = db.Exec("BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint")
+	_ = db.Exec("BEGIN;\n    DELETE FROM pp WHERE a = 2;")
+	_ = db.Exec("COMMIT ; SELECT * FROM cc")
+	_ = db.Exec("COMMIT ; SELECT * FROM pp")
+	_ = db.Exec("COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;")
+	_ = db.Exec("CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );")
+	_ = db.Exec("CREATE TABLE aux.t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TABLE aux.t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TABLE aux.t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);")
+	_ = db.Exec("CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;")
+	_ = db.Exec("CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;")
+	_ = db.Exec("CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );")
+	_ = db.Exec("CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );")
+	_ = db.Exec("CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;")
+	_ = db.Exec("CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;")
+	_ = db.Exec("CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');")
+	_ = db.Exec("CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');")
+	_ = db.Exec("CREATE TABLE long(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE short(d, e, f REFERENCES long);\n      CREATE TABLE mid(g, h, i REFERENCES long DEFERRABLE INITIALLY DEFERRED);")
+	_ = db.Exec("CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);")
+	_ = db.Exec("CREATE TABLE nought(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      );")
+	_ = db.Exec("CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);")
+	_ = db.Exec("CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);")
+	_ = db.Exec("CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;")
+	_ = db.Exec("CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);")
+	_ = db.Exec("CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);")
+	_ = db.Exec("CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5...")
+	_ = db.Exec("CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));")
+	_ = db.Exec("CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t...")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );")
+	_ = db.Exec("CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));")
+	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TABLE t2(a, b);\n      INSERT INTO t2(a,b) VALUES(1,2);")
+	_ = db.Exec("CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);")
 }
 // Auto-generated from without_rowid4.test
 func TestSQLite_without_rowid4(t *testing.T) {
@@ -14193,12 +21325,73 @@ func TestSQLite_without_rowid6(t *testing.T) {
 	_ = db.Query("SELECT c FROM t1 WHERE a=123;")
 	_ = db.Query("SELECT c FROM t1 WHERE b=1123;")
 }
+// Auto-generated from without_rowid7.test
+func TestSQLite_without_rowid7(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE TABLE t1(\n      a PRIMARY KEY COLLATE mysort, b COLLATE mysort2\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);")
+	_ = db.Exec("CREATE TABLE t1(a, b COLLATE nocase, PRIMARY KEY(a, a, b)) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t2(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID;")
+	_ = db.Exec("CREATE TABLE t3(a, b, PRIMARY KEY(a COLLATE nocase, a));\n  PRAGMA index_info(t3);")
+	_ = db.Exec("CREATE UNIQUE INDEX i1 ON t1(1);")
+	_ = db.Exec("CREATE UNIQUE INDEX i1 ON t1(b);")
+	_ = db.Exec("INSERT INTO t1 VALUES(1, 'one'), (1, 'ONE');")
+	_ = db.Exec("INSERT INTO t2 VALUES(1, 'one');\n  SELECT b FROM t2;")
+	_ = db.Query("PRAGMA index_info(t2);")
+	_ = db.Query("PRAGMA index_xinfo(t2);")
+	_ = db.Query("SELECT * FROM t1 WHERE a=1;")
+}
 // Auto-generated from writecrash.test
 func TestSQLite_writecrash(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 	_ = db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT NULL, randomblob(900) FROM s;")
 	_ = db.Query("PRAGMA integrity_check")
+}
+// Auto-generated from zeroblob.test
+func TestSQLite_zeroblob(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE INDEX i1_1 ON t1(b);\n    SELECT a FROM t1 WHERE b=zeroblob(10000);")
+	_ = db.Exec("CREATE TABLE t1(a,b,c,d);")
+	_ = db.Exec("CREATE TABLE t10(a,b,c);")
+	_ = db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bbc ON t1(b, b+c);\n  INSERT INTO t1(a,b,c) VALUES(1,zeroblob(8),3);\n  SELECT a, quote(b), length(b), c FROM t1;")
+	_ = db.Exec("INSERT INTO t1 VALUES(2,3,4,zeroblob(1000000));")
+	_ = db.Exec("INSERT INTO t1 VALUES(3,4,zeroblob(10000),5);")
+	_ = db.Exec("INSERT INTO t1 VALUES(4,5,zeroblob(10000),zeroblob(10000));")
+	_ = db.Exec("INSERT INTO t1 VALUES(5,zeroblob(10000),NULL,zeroblob(10000));")
+	_ = db.Query("PRAGMA cache_size=10")
+	_ = db.Query("SELECT 'hello' AS a, zeroblob(10) as b from t1 ORDER BY a, b;")
+	_ = db.Query("SELECT CAST (zeroblob(100) AS INTEGER);")
+	_ = db.Query("SELECT CAST (zeroblob(100) AS REAL);")
+	_ = db.Query("SELECT CAST (zeroblob(100) AS TEXT);")
+	_ = db.Query("SELECT CAST(zeroblob(100) AS BLOB);")
+	_ = db.Query("SELECT a FROM t1 WHERE b=zeroblob(10000)")
+	_ = db.Query("SELECT count(DISTINCT a) FROM (\n        SELECT x'00000000000000000000' AS a\n        UNION ALL\n        SELECT zeroblob(10) AS a\n      )")
+	_ = db.Query("SELECT hex(zeroblob(2) || x'61')")
+	_ = db.Query("SELECT length(b), length(d) FROM t1 WHERE a=5")
+	_ = db.Query("SELECT length(c), length(d) FROM t1")
+	_ = db.Query("SELECT length(d) FROM t1")
+	_ = db.Query("SELECT length(zeroblob(-1444444444444444));")
+	_ = db.Query("SELECT quote(test_zeroblob(-1));")
+	_ = db.Query("SELECT quote(zeroblob(-1444444444444444));")
+	_ = db.Query("SELECT quote(zeroblob(5000 * 1024 * 1024));")
+	_ = db.Query("SELECT x'0000' IN (x'0000')")
+	_ = db.Query("SELECT x'0000' IN (x'000000')")
+	_ = db.Query("SELECT x'0000' IN (zeroblob(2))")
+	_ = db.Query("SELECT x'0000' IN (zeroblob(3))")
+	_ = db.Query("SELECT zeroblob(100)")
+	_ = db.Query("SELECT zeroblob(2) IN (x'0000')")
+	_ = db.Query("SELECT zeroblob(2) IN (x'000000')")
+	_ = db.Query("SELECT zeroblob(2) IN (zeroblob(2))")
+	_ = db.Query("SELECT zeroblob(2) IN (zeroblob(3))")
+	_ = db.Query("SELECT zeroblob(5000 * 1024 * 1024);")
+	_ = db.Query("select hex(zeroblob(-1))")
+	_ = db.Query("select length(zeroblob(-1))")
+	_ = db.Query("select typeof(zeroblob(-1))")
+	_ = db.Query("select zeroblob(-1)")
+	_ = db.Query("select zeroblob(-1)|1")
+	_ = db.Query("select zeroblob(-10)")
 }
 // Auto-generated from zeroblobfault.test
 func TestSQLite_zeroblobfault(t *testing.T) {
@@ -14281,4 +21474,22 @@ func TestSQLite_zipfile2(t *testing.T) {
 	_ = db.Query("SELECT name,sz FROM zipfile(readfile('test.zip'));")
 	_ = db.Exec("UPDATE temp.zip SET name='test1' WHERE name='test2'")
 	_ = db.Exec("WITH contents(name,mtime,data) AS (\n        VALUES('a.txt', 1000000, 'contents of a.txt') UNION ALL\n        VALUES('b.txt', 1000000, 'contents of b.txt')\n    ) SELECT quote( zipfile(name,NULL,mtime,data) ) FROM contents;")
+}
+// Auto-generated from zipfilefault.test
+func TestSQLite_zipfilefault(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+	_ = db.Exec("CREATE VIRTUAL TABLE aaa USING zipfile('test.zip')")
+	_ = db.Exec("CREATE VIRTUAL TABLE setup USING zipfile('test.zip')")
+	_ = db.Exec("CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');")
+	_ = db.Exec("CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');")
+	_ = db.Exec("DROP TABLE IF EXISTS aaa")
+	_ = db.Exec("DROP TABLE IF EXISTS setup;\n    BEGIN;\n      CREATE VIRTUAL TABLE setup USING zipfile('test.zip')")
+	_ = db.Exec("INSERT INTO setup(name, data) \n    VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');")
+	_ = db.Exec("INSERT INTO setup(name, data) VALUES('dir', NULL)")
+	_ = db.Query("SELECT json_extract( zipfile_cds(z), '$.version-made-by' ) \n      FROM zipfile('test.zip')")
+	_ = db.Query("SELECT name,data FROM zipfile('test.zip')")
+	_ = db.Exec("WITH c(n, d) AS (\n      SELECT 1, 'aaaaaaaaaaabbbbbbbbbbaaaaaaaaaabbbbbbbbbb'\n    )\n    SELECT name, data FROM zipfile(\n      (SELECT zipfile(n, d) FROM c)\n    );")
+	_ = db.Exec("WITH c(n, d) AS (\n      VALUES('a.txt', $big)\n    )\n    SELECT zipfile(n, NULL, NULL, d, 0) IS NULL FROM c;")
+	_ = db.Exec("WITH c(n, d) AS (\n      VALUES('a.txt', '1234567890') UNION ALL\n      VALUES('dir', NULL)\n    )\n    SELECT zipfile(n, d) IS NULL FROM c;")
 }
