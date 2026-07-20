@@ -670,6 +670,7 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 
 // execSelectNoFrom handles SELECT without FROM clause.
 func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
+	columns := e.buildColumnNames(s.Columns, nil)
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		v, err := e.evalExpr(col.Expr, nil)
@@ -695,10 +696,10 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 				unionRows = append(unionRows, row)
 			}
 		}
-		return &Result{Rows: unionRows}
+		return &Result{Columns: columns, Rows: unionRows}
 	}
 
-	return &Result{Rows: [][]interface{}{outRow}}
+	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 }
 
 // hasAggregates checks if any SELECT column uses an aggregate function.
@@ -733,15 +734,17 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []map[string]interfac
 		return e.evalAggregatesEmpty(s)
 	}
 
+	columns := e.buildColumnNames(s.Columns, nil)
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		v := e.evalAggregateExpr(col.Expr, rowMaps)
 		outRow = append(outRow, v)
 	}
-	return &Result{Rows: [][]interface{}{outRow}}
+	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 }
 
 func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
+	columns := e.buildColumnNames(s.Columns, nil)
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		if fn, ok := col.Expr.(*sql.FuncCall); ok {
@@ -757,7 +760,7 @@ func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
 		outRow = append(outRow, nil)
 	}
 	if outRow != nil {
-		return &Result{Rows: [][]interface{}{outRow}}
+		return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 	}
 	return nil
 }
