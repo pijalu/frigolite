@@ -532,12 +532,8 @@ func globMatch(s, pattern string) bool {
 				px++
 				continue
 			}
-			if c == '?' && sx < len(s) {
-				px, sx = px+1, sx+1
-				continue
-			}
-			if sx < len(s) && s[sx] == c {
-				px, sx = px+1, sx+1
+			if ok, np, ns := globMatchChar(s, c, px, sx); ok {
+				px, sx = np, ns
 				continue
 			}
 		}
@@ -549,6 +545,17 @@ func globMatch(s, pattern string) bool {
 		return false
 	}
 	return true
+}
+
+// globMatchChar handles ? and exact character matching for GLOB.
+func globMatchChar(s string, c byte, px, sx int) (bool, int, int) {
+	if c == '?' && sx < len(s) {
+		return true, px + 1, sx + 1
+	}
+	if sx < len(s) && s[sx] == c {
+		return true, px + 1, sx + 1
+	}
+	return false, px, sx
 }
 
 // --- Compression functions (using Go stdlib) ---

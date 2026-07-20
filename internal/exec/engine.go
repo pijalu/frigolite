@@ -491,39 +491,47 @@ func (e *Engine) fireTriggers(tableName, event string) *Result {
 		return &Result{}
 	}
 	for _, t := range triggers {
-		triggerSQL := t.SQL
-		upper := strings.ToUpper(triggerSQL)
-		// Check event matches: "event ON table" pattern
-		if !strings.Contains(upper, " "+event+" ") && !strings.Contains(upper, " "+event+" ON") {
-			continue
-		}
-		// Extract statements between BEGIN and END
-		beginIdx := strings.Index(upper, "BEGIN")
-		if beginIdx < 0 {
-			continue
-		}
-		endIdx := strings.LastIndex(upper, "END")
-		if endIdx < 0 {
-			continue
-		}
-		body := triggerSQL[beginIdx+5 : endIdx]
-		body = strings.TrimSpace(body)
-		if body == "" {
-			continue
-		}
-		parser := sql.NewParser(body)
-		stmts := parser.Parse()
-		if parser.Err() != nil {
-			continue
-		}
-		for _, stmt := range stmts {
-			res := e.Exec(stmt)
-			if res.Error != nil {
-				return res
-			}
+		if res := e.fireTrigger(t, event); res != nil {
+			return res
 		}
 	}
 	return &Result{}
+}
+
+// fireTrigger fires a single trigger matching the given event.
+// Returns a Result with an error if execution fails, or nil on success.
+func (e *Engine) fireTrigger(t *schema.Entry, event string) *Result {
+	upper := strings.ToUpper(t.SQL)
+	// Check event matches: "event ON table" pattern
+	if !strings.Contains(upper, " "+event+" ") && !strings.Contains(upper, " "+event+" ON") {
+		return nil
+	}
+	// Extract statements between BEGIN and END
+	beginIdx := strings.Index(upper, "BEGIN")
+	if beginIdx < 0 {
+		return nil
+	}
+	endIdx := strings.LastIndex(upper, "END")
+	if endIdx < 0 {
+		return nil
+	}
+	body := t.SQL[beginIdx+5 : endIdx]
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return nil
+	}
+	parser := sql.NewParser(body)
+	stmts := parser.Parse()
+	if parser.Err() != nil {
+		return nil
+	}
+	for _, stmt := range stmts {
+		res := e.Exec(stmt)
+		if res.Error != nil {
+			return res
+		}
+	}
+	return nil
 }
 
 func (e *Engine) evalInsertValues(s *sql.InsertStmt, colDefs []sql.ColumnDef) []interface{} {

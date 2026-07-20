@@ -361,14 +361,7 @@ func interpolateArgs(query string, args []driver.NamedValue) (string, error) {
 			b.WriteString(escapeSQL(val))
 			argIdx++
 			i++
-		} else if query[i] == '$' && i+1 < len(query) && query[i+1] >= '0' && query[i+1] <= '9' {
-			// Parse $N
-			j := i + 1
-			for j < len(query) && query[j] >= '0' && query[j] <= '9' {
-				j++
-			}
-			n := 0
-			fmt.Sscanf(query[i+1:j], "%d", &n)
+		} else if n, j, ok := tryParseDollarN(query, i); ok {
 			val, ok := byOrdinal[n]
 			if !ok {
 				return "", fmt.Errorf("frigodb: missing argument for placeholder $%d", n)
@@ -381,6 +374,21 @@ func interpolateArgs(query string, args []driver.NamedValue) (string, error) {
 		}
 	}
 	return b.String(), nil
+}
+
+// tryParseDollarN attempts to parse a $N placeholder at position i.
+// Returns the placeholder number, end index, and whether parsing succeeded.
+func tryParseDollarN(query string, i int) (int, int, bool) {
+	if query[i] != '$' || i+1 >= len(query) || query[i+1] < '0' || query[i+1] > '9' {
+		return 0, 0, false
+	}
+	j := i + 1
+	for j < len(query) && query[j] >= '0' && query[j] <= '9' {
+		j++
+	}
+	n := 0
+	fmt.Sscanf(query[i+1:j], "%d", &n)
+	return n, j, true
 }
 
 // interpolateValues replaces ? placeholders with values.
