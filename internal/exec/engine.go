@@ -406,6 +406,17 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 	}
 
 	values := e.evalInsertValues(s, colDefs)
+
+	// Check for ON CONFLICT (UPSERT)
+	if s.OnConflict != nil {
+		return e.execInsertOnConflict(tableEntry, colDefs, values, s)
+	}
+
+	// Normal insert (no conflict clause)
+	return e.insertRow(tableEntry, colDefs, values)
+}
+
+func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
 	record, err := storage.EncodeRecord(values)
 	if err != nil {
 		return &Result{Error: err}
@@ -426,6 +437,162 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 		return trigResult
 	}
 	return &Result{Changes: 1}
+}
+
+// execInsertOnConflict handles INSERT ... ON CONFLICT by attempting the
+// insert and falling back to the conflict action when a conflict is detected.
+func (e *Engine) execInsertOnConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, s *sql.InsertStmt) *Result {
+	oc := s.OnConflict
+
+	// Build a map of column name → index for easy lookup
+	colIndex := buildColumnIndex(colDefs)
+
+	// Try to find an existing conflicting row by scanning for UNIQUE violations
+	existingRowID, existingValues, found := e.findRowByUniqueCols(tableEntry.RootPage, colDefs, colIndex, values)
+
+	if !found {
+		return e.insertRow(tableEntry, colDefs, values)
+	}
+
+	switch oc.Action {
+	case sql.ConflictDoNothing:
+		return &Result{Changes: 0}
+	case sql.ConflictDoUpdate:
+		return e.applyUpsertUpdate(tableEntry, colDefs, colIndex, existingRowID, existingValues, oc)
+	}
+	return &Result{Changes: 0}
+}
+
+// applyUpsertUpdate applies DO UPDATE SET assignments to the existing row
+// and writes the updated row back to the table.
+func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, existingRowID int64, existingValues []interface{}, oc *sql.OnConflictClause) *Result {
+	updated := e.buildUpdatedRow(colDefs, colIndex, existingValues, oc)
+
+	record, err := storage.EncodeRecord(updated)
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+		return cell.RowID == existingRowID
+	})
+	if err != nil || deleted == 0 {
+		return &Result{Error: fmt.Errorf("upsert: row not found for update")}
+	}
+
+	cell := &storage.Cell{
+		Type:    storage.CellTableLeaf,
+		RowID:   existingRowID,
+		Payload: record,
+	}
+	if err := tree.InsertCell(cell); err != nil {
+		return &Result{Error: err}
+	}
+
+	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name); trigResult.Error != nil {
+		return trigResult
+	}
+	return &Result{Changes: 1}
+}
+
+// buildUpdatedRow applies ON CONFLICT DO UPDATE SET assignments to the
+// existing values and returns the updated row.
+func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]int, existingValues []interface{}, oc *sql.OnConflictClause) []interface{} {
+	updated := make([]interface{}, len(existingValues))
+	copy(updated, existingValues)
+
+	row := make(map[string]interface{})
+	for _, col := range colDefs {
+		if idx, ok := colIndex[col.Name]; ok && idx < len(existingValues) {
+			row[col.Name] = existingValues[idx]
+		}
+	}
+
+	for _, assign := range oc.Assignments {
+		if idx, ok := colIndex[assign.Column]; ok {
+			val, err := e.evalExpr(assign.Value, row)
+			if err == nil && idx < len(updated) {
+				updated[idx] = val
+			}
+		}
+	}
+	return updated
+}
+
+// findRowByUniqueCols searches for a row that conflicts with the given values
+// on any UNIQUE column. Returns the RowID, existing values, and whether a
+// conflict was found.
+func (e *Engine) findRowByUniqueCols(rootPage uint32, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) (int64, []interface{}, bool) {
+	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
+	if len(uniqueCols) == 0 {
+		return 0, nil, false
+	}
+
+	cursor, err := openCursor(e.pager, rootPage)
+	if err != nil {
+		return 0, nil, false
+	}
+
+	return scanForConflict(cursor, uniqueCols, values)
+}
+
+// openCursor opens a cursor for scanning the given root page.
+func openCursor(pager *pager.Pager, rootPage uint32) (*btree.Cursor, error) {
+	tree := btree.NewBTree(pager, rootPage, true)
+	return tree.OpenCursor()
+}
+
+// scanForConflict iterates through all rows and looks for a value match
+// on any of the given UNIQUE column indices.
+func scanForConflict(cursor *btree.Cursor, uniqueCols []int, values []interface{}) (int64, []interface{}, bool) {
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			break
+		}
+
+		if hasConflictAt(rec.Values, uniqueCols, values) {
+			return cell.RowID, rec.Values, true
+		}
+
+		hasNext, err := cursor.Next()
+		if err != nil || !hasNext {
+			break
+		}
+	}
+	return 0, nil, false
+}
+
+// hasConflictAt returns true if any of the UNIQUE column values match.
+func hasConflictAt(recValues []interface{}, uniqueCols []int, values []interface{}) bool {
+	for _, idx := range uniqueCols {
+		if idx < len(recValues) && idx < len(values) {
+			if util.CompareValues(recValues[idx], values[idx]) == 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// gatherUniqueColIndices returns the column indices that have UNIQUE constraints
+// and are present in both the column definitions and the provided values.
+func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []int {
+	var uniqueCols []int
+	for _, cd := range colDefs {
+		if cd.Unique {
+			if idx, ok := colIndex[cd.Name]; ok && idx < len(values) {
+				uniqueCols = append(uniqueCols, idx)
+			}
+		}
+	}
+	return uniqueCols
 }
 
 func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt) *Result {

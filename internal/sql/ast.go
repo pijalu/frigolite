@@ -55,13 +55,30 @@ type OrderByTerm struct {
 
 // InsertStmt represents an INSERT statement.
 type InsertStmt struct {
-	Table   string
-	Columns []string
-	Values  []Expr
-	Select  *SelectStmt // for INSERT ... SELECT
+	Table     string
+	Columns   []string
+	Values    []Expr
+	Select    *SelectStmt // for INSERT ... SELECT
+	OnConflict *OnConflictClause
 }
 
 func (s *InsertStmt) stmt() {}
+
+// OnConflictClause represents an ON CONFLICT ... DO ... clause.
+type OnConflictClause struct {
+	ConflictColumn string       // optional conflict target column
+	Action         ConflictAction
+	Assignments    []Assignment // for DO UPDATE SET
+	Where          Expr         // optional WHERE for DO UPDATE
+}
+
+// ConflictAction is the action taken on conflict.
+type ConflictAction int
+
+const (
+	ConflictDoNothing ConflictAction = iota
+	ConflictDoUpdate
+)
 
 // UpdateStmt represents an UPDATE statement.
 type UpdateStmt struct {

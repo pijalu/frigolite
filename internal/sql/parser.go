@@ -384,7 +384,64 @@ func (p *Parser) parseInsert() *InsertStmt {
 		p.expect(TokenRParen)
 	}
 	p.parseInsertSource(s)
+	if p.cur.Type == TokenKeyword && p.cur.Value == "ON" {
+		s.OnConflict = p.parseOnConflict()
+	}
 	return s
+}
+
+func (p *Parser) parseOnConflict() *OnConflictClause {
+	oc := &OnConflictClause{}
+	p.next() // skip ON
+	p.expectKeyword("CONFLICT")
+
+	// Optional conflict target: (column_name)
+	if p.cur.Type == TokenLParen {
+		p.next()
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			oc.ConflictColumn = p.cur.Value
+			p.next()
+		}
+		p.expect(TokenRParen)
+	}
+
+	// WHERE clause not supported yet for conflict target
+
+	p.expectKeyword("DO")
+
+	if p.cur.Type == TokenKeyword && p.cur.Value == "NOTHING" {
+		oc.Action = ConflictDoNothing
+		p.next()
+		return oc
+	}
+
+	p.expectKeyword("UPDATE")
+	oc.Action = ConflictDoUpdate
+
+	if !p.expectKeyword("SET") {
+		return nil
+	}
+	oc.Assignments = p.parseAssignments()
+	return oc
+}
+
+func (p *Parser) parseAssignments() []Assignment {
+	var assigns []Assignment
+	for {
+		var a Assignment
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			a.Column = p.cur.Value
+			p.next()
+		}
+		p.expect(TokenEq)
+		a.Value = p.parseExpr()
+		assigns = append(assigns, a)
+		if p.cur.Type != TokenComma {
+			break
+		}
+		p.next()
+	}
+	return assigns
 }
 
 func (p *Parser) parseInsertSource(s *InsertStmt) {
