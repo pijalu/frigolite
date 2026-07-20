@@ -48,9 +48,10 @@ test:
 test-race:
 	go test -timeout 60s -race -count=1 -run "^Test[^C]" ./...
 
-# Verbose test with coverage
+# Verbose test with coverage (only packages with test files)
 test-cover:
-	go test -timeout 60s -count=1 -coverprofile=coverage.out ./...
+	go test -timeout 60s -count=1 -coverprofile=coverage.out \
+	  . ./frigodb/ ./internal/storage/ ./internal/util/
 	go tool cover -func=coverage.out
 
 # go vet: report likely mistakes

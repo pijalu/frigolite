@@ -55,12 +55,14 @@ jobs:
 
     - name: Test coverage
       run: |
-          go test -timeout 60s -coverprofile=coverage.out -run "^Test[^C]" \
-            $(go list -f '{{if .TestGoFiles}}{{.ImportPath}}{{end}}' ./...)
-          go tool cover -func=coverage.out
-          echo "Threshold: 60%"
-          go tool cover -func=coverage.out | grep total | awk '{print $$3}' | sed 's/%//' | \
-            awk '{if($$1 < 60) {print "FAIL: coverage " $$1 "% < 60%"; exit 1}}'
+        go test -timeout 60s -coverprofile=coverage.out -run "^Test[^C]" \
+          . ./frigodb/ ./internal/storage/ ./internal/util/
+        go tool cover -func=coverage.out
+        echo "Threshold: 60%"
+        cov=$(go tool cover -func=coverage.out | grep '^total:' | awk '{print $3}' | sed 's/%//')
+        if [ -z "$cov" ]; then echo "FAIL: no coverage data"; exit 1; fi
+        if awk "BEGIN {exit !($cov < 60)}"; then echo "FAIL: coverage $cov% < 60%"; exit 1; fi
+        echo "Coverage: $cov%"
 
   build-cli:
     name: Build CLI Binaries

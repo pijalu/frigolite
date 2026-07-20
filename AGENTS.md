@@ -105,3 +105,18 @@ go test -run TestSOLID_ ./...
 2. Ensure it only imports from its own layer or lower
 3. Run `go test -run TestSOLID_ImportBoundaries` to verify
 4. Update `AGENTS.md` architecture diagram if needed
+
+## Pre-Commit Hook
+
+A pre-commit hook runs quality gates and tests before each commit.
+Install it once:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This runs `make quality`, `go test`, and SOLID architecture checks
+automatically. Commits that break quality or tests are rejected early.
+
+Coverage is checked in CI only (not in the hook) because it's slow
+and depends on the full package set.
