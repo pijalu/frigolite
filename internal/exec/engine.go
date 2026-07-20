@@ -148,6 +148,9 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 		if col.NotNull {
 			buf.WriteString(" NOT NULL")
 		}
+		if col.Unique {
+			buf.WriteString(" UNIQUE")
+		}
 	}
 	buf.WriteString(")")
 	return buf.String()

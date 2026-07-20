@@ -754,6 +754,9 @@ func (p *Parser) parseColumnConstraints(col *ColumnDef) {
 			p.parseNotNullConstraint(col)
 		} else if p.cur.Type == TokenKeyword && p.cur.Value == "DEFAULT" {
 			p.parseDefaultConstraint(col)
+		} else if p.cur.Type == TokenKeyword && p.cur.Value == "UNIQUE" {
+			col.Unique = true
+			p.next()
 		} else {
 			break
 		}

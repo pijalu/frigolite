@@ -4,6 +4,7 @@ package main
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -13,32 +14,44 @@ import (
 	"github.com/pijalu/frigolite"
 )
 
-// ---- Output mode ----
+const version = "0.1.0"
 
-type outputMode int
-
-const (
-	modeList   outputMode = iota // default: columns | values
-	modeColumn                   // aligned columns
-	modeCSV                      // comma-separated
-	modeTabs                     // tab-separated
-	modeLine                     // one value per line: col = value
-)
+// ---- Output formatting ----
 
 type cliState struct {
-	db         *frigolite.DB
-	mode       outputMode
+	db          *frigolite.DB
+	formatter   Formatter
 	showHeaders bool
-	showTimer  bool
-	showStats  bool
-	echoSQL    bool
-	separator  string
-	outputFile *os.File
+	showTimer   bool
+	showStats   bool
+	echoSQL     bool
+	separator   string
+	outputFile  *os.File
+}
+
+// cliConfig holds parsed command-line flags.
+type cliConfig struct {
+	dbPath      string // database file path (default :memory:)
+	sqlArg      string // SQL from -e/--sql flag or positional args
+	fileArg     string // SQL script from -f/--file flag
+	modeName    string // output mode from --mode flag
+	showHelp    bool   // -h/--help
+	showVersion bool   // -v/--version
 }
 
 func main() {
-	path, sqlFromArg := parseArgs()
-	db, err := frigolite.Open(path)
+	cfg := parseFlags()
+
+	if cfg.showHelp {
+		printUsage()
+		os.Exit(0)
+	}
+	if cfg.showVersion {
+		fmt.Printf("frigolite %s\n", version)
+		os.Exit(0)
+	}
+
+	db, err := frigolite.Open(cfg.dbPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
@@ -47,14 +60,27 @@ func main() {
 
 	state := &cliState{
 		db:          db,
-		mode:        modeList,
+		formatter:   LookupFormatter("list"),
 		showHeaders: true,
 		separator:   "|",
 	}
 
+	// Apply --mode flag if given
+	if cfg.modeName != "" {
+		f := LookupFormatter(cfg.modeName)
+		if f != nil {
+			state.formatter = f
+		} else {
+			fmt.Fprintf(os.Stderr, "Error: unknown mode %q\n", cfg.modeName)
+			os.Exit(1)
+		}
+	}
+
 	switch {
-	case sqlFromArg != "":
-		runBatch(state, sqlFromArg)
+	case cfg.fileArg != "":
+		runScriptFile(state, cfg.fileArg)
+	case cfg.sqlArg != "":
+		runBatch(state, cfg.sqlArg)
 	case isPipedStdin():
 		runPipe(state)
 	default:
@@ -63,15 +89,133 @@ func main() {
 	state.flushOutput()
 }
 
-func parseArgs() (string, string) {
-	path := ":memory:"
-	if len(os.Args) > 1 {
-		path = os.Args[1]
+func parseFlags() cliConfig {
+	var cfg cliConfig
+	cfg.dbPath = ":memory:"
+
+	fs := flag.NewFlagSet("frigolite", flag.ContinueOnError)
+	fs.BoolVar(&cfg.showHelp, "help", false, "Show detailed help and exit")
+	fs.BoolVar(&cfg.showHelp, "h", false, "Show detailed help and exit (shorthand)")
+	fs.StringVar(&cfg.sqlArg, "sql", "", "Execute SQL statement and exit")
+	fs.StringVar(&cfg.sqlArg, "e", "", "Execute SQL statement and exit (shorthand)")
+	fs.StringVar(&cfg.fileArg, "file", "", "Execute SQL from file and exit")
+	fs.StringVar(&cfg.fileArg, "f", "", "Execute SQL from file and exit (shorthand)")
+	fs.StringVar(&cfg.modeName, "mode", "", "Output mode: list, column, csv, tabs, line, markdown, html")
+	fs.BoolVar(&cfg.showVersion, "version", false, "Show version and exit")
+	fs.BoolVar(&cfg.showVersion, "V", false, "Show version and exit (shorthand)")
+
+	// Suppress default usage output; we handle it ourselves.
+	fs.Usage = func() {}
+
+	// Pre-process args: extract flags and positional args separately,
+	// so flags can appear anywhere (before or after the db path).
+	// Then parse the re-ordered args.
+	var flagsAndArgs []string
+	var positional []string
+	for i := 1; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		switch {
+		case arg == "--":
+			// End-of-options marker: everything after is positional.
+			positional = append(positional, os.Args[i+1:]...)
+			i = len(os.Args)
+		case strings.HasPrefix(arg, "-"):
+			// Flag: add it and its value (if any) to flagsAndArgs.
+			flagsAndArgs = append(flagsAndArgs, arg)
+			// Check if next arg is a value (not a flag)
+			if needsValue(arg) && i+1 < len(os.Args) && !strings.HasPrefix(os.Args[i+1], "-") {
+				i++
+				flagsAndArgs = append(flagsAndArgs, os.Args[i])
+			}
+		default:
+			positional = append(positional, arg)
+		}
 	}
-	if len(os.Args) > 2 {
-		return path, strings.Join(os.Args[2:], " ")
+
+	// Parse flags first.
+	err := fs.Parse(flagsAndArgs)
+	if err != nil {
+		os.Exit(1)
 	}
-	return path, ""
+
+	// Positional arguments (backward-compat):
+	//   frigolite my.db              → open my.db
+	//   frigolite my.db SELECT 1     → open my.db, execute "SELECT 1"
+	if len(positional) > 0 {
+		cfg.dbPath = positional[0]
+	}
+	if len(positional) > 1 && cfg.sqlArg == "" && cfg.fileArg == "" {
+		// Only use positional SQL if no -e/--file was given.
+		cfg.sqlArg = strings.Join(positional[1:], " ")
+	}
+
+	return cfg
+}
+
+// needsValue returns true if flag name needs a following value argument.
+func needsValue(arg string) bool {
+	switch {
+	case arg == "-e", arg == "--sql", arg == "-f", arg == "--file", arg == "--mode":
+		return true
+	case strings.HasPrefix(arg, "-e=") || strings.HasPrefix(arg, "--sql="):
+		return false
+	case strings.HasPrefix(arg, "-f=") || strings.HasPrefix(arg, "--file="):
+		return false
+	case strings.HasPrefix(arg, "--mode="):
+		return false
+	default:
+		return false
+	}
+}
+
+func printUsage() {
+	fmt.Print(`Usage: frigolite [OPTIONS] [DATABASE] [SQL...]
+
+SQLite-compatible database CLI. Connects to DATABASE (default :memory:)
+and executes SQL in one of three modes:
+
+  1. SQL from arguments (via -e or positional) → executes and exits
+  2. SQL from file (via -f) → reads file, executes, exits
+  3. Interactive shell (default when stdin is a terminal)
+
+Options:
+  -e, --sql STRING    Execute SQL statement and exit
+  -f, --file FILE     Read and execute SQL from file, then exit
+  -h, --help          Show this help and exit
+  -V, --version       Show version and exit
+  --mode MODE         Output mode (list|column|csv|tabs|line|markdown|html)
+  --                  End of options (following arguments are positional)
+
+Positional arguments:
+  DATABASE            Path to SQLite database file (default: ':memory:')
+  SQL...              SQL statement(s) to execute (only when no -e given)
+
+Interactive dot commands:
+  .tables                  List all tables
+  .schema                  Show all CREATE statements
+  .dump                    Dump database contents
+  .databases               Show current database path
+  .headers on|off          Toggle column headers (default: on)
+  .mode list|column|csv|tabs|line|markdown|html  Set output mode (default: list)
+  .separator STRING        Set field separator (default: |)
+  .output FILE             Redirect output to file
+  .import FILE TABLE       Import CSV into table
+  .timer on|off            Toggle query timing
+  .echo on|off             Toggle SQL echoing before execution
+  .stats on|off            Toggle row count display
+  .print TEXT              Print literal text
+  .exit, .quit             Exit the shell
+  .help                    Show this help
+
+Examples:
+  frigolite                        Open :memory: interactively
+  frigolite my.db                  Open my.db interactively
+  frigolite my.db -e "SELECT 1"    Execute query on my.db
+  frigolite -f script.sql          Run script on :memory:
+  frigolite my.db -f script.sql    Run script on my.db
+  frigolite my.db SELECT 1         Positional SQL (backward compat)
+  echo "SELECT 1;" | frigolite     Pipe SQL (stdin mode)
+`)
 }
 
 func isPipedStdin() bool {
@@ -80,7 +224,28 @@ func isPipedStdin() bool {
 }
 
 func runBatch(state *cliState, sql string) {
-	state.execSQL(sql)
+	for _, stmt := range splitStatements(sql) {
+		if strings.TrimSpace(stmt) != "" {
+			state.execSQL(stmt)
+		}
+	}
+}
+
+// splitStatements splits SQL text into individual statements by semicolon.
+func splitStatements(sql string) []string {
+	var stmts []string
+	var buf strings.Builder
+	for _, r := range sql {
+		buf.WriteRune(r)
+		if r == ';' {
+			stmts = append(stmts, buf.String())
+			buf.Reset()
+		}
+	}
+	if buf.Len() > 0 {
+		stmts = append(stmts, buf.String())
+	}
+	return stmts
 }
 
 func runPipe(state *cliState) {
@@ -108,6 +273,42 @@ func runPipe(state *cliState) {
 	}
 }
 
+// runScriptFile reads and executes SQL from a file.
+func runScriptFile(state *cliState, path string) {
+	f, err := os.Open(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	var buf strings.Builder
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(strings.TrimSpace(line), ".") {
+			if buf.Len() > 0 {
+				state.execSQL(buf.String())
+				buf.Reset()
+			}
+			state.handleDotCommand(strings.TrimSpace(line))
+		} else {
+			buf.WriteString(line)
+			buf.WriteString(" ")
+			if strings.Contains(line, ";") {
+				state.execSQL(buf.String())
+				buf.Reset()
+			}
+		}
+	}
+	if buf.Len() > 0 {
+		state.execSQL(buf.String())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading %s: %v\n", path, err)
+	}
+}
+
 func runInteractive(state *cliState) {
 	fmt.Fprintf(os.Stderr, "Frigolite CLI - connected to %s\n", state.db.Path())
 	fmt.Fprintln(os.Stderr, "Enter SQL statements (.exit or Ctrl+D to quit, .help for help)")
@@ -119,6 +320,7 @@ func runInteractive(state *cliState) {
 	rl.TabCompleter = tabCompleter(state.db)
 	rl.History = new(historyFile)
 
+	var buf strings.Builder
 	for {
 		line, err := rl.Readline()
 		if err != nil {
@@ -129,18 +331,48 @@ func runInteractive(state *cliState) {
 			fmt.Fprintf(os.Stderr, "Read error: %v\n", err)
 			break
 		}
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		if strings.HasPrefix(line, ".") {
-			if !state.handleDotCommand(line) {
-				break
-			}
-		} else {
-			state.execSQL(line)
+		if !processLine(state, &buf, line) {
+			break
 		}
 	}
+	if buf.Len() > 0 {
+		state.execSQL(buf.String())
+	}
+}
+
+// lineAcceptor is the interface processLine needs.
+// Both *cliState and test mocks implement it.
+type lineAcceptor interface {
+	execSQL(sql string)
+	handleDotCommand(cmdLine string) bool
+}
+
+// processLine handles one line from the readline loop.
+// Returns false if the caller should break the loop.
+func processLine(acceptor lineAcceptor, buf *strings.Builder, line string) bool {
+	line = strings.TrimSpace(line)
+	if line == "" {
+		return true
+	}
+	if strings.HasPrefix(line, ".") {
+		if buf.Len() > 0 {
+			acceptor.execSQL(buf.String())
+			buf.Reset()
+		}
+		return acceptor.handleDotCommand(line)
+	}
+	// Accumulate SQL until we see a semicolon.
+	// This handles multiline pasting where readline returns
+	// one line per Readline() call.
+	if buf.Len() > 0 {
+		buf.WriteString(" ")
+	}
+	buf.WriteString(line)
+	if strings.Contains(line, ";") {
+		acceptor.execSQL(buf.String())
+		buf.Reset()
+	}
+	return true
 }
 
 func (s *cliState) output(format string, args ...interface{}) {
@@ -226,19 +458,12 @@ func (s *cliState) handleMode(args []string) {
 	if len(args) < 2 {
 		return
 	}
-	switch args[1] {
-	case "list":
-		s.mode = modeList
-	case "column", "col":
-		s.mode = modeColumn
-	case "csv":
-		s.mode = modeCSV
-	case "tabs":
-		s.mode = modeTabs
-	case "line":
-		s.mode = modeLine
-	default:
-		s.output("Error: unknown mode %s (list|column|csv|tabs|line)\n", args[1])
+	f := LookupFormatter(args[1])
+	if f != nil {
+		s.formatter = f
+	} else {
+		names := FormatterNames()
+		s.output("Error: unknown mode %q (available: %s)\n", args[1], strings.Join(names, ", "))
 	}
 }
 
@@ -290,20 +515,12 @@ func (s *cliState) execSQL(sql string) {
 	res := s.db.Query(sql)
 	elapsed := time.Since(start)
 
-	if res.Error != nil {
-		res = s.db.Exec(sql)
-		if res.Error != nil {
-			s.output("Error: %v\n", res.Error)
-			return
-		}
-		if s.showTimer {
-			s.output("Run time: %v\n", elapsed)
-		}
-		if s.showStats {
-			s.output("Rows affected: %d\n", res.Changes)
-		} else if res.Changes > 0 {
-			s.output("Rows affected: %d\n", res.Changes)
-		}
+	// Query returns empty columns for DDL (CREATE TABLE etc.) and errors for
+	// DML (INSERT/UPDATE/DELETE). In both cases we fall through to Exec to
+	// get proper change tracking and feedback. Successful queries (SELECT)
+	// have non-empty columns and are printed directly.
+	if res.Error != nil || len(res.Columns) == 0 {
+		s.execExec(sql, res, elapsed)
 		return
 	}
 
@@ -318,130 +535,37 @@ func (s *cliState) execSQL(sql string) {
 	}
 }
 
+// execExec runs sql via Exec and prints feedback.
+func (s *cliState) execExec(sql string, firstRes *frigolite.Result, elapsed time.Duration) {
+	res := firstRes
+	if res.Error != nil {
+		res = s.db.Exec(sql)
+		if res.Error != nil {
+			s.output("Error: %v\n", res.Error)
+			return
+		}
+	}
+	if s.showTimer {
+		s.output("Run time: %v\n", elapsed)
+	}
+	if s.showStats || res.Changes > 0 {
+		s.output("Rows affected: %d\n", res.Changes)
+	} else {
+		s.output("Done\n")
+	}
+}
+
 func (s *cliState) printRows(cols []string, rows [][]interface{}) {
-	if len(cols) == 0 {
+	if len(cols) == 0 || s.formatter == nil {
 		return
 	}
-
-	switch s.mode {
-	case modeColumn:
-		s.printColumnMode(cols, rows)
-	case modeCSV:
-		s.printCSVMode(cols, rows)
-	case modeTabs:
-		s.printTabsMode(cols, rows)
-	case modeLine:
-		s.printLineMode(cols, rows)
-	default:
-		s.printListMode(cols, rows)
+	opts := FormatOptions{
+		ShowHeaders: s.showHeaders,
+		Separator:   s.separator,
 	}
-}
-
-func (s *cliState) printListMode(cols []string, rows [][]interface{}) {
-	if s.showHeaders && len(rows) > 0 {
-		s.output("%s\n", strings.Join(cols, " "+s.separator+" "))
-	}
-	for _, row := range rows {
-		parts := make([]string, len(row))
-		for i, v := range row {
-			parts[i] = fmt.Sprintf("%v", v)
-		}
-		s.output("%s\n", strings.Join(parts, " "+s.separator+" "))
-	}
-}
-
-func (s *cliState) printColumnMode(cols []string, rows [][]interface{}) {
-	widths := computeColumnWidths(cols, rows)
-	s.printColumnHeader(cols, widths)
-	for _, row := range rows {
-		s.printColumnRow(cols, row, widths)
-	}
-}
-
-func computeColumnWidths(cols []string, rows [][]interface{}) []int {
-	widths := make([]int, len(cols))
-	for i, c := range cols {
-		widths[i] = len(c)
-	}
-	for _, row := range rows {
-		for i, v := range row {
-			w := len(fmt.Sprintf("%v", v))
-			if w > widths[i] {
-				widths[i] = w
-			}
-		}
-	}
-	return widths
-}
-
-func (s *cliState) printColumnHeader(cols []string, widths []int) {
-	if !s.showHeaders {
-		return
-	}
-	for i, c := range cols {
-		if i > 0 {
-			s.output("  ")
-		}
-		s.output("%-*s", widths[i], c)
-	}
-	s.output("\n")
-	for i := range cols {
-		if i > 0 {
-			s.output("  ")
-		}
-		s.output("%s", strings.Repeat("-", widths[i]))
-	}
-	s.output("\n")
-}
-
-func (s *cliState) printColumnRow(cols []string, row []interface{}, widths []int) {
-	for i, v := range row {
-		if i > 0 {
-			s.output("  ")
-		}
-		s.output("%-*s", widths[i], fmt.Sprintf("%v", v))
-	}
-	s.output("\n")
-}
-
-func (s *cliState) printCSVMode(cols []string, rows [][]interface{}) {
-	if s.showHeaders {
-		s.output("%s\n", strings.Join(cols, ","))
-	}
-	for _, row := range rows {
-		parts := make([]string, len(row))
-		for i, v := range row {
-			str := fmt.Sprintf("%v", v)
-			if strings.ContainsAny(str, ",\"\n") {
-				str = `"` + strings.ReplaceAll(str, `"`, `""`) + `"`
-			}
-			parts[i] = str
-		}
-		s.output("%s\n", strings.Join(parts, ","))
-	}
-}
-
-func (s *cliState) printTabsMode(cols []string, rows [][]interface{}) {
-	if s.showHeaders {
-		s.output("%s\n", strings.Join(cols, "\t"))
-	}
-	for _, row := range rows {
-		parts := make([]string, len(row))
-		for i, v := range row {
-			parts[i] = fmt.Sprintf("%v", v)
-		}
-		s.output("%s\n", strings.Join(parts, "\t"))
-	}
-}
-
-func (s *cliState) printLineMode(cols []string, rows [][]interface{}) {
-	for ri, row := range rows {
-		if ri > 0 {
-			s.output("\n")
-		}
-		for i, v := range row {
-			s.output("%s = %v\n", cols[i], v)
-		}
+	out := s.formatter.Format(cols, rows, opts)
+	if out != "" {
+		s.output("%s", out)
 	}
 }
 
@@ -545,6 +669,18 @@ func lastWord(s string) string {
 	return strings.TrimRight(fields[len(fields)-1], ",;()")
 }
 
+func needsAppendMode(ctx completionCtx, prefix string, raw []string) bool {
+	if ctx == ctxAny || len(raw) == 0 || prefix == "" {
+		return false
+	}
+	for _, s := range raw {
+		if strings.HasPrefix(strings.ToUpper(s), strings.ToUpper(prefix)) {
+			return false
+		}
+	}
+	return true
+}
+
 func tabCompleter(db *frigolite.DB) func([]rune, int, readline.DelayedTabContext) *readline.TabCompleterReturnT {
 	return func(line []rune, pos int, _ readline.DelayedTabContext) *readline.TabCompleterReturnT {
 		lineStr := string(line[:pos])
@@ -552,21 +688,33 @@ func tabCompleter(db *frigolite.DB) func([]rune, int, readline.DelayedTabContext
 		ctx := completionContext(lineStr)
 		raw := buildContextSuggestions(ctx, prefix, db)
 
-		// Return full suggestion words for display.
-		// When a suggestion matches the typed prefix, prefix it with \x02
-		// so readline replaces the prefix word with the suggestion.
+		appendMode := needsAppendMode(ctx, prefix, raw)
+
 		suggestions := make([]string, len(raw))
-		for i, s := range raw {
-			upper := strings.ToUpper(s)
-			if prefix != "" && strings.HasPrefix(upper, strings.ToUpper(prefix)) {
-				suggestions[i] = "\x02" + s
-			} else {
-				suggestions[i] = s
+		var p string
+
+		if appendMode {
+			// Append mode: empty prefix so readline doesn't delete anything;
+			// \x02 prefix + leading space so the suggestion cleanly appends
+			// after the keyword (e.g. "CREATE" + " TABLE" = "CREATE TABLE").
+			p = ""
+			for i, s := range raw {
+				suggestions[i] = "\x02 " + s
+			}
+		} else {
+			p = prefix
+			for i, s := range raw {
+				upper := strings.ToUpper(s)
+				if prefix != "" && strings.HasPrefix(upper, strings.ToUpper(prefix)) {
+					suggestions[i] = "\x02" + s
+				} else {
+					suggestions[i] = s
+				}
 			}
 		}
 
 		return &readline.TabCompleterReturnT{
-			Prefix:      prefix,
+			Prefix:      p,
 			Suggestions: suggestions,
 		}
 	}
@@ -667,9 +815,11 @@ func buildContextSuggestions(ctx completionCtx, prefix string, db *frigolite.DB)
 		all = append(all, sqlFunctions...)
 		return filterPrefix(all, upper)
 	case ctxCreateType:
-		return filterPrefix([]string{"TABLE", "INDEX", "VIEW", "TRIGGER"}, upper)
+		// Return all possible items after CREATE; prefix filtering is
+		// handled by the tab completer's append/replace logic.
+		return []string{"TABLE", "INDEX", "VIEW", "TRIGGER"}
 	case ctxDropType:
-		return filterPrefix([]string{"TABLE", "INDEX", "VIEW"}, upper)
+		return []string{"TABLE", "INDEX", "VIEW"}
 	case ctxInto:
 		if len(prefix) == 0 || strings.HasPrefix("INTO", upper) {
 			return []string{"INTO"}

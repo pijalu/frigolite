@@ -13,3 +13,5 @@ require (
 )
 
 replace github.com/pijalu/frigolite => ../../
+
+replace github.com/lmorg/readline/v4 => ../../third_party/readline

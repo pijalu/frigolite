@@ -102,6 +102,7 @@ type ColumnDef struct {
 	NotNull    bool
 	PrimaryKey bool
 	AutoInc    bool
+	Unique     bool
 	Default    Expr
 }
 
