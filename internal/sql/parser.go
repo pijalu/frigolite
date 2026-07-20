@@ -508,31 +508,34 @@ func (p *Parser) parseCreateVirtualTable() *CreateVirtualTableStmt {
 		s.Module = p.cur.Value
 		p.next()
 	}
-	// Parse args: (arg1, arg2, ...)
-	if p.cur.Type == TokenLParen {
-		p.next()
-		for {
-			if p.cur.Type == TokenRParen {
-				p.next()
-				break
-			}
-			if p.cur.Type == TokenString || p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				s.Args = append(s.Args, p.cur.Value)
-				p.next()
-			} else if p.cur.Type == TokenNumber {
-				s.Args = append(s.Args, p.cur.Value)
-				p.next()
-			} else {
-				break
-			}
-			if p.cur.Type == TokenComma {
-				p.next()
-			} else if p.cur.Type != TokenRParen {
-				break
-			}
+	s.Args = p.parseVTabArgs()
+	return s
+}
+
+func (p *Parser) parseVTabArgs() []string {
+	var args []string
+	if p.cur.Type != TokenLParen {
+		return args
+	}
+	p.next()
+	for {
+		if p.cur.Type == TokenRParen {
+			p.next()
+			break
+		}
+		if p.cur.Type == TokenString || p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenNumber {
+			args = append(args, p.cur.Value)
+			p.next()
+		} else {
+			break
+		}
+		if p.cur.Type == TokenComma {
+			p.next()
+		} else if p.cur.Type != TokenRParen {
+			break
 		}
 	}
-	return s
+	return args
 }
 
 func (p *Parser) parseCreateView() *CreateViewStmt {
@@ -567,36 +570,15 @@ func (p *Parser) parseCreateTrigger() *CreateTriggerStmt {
 	s := &CreateTriggerStmt{}
 	p.next() // skip TRIGGER
 
-	if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
-		p.next()
-		if !p.expectKeyword("NOT") {
-			return nil
-		}
-		if !p.expectKeyword("EXISTS") {
-			return nil
-		}
-	}
+	p.parseTriggerIfNotExists(s)
 
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
 		s.Name = p.cur.Value
 		p.next()
 	}
 
-	// BEFORE | AFTER | INSTEAD OF
-	if p.cur.Type == TokenKeyword {
-		s.Time = p.cur.Value
-		p.next()
-		if p.cur.Type == TokenKeyword && p.cur.Value == "OF" {
-			s.Time += " OF"
-			p.next()
-		}
-	}
-
-	// INSERT | UPDATE | DELETE
-	if p.cur.Type == TokenKeyword {
-		s.Event = p.cur.Value
-		p.next()
-	}
+	p.parseTriggerTiming(s)
+	p.parseTriggerEvent(s)
 
 	if !p.expectKeyword("ON") {
 		return nil
@@ -607,10 +589,41 @@ func (p *Parser) parseCreateTrigger() *CreateTriggerStmt {
 		p.next()
 	}
 
-	// BEGIN ... END
+	p.parseTriggerBody(s)
+	return s
+}
+
+func (p *Parser) parseTriggerIfNotExists(s *CreateTriggerStmt) {
+	if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
+		p.next()
+		if !p.expectKeyword("NOT") {
+			return
+		}
+		p.expectKeyword("EXISTS")
+	}
+}
+
+func (p *Parser) parseTriggerTiming(s *CreateTriggerStmt) {
+	if p.cur.Type == TokenKeyword {
+		s.Time = p.cur.Value
+		p.next()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "OF" {
+			s.Time += " OF"
+			p.next()
+		}
+	}
+}
+
+func (p *Parser) parseTriggerEvent(s *CreateTriggerStmt) {
+	if p.cur.Type == TokenKeyword {
+		s.Event = p.cur.Value
+		p.next()
+	}
+}
+
+func (p *Parser) parseTriggerBody(s *CreateTriggerStmt) {
 	if p.cur.Type == TokenKeyword && p.cur.Value == "BEGIN" {
 		p.next()
-		// Parse trigger body statements until END
 		for {
 			if p.cur.Type == TokenKeyword && p.cur.Value == "END" {
 				p.next()
@@ -621,14 +634,11 @@ func (p *Parser) parseCreateTrigger() *CreateTriggerStmt {
 				break
 			}
 			s.Statements = append(s.Statements, stmt)
-			// Skip semicolons between statements
 			for p.cur.Type == TokenSemicolon {
 				p.next()
 			}
 		}
 	}
-
-	return s
 }
 
 func (p *Parser) parseCreateTable() *CreateTableStmt {
@@ -792,47 +802,13 @@ func (p *Parser) parseDrop() Stmt {
 	if p.cur.Type == TokenKeyword {
 		switch p.cur.Value {
 		case "TABLE":
-			p.next()
-			s := &DropTableStmt{}
-			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				s.Name = p.cur.Value
-				p.next()
-			}
-			return s
+			return p.parseDropTable()
 		case "VIEW":
-			p.next()
-			s := &DropViewStmt{}
-			if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
-				p.next()
-				p.expectKeyword("EXISTS")
-				s.IfExists = true
-			}
-			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				s.Name = p.cur.Value
-				p.next()
-			}
-			return s
+			return p.parseDropView()
 		case "TRIGGER":
-			p.next()
-			s := &DropTriggerStmt{}
-			if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
-				p.next()
-				p.expectKeyword("EXISTS")
-				s.IfExists = true
-			}
-			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				s.Name = p.cur.Value
-				p.next()
-			}
-			return s
+			return p.parseDropTrigger()
 		case "INDEX":
-			p.next()
-			s := &DropTableStmt{Name: "index"} // Placeholder
-			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				s.Name = p.cur.Value
-				p.next()
-			}
-			return s
+			return p.parseDropIndex()
 		default:
 			p.setErr("expected TABLE, VIEW, TRIGGER, or INDEX after DROP, got %s", p.cur.Value)
 			return nil
@@ -840,6 +816,56 @@ func (p *Parser) parseDrop() Stmt {
 	}
 	p.setErr("expected TABLE, VIEW, TRIGGER, or INDEX after DROP")
 	return nil
+}
+
+func (p *Parser) parseDropTable() Stmt {
+	p.next()
+	s := &DropTableStmt{}
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		s.Name = p.cur.Value
+		p.next()
+	}
+	return s
+}
+
+func (p *Parser) parseDropView() Stmt {
+	p.next()
+	s := &DropViewStmt{}
+	if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
+		p.next()
+		p.expectKeyword("EXISTS")
+		s.IfExists = true
+	}
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		s.Name = p.cur.Value
+		p.next()
+	}
+	return s
+}
+
+func (p *Parser) parseDropTrigger() Stmt {
+	p.next()
+	s := &DropTriggerStmt{}
+	if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
+		p.next()
+		p.expectKeyword("EXISTS")
+		s.IfExists = true
+	}
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		s.Name = p.cur.Value
+		p.next()
+	}
+	return s
+}
+
+func (p *Parser) parseDropIndex() Stmt {
+	p.next()
+	s := &DropTableStmt{Name: "index"}
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		s.Name = p.cur.Value
+		p.next()
+	}
+	return s
 }
 
 // Transactions

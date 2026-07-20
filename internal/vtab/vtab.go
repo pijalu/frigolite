@@ -107,7 +107,6 @@ type generateSeriesCursor struct {
 	current int64
 	stop    int64
 	step    int64
-	started bool
 }
 
 func (c *generateSeriesCursor) Next() bool {

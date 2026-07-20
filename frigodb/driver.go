@@ -29,13 +29,7 @@ func init() {
 	sql.Register("frigolite", &frigoliteDriver{})
 }
 
-type frigoliteDriver struct {
-	mu          sync.Mutex
-	memoryDB    *frigolite.DB
-	memoryRefs  int64
-	memoryPath  string
-	openCount   int64
-}
+type frigoliteDriver struct{}
 
 // Open returns a new connection to the database.
 func (d *frigoliteDriver) Open(dsn string) (driver.Conn, error) {
@@ -67,7 +61,6 @@ func (d *frigoliteDriver) Open(dsn string) (driver.Conn, error) {
 // frigoliteConn implements driver.Conn.
 type frigoliteConn struct {
 	db       *frigolite.DB
-	driver   *frigoliteDriver
 	isMemory bool
 	path     string
 	closed   bool

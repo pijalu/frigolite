@@ -422,34 +422,15 @@ func (t *BTree) DeleteCell(cellIdx int) error {
 func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error) {
 	var deleted int64
 	for {
-		pg, err := t.pager.ReadPage(t.rootPage)
+		pg, page, err := t.readPageForDelete()
 		if err != nil {
 			return deleted, err
 		}
-		coff := contentOffset(pg.PageNum)
-		page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-		if err != nil {
-			return deleted, err
-		}
-
-		if page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex {
-			return deleted, fmt.Errorf("btree: delete only supported on leaf pages")
-		}
+		_ = pg
 
 		found := false
 		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pg.Data, coff, i))
-			var cellType storage.CellType
-			if page.PageType == storage.PageTypeLeafTable {
-				cellType = storage.CellTableLeaf
-			} else {
-				cellType = storage.CellIndexLeaf
-			}
-			cell, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.pageSize))
-			if err != nil {
-				continue
-			}
-			if fn(cell) {
+			if t.cellMatches(pg, page, i, fn) {
 				if err := t.DeleteCell(i); err != nil {
 					return deleted, err
 				}
@@ -463,6 +444,38 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 		}
 	}
 	return deleted, nil
+}
+
+func (t *BTree) readPageForDelete() (*pager.Page, *storage.BTreePage, error) {
+	pg, err := t.pager.ReadPage(t.rootPage)
+	if err != nil {
+		return nil, nil, err
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return nil, nil, err
+	}
+	if page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex {
+		return nil, nil, fmt.Errorf("btree: delete only supported on leaf pages")
+	}
+	return pg, page, nil
+}
+
+func (t *BTree) cellMatches(pg *pager.Page, page *storage.BTreePage, idx int, fn func(cell *storage.Cell) bool) bool {
+	coff := contentOffset(pg.PageNum)
+	cellOff := int(storage.CellPointer(pg.Data, coff, idx))
+	var cellType storage.CellType
+	if page.PageType == storage.PageTypeLeafTable {
+		cellType = storage.CellTableLeaf
+	} else {
+		cellType = storage.CellIndexLeaf
+	}
+	cell, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.pageSize))
+	if err != nil {
+		return false
+	}
+	return fn(cell)
 }
 
 func (t *BTree) findInsertPositionTable(pg *pager.Page, page *storage.BTreePage, rowID int64) int {

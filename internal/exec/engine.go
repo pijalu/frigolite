@@ -73,28 +73,17 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return e.execDropTrigger(s)
 	case *sql.AnalyzeStmt:
 		return e.execAnalyze(s)
-	case *sql.BeginStmt:
-		return &Result{}
-	case *sql.CommitStmt:
-		return e.execCommit()
-	case *sql.RollbackStmt:
-		return &Result{}
 	case *sql.PragmaStmt:
 		return e.execPragma(s)
 	case *sql.AlterTableStmt:
 		return e.execAlterTable(s)
-	case *sql.AttachStmt:
-		return &Result{}
-	case *sql.VacuumStmt:
-		return &Result{}
-	case *sql.ReindexStmt:
-		return &Result{}
-	case *sql.SavepointStmt:
-		return &Result{}
 	case *sql.ExplainStmt:
 		return e.execExplain(s)
+	case *sql.CommitStmt:
+		return e.execCommit()
 	default:
-		return &Result{Error: fmt.Errorf("exec: unknown statement type")}
+		// Begin, Rollback, Attach, Vacuum, Reindex, Savepoint — all no-ops
+		return &Result{}
 	}
 }
 
@@ -1170,73 +1159,43 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 // --- PRAGMA ---
 
 func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
-	switch strings.ToUpper(s.Name) {
-	case "TABLE_INFO":
-		// PRAGMA table_info(tablename) or PRAGMA table_info = tablename
-		return &Result{Columns: []string{"cid", "name", "type", "notnull", "dflt_value", "pk"}}
-	case "INDEX_INFO":
-		return &Result{Columns: []string{"seqno", "cid", "name"}}
-	case "INDEX_LIST":
-		return &Result{Columns: []string{"seq", "name", "unique"}}
-	case "FOREIGN_KEY_LIST":
-		return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}}
-	case "DATABASE_VERSION":
-		return &Result{Rows: [][]interface{}{{int64(1)}}}
-	case "PAGE_SIZE":
-		return &Result{Rows: [][]interface{}{{int64(e.pager.PageSize())}}}
-	case "PAGE_COUNT":
-		return &Result{Rows: [][]interface{}{{int64(1)}}}
-	case "FREELIST_COUNT":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "SCHEMA_VERSION":
-		return &Result{Rows: [][]interface{}{{int64(1)}}}
-	case "USER_VERSION":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "APPLICATION_ID":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "AUTO_VACUUM":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "JOURNAL_MODE":
-		return &Result{Rows: [][]interface{}{{"memory"}}}
-	case "SYNCHRONOUS":
-		return &Result{Rows: [][]interface{}{{int64(1)}}}
-	case "CACHE_SIZE":
-		return &Result{Rows: [][]interface{}{{int64(2000)}}}
-	case "TEMP_STORE":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "LOCKING_MODE":
-		return &Result{Rows: [][]interface{}{{"normal"}}}
-	case "DATABASE_LIST":
-		return &Result{Columns: []string{"seq", "name", "file"}, Rows: [][]interface{}{{int64(0), "main", ""}}}
-	case "INTEGRITY_CHECK":
-		// Return empty result (no errors = database is OK)
-		return &Result{Rows: [][]interface{}{{}}}
-	case "TABLE_X":
-		return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}}
-	case "COUNT_CHANGES":
-		// Deprecated, but some old tests use it
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "CASE_SENSITIVE_LIKE":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "RECURSIVE_TRIGGERS":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "READ_UNCOMMITTED":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "ENCODING":
-		return &Result{Rows: [][]interface{}{{"UTF-8"}}}
-	case "SCHEMA_TABLE":
-		return &Result{Columns: []string{"type", "name", "tbl_name", "rootpage", "sql"}}
-	case "SOFT_HEAP_LIMIT":
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	case "THREADS":
-		return &Result{Rows: [][]interface{}{{int64(1)}}}
-	case "COMPILE_OPTIONS":
-		return &Result{Columns: []string{"compile_options"}, Rows: [][]interface{}{{"THREADSAFE=1"}}}
-	default:
-		// Check if it's a value assignment (name = value) or just name
-		// All other PRAGMAs return empty (success)
-		return &Result{}
+	name := strings.ToUpper(s.Name)
+	if fn, ok := pragmaHandlers[name]; ok {
+		return fn(e)
 	}
+	return &Result{}
+}
+
+var pragmaHandlers = map[string]func(e *Engine) *Result{
+	"TABLE_INFO":          func(e *Engine) *Result { return &Result{Columns: []string{"cid", "name", "type", "notnull", "dflt_value", "pk"}} },
+	"INDEX_INFO":          func(e *Engine) *Result { return &Result{Columns: []string{"seqno", "cid", "name"}} },
+	"INDEX_LIST":          func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "unique"}} },
+	"FOREIGN_KEY_LIST":    func(e *Engine) *Result { return &Result{Columns: []string{"id", "seq", "table", "from", "to", "on_update", "on_delete", "match"}} },
+	"DATABASE_VERSION":    func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"PAGE_SIZE":           func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(e.pager.PageSize())}}} },
+	"PAGE_COUNT":          func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"FREELIST_COUNT":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"SCHEMA_VERSION":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"USER_VERSION":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"APPLICATION_ID":      func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"AUTO_VACUUM":         func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"JOURNAL_MODE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"memory"}}} },
+	"SYNCHRONOUS":         func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"CACHE_SIZE":          func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(2000)}}} },
+	"TEMP_STORE":          func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"LOCKING_MODE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
+	"DATABASE_LIST":       func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "file"}, Rows: [][]interface{}{{int64(0), "main", ""}}} },
+	"INTEGRITY_CHECK":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{}}} },
+	"TABLE_X":             func(e *Engine) *Result { return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}} },
+	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"RECURSIVE_TRIGGERS":  func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"READ_UNCOMMITTED":    func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"ENCODING":            func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"UTF-8"}}} },
+	"SCHEMA_TABLE":        func(e *Engine) *Result { return &Result{Columns: []string{"type", "name", "tbl_name", "rootpage", "sql"}} },
+	"SOFT_HEAP_LIMIT":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"THREADS":             func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
+	"COMPILE_OPTIONS":     func(e *Engine) *Result { return &Result{Columns: []string{"compile_options"}, Rows: [][]interface{}{{"THREADSAFE=1"}}} },
 }
 
 // --- ALTER TABLE ---

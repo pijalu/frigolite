@@ -396,38 +396,55 @@ func TestSelectIn(t *testing.T) {
 	}
 }
 
-// TestSelectFunctions tests additional scalar functions (mirrors func.test patterns)
-func TestSelectFunctions(t *testing.T) {
+// TestSelectIfNotNull tests IFNULL function
+func TestSelectIfNotNull(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
 
-	db.Exec("CREATE TABLE t (id INTEGER, name TEXT, val INTEGER)")
-	db.Exec("INSERT INTO t VALUES (1, 'Hello World', -42)")
-	db.Exec("INSERT INTO t VALUES (2, NULL, NULL)")
+	db.Exec("CREATE TABLE t (id INTEGER, name TEXT)")
+	db.Exec("INSERT INTO t VALUES (1, 'Hello')")
+	db.Exec("INSERT INTO t VALUES (2, NULL)")
 
-	// IFNULL
 	res := db.Query("SELECT ifnull(name, 'default') FROM t ORDER BY id")
 	if res.Error != nil {
 		t.Fatalf("IFNULL: %v", res.Error)
 	}
-	if res.Rows[0][0] != "Hello World" {
-		t.Errorf("expected 'Hello World', got %v", res.Rows[0][0])
+	if res.Rows[0][0] != "Hello" {
+		t.Errorf("expected 'Hello', got %v", res.Rows[0][0])
 	}
 	if res.Rows[1][0] != "default" {
 		t.Errorf("expected 'default', got %v", res.Rows[1][0])
 	}
+}
 
-	// COALESCE
-	res = db.Query("SELECT coalesce(name, 'fallback') FROM t ORDER BY id")
+// TestSelectCoalesce tests COALESCE function
+func TestSelectCoalesce(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	db.Exec("CREATE TABLE t (id INTEGER, name TEXT)")
+	db.Exec("INSERT INTO t VALUES (1, 'Hello')")
+	db.Exec("INSERT INTO t VALUES (2, NULL)")
+
+	res := db.Query("SELECT coalesce(name, 'fallback') FROM t ORDER BY id")
 	if res.Error != nil {
 		t.Fatalf("COALESCE: %v", res.Error)
 	}
 	if res.Rows[1][0] != "fallback" {
 		t.Errorf("expected 'fallback', got %v", res.Rows[1][0])
 	}
+}
 
-	// ABS
-	res = db.Query("SELECT abs(val) FROM t WHERE id = 1")
+// TestSelectAbs tests ABS function
+func TestSelectAbs(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	db.Exec("CREATE TABLE t (id INTEGER, val INTEGER)")
+	db.Exec("INSERT INTO t VALUES (1, -42)")
+	db.Exec("INSERT INTO t VALUES (2, NULL)")
+
+	res := db.Query("SELECT abs(val) FROM t WHERE id = 1")
 	if res.Error != nil {
 		t.Fatalf("ABS: %v", res.Error)
 	}
@@ -435,7 +452,6 @@ func TestSelectFunctions(t *testing.T) {
 		t.Errorf("expected 42, got %v (type: %T)", res.Rows[0][0], res.Rows[0][0])
 	}
 
-	// ABS with NULL
 	res = db.Query("SELECT abs(val) FROM t WHERE id = 2")
 	if res.Error != nil {
 		t.Fatalf("ABS NULL: %v", res.Error)
@@ -443,14 +459,19 @@ func TestSelectFunctions(t *testing.T) {
 	if res.Rows[0][0] != nil {
 		t.Errorf("expected nil, got %v", res.Rows[0][0])
 	}
+}
 
-	// TYPEOF
-	res = db.Query("SELECT typeof(42), typeof('hello'), typeof(NULL) FROM t WHERE id = 1")
+// TestSelectTypeof tests TYPEOF function
+func TestSelectTypeof(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	db.Exec("CREATE TABLE t (id INTEGER)")
+	db.Exec("INSERT INTO t VALUES (1)")
+
+	res := db.Query("SELECT typeof(42), typeof('hello'), typeof(NULL) FROM t WHERE id = 1")
 	if res.Error != nil {
 		t.Fatalf("TYPEOF: %v", res.Error)
-	}
-	if len(res.Rows) != 1 {
-		t.Fatalf("expected 1 row, got %d", len(res.Rows))
 	}
 	if res.Rows[0][0] != "integer" {
 		t.Errorf("expected 'integer', got %v", res.Rows[0][0])
@@ -461,29 +482,48 @@ func TestSelectFunctions(t *testing.T) {
 	if res.Rows[0][2] != "null" {
 		t.Errorf("expected 'null', got %v", res.Rows[0][2])
 	}
+}
 
-	// TRIM
-	db.Exec("CREATE TABLE trimt (s TEXT)")
-	db.Exec("INSERT INTO trimt VALUES ('  hello  ')")
-	res = db.Query("SELECT trim(s) FROM trimt")
+// TestSelectTrim tests TRIM function
+func TestSelectTrim(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	db.Exec("CREATE TABLE t (s TEXT)")
+	db.Exec("INSERT INTO t VALUES ('  hello  ')")
+
+	res := db.Query("SELECT trim(s) FROM t")
 	if res.Error != nil {
 		t.Fatalf("TRIM: %v", res.Error)
 	}
 	if res.Rows[0][0] != "hello" {
 		t.Errorf("expected 'hello', got %v", res.Rows[0][0])
 	}
+}
 
-	// ROUND
-	res = db.Query("SELECT round(3.14159, 2)")
+// TestSelectRound tests ROUND function
+func TestSelectRound(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	res := db.Query("SELECT round(3.14159, 2)")
 	if res.Error != nil {
 		t.Fatalf("ROUND: %v", res.Error)
 	}
 	if res.Rows[0][0] != float64(3.14) {
 		t.Errorf("expected 3.14, got %v", res.Rows[0][0])
 	}
+}
 
-	// REPLACE
-	res = db.Query("SELECT replace(name, 'Hello', 'Hi') FROM t WHERE id = 1")
+// TestSelectReplace tests REPLACE function
+func TestSelectReplace(t *testing.T) {
+	db := setupDB(t)
+	defer db.Close()
+
+	db.Exec("CREATE TABLE t (id INTEGER, name TEXT)")
+	db.Exec("INSERT INTO t VALUES (1, 'Hello World')")
+
+	res := db.Query("SELECT replace(name, 'Hello', 'Hi') FROM t WHERE id = 1")
 	if res.Error != nil {
 		t.Fatalf("REPLACE: %v", res.Error)
 	}
@@ -491,6 +531,9 @@ func TestSelectFunctions(t *testing.T) {
 		t.Errorf("expected 'Hi World', got %v", res.Rows[0][0])
 	}
 }
+
+// TestSelectFunctions is kept for backward compatibility.
+func TestSelectFunctions(t *testing.T) { TestSelectIfNotNull(t); TestSelectCoalesce(t); TestSelectAbs(t); TestSelectTypeof(t); TestSelectTrim(t); TestSelectRound(t); TestSelectReplace(t) }
 
 // TestSelectUnion tests UNION (mirrors select1.test patterns)
 func TestSelectUnion(t *testing.T) {

@@ -240,7 +240,7 @@ func (m *Manager) RemoveEntry(name string) error {
 			return false
 		}
 		if len(rec.Values) >= 2 {
-			return strings.ToUpper(toString(rec.Values[1])) == strings.ToUpper(name)
+			return strings.EqualFold(toString(rec.Values[1]), name)
 		}
 		return false
 	})
