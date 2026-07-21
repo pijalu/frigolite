@@ -222,7 +222,57 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// TODO: populate index from existing table data
+	// Populate index from existing table data
+	tableEntry, err := e.schema.FindTable(s.Table)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	colDefs := e.parseColumnDefs(tableEntry.SQL)
+
+	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	idxTree := btree.NewBTree(e.pager, pg.PageNum, false)
+
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			break
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil {
+			break
+		}
+
+		// Build index values: [indexed_col1, ..., indexed_colN, rowid]
+		indexValues := make([]interface{}, 0, len(s.Columns)+1)
+		row := e.buildRowMap(rec, colDefs, cell.RowID)
+		for _, ic := range s.Columns {
+			indexValues = append(indexValues, row[ic.Name])
+		}
+		indexValues = append(indexValues, cell.RowID)
+
+		// Encode and insert into index b-tree
+		payload, err := storage.EncodeRecord(indexValues)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		idxCell := &storage.Cell{
+			Type:    storage.CellIndexLeaf,
+			Payload: payload,
+		}
+		if err := idxTree.InsertCell(idxCell); err != nil {
+			return &Result{Error: err}
+		}
+
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
 
 	return &Result{Changes: 0}
 }
