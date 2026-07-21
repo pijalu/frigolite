@@ -356,37 +356,11 @@ func interpolateArgs(query string, args []driver.NamedValue) (string, error) {
 		c := query[i]
 		switch {
 		case c == '\'':
-			b.WriteByte(c)
-			i++
-			for i < len(query) {
-				b.WriteByte(query[i])
-				if query[i] == '\'' {
-					if i+1 < len(query) && query[i+1] == '\'' {
-						i++
-						b.WriteByte(query[i])
-					} else {
-						i++
-						break
-					}
-				}
-				i++
-			}
+			i = copyStringLiteral(query, &b, i)
 		case c == '-' && i+1 < len(query) && query[i+1] == '-':
-			for i < len(query) && query[i] != '\n' {
-				b.WriteByte(query[i])
-				i++
-			}
+			i = copyLineComment(query, &b, i)
 		case c == '/' && i+1 < len(query) && query[i+1] == '*':
-			b.WriteString("/*")
-			i += 2
-			for i+1 < len(query) && !(query[i] == '*' && query[i+1] == '/') {
-				b.WriteByte(query[i])
-				i++
-			}
-			if i+1 < len(query) {
-				b.WriteString("*/")
-				i += 2
-			}
+			i = copyMultiLineComment(query, &b, i)
 		case c == '?':
 			val, ok := byOrdinal[argIdx]
 			if !ok {
@@ -425,6 +399,51 @@ func tryParseDollarN(query string, i int) (int, int, bool) {
 	n := 0
 	fmt.Sscanf(query[i+1:j], "%d", &n)
 	return n, j, true
+}
+
+// copyStringLiteral copies a single-quoted string literal starting at i,
+// handling '' escapes. Returns index after the closing quote.
+func copyStringLiteral(query string, b *strings.Builder, i int) int {
+	b.WriteByte(query[i])
+	i++
+	for i < len(query) {
+		b.WriteByte(query[i])
+		if query[i] == '\'' {
+			if i+1 < len(query) && query[i+1] == '\'' {
+				i++
+				b.WriteByte(query[i])
+			} else {
+				i++
+				break
+			}
+		}
+		i++
+	}
+	return i
+}
+
+// copyLineComment copies a -- comment to the end of the line.
+func copyLineComment(query string, b *strings.Builder, i int) int {
+	for i < len(query) && query[i] != '\n' {
+		b.WriteByte(query[i])
+		i++
+	}
+	return i
+}
+
+// copyMultiLineComment copies a /* ... */ comment. Returns index after */.
+func copyMultiLineComment(query string, b *strings.Builder, i int) int {
+	b.WriteString("/*")
+	i += 2
+	for i+1 < len(query) && !(query[i] == '*' && query[i+1] == '/') {
+		b.WriteByte(query[i])
+		i++
+	}
+	if i+1 < len(query) {
+		b.WriteString("*/")
+		i += 2
+	}
+	return i
 }
 
 // interpolateValues replaces ? placeholders with values.

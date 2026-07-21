@@ -36,11 +36,31 @@ type Engine struct {
 	lastRowID int64
 	colCache  map[string][]sql.ColumnDef // cached column definitions (tableName -> colDefs)
 	stmtCache map[string][]sql.Stmt      // prepared statement cache (sqlText -> parsed stmts)
+	tableRootPages map[string]uint32     // tracked root pages (updated after splits)
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
 func (e *Engine) LastInsertRowID() int64 {
 	return e.lastRowID
+}
+
+// rootPage returns the current root page for a table, checking the engine's
+// tracked root pages first, then falling back to the schema entry.
+func (e *Engine) rootPage(tableName string, schemaRoot uint32) uint32 {
+	if tracked, ok := e.tableRootPages[tableName]; ok {
+		return tracked
+	}
+	return schemaRoot
+}
+
+// updateRootPage tracks a root page change after a b-tree split.
+func (e *Engine) updateRootPage(tableName string, newRoot uint32) {
+	e.tableRootPages[tableName] = newRoot
+}
+
+// tableBTree creates a BTree for a table, using the engine's tracked root page.
+func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
+	return btree.NewBTree(e.pager, e.rootPage(tableName, schemaRoot), isTable)
 }
 
 // Prepare parses and caches a SQL statement.
@@ -66,6 +86,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		vtabs:     vtab.NewRegistry(),
 		colCache:  make(map[string][]sql.ColumnDef),
 		stmtCache: make(map[string][]sql.Stmt),
+		tableRootPages: make(map[string]uint32),
 	}
 	e.vtabs.RegisterDefaults()
 	return e
@@ -250,7 +271,7 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
-	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{Error: err}
@@ -559,13 +580,13 @@ func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, va
 		RowID:   nextRowID,
 		Payload: record,
 	}
-	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
 	// Track root page changes (after splits)
-	if tree.RootPage() != tableEntry.RootPage {
-		tableEntry.RootPage = tree.RootPage()
+	if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
+		e.updateRootPage(tableEntry.Name, tree.RootPage())
 	}
 	// Fire AFTER INSERT triggers
 	if trigResult := e.fireAfterInsertTriggers(tableEntry.Name); trigResult.Error != nil {
@@ -597,11 +618,19 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		}
 	}
 
-	// UNIQUE and PRIMARY KEY uniqueness check: scan for existing row with same
-	// values on UNIQUE or PRIMARY KEY columns.
+	// UNIQUE and PRIMARY KEY uniqueness check
+	if err := e.checkUniqueConstraints(tableEntry, colDefs, values); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// checkUniqueConstraints validates UNIQUE and PRIMARY KEY constraints by scanning
+// for existing rows with the same values on UNIQUE or PRIMARY KEY columns.
+func (e *Engine) checkUniqueConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) error {
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
-	// Also check PRIMARY KEY columns (which imply UNIQUE)
 	for i, cd := range colDefs {
 		if cd.PrimaryKey && !contains(uniqueCols, i) {
 			if i < len(values) && values[i] != nil {
@@ -609,11 +638,9 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 			}
 		}
 	}
-
 	if len(uniqueCols) > 0 {
-		_, _, found := e.findRowByUniqueCols(tableEntry.RootPage, colDefs, colIndex, values)
+		_, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
 		if found {
-			// Find which column violated
 			for _, idx := range uniqueCols {
 				if idx < len(colDefs) {
 					return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[idx].Name)
@@ -622,7 +649,6 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 			return fmt.Errorf("UNIQUE constraint failed: %s", tableEntry.Name)
 		}
 	}
-
 	return nil
 }
 
@@ -667,7 +693,7 @@ func (e *Engine) execInsertOnConflict(tableEntry *schema.Entry, colDefs []sql.Co
 	colIndex := buildColumnIndex(colDefs)
 
 	// Try to find an existing conflicting row by scanning for UNIQUE violations
-	existingRowID, existingValues, found := e.findRowByUniqueCols(tableEntry.RootPage, colDefs, colIndex, values)
+	existingRowID, existingValues, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
 
 	if !found {
 		return e.insertRow(tableEntry, colDefs, values)
@@ -692,7 +718,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 		return &Result{Error: err}
 	}
 
-	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		return cell.RowID == existingRowID
 	})
@@ -742,7 +768,7 @@ func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]in
 // findRowByUniqueCols searches for a row that conflicts with the given values
 // on any UNIQUE column. Returns the RowID, existing values, and whether a
 // conflict was found.
-func (e *Engine) findRowByUniqueCols(rootPage uint32, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) (int64, []interface{}, bool) {
+func (e *Engine) findRowByUniqueCols(tableName string, rootPage uint32, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) (int64, []interface{}, bool) {
 	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
 	// Also include PRIMARY KEY columns (they imply UNIQUE)
 	for i, cd := range colDefs {
@@ -756,7 +782,8 @@ func (e *Engine) findRowByUniqueCols(rootPage uint32, colDefs []sql.ColumnDef, c
 		return 0, nil, false
 	}
 
-	cursor, err := openCursor(e.pager, rootPage)
+	tree := e.tableBTree(tableName, rootPage, true)
+	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, false
 	}
@@ -764,11 +791,6 @@ func (e *Engine) findRowByUniqueCols(rootPage uint32, colDefs []sql.ColumnDef, c
 	return scanForConflict(cursor, uniqueCols, values)
 }
 
-// openCursor opens a cursor for scanning the given root page.
-func openCursor(pager *pager.Pager, rootPage uint32) (*btree.Cursor, error) {
-	tree := btree.NewBTree(pager, rootPage, true)
-	return tree.OpenCursor()
-}
 
 // scanForConflict iterates through all rows and looks for a value match
 // on any of the given UNIQUE column indices.
@@ -840,7 +862,7 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			RowID:   rowID,
 			Payload: record,
 		}
-		tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+		tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 		if err := tree.InsertCell(cell); err != nil {
 			return &Result{Error: err}
 		}
@@ -874,7 +896,7 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry) *Result {
 		RowID:   nextRowID,
 		Payload: record,
 	}
-	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
@@ -1007,7 +1029,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return result
 	}
 
-	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{Error: err}
@@ -1349,7 +1371,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{},
 		}
 
 		// Scan all rows from the right table
-		tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+		tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			return nil, nil, err
@@ -1376,67 +1398,9 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{},
 		combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefs...)
 
 		for _, leftMap := range currentMaps {
-			matched := false
-
-			for _, rightMap := range rightMaps {
-				// Create combined row map with qualified and unqualified names
-				combinedMap := make(map[string]interface{})
-				for k, v := range leftMap {
-					combinedMap[k] = v
-				}
-				for k, v := range rightMap {
-					combinedMap[tableName+"."+k] = v
-					if _, exists := combinedMap[k]; !exists {
-						combinedMap[k] = v
-					}
-				}
-				combinedMap[s.From.Name+".rowid"] = leftMap["rowid"]
-
-				// Evaluate ON condition
-				onMatch := true
-				if join.On != nil {
-					match, err := e.evalBool(join.On, combinedMap)
-					if err != nil || !match {
-						onMatch = false
-					}
-				}
-
-				if onMatch {
-					matched = true
-					combinedMaps = append(combinedMaps, combinedMap)
-				}
-			}
-
-			// LEFT JOIN: if no match found, add with NULLs for right columns
+			matched := e.processJoinRow(leftMap, rightMaps, &combinedMaps, tableName, join, s, rightDefs)
 			if !matched && (join.JoinType == "LEFT" || join.JoinType == "") {
-				combinedMap := make(map[string]interface{})
-				for k, v := range leftMap {
-					combinedMap[k] = v
-				}
-				for _, cd := range rightDefs {
-					combinedMap[tableName+"."+cd.Name] = nil
-					if _, exists := combinedMap[cd.Name]; !exists {
-						combinedMap[cd.Name] = nil
-					}
-				}
-				combinedMaps = append(combinedMaps, combinedMap)
-			}
-
-			// CROSS JOIN: always produces a match
-			if !matched && join.JoinType == "CROSS" {
-				for _, rightMap := range rightMaps {
-					combinedMap := make(map[string]interface{})
-					for k, v := range leftMap {
-						combinedMap[k] = v
-					}
-					for k, v := range rightMap {
-						combinedMap[tableName+"."+k] = v
-						if _, exists := combinedMap[k]; !exists {
-							combinedMap[k] = v
-						}
-					}
-					combinedMaps = append(combinedMaps, combinedMap)
-				}
+				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName))
 			}
 		}
 
@@ -1445,6 +1409,68 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{},
 	}
 
 	return currentMaps, currentDefs, nil
+}
+
+
+// processJoinRow processes a single left row against all right rows for a JOIN.
+// Returns true if at least one match was found (for the ON condition).
+func (e *Engine) processJoinRow(leftMap map[string]interface{}, rightMaps []map[string]interface{}, combinedMaps *[]map[string]interface{}, tableName string, join sql.JoinClause, s *sql.SelectStmt, rightDefs []sql.ColumnDef) bool {
+	matched := false
+	for _, rightMap := range rightMaps {
+		combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name)
+		if e.evalOnCondition(join.On, combinedMap) {
+			matched = true
+			*combinedMaps = append(*combinedMaps, combinedMap)
+		}
+	}
+	// CROSS JOIN: always produces a match
+	if !matched && join.JoinType == "CROSS" {
+		for _, rightMap := range rightMaps {
+			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name))
+		}
+		matched = true
+	}
+	return matched
+}
+
+// buildCombinedRowMap creates a combined row map from left and right join sides.
+func (e *Engine) buildCombinedRowMap(leftMap, rightMap map[string]interface{}, tableName, leftTableName string) map[string]interface{} {
+	combined := make(map[string]interface{})
+	for k, v := range leftMap {
+		combined[k] = v
+	}
+	for k, v := range rightMap {
+		combined[tableName+"."+k] = v
+		if _, exists := combined[k]; !exists {
+			combined[k] = v
+		}
+	}
+	combined[leftTableName+".rowid"] = leftMap["rowid"]
+	return combined
+}
+
+// evalOnCondition evaluates a JOIN ON condition against a combined row map.
+func (e *Engine) evalOnCondition(on sql.Expr, row map[string]interface{}) bool {
+	if on == nil {
+		return true
+	}
+	match, err := e.evalBool(on, row)
+	return err == nil && match
+}
+
+// buildLeftJoinRow creates a row for LEFT JOIN when no match is found.
+func (e *Engine) buildLeftJoinRow(leftMap map[string]interface{}, rightDefs []sql.ColumnDef, tableName string) map[string]interface{} {
+	combined := make(map[string]interface{})
+	for k, v := range leftMap {
+		combined[k] = v
+	}
+	for _, cd := range rightDefs {
+		combined[tableName+"."+cd.Name] = nil
+		if _, exists := combined[cd.Name]; !exists {
+			combined[cd.Name] = nil
+		}
+	}
+	return combined
 }
 
 // hasAggregates checks if any SELECT column uses an aggregate function.
@@ -1592,17 +1618,7 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{
 	}
 	switch v := expr.(type) {
 	case *sql.FuncCall:
-		fn, ok := e.funcs.Find(v.Name)
-		if ok && fn.Type == function.TypeAggregate {
-			if v.Distinct {
-				return e.evalDistinctAggregate(v, groupRows), nil
-			}
-			return e.evalAggFuncCall(v, groupRows), nil
-		}
-		if len(groupRows) > 0 {
-			return e.evalFuncCall(v, groupRows[0])
-		}
-		return nil, nil
+		return e.evalHavingFuncCall(v, groupRows)
 	case *sql.BinaryOp:
 		left, err := e.evalHavingExpr(v.Left, groupRows)
 		if err != nil {
@@ -1620,21 +1636,7 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{
 		}
 		return evalBinaryOpValues(v.Operator, left, right)
 	case *sql.UnaryOp:
-		operand, err := e.evalHavingExpr(v.Operand, groupRows)
-		if err != nil {
-			return nil, err
-		}
-		switch v.Operator {
-		case "NOT":
-			if operand == nil {
-				return nil, nil
-			}
-			return !toBool(operand), nil
-		case "-":
-			return negateValue(operand)
-		default:
-			return nil, nil
-		}
+		return e.evalHavingUnary(v, groupRows)
 	case *sql.IsNull:
 		operand, err := e.evalHavingExpr(v.Operand, groupRows)
 		if err != nil {
@@ -1642,18 +1644,58 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{
 		}
 		return operand == nil, nil
 	case *sql.IsNotNull:
-		operand, err := e.evalHavingExpr(v.Operand, groupRows)
-		if err != nil {
-			return nil, err
-		}
-		return operand != nil, nil
+		return e.evalHavingIsNotNull(v, groupRows)
 	default:
-		if len(groupRows) > 0 {
-			return e.evalExpr(expr, groupRows[0])
+		return e.evalHavingDefault(expr, groupRows)
+	}
+}
+func (e *Engine) evalHavingFuncCall(v *sql.FuncCall, groupRows []map[string]interface{}) (interface{}, error) {
+	fn, ok := e.funcs.Find(v.Name)
+	if ok && fn.Type == function.TypeAggregate {
+		if v.Distinct {
+			return e.evalDistinctAggregate(v, groupRows), nil
 		}
+		return e.evalAggFuncCall(v, groupRows), nil
+	}
+	if len(groupRows) > 0 {
+		return e.evalFuncCall(v, groupRows[0])
+	}
+	return nil, nil
+}
+
+func (e *Engine) evalHavingUnary(v *sql.UnaryOp, groupRows []map[string]interface{}) (interface{}, error) {
+	operand, err := e.evalHavingExpr(v.Operand, groupRows)
+	if err != nil {
+		return nil, err
+	}
+	switch v.Operator {
+	case "NOT":
+		if operand == nil {
+			return nil, nil
+		}
+		return !toBool(operand), nil
+	case "-":
+		return negateValue(operand)
+	default:
 		return nil, nil
 	}
 }
+
+func (e *Engine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []map[string]interface{}) (interface{}, error) {
+	operand, err := e.evalHavingExpr(v.Operand, groupRows)
+	if err != nil {
+		return nil, err
+	}
+	return operand != nil, nil
+}
+
+func (e *Engine) evalHavingDefault(expr sql.Expr, groupRows []map[string]interface{}) (interface{}, error) {
+	if len(groupRows) > 0 {
+		return e.evalExpr(expr, groupRows[0])
+	}
+	return nil, nil
+}
+
 
 func (e *Engine) evalAggregateExpr(expr sql.Expr, rowMaps []map[string]interface{}) interface{} {
 	switch v := expr.(type) {
@@ -2103,7 +2145,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
-	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+	tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
 
 	deleted, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
