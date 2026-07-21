@@ -131,6 +131,8 @@ func (t *Tokenizer) Next() Token {
 		t.pos++
 		t.last = Token{Type: TokenParam, Value: "?", Pos: pos}
 		return t.last
+	case ch == '$':
+		return t.readDollarParam(pos)
 	default:
 		t.pos++
 		t.last = Token{Type: TokenError, Value: string(ch), Pos: pos}
@@ -357,6 +359,17 @@ func (t *Tokenizer) readIdent() Token {
 
 func isIdentStart(ch byte) bool {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_'
+}
+
+func (t *Tokenizer) readDollarParam(pos int) Token {
+	t.pos++ // skip $
+	start := t.pos
+	for t.pos < len(t.input) && isIdentPart(t.input[t.pos]) {
+		t.pos++
+	}
+	value := t.input[start:t.pos]
+	t.last = Token{Type: TokenParam, Value: "$" + value, Pos: pos}
+	return t.last
 }
 
 func isIdentPart(ch byte) bool {

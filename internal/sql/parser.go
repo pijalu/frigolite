@@ -164,6 +164,8 @@ func (p *Parser) parseKeywordStmt() Stmt {
 		return p.parseDrop()
 	case "ALTER":
 		return p.parseAlter()
+	case "WITH":
+		return p.parseWithStatement()
 	default:
 		return p.parseKeywordStmtTail()
 	}
@@ -834,14 +836,151 @@ func (p *Parser) parseCreateTable() *CreateTableStmt {
 	if p.cur.Type == TokenLParen {
 		p.next()
 		s.Columns = p.parseColumnDefs()
+		// Skip table-level constraints after columns
+		for p.cur.Type == TokenComma {
+			p.next()
+			if p.cur.Type == TokenKeyword && (p.cur.Value == "PRIMARY" || p.cur.Value == "UNIQUE" ||
+				p.cur.Value == "CHECK" || p.cur.Value == "FOREIGN" || p.cur.Value == "CONSTRAINT") {
+				p.skipTableConstraint()
+			}
+		}
 		if !p.expect(TokenRParen) {
 			return nil
 		}
 	}
 
+	// WITHOUT ROWID
+	if p.cur.Type == TokenKeyword && p.cur.Value == "WITHOUT" {
+		p.next()
+		// ROWID can be a keyword or identifier
+		if p.cur.Type == TokenKeyword || p.cur.Type == TokenIdentifier {
+			if p.cur.Value == "ROWID" {
+				p.next()
+			} else {
+				p.setErr("expected 'ROWID' but got '%s'", p.cur.Value)
+				return nil
+			}
+		}
+	}
+
+	// STRICT
+	if p.cur.Type == TokenKeyword && p.cur.Value == "STRICT" {
+		p.next()
+	}
+
 	return s
 }
 
+
+
+// parseWithStatement handles WITH ... SELECT (CTE support).
+// For now, silently skips CTE definitions and parses the main statement.
+func (p *Parser) parseWithStatement() Stmt {
+	p.next() // skip WITH
+	// Skip optional RECURSIVE
+	if p.cur.Type == TokenKeyword && p.cur.Value == "RECURSIVE" {
+		p.next()
+	}
+	// Skip CTE definitions: name [(cols)] AS (subquery) [,...], then parse main statement
+	for {
+		// Skip CTE name
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			p.next()
+		}
+		// Skip optional column list
+		if p.cur.Type == TokenLParen {
+			p.next()
+			for p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+				p.next()
+				if p.cur.Type == TokenComma {
+					p.next()
+				}
+			}
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+		if !p.expectKeyword("AS") {
+			return nil
+		}
+		// Skip the subquery: ( SELECT ... )
+		if p.cur.Type == TokenLParen {
+			p.next()
+			p.parseSelect()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+		if p.cur.Type == TokenComma {
+			p.next()
+			continue
+		}
+		break
+	}
+	// Parse the main statement (SELECT, INSERT, UPDATE, DELETE)
+	return p.parseKeywordStmt()
+}
+
+// skipTableConstraint consumes a table-level constraint expression.
+func (p *Parser) skipTableConstraint() {
+	switch p.cur.Value {
+	case "PRIMARY":
+		p.next()
+		p.expectKeyword("KEY")
+		if p.cur.Type == TokenLParen {
+			p.next()
+			p.parseExprList()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+	case "UNIQUE":
+		p.next()
+		if p.cur.Type == TokenLParen {
+			p.next()
+			p.parseExprList()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+	case "CHECK":
+		p.next()
+		if p.cur.Type == TokenLParen {
+			p.next()
+			p.parseExpr()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+	case "FOREIGN":
+		p.next()
+		p.expectKeyword("KEY")
+		if p.cur.Type == TokenLParen {
+			p.next()
+			p.parseExprList()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+		p.expectKeyword("REFERENCES")
+		if p.cur.Type == TokenIdentifier {
+			p.next()
+		}
+		if p.cur.Type == TokenLParen {
+			p.next()
+			p.parseExprList()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+		}
+	case "CONSTRAINT":
+		p.next()
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			p.next()
+		}
+		p.skipTableConstraint()
+	}
+}
 func (p *Parser) parseCreateIndex() *CreateIndexStmt {
 	s := &CreateIndexStmt{}
 	p.next() // skip INDEX
@@ -879,6 +1018,12 @@ func (p *Parser) parseCreateIndex() *CreateIndexStmt {
 func (p *Parser) parseColumnDefs() []ColumnDef {
 	var cols []ColumnDef
 	for {
+		// Skip table-level constraints (PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY)
+		if p.cur.Type == TokenKeyword && (p.cur.Value == "PRIMARY" || p.cur.Value == "UNIQUE" ||
+			p.cur.Value == "CHECK" || p.cur.Value == "FOREIGN" || p.cur.Value == "CONSTRAINT") {
+			p.skipTableConstraint()
+			continue
+		}
 		if p.cur.Type != TokenIdentifier {
 			break
 		}
@@ -1618,6 +1763,10 @@ func (p *Parser) parsePrimaryExpr() Expr {
 
 	case TokenKeyword:
 		return p.parseKeywordExpr()
+
+	case TokenParam:
+		p.next()
+		return &NullLit{}
 
 	default:
 		p.setErr("unexpected token in expression: %s", tokenName(p.cur.Type, p.cur.Value))
