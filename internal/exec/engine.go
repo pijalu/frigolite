@@ -20,10 +20,11 @@ import (
 
 // Result holds the result of executing a SQL statement.
 type Result struct {
-	Columns []string       // column names
-	Rows    [][]interface{} // data rows
-	Changes int64          // number of changed rows
-	Error   error          // execution error
+	Columns        []string       // column names
+	Rows           [][]interface{} // data rows
+	Changes        int64          // number of changed rows
+	Error          error          // execution error
+	LastInsertRowID int64         // rowid of the last inserted row
 }
 
 // Engine executes SQL statements.
@@ -32,6 +33,12 @@ type Engine struct {
 	schema   *schema.Manager
 	funcs    *function.Registry
 	vtabs    *vtab.Registry
+	lastRowID int64
+}
+
+// LastInsertRowID returns the rowid of the last inserted row.
+func (e *Engine) LastInsertRowID() int64 {
+	return e.lastRowID
 }
 
 // NewEngine creates a new execution engine.
@@ -459,8 +466,19 @@ func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, va
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid.
 	nextRowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
+	e.lastRowID = nextRowID
 
-	record, err := storage.EncodeRecord(values)
+	// Apply type affinity to each value based on column type
+	affValues := make([]interface{}, len(values))
+	for i, v := range values {
+		if i < len(colDefs) {
+			affValues[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
+		} else {
+			affValues[i] = v
+		}
+	}
+
+	record, err := storage.EncodeRecord(affValues)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -478,7 +496,7 @@ func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, va
 	if trigResult := e.fireAfterInsertTriggers(tableEntry.Name); trigResult.Error != nil {
 		return trigResult
 	}
-	return &Result{Changes: 1}
+	return &Result{Changes: 1, LastInsertRowID: nextRowID}
 }
 
 // checkConstraints validates NOT NULL, CHECK, UNIQUE, and PRIMARY KEY

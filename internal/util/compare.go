@@ -2,7 +2,9 @@ package util
 
 import (
 	"bytes"
+	"fmt"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -12,6 +14,12 @@ import (
 // SQLite type ordering: NULL < INTEGER/REAL < TEXT < BLOB
 // INTEGER and REAL are compared numerically after promoting both to REAL.
 func CompareValues(a, b interface{}) int {
+	return CompareValuesCollate(a, b, "")
+}
+
+// CompareValuesCollate compares two SQL values with an optional collation.
+// collation can be "NOCASE", "RTRIM", "BINARY", or "" (defaults to BINARY).
+func CompareValuesCollate(a, b interface{}, collation string) int {
 	if a == nil && b == nil {
 		return 0
 	}
@@ -45,7 +53,7 @@ func CompareValues(a, b interface{}) int {
 	// Same type: compare by value
 	switch ta {
 	case typeText:
-		return strings.Compare(toStr(a), toStr(b))
+		return stringCompare(toStr(a), toStr(b), collation)
 	case typeBlob:
 		return bytes.Compare(toBytes(a), toBytes(b))
 	default:
@@ -112,7 +120,94 @@ func toBytes(v interface{}) []byte {
 	return nil
 }
 
-// Affinity determines the column affinity for a type name.
+// ApplyColumnAffinity coerces a Go value to match the SQL column affinity
+// of the given type name. This implements SQLite's type affinity rules.
+func ApplyColumnAffinity(val interface{}, typeName string) interface{} {
+	if val == nil {
+		return nil
+	}
+	aff := Affinity(typeName)
+	switch aff {
+	case 'I': // INTEGER
+		switch v := val.(type) {
+		case float64:
+			return int64(v)
+		case string:
+			if i, err := parseInt(v); err == nil {
+				return i
+			}
+			if f, err := parseFloat(v); err == nil {
+				return int64(f)
+			}
+			return val
+		default:
+			return val
+		}
+	case 'R': // REAL
+		switch v := val.(type) {
+		case int64:
+			return float64(v)
+		case string:
+			if f, err := parseFloat(v); err == nil {
+				return f
+			}
+			return val
+		default:
+			return val
+		}
+	case 'T': // TEXT
+		switch v := val.(type) {
+		case int64:
+			return fmt.Sprintf("%d", v)
+		case float64:
+			return fmt.Sprintf("%g", v)
+		default:
+			return val
+		}
+	case 'N': // NUMERIC
+		switch v := val.(type) {
+		case string:
+			if i, err := parseInt(v); err == nil {
+				return i
+			}
+			if f, err := parseFloat(v); err == nil {
+				return f
+			}
+			return val
+		default:
+			return val
+		}
+	default: // BLOB or other — no conversion
+		return val
+	}
+}
+
+// parseInt parses an integer from a string.
+func parseInt(s string) (int64, error) {
+	if s == "" {
+		return 0, fmt.Errorf("empty string")
+	}
+	var i int64
+	var err error
+	if strings.Contains(s, ".") || strings.Contains(s, "e") || strings.Contains(s, "E") {
+		return 0, fmt.Errorf("not an integer")
+	}
+	i, err = strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		// Try float then truncate
+		f, err2 := strconv.ParseFloat(s, 64)
+		if err2 != nil {
+			return 0, err
+		}
+		return int64(f), nil
+	}
+	return i, nil
+}
+
+// parseFloat parses a float from a string.
+func parseFloat(s string) (float64, error) {
+	return strconv.ParseFloat(s, 64)
+}
 // SQLite affinities: TEXT, NUMERIC, INTEGER, REAL, BLOB.
 func Affinity(typeName string) rune {
 	upper := strings.ToUpper(strings.TrimSpace(typeName))
@@ -129,4 +224,40 @@ func Affinity(typeName string) rune {
 		return 'R' // REAL
 	}
 	return 'N' // NUMERIC
+}
+
+// stringCompare compares two strings using the given collation.
+// Supported collations: "NOCASE" (case-insensitive), "RTRIM" (right-trim),
+// "BINARY" or "" (byte-wise comparison with SQLite BINARY semantics).
+func stringCompare(a, b, collation string) int {
+	switch strings.ToUpper(collation) {
+	case "NOCASE":
+		return strings.Compare(strings.ToUpper(a), strings.ToUpper(b))
+	case "RTRIM":
+		return strings.Compare(strings.TrimRight(a, " "), strings.TrimRight(b, " "))
+	default:
+		// BINARY or empty: standard byte-wise comparison
+		// SQLite BINARY compares using memcmp with the shortest string's length first
+		minLen := len(a)
+		if len(b) < minLen {
+			minLen = len(b)
+		}
+		if minLen > 0 {
+			if a[:minLen] < b[:minLen] {
+				return -1
+			}
+			if a[:minLen] > b[:minLen] {
+				return 1
+			}
+		}
+		// All equal up to minLen, shorter string sorts first
+		switch {
+		case len(a) < len(b):
+			return -1
+		case len(a) > len(b):
+			return 1
+		default:
+			return 0
+		}
+	}
 }

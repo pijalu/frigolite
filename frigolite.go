@@ -26,18 +26,28 @@ import (
 
 // DB is an open database connection.
 type DB struct {
-	pager  *pager.Pager
-	schema *schema.Manager
-	engine *exec.Engine
-	path   string
+	pager    *pager.Pager
+	schema   *schema.Manager
+	engine   *exec.Engine
+	path     string
+	lastRowID int64
 }
 
 // Result holds query results.
 type Result struct {
-	Columns []string
-	Rows    [][]interface{}
-	Changes int64
-	Error   error
+	Columns        []string
+	Rows           [][]interface{}
+	Changes        int64
+	Error          error
+	LastInsertRowID int64
+}
+
+// LastInsertRowID returns the rowid of the last inserted row.
+func (db *DB) LastInsertRowID() int64 {
+	if db == nil || db.engine == nil {
+		return 0
+	}
+	return db.engine.LastInsertRowID()
 }
 
 // Open opens a database file. Use ":memory:" for an in-memory database.
@@ -84,10 +94,11 @@ func execResult(er *exec.Result) *Result {
 		return nil
 	}
 	return &Result{
-		Columns: er.Columns,
-		Rows:    er.Rows,
-		Changes: er.Changes,
-		Error:   er.Error,
+		Columns:        er.Columns,
+		Rows:           er.Rows,
+		Changes:        er.Changes,
+		Error:          er.Error,
+		LastInsertRowID: er.LastInsertRowID,
 	}
 }
 
@@ -109,6 +120,9 @@ func (db *DB) Exec(sqlStr string) *Result {
 			return execResult(res)
 		}
 		lastResult = res
+		if res.LastInsertRowID > 0 {
+			db.lastRowID = res.LastInsertRowID
+		}
 	}
 
 	if lastResult == nil {

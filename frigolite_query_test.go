@@ -448,7 +448,7 @@ func TestSelectAbs(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("ABS: %v", res.Error)
 	}
-	if res.Rows[0][0] != float64(42) {
+	if res.Rows[0][0] != int64(42) {
 		t.Errorf("expected 42, got %v (type: %T)", res.Rows[0][0], res.Rows[0][0])
 	}
 
