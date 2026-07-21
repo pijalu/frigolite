@@ -3,6 +3,8 @@ package exec
 
 import (
 	"fmt"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -76,6 +78,8 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 		return e.execCreateVirtualTable(s)
 	case *sql.DropTableStmt:
 		return e.execDropTable(s)
+	case *sql.DropIndexStmt:
+		return e.execDropIndex(s)
 	case *sql.DropViewStmt:
 		return e.execDropView(s)
 	case *sql.DropTriggerStmt:
@@ -150,6 +154,11 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 		}
 		if col.Unique {
 			buf.WriteString(" UNIQUE")
+		}
+		if col.Check != nil {
+			buf.WriteString(" CHECK(")
+			buf.WriteString(sql.ExprString(col.Check))
+			buf.WriteString(")")
 		}
 	}
 	buf.WriteString(")")
@@ -241,6 +250,16 @@ func (e *Engine) execDropView(s *sql.DropViewStmt) *Result {
 
 func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
 	if err := e.schema.RemoveEntry(s.Name); err != nil && !s.IfExists {
+		return &Result{Error: err}
+	}
+	return &Result{}
+}
+
+// --- DROP INDEX ---
+
+func (e *Engine) execDropIndex(s *sql.DropIndexStmt) *Result {
+	// Remove from schema
+	if err := e.schema.RemoveEntry(s.Name); err != nil {
 		return &Result{Error: err}
 	}
 	return &Result{}
@@ -405,24 +424,47 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 		return e.execInsertDefault(tableEntry)
 	}
 
-	values := e.evalInsertValues(s, colDefs)
+	var totalChanges int64
+	for _, tuple := range s.Values {
+		values := e.evalTuple(tuple, s.Columns, colDefs)
+		if values == nil {
+			return &Result{Error: fmt.Errorf("exec: failed to evaluate INSERT values")}
+		}
 
-	// Check for ON CONFLICT (UPSERT)
-	if s.OnConflict != nil {
-		return e.execInsertOnConflict(tableEntry, colDefs, values, s)
+		// Check for ON CONFLICT (UPSERT)
+		if s.OnConflict != nil {
+			res := e.execInsertOnConflict(tableEntry, colDefs, values, s)
+			if res.Error != nil {
+				return res
+			}
+			totalChanges += res.Changes
+		} else {
+			res := e.insertRow(tableEntry, colDefs, values)
+			if res.Error != nil {
+				return res
+			}
+			totalChanges += res.Changes
+		}
 	}
-
-	// Normal insert (no conflict clause)
-	return e.insertRow(tableEntry, colDefs, values)
+	return &Result{Changes: totalChanges}
 }
 
 func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+	// Validate constraints before inserting
+	if err := e.checkConstraints(tableEntry, colDefs, values); err != nil {
+		return &Result{Error: err}
+	}
+
+	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
+	// value, use that value as the rowid (the column IS the rowid). Otherwise
+	// auto-assign the next available rowid.
+	nextRowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
+
 	record, err := storage.EncodeRecord(values)
 	if err != nil {
 		return &Result{Error: err}
 	}
 
-	nextRowID := e.findNextRowID(tableEntry.RootPage)
 	cell := &storage.Cell{
 		Type:    storage.CellTableLeaf,
 		RowID:   nextRowID,
@@ -437,6 +479,90 @@ func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, va
 		return trigResult
 	}
 	return &Result{Changes: 1}
+}
+
+// checkConstraints validates NOT NULL, CHECK, UNIQUE, and PRIMARY KEY
+// constraints for a row being inserted.
+func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) error {
+	row := buildRowMapFromValues(values, colDefs, 0)
+
+	for _, cd := range colDefs {
+		val := columnValue(values, colDefs, cd.Name)
+
+		// NOT NULL constraint
+		if cd.NotNull && val == nil {
+			return fmt.Errorf("NOT NULL constraint failed: %s.%s", tableEntry.Name, cd.Name)
+		}
+
+		// CHECK constraint: only fails when result is explicitly false.
+		// NULL (unknown) and true both pass.
+		if cd.Check != nil {
+			checkVal, err := e.evalExpr(cd.Check, row)
+			if err == nil && checkVal != nil && !toBool(checkVal) {
+				return fmt.Errorf("CHECK constraint failed: %s", tableEntry.Name)
+			}
+		}
+	}
+
+	// UNIQUE and PRIMARY KEY uniqueness check: scan for existing row with same
+	// values on UNIQUE or PRIMARY KEY columns.
+	colIndex := buildColumnIndex(colDefs)
+	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
+	// Also check PRIMARY KEY columns (which imply UNIQUE)
+	for i, cd := range colDefs {
+		if cd.PrimaryKey && !contains(uniqueCols, i) {
+			if i < len(values) && values[i] != nil {
+				uniqueCols = append(uniqueCols, i)
+			}
+		}
+	}
+
+	if len(uniqueCols) > 0 {
+		_, _, found := e.findRowByUniqueCols(tableEntry.RootPage, colDefs, colIndex, values)
+		if found {
+			// Find which column violated
+			for _, idx := range uniqueCols {
+				if idx < len(colDefs) {
+					return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[idx].Name)
+				}
+			}
+			return fmt.Errorf("UNIQUE constraint failed: %s", tableEntry.Name)
+		}
+	}
+
+	return nil
+}
+
+// buildRowMapFromValues creates a column-name-to-value map from a values slice.
+func buildRowMapFromValues(values []interface{}, colDefs []sql.ColumnDef, rowID int64) map[string]interface{} {
+	row := make(map[string]interface{})
+	for i, v := range values {
+		if i < len(colDefs) {
+			row[colDefs[i].Name] = v
+		}
+	}
+	row["rowid"] = rowID
+	return row
+}
+
+// columnValue returns the value for a named column from a values array.
+func columnValue(values []interface{}, colDefs []sql.ColumnDef, name string) interface{} {
+	for i, cd := range colDefs {
+		if cd.Name == name && i < len(values) {
+			return values[i]
+		}
+	}
+	return nil
+}
+
+// contains returns true if the slice contains the value.
+func contains(s []int, v int) bool {
+	for _, e := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
 }
 
 // execInsertOnConflict handles INSERT ... ON CONFLICT by attempting the
@@ -525,6 +651,14 @@ func (e *Engine) buildUpdatedRow(colDefs []sql.ColumnDef, colIndex map[string]in
 // conflict was found.
 func (e *Engine) findRowByUniqueCols(rootPage uint32, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) (int64, []interface{}, bool) {
 	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
+	// Also include PRIMARY KEY columns (they imply UNIQUE)
+	for i, cd := range colDefs {
+		if cd.PrimaryKey && !contains(uniqueCols, i) {
+			if i < len(values) && values[i] != nil {
+				uniqueCols = append(uniqueCols, i)
+			}
+		}
+	}
 	if len(uniqueCols) == 0 {
 		return 0, nil, false
 	}
@@ -602,14 +736,15 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 	}
 	var changes int64
 	for _, row := range selectResult.Rows {
+		// Determine rowid from INTEGER PRIMARY KEY value if present
+		rowID := e.pkRowID(colDefs, row, tableEntry.RootPage)
 		record, err := storage.EncodeRecord(row)
 		if err != nil {
 			return &Result{Error: err}
 		}
-		nextRowID := e.findNextRowID(tableEntry.RootPage)
 		cell := &storage.Cell{
 			Type:    storage.CellTableLeaf,
-			RowID:   nextRowID,
+			RowID:   rowID,
 			Payload: record,
 		}
 		tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
@@ -619,6 +754,20 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 		changes++
 	}
 	return &Result{Changes: changes}
+}
+
+// pkRowID returns the rowid for a new row, using the INTEGER PRIMARY KEY value
+// if one is explicitly provided, or auto-assigning the next available rowid.
+func (e *Engine) pkRowID(colDefs []sql.ColumnDef, values []interface{}, rootPage uint32) int64 {
+	for i, cd := range colDefs {
+		if cd.PrimaryKey && i < len(values) && values[i] != nil {
+			if v, ok := values[i].(int64); ok {
+				return v
+			}
+			break
+		}
+	}
+	return e.findNextRowID(rootPage)
 }
 
 func (e *Engine) execInsertDefault(tableEntry *schema.Entry) *Result {
@@ -704,18 +853,18 @@ func (e *Engine) fireTrigger(t *schema.Entry, event string) *Result {
 	return nil
 }
 
-func (e *Engine) evalInsertValues(s *sql.InsertStmt, colDefs []sql.ColumnDef) []interface{} {
-	values := make([]interface{}, len(s.Values))
-	for i, expr := range s.Values {
+func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) []interface{} {
+	values := make([]interface{}, len(tuple))
+	for i, expr := range tuple {
 		v, err := e.evalExpr(expr, nil)
 		if err != nil {
 			return nil
 		}
 		values[i] = v
 	}
-	if len(s.Columns) > 0 {
+	if len(columns) > 0 {
 		mapped := make([]interface{}, len(colDefs))
-		for i, col := range s.Columns {
+		for i, col := range columns {
 			for j, cd := range colDefs {
 				if cd.Name == col && i < len(values) {
 					mapped[j] = values[i]
@@ -732,8 +881,13 @@ func (e *Engine) evalInsertValues(s *sql.InsertStmt, colDefs []sql.ColumnDef) []
 
 func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
-	if s.From.Name == "" && len(s.From.As) == 0 {
+	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
 		return e.execSelectNoFrom(s)
+	}
+
+	// Handle subquery in FROM: (SELECT ...) AS t
+	if s.From.Subquery != nil {
+		return e.execSelectFromSubquery(s)
 	}
 
 	tableEntry, err := e.schema.FindTable(s.From.Name)
@@ -768,11 +922,32 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	allRows, allRowMaps := e.scanTableRows(cursor, s, colDefs)
 
+	// If there are JOINs, process them (nested-loop join)
+	if len(s.Joins) > 0 {
+		var err error
+		allRowMaps, colDefs, err = e.execJoins(s, allRowMaps, colDefs)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		// Rebuild allRows from combined row maps using SELECT columns
+		allRows = make([][]interface{}, len(allRowMaps))
+		for i, rowMap := range allRowMaps {
+			allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
+		}
+	}
+
 	// Handle aggregate functions: evaluate them across all rows
 	if e.hasAggregates(s.Columns) {
-		result := e.evalAggregates(s, allRowMaps)
-		if result != nil {
-			return result
+		if len(s.GroupBy) > 0 {
+			result := e.evalAggregatesGroupBy(s, allRowMaps, colDefs)
+			if result != nil {
+				return result
+			}
+		} else {
+			result := e.evalAggregates(s, allRowMaps)
+			if result != nil {
+				return result
+			}
 		}
 	}
 
@@ -780,7 +955,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	// Apply DISTINCT
 	if s.Distinct {
-		result.Rows = e.distinctRows(result.Rows)
+		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps)
 	}
 
 	// Apply ORDER BY
@@ -793,28 +968,123 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	// Handle UNION / INTERSECT / EXCEPT
 	if s.Union != nil {
-		result.Rows = e.mergeUnionRows(result.Rows, s.Union)
+		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
 	}
 
 	return result
 }
 
-func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt) [][]interface{} {
+func (e *Engine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op sql.SetOp, unionAll bool) [][]interface{} {
 	unionResult := e.execSelect(union)
 	if unionResult.Error != nil {
 		return rows
 	}
-	allRows := append(rows, unionResult.Rows...)
+	rightRows := unionResult.Rows
+
+	switch op {
+	case sql.SetUnion:
+		if unionAll {
+			// UNION ALL: concatenate without dedup
+			return append(rows, rightRows...)
+		}
+		// UNION: deduplicate combined rows
+		return dedupeRows(append(rows, rightRows...))
+	case sql.SetIntersect:
+		// INTERSECT: rows that appear in both sets
+		return intersectRows(rows, rightRows)
+	case sql.SetExcept:
+		// EXCEPT: rows in left but not in right
+		return exceptRows(rows, rightRows)
+	default:
+		return append(rows, rightRows...)
+	}
+}
+
+// dedupeRows removes duplicate rows using CompareValues-based keys.
+func dedupeRows(rows [][]interface{}) [][]interface{} {
+	if len(rows) == 0 {
+		return rows
+	}
 	seen := make(map[string]bool)
-	var merged [][]interface{}
-	for _, row := range allRows {
-		key := fmt.Sprintf("%v", row)
+	var result [][]interface{}
+	for _, row := range rows {
+		key := rowKey(row)
 		if !seen[key] {
 			seen[key] = true
-			merged = append(merged, row)
+			result = append(result, row)
 		}
 	}
-	return merged
+	return result
+}
+
+// intersectRows returns rows that exist in both a and b (INTERSECT).
+func intersectRows(a, b [][]interface{}) [][]interface{} {
+	if len(a) == 0 || len(b) == 0 {
+		return [][]interface{}{}
+	}
+	// Build set of b rows
+	bSet := make(map[string]bool)
+	for _, row := range b {
+		bSet[rowKey(row)] = true
+	}
+	// Find a rows that are also in b
+	var result [][]interface{}
+	seen := make(map[string]bool)
+	for _, row := range a {
+		key := rowKey(row)
+		if bSet[key] && !seen[key] {
+			seen[key] = true
+			result = append(result, row)
+		}
+	}
+	return result
+}
+
+// exceptRows returns rows in a that are not in b (EXCEPT).
+func exceptRows(a, b [][]interface{}) [][]interface{} {
+	if len(a) == 0 {
+		return [][]interface{}{}
+	}
+	bSet := make(map[string]bool)
+	for _, row := range b {
+		bSet[rowKey(row)] = true
+	}
+	var result [][]interface{}
+	seen := make(map[string]bool)
+	for _, row := range a {
+		key := rowKey(row)
+		if !bSet[key] && !seen[key] {
+			seen[key] = true
+			result = append(result, row)
+		}
+	}
+	return result
+}
+
+// rowKey creates a deduplication key for a row using CompareValues-based
+// serialization. This is more robust than fmt.Sprintf because it handles
+// type equivalence (int64(1) == float64(1.0) per SQLite affinity).
+func rowKey(row []interface{}) string {
+	parts := make([]string, len(row))
+	for i, v := range row {
+		if v == nil {
+			parts[i] = "\x00"
+		} else {
+			switch x := v.(type) {
+			case int64:
+				parts[i] = "i:" + strconv.FormatInt(x, 10)
+			case float64:
+				parts[i] = "f:" + strconv.FormatFloat(x, 'g', -1, 64)
+			case string:
+				parts[i] = "s:" + x
+			case []byte:
+				parts[i] = "b:" + string(x)
+			default:
+				parts[i] = "o:" + fmt.Sprintf("%v", x)
+			}
+		}
+	}
+	return strings.Join(parts, "\x00")
 }
 
 // execSelectView executes a SELECT on a view by expanding its stored definition.
@@ -854,26 +1124,234 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 		outRow = append(outRow, v)
 	}
 
-	// Handle UNION for no-FROM selects
+	// Handle UNION / INTERSECT / EXCEPT for no-FROM selects
 	if s.Union != nil {
 		unionResult := e.execSelect(s.Union)
 		if unionResult.Error != nil {
 			return unionResult
 		}
 		allRows := append([][]interface{}{outRow}, unionResult.Rows...)
-		seen := make(map[string]bool)
-		var unionRows [][]interface{}
-		for _, row := range allRows {
-			key := fmt.Sprintf("%v", row)
-			if !seen[key] {
-				seen[key] = true
-				unionRows = append(unionRows, row)
+		switch s.SetOp {
+		case sql.SetUnion:
+			if s.UnionAll {
+				// UNION ALL: concatenate without dedup
+				return &Result{Columns: columns, Rows: allRows}
 			}
+			// UNION: deduplicate
+			return &Result{Columns: columns, Rows: dedupeRows(allRows)}
+		case sql.SetIntersect:
+			return &Result{Columns: columns, Rows: intersectRows([][]interface{}{outRow}, unionResult.Rows)}
+		case sql.SetExcept:
+			return &Result{Columns: columns, Rows: exceptRows([][]interface{}{outRow}, unionResult.Rows)}
+		default:
+			return &Result{Columns: columns, Rows: allRows}
 		}
-		return &Result{Columns: columns, Rows: unionRows}
 	}
 
 	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+}
+
+// execSelectFromSubquery executes an outer SELECT whose FROM is a subquery.
+func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
+	// Execute the subquery
+	subqResult := e.execSelect(s.From.Subquery)
+	if subqResult.Error != nil {
+		return subqResult
+	}
+
+	// Build colDefs from subquery column names
+	colDefs := make([]sql.ColumnDef, len(subqResult.Columns))
+	for i, col := range subqResult.Columns {
+		colDefs[i] = sql.ColumnDef{Name: col}
+	}
+
+	// Build rowMaps from result rows
+	allRows := subqResult.Rows
+	if len(allRows) == 0 {
+		return &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: [][]interface{}{}}
+	}
+	allRowMaps := make([]map[string]interface{}, len(allRows))
+	for i, row := range allRows {
+		rowMap := make(map[string]interface{})
+		for j, val := range row {
+			if j < len(colDefs) {
+				rowMap[colDefs[j].Name] = val
+			}
+		}
+		allRowMaps[i] = rowMap
+	}
+
+	// Apply WHERE filter (reuse scanTableRows logic)
+	if s.Where != nil {
+		var filteredRows [][]interface{}
+		var filteredMaps []map[string]interface{}
+		for i, rowMap := range allRowMaps {
+			if e.rowPassesWhere(s.Where, rowMap, nil) {
+				filteredRows = append(filteredRows, allRows[i])
+				filteredMaps = append(filteredMaps, rowMap)
+			}
+		}
+		allRows = filteredRows
+		allRowMaps = filteredMaps
+	}
+
+	// Handle aggregate functions
+	if e.hasAggregates(s.Columns) {
+		if len(s.GroupBy) > 0 {
+			result := e.evalAggregatesGroupBy(s, allRowMaps, colDefs)
+			if result != nil {
+				return result
+			}
+		} else {
+			result := e.evalAggregates(s, allRowMaps)
+			if result != nil {
+				return result
+			}
+		}
+	}
+
+	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+
+	// Apply DISTINCT
+	if s.Distinct {
+		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps)
+	}
+
+	// Apply ORDER BY
+	if len(s.OrderBy) > 0 {
+		e.sortRowsWithMaps(result, s.OrderBy, allRowMaps)
+	}
+
+	// Apply LIMIT / OFFSET
+	result.Rows = applyLimitOffset(result.Rows, s.Limit, s.Offset)
+
+	// Handle UNION / INTERSECT / EXCEPT
+	if s.Union != nil {
+		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
+	}
+
+	return result
+}
+
+// execJoins processes JOIN clauses by performing nested-loop joins between
+// the base table rows and each joined table. Returns combined rowMaps and
+// colDefs.
+func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{}, baseDefs []sql.ColumnDef) ([]map[string]interface{}, []sql.ColumnDef, error) {
+	currentMaps := baseMaps
+	currentDefs := baseDefs
+
+	for _, join := range s.Joins {
+		var rightMaps []map[string]interface{}
+		var rightDefs []sql.ColumnDef
+
+		// Resolve the right table
+		tableEntry, err := e.schema.FindTable(join.Table.Name)
+		if err != nil {
+			return nil, nil, err
+		}
+		rightDefs = e.parseColumnDefs(tableEntry.SQL)
+		tableName := join.Table.Name
+		if join.Table.As != "" {
+			tableName = join.Table.As
+		}
+
+		// Scan all rows from the right table
+		tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return nil, nil, err
+		}
+		for {
+			cell, err := cursor.ReadCell()
+			if err != nil {
+				break
+			}
+			rec, err := storage.DecodeRecord(cell.Payload)
+			if err != nil {
+				break
+			}
+			rightRowMap := e.buildRowMap(rec, rightDefs, cell.RowID)
+			rightMaps = append(rightMaps, rightRowMap)
+			ok, err := cursor.Next()
+			if err != nil || !ok {
+				break
+			}
+		}
+
+		// Nested-loop join
+		var combinedMaps []map[string]interface{}
+		combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefs...)
+
+		for _, leftMap := range currentMaps {
+			matched := false
+
+			for _, rightMap := range rightMaps {
+				// Create combined row map with qualified and unqualified names
+				combinedMap := make(map[string]interface{})
+				for k, v := range leftMap {
+					combinedMap[k] = v
+				}
+				for k, v := range rightMap {
+					combinedMap[tableName+"."+k] = v
+					if _, exists := combinedMap[k]; !exists {
+						combinedMap[k] = v
+					}
+				}
+				combinedMap[s.From.Name+".rowid"] = leftMap["rowid"]
+
+				// Evaluate ON condition
+				onMatch := true
+				if join.On != nil {
+					match, err := e.evalBool(join.On, combinedMap)
+					if err != nil || !match {
+						onMatch = false
+					}
+				}
+
+				if onMatch {
+					matched = true
+					combinedMaps = append(combinedMaps, combinedMap)
+				}
+			}
+
+			// LEFT JOIN: if no match found, add with NULLs for right columns
+			if !matched && (join.JoinType == "LEFT" || join.JoinType == "") {
+				combinedMap := make(map[string]interface{})
+				for k, v := range leftMap {
+					combinedMap[k] = v
+				}
+				for _, cd := range rightDefs {
+					combinedMap[tableName+"."+cd.Name] = nil
+					if _, exists := combinedMap[cd.Name]; !exists {
+						combinedMap[cd.Name] = nil
+					}
+				}
+				combinedMaps = append(combinedMaps, combinedMap)
+			}
+
+			// CROSS JOIN: always produces a match
+			if !matched && join.JoinType == "CROSS" {
+				for _, rightMap := range rightMaps {
+					combinedMap := make(map[string]interface{})
+					for k, v := range leftMap {
+						combinedMap[k] = v
+					}
+					for k, v := range rightMap {
+						combinedMap[tableName+"."+k] = v
+						if _, exists := combinedMap[k]; !exists {
+							combinedMap[k] = v
+						}
+					}
+					combinedMaps = append(combinedMaps, combinedMap)
+				}
+			}
+		}
+
+		currentMaps = combinedMaps
+		currentDefs = combinedDefs
+	}
+
+	return currentMaps, currentDefs, nil
 }
 
 // hasAggregates checks if any SELECT column uses an aggregate function.
@@ -939,9 +1417,157 @@ func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
 	return nil
 }
 
+// evalAggregatesGroupBy partitions rows by GROUP BY key, evaluates aggregates
+// per group, and applies HAVING.
+func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []map[string]interface{}, colDefs []sql.ColumnDef) *Result {
+	if len(rowMaps) == 0 {
+		return nil
+	}
+
+	// Partition rows by GROUP BY key
+	groups := make(map[string][]map[string]interface{})
+	var keyOrder []string
+
+	for _, row := range rowMaps {
+		key := e.computeGroupByKey(s.GroupBy, row)
+		if _, exists := groups[key]; !exists {
+			keyOrder = append(keyOrder, key)
+		}
+		groups[key] = append(groups[key], row)
+	}
+
+	columns := e.buildColumnNames(s.Columns, colDefs)
+	var outRows [][]interface{}
+
+	for _, key := range keyOrder {
+		groupRows := groups[key]
+
+		// Evaluate output row for this group
+		var outRow []interface{}
+		for _, col := range s.Columns {
+			v := e.evalAggregateExpr(col.Expr, groupRows)
+			outRow = append(outRow, v)
+		}
+
+		// Apply HAVING filter
+		if s.Having != nil {
+			match, err := e.evalHaving(s.Having, groupRows)
+			if err != nil || !match {
+				continue
+			}
+		}
+
+		outRows = append(outRows, outRow)
+	}
+
+	if len(outRows) == 0 {
+		return &Result{Columns: columns, Rows: [][]interface{}{}}
+	}
+	return &Result{Columns: columns, Rows: outRows}
+}
+
+// computeGroupByKey serializes the GROUP BY expression values for a row into a
+// string key used to partition rows into groups.
+func (e *Engine) computeGroupByKey(groupBy []sql.Expr, row map[string]interface{}) string {
+	parts := make([]string, len(groupBy))
+	for i, expr := range groupBy {
+		v, err := e.evalExpr(expr, row)
+		if err != nil || v == nil {
+			parts[i] = "\x00"
+		} else {
+			parts[i] = fmt.Sprintf("%v", v)
+		}
+	}
+	return strings.Join(parts, "\x00")
+}
+
+// evalHaving evaluates a HAVING expression by treating aggregate function
+// calls as group-aware (evaluating over all rows in the group).
+func (e *Engine) evalHaving(expr sql.Expr, groupRows []map[string]interface{}) (bool, error) {
+	v, err := e.evalHavingExpr(expr, groupRows)
+	if err != nil {
+		return false, err
+	}
+	return toBool(v), nil
+}
+
+// evalHavingExpr recursively evaluates an expression, handling aggregate
+// functions across all groupRows.
+func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{}) (interface{}, error) {
+	if expr == nil {
+		return nil, nil
+	}
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		fn, ok := e.funcs.Find(v.Name)
+		if ok && fn.Type == function.TypeAggregate {
+			if v.Distinct {
+				return e.evalDistinctAggregate(v, groupRows), nil
+			}
+			return e.evalAggFuncCall(v, groupRows), nil
+		}
+		if len(groupRows) > 0 {
+			return e.evalFuncCall(v, groupRows[0])
+		}
+		return nil, nil
+	case *sql.BinaryOp:
+		left, err := e.evalHavingExpr(v.Left, groupRows)
+		if err != nil {
+			return nil, err
+		}
+		right, err := e.evalHavingExpr(v.Right, groupRows)
+		if err != nil {
+			return nil, err
+		}
+		// NULL propagation for non-AND/OR ops
+		if v.Operator != "AND" && v.Operator != "OR" {
+			if left == nil || right == nil {
+				return nil, nil
+			}
+		}
+		return evalBinaryOpValues(v.Operator, left, right)
+	case *sql.UnaryOp:
+		operand, err := e.evalHavingExpr(v.Operand, groupRows)
+		if err != nil {
+			return nil, err
+		}
+		switch v.Operator {
+		case "NOT":
+			if operand == nil {
+				return nil, nil
+			}
+			return !toBool(operand), nil
+		case "-":
+			return negateValue(operand)
+		default:
+			return nil, nil
+		}
+	case *sql.IsNull:
+		operand, err := e.evalHavingExpr(v.Operand, groupRows)
+		if err != nil {
+			return nil, err
+		}
+		return operand == nil, nil
+	case *sql.IsNotNull:
+		operand, err := e.evalHavingExpr(v.Operand, groupRows)
+		if err != nil {
+			return nil, err
+		}
+		return operand != nil, nil
+	default:
+		if len(groupRows) > 0 {
+			return e.evalExpr(expr, groupRows[0])
+		}
+		return nil, nil
+	}
+}
+
 func (e *Engine) evalAggregateExpr(expr sql.Expr, rowMaps []map[string]interface{}) interface{} {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
+		if v.Distinct {
+			return e.evalDistinctAggregate(v, rowMaps)
+		}
 		return e.evalAggFuncCall(v, rowMaps)
 	default:
 		if len(rowMaps) > 0 {
@@ -962,6 +1588,7 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface
 		return nil
 	}
 	agg := fn.AggregateFn()
+
 	for _, row := range rowMaps {
 		args := make([]interface{}, len(v.Args))
 		for i, arg := range v.Args {
@@ -978,43 +1605,93 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface
 	return result
 }
 
+// evalDistinctAggregate evaluates an aggregate function with DISTINCT,
+// deduplicating argument values before passing them to the aggregator.
+func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []map[string]interface{}) interface{} {
+	fn, ok := e.funcs.Find(v.Name)
+	if !ok || fn.Type != function.TypeAggregate {
+		return nil
+	}
+	agg := fn.AggregateFn()
+	seen := make(map[string]bool)
+
+	for _, row := range rowMaps {
+		args := make([]interface{}, len(v.Args))
+		for i, arg := range v.Args {
+			val, err := e.evalExpr(arg, row)
+			if err != nil {
+				args[i] = nil
+			} else {
+				args[i] = val
+			}
+		}
+		// Build a key for deduplication
+		var key string
+		for _, a := range args {
+			if a == nil {
+				key += "\x00"
+			} else {
+				key += fmt.Sprintf("%v", a) + "\x00"
+			}
+		}
+		if !seen[key] {
+			seen[key] = true
+			agg.Step(args)
+		}
+	}
+	result, _ := agg.Final()
+	return result
+}
+
 func applyLimitOffset(rows [][]interface{}, limit, offset sql.Expr) [][]interface{} {
 	if limit == nil {
 		return rows
 	}
-	l, _ := sql.EvalNumber(limit)
+	l, ok := sql.EvalNumber(limit)
+	if !ok || l < 0 {
+		// Can't evaluate or negative limit → no upper bound
+		l = int64(len(rows))
+	}
 	o := int64(0)
 	if offset != nil {
 		o, _ = sql.EvalNumber(offset)
 	}
+	if o < 0 {
+		o = 0
+	}
 	if o > int64(len(rows)) {
-		return nil
+		return [][]interface{}{}
+	}
+	if l == 0 {
+		return [][]interface{}{}
 	}
 	end := o + l
 	if end > int64(len(rows)) {
 		end = int64(len(rows))
 	}
-	if o < 0 {
-		o = 0
-	}
 	return rows[o:end]
 }
 
-// distinctRows removes duplicate rows from a result set.
-func (e *Engine) distinctRows(rows [][]interface{}) [][]interface{} {
+// distinctRows removes duplicate rows from a result set,
+// keeping the corresponding rowMaps in sync.
+func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []map[string]interface{}) ([][]interface{}, []map[string]interface{}) {
 	if len(rows) == 0 {
-		return rows
+		return rows, rowMaps
 	}
 	seen := make(map[string]bool)
-	var result [][]interface{}
-	for _, row := range rows {
-		key := fmt.Sprintf("%v", row)
+	var newRows [][]interface{}
+	var newMaps []map[string]interface{}
+	for i, row := range rows {
+		key := rowKey(row)
 		if !seen[key] {
 			seen[key] = true
-			result = append(result, row)
+			newRows = append(newRows, row)
+			if i < len(rowMaps) {
+				newMaps = append(newMaps, rowMaps[i])
+			}
 		}
 	}
-	return result
+	return newRows, newMaps
 }
 
 // scanTableRows iterates over all cells, applies WHERE, builds output rows.
@@ -1128,36 +1805,46 @@ func copyRowMap(row map[string]interface{}) map[string]interface{} {
 
 // sortRowsWithMaps sorts result rows using the original row maps.
 func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, rowMaps []map[string]interface{}) {
-	n := len(result.Rows)
+	n := len(rowMaps)
 	if n <= 1 {
 		return
 	}
-	for i := 0; i < n-1; i++ {
-		for j := 0; j < n-i-1; j++ {
-			if e.compareRows(orderBy, rowMaps, j, j+1) {
-				result.Rows[j], result.Rows[j+1] = result.Rows[j+1], result.Rows[j]
-				rowMaps[j], rowMaps[j+1] = rowMaps[j+1], rowMaps[j]
-			}
-		}
+	// Sort indices, then reorder both slices in-place
+	indices := make([]int, n)
+	for i := range indices {
+		indices[i] = i
 	}
+	sort.SliceStable(indices, func(i, j int) bool {
+		return e.lessRows(orderBy, rowMaps, indices[i], indices[j])
+	})
+	newRows := make([][]interface{}, n)
+	newMaps := make([]map[string]interface{}, n)
+	for i, idx := range indices {
+		newRows[i] = result.Rows[idx]
+		newMaps[i] = rowMaps[idx]
+	}
+	result.Rows = newRows
+	copy(rowMaps, newMaps)
 }
 
-func (e *Engine) compareRows(orderBy []sql.OrderByTerm, rowMaps []map[string]interface{}, a, b int) bool {
+// lessRows returns true if row i should come before row j according to ORDER BY.
+func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []map[string]interface{}, i, j int) bool {
 	for _, ob := range orderBy {
-		left, _ := e.evalExpr(ob.Expr, rowMaps[a])
-		right, _ := e.evalExpr(ob.Expr, rowMaps[b])
+		left, _ := e.evalExpr(ob.Expr, rowMaps[i])
+		right, _ := e.evalExpr(ob.Expr, rowMaps[j])
 		cmp := util.CompareValues(left, right)
 		if ob.Desc {
 			cmp = -cmp
 		}
-		if cmp > 0 {
-			return true // swap needed
-		} else if cmp < 0 {
-			return false // no swap
+		if cmp < 0 {
+			return true
+		} else if cmp > 0 {
+			return false
 		}
 	}
 	return false
 }
+
 
 // --- UPDATE ---
 
@@ -1568,13 +2255,15 @@ func evalColumnRef(v *sql.ColumnRef, row map[string]interface{}) (interface{}, e
 	if v.Name == "*" {
 		return "*", nil
 	}
-	if val, ok := row[v.Name]; ok {
-		return val, nil
-	}
+	// Qualified column reference: check qualified name first
 	if v.Table != "" {
 		if val, ok := row[v.Table+"."+v.Name]; ok {
 			return val, nil
 		}
+	}
+	// Unqualified: check short name
+	if val, ok := row[v.Name]; ok {
+		return val, nil
 	}
 	return nil, nil
 }
@@ -1587,6 +2276,16 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row map[string]interface{}) (inte
 	right, err := e.evalExpr(v.Right, row)
 	if err != nil {
 		return nil, err
+	}
+	// Most operators return NULL when either operand is NULL.
+	// AND/OR need Kleene logic (handled in evalArithmeticOp).
+	if v.Operator != "AND" && v.Operator != "OR" {
+		if left == nil || right == nil {
+			return nil, nil
+		}
+	}
+	if v.Operator == "LIKE" && v.Escape != "" {
+		return likeValuesWithEscape(left, right, v.Escape), nil
 	}
 	return evalBinaryOpValues(v.Operator, left, right)
 }
@@ -1607,30 +2306,111 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 		return util.CompareValues(left, right) >= 0, nil
 	case "LIKE":
 		return likeValues(left, right), nil
+	case "GLOB":
+		return globValues(left, right), nil
+	case "REGEXP":
+		return regexpValues(left, right), nil
+	case "NOT LIKE":
+		return !likeValues(left, right), nil
+	case "NOT GLOB":
+		return !globValues(left, right), nil
+	case "NOT REGEXP":
+		return !regexpValues(left, right), nil
 	default:
 		return evalArithmeticOp(op, left, right)
 	}
 }
 
+func globValues(str, pattern interface{}) bool {
+	s := fmt.Sprintf("%v", str)
+	p := fmt.Sprintf("%v", pattern)
+	return function.GlobMatch(s, p)
+}
+
+func regexpValues(str, pattern interface{}) bool {
+	s := fmt.Sprintf("%v", str)
+	p := fmt.Sprintf("%v", pattern)
+	re, err := regexp.Compile(p)
+	if err != nil {
+		return false
+	}
+	return re.MatchString(s)
+}
+
 func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 	switch op {
 	case "+":
+		if left == nil || right == nil { return nil, nil }
 		return addValues(left, right)
 	case "-":
+		if left == nil || right == nil { return nil, nil }
 		return subValues(left, right)
 	case "*":
+		if left == nil || right == nil { return nil, nil }
 		return mulValues(left, right)
 	case "/":
+		if left == nil || right == nil { return nil, nil }
 		return divValues(left, right)
 	case "||":
+		if left == nil || right == nil { return nil, nil }
 		return concatValues(left, right)
 	case "AND":
-		return toBool(left) && toBool(right), nil
+		return kleeneAnd(left, right), nil
 	case "OR":
-		return toBool(left) || toBool(right), nil
+		return kleeneOr(left, right), nil
 	default:
 		return nil, fmt.Errorf("unknown operator: %s", op)
 	}
+}
+
+// kleeneAnd implements Kleene AND logic:
+//
+//	true  AND true  → true
+//	false AND any   → false
+//	any   AND false → false
+//	true  AND NULL  → NULL
+//	NULL  AND true  → NULL
+//	NULL  AND NULL  → NULL
+func kleeneAnd(left, right interface{}) interface{} {
+	if isFalse(left) || isFalse(right) {
+		return false
+	}
+	if left == nil || right == nil {
+		return nil
+	}
+	return true
+}
+
+// kleeneOr implements Kleene OR logic:
+//
+//	true  OR any   → true
+//	any   OR true  → true
+//	false OR NULL  → NULL
+//	NULL  OR false → NULL
+//	false OR false → false
+//	NULL  OR NULL  → NULL
+func kleeneOr(left, right interface{}) interface{} {
+	if isTrue(left) || isTrue(right) {
+		return true
+	}
+	if left == nil || right == nil {
+		return nil
+	}
+	return false
+}
+
+func isFalse(v interface{}) bool {
+	if v == nil {
+		return false
+	}
+	return !toBool(v)
+}
+
+func isTrue(v interface{}) bool {
+	if v == nil {
+		return false
+	}
+	return toBool(v)
 }
 
 func (e *Engine) evalUnaryOp(v *sql.UnaryOp, row map[string]interface{}) (interface{}, error) {
@@ -1642,6 +2422,9 @@ func (e *Engine) evalUnaryOp(v *sql.UnaryOp, row map[string]interface{}) (interf
 	case "-":
 		return negateValue(operand)
 	case "NOT":
+		if operand == nil {
+			return nil, nil
+		}
 		return !toBool(operand), nil
 	default:
 		return nil, nil
@@ -1669,6 +2452,9 @@ func (e *Engine) evalBetween(v *sql.Between, row map[string]interface{}) (interf
 	if err != nil {
 		return nil, err
 	}
+	if operand == nil {
+		return nil, nil
+	}
 	low, err := e.evalExpr(v.Low, row)
 	if err != nil {
 		return nil, err
@@ -1688,6 +2474,9 @@ func (e *Engine) evalInList(v *sql.InList, row map[string]interface{}) (interfac
 	operand, err := e.evalExpr(v.Operand, row)
 	if err != nil {
 		return nil, err
+	}
+	if operand == nil {
+		return nil, nil
 	}
 	found := false
 	for _, item := range v.List {
@@ -1821,6 +2610,9 @@ func subValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
+		if isInt(a) && isInt(b) {
+			return int64(af) - int64(bf), nil
+		}
 		return af - bf, nil
 	}
 	return nil, fmt.Errorf("cannot subtract non-numeric values")
@@ -1830,6 +2622,9 @@ func mulValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
+		if isInt(a) && isInt(b) {
+			return int64(af) * int64(bf), nil
+		}
 		return af * bf, nil
 	}
 	return nil, fmt.Errorf("cannot multiply non-numeric values")
@@ -1842,12 +2637,18 @@ func divValues(a, b interface{}) (interface{}, error) {
 		if bf == 0 {
 			return nil, nil
 		}
+		if isInt(a) && isInt(b) {
+			return int64(af) / int64(bf), nil
+		}
 		return af / bf, nil
 	}
 	return nil, fmt.Errorf("cannot divide non-numeric values")
 }
 
 func concatValues(a, b interface{}) (interface{}, error) {
+	if a == nil || b == nil {
+		return nil, nil
+	}
 	return fmt.Sprintf("%v%v", a, b), nil
 }
 
@@ -1868,16 +2669,41 @@ func likeValues(str, pattern interface{}) bool {
 	return likeMatch(s, p)
 }
 
-func likeMatch(s, pattern string) bool {
-	return likeMatchRecursive(s, pattern, 0, 0)
+// likeValuesWithEscape performs LIKE matching with an escape character.
+func likeValuesWithEscape(str, pattern interface{}, escape string) bool {
+	s := fmt.Sprintf("%v", str)
+	p := fmt.Sprintf("%v", pattern)
+	return likeMatchEscaped(s, p, escape)
 }
 
-func likeMatchRecursive(s, pattern string, idx, patIdx int) bool {
+func likeMatch(s, pattern string) bool {
+	return likeMatchRecursiveEscaped(s, pattern, 0, 0, 0)
+}
+
+func likeMatchEscaped(s, pattern, escape string) bool {
+	if escape == "" {
+		return likeMatch(s, pattern)
+	}
+	// Process the pattern, treating escape char + next char as literal
+	return likeMatchRecursiveEscaped(s, pattern, 0, 0, escape[0])
+}
+
+func likeMatchRecursiveEscaped(s, pattern string, idx, patIdx int, escape byte) bool {
 	for patIdx < len(pattern) {
 		c := pattern[patIdx]
+		if c == escape && patIdx+1 < len(pattern) {
+			// Escape char followed by another char: treat the next char as literal
+			nextChar := pattern[patIdx+1]
+			if idx >= len(s) || !strings.EqualFold(string(s[idx]), string(nextChar)) {
+				return false
+			}
+			idx++
+			patIdx += 2
+			continue
+		}
 		switch c {
 		case '%':
-			return likeMatchPercent(s, pattern, idx, patIdx)
+			return likeMatchPercentEscaped(s, pattern, idx, patIdx, escape)
 		case '_':
 			if idx >= len(s) {
 				return false
@@ -1895,13 +2721,13 @@ func likeMatchRecursive(s, pattern string, idx, patIdx int) bool {
 	return idx >= len(s)
 }
 
-func likeMatchPercent(s, pattern string, idx, patIdx int) bool {
+func likeMatchPercentEscaped(s, pattern string, idx, patIdx int, escape byte) bool {
 	patIdx++
 	if patIdx >= len(pattern) {
 		return true
 	}
 	for idx < len(s) {
-		if likeMatchRecursive(s, pattern, idx, patIdx) {
+		if likeMatchRecursiveEscaped(s, pattern, idx, patIdx, escape) {
 			return true
 		}
 		idx++

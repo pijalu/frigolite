@@ -183,11 +183,19 @@ func (p *Parser) parseSelect() *SelectStmt {
 	p.parseSelectOrderBy(s)
 	p.parseSelectLimit(s)
 
-	// UNION
+	// UNION / INTERSECT / EXCEPT
 	if p.cur.Type == TokenKeyword && (p.cur.Value == "UNION" || p.cur.Value == "INTERSECT" || p.cur.Value == "EXCEPT") {
-		s.UnionAll = p.cur.Value == "UNION" && p.peekType(TokenKeyword, "ALL")
-		if s.UnionAll {
-			p.next() // skip ALL
+		switch p.cur.Value {
+		case "UNION":
+			s.SetOp = SetUnion
+			s.UnionAll = p.peekType(TokenKeyword, "ALL")
+			if s.UnionAll {
+				p.next() // skip ALL
+			}
+		case "INTERSECT":
+			s.SetOp = SetIntersect
+		case "EXCEPT":
+			s.SetOp = SetExcept
 		}
 		p.next() // skip UNION/INTERSECT/EXCEPT
 		s.Union = p.parseSelect()
@@ -330,6 +338,30 @@ func (p *Parser) parseSelectColumns() []SelectColumn {
 
 func (p *Parser) parseTableRef() TableRef {
 	ref := TableRef{}
+
+	// Subquery in FROM clause: (SELECT ...) AS alias
+	if p.cur.Type == TokenLParen {
+		p.next()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "SELECT" {
+			ref.Subquery = p.parseSelect()
+			if p.cur.Type == TokenRParen {
+				p.next()
+			}
+			// Optional alias
+			if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
+				p.next()
+				if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+					ref.As = p.cur.Value
+					p.next()
+				}
+			}
+			return ref
+		}
+		// Not a subquery, rewind? For now, return empty ref
+		return ref
+	}
+
+	// Regular table name
 	if p.cur.Type == TokenIdentifier {
 		ref.Name = p.cur.Value
 		p.next()
@@ -340,6 +372,9 @@ func (p *Parser) parseTableRef() TableRef {
 	if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
 		p.next()
 		if p.cur.Type == TokenIdentifier {
+			ref.As = p.cur.Value
+			p.next()
+		} else if p.cur.Type == TokenKeyword {
 			ref.As = p.cur.Value
 			p.next()
 		}
@@ -453,14 +488,16 @@ func (p *Parser) parseInsertSource(s *InsertStmt) {
 		p.expectKeyword("VALUES")
 	} else {
 		p.expectKeyword("VALUES")
+		// First tuple
 		p.expect(TokenLParen)
-		s.Values = p.parseExprList()
+		s.Values = [][]Expr{p.parseExprList()}
 		p.expect(TokenRParen)
+		// Additional tuples
 		for p.cur.Type == TokenComma {
 			p.next()
 			if p.cur.Type == TokenLParen {
 				p.next()
-				p.parseExprList()
+				s.Values = append(s.Values, p.parseExprList())
 				p.expect(TokenRParen)
 			}
 		}
@@ -913,7 +950,7 @@ func (p *Parser) parseCheckConstraint(col *ColumnDef) {
 	p.next() // skip CHECK
 	if p.cur.Type == TokenLParen {
 		p.next()
-		p.parseExpr() // consume the check expression
+		col.Check = p.parseExpr() // store the check expression
 		p.expect(TokenRParen)
 	}
 }
@@ -1038,7 +1075,7 @@ func (p *Parser) parseDropTrigger() Stmt {
 
 func (p *Parser) parseDropIndex() Stmt {
 	p.next()
-	s := &DropTableStmt{Name: "index"}
+	s := &DropIndexStmt{}
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
 		s.Name = p.cur.Value
 		p.next()
@@ -1254,6 +1291,10 @@ func (p *Parser) tryCompareKeywordOp(left Expr) Expr {
 		return p.parseBetweenOp(left)
 	case "LIKE":
 		return p.parseLikeOp(left)
+	case "GLOB":
+		return p.parseGlobOp(left)
+	case "REGEXP":
+		return p.parseRegexpOp(left)
 	case "NOTNULL":
 		p.next()
 		return &IsNotNull{Operand: left}
@@ -1281,6 +1322,14 @@ func (p *Parser) tryNotOp(left Expr) Expr {
 		p.next()
 		right := p.parseAddExpr()
 		return &BinaryOp{Left: left, Right: right, Operator: "NOT LIKE"}
+	case p.cur.Type == TokenKeyword && p.cur.Value == "GLOB":
+		p.next()
+		right := p.parseAddExpr()
+		return &BinaryOp{Left: left, Right: right, Operator: "NOT GLOB"}
+	case p.cur.Type == TokenKeyword && p.cur.Value == "REGEXP":
+		p.next()
+		right := p.parseAddExpr()
+		return &BinaryOp{Left: left, Right: right, Operator: "NOT REGEXP"}
 	default:
 		p.cur = saved
 		return nil
@@ -1358,7 +1407,28 @@ func (p *Parser) parseBetweenOp(left Expr) Expr {
 func (p *Parser) parseLikeOp(left Expr) Expr {
 	p.next()
 	right := p.parseAddExpr()
-	return &BinaryOp{Left: left, Right: right, Operator: "LIKE"}
+	// Optional ESCAPE clause
+	escape := ""
+	if p.cur.Type == TokenKeyword && p.cur.Value == "ESCAPE" {
+		p.next()
+		if p.cur.Type == TokenString {
+			escape = p.cur.Value
+			p.next()
+		}
+	}
+	return &BinaryOp{Left: left, Right: right, Operator: "LIKE", Escape: escape}
+}
+
+func (p *Parser) parseGlobOp(left Expr) Expr {
+	p.next()
+	right := p.parseAddExpr()
+	return &BinaryOp{Left: left, Right: right, Operator: "GLOB"}
+}
+
+func (p *Parser) parseRegexpOp(left Expr) Expr {
+	p.next()
+	right := p.parseAddExpr()
+	return &BinaryOp{Left: left, Right: right, Operator: "REGEXP"}
 }
 
 func (p *Parser) parseAddExpr() Expr {
@@ -1432,16 +1502,22 @@ func (p *Parser) parsePrimaryExpr() Expr {
 		// Function call
 		if p.cur.Type == TokenLParen {
 			p.next()
+			// Check for DISTINCT keyword inside function call
+			distinct := false
+			if p.cur.Type == TokenKeyword && p.cur.Value == "DISTINCT" {
+				distinct = true
+				p.next()
+			}
 			// Handle COUNT(*) - * as function argument
 			if p.cur.Type == TokenStar {
 				args := []Expr{&ColumnRef{Name: "*"}}
 				p.next()
 				p.expect(TokenRParen)
-				return &FuncCall{Name: name, Args: args}
+				return &FuncCall{Name: name, Args: args, Distinct: distinct}
 			}
 			args := p.parseExprList()
 			p.expect(TokenRParen)
-			return &FuncCall{Name: name, Args: args}
+			return &FuncCall{Name: name, Args: args, Distinct: distinct}
 		}
 
 		// Qualified name (table.column)
@@ -1620,6 +1696,15 @@ func EvalNumber(e Expr) (int64, bool) {
 			return int64(f), true
 		}
 		return n, true
+	case *UnaryOp:
+		if v.Operator == "-" {
+			inner, ok := EvalNumber(v.Operand)
+			if !ok {
+				return 0, false
+			}
+			return -inner, true
+		}
+		return 0, false
 	default:
 		return 0, false
 	}
@@ -1634,5 +1719,61 @@ func EvalString(e Expr) (string, bool) {
 		return v.Name, true
 	default:
 		return "", false
+	}
+}
+
+// ExprString converts an Expr back to its SQL text representation.
+// Used for serializing CHECK constraints and other expressions.
+func ExprString(e Expr) string {
+	if e == nil {
+		return ""
+	}
+	switch v := e.(type) {
+	case *NumericLit:
+		return v.Value
+	case *StringLit:
+		return "'" + strings.ReplaceAll(v.Value, "'", "''") + "'"
+	case *NullLit:
+		return "NULL"
+	case *ColumnRef:
+		if v.Table != "" {
+			return v.Table + "." + v.Name
+		}
+		return v.Name
+	case *BinaryOp:
+		return ExprString(v.Left) + " " + v.Operator + " " + ExprString(v.Right)
+	case *UnaryOp:
+		return v.Operator + " " + ExprString(v.Operand)
+	case *IsNull:
+		return ExprString(v.Operand) + " IS NULL"
+	case *IsNotNull:
+		return ExprString(v.Operand) + " IS NOT NULL"
+	case *Between:
+		s := ExprString(v.Operand) + " BETWEEN " + ExprString(v.Low) + " AND " + ExprString(v.High)
+		if v.Negated {
+			s = "NOT (" + s + ")"
+		}
+		return s
+	case *InList:
+		var items []string
+		for _, item := range v.List {
+			items = append(items, ExprString(item))
+		}
+		s := ExprString(v.Operand)
+		if v.Negated {
+			s += " NOT IN ("
+		} else {
+			s += " IN ("
+		}
+		s += strings.Join(items, ", ") + ")"
+		return s
+	case *FuncCall:
+		var args []string
+		for _, arg := range v.Args {
+			args = append(args, ExprString(arg))
+		}
+		return v.Name + "(" + strings.Join(args, ", ") + ")"
+	default:
+		return "?"
 	}
 }

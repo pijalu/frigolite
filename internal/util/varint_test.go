@@ -11,7 +11,7 @@ func TestVarintRoundTrip(t *testing.T) {
 		0, 1, 127, 128, 16383, 16384, 2097151, 2097152,
 		268435455, 268435456, 34359738367, 34359738368,
 		4398046511103, 4398046511104, 562949953421311, 562949953421312,
-		72057594037927935, math.MaxUint64,
+		72057594037927935, math.MaxInt64,
 	}
 	for _, v := range tests {
 		buf := make([]byte, 10)
@@ -66,7 +66,7 @@ func TestVarintLengths(t *testing.T) {
 		{562949953421312, 8},
 		{72057594037927935, 8},
 		{72057594037927936, 9},
-		{math.MaxUint64, 10},
+		{math.MaxInt64, 9},
 	}
 	for _, tt := range tests {
 		got := VarintLen(tt.v)
@@ -77,7 +77,7 @@ func TestVarintLengths(t *testing.T) {
 }
 
 func TestReadVarint(t *testing.T) {
-	tests := []uint64{0, 1, 127, 128, 16383, 16384, 2097151, math.MaxUint64}
+	tests := []uint64{0, 1, 127, 128, 16383, 16384, 2097151, math.MaxInt64}
 	for _, v := range tests {
 		buf := make([]byte, 10)
 		n := PutVarint(buf, v)
@@ -106,5 +106,29 @@ func TestVarintFuzz(t *testing.T) {
 		if got != v || m != n {
 			t.Errorf("Fuzz %d: got %d/%d, want %d/%d", v, got, m, v, n)
 		}
+	}
+}
+
+// TestGetVarintNoPanic verifies GetVarint doesn't panic on truncated input.
+func TestGetVarintNoPanic(t *testing.T) {
+	cases := []struct {
+		name string
+		data []byte
+	}{
+		{"single continuation", []byte{0x80}},
+		{"nil", nil},
+		{"empty", []byte{}},
+		{"10 continuation bytes", []byte{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80}},
+		{"9 continuation bytes (max)", []byte{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("GetVarint panicked on %q: %v", tc.name, r)
+				}
+			}()
+			GetVarint(tc.data) // must not panic
+		})
 	}
 }

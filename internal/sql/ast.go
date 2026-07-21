@@ -22,9 +22,20 @@ type SelectStmt struct {
 	OrderBy  []OrderByTerm
 	Limit    Expr
 	Offset   Expr
-	Union    *SelectStmt    // UNION (optional)
+	Union    *SelectStmt    // combined query (optional)
+	SetOp    SetOp          // UNION / INTERSECT / EXCEPT
 	UnionAll bool           // UNION ALL vs UNION
 }
+
+// SetOp represents the type of set operation.
+type SetOp int
+
+const (
+	SetNone        SetOp = iota
+	SetUnion              // UNION
+	SetIntersect          // INTERSECT
+	SetExcept             // EXCEPT
+)
 
 func (s *SelectStmt) stmt() {}
 
@@ -43,8 +54,9 @@ type SelectColumn struct {
 
 // TableRef represents a table reference (possibly with alias).
 type TableRef struct {
-	Name string
-	As   string
+	Name     string
+	As       string
+	Subquery *SelectStmt // subquery in FROM clause (optional)
 }
 
 // OrderByTerm represents an ORDER BY term.
@@ -57,7 +69,7 @@ type OrderByTerm struct {
 type InsertStmt struct {
 	Table     string
 	Columns   []string
-	Values    []Expr
+	Values    [][]Expr    // list of value tuples; empty means DEFAULT VALUES
 	Select    *SelectStmt // for INSERT ... SELECT
 	OnConflict *OnConflictClause
 }
@@ -124,6 +136,7 @@ type ColumnDef struct {
 	Collate    string
 	References string
 	Default    Expr
+	Check      Expr
 }
 
 // CreateIndexStmt represents a CREATE INDEX statement.
@@ -148,6 +161,13 @@ type DropTableStmt struct {
 }
 
 func (s *DropTableStmt) stmt() {}
+
+// DropIndexStmt represents a DROP INDEX statement.
+type DropIndexStmt struct {
+	Name string
+}
+
+func (s *DropIndexStmt) stmt() {}
 
 // CreateViewStmt represents a CREATE VIEW statement.
 type CreateViewStmt struct {
@@ -277,6 +297,7 @@ type BinaryOp struct {
 	Left     Expr
 	Right    Expr
 	Operator string // =, <, >, <=, >=, <>, +, -, *, /, AND, OR, LIKE, etc.
+	Escape   string // escape character for LIKE (optional)
 }
 
 func (e *BinaryOp) expr() {}
@@ -318,8 +339,9 @@ func (e *NullLit) expr() {}
 
 // FuncCall represents a function call.
 type FuncCall struct {
-	Name string
-	Args []Expr
+	Name     string
+	Args     []Expr
+	Distinct bool // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
 }
 
 func (e *FuncCall) expr() {}

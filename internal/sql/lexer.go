@@ -1,5 +1,7 @@
 package sql
 
+import "strings"
+
 // TokenType represents the type of a SQL token.
 type TokenType int
 
@@ -344,8 +346,9 @@ func (t *Tokenizer) readIdent() Token {
 		t.pos++
 	}
 	word := string(buf)
-	if _, ok := keywords[word]; ok {
-		t.last = Token{Type: TokenKeyword, Value: word, Pos: pos}
+	upper := strings.ToUpper(word)
+	if _, ok := keywords[upper]; ok {
+		t.last = Token{Type: TokenKeyword, Value: upper, Pos: pos}
 	} else {
 		t.last = Token{Type: TokenIdentifier, Value: word, Pos: pos}
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"math"
+	"math/rand"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/util"
@@ -356,7 +357,7 @@ func fnROUND(args []interface{}) (interface{}, error) {
 }
 
 func fnRANDOM(args []interface{}) (interface{}, error) {
-	return int64(math.Float64bits(math.Abs(math.Sin(float64(math.Float64bits(math.Sin(float64(math.Float64bits(math.Sin(float64(42))))))))))), nil
+	return int64(rand.Int63()), nil
 }
 
 func fnTYPEOF(args []interface{}) (interface{}, error) {
@@ -454,9 +455,10 @@ func fnGLOB(args []interface{}) (interface{}, error) {
 	if args[0] == nil || args[1] == nil {
 		return nil, nil
 	}
-	s := toString(args[0])
-	pattern := toString(args[1])
-	return globMatch(s, pattern), nil
+	// GLOB(pattern, string) — pattern is first arg, string is second arg
+	pattern := toString(args[0])
+	s := toString(args[1])
+	return GlobMatch(s, pattern), nil
 }
 
 // --- Helpers ---
@@ -520,8 +522,8 @@ func less(a, b interface{}) bool {
 	return false
 }
 
-// globMatch implements SQLite GLOB matching (* and ? wildcards).
-func globMatch(s, pattern string) bool {
+// GlobMatch implements SQLite GLOB matching (* and ? wildcards).
+func GlobMatch(s, pattern string) bool {
 	px, sx := 0, 0
 	nextPx, nextSx := 0, 0
 	for px < len(pattern) || sx < len(s) {

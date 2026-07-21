@@ -30,7 +30,6 @@ var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/schema":         5, // schema
 	"github.com/pijalu/frigolite/internal/function":       5, // functions
 	"github.com/pijalu/frigolite/internal/vtab":           5, // virtual tables
-	"github.com/pijalu/frigolite/internal/transaction":    5, // transaction mgmt (WIP)
 	"github.com/pijalu/frigolite/internal/exec":           6, // execution engine
 }
 

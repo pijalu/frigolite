@@ -52,11 +52,17 @@ func putVarintSlow(buf []byte, v uint64) int {
 }
 
 // GetVarint decodes a SQLite varint from buf, returning the value and the
-// number of bytes consumed.
+// number of bytes consumed. buf must have at least 1 byte; otherwise returns
+// (0, 1). SQLite varints are at most 9 bytes; longer sequences terminate at
+// 9 bytes without error (the caller must validate against the expected field
+// size).
 func GetVarint(buf []byte) (uint64, int) {
 	var v uint64
 	n := 0
 	for {
+		if n >= len(buf) || n >= 9 {
+			break
+		}
 		v = (v << 7) | uint64(buf[n]&0x7f)
 		n++
 		if buf[n-1]&0x80 == 0 {

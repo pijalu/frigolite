@@ -219,7 +219,7 @@ func TestUpdateWithExpr(t *testing.T) {
 	if len(res.Rows) != 1 {
 		t.Fatalf("expected 1 row, got %d", len(res.Rows))
 	}
-	if res.Rows[0][0] != float64(6) {
+	if res.Rows[0][0] != int64(6) {
 		t.Errorf("expected 6, got %v", res.Rows[0][0])
 	}
 

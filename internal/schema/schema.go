@@ -102,7 +102,8 @@ func (m *Manager) AddEntry(entry *Entry) error {
 	}
 
 	tree := btree.NewBTree(m.pager, 1, true)
-	return tree.InsertCell(cell)
+	err = tree.InsertCell(cell)
+	return err
 }
 
 // GetEntries returns all schema entries of the given type.
@@ -252,8 +253,14 @@ func (m *Manager) nextRowID() int64 {
 	entries, _ := m.GetEntries("")
 	var maxID int64
 	for _, e := range entries {
+		if e.RootPage == 0 {
+			continue // views, triggers, virtual tables have no root page
+		}
 		tree := btree.NewBTree(m.pager, e.RootPage, true)
-		cursor, _ := tree.OpenCursor()
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			continue
+		}
 		for {
 			cell, err := cursor.ReadCell()
 			if err != nil {

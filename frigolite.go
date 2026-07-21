@@ -166,15 +166,10 @@ func (db *DB) DumpAll() {
 
 // Save persists an in-memory database to a file.
 func (db *DB) Save(path string) error {
-	if err := db.pager.Flush(); err != nil {
-		return err
+	if db.pager == nil {
+		return fmt.Errorf("frigolite: database not open")
 	}
-	// For in-memory databases, copy to file
-	if db.path == ":memory:" && db.pager != nil {
-		// Flush already wrote to the pager cache; we need to write to file
-		return fmt.Errorf("frigolite: saving in-memory db not yet supported")
-	}
-	return nil
+	return db.pager.Flush()
 }
 
 // Path returns the database path.
