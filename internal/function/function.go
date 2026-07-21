@@ -9,6 +9,7 @@ import (
 	"math"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -93,6 +94,13 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "NULLIF", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnNULLIF})
 	r.register(&Func{Name: "PRINTF", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnPRINTF})
 	r.register(&Func{Name: "GLOB", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnGLOB})
+
+	// Date/time functions
+	r.register(&Func{Name: "DATE", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnDATE})
+	r.register(&Func{Name: "TIME", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnTIME})
+	r.register(&Func{Name: "DATETIME", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnDATETIME})
+	r.register(&Func{Name: "STRFTIME", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSTRFTIME})
+	r.register(&Func{Name: "JULIANDAY", Type: TypeScalar, MinArgs: 1, MaxArgs: 3, ScalarFn: fnJULIANDAY})
 
 	// Compression functions (using Go stdlib compress/zlib and hash/crc32)
 	r.register(&Func{Name: "COMPRESS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCOMPRESS})
@@ -618,4 +626,80 @@ func toBytes(v interface{}) []byte {
 	default:
 		return []byte(fmt.Sprintf("%v", x))
 	}
+}
+
+// --- Date/Time functions ---
+
+func toTimestamp(args []interface{}) (time.Time, error) {
+	s := toString(args[0])
+	if s == "now" {
+		return time.Now(), nil
+	}
+	formats := []string{
+		"2006-01-02 15:04:05",
+		"2006-01-02 15:04",
+		"2006-01-02",
+		"15:04:05",
+		"15:04",
+	}
+	for _, f := range formats {
+		if t, err := time.Parse(f, s); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unrecognized date/time: %s", s)
+}
+
+func fnDATE(args []interface{}) (interface{}, error) {
+	t, err := toTimestamp(args)
+	if err != nil {
+		return nil, err
+	}
+	return t.Format("2006-01-02"), nil
+}
+
+func fnTIME(args []interface{}) (interface{}, error) {
+	t, err := toTimestamp(args)
+	if err != nil {
+		return nil, err
+	}
+	return t.Format("15:04:05"), nil
+}
+
+func fnDATETIME(args []interface{}) (interface{}, error) {
+	t, err := toTimestamp(args)
+	if err != nil {
+		return nil, err
+	}
+	return t.Format("2006-01-02 15:04:05"), nil
+}
+
+func fnSTRFTIME(args []interface{}) (interface{}, error) {
+	format := toString(args[0])
+	t, err := toTimestamp(args[1:])
+	if err != nil {
+		return nil, err
+	}
+	// Convert SQLite strftime format to Go format
+	format = strings.ReplaceAll(format, "%Y", "2006")
+	format = strings.ReplaceAll(format, "%m", "01")
+	format = strings.ReplaceAll(format, "%d", "02")
+	format = strings.ReplaceAll(format, "%H", "15")
+	format = strings.ReplaceAll(format, "%M", "04")
+	format = strings.ReplaceAll(format, "%S", "05")
+	format = strings.ReplaceAll(format, "%j", "002")
+	format = strings.ReplaceAll(format, "%W", "")
+	format = strings.ReplaceAll(format, "%w", "")
+	return t.Format(format), nil
+}
+
+func fnJULIANDAY(args []interface{}) (interface{}, error) {
+	t, err := toTimestamp(args)
+	if err != nil {
+		return nil, err
+	}
+	// Julian day calculation
+	unix := t.Unix()
+	julian := float64(unix)/86400.0 + 2440587.5
+	return julian, nil
 }
