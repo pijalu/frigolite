@@ -35,6 +35,19 @@ type Entry struct {
 	TblName   string
 	RootPage  uint32
 	SQL       string
+	Columns   []ColumnDef // cached column definitions (tables only)
+}
+
+// ColumnDef represents a column definition (replicated from sql.ColumnDef
+// to avoid importing the sql package).
+type ColumnDef struct {
+	Name       string
+	Type       string
+	NotNull    bool
+	PrimaryKey bool
+	AutoInc    bool
+	Unique     bool
+	Default    string
 }
 
 // Manager manages the database schema.

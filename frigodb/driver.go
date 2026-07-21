@@ -338,12 +338,12 @@ func (r *frigoliteRows) Next(dest []driver.Value) error {
 	return nil
 }
 
-// interpolateArgs replaces ? and $N placeholders with named values.
+// interpolateArgs replaces ? and $N placeholders with bound values.
+// Uses a state machine to skip ? inside string literals and comments.
 func interpolateArgs(query string, args []driver.NamedValue) (string, error) {
 	if len(args) == 0 {
 		return query, nil
 	}
-	// Map named args by ordinal
 	byOrdinal := make(map[int]driver.Value)
 	for _, a := range args {
 		byOrdinal[a.Ordinal] = a.Value
@@ -353,7 +353,41 @@ func interpolateArgs(query string, args []driver.NamedValue) (string, error) {
 	i := 0
 	argIdx := 1
 	for i < len(query) {
-		if query[i] == '?' {
+		c := query[i]
+		switch {
+		case c == '\'':
+			b.WriteByte(c)
+			i++
+			for i < len(query) {
+				b.WriteByte(query[i])
+				if query[i] == '\'' {
+					if i+1 < len(query) && query[i+1] == '\'' {
+						i++
+						b.WriteByte(query[i])
+					} else {
+						i++
+						break
+					}
+				}
+				i++
+			}
+		case c == '-' && i+1 < len(query) && query[i+1] == '-':
+			for i < len(query) && query[i] != '\n' {
+				b.WriteByte(query[i])
+				i++
+			}
+		case c == '/' && i+1 < len(query) && query[i+1] == '*':
+			b.WriteString("/*")
+			i += 2
+			for i+1 < len(query) && !(query[i] == '*' && query[i+1] == '/') {
+				b.WriteByte(query[i])
+				i++
+			}
+			if i+1 < len(query) {
+				b.WriteString("*/")
+				i += 2
+			}
+		case c == '?':
 			val, ok := byOrdinal[argIdx]
 			if !ok {
 				return "", fmt.Errorf("frigodb: missing argument for placeholder %d", argIdx)
@@ -361,16 +395,18 @@ func interpolateArgs(query string, args []driver.NamedValue) (string, error) {
 			b.WriteString(escapeSQL(val))
 			argIdx++
 			i++
-		} else if n, j, ok := tryParseDollarN(query, i); ok {
-			val, ok := byOrdinal[n]
-			if !ok {
-				return "", fmt.Errorf("frigodb: missing argument for placeholder $%d", n)
+		default:
+			if n, j, ok := tryParseDollarN(query, i); ok {
+				val, ok := byOrdinal[n]
+				if !ok {
+					return "", fmt.Errorf("frigodb: missing argument for placeholder $%d", n)
+				}
+				b.WriteString(escapeSQL(val))
+				i = j
+			} else {
+				b.WriteByte(c)
+				i++
 			}
-			b.WriteString(escapeSQL(val))
-			i = j
-		} else {
-			b.WriteByte(query[i])
-			i++
 		}
 	}
 	return b.String(), nil

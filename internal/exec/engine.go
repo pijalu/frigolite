@@ -34,6 +34,8 @@ type Engine struct {
 	funcs    *function.Registry
 	vtabs    *vtab.Registry
 	lastRowID int64
+	colCache  map[string][]sql.ColumnDef // cached column definitions (tableName -> colDefs)
+	stmtCache map[string][]sql.Stmt      // prepared statement cache (sqlText -> parsed stmts)
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -41,13 +43,29 @@ func (e *Engine) LastInsertRowID() int64 {
 	return e.lastRowID
 }
 
+// Prepare parses and caches a SQL statement.
+func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
+	if cached, ok := e.stmtCache[sqlStr]; ok {
+		return cached, nil
+	}
+	parser := sql.NewParser(sqlStr)
+	stmts := parser.Parse()
+	if parser.Err() != nil {
+		return nil, parser.Err()
+	}
+	e.stmtCache[sqlStr] = stmts
+	return stmts, nil
+}
+
 // NewEngine creates a new execution engine.
 func NewEngine(pg *pager.Pager) *Engine {
 	e := &Engine{
-		pager:  pg,
-		schema: schema.NewManager(pg),
-		funcs:  function.NewRegistry(),
-		vtabs:  vtab.NewRegistry(),
+		pager:     pg,
+		schema:    schema.NewManager(pg),
+		funcs:     function.NewRegistry(),
+		vtabs:     vtab.NewRegistry(),
+		colCache:  make(map[string][]sql.ColumnDef),
+		stmtCache: make(map[string][]sql.Stmt),
 	}
 	e.vtabs.RegisterDefaults()
 	return e
@@ -133,6 +151,9 @@ func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
 	if err := e.schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
+
+	// Cache column definitions
+	e.colCache[s.Name] = s.Columns
 	return &Result{Changes: 0}
 }
 
@@ -227,7 +248,7 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
-	colDefs := e.parseColumnDefs(tableEntry.SQL)
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
@@ -472,7 +493,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
-	colDefs := e.parseColumnDefs(tableEntry.SQL)
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	if s.Select != nil {
 		return e.execInsertSelect(tableEntry, colDefs, s.Select)
@@ -541,6 +562,10 @@ func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, va
 	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
+	}
+	// Track root page changes (after splits)
+	if tree.RootPage() != tableEntry.RootPage {
+		tableEntry.RootPage = tree.RootPage()
 	}
 	// Fire AFTER INSERT triggers
 	if trigResult := e.fireAfterInsertTriggers(tableEntry.Name); trigResult.Error != nil {
@@ -967,7 +992,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		}
 		return e.execSelectView(viewEntry)
 	}
-	colDefs := e.parseColumnDefs(tableEntry.SQL)
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	// Check if this is a virtual table (RootPage = 0)
 	if tableEntry.RootPage == 0 {
@@ -1317,7 +1342,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{},
 		if err != nil {
 			return nil, nil, err
 		}
-		rightDefs = e.parseColumnDefs(tableEntry.SQL)
+		rightDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 		tableName := join.Table.Name
 		if join.Table.As != "" {
 			tableName = join.Table.As
@@ -1926,7 +1951,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
-	colDefs := e.parseColumnDefs(tableEntry.SQL)
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	colIndex := buildColumnIndex(colDefs)
 
@@ -2076,7 +2101,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
-	colDefs := e.parseColumnDefs(tableEntry.SQL)
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	tree := btree.NewBTree(e.pager, tableEntry.RootPage, true)
 
@@ -2640,7 +2665,12 @@ func (e *Engine) findNextRowID(rootPage uint32) int64 {
 	return maxID + 1
 }
 
-func (e *Engine) parseColumnDefs(createSQL string) []sql.ColumnDef {
+func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
+	// Check cache first
+	if cached, ok := e.colCache[tableName]; ok {
+		return cached
+	}
+	// Fall back to re-parsing
 	parser := sql.NewParser(createSQL)
 	stmts := parser.Parse()
 	if len(stmts) == 0 {
@@ -2650,6 +2680,8 @@ func (e *Engine) parseColumnDefs(createSQL string) []sql.ColumnDef {
 	if !ok || ct == nil {
 		return nil
 	}
+	// Cache for future use
+	e.colCache[tableName] = ct.Columns
 	return ct.Columns
 }
 

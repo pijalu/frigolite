@@ -22,10 +22,12 @@ func contentOffset(pageNum uint32) int {
 
 // Cursor provides sequential access to b-tree entries.
 type Cursor struct {
-	tx       *BTree
-	pageNum  uint32
-	cellIdx  int
-	endOfBTree bool
+	tx          *BTree
+	pageNum     uint32
+	cellIdx     int
+	endOfBTree  bool
+	interiorRoot uint32 // root page number if interior, 0 if leaf root
+	childIdx     int    // current child index in the interior root
 }
 
 // BTree represents a single b-tree (table or index).
@@ -63,37 +65,53 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 		return nil, err
 	}
 	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
-		c.pageNum = t.firstLeaf()
+		c.interiorRoot = t.rootPage
+		c.childIdx = -1 // will be incremented to 0 by navigateToNextChild
+		c.navigateToNextChild()
 	}
 	return c, nil
 }
 
-// firstLeaf returns the page number of the first leaf (leftmost child).
-func (t *BTree) firstLeaf() uint32 {
-	pageNum := t.rootPage
-	for {
-		pg, err := t.pager.ReadPage(pageNum)
-		if err != nil {
-			return pageNum
-		}
-		page, err := storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
-		if err != nil {
-			return pageNum
-		}
-		switch page.PageType {
-		case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
-			return pageNum
-		case storage.PageTypeInteriorTable, storage.PageTypeInteriorIndex:
-			if page.CellCount > 0 {
-				cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), 0))
-				pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-			} else {
-				pageNum = page.RightmostPtr
-			}
-		default:
-			return pageNum
-		}
+// navigateToNextChild advances the cursor to the next child of the interior root.
+// Used when the current leaf is exhausted (leaf tree) or for initial positioning.
+func (c *Cursor) navigateToNextChild() {
+	if c.interiorRoot == 0 {
+		c.endOfBTree = true
+		return
 	}
+	c.childIdx++
+
+	pg, err := c.tx.pager.ReadPage(c.interiorRoot)
+	if err != nil {
+		c.endOfBTree = true
+		return
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+	if err != nil {
+		c.endOfBTree = true
+		return
+	}
+
+	if c.childIdx < int(page.CellCount) {
+		// Navigate to cell[c.childIdx].leftChild
+		cellOff := int(storage.CellPointer(pg.Data, coff+4, c.childIdx))
+		c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		c.cellIdx = 0
+		c.endOfBTree = false
+	} else if c.childIdx == int(page.CellCount) {
+		// Navigate to the rightmost pointer (last child)
+		c.pageNum = page.RightmostPtr
+		c.cellIdx = 0
+		c.endOfBTree = false
+	} else {
+		c.endOfBTree = true
+	}
+}
+
+// RootPage returns the current root page number (may change after splits).
+func (t *BTree) RootPage() uint32 {
+	return t.rootPage
 }
 
 // SeekToRowID positions the cursor at the entry with the given rowid (table
@@ -280,16 +298,9 @@ func (c *Cursor) Next() (bool, error) {
 		return true, nil
 	}
 
-	// Reached end of current leaf — follow chain pointer to next leaf.
-	nextPage := binary.BigEndian.Uint32(pg.Data[int(c.tx.pageSize)-4 : int(c.tx.pageSize)])
-	if nextPage != 0 && nextPage != c.pageNum {
-		c.pageNum = nextPage
-		c.cellIdx = 0
-		return true, nil
-	}
-
-	c.endOfBTree = true
-	return false, nil
+	// Reached end of current leaf — move to next child of interior root.
+	c.navigateToNextChild()
+	return !c.endOfBTree, nil
 }
 
 // Prev moves the cursor to the previous entry.
@@ -591,7 +602,7 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 	cellData := t.encodeInteriorCell(leftChild, medianKey)
 	cellStart := int(t.pageSize) - len(cellData)
 	copy(rootPg.Data[cellStart:], cellData)
-	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+storage.CellPointerOffset:], uint16(cellStart))
+	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+cellPtrOffset(rootPg.Data[rootCoff]):], uint16(cellStart))
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+3:rootCoff+5], 1)
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+5:rootCoff+7], uint16(cellStart))
 	binary.BigEndian.PutUint32(rootPg.Data[rootCoff+8:rootCoff+12], rightChild) // rightmostPtr
@@ -600,6 +611,16 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 		return nil, err
 	}
 	return rootPg, nil
+}
+
+// cellPtrOffset returns the cell pointer array offset for a given page type.
+// Interior pages have a 12-byte header (rightmost pointer at bytes 8-11),
+// so cell pointers start at byte 12. Leaf pages have an 8-byte header.
+func cellPtrOffset(pageType byte) int {
+	if pageType == storage.PageTypeInteriorTable || pageType == storage.PageTypeInteriorIndex {
+		return 12
+	}
+	return 8
 }
 
 // encodeInteriorCell creates an interior cell: 4-byte leftChild + rowID varint.
@@ -678,7 +699,7 @@ func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, 
 	lo, hi := 0, int(page.CellCount)-1
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, coff, mid))
+		cellOff := int(storage.CellPointer(pg.Data, coff+4, mid))
 		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
 		if int64(midRowID) < cell.RowID {
 			lo = mid + 1
@@ -687,7 +708,7 @@ func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, 
 		}
 	}
 	if lo < int(page.CellCount) {
-		cellOff := int(storage.CellPointer(pg.Data, coff, lo))
+		cellOff := int(storage.CellPointer(pg.Data, coff+4, lo))
 		return binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 	}
 	return page.RightmostPtr
@@ -697,9 +718,10 @@ func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, 
 func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChild uint32, key uint64, rightChild uint32) error {
 	coff := contentOffset(pg.PageNum)
 	cellData := t.encodeInteriorCell(leftChild, key)
+	ptroff := cellPtrOffset(page.PageType)
 
 	// Compute space
-	cellPtrEnd := coff + storage.CellPointerOffset + int(page.CellCount)*2 + 2
+	cellPtrEnd := coff + ptroff + int(page.CellCount)*2 + 2
 	cellContentEnd := int(page.CellContent)
 	var cellStart int
 	if cellContentEnd == 0 {
@@ -713,7 +735,7 @@ func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChi
 
 	// Insert at the end (keys are monotonically increasing)
 	insertIdx := int(page.CellCount)
-	ptrBase := coff + storage.CellPointerOffset
+	ptrBase := coff + ptroff
 	for i := int(page.CellCount); i > insertIdx; i-- {
 		src := ptrBase + (i-1)*2
 		dst := ptrBase + i*2
