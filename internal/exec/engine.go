@@ -1979,7 +1979,28 @@ func (e *Engine) rowMatchesWhere(where sql.Expr, row map[string]interface{}) boo
 }
 
 func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Result {
-	var changeCount int64
+	if len(changes) == 0 {
+		return &Result{}
+	}
+
+	// Build a set of rowIDs to update
+	type rowIDSet map[int64]bool
+	toUpdate := make(rowIDSet, len(changes))
+	for _, c := range changes {
+		toUpdate[c.rowID] = true
+	}
+
+	tree := btree.NewBTree(e.pager, rootPage, true)
+
+	// Step 1: Delete all existing rows in a single pass
+	_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+		return toUpdate[cell.RowID]
+	})
+	if delErr != nil {
+		return &Result{Error: delErr}
+	}
+
+	// Step 2: Insert all new rows
 	for _, c := range changes {
 		newRecord, err := storage.EncodeRecord(c.values)
 		if err != nil {
@@ -1990,22 +2011,12 @@ func (e *Engine) applyUpdateChanges(rootPage uint32, changes []updateChange) *Re
 			RowID:   c.rowID,
 			Payload: newRecord,
 		}
-		tree := btree.NewBTree(e.pager, rootPage, true)
-
-		// Delete existing cell with same RowID to avoid duplicates
-		_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return cell.RowID == c.rowID
-		})
-		if delErr != nil {
-			return &Result{Error: delErr}
-		}
-
 		if err := tree.InsertCell(newCell); err != nil {
 			return &Result{Error: err}
 		}
-		changeCount++
 	}
-	return &Result{Changes: changeCount}
+
+	return &Result{Changes: int64(len(changes))}
 }
 
 // --- DELETE ---
