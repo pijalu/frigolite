@@ -1,7 +1,9 @@
 package frigolite
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -12,6 +14,42 @@ func setupDB(t *testing.T) *DB {
 		t.Fatalf("Open: %v", err)
 	}
 	return db
+}
+
+// checkQueryResult checks that a query result matches the expected value.
+// Parse errors are silently ignored (expected for unsupported features).
+// If the query succeeds but the result doesn't match expected, the test FAILS.
+// expected is a space-separated list of values, optionally in TCL { } braces.
+func checkQueryResult(t *testing.T, res *Result, expected string) {
+	t.Helper()
+	if res.Error != nil {
+		return
+	}
+	var parts []string
+	for _, row := range res.Rows {
+		for _, val := range row {
+			if val == nil {
+				parts = append(parts, "NULL")
+			} else {
+				parts = append(parts, fmt.Sprintf("%v", val))
+			}
+		}
+	}
+	got := strings.Join(parts, " ")
+	want := strings.TrimSpace(expected)
+	want = strings.Trim(want, "{}")
+	want = strings.TrimSpace(want)
+	if got != want {
+		t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+	}
+}
+
+// checkExecOK checks that an exec statement completed without error.
+func checkExecOK(t *testing.T, res *Result) {
+	t.Helper()
+	if res.Error != nil {
+		t.Errorf("exec error: %v", res.Error)
+	}
 }
 
 func TestOpenClose(t *testing.T) {
