@@ -1749,31 +1749,43 @@ func ExprString(e Expr) string {
 	case *IsNotNull:
 		return ExprString(v.Operand) + " IS NOT NULL"
 	case *Between:
-		s := ExprString(v.Operand) + " BETWEEN " + ExprString(v.Low) + " AND " + ExprString(v.High)
-		if v.Negated {
-			s = "NOT (" + s + ")"
-		}
-		return s
+		return formatBetween(v)
 	case *InList:
-		var items []string
-		for _, item := range v.List {
-			items = append(items, ExprString(item))
-		}
-		s := ExprString(v.Operand)
-		if v.Negated {
-			s += " NOT IN ("
-		} else {
-			s += " IN ("
-		}
-		s += strings.Join(items, ", ") + ")"
-		return s
+		return formatInList(v)
 	case *FuncCall:
-		var args []string
-		for _, arg := range v.Args {
-			args = append(args, ExprString(arg))
-		}
-		return v.Name + "(" + strings.Join(args, ", ") + ")"
+		return formatFuncCall(v)
 	default:
 		return "?"
 	}
+}
+
+func formatBetween(v *Between) string {
+	s := ExprString(v.Operand) + " BETWEEN " + ExprString(v.Low) + " AND " + ExprString(v.High)
+	if v.Negated {
+		s = "NOT (" + s + ")"
+	}
+	return s
+}
+
+func formatInList(v *InList) string {
+	var items []string
+	for _, item := range v.List {
+		items = append(items, ExprString(item))
+	}
+	s := ExprString(v.Operand)
+	if v.Negated {
+		s += " NOT IN ("
+	} else {
+		s += " IN ("
+	}
+	s += strings.Join(items, ", ") + ")"
+	return s
+}
+
+func formatFuncCall(v *FuncCall) string {
+	var args []string
+	for _, arg := range v.Args {
+		args = append(args, ExprString(arg))
+	}
+	return v.Name + "(" + strings.Join(args, ", ") + ")"
 }

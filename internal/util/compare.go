@@ -129,54 +129,13 @@ func ApplyColumnAffinity(val interface{}, typeName string) interface{} {
 	aff := Affinity(typeName)
 	switch aff {
 	case 'I': // INTEGER
-		switch v := val.(type) {
-		case float64:
-			return int64(v)
-		case string:
-			if i, err := parseInt(v); err == nil {
-				return i
-			}
-			if f, err := parseFloat(v); err == nil {
-				return int64(f)
-			}
-			return val
-		default:
-			return val
-		}
+		return applyIntAffinity(val)
 	case 'R': // REAL
-		switch v := val.(type) {
-		case int64:
-			return float64(v)
-		case string:
-			if f, err := parseFloat(v); err == nil {
-				return f
-			}
-			return val
-		default:
-			return val
-		}
+		return applyRealAffinity(val)
 	case 'T': // TEXT
-		switch v := val.(type) {
-		case int64:
-			return fmt.Sprintf("%d", v)
-		case float64:
-			return fmt.Sprintf("%g", v)
-		default:
-			return val
-		}
+		return applyTextAffinity(val)
 	case 'N': // NUMERIC
-		switch v := val.(type) {
-		case string:
-			if i, err := parseInt(v); err == nil {
-				return i
-			}
-			if f, err := parseFloat(v); err == nil {
-				return f
-			}
-			return val
-		default:
-			return val
-		}
+		return applyNumericAffinity(val)
 	default: // BLOB or other — no conversion
 		return val
 	}
@@ -259,5 +218,62 @@ func stringCompare(a, b, collation string) int {
 		default:
 			return 0
 		}
+	}
+}
+
+func applyIntAffinity(val interface{}) interface{} {
+	switch v := val.(type) {
+	case float64:
+		return int64(v)
+	case string:
+		if i, err := parseInt(v); err == nil {
+			return i
+		}
+		if f, err := parseFloat(v); err == nil {
+			return int64(f)
+		}
+		return val
+	default:
+		return val
+	}
+}
+
+func applyRealAffinity(val interface{}) interface{} {
+	switch v := val.(type) {
+	case int64:
+		return float64(v)
+	case string:
+		if f, err := parseFloat(v); err == nil {
+			return f
+		}
+		return val
+	default:
+		return val
+	}
+}
+
+func applyTextAffinity(val interface{}) interface{} {
+	switch v := val.(type) {
+	case int64:
+		return fmt.Sprintf("%d", v)
+	case float64:
+		return fmt.Sprintf("%g", v)
+	default:
+		return val
+	}
+}
+
+func applyNumericAffinity(val interface{}) interface{} {
+	switch v := val.(type) {
+	case string:
+		if i, err := parseInt(v); err == nil {
+			return i
+		}
+		if f, err := parseFloat(v); err == nil {
+			return f
+		}
+		return val
+	default:
+		return val
 	}
 }

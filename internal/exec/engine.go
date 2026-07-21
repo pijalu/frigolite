@@ -231,33 +231,14 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	// Build index SQL
-	var sqlBuf strings.Builder
-	sqlBuf.WriteString("CREATE ")
-	if s.Unique {
-		sqlBuf.WriteString("UNIQUE ")
-	}
-	sqlBuf.WriteString("INDEX ")
-	sqlBuf.WriteString(s.Name)
-	sqlBuf.WriteString(" ON ")
-	sqlBuf.WriteString(s.Table)
-	sqlBuf.WriteString(" (")
-	for i, col := range s.Columns {
-		if i > 0 {
-			sqlBuf.WriteString(", ")
-		}
-		sqlBuf.WriteString(col.Name)
-		if col.Desc {
-			sqlBuf.WriteString(" DESC")
-		}
-	}
-	sqlBuf.WriteString(")")
+	sqlStr := buildIndexSQL(s.Name, s.Table, s.Columns, s.Unique)
 
 	entry := &schema.Entry{
 		Type:     schema.TypeIndex,
 		Name:     s.Name,
 		TblName:  s.Table,
 		RootPage: pg.PageNum,
-		SQL:      sqlBuf.String(),
+		SQL:      sqlStr,
 	}
 
 	if err := e.schema.AddEntry(entry); err != nil {
@@ -994,6 +975,54 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 
 // --- SELECT ---
 
+
+// handleSelectAggregates evaluates aggregates. Returns the result if aggregates
+// were processed and a result is available, or nil if no aggregates or empty result.
+func (e *Engine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []map[string]interface{}, colDefs []sql.ColumnDef) *Result {
+	if !e.hasAggregates(s.Columns) {
+		return nil
+	}
+	if len(s.GroupBy) > 0 {
+		result := e.evalAggregatesGroupBy(s, rowMaps, colDefs)
+		if result != nil {
+			return result
+		}
+	} else {
+		result := e.evalAggregates(s, rowMaps)
+		if result != nil {
+			return result
+		}
+	}
+	return nil
+}
+
+
+// buildIndexSQL builds the SQL string for creating an index.
+func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool) string {
+	var buf strings.Builder
+	buf.WriteString("CREATE ")
+	if unique {
+		buf.WriteString("UNIQUE ")
+	}
+	buf.WriteString("INDEX ")
+	buf.WriteString(name)
+	buf.WriteString(" ON ")
+	buf.WriteString(table)
+	buf.WriteString(" (")
+	for i, col := range columns {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(col.Name)
+		if col.Desc {
+			buf.WriteString(" DESC")
+		}
+	}
+	buf.WriteString(")")
+	return buf.String()
+}
+
+
 func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
 	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
@@ -1051,41 +1080,25 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		}
 	}
 
-	// Handle aggregate functions: evaluate them across all rows
-	if e.hasAggregates(s.Columns) {
-		if len(s.GroupBy) > 0 {
-			result := e.evalAggregatesGroupBy(s, allRowMaps, colDefs)
-			if result != nil {
-				return result
-			}
-		} else {
-			result := e.evalAggregates(s, allRowMaps)
-			if result != nil {
-				return result
-			}
-		}
+	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+		return result
 	}
-
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
+	return e.finalizeSelectResult(result, s, allRowMaps)
+}
 
-	// Apply DISTINCT
+// finalizeSelectResult applies DISTINCT, ORDER BY, LIMIT, and UNION.
+func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps []map[string]interface{}) *Result {
 	if s.Distinct {
-		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps)
+		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps)
 	}
-
-	// Apply ORDER BY
 	if len(s.OrderBy) > 0 {
-		e.sortRowsWithMaps(result, s.OrderBy, allRowMaps)
+		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
 	}
-
-	// Apply LIMIT / OFFSET
 	result.Rows = applyLimitOffset(result.Rows, s.Limit, s.Offset)
-
-	// Handle UNION / INTERSECT / EXCEPT
 	if s.Union != nil {
 		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
 	}
-
 	return result
 }
 
@@ -1296,33 +1309,12 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 		allRowMaps[i] = rowMap
 	}
 
-	// Apply WHERE filter (reuse scanTableRows logic)
-	if s.Where != nil {
-		var filteredRows [][]interface{}
-		var filteredMaps []map[string]interface{}
-		for i, rowMap := range allRowMaps {
-			if e.rowPassesWhere(s.Where, rowMap, nil) {
-				filteredRows = append(filteredRows, allRows[i])
-				filteredMaps = append(filteredMaps, rowMap)
-			}
-		}
-		allRows = filteredRows
-		allRowMaps = filteredMaps
-	}
+	// 	// Apply WHERE filter
+	allRows, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
 
 	// Handle aggregate functions
-	if e.hasAggregates(s.Columns) {
-		if len(s.GroupBy) > 0 {
-			result := e.evalAggregatesGroupBy(s, allRowMaps, colDefs)
-			if result != nil {
-				return result
-			}
-		} else {
-			result := e.evalAggregates(s, allRowMaps)
-			if result != nil {
-				return result
-			}
-		}
+	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+		return result
 	}
 
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
@@ -1351,6 +1343,23 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 // execJoins processes JOIN clauses by performing nested-loop joins between
 // the base table rows and each joined table. Returns combined rowMaps and
 // colDefs.
+
+// filterSubqueryRows applies a WHERE expression to filter rows from a subquery result.
+func (e *Engine) filterSubqueryRows(allRows [][]interface{}, allRowMaps []map[string]interface{}, where sql.Expr) ([][]interface{}, []map[string]interface{}) {
+	if where == nil {
+		return allRows, allRowMaps
+	}
+	var filteredRows [][]interface{}
+	var filteredMaps []map[string]interface{}
+	for i, rowMap := range allRowMaps {
+		if e.rowPassesWhere(where, rowMap, nil) {
+			filteredRows = append(filteredRows, allRows[i])
+			filteredMaps = append(filteredMaps, rowMap)
+		}
+	}
+	return filteredRows, filteredMaps
+}
+
 func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{}, baseDefs []sql.ColumnDef) ([]map[string]interface{}, []sql.ColumnDef, error) {
 	currentMaps := baseMaps
 	currentDefs := baseDefs
@@ -2486,8 +2495,7 @@ func regexpValues(str, pattern interface{}) bool {
 func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 	switch op {
 	case "+":
-		if left == nil || right == nil { return nil, nil }
-		return addValues(left, right)
+		return evalAdd(left, right)
 	case "-":
 		if left == nil || right == nil { return nil, nil }
 		return subValues(left, right)
@@ -2498,8 +2506,7 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 		if left == nil || right == nil { return nil, nil }
 		return divValues(left, right)
 	case "||":
-		if left == nil || right == nil { return nil, nil }
-		return concatValues(left, right)
+		return evalConcat(left, right)
 	case "AND":
 		return kleeneAnd(left, right), nil
 	case "OR":
@@ -2517,6 +2524,20 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 //	true  AND NULL  → NULL
 //	NULL  AND true  → NULL
 //	NULL  AND NULL  → NULL
+func evalAdd(left, right interface{}) (interface{}, error) {
+	if left == nil || right == nil {
+		return nil, nil
+	}
+	return addValues(left, right)
+}
+
+func evalConcat(left, right interface{}) (interface{}, error) {
+	if left == nil || right == nil {
+		return nil, nil
+	}
+	return concatValues(left, right)
+}
+
 func kleeneAnd(left, right interface{}) interface{} {
 	if isFalse(left) || isFalse(right) {
 		return false
