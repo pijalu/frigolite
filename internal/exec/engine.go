@@ -305,6 +305,9 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 	_, err := e.schema.FindTable(s.Name)
 	if err != nil {
+		if s.IfExists {
+			return &Result{}
+		}
 		return &Result{Error: err}
 	}
 
@@ -340,6 +343,9 @@ func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
 func (e *Engine) execDropIndex(s *sql.DropIndexStmt) *Result {
 	// Remove from schema
 	if err := e.schema.RemoveEntry(s.Name); err != nil {
+		if s.IfExists {
+			return &Result{}
+		}
 		return &Result{Error: err}
 	}
 	return &Result{}

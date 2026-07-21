@@ -575,6 +575,10 @@ func (p *Parser) parseCreate() Stmt {
 		p.next()
 	}
 
+	if p.cur.Type == TokenKeyword && p.cur.Value == "UNIQUE" {
+		p.next()
+	}
+
 	if p.cur.Type == TokenKeyword {
 		switch p.cur.Value {
 		case "TABLE":
@@ -1036,6 +1040,11 @@ func (p *Parser) parseDrop() Stmt {
 func (p *Parser) parseDropTable() Stmt {
 	p.next()
 	s := &DropTableStmt{}
+	if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
+		p.next()
+		p.expectKeyword("EXISTS")
+		s.IfExists = true
+	}
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
 		s.Name = p.cur.Value
 		p.next()
@@ -1076,6 +1085,11 @@ func (p *Parser) parseDropTrigger() Stmt {
 func (p *Parser) parseDropIndex() Stmt {
 	p.next()
 	s := &DropIndexStmt{}
+	if p.cur.Type == TokenKeyword && p.cur.Value == "IF" {
+		p.next()
+		p.expectKeyword("EXISTS")
+		s.IfExists = true
+	}
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
 		s.Name = p.cur.Value
 		p.next()

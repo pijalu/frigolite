@@ -157,14 +157,16 @@ type IndexColumn struct {
 
 // DropTableStmt represents a DROP TABLE statement.
 type DropTableStmt struct {
-	Name string
+	Name     string
+	IfExists bool
 }
 
 func (s *DropTableStmt) stmt() {}
 
 // DropIndexStmt represents a DROP INDEX statement.
 type DropIndexStmt struct {
-	Name string
+	Name     string
+	IfExists bool
 }
 
 func (s *DropIndexStmt) stmt() {}

@@ -130,7 +130,7 @@ def generate(filename, content):
             else:
                 lines.append(f'\t_ = db.Query("{go_sql}")')
         else:
-            lines.append(f'\t_ = db.Exec("{go_sql}")')
+            lines.append(f'\tcheckExecOK(t, db.Exec("{go_sql}"))')
     
     lines.append('}')
     return '\n'.join(lines)
