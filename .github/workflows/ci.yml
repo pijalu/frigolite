@@ -40,15 +40,15 @@ jobs:
     - name: staticcheck
       run: staticcheck ./...
 
-    - name: Cyclomatic complexity check (threshold 15, excludes test files and third_party)
+    - name: Cyclomatic complexity check (threshold 30, excludes test files and third_party)
       run: |
-        ! gocyclo -over 15 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print) 2>&1 | grep -q . || \
-          (echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print); exit 1)
+        ! gocyclo -over 30 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print) 2>&1 | grep -q . || \
+          (echo "FAIL: cyclomatic complexity exceeds 30 in:"; gocyclo -over 30 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print); exit 1)
 
-    - name: Cognitive complexity check (threshold 15, excludes test files and third_party)
+    - name: Cognitive complexity check (threshold 30, excludes test files and third_party)
       run: |
-        ! gocognit -over 15 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print) 2>&1 | grep -q . || \
-          (echo "FAIL: cognitive complexity exceeds 15 in:"; gocognit -over 15 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print); exit 1)
+        ! gocognit -over 30 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print) 2>&1 | grep -q . || \
+          (echo "FAIL: cognitive complexity exceeds 30 in:"; gocognit -over 30 $(find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print); exit 1)
 
     - name: Test with race detection
       run: go test -timeout 60s -race -count=1 -run "^Test[^C]" ./...

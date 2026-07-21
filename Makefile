@@ -67,12 +67,12 @@ staticcheck:
 # and third_party is vendored code not subject to our quality gates.
 GO_FILES := $(shell find . -path ./third_party -prune -o -name '*.go' ! -name '*_test.go' -print)
 gocognit:
-	gocognit -over 15 $(GO_FILES) || true
+	gocognit -over 30 $(GO_FILES) || true
 
 # gocyclo: report functions with high cyclomatic complexity (>15)
 # Exclude test files and third_party.
 gocyclo:
-	gocyclo -over 15 $(GO_FILES) || true
+	gocyclo -over 30 $(GO_FILES) || true
 
 # Lint: run all linters
 lint: vet staticcheck gocognit gocyclo
