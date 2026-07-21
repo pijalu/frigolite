@@ -36,7 +36,7 @@ func (p *Parser) next() {
 
 func (p *Parser) expect(typ TokenType) bool {
 	if p.cur.Type != typ {
-		p.setErr("expected %v but got %v (%s)", typ, p.cur.Type, p.cur.Value)
+		p.setErr("expected %s but got %s", tokenName(typ, ""), tokenName(p.cur.Type, p.cur.Value))
 		return false
 	}
 	p.next()
@@ -55,6 +55,66 @@ func (p *Parser) expectKeyword(keyword string) bool {
 func (p *Parser) setErr(format string, args ...interface{}) {
 	if p.err == nil {
 		p.err = fmt.Errorf(format, args...)
+	}
+}
+
+// tokenName returns a human-readable name for a token type.
+// If value is non-empty, it provides context for TokenKeyword.
+func tokenName(typ TokenType, value string) string {
+	switch typ {
+	case TokenEOF:
+		return "end of input"
+	case TokenError:
+		return "error"
+	case TokenIdentifier:
+		return "identifier"
+	case TokenString:
+		return "string"
+	case TokenNumber:
+		return "number"
+	case TokenBlob:
+		return "blob"
+	case TokenKeyword:
+		if value != "" {
+			return fmt.Sprintf("keyword '%s'", value)
+		}
+		return "keyword"
+	case TokenEq:
+		return "'='"
+	case TokenNeq:
+		return "'!=' or '<>'"
+	case TokenLt:
+		return "'<'"
+	case TokenGt:
+		return "'>'"
+	case TokenLe:
+		return "'<='"
+	case TokenGe:
+		return "'>='"
+	case TokenPlus:
+		return "'+'"
+	case TokenMinus:
+		return "'-'"
+	case TokenStar:
+		return "'*'"
+	case TokenSlash:
+		return "'/'"
+	case TokenLParen:
+		return "'('"
+	case TokenRParen:
+		return "')'"
+	case TokenComma:
+		return "','"
+	case TokenSemicolon:
+		return "';'"
+	case TokenDot:
+		return "'.'"
+	case TokenConcat:
+		return "'||'"
+	case TokenParam:
+		return "'?'"
+	default:
+		return fmt.Sprintf("token %d", typ)
 	}
 }
 
@@ -83,7 +143,7 @@ func (p *Parser) parseStatement() Stmt {
 	case TokenKeyword:
 		return p.parseKeywordStmt()
 	default:
-		p.setErr("unexpected token: %v (%s)", p.cur.Type, p.cur.Value)
+		p.setErr("unexpected token: %s", tokenName(p.cur.Type, p.cur.Value))
 		return nil
 	}
 }
@@ -1560,7 +1620,7 @@ func (p *Parser) parsePrimaryExpr() Expr {
 		return p.parseKeywordExpr()
 
 	default:
-		p.setErr("unexpected token in expression: %s", p.cur.Value)
+		p.setErr("unexpected token in expression: %s", tokenName(p.cur.Type, p.cur.Value))
 		return nil
 	}
 }
