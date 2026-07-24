@@ -445,12 +445,15 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		}
 	}
 
+	// Build full trigger SQL including body
+	sqlStr := buildTriggerSQL(triggerName, s.Time, s.Event, tableName, s.When, s.Statements)
+
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,
 		Name:     triggerName,
 		TblName:  tableName,
 		RootPage: 0,
-		SQL:      fmt.Sprintf("CREATE TRIGGER %s %s %s ON %s BEGIN END", triggerName, s.Time, s.Event, tableName),
+		SQL:      sqlStr,
 	}
 	if err := e.schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
@@ -458,7 +461,120 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	return &Result{}
 }
 
-// --- EXPLAIN ---
+// buildTriggerSQL constructs the full CREATE TRIGGER SQL text including the body.
+func buildTriggerSQL(name, time, event, table string, when sql.Expr, statements []sql.Stmt) string {
+	var b strings.Builder
+	b.WriteString("CREATE TRIGGER ")
+	b.WriteString(name)
+	b.WriteString(" ")
+	b.WriteString(time)
+	b.WriteString(" ")
+	b.WriteString(event)
+	b.WriteString(" ON ")
+	b.WriteString(table)
+
+	// WHEN clause
+	if when != nil {
+		b.WriteString(" WHEN ")
+		b.WriteString(sql.ExprString(when))
+	}
+
+	b.WriteString(" BEGIN")
+	for _, stmt := range statements {
+		b.WriteString("\n    ")
+		b.WriteString(stmtToString(stmt))
+		b.WriteString(";")
+	}
+	b.WriteString("\nEND")
+	return b.String()
+}
+
+// stmtToString converts a statement back to SQL text for trigger body serialization.
+func stmtToString(stmt sql.Stmt) string {
+	switch s := stmt.(type) {
+	case *sql.UpdateStmt:
+		return updateStmtToString(s)
+	case *sql.InsertStmt:
+		return insertStmtToString(s)
+	case *sql.DeleteStmt:
+		return deleteStmtToString(s)
+	case *sql.SelectStmt:
+		return selectStmtToString(s)
+	default:
+		return ""
+	}
+}
+
+// updateStmtToString converts an UPDATE statement to SQL text.
+func updateStmtToString(s *sql.UpdateStmt) string {
+	var b strings.Builder
+	b.WriteString("UPDATE ")
+	b.WriteString(s.Table)
+	b.WriteString(" SET ")
+	for i, a := range s.Assignments {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(a.Column)
+		b.WriteString("=")
+		b.WriteString(sql.ExprString(a.Value))
+	}
+	if s.Where != nil {
+		b.WriteString(" WHERE ")
+		b.WriteString(sql.ExprString(s.Where))
+	}
+	return b.String()
+}
+
+// insertStmtToString converts an INSERT statement to SQL text.
+func insertStmtToString(s *sql.InsertStmt) string {
+	var b strings.Builder
+	b.WriteString("INSERT INTO ")
+	b.WriteString(s.Table)
+	if len(s.Columns) > 0 {
+		b.WriteString("(")
+		for i, c := range s.Columns {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(c)
+		}
+		b.WriteString(")")
+	}
+	if s.Select != nil {
+		b.WriteString(" ")
+		b.WriteString(selectStmtToString(s.Select))
+	} else if len(s.Values) > 0 {
+		b.WriteString(" VALUES(")
+		for i, tuple := range s.Values {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			for j, val := range tuple {
+				if j > 0 {
+					b.WriteString(", ")
+				}
+				b.WriteString(sql.ExprString(val))
+			}
+		}
+		b.WriteString(")")
+	}
+	return b.String()
+}
+
+// deleteStmtToString converts a DELETE statement to SQL text.
+func deleteStmtToString(s *sql.DeleteStmt) string {
+	var b strings.Builder
+	b.WriteString("DELETE FROM ")
+	b.WriteString(s.Table)
+	if s.Where != nil {
+		b.WriteString(" WHERE ")
+		b.WriteString(sql.ExprString(s.Where))
+	}
+	return b.String()
+}
+
+// selectStmtToString converts a SELECT statement to SQL text (used for views).
 
 func (e *Engine) execExplain(s *sql.ExplainStmt) *Result {
 	// Return a simple explanation of the statement
@@ -2564,7 +2680,7 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 				// Update trigger's tbl_name and SQL
 				if strings.EqualFold(entry.TblName, oldName) {
 					entry.TblName = newName
-					entry.SQL = strings.ReplaceAll(entry.SQL, oldName, newName)
+					entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
 					_ = e.schema.RemoveEntry(entry.Name)
 					_ = e.schema.AddEntry(entry)
 				}
@@ -2573,7 +2689,7 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 				if strings.EqualFold(entry.TblName, oldName) {
 					entry.TblName = newName
 					// Replace old table name with new name in index SQL
-					entry.SQL = strings.ReplaceAll(entry.SQL, oldName, newName)
+					entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
 					_ = e.schema.RemoveEntry(entry.Name)
 					_ = e.schema.AddEntry(entry)
 				}

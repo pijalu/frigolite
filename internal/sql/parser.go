@@ -3306,7 +3306,7 @@ func ExprString(e Expr) string {
 	case *IsNull:
 		return ExprString(v.Operand) + " IS NULL"
 	case *IsNotNull:
-		return ExprString(v.Operand) + " IS NOT NULL"
+		return ExprString(v.Operand) + " NOT NULL"
 	case *IsDistinctFrom:
 		return ExprString(v.Left) + " IS DISTINCT FROM " + ExprString(v.Right)
 	case *IsNotDistinctFrom:
