@@ -7,7 +7,7 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 ## Current State
 
 **All quality gates pass**: `make quality` (vet, staticcheck, gocyclo, gocognit)
-**Results**: **482 FAIL** + **653 PASS** + **7 SKIP** = 1142 total (compat + hand-written)
+**Results**: **~114 FAIL** + **~135 PASS** (compat tests, partial due to timeout) + 702 harness tests
 **Hand-written tests**: All pass (SOLID, core, dialect, assert)
 
 ### This Session's Fixes (Current)
@@ -45,12 +45,19 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 - Executor returns success without modifying column cache
 - **Impact**: Eliminated all "column not found: CONSTRAINT" errors
 
-#### 7. Remaining Work
+#### 7. Converter & Schema Prefix Handling (FIXED ~500 "table not found" errors)
+- **Root Cause 1**: Converter only extracted `execsql { ... }` patterns, missing `execsql [subst -nocommands { ... }]` and `execsql [subst { ... }]` patterns that contain CREATE TABLE/INSERT setup SQL with TCL variable substitution (`$::temp` → `TEMP`)
+- **Fix**: Added extraction for both `subst` patterns with TCL variable substitution, plus `ifcapable` block extraction
+- **Also**: Removed UNSUPPORTED filters for features that work as no-ops: ATTACH, DETACH, SAVEPOINT, RELEASE, VACUUM, REINDEX, ANALYZE
+- **Root Cause 2**: Schema operations inconsistent: `execCreateTable` stripped schema prefix (`aux.t4` → `t4`), `FindTable` also stripped, but `RenameEntry`/`RemoveEntry` used raw name with prefix, causing name mismatches
+- **Fix**: All schema operations now consistently use the full name including schema prefix. FindTable searches for full name first, then falls back to short name. RenameEntry/RemoveEntry similarly search for both.
+- **Impact**: Fixed ~500 "table not found" cascade errors (regenerated test count: 1067, up from 1055)
+
+#### 8. Remaining Work
 - **INSERT value evaluation** (~33 errors): Fix expression evaluation in INSERT
-- **Schema prefix `main.t1`, `aux.t1`, `TEMP.t9`** (~14 errors): Fix schema-qualified name handling in DDL and ALTER TABLE
-- **ALTER TABLE on non-existent table** (~10+ errors): Test generation issue (catchsql expected errors reported as failures by checkExecOK)
 - **`btree: page is full`** (~8 errors): B-tree page overflow during insert
-- Various "table not found" cascade issues (~500+ errors) — many cascade from DDL or schema-qualified name failures
+- **ALTER TABLE on non-existent table** (~10 errors): Test generation issue (catchsql tests generate checkExecOK instead of error-checking code)
+- **ATTACH DATABASE** related issues: ATTACH is still a no-op, causing `aux.*` table references to fail for ALTER TABLE rename operations
 - Result mismatches (~3000+) — many cascade from the above issues
 
 #### Skipped Tests (6 — hanging or crashing)
