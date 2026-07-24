@@ -149,10 +149,14 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 // --- CREATE TABLE ---
 
 func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
-	// Use the full table name including schema prefix
-	// (e.g. "aux.t4" stays as "aux.t4", "main.t1" -> "main.t1")
-	// This allows tables in different schema (attached DBs) to coexist.
+	// Strip known schema prefixes (main, temp) but keep others (aux)
 	tableName := s.Name
+	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
+		prefix := strings.ToUpper(tableName[:dotIdx])
+		if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+			tableName = tableName[dotIdx+1:]
+		}
+	}
 
 	existing, err := e.schema.FindTable(tableName)
 	if err == nil && existing != nil {
@@ -455,12 +459,21 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 	}
 
 	// Store in schema
+	// Strip known schema prefixes (main, temp) but keep others (aux)
+	tableName := s.Name
+	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
+		prefix := strings.ToUpper(tableName[:dotIdx])
+		if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+			tableName = tableName[dotIdx+1:]
+		}
+	}
+	
 	entry := &schema.Entry{
 		Type:     schema.TypeTable,
-		Name:     s.Name,
-		TblName:  s.Name,
+		Name:     tableName,
+		TblName:  tableName,
 		RootPage: 0,
-		SQL:      fmt.Sprintf("CREATE VIRTUAL TABLE %s USING %s(%s)", s.Name, s.Module, strings.Join(s.Args, ",")),
+		SQL:      fmt.Sprintf("CREATE VIRTUAL TABLE %s USING %s(%s)", tableName, s.Module, strings.Join(s.Args, ",")),
 	}
 	if err := e.schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}

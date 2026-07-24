@@ -62,6 +62,8 @@ func (r *Registry) RegisterDefaults() {
 	r.Register("zipfile", &NoopModule{ModuleName: "zipfile"})
 	r.Register("tcl", &NoopModule{ModuleName: "tcl"})
 	r.Register("wholenumber", &NoopModule{ModuleName: "wholenumber"})
+	r.Register("csv", &NoopModule{ModuleName: "csv"})
+	r.Register("prefix_length", &NoopModule{ModuleName: "prefix_length"})
 }
 
 // GenerateSeriesModule implements the generate_series virtual table.
@@ -167,11 +169,11 @@ func (v *noopVTab) BestIndex(input []byte) ([]byte, error) {
 }
 
 func (v *noopVTab) Open() (Cursor, error) {
-	return nil, fmt.Errorf("%s: virtual table module not implemented", v.name)
+	return v, nil
 }
 
 func (c *noopVTab) Column(idx int) (interface{}, error) {
-	return nil, fmt.Errorf("%s: virtual table module not implemented", c.name)
+	return nil, nil
 }
 
 func (c *noopVTab) Next() bool {

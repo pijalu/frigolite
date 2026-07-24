@@ -1310,9 +1310,17 @@ func (p *Parser) parseVTabArgs() []string {
 			p.next()
 			break
 		}
-		if p.cur.Type == TokenString || p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenNumber {
+		if p.cur.Type == TokenString || p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenNumber || p.cur.Type == TokenBlob {
 			args = append(args, p.cur.Value)
 			p.next()
+			// Skip optional '=' between key and value in key=value pairs
+			if p.cur.Type == TokenEq {
+				p.next()
+				if p.cur.Type == TokenString || p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenNumber || p.cur.Type == TokenBlob {
+					args = append(args, p.cur.Value)
+					p.next()
+				}
+			}
 		} else {
 			break
 		}
