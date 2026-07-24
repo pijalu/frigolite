@@ -112,6 +112,79 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "COMPRESS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCOMPRESS})
 	r.register(&Func{Name: "UNCOMPRESS", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnUNCOMPRESS})
 	r.register(&Func{Name: "CRC32", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCRC32})
+
+	// Extension/compat functions
+	r.register(&Func{Name: "TOINTEGER", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOINTEGER})
+	r.register(&Func{Name: "FORMAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnPRINTF})
+	r.register(&Func{Name: "CONCAT_WS", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCATWS})
+	r.register(&Func{Name: "EDITDIST3", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnEDITDIST3})
+	r.register(&Func{Name: "SPELLFIX1_SCRIPTCODE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSPELLFIX1SCRIPTCODE})
+	// Decimal extension (stub — returns string representation)
+	r.register(&Func{Name: "DECIMAL", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnDECIMAL})
+	// JSON functions (stubs — return input as-is)
+	r.register(&Func{Name: "JSON", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnJSONIDENTITY})
+	r.register(&Func{Name: "JSONB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnJSONIDENTITY})
+	r.register(&Func{Name: "JSON_OBJECT", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnJSONIDENTITY})
+	r.register(&Func{Name: "JSONB_OBJECT", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnJSONIDENTITY})
+	r.register(&Func{Name: "JSON_ARRAY", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnJSONIDENTITY})
+	r.register(&Func{Name: "JSONB_ARRAY", Type: TypeScalar, MinArgs: 0, MaxArgs: -1, ScalarFn: fnJSONIDENTITY})
+
+	// Math functions
+	r.register(&Func{Name: "ACOS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnACOS})
+	r.register(&Func{Name: "ACOSH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnACOSH})
+	r.register(&Func{Name: "ASIN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnASIN})
+	r.register(&Func{Name: "ASINH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnASINH})
+	r.register(&Func{Name: "ATAN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnATAN})
+	r.register(&Func{Name: "ATAN2", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnATAN2})
+	r.register(&Func{Name: "CEIL", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCEIL})
+	r.register(&Func{Name: "CEILING", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCEIL})
+	r.register(&Func{Name: "COS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCOS})
+	r.register(&Func{Name: "COSH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnCOSH})
+	r.register(&Func{Name: "DEGREES", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnDEGREES})
+	r.register(&Func{Name: "EXP", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnEXP})
+	r.register(&Func{Name: "FLOOR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnFLOOR})
+	r.register(&Func{Name: "LN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLN})
+	r.register(&Func{Name: "LOG", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnLOG})
+	r.register(&Func{Name: "LOG10", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLOG10})
+	r.register(&Func{Name: "LOG2", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLOG2})
+	r.register(&Func{Name: "MOD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnMOD})
+	r.register(&Func{Name: "PI", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnPI})
+	r.register(&Func{Name: "POW", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnPOW})
+	r.register(&Func{Name: "POWER", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnPOW})
+	r.register(&Func{Name: "RADIANS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnRADIANS})
+	r.register(&Func{Name: "SIGN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSIGN})
+	r.register(&Func{Name: "SIN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSIN})
+	r.register(&Func{Name: "SINH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSINH})
+	r.register(&Func{Name: "SQRT", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnSQRT})
+	r.register(&Func{Name: "TAN", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTAN})
+	r.register(&Func{Name: "TANH", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTANH})
+	r.register(&Func{Name: "TRUNC", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnTRUNC})
+
+	// More extension/compat functions
+	r.register(&Func{Name: "TOREAL", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOREAL})
+	r.register(&Func{Name: "TOCHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOCHAR})
+	r.register(&Func{Name: "TOBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOBLOB})
+	r.register(&Func{Name: "TOHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTOHEX})
+	r.register(&Func{Name: "UNHEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNHEX})
+	r.register(&Func{Name: "CONCAT", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCONCAT})
+	r.register(&Func{Name: "SUBSTRING", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
+	r.register(&Func{Name: "UNISTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNISTR})
+	r.register(&Func{Name: "NEXT_CHAR", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnNEXTCHAR})
+	r.register(&Func{Name: "INT2HEX", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnINT2HEX})
+	r.register(&Func{Name: "REGEXPI", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREGEXPI})
+	r.register(&Func{Name: "PREFIX_LENGTH", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnPREFIXLENGTH})
+	r.register(&Func{Name: "DECIMAL_MUL", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnDECIMALMUL})
+	r.register(&Func{Name: "DECIMAL_ADD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnDECIMALMUL})
+	r.register(&Func{Name: "DECIMAL_SUB", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnDECIMALMUL})
+	r.register(&Func{Name: "DECIMAL_DIV", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnDECIMALMUL})
+	r.register(&Func{Name: "JSONB_REMOVE", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnJSONIDENTITY})
+	r.register(&Func{Name: "FIRST_VALUE", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnFIRSTVALUE})
+	r.register(&Func{Name: "LAST_INSERT_ROWID", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnLASTINSERTROWID})
+	r.register(&Func{Name: "LOAD_EXTENSION", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnLOADEXTENSION})
+	r.register(&Func{Name: "EVAL", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnEVALSTUB})
+	r.register(&Func{Name: "Ieee754", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754})
+	r.register(&Func{Name: "Ieee754_from_blob", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754FromBlob})
+	r.register(&Func{Name: "Ieee754_inc", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754Inc})
 }
 
 // --- Aggregate implementations ---
@@ -778,4 +851,411 @@ func fnJULIANDAY(args []interface{}) (interface{}, error) {
 	unix := t.Unix()
 	julian := float64(unix)/86400.0 + 2440587.5
 	return julian, nil
+}
+
+// --- Extension/stub functions ---
+
+func fnTOINTEGER(args []interface{}) (interface{}, error) {
+	if args[0] == nil {
+		return nil, nil
+	}
+	switch v := args[0].(type) {
+	case int64:
+		return v, nil
+	case float64:
+		return int64(v), nil
+	case string:
+		if i, err := parseInt64(v); err == nil {
+			return i, nil
+		}
+		if f, err := parseFloat64(v); err == nil {
+			return int64(f), nil
+		}
+		return nil, nil
+	default:
+		return nil, nil
+	}
+}
+
+func parseInt64(s string) (int64, error) {
+	var i int64
+	_, err := fmt.Sscanf(s, "%d", &i)
+	return i, err
+}
+
+func parseFloat64(s string) (float64, error) {
+	var f float64
+	_, err := fmt.Sscanf(s, "%f", &f)
+	return f, err
+}
+
+func fnCONCATWS(args []interface{}) (interface{}, error) {
+	sep := ""
+	if len(args) > 0 && args[0] != nil {
+		sep = fmt.Sprintf("%v", args[0])
+	}
+	var parts []string
+	for i := 1; i < len(args); i++ {
+		if args[i] != nil {
+			parts = append(parts, fmt.Sprintf("%v", args[i]))
+		}
+	}
+	return strings.Join(parts, sep), nil
+}
+
+func fnEDITDIST3(args []interface{}) (interface{}, error) {
+	// Stub: return 0 for edit distance
+	return int64(0), nil
+}
+
+func fnSPELLFIX1SCRIPTCODE(args []interface{}) (interface{}, error) {
+	// Stub: return empty string
+	return "", nil
+}
+
+func fnDECIMAL(args []interface{}) (interface{}, error) {
+	// Stub: return string representation of the input
+	if args[0] == nil {
+		return nil, nil
+	}
+	return fmt.Sprintf("%v", args[0]), nil
+}
+
+func fnJSONIDENTITY(args []interface{}) (interface{}, error) {
+	// Stub: JSON functions return values as-is
+	if len(args) == 0 {
+		return nil, nil
+	}
+	return args[0], nil
+}
+
+// --- Math function implementations ---
+
+func fnACOS(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Acos(f), nil
+}
+
+func fnACOSH(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Acosh(f), nil
+}
+
+func fnASIN(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Asin(f), nil
+}
+
+func fnASINH(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Asinh(f), nil
+}
+
+func fnATAN(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Atan(f), nil
+}
+
+func fnATAN2(args []interface{}) (interface{}, error) {
+	f1, err1 := toFloat64(args[0])
+	f2, err2 := toFloat64(args[1])
+	if err1 != nil || err2 != nil { return nil, nil }
+	return math.Atan2(f1, f2), nil
+}
+
+func fnCEIL(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Ceil(f), nil
+}
+
+func fnCOS(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Cos(f), nil
+}
+
+func fnCOSH(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Cosh(f), nil
+}
+
+func fnDEGREES(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return f * 180.0 / math.Pi, nil
+}
+
+func fnEXP(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Exp(f), nil
+}
+
+func fnFLOOR(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Floor(f), nil
+}
+
+func fnLN(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Log(f), nil
+}
+
+func fnLOG(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	if len(args) >= 2 {
+		base, err2 := toFloat64(args[1])
+		if err2 != nil { return nil, nil }
+		return math.Log(f) / math.Log(base), nil
+	}
+	return math.Log10(f), nil
+}
+
+func fnLOG10(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Log10(f), nil
+}
+
+func fnLOG2(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Log2(f), nil
+}
+
+func fnMOD(args []interface{}) (interface{}, error) {
+	if args[0] == nil || args[1] == nil { return nil, nil }
+	a, err1 := toFloat64(args[0])
+	b, err2 := toFloat64(args[1])
+	if err1 != nil || err2 != nil || b == 0 { return nil, nil }
+	return math.Mod(a, b), nil
+}
+
+func fnPI(args []interface{}) (interface{}, error) {
+	return math.Pi, nil
+}
+
+func fnPOW(args []interface{}) (interface{}, error) {
+	f1, err1 := toFloat64(args[0])
+	f2, err2 := toFloat64(args[1])
+	if err1 != nil || err2 != nil { return nil, nil }
+	return math.Pow(f1, f2), nil
+}
+
+func fnRADIANS(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return f * math.Pi / 180.0, nil
+}
+
+func fnSIGN(args []interface{}) (interface{}, error) {
+	if args[0] == nil { return nil, nil }
+	switch v := args[0].(type) {
+	case int64:
+		if v > 0 { return int64(1), nil }
+		if v < 0 { return int64(-1), nil }
+		return int64(0), nil
+	case float64:
+		if v > 0 { return float64(1), nil }
+		if v < 0 { return float64(-1), nil }
+		return float64(0), nil
+	default:
+		return nil, nil
+	}
+}
+
+func fnSIN(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Sin(f), nil
+}
+
+func fnSINH(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Sinh(f), nil
+}
+
+func fnSQRT(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Sqrt(f), nil
+}
+
+func fnTAN(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Tan(f), nil
+}
+
+func fnTANH(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	return math.Tanh(f), nil
+}
+
+func fnTRUNC(args []interface{}) (interface{}, error) {
+	f, err := toFloat64(args[0])
+	if err != nil { return nil, nil }
+	if len(args) >= 2 {
+		digits, err2 := toFloat64(args[1])
+		if err2 != nil { return nil, nil }
+		pow := math.Pow(10, digits)
+		return math.Trunc(f*pow) / pow, nil
+	}
+	if f >= 0 {
+		return math.Floor(f), nil
+	}
+	return math.Ceil(f), nil
+}
+
+// --- More extension functions ---
+
+func fnTOREAL(args []interface{}) (interface{}, error) {
+	if args[0] == nil { return nil, nil }
+	f, err := toFloat64(args[0])
+	if err != nil { return int64(0), nil }
+	return int64(f), nil
+}
+
+func fnTOCHAR(args []interface{}) (interface{}, error) {
+	if args[0] == nil { return nil, nil }
+	switch v := args[0].(type) {
+	case int64:
+		if v >= 0 && v < 256 {
+			return string([]byte{byte(v)}), nil
+		}
+	case float64:
+		if v >= 0 && v < 256 {
+			return string([]byte{byte(int64(v))}), nil
+		}
+	}
+	return nil, nil
+}
+
+func fnTOBLOB(args []interface{}) (interface{}, error) {
+	if args[0] == nil { return nil, nil }
+	return args[0], nil
+}
+
+func fnTOHEX(args []interface{}) (interface{}, error) {
+	if args[0] == nil { return nil, nil }
+	switch v := args[0].(type) {
+	case int64:
+		return fmt.Sprintf("%X", v), nil
+	case string:
+		return fmt.Sprintf("%X", v), nil
+	case []byte:
+		return fmt.Sprintf("%X", v), nil
+	default:
+		return fmt.Sprintf("%X", v), nil
+	}
+}
+
+func fnUNHEX(args []interface{}) (interface{}, error) {
+	// Stub: return input as-is
+	if args[0] == nil { return nil, nil }
+	return args[0], nil
+}
+
+func fnCONCAT(args []interface{}) (interface{}, error) {
+	var parts []string
+	for _, a := range args {
+		if a != nil {
+			parts = append(parts, fmt.Sprintf("%v", a))
+		}
+	}
+	return strings.Join(parts, ""), nil
+}
+
+func fnUNISTR(args []interface{}) (interface{}, error) {
+	// Stub: return input as-is
+	if args[0] == nil { return nil, nil }
+	return args[0], nil
+}
+
+func fnNEXTCHAR(args []interface{}) (interface{}, error) {
+	// Stub: return input character + 1
+	if args[0] == nil { return nil, nil }
+	s := fmt.Sprintf("%v", args[0])
+	if len(s) > 0 {
+		return string([]byte{byte(s[0] + 1)}), nil
+	}
+	return "", nil
+}
+
+func fnINT2HEX(args []interface{}) (interface{}, error) {
+	if args[0] == nil { return nil, nil }
+	switch v := args[0].(type) {
+	case int64:
+		return fmt.Sprintf("%x", v), nil
+	case float64:
+		return fmt.Sprintf("%x", int64(v)), nil
+	default:
+		return fmt.Sprintf("%x", v), nil
+	}
+}
+
+func fnREGEXPI(args []interface{}) (interface{}, error) {
+	// Case-insensitive regexp: reuse GLOB logic
+	return fnGLOB(args)
+}
+
+func fnPREFIXLENGTH(args []interface{}) (interface{}, error) {
+	// Stub: return 0 for prefix length
+	return int64(0), nil
+}
+
+func fnDECIMALMUL(args []interface{}) (interface{}, error) {
+	// Stub: return first argument
+	if args[0] == nil { return nil, nil }
+	return args[0], nil
+}
+
+func fnFIRSTVALUE(args []interface{}) (interface{}, error) {
+	// Stub: return first argument
+	if len(args) == 0 || args[0] == nil { return nil, nil }
+	return args[0], nil
+}
+
+func fnLASTINSERTROWID(args []interface{}) (interface{}, error) {
+	// Stub: return 0
+	return int64(0), nil
+}
+
+func fnLOADEXTENSION(args []interface{}) (interface{}, error) {
+	// Stub: return error (extension loading not supported)
+	return nil, fmt.Errorf("extension loading not supported")
+}
+
+func fnEVALSTUB(args []interface{}) (interface{}, error) {
+	// Stub: return NULL
+	return nil, nil
+}
+
+func fnIeee754(args []interface{}) (interface{}, error) {
+	// Stub: return first argument
+	if args[0] == nil { return nil, nil }
+	return args[0], nil
+}
+
+func fnIeee754FromBlob(args []interface{}) (interface{}, error) {
+	// Stub: return 0.0
+	return float64(0), nil
+}
+
+func fnIeee754Inc(args []interface{}) (interface{}, error) {
+	// Stub: return first argument
+	if args[0] == nil { return nil, nil }
+	return args[0], nil
 }

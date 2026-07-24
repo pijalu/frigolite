@@ -2693,8 +2693,26 @@ func (p *Parser) parseIsOp(left Expr) Expr {
 			p.next()
 			return &IsNotNull{Operand: left}
 		}
+		// IS NOT DISTINCT FROM
+		if p.cur.Type == TokenKeyword && p.cur.Value == "DISTINCT" {
+			p.next()
+			if p.cur.Type == TokenKeyword && p.cur.Value == "FROM" {
+				p.next()
+				right := p.parseExpr()
+				return &IsNotDistinctFrom{Left: left, Right: right}
+			}
+		}
 		p.consumeIsRightOperand()
 		return left
+	}
+	// IS DISTINCT FROM
+	if p.cur.Type == TokenKeyword && p.cur.Value == "DISTINCT" {
+		p.next()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "FROM" {
+			p.next()
+			right := p.parseExpr()
+			return &IsDistinctFrom{Left: left, Right: right}
+		}
 	}
 	if p.cur.Type == TokenKeyword && p.cur.Value == "NULL" {
 		p.next()
@@ -3257,6 +3275,10 @@ func ExprString(e Expr) string {
 		return ExprString(v.Operand) + " IS NULL"
 	case *IsNotNull:
 		return ExprString(v.Operand) + " IS NOT NULL"
+	case *IsDistinctFrom:
+		return ExprString(v.Left) + " IS DISTINCT FROM " + ExprString(v.Right)
+	case *IsNotDistinctFrom:
+		return ExprString(v.Left) + " IS NOT DISTINCT FROM " + ExprString(v.Right)
 	case *Between:
 		return formatBetween(v)
 	case *InList:

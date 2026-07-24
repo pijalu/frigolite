@@ -1303,6 +1303,16 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 // execSelectNoFrom handles SELECT without FROM clause.
 func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 	columns := e.buildColumnNames(s.Columns, nil)
+
+	// Apply WHERE filter for FROM-less SELECT
+	if s.Where != nil {
+		// Use nil row since there are no columns to reference
+		pass := e.rowPassesWhere(s.Where, nil, nil)
+		if !pass {
+			return &Result{Columns: columns, Rows: nil}
+		}
+	}
+
 	var outRow []interface{}
 	for _, col := range s.Columns {
 		v, err := e.evalExpr(col.Expr, nil)
@@ -1825,6 +1835,10 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{
 		return operand == nil, nil
 	case *sql.IsNotNull:
 		return e.evalHavingIsNotNull(v, groupRows)
+	case *sql.IsDistinctFrom:
+		return e.evalHavingIsDistinctFrom(v, groupRows)
+	case *sql.IsNotDistinctFrom:
+		return e.evalHavingIsNotDistinctFrom(v, groupRows)
 	default:
 		return e.evalHavingDefault(expr, groupRows)
 	}
@@ -1867,6 +1881,50 @@ func (e *Engine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []map[string]in
 		return nil, err
 	}
 	return operand != nil, nil
+}
+
+func (e *Engine) evalHavingIsDistinctFrom(v *sql.IsDistinctFrom, groupRows []map[string]interface{}) (interface{}, error) {
+	left, err := e.evalHavingExpr(v.Left, groupRows)
+	if err != nil {
+		return nil, err
+	}
+	right, err := e.evalHavingExpr(v.Right, groupRows)
+	if err != nil {
+		return nil, err
+	}
+	if left == nil && right == nil {
+		return int64(0), nil
+	}
+	if left == nil || right == nil {
+		return int64(1), nil
+	}
+	cmp := util.CompareValuesCollate(left, right, "BINARY")
+	if cmp == 0 {
+		return int64(0), nil
+	}
+	return int64(1), nil
+}
+
+func (e *Engine) evalHavingIsNotDistinctFrom(v *sql.IsNotDistinctFrom, groupRows []map[string]interface{}) (interface{}, error) {
+	left, err := e.evalHavingExpr(v.Left, groupRows)
+	if err != nil {
+		return nil, err
+	}
+	right, err := e.evalHavingExpr(v.Right, groupRows)
+	if err != nil {
+		return nil, err
+	}
+	if left == nil && right == nil {
+		return int64(1), nil
+	}
+	if left == nil || right == nil {
+		return int64(0), nil
+	}
+	cmp := util.CompareValuesCollate(left, right, "BINARY")
+	if cmp == 0 {
+		return int64(1), nil
+	}
+	return int64(0), nil
 }
 
 func (e *Engine) evalHavingDefault(expr sql.Expr, groupRows []map[string]interface{}) (interface{}, error) {
@@ -2546,6 +2604,10 @@ func (e *Engine) evalComplexExpr(expr sql.Expr, row map[string]interface{}) (int
 		return e.evalIsNull(v, row)
 	case *sql.IsNotNull:
 		return e.evalIsNotNull(v, row)
+	case *sql.IsDistinctFrom:
+		return e.evalIsDistinctFrom(v, row)
+	case *sql.IsNotDistinctFrom:
+		return e.evalIsNotDistinctFrom(v, row)
 	case *sql.Between:
 		return e.evalBetween(v, row)
 	case *sql.InList:
@@ -2905,6 +2967,52 @@ func (e *Engine) evalIsNotNull(v *sql.IsNotNull, row map[string]interface{}) (in
 		return nil, err
 	}
 	return operand != nil, nil
+}
+
+func (e *Engine) evalIsDistinctFrom(v *sql.IsDistinctFrom, row map[string]interface{}) (interface{}, error) {
+	left, err := e.evalExpr(v.Left, row)
+	if err != nil {
+		return nil, err
+	}
+	right, err := e.evalExpr(v.Right, row)
+	if err != nil {
+		return nil, err
+	}
+	// IS DISTINCT FROM: 0 if equal (including NULL==NULL), 1 otherwise
+	if left == nil && right == nil {
+		return int64(0), nil
+	}
+	if left == nil || right == nil {
+		return int64(1), nil
+	}
+	cmp := util.CompareValuesCollate(left, right, "BINARY")
+	if cmp == 0 {
+		return int64(0), nil
+	}
+	return int64(1), nil
+}
+
+func (e *Engine) evalIsNotDistinctFrom(v *sql.IsNotDistinctFrom, row map[string]interface{}) (interface{}, error) {
+	left, err := e.evalExpr(v.Left, row)
+	if err != nil {
+		return nil, err
+	}
+	right, err := e.evalExpr(v.Right, row)
+	if err != nil {
+		return nil, err
+	}
+	// IS NOT DISTINCT FROM: 1 if equal (including NULL==NULL), 0 otherwise
+	if left == nil && right == nil {
+		return int64(1), nil
+	}
+	if left == nil || right == nil {
+		return int64(0), nil
+	}
+	cmp := util.CompareValuesCollate(left, right, "BINARY")
+	if cmp == 0 {
+		return int64(1), nil
+	}
+	return int64(0), nil
 }
 
 func (e *Engine) evalBetween(v *sql.Between, row map[string]interface{}) (interface{}, error) {

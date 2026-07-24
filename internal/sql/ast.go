@@ -385,6 +385,22 @@ type IsNotNull struct {
 
 func (e *IsNotNull) expr() {}
 
+// IsDistinctFrom represents an IS DISTINCT FROM expression.
+type IsDistinctFrom struct {
+	Left  Expr
+	Right Expr
+}
+
+func (e *IsDistinctFrom) expr() {}
+
+// IsNotDistinctFrom represents an IS NOT DISTINCT FROM expression.
+type IsNotDistinctFrom struct {
+	Left  Expr
+	Right Expr
+}
+
+func (e *IsNotDistinctFrom) expr() {}
+
 // Between represents a BETWEEN expression.
 type Between struct {
 	Operand Expr

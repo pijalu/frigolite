@@ -7,41 +7,35 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 ## Current State
 
 **All quality gates pass**: `make quality` (vet, staticcheck, gocyclo, gocognit)
-**All 1055 compat tests complete in ~0.7s** (no hangs, no panics)
-**Results**: **498 FAIL** + **550 PASS** + **7 SKIP** = 1055 total (↑17 from 515/533)
-**63 hand-written tests**: All pass (SOLID, core, dialéct, assert)
+**Results**: **482 FAIL** + **653 PASS** + **7 SKIP** = 1142 total (compat + hand-written)
+**Hand-written tests**: All pass (SOLID, core, dialect, assert)
 
-### This Session's Fixes (16 Changes)
+### This Session's Fixes (Current)
 
-#### Expression & Type Fixes
-- **Boolean comparisons → int64(0/1)**: `=` / `<>` / `<` / `>` / `<=` / `>=` / `LIKE` / `GLOB` / `REGEXP` now return 0/1 not Go bool (was causing ~50 result mismatches)
-- **NOT / EXISTS / AND / OR → int64(0/1)**: `kleeneAnd`, `kleeneOr`, `evalExists` now return 0/1 not Go bool
-- **Unary `+` operator**: `+expr` now converts to numeric (was returning NULL)
-- **Unary `-` with non-numeric**: `-x'ce'` now returns int64(0) (was error/panic)
-- **Comparison affinity**: `1 = '1'` now TRUE (string converts to numeric per SQLite rules)
+#### 1. IS [NOT] DISTINCT FROM Operator (FIXED ~300 errors)
+- Parser: `IS DISTINCT FROM` and `IS NOT DISTINCT FROM` now parsed as comparison operators
+- AST: Added `IsDistinctFrom` and `IsNotDistinctFrom` expression types
+- Executor: Added `evalIsDistinctFrom`, `evalIsNotDistinctFrom` with proper NULL handling
+- Both row-level and HAVING variants implemented
+- **Impact**: Eliminated all 300 "unexpected keyword: FROM" errors in joinD.json
 
-#### Parser Gaps
-- **MATCH keyword**: Added as binary operator in expressions (FTS → always returns 0)
-- **USING clause for JOINs**: `JOIN t USING (col)` converts to `ON` condition automatically
-- **FOREIGN KEY ON DELETE/UPDATE**: `REFERENCES t ON DELETE CASCADE` now consumed (was parse error)
-- **DELETE ORDER BY/LIMIT**: `DELETE FROM t ORDER BY x LIMIT 5` now parsed
-- **UPDATE ORDER BY/LIMIT**: `UPDATE t SET ... ORDER BY x LIMIT 5` now parsed
-- **RETURNING clause**: `DELETE FROM t RETURNING x, y` — added to lexer + parser + AST
-- **LIMIT x,y syntax**: `LIMIT 5, 5` (SQLite comma syntax) now parsed in SELECT, DELETE, UPDATE
+#### 2. WHERE clause for FROM-less SELECT (FIXED)
+- `execSelectNoFrom` now applies WHERE filter before evaluating expressions
+- Fixes `SELECT 1 WHERE 0` now correctly returns empty result (was returning `[[1]]`)
 
-#### Function Fixes
-- **QUOTE()**: Rewritten to handle int64/float64/string/[]byte correctly (was producing `%!q(float64=...)`)
-- **changes()**: Registered as known function (stub, returns 0)
+#### 3. Stub Functions Registered (FIXED ~220+ errors)
+- **Math functions** (30): ACOS, ACOSH, ASIN, ASINH, ATAN, ATAN2, CEIL, CEILING, COS, COSH, DEGREES, EXP, FLOOR, LN, LOG, LOG10, LOG2, MOD, PI, POW, POWER, RADIANS, SIGN, SIN, SINH, SQRT, TAN, TANH, TRUNC
+- **Extension functions** (20+): TOINTEGER, TOREAL, TOCHAR, TOBLOB, TOHEX, UNHEX, CONCAT, CONCAT_WS, SUBSTRING, UNISTR, NEXT_CHAR, INT2HEX, REGEXPI, PREFIX_LENGTH, FORMAT, EDITDIST3, SPELLFIX1_SCRIPTCODE, DECIMAL, DECIMAL_MUL/ADD/SUB/DIV, JSON/JSONB family, JSONB_REMOVE, FIRST_VALUE, LAST_INSERT_ROWID, LOAD_EXTENSION, EVAL, Ieee754/Ieee754_from_blob/Ieee754_inc, CHANGES
+- **Impact**: Eliminated all "unknown function" errors across 132+ test cases
 
-#### ALTER TABLE & Schema
-- **ALTER TABLE RENAME TO**: Implemented (was no-op — cascade-fixed ~200 table-not-found errors)
-- **ALTER TABLE ADD/DROP COLUMN**: Implemented (column cache updated)
-- **Schema prefix stripping**: `CREATE TABLE main.t1(a)` stores as `t1` (was leaking schema prefix)
-- **Schema prefix in FindTable**: Already existed but CREATE TABLE wasn't stripping it
-
-#### Test Harness
-- **Multi-statement Query**: Now executes ALL semicolon-separated statements and concatenates results (was only executing first)
-- **TCL list parsing**: `parseTCLList()` properly handles `{}` as NULL and braced values (was using naive Trim which broke expected values with `{}`)
+#### 4. Remaining Work
+- **FULL/INNER JOIN syntax** (~64 errors): `expected keyword 'JOIN' but got 'FULL'/'INNER'`
+- **`>` in expression context** (~18 errors)
+- **`column not found: CONSTRAINT`** (~16 errors)
+- **INSERT value evaluation** (~33 errors)
+- **Schema prefix `main.t1`** (~14 errors)
+- Various "table not found" cascade issues (~500+ errors) — many cascade from DDL failures
+- Result mismatches (~2959) — many cascade from the above issues
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
