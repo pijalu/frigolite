@@ -2538,18 +2538,54 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		delete(e.colCache, oldName)
 	}
 
-	// Rename any indexes that reference this table
+	// Update views and triggers that reference the renamed table
 	entries, err := e.schema.GetEntries("")
 	if err == nil {
 		for _, entry := range entries {
-			if entry.Type == schema.TypeIndex && entry.TblName == oldName {
-				// Rename index: update its tbl_name and SQL
-				_ = e.schema.RenameEntry(entry.Name, entry.Name) // re-read SQL
+			switch entry.Type {
+			case schema.TypeView:
+				// Update view SQL to use new table name
+				if strings.Contains(entry.SQL, oldName) || strings.Contains(entry.SQL, strings.ToUpper(oldName)) {
+					newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
+					if newSQL != entry.SQL {
+						_ = e.schema.RemoveEntry(entry.Name)
+						entry.SQL = newSQL
+						_ = e.schema.AddEntry(entry)
+					}
+				}
+			case schema.TypeTrigger:
+				// Update trigger's tbl_name and SQL
+				if strings.EqualFold(entry.TblName, oldName) {
+					entry.TblName = newName
+					entry.SQL = strings.ReplaceAll(entry.SQL, oldName, newName)
+					_ = e.schema.RemoveEntry(entry.Name)
+					_ = e.schema.AddEntry(entry)
+				}
+			case schema.TypeIndex:
+				// Update index that references this table
+				if strings.EqualFold(entry.TblName, oldName) {
+					entry.TblName = newName
+					// Replace old table name with new name in index SQL
+					entry.SQL = strings.ReplaceAll(entry.SQL, oldName, newName)
+					_ = e.schema.RemoveEntry(entry.Name)
+					_ = e.schema.AddEntry(entry)
+				}
 			}
 		}
 	}
 
 	return &Result{}
+}
+
+// replaceTableNameInSQL replaces occurrences of oldTableName with newTableName in SQL text.
+// Uses word-boundary matching to avoid partial matches (e.g., renaming t1 should not match t10).
+// Always quotes the new name with double quotes to handle names with spaces or special chars.
+func replaceTableNameInSQL(sql, oldName, newName string) string {
+	quotedNew := `"` + newName + `"`
+	quotedOld := regexp.QuoteMeta(oldName)
+	// Match as a whole word: preceded by non-alphanumeric or start, followed by non-alphanumeric or end
+	re := regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + quotedOld + `([^a-zA-Z0-9_]|$)`)
+	return re.ReplaceAllString(sql, "${1}"+quotedNew+"${2}")
 }
 
 func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
