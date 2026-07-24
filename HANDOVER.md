@@ -7,9 +7,9 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 ## Current State
 
 **All quality gates pass**: `make quality` (vet, staticcheck, gocyclo ≤20, gocognit ≤30)
-**Results**: **TBD** — full suite times out at 60s (1103 tests × up to 60 pairs each)
+**Results**: **TBD** — full suite times out at 60s (1088 tests × up to 60 pairs each)
 **Hand-written tests**: All pass (SOLID, core, dialect, assert)
-**Generated test file**: 1103 test functions (up from 1067)
+**Generated test file**: 1088 test functions (up from 1067)
 **Test data**: 702 JSON test files for harness runner
 
 ### This Session's Fixes (Current)
