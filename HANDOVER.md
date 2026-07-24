@@ -88,25 +88,37 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 
 Top-priority engine fixes to reduce the most failures:
 
-### 1. Schema Prefix Handling in Views (HIGH IMPACT)
-- `execCreateView` stores `temp.ttt` as name, but `FindView("ttt")` doesn't fall back to short name
-- Fix: `FindView` should strip schema prefixes like `FindTable` does
-- Fix: `execCreateView` should strip `temp.` prefix like `execCreateTable` does
+### 1. View Expansion Error Handling (HIGH IMPACT)
+- When a view references a table that doesn't exist (e.g., after a rename), SQLite returns partial results with error messages embedded in rows
+- Frigolite treats this as a query failure, returning an error
+- Fix: Make `execSelectFromTable` return error rows instead of failing when a table is not found
 
-### 2. Catchsql Error Scenarios in Engine (HIGH IMPACT)  
-- Engine currently successeds where SQLite expects errors (e.g., `ALTER TABLE t2 RENAME TO one` with ambiguous column name)
-- Each catchsql that silently succeeds corrupts database state for subsequent tests
-- Fix: Add validation in ALTER TABLE RENAME to check for name conflicts in existing views/triggers
+### 2. ifcapable Block Filtering in Converter (HIGH IMPACT)
+- Tests inside `ifcapable vtab/fts5/rtree { ... }` blocks are still extracted even when the feature is unsupported
+- The dependent tests (ALTER TABLE on virtual tables) fail because the CREATE was filtered
+- Fix: Track ifcapable blocks in the converter and skip extracted tests inside them for unsupported features
 
-### 3. View Expansion with Schema-Qualified Names (MEDIUM IMPACT)
-- `SELECT main.txx.a` is parsed as `main.txx` (table)`.a` (column)
-- Table lookup `FindTable("main.txx")` fails because table is stored as `txx`
-- Fix: `FindTable` fallback to short name for `main.txx` → `txx`
+### 3. Multi-Statement Classification in Converter (MEDIUM IMPACT)
+- Converter determines query/exec by first statement only
+- Multi-statement SQL ending with SELECT is misclassified as exec
+- Fix: Classify as query if ANY statement is SELECT/PRAGMA/EXPLAIN, or if the last statement is
 
-### 4. Multi-Statement Exec Error Behaviour (MEDIUM IMPACT)
-- `db.Exec("CREATE TABLE t1(a); CREATE VIEW v1 AS SELECT * FROM t2;")` returns error on view creation but `t1` table persists
-- SQLite would roll back all effects when a multi-statement exec fails
-- Fix: Add transaction wrapping for multi-statement Exec
+### 4. Result Formatting Differences (LOW IMPACT)
+- Various minor differences in how results are formatted
+- Many cascade from issues 1-3 above
+
+### Session 3 Progress (Completed)
+- ✅ `FindView`: Added schema prefix fallback (main.ttt → ttt)
+- ✅ `execCreateView`: Strip main/temp prefixes before storing
+- ✅ `FindTrigger`: Added schema prefix fallback
+- ✅ `FindIndex`: Added schema prefix fallback
+- ✅ `execCreateTrigger`: Strip main/temp prefixes from names
+- ✅ Committed with quality gates passing
+
+### Remaining Session 2 Work
+- ⏳ Catchsql error-checking generation (converter) - PARTIALLY DONE
+- ⏳ ifcapable block filtering - NOT STARTED
+- ⏳ Multi-statement exec/query classification - NOT STARTED
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
