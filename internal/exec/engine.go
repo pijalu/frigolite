@@ -238,7 +238,7 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
 	buf.WriteString(s.Name)
-	buf.WriteString(" (")
+	buf.WriteString("(")
 	for i, col := range s.Columns {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -3287,23 +3287,122 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 		return &Result{}
 	}
 
+	// Find the table entry first
+	tableEntry, err := e.schema.FindTable(tableName)
+	if err != nil {
+		// Check if it's a view
+		if viewEntry, viewErr := e.schema.FindView(tableName); viewErr == nil && viewEntry != nil {
+			return &Result{Error: fmt.Errorf("cannot drop column from view %q", tableName)}
+		}
+		// Return the table not found error
+		return &Result{Error: err}
+	}
+
+	// Check if it's a virtual table (has "USING" in SQL or uses a known module)
+	if strings.Contains(tableEntry.SQL, "USING") || e.isVirtualTable(tableEntry) {
+		return &Result{Error: fmt.Errorf("cannot drop column from virtual table %q", tableName)}
+	}
+
+	// Check if it's the sqlite_master system table
+	if strings.EqualFold(tableName, "sqlite_master") ||
+		strings.EqualFold(tableName, "sqlite_temp_master") ||
+		strings.EqualFold(tableName, "sqlite_schema") {
+		return &Result{Error: fmt.Errorf("table sqlite_master may not be altered")}
+	}
+
 	// Remove column from cached column definitions
 	colDefs := e.colCache[tableName]
+	if colDefs == nil {
+		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	}
 	found := false
 	var newColDefs []sql.ColumnDef
 	for _, c := range colDefs {
 		if c.Name == s.Column {
+			// Cannot drop PRIMARY KEY columns
+			if c.PrimaryKey {
+				return &Result{Error: fmt.Errorf("cannot drop PRIMARY KEY column: %q", s.Column)}
+			}
+			// Cannot drop UNIQUE columns
+			if c.Unique {
+				return &Result{Error: fmt.Errorf("cannot drop UNIQUE column: %q", s.Column)}
+			}
 			found = true
 			continue
 		}
 		newColDefs = append(newColDefs, c)
 	}
 	if !found {
-		return &Result{Error: fmt.Errorf("column not found: %s", s.Column)}
+		return &Result{Error: fmt.Errorf("no such column: \"%s\"", s.Column)}
+	}
+	// Cannot drop the last remaining column
+	if len(newColDefs) == 0 {
+		e.colCache[tableName] = colDefs // restore original column list
+		return &Result{Error: fmt.Errorf("cannot drop column %q: no other columns exist", s.Column)}
 	}
 	e.colCache[tableName] = newColDefs
 
+	// Update the table's stored SQL to reflect the dropped column
+	// Rebuild the CREATE TABLE SQL without the dropped column
+	// We need a temporary CreateTableStmt to use buildCreateTableSQL
+	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, newColDefs)
+	if updateSQL != "" {
+		tableEntry.SQL = updateSQL
+		_ = e.schema.RemoveEntry(tableEntry.Name)
+		_ = e.schema.AddEntry(tableEntry)
+	}
+
 	return &Result{}
+}
+
+// rebuildCreateTableSQL rebuilds a CREATE TABLE SQL string with updated column definitions.
+func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
+	// Simple approach: extract the table name from the original SQL
+	// and rebuild the CREATE TABLE statement with new column defs
+	upper := strings.ToUpper(origSQL)
+	if !strings.Contains(upper, "CREATE TABLE") {
+		return ""
+	}
+	// Extract table name (handles schema prefixes like main.t1)
+	tableName := ""
+	afterCreate := origSQL
+	if idx := strings.Index(upper, "CREATE TABLE"); idx >= 0 {
+		afterCreate = origSQL[idx+12:]
+	}
+	afterCreate = strings.TrimSpace(afterCreate)
+	// The table name is the next word
+	if idx := strings.IndexAny(afterCreate, " ("); idx >= 0 {
+		tableName = strings.TrimSpace(afterCreate[:idx])
+	} else {
+		return ""
+	}
+
+	// Find the existing SQL structure to preserve table-level constraints
+	// For simplicity, just build a minimal CREATE TABLE
+	var buf strings.Builder
+	buf.WriteString("CREATE TABLE ")
+	buf.WriteString(tableName)
+	buf.WriteString("(")
+	for i, col := range colDefs {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		formatColumnDef(&buf, col)
+	}
+	buf.WriteString(")")
+	return buf.String()
+}
+
+func (e *Engine) isVirtualTable(entry *schema.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	// Check if the table SQL contains "USING" which indicates a virtual table
+	if strings.Contains(strings.ToUpper(entry.SQL), " USING ") {
+		return true
+	}
+	// Check if the table's root page type is a virtual table (if available)
+	return false
 }
 
 // --- Expression evaluation ---

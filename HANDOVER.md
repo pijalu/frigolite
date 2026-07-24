@@ -169,7 +169,7 @@ Top-priority engine fixes to reduce the most failures:
 - Test data SQL now includes CHECK constraints and INDEX WHERE clauses
 - Total JSON suite failures: 157 → 155
 
-#### Remaining Failures (155 total in JSON suite)
+#### Remaining Failures (146 total in JSON suite)
 | File | exec | qry | mis | exp | err | Total |
 |------|------|-----|-----|-----|-----|-------|
 | affinity2 | 0 | 0 | 6 | 1 | 0 | 7 |
@@ -181,13 +181,13 @@ Top-priority engine fixes to reduce the most failures:
 | altercons2 | 0 | 0 | 10 | 6 | 0 | 16 |
 | altercons3 | 0 | 0 | 1 | 0 | 0 | 1 |
 | altercorrupt | 0 | 0 | 0 | 0 | 2 | 2 |
-| alterdropcol | 4 | 0 | 4 | 10 | 7 | 25 |
+| alterdropcol | 4 | 0 | 2 | 8 | 3 | 17 |
 | alterdropcol2 | 0 | 0 | 2 | 1 | 2 | 5 |
 | alterlegacy | 7 | 1 | 9 | 11 | 2 | 30 |
 | altermalloc2 | 1 | 0 | 0 | 0 | 0 | 1 |
 | altertab2 | 5 | 0 | 1 | 4 | 0 | 10 |
 | altertab3 | 9 | 0 | 5 | 6 | 5 | 25 |
-| **TOTAL** | **28** | **3** | **67** | **46** | **19** | **155** |
+| **TOTAL** | **28** | **3** | **67** | **46** | **19** | **146** |
 
 
 
