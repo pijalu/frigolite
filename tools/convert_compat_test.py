@@ -20,6 +20,19 @@ UNSUPPORTED = re.compile(
     r'soft_heap_limit|hard_heap_limit|threads|page_size=65536))',
     re.IGNORECASE
 )
+
+# ifcapable features that are completely unsupported — entire blocks are skipped
+# Features NOT in this list or in SUPPORTED_IFCAPABLE will have their content included
+# (individual SQL statements are still filtered by has_unsupported_features)
+UNSUPPORTED_IFCAPABLE = {
+    'fts3', 'fts4', 'fts5', 'rtree', 'json1', 'icu', 'session',
+    'dbstat', 'csv', 'dbdata', 'decimal', 'memorydb', 'shared_cache',
+    'direct_read', 'dirread',
+}
+
+# ifcapable features that ARE supported at the block level
+# (may still have individual statements filtered)
+SUPPORTED_IFCAPABLE = {'altertable', 'trigger', 'view', 'explain'}
   
 def has_unsupported_features(sql):
     """Check if SQL uses features the engine doesn't support."""
@@ -113,6 +126,53 @@ def extract_balanced_braces(text, start_pos):
         i += 1
     return None  # Unbalanced braces
 
+def find_ifcapable_blocks(content):
+    """Find all ifcapable feature blocks and return list of (feature, start, end, negated).
+    Handles nested brace matching for proper block boundaries.
+    NOTE: This does NOT handle nested ifcapable blocks (they're rare in SQLite tests)."""
+    blocks = []
+    pattern = r'ifcapable\s+(!?\w+)'
+    for m in re.finditer(pattern, content):
+        feature = m.group(1)
+        negated = feature.startswith('!')
+        if negated:
+            feature = feature[1:]
+        feature = feature.lower()
+        
+        # Find the opening brace after the feature name
+        pos = m.end()
+        while pos < len(content) and content[pos] in ' \t\n\r':
+            pos += 1
+        if pos >= len(content) or content[pos] != '{':
+            continue
+        
+        # Use brace counting to find the closing brace
+        result = extract_balanced_braces(content, pos)
+        if result is None:
+            continue
+        _, end_pos = result
+        
+        # Determine if this block should be skipped
+        should_skip = False
+        if negated:
+            # ifcapable !feature { ... } — include if feature is NOT supported
+            should_skip = feature in SUPPORTED_IFCAPABLE
+        else:
+            # ifcapable feature { ... } — include if feature IS supported
+            should_skip = feature in UNSUPPORTED_IFCAPABLE
+        
+        if should_skip:
+            blocks.append((m.start(), end_pos))
+    
+    return blocks
+
+def is_position_blocked(pos, blocks):
+    """Check if a position falls within any blocked ifcapable block."""
+    for start, end in blocks:
+        if start <= pos <= end:
+            return True
+    return False
+
 def extract_sql_pairs(content):
     """Extract (sql, expected) pairs from TCL test content in file order.
     For do_execsql_test and do_catchsql_test, expected is the result after SQL.
@@ -120,9 +180,16 @@ def extract_sql_pairs(content):
     Returns pairs in the order they appear in the file."""
     pairs = []
     
+    # Pre-compute blocked ifcapable blocks (for completely unsupported features)
+    blocked_ranges = find_ifcapable_blocks(content)
+    
     # Phase 1: Extract do_execsql_test and do_catchsql_test using brace counting
     pattern = r'(do_execsql_test|do_catchsql_test)\s+(\S+)\s*'
     for m in re.finditer(pattern, content):
+        # Skip if inside a blocked ifcapable block
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
+        
         cmd_type = m.group(1)
         pos = m.end()
         
@@ -160,12 +227,16 @@ def extract_sql_pairs(content):
     
     # Phase 2: Extract execsql { ... } patterns
     for m in re.finditer(r'execsql\s*\{([^}]*)\}', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "execsql", m.start()))
       
     # Phase 3: Match execsql [subst -nocommands { SQL }] patterns
     for m in re.finditer(r'execsql\s*\[subst -nocommands\s*\{([^}]*)\}\]', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             sql = tcl_variable_substitute(sql)
@@ -173,6 +244,8 @@ def extract_sql_pairs(content):
     
     # Phase 4: Match execsql [subst { SQL }] patterns (full substitution)
     for m in re.finditer(r'execsql\s*\[subst\s+\{([^}]*)\}\]', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             sql = tcl_variable_substitute(sql)
@@ -180,32 +253,55 @@ def extract_sql_pairs(content):
     
     # Phase 5: Match execsql { ... } inside ifcapable blocks
     for m in re.finditer(r'ifcapable\s+\w+\s*\{[^}]*execsql\s*\{([^}]*)\}[^}]*\}', content):
+        # These are already inside ifcapable blocks — skip if blocked
+        # (This pattern is redundant with Phase 1 extraction, but we check anyway)
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "execsql", m.start()))
     
     # Phase 6: Match db eval patterns
     for m in re.finditer(r'db\s+eval\s*\{([^}]*)\}', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "db_eval", m.start()))
     
     for m in re.finditer(r'db\s+eval\s+"([^"]*)"', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "db_eval", m.start()))
     
     # Phase 7: Match reset_db
     for m in re.finditer(r'^reset_db\s*$', content, re.MULTILINE):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
+        pairs.append(('__RESET_DB__', None, 'reset_db', m.start()))
+    
+    # Phase 8: Match db close + sqlite3 db test.db patterns
+    # (TCL pattern for closing and reopening the database to clear module registrations)
+    for m in re.finditer(r'db\s+close\s*\n\s*sqlite3\s+db\s', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
+        # Use the start of 'db close' as the position
         pairs.append(('__RESET_DB__', None, 'reset_db', m.start()))
     
     # Sort by position in file to maintain original order
     pairs.sort(key=lambda x: x[3])
     
     # Remove duplicates (keep first occurrence) while preserving order
+    # NOTE: __RESET_DB__ entries are NOT deduplicated — each position matters
     seen = set()
     unique = []
     for sql, expected, cmd_type, pos in pairs:
+        if sql == '__RESET_DB__':
+            # Keep every reset_db entry — each is a unique database reset point
+            unique.append((sql, expected, cmd_type, pos))
+            continue
         key = (sql, cmd_type)
         if key not in seen:
             seen.add(key)
