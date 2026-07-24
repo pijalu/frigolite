@@ -2215,22 +2215,9 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface
 func findNestedAggregate(expr sql.Expr, funcs *function.Registry) string {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
-		// Check if this function itself is an aggregate
-		if fn, ok := funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
-			return v.Name
-		}
-		// Check arguments of scalar functions
-		for _, arg := range v.Args {
-			if nested := findNestedAggregate(arg, funcs); nested != "" {
-				return nested
-			}
-		}
-		return ""
+		return findNestedAggregateFuncCall(v, funcs)
 	case *sql.BinaryOp:
-		if nested := findNestedAggregate(v.Left, funcs); nested != "" {
-			return nested
-		}
-		return findNestedAggregate(v.Right, funcs)
+		return findNestedAggregateBinary(v.Left, v.Right, funcs)
 	case *sql.UnaryOp:
 		return findNestedAggregate(v.Operand, funcs)
 	case *sql.IsNull:
@@ -2238,67 +2225,94 @@ func findNestedAggregate(expr sql.Expr, funcs *function.Registry) string {
 	case *sql.IsNotNull:
 		return findNestedAggregate(v.Operand, funcs)
 	case *sql.IsDistinctFrom:
-		if nested := findNestedAggregate(v.Left, funcs); nested != "" {
-			return nested
-		}
-		return findNestedAggregate(v.Right, funcs)
+		return findNestedAggregateBinary(v.Left, v.Right, funcs)
 	case *sql.IsNotDistinctFrom:
-		if nested := findNestedAggregate(v.Left, funcs); nested != "" {
-			return nested
-		}
-		return findNestedAggregate(v.Right, funcs)
+		return findNestedAggregateBinary(v.Left, v.Right, funcs)
 	case *sql.Between:
-		if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
-			return nested
-		}
-		if nested := findNestedAggregate(v.Low, funcs); nested != "" {
-			return nested
-		}
-		return findNestedAggregate(v.High, funcs)
+		return findNestedAggregateBetween(v, funcs)
 	case *sql.InList:
-		if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
-			return nested
-		}
-		for _, item := range v.List {
-			if nested := findNestedAggregate(item, funcs); nested != "" {
-				return nested
-			}
-		}
-		return ""
+		return findNestedAggregateInList(v, funcs)
 	case *sql.CaseExpr:
-		if v.Operand != nil {
-			if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
-				return nested
-			}
-		}
-		for _, w := range v.Whens {
-			if nested := findNestedAggregate(w.When, funcs); nested != "" {
-				return nested
-			}
-			if nested := findNestedAggregate(w.Then, funcs); nested != "" {
-				return nested
-			}
-		}
-		if v.Else != nil {
-			return findNestedAggregate(v.Else, funcs)
-		}
-		return ""
+		return findNestedAggregateCaseExpr(v, funcs)
 	case *sql.CastExpr:
 		return findNestedAggregate(v.Operand, funcs)
 	case *sql.RowValue:
-		for _, val := range v.Values {
-			if nested := findNestedAggregate(val, funcs); nested != "" {
-				return nested
-			}
-		}
-		return ""
+		return findNestedAggregateRowValue(v, funcs)
 	case *sql.Subquery, *sql.ExistsExpr:
-		// Don't descend into subqueries — they have their own scope
 		return ""
 	default:
-		// ColumnRef, NumericLit, StringLit, NullLit — no function calls
 		return ""
 	}
+}
+
+func findNestedAggregateFuncCall(v *sql.FuncCall, funcs *function.Registry) string {
+	if fn, ok := funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
+		return v.Name
+	}
+	for _, arg := range v.Args {
+		if nested := findNestedAggregate(arg, funcs); nested != "" {
+			return nested
+		}
+	}
+	return ""
+}
+
+func findNestedAggregateBinary(left, right sql.Expr, funcs *function.Registry) string {
+	if nested := findNestedAggregate(left, funcs); nested != "" {
+		return nested
+	}
+	return findNestedAggregate(right, funcs)
+}
+
+func findNestedAggregateBetween(v *sql.Between, funcs *function.Registry) string {
+	if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
+		return nested
+	}
+	if nested := findNestedAggregate(v.Low, funcs); nested != "" {
+		return nested
+	}
+	return findNestedAggregate(v.High, funcs)
+}
+
+func findNestedAggregateInList(v *sql.InList, funcs *function.Registry) string {
+	if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
+		return nested
+	}
+	for _, item := range v.List {
+		if nested := findNestedAggregate(item, funcs); nested != "" {
+			return nested
+		}
+	}
+	return ""
+}
+
+func findNestedAggregateCaseExpr(v *sql.CaseExpr, funcs *function.Registry) string {
+	if v.Operand != nil {
+		if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
+			return nested
+		}
+	}
+	for _, w := range v.Whens {
+		if nested := findNestedAggregate(w.When, funcs); nested != "" {
+			return nested
+		}
+		if nested := findNestedAggregate(w.Then, funcs); nested != "" {
+			return nested
+		}
+	}
+	if v.Else != nil {
+		return findNestedAggregate(v.Else, funcs)
+	}
+	return ""
+}
+
+func findNestedAggregateRowValue(v *sql.RowValue, funcs *function.Registry) string {
+	for _, val := range v.Values {
+		if nested := findNestedAggregate(val, funcs); nested != "" {
+			return nested
+		}
+	}
+	return ""
 }
 
 // evalDistinctAggregate evaluates an aggregate function with DISTINCT,
