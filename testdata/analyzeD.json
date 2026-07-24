@@ -1,0 +1,31 @@
+{
+  "file": "analyzeD.test",
+  "name": "analyzeD",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3001, 3001, 3001);\n    INSERT INTO t1 VALUES(3001, 3001, 3002);\n    INSERT INTO t1 VALUES(3001, 3001, 3003);\n    INSERT INTO t1 VALUES(3001, 3001, 3004);\n    INSERT INTO t1 VALUES(3001, 3001, 3005);\n    INSERT INTO t1 VALUES(3001, 3001, 3006);\n    INSERT INTO t1 VALUES(3001, 3001, 3007);\n\n    CREATE INDEX t1_ab ON t1(a, b);\n    CREATE INDEX t1_c ON t1(c);\n\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_stat1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=13 WHERE a = 3001;\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_stat1"
+        }
+      ]
+    }
+  ]
+}

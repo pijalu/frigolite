@@ -1,0 +1,59 @@
+{
+  "file": "bestindex8.test",
+  "name": "bestindex8",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM vt1 LIMIT 10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "file": "cursorhint2.test",
+  "name": "cursorhint2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT tbl_name, rootpage FROM sqlite_master where rootpage"
+        }
+      ]
+    },
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x, y);\n  CREATE TABLE x2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (i1 TEXT);    \n  CREATE TABLE t2 (i2 TEXT UNIQUE);    \n  INSERT INTO t1 VALUES('0');\n  INSERT INTO t2 VALUES('0');"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "file": "where3.test",
+  "name": "where3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(p, q);\n    CREATE TABLE t3(x, y);\n    \n    INSERT INTO t1 VALUES(111,'one');\n    INSERT INTO t1 VALUES(222,'two');\n    INSERT INTO t1 VALUES(333,'three');\n    \n    INSERT INTO t2 VALUES(1,111);\n    INSERT INTO t2 VALUES(2,222);\n    INSERT INTO t2 VALUES(4,444);\n    CREATE INDEX t2i1 ON t2(p);\n    \n    INSERT INTO t3 VALUES(999,'nine');\n    CREATE INDEX t3i1 ON t3(x);\n    \n    SELECT * FROM t1, t2 LEFT JOIN t3 ON q=x WHERE p=2 AND a=q;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent1(parent1key, child1key, Child2key, child3key);\n    CREATE TABLE child1 ( child1key NVARCHAR, value NVARCHAR );\n    CREATE UNIQUE INDEX PKIDXChild1 ON child1 ( child1key );\n    CREATE TABLE child2 ( child2key NVARCHAR, value NVARCHAR );\n\n    INSERT INTO parent1(parent1key,child1key,child2key)\n       VALUES ( 1, 'C1.1', 'C2.1' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.1', 'Value for C1.1' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.1', 'Value for C2.1' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 2, 'C1.2', 'C2.2' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.2', 'Value for C2.2' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 3, 'C1.3', 'C2.3' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.3', 'Value for C1.3' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.3', 'Value for C2.3' );\n\n    SELECT parent1.parent1key, child1.value, child2.value\n    FROM parent1\n    LEFT OUTER JOIN child1 ON child1.child1key = parent1.child1key\n    INNER JOIN child2 ON child2.child2key = parent1.child2key;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tA(apk integer primary key, ax);\n    CREATE TABLE tB(bpk integer primary key, bx);\n    CREATE TABLE tC(cpk integer primary key, cx);\n    CREATE TABLE tD(dpk integer primary key, dx);"
+        }
+      ]
+    },
+    {
+      "name": "where3-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t301(a INTEGER PRIMARY KEY,b,c);\n  CREATE INDEX t301c ON t301(c);\n  INSERT INTO t301 VALUES(1,2,3);\n  INSERT INTO t301 VALUES(2,2,3);\n  CREATE TABLE t302(x, y);\n  INSERT INTO t302 VALUES(4,5);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "where3-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t301 WHERE c=3 AND a IS NULL;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "where3-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aaa (id INTEGER PRIMARY KEY, type INTEGER,\n                    fk INTEGER DEFAULT NULL, parent INTEGER,\n                    position INTEGER, title LONGVARCHAR,\n                    keyword_id INTEGER, folder_type TEXT,\n                    dateAdded INTEGER, lastModified INTEGER);\n  CREATE INDEX aaa_111 ON aaa (fk, type);\n  CREATE INDEX aaa_222 ON aaa (parent, position);\n  CREATE INDEX aaa_333 ON aaa (fk, lastModified);\n  CREATE TABLE bbb (id INTEGER PRIMARY KEY, type INTEGER,\n                    fk INTEGER DEFAULT NULL, parent INTEGER,\n                    position INTEGER, title LONGVARCHAR,\n                    keyword_id INTEGER, folder_type TEXT,\n                    dateAdded INTEGER, lastModified INTEGER);\n  CREATE INDEX bbb_111 ON bbb (fk, type);\n  CREATE INDEX bbb_222 ON bbb (parent, position);\n  CREATE INDEX bbb_333 ON bbb (fk, lastModified);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6w(a, w);\n    INSERT INTO t6w VALUES(1, 'w-one');\n    INSERT INTO t6w VALUES(2, 'w-two');\n    INSERT INTO t6w VALUES(9, 'w-nine');\n    CREATE TABLE t6x(a, x);\n    INSERT INTO t6x VALUES(1, 'x-one');\n    INSERT INTO t6x VALUES(3, 'x-three');\n    INSERT INTO t6x VALUES(9, 'x-nine');\n    CREATE TABLE t6y(a, y);\n    INSERT INTO t6y VALUES(1, 'y-one');\n    INSERT INTO t6y VALUES(4, 'y-four');\n    INSERT INTO t6y VALUES(9, 'y-nine');\n    CREATE TABLE t6z(a, z);\n    INSERT INTO t6z VALUES(1, 'z-one');\n    INSERT INTO t6z VALUES(5, 'z-five');\n    INSERT INTO t6z VALUES(9, 'z-nine');"
+        }
+      ]
+    },
+    {
+      "name": "where3-7-setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t71(x1 INTEGER PRIMARY KEY, y1);\n  CREATE TABLE t72(x2 INTEGER PRIMARY KEY, y2);\n  CREATE TABLE t73(x3, y3);\n  CREATE TABLE t74(x4, y4);\n  INSERT INTO t71 VALUES(123,234);\n  INSERT INTO t72 VALUES(234,345);\n  INSERT INTO t73 VALUES(123,234);\n  INSERT INTO t74 VALUES(234,345);\n  INSERT INTO t74 VALUES(234,678);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "where3-7.$disabled_opt.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT x3 FROM t73 LEFT JOIN t74 ON x4=y3;",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "where3-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);  INSERT INTO t1 VALUES(1,2,3,4);\n  CREATE TABLE t2(x,y);      INSERT INTO t2 VALUES(3,4);\n  CREATE INDEX t2xy ON t2(x,y);\n  SELECT 1 FROM t1 JOIN t2 ON x=c AND y=d WHERE d>0;",
+          "expect": "1"
+        }
+      ]
+    }
+  ]
+}

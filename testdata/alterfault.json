@@ -1,0 +1,40 @@
+{
+  "file": "alterfault.test",
+  "name": "alterfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN b CHECK (a!=1)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE x1 DROP CONSTRAINT nosuchconstraint"
+        }
+      ]
+    }
+  ]
+}

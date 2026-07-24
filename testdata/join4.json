@@ -1,0 +1,59 @@
+{
+  "file": "join4.test",
+  "name": "join4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "create index i2 on t2(z);"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z>='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z>='ok'"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x where t2.z IN ('ok')"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left outer join t2 on t1.a=t2.x and t2.z IN ('ok')"
+        }
+      ]
+    }
+  ]
+}

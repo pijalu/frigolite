@@ -1,0 +1,15 @@
+{
+  "file": "tkt1501.test",
+  "name": "tkt1501",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT a, b, 'abc' FROM t1\n      UNION\n      SELECT b, a, 'xyz' FROM t1\n      ORDER BY 2, 3;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "file": "orderby9.test",
+  "name": "orderby9",
+  "tests": [
+    {
+      "name": "setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1 SELECT x FROM c;",
+          "expect": "# Some versions of TCL are unable to [lsort -int] for"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT random() AS y FROM t1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT random() AS y FROM t1 ORDER BY random();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT random() AS y FROM t1 ORDER BY +random();"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "file": "tempdb.test",
+  "name": "tempdb",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('hello');\n    INSERT INTO t2 VALUES(NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a PRIMARY KEY, b, c);\n    CREATE TABLE t2 (a, b, c);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      INSERT INTO t1 VALUES(4, 5, 6);\n      INSERT INTO t2 VALUES(7, 8, 9);\n      INSERT INTO t2 SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = 'memory';\n    ROLLBACK;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      INSERT INTO t1 VALUES(4, 5, 6);\n      INSERT INTO t2 SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "file": "with3.test",
+  "name": "with3",
+  "tests": [
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE w1(pk INTEGER PRIMARY KEY, x INTEGER);\n  CREATE TABLE w2(pk INTEGER PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t5(t5col1) AS (\n    SELECT (\n      WITH t3(t3col1) AS (\n        WITH t2 AS (\n          WITH t1 AS (SELECT 1 AS c1 GROUP BY 1) \n          SELECT a.c1 FROM t1 AS a, t1 AS b\n          WHERE anoncol1 = 1\n        )\n        SELECT (SELECT 1 FROM t2) FROM t2\n      ) \n      SELECT t3col1 FROM t3 WHERE t3col1\n    ) FROM (SELECT 1 AS anoncol1)\n  )\n  SELECT t5col1, t5col1 FROM t5",
+          "expect": "{1 1}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "file": "vtabK.test",
+  "name": "vtabK",
+  "tests": [
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "150",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sqlite_stat1(a)\n  VALUES('We hold these truths to be self-evident...');\n  SELECT * FROM sqlite_stat1;",
+          "expect": "{{We hold these truths to be self-evident...}}"
+        }
+      ]
+    },
+    {
+      "name": "160",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;",
+          "expect": "{1 {database disk image is malformed}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

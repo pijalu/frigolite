@@ -1,0 +1,91 @@
+{
+  "file": "in7.test",
+  "name": "in7",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c PRIMARY KEY);\n  CREATE TABLE t2(x, y, z);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage, tbl_name FROM sqlite_schema"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (a int UNIQUE);\n  CREATE TABLE t2 (b int UNIQUE);\n  INSERT INTO t1 VALUES (1);\n  INSERT INTO t2 VALUES (1), (2);\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 1);",
+          "expect": "{1 1}"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 1));",
+          "expect": "{1 1}"
+        }
+      ]
+    },
+    {
+      "name": "3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 2);",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

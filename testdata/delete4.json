@@ -1,0 +1,179 @@
+{
+  "file": "delete4.test",
+  "name": "delete4",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 1);\n  INSERT INTO t1 VALUES(3, 0);\n  INSERT INTO t1 VALUES(4, 1);\n  INSERT INTO t1 VALUES(5, 0);\n  INSERT INTO t1 VALUES(6, 1);\n  INSERT INTO t1 VALUES(7, 0);\n  INSERT INTO t1 VALUES(8, 1);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE y=1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE y=1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  DELETE FROM t1 WHERE a=1;\n  SELECT printf('(%d)',changes());\n  SELECT * FROM t1;",
+          "expect": "{(2) 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a='two' OR b='iv';"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INT);\n  INSERT INTO t2(x) VALUES(1),(2),(3),(4),(5);\n  DELETE FROM t2 WHERE EXISTS(SELECT 1 FROM t2 AS v WHERE v.x=t2.x-1);\n  SELECT x FROM t2;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "7.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);\n  INSERT INTO t3 VALUES(4, 4, 1);"
+        }
+      ]
+    },
+    {
+      "name": "7.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE a=4 OR b=1;"
+        }
+      ]
+    },
+    {
+      "name": "7.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';",
+          "expect": "db close"
+        }
+      ]
+    },
+    {
+      "name": "7.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE b='world'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(id INT PRIMARY KEY, a, b) WITHOUT ROWID;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id+3;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "7.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t3t;\n  INSERT INTO t3 VALUES(1, 2, 3);\n  INSERT INTO t3 VALUES(4, 5, 6);\n  INSERT INTO t3 VALUES(7, 8, 9);\n  CREATE TRIGGER t3t BEFORE DELETE ON t3 BEGIN\n    DELETE FROM t3 WHERE id=old.id;\n  END;"
+        }
+      ]
+    }
+  ]
+}

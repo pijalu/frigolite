@@ -1,0 +1,19 @@
+{
+  "file": "incrblob_err.test",
+  "name": "incrblob_err",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE blobs(k, v BLOB);\n    INSERT INTO blobs VALUES(1, $::data);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE blobs(k, v BLOB);\n    INSERT INTO blobs VALUES(1, $::data);"
+        }
+      ]
+    }
+  ]
+}

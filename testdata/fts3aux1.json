@@ -1,0 +1,338 @@
+{
+  "file": "fts3aux1.test",
+  "name": "fts3aux1",
+  "tests": [
+    {
+      "name": "1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms WHERE col = '*';"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM terms WHERE term='braid'",
+          "expect": "{/*SCAN terms VIRTUAL TABLE INDEX 1:*/}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms_v WHERE rec('cnt', term) AND term='braid'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms_v WHERE rec('cnt', term) AND +term='braid'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms_v WHERE rec('cnt', term) AND term='breakfast'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms_v WHERE rec('cnt', term) AND +term='breakfast'"
+        }
+      ]
+    },
+    {
+      "name": "2.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE term='braid'",
+          "expect": "{braid 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE +term='braid'",
+          "expect": "{braid 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE term='breakfast'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE term='cba'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE +term='cba'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE term='abc'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM terms WHERE term>'brain'",
+          "expect": "{/*SCAN terms VIRTUAL TABLE INDEX 2:*/}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM terms WHERE term<'brain'",
+          "expect": "{/*SCAN terms VIRTUAL TABLE INDEX 4:*/}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM terms WHERE term BETWEEN 'brags' AND 'brain'",
+          "expect": "{/*SCAN terms VIRTUAL TABLE INDEX 6:*/}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms WHERE rec('cnt', term) AND term>'brain'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms WHERE rec('cnt', term) AND +term>'brain'"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term>'brain'",
+          "expect": "{\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE +term>'brain'",
+          "expect": "{\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term>='brain'",
+          "expect": "{\n  brain 1 1\n  brainchild 1 1 brained 1 1 braining 1 1 brains 1 1 \n  brainstem 1 1 brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term>='abc'",
+          "expect": "{\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 \n  bragging 1 1 brags 1 1 braid 1 1 braided 1 1 \n  braiding 1 1 braids 1 1 brain 1 1 brainchild 1 1 \n  brained 1 1 braining 1 1 brains 1 1 brainstem 1 1 \n  brainstems 1 1 brainstorm 1 1 brainstorms 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term>='brainstorms'",
+          "expect": "{brainstorms 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term>='brainstorms'",
+          "expect": "{brainstorms 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE term>'brainstorms'",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms_v WHERE term>'cba'",
+          "expect": "{}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms WHERE rec('cnt', term) AND term<'brain'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM terms WHERE rec('cnt', term) AND +term<'brain'"
+        }
+      ]
+    },
+    {
+      "name": "2.2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term<'brain'",
+          "expect": "{\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE +term<'brain'",
+          "expect": "{\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v WHERE term<='brain'",
+          "expect": "{\n  braes 1 1 brag 1 1 bragged 1 1 bragger 1 1 bragging 1 1 \n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n  brain 1 1\n}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT term, documents, occurrences FROM terms \n    WHERE rec('cnt', term) AND term BETWEEN 'brags' AND 'brain'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT term, documents, occurrences FROM terms \n    WHERE rec('cnt', term) AND +term BETWEEN 'brags' AND 'brain'"
+        }
+      ]
+    },
+    {
+      "name": "2.2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v \n  WHERE rec('cnt', term) AND term BETWEEN 'brags' AND 'brain'",
+          "expect": "{\n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 \n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v \n  WHERE rec('cnt', term) AND +term BETWEEN 'brags' AND 'brain'",
+          "expect": "{\n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 \n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term, documents, occurrences FROM terms_v \n  WHERE rec('cnt', term) AND term > 'brags' AND term < 'brain'",
+          "expect": "{\n  braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM terms3",
+          "expect": "{1 {SQL logic error}}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO terms VALUES(1,2,3);",
+          "expect": "{1 {table terms may not be modified}}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM terms",
+          "expect": "{1 {table terms may not be modified}}"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH att"
+        }
+      ]
+    }
+  ]
+}

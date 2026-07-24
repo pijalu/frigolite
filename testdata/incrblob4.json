@@ -1,0 +1,75 @@
+{
+  "file": "incrblob4.test",
+  "name": "incrblob4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(k INTEGER PRIMARY KEY, v);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE k=10"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE k=9"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE k=19"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t2 VALUES(456, '0123456789');"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2",
+          "expect": "{1 {database table is locked}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t2 VALUES(1000, 'abcdefghijklmnopqrstuvwxyz');\n  INSERT INTO t2 VALUES(2000, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ');\n  INSERT INTO t2 VALUES(3000, 'abcdefghijklmnopqrstuvwxyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE a=3000;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b='abcdefghijklmnopqrstuvwxyz' WHERE a=2000"
+        }
+      ]
+    }
+  ]
+}

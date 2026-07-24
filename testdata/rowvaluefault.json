@@ -1,0 +1,47 @@
+{
+  "file": "rowvaluefault.test",
+  "name": "rowvaluefault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xyz(one, two, thr, fou);\n  INSERT INTO xyz VALUES('A', 'A', 'A',  1);\n  INSERT INTO xyz VALUES('B', 'B', 'B',  2);\n  INSERT INTO xyz VALUES('C', 'C', 'C',  3);\n  INSERT INTO xyz VALUES('D', 'D', 'D',  4);\n\n  CREATE UNIQUE INDEX xyz_one_two ON xyz(one, two);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz WHERE (one, two, thr) = ('B', 'B', 'B')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz WHERE (two, thr) IS ('C', 'C')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz WHERE (one, two, thr) > ('B', 'B', 'B')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz WHERE (one, two) IN (SELECT one, two FROM xyz)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz \n    WHERE (one, two, thr) IN (SELECT one, two, thr FROM xyz)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz \n    WHERE (one, two, thr) BETWEEN ('B', 'B', 'B') AND ('C', 'C', 'C')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz \n    WHERE (one, two, thr) IN ( ('a','b','c'), ('A','A','A'), (1,2,3) );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fou FROM xyz \n    WHERE (two, one) IN ( ('a','b','c'), ('A','A','A'), (1,2,3) );"
+        }
+      ]
+    }
+  ]
+}

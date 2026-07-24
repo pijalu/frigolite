@@ -1,0 +1,841 @@
+{
+  "file": "altertab3.test",
+  "name": "altertab3",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME a TO aaa;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(a,b,c);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM t1 \n      INTERSECT \n    SELECT a,b,c FROM t1 WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE a=1 OR (b IN ());"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME b TO bbb;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t3(e, f);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    ALTER TABLE t3 RENAME TO t4;",
+          "expect": "{1 {error in trigger tr1: no such table: main.t2}}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    ALTER TABLE t3 RENAME e TO eee;",
+          "expect": "{1 {error in trigger tr1: no such table: main.t2}}"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (\n      c1 integer, c2, PRIMARY KEY(c1 collate rtrim),\n      UNIQUE(c2)\n  )"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME c1 TO c3;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMPORARY TABLE Table0 (\n    Col0 INTEGER, \n    PRIMARY KEY(Col0 COLLATE RTRIM), \n    FOREIGN KEY (Col0) REFERENCES Table0\n  );"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE Table0 RENAME Col0 TO Col0;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0('1' IN ());"
+        }
+      ]
+    },
+    {
+      "name": "8.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 (c0);\n  CREATE INDEX i2 ON t2((LIKELIHOOD(c0, 1.0) IN ()));\n  ALTER TABLE t2 RENAME COLUMN c0 TO c1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  CREATE TRIGGER AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    SELECT true WHERE (SELECT a, b FROM (t1)) IN ();\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5;"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME TO t3;\n  SELECT sql FROM sqlite_master WHERE name='v1';",
+          "expect": "{\n  {CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'b';",
+          "expect": "{\n{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    SELECT (WITH t2 AS (WITH t3 AS (SELECT true)\n          SELECT * FROM t3 ORDER BY true COLLATE nocase)\n        SELECT 11);\n\n    WITH t4 AS (SELECT * FROM t1) SELECT 33;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t1x;\n  ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type='trigger';",
+          "expect": "{\n{CREATE TRIGGER AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    SELECT a () FILTER (WHERE aaa>0) FROM \"t1x\";\n  END}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM t1\n    INTERSECT SELECT b,a FROM t1\n    ORDER BY b IN (\n        SELECT a UNION SELECT b\n        FROM t1\n        ORDER BY b COLLATE nocase\n        )\n    ;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "19.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a(a,h CONSTRAINT a UNIQUE ON CONFLICT FAIL,CONSTRAINT a);"
+        }
+      ]
+    },
+    {
+      "name": "19.$tn.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE a RENAME TO g;",
+          "expect": "$res"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE s(col);\n  CREATE VIEW v AS SELECT ( \n    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) \n  ) IN() ; \n  CREATE TABLE a(a);\n  ALTER TABLE a RENAME a TO b;",
+          "expect": "#------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE VIEW v2(b) AS SELECT * FROM v2;"
+        }
+      ]
+    },
+    {
+      "name": "22.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "22.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=((SELECT 1 FROM t1 JOIN t2 ON b=x),1);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v0 (a);\n  CREATE VIEW v2 (v3) AS \n    WITH x1 AS (SELECT * FROM v2) \n    SELECT v3 AS x, v3 AS y FROM v2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "24.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER x;\n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM v0)\n  ) BEGIN\n    DELETE FROM v2;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  CREATE TRIGGER ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=t2.a FROM t2 WHERE t1.a=t2.a; \n  END;",
+          "expect": "#do_execsql_test 25.2 {"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n\n  CREATE TABLE t3(y);\n  CREATE TABLE t4(z);\n\n  CREATE TRIGGER tr1 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=z FROM (SELECT z FROM t4);\n  END;\n\n  CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT x AS abc FROM t1);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "26.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2;"
+        }
+      ]
+    },
+    {
+      "name": "26.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME x TO xx;"
+        }
+      ]
+    },
+    {
+      "name": "26.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='tr2'",
+          "expect": "{\n{CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT xx AS abc FROM \"t2\");\n  END}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "26.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(xx);\n  CREATE TRIGGER xx INSERT ON t1 BEGIN\n     UPDATE t1 SET xx=xx FROM(SELECT xx);\n  END;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "27.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()), c);"
+        }
+      ]
+    },
+    {
+      "name": "27.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';",
+          "expect": "{\n  {CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "28.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n  ALTER TABLE t1 RENAME TO t2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  CREATE TRIGGER Trigger1 DELETE ON t1 \n  BEGIN \n    SELECT t1.*, t1.x FROM t1 ORDER BY t1.x;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "29.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME x TO z;"
+        }
+      ]
+    },
+    {
+      "name": "29.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2;"
+        }
+      ]
+    },
+    {
+      "name": "29.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr2 AFTER DELETE ON t2 BEGIN\n    SELECT z, y FROM (\n      SELECT t2.* FROM t2\n    );\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "29.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "29.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME TO t3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "30.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM t1\n      )\n  ;"
+        }
+      ]
+    },
+    {
+      "name": "30.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1"
+        }
+      ]
+    },
+    {
+      "name": "30.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2;"
+        }
+      ]
+    },
+    {
+      "name": "30.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE type='view'",
+          "expect": "{\n  {CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "31.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(ii INTEGER PRIMARY KEY, tt INTEGER, rr REAL);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t1 SELECT NULL, i, 5.0 FROM s;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN tt;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "32.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with comma\n      c INT\n  );"
+        }
+      ]
+    },
+    {
+      "name": "32.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN c;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "32.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with, comma\n      c INT\n  );"
+        }
+      ]
+    },
+    {
+      "name": "32.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN c;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a TEXT, b INTEGER, c CHECK(c!=0));"
+        }
+      ]
+    }
+  ]
+}

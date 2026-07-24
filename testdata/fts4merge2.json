@@ -1,0 +1,23 @@
+{
+  "file": "fts4merge2.test",
+  "name": "fts4merge2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('merge=32,4')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('merge=1,2')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('merge=1,2')"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "file": "fuzzer1.test",
+  "name": "fuzzer1",
+  "tests": [
+    {
+      "name": "5.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'c', 'd', 1001);"
+        }
+      ]
+    },
+    {
+      "name": "5.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'd', 'c', 0);"
+        }
+      ]
+    },
+    {
+      "name": "5.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(0, 'd', 'c', -20);"
+        }
+      ]
+    },
+    {
+      "name": "5.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, 'x', '123456789012345678901234567890123456789012345678901', 2\n  );"
+        }
+      ]
+    },
+    {
+      "name": "5.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(\n    0, '123456789012345678901234567890123456789012345678901', 'x', 2\n  );"
+        }
+      ]
+    },
+    {
+      "name": "5.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(-1, 'x', 'y', 2);"
+        }
+      ]
+    },
+    {
+      "name": "5.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES((1<<32)+100, 'x', 'y', 2);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE [x2 \"rules] (a, b, c, d);\n  INSERT INTO [x2 \"rules] VALUES(0, 'a', 'b', 5);"
+        }
+      ]
+    }
+  ]
+}

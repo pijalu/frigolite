@@ -1,0 +1,19 @@
+{
+  "file": "trigger8.test",
+  "name": "trigger8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(y);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5);\n    SELECT count(*) FROM t2;"
+        }
+      ]
+    }
+  ]
+}

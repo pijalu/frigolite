@@ -1,0 +1,16 @@
+{
+  "file": "writecrash.test",
+  "name": "writecrash",
+  "tests": [
+    {
+      "name": "1.$tn.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "{ok}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "file": "fts3rank.test",
+  "name": "fts3rank",
+  "tests": [
+    {
+      "name": "1.5le",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY rank(x'0100000001000000') DESC, rowid",
+          "expect": "{1 {invalid matchinfo blob passed to function rank()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.5be",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 ORDER BY rank(x'0000000100000001') DESC, rowid",
+          "expect": "{1 {invalid matchinfo blob passed to function rank()}}"
+        }
+      ]
+    }
+  ]
+}

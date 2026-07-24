@@ -1,0 +1,43 @@
+{
+  "file": "tkt3922.test",
+  "name": "tkt3922",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-1');\n      SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('-9223372036854775809');\n    SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('-9223372036854776832');\n    SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('-9223372036854776833');\n    SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('1');\n      SELECT a, typeof(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('9223372036854775808');\n    SELECT a, typeof(a) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

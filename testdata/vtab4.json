@@ -1,0 +1,51 @@
+{
+  "file": "vtab4.test",
+  "name": "vtab4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO techo VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE techo SET a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo VALUES(1, 2, 3);\n    INSERT INTO techo VALUES(4, 5, 6);\n    INSERT INTO techo VALUES(7, 8, 9);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO secho SELECT * FROM techo;\n    DELETE FROM techo;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM secho;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM secho;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM techo;"
+        }
+      ]
+    }
+  ]
+}

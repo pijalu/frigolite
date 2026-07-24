@@ -1,0 +1,87 @@
+{
+  "file": "select9.test",
+  "name": "select9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    BEGIN;\n      INSERT INTO t1 VALUES(1,  'one',   'I');\n      INSERT INTO t1 VALUES(3,  NULL,    NULL);\n      INSERT INTO t1 VALUES(5,  'five',  'V');\n      INSERT INTO t1 VALUES(7,  'seven', 'VII');\n      INSERT INTO t1 VALUES(9,  NULL,    NULL);\n      INSERT INTO t1 VALUES(2,  'two',   'II');\n      INSERT INTO t1 VALUES(4,  'four',  'IV');\n      INSERT INTO t1 VALUES(6,  NULL,    NULL);\n      INSERT INTO t1 VALUES(8,  'eight', 'VIII');\n      INSERT INTO t1 VALUES(10, 'ten',   'X');\n\n      INSERT INTO t2 VALUES(1,  'two',      'IV');\n      INSERT INTO t2 VALUES(2,  'four',     'VIII');\n      INSERT INTO t2 VALUES(3,  NULL,       NULL);\n      INSERT INTO t2 VALUES(4,  'eight',    'XVI');\n      INSERT INTO t2 VALUES(5,  'ten',      'XX');\n      INSERT INTO t2 VALUES(6,  NULL,       NULL);\n      INSERT INTO t2 VALUES(7,  'fourteen', 'XXVIII');\n      INSERT INTO t2 VALUES(8,  'sixteen',  'XXXII');\n      INSERT INTO t2 VALUES(9,  NULL,       NULL);\n      INSERT INTO t2 VALUES(10, 'twenty',   'XL');\n\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    DROP INDEX i2;\n    DROP INDEX i3;\n    DROP INDEX i4;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    DROP INDEX i2;\n    DROP INDEX i3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(d)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a FROM t1 UNION ALL SELECT d FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    DROP INDEX i2;\n    DROP VIEW v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(d)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT a FROM t1 UNION SELECT d FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    DROP INDEX i2;\n    DROP VIEW v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t51(x, y);\n    CREATE TABLE t52(x, y);\n    CREATE VIEW v5 as\n       SELECT x, y FROM t51\n       UNION ALL\n       SELECT x, y FROM t52;\n    CREATE INDEX t51x ON t51(x);\n    CREATE INDEX t52x ON t52(x);\n    EXPLAIN QUERY PLAN\n       SELECT * FROM v5 WHERE x='12345' ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE x='12345' ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n       SELECT x, y FROM v5 WHERE +x='12345' ORDER BY y;"
+        }
+      ]
+    },
+    {
+      "name": "select9-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t61(a);\n  CREATE TABLE t62(b);\n  INSERT INTO t61 VALUES(111);\n  INSERT INTO t62 VALUES(222);\n  SELECT a FROM t61 WHERE 0 UNION SELECT b FROM t62;",
+          "expect": "{222}"
+        }
+      ]
+    },
+    {
+      "name": "select9-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t61 WHERE 0 UNION ALL SELECT b FROM t62;",
+          "expect": "{222}"
+        }
+      ]
+    }
+  ]
+}

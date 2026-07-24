@@ -1,0 +1,233 @@
+{
+  "file": "spellfix.test",
+  "name": "spellfix",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('re','vocab','w');",
+          "expect": "{a}"
+        }
+      ]
+    },
+    {
+      "name": "1.11sub",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('re','(SELECT w AS x FROM vocab)','x');",
+          "expect": "{a}"
+        }
+      ]
+    },
+    {
+      "name": "1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('r','vocab','w');",
+          "expect": "{ae}"
+        }
+      ]
+    },
+    {
+      "name": "1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('','vocab','w');",
+          "expect": "{r}"
+        }
+      ]
+    },
+    {
+      "name": "1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');",
+          "expect": "{cDeF}"
+        }
+      ]
+    },
+    {
+      "name": "1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('ab','vocab2','w',null,null);",
+          "expect": "{c}"
+        }
+      ]
+    },
+    {
+      "name": "1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('AB','vocab2','w',null,'NOCASE');",
+          "expect": "{cDeF}"
+        }
+      ]
+    },
+    {
+      "name": "1.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE word='rabbit';",
+          "expect": "{2}"
+        }
+      ]
+    },
+    {
+      "name": "1.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';",
+          "expect": "{2000}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(command) VALUES('edit_cost_table=NULL');"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word FROM t3 WHERE rowid = 10;",
+          "expect": "{keener}"
+        }
+      ]
+    },
+    {
+      "name": "6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance FROM t3 WHERE rowid = 10;",
+          "expect": "{keener {}}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;",
+          "expect": "{\n  1 Archilles   2 Apollo   3 Atrides\n}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');",
+          "expect": "{1 {constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');",
+          "expect": "{1 {constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');",
+          "expect": "{1 {constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "7.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;",
+          "expect": "{2 Apollo 3 Archilles}"
+        }
+      ]
+    },
+    {
+      "name": "7.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;",
+          "expect": "{1 {constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "7.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;",
+          "expect": "{1 {constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "7.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;",
+          "expect": "{1 {constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "7.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');",
+          "expect": "db_save_and_close"
+        }
+      ]
+    }
+  ]
+}

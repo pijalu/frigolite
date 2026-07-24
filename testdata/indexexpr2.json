@@ -1,0 +1,264 @@
+{
+  "file": "indexexpr2.test",
+  "name": "indexexpr2",
+  "tests": [
+    {
+      "name": "1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n\n  CREATE INDEX i1 ON t1(b || 'x');"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t1(a+1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x);"
+        }
+      ]
+    },
+    {
+      "name": "3.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('.ABC', 1);\n  INSERT INTO t4 VALUES('.abc', 2);\n  INSERT INTO t4 VALUES('.ABC', 3);\n  INSERT INTO t4 VALUES('.abc', 4);"
+        }
+      ]
+    },
+    {
+      "name": "3.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i4;\n  UPDATE t4 SET a = printf('%s%d',a,b);\n  SELECT * FROM t4 ORDER BY Substr(a,-2) COLLATE nocase;",
+          "expect": "{.ABC1 1 .abc2 2 .ABC3 3 .abc4 4}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i4 ON t4( Substr(a,-2) COLLATE nocase );\n  SELECT * FROM t4 ORDER BY Substr(a,-2) COLLATE nocase;",
+          "expect": "{.ABC1 1 .abc2 2 .ABC3 3 .abc4 4}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.5eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t4 ORDER BY Substr(a,-2) COLLATE nocase;",
+          "expect": "{/SCAN t4 USING INDEX i4/}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2,3,4,5,6);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d=d+1;"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a INTEGER, b INTEGER);\n  INSERT INTO t5 VALUES(2, 4), (3, 9);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 WHERE abs(a)=2 or abs(b)=9;",
+          "expect": "{2 4 3 9}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t5a ON t5( abs(a) );\n  CREATE INDEX t5b ON t5( abs(b) );"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO x1 VALUES\n      (1, 123), (2, '123'), (3, '123abc'), (4, 123.0), (5, 1234);"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM x1 WHERE CAST(b AS INTEGER) = 123;",
+          "expect": "{1 123   2 123   3 123abc  4 123.0}"
+        }
+      ]
+    },
+    {
+      "name": "6.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX x1i ON x1( CAST(b AS INTEGER) );\n  SELECT a, b FROM x1 WHERE CAST(b AS INTEGER) = 123;",
+          "expect": "{1 123   2 123   3 123abc  4 123.0}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM x1 WHERE CAST(b AS TEXT) = 123;",
+          "expect": "{1 123   2 123}"
+        }
+      ]
+    },
+    {
+      "name": "6.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX x1i2 ON x1( CAST(b AS TEXT) );\n  SELECT a, b FROM x1 WHERE CAST(b AS TEXT) = 123;",
+          "expect": "{1 123   2 123}"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS t0(c0);\n  INSERT INTO t0(c0) VALUES (-9223372036854775808);\n  BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i0 ON t0(ABS(c0));",
+          "expect": "{1 {integer overflow}}"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);",
+          "expect": "{{CREATE TABLE t0(c0)}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(c0) WHERE c0 NOT NULL;\n  INSERT INTO t0(c0) VALUES (NULL);"
+        }
+      ]
+    },
+    {
+      "name": "8.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE ~('' BETWEEN t0.c0 AND TRUE);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE INDEX t1x ON t1 (b, +b COLLATE NOCASE);\n  INSERT INTO t1(a,b) VALUES(1,'abcde');\n  SELECT * FROM t1 AS a0\n   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)\n   ORDER BY a0.b;",
+          "expect": "{1 abcde}"
+        }
+      ]
+    }
+  ]
+}

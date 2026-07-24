@@ -1,0 +1,15 @@
+{
+  "file": "e_droptrigger.test",
+  "name": "e_droptrigger",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "file": "tkt2332.test",
+  "name": "tkt2332",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(v) FROM blobs WHERE k = $::iKey;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(v) FROM blobs WHERE k = $::iKey;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM blobs WHERE k = $::iKey"
+        }
+      ]
+    }
+  ]
+}

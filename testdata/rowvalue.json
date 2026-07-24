@@ -1,0 +1,1038 @@
+{
+  "file": "rowvalue.test",
+  "name": "rowvalue",
+  "tests": [
+    {
+      "name": "0.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(o);\n  INSERT INTO one VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(3, 5);\n  INSERT INTO t1 VALUES(3, 6);"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE hh(a, b, c);\n  INSERT INTO hh VALUES('abc', 1, 'i');\n  INSERT INTO hh VALUES('ABC', 1, 'ii');\n  INSERT INTO hh VALUES('def', 2, 'iii');\n  INSERT INTO hh VALUES('DEF', 2, 'iv');\n  INSERT INTO hh VALUES('GHI', 3, 'v');\n  INSERT INTO hh VALUES('ghi', 3, 'vi');\n\n  CREATE INDEX hh_ab ON hh(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1);",
+          "expect": "{i}"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc' COLLATE nocase, 1);",
+          "expect": "{i}"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE a = (SELECT 'abc' COLLATE nocase) AND b = (SELECT 1);",
+          "expect": "{i}"
+        }
+      ]
+    },
+    {
+      "name": "6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE +a = (SELECT 'abc' COLLATE nocase) AND b = (SELECT 1);",
+          "expect": "{i}"
+        }
+      ]
+    },
+    {
+      "name": "6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE a = (SELECT 'abc') COLLATE nocase AND b = (SELECT 1);",
+          "expect": "{i ii}"
+        }
+      ]
+    },
+    {
+      "name": "6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1) COLLATE nocase;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (a, b) = 1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (a COLLATE nocase, b) = (SELECT 'def', 2);",
+          "expect": "{iii iv}"
+        }
+      ]
+    },
+    {
+      "name": "6.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (a COLLATE nocase, b) IS NOT (SELECT 'def', 2);",
+          "expect": "{i ii v vi}"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xy(i INTEGER PRIMARY KEY, j, k);\n  INSERT INTO xy VALUES(1, 1, 1);\n  INSERT INTO xy VALUES(2, 2, 2);\n  INSERT INTO xy VALUES(3, 3, 3);\n  INSERT INTO xy VALUES(4, 4, 4);"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE j1(a);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM j1 WHERE (select min(a) FROM j1) IN (?, ?, ?)"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n  INSERT INTO t2 VALUES(4, 4, 4);\n  INSERT INTO t2 VALUES(5, 5, 5);"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE dual(dummy); INSERT INTO dual(dummy) VALUES('X');\n  CREATE TABLE t3(a TEXT,b TEXT,c TEXT,d TEXT,e TEXT,f TEXT);\n  CREATE INDEX t3x ON t3(b,c,d,e,f);\n\n  SELECT a FROM t3\n    WHERE (c,d) IN (SELECT 'c','d' FROM dual)\n    AND (a,b,e) IN (SELECT 'a','b','d' FROM dual);"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)<=1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 WHERE (a,a)<1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 WHERE (a,a)>=1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 WHERE (a,a)>1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "11.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 WHERE (a,a)==1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "11.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 WHERE (a,a)<>1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "11.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t11 WHERE (a,a) IS 1;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT,b INT); INSERT INTO t1 VALUES(1,2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INT,y INT); INSERT INTO t2 VALUES(3,4);\n  SELECT *,'x' FROM t1 LEFT JOIN t2 ON (a,b)=(x,y);",
+          "expect": "{1 2 {} {} x}"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t2 RIGHT JOIN t1 ON (a,b)=(x,y);",
+          "expect": "{1 2 - -}"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.*, t2.* FROM t1 FULL JOIN t2 ON (a,b)=(x,y)\n   ORDER BY coalesce(a,x);",
+          "expect": "{\n  1 2 - -\n  - - 3 4\n}"
+        }
+      ]
+    },
+    {
+      "name": "14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);",
+          "expect": "do_execsql_test 14.1 \"SELECT 1 WHERE (2,2) BETWEEN (1,1) AND (3,3)\" 1"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY, b);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b);"
+        }
+      ]
+    },
+    {
+      "name": "15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH (SELECT * FROM (SELECT 1,2))<3;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;",
+          "expect": "{1 {row value misused}}"
+        }
+      ]
+    },
+    {
+      "name": "15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));",
+          "expect": "{1 {sub-select returns 2 columns - expected 1}}"
+        }
+      ]
+    },
+    {
+      "name": "15.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));",
+          "expect": "{1 {sub-select returns 2 columns - expected 1}}"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t16a(a,b,c);\n  INSERT INTO t16a VALUES(1,2,3);\n  CREATE TABLE t16b(x);\n  INSERT INTO t16b(x) VALUES(1);\n  CREATE TRIGGER t16r AFTER UPDATE ON t16b BEGIN\n     UPDATE t16a SET (a,b,c)=(SELECT new.x,new.x+1,new.x+2);\n  END;\n  UPDATE t16b SET x=7;\n  SELECT * FROM t16a;",
+          "expect": "{7 8 9}"
+        }
+      ]
+    },
+    {
+      "name": "17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a, b);\n  CREATE TABLE b2(x);"
+        }
+      ]
+    },
+    {
+      "name": "18.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b3 ( a, b, PRIMARY KEY (a, b) );\n  CREATE TABLE b4 ( a );\n  CREATE TABLE b5 ( a, b );\n  INSERT INTO b3 VALUES (1, 1), (1, 2);\n  INSERT INTO b4 VALUES (1);\n  INSERT INTO b5 VALUES (1, 1), (1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3 WHERE (SELECT b3.a, b3.b) IN ( SELECT a, b FROM b5 )",
+          "expect": "{1 1 1 2}"
+        }
+      ]
+    },
+    {
+      "name": "18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3 WHERE (VALUES(b3.a, b3.b)) IN ( SELECT a, b FROM b5 );",
+          "expect": "{1 1 1 2}"
+        }
+      ]
+    },
+    {
+      "name": "18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3 WHERE (b3.a, b3.b) IN ( SELECT a, b FROM b5 );",
+          "expect": "{1 1 1 2}"
+        }
+      ]
+    },
+    {
+      "name": "18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (SELECT b3.a, b3.b) IN ( SELECT a, b FROM b5 );",
+          "expect": "{1 1 1 1 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "18.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (VALUES(b3.a, b3.b)) IN ( SELECT a, b FROM b5 );",
+          "expect": "{1 1 1 1 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1(a,b) VALUES(1,11),(2,22),(3,33),(4,44);\n  SELECT * FROM t1 WHERE (a,b)>(0,0) ORDER BY a;",
+          "expect": "{1 11 2 22 3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>=(0,0) ORDER BY a;",
+          "expect": "{1 11 2 22 3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<(5,0) ORDER BY a DESC;",
+          "expect": "{4 44 3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<=(5,0) ORDER BY a DESC;",
+          "expect": "{4 44 3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>(3,0) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,0) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<(3,0) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,0) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>(3,32) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>(3,33) ORDER BY a;",
+          "expect": "{4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,33) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,34) ORDER BY a;",
+          "expect": "{4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<(3,34) ORDER BY a DESC;",
+          "expect": "{3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<(3,33) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,33) ORDER BY a DESC;",
+          "expect": "{3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,32) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (0,0)<(a,b) ORDER BY a;",
+          "expect": "{1 11 2 22 3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (0,0)<=(a,b) ORDER BY a;",
+          "expect": "{1 11 2 22 3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (5,0)>(a,b) ORDER BY a DESC;",
+          "expect": "{4 44 3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (5,0)>=(a,b) ORDER BY a DESC;",
+          "expect": "{4 44 3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,0)<(a,b) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,0)<=(a,b) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,0)>(a,b) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,0)>=(a,b) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,32)<(a,b) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,33)<(a,b) ORDER BY a;",
+          "expect": "{4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,33)<=(a,b) ORDER BY a;",
+          "expect": "{3 33 4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,34)<=(a,b) ORDER BY a;",
+          "expect": "{4 44}"
+        }
+      ]
+    },
+    {
+      "name": "19.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,34)>(a,b) ORDER BY a DESC;",
+          "expect": "{3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,33)>(a,b) ORDER BY a DESC;",
+          "expect": "{2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "19.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,33)>=(a,b) ORDER BY a DESC;",
+          "expect": "{3 33 2 22 1 11}"
+        }
+      ]
+    },
+    {
+      "name": "23.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa COLLATE NOCASE, bb);\n  INSERT INTO t0 VALUES('a', 'A');\n  SELECT (+bb,1) >= (aa, 1), (aa,1)<=(+bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (+bb,1) >= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) <= (+bb,1);",
+          "expect": "{0 1 3}"
+        }
+      ]
+    },
+    {
+      "name": "25.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES('a');\n  SELECT (t0.c0, 0) < ('B' COLLATE NOCASE, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, 0) < ('B' COLLATE NOCASE, 0);",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "25.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('B' COLLATE NOCASE, 0)> (t0.c0, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B' COLLATE NOCASE, 0)> (t0.c0, 0);",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "25.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ('B', 0)> (t0.c0 COLLATE nocase, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B', 0)> (t0.c0 COLLATE nocase, 0);",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "26.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1);\n  INSERT INTO t1(c1) VALUES (0);\n  SELECT (c0, x'') != (NULL, 0) FROM t1 LEFT JOIN t0;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "26.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 FROM t1 LEFT JOIN t0 ON (c0, x'') != (NULL, 0);",
+          "expect": "{2}"
+        }
+      ]
+    },
+    {
+      "name": "26.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 21 FROM t0 RIGHT JOIN t1 ON (c0, x'') != (NULL, 0);",
+          "expect": "{21}"
+        }
+      ]
+    },
+    {
+      "name": "26.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 3 FROM t1 LEFT JOIN t0 WHERE (c0, x'') != (NULL, 0);",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "30.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y, z);\n  CREATE TABLE t2(a, b);\n\n  INSERT INTO t1 VALUES(1000, 2000, 3000);\n  INSERT INTO t2 VALUES(NULL, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "30.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;",
+          "expect": "# 2022-01-21 https://sqlite.org/forum/forumpost/ab95010d410a0a55"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "31.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b RIGHT JOIN a ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "31.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b,c,d);\n  INSERT INTO t2 VALUES(NULL,123,456);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "33.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (0,5) AND (99,-2);",
+          "expect": "{0 1}"
+        }
+      ]
+    },
+    {
+      "name": "33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (-8,5) AND (0,-2);",
+          "expect": "{15 -7}"
+        }
+      ]
+    },
+    {
+      "name": "33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,4);",
+          "expect": "{3 100}"
+        }
+      ]
+    },
+    {
+      "name": "33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,2);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (-2,99) AND (1,0);",
+          "expect": "{0 1}"
+        }
+      ]
+    },
+    {
+      "name": "33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (14,99) AND (16,0);",
+          "expect": "{15 -7}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE items (\n    Id INTEGER  /* rowid alias */,\n    Item INTEGER  /* any type */,\n    Test TEXT  /* TEXT or BLOB */,\n    Filler,  /* any type */\n    PRIMARY KEY(Id),\n    UNIQUE(Item, Id)\n  );\n  INSERT INTO items (Id, Item)\n    VALUES (1, 2), (2, 2), (3, 3), (4, 5);\n  UPDATE items SET test='ok'\n    WHERE (Id, Item) IN (SELECT Id, Item FROM items);\n  SELECT Id, Item, test FROM items ORDER BY id;",
+          "expect": "{1 2 ok 2 2 ok 3 3 ok 4 5 ok}"
+        }
+      ]
+    },
+    {
+      "name": "34.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX idx ON t1(b,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
+          "expect": "{1 22 NULL NULL}"
+        }
+      ]
+    },
+    {
+      "name": "34.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX idx ON t1(b,a,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
+          "expect": "{1 22 NULL NULL}"
+        }
+      ]
+    },
+    {
+      "name": "35.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1 TEXT, c2 INTEGER, PRIMARY KEY(c1, c2));\n  INSERT INTO t1(c1, c2) VALUES ('a', 1);\n  SELECT ('a', 1) IN (SELECT c1, c2 from t1);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "36.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  SELECT (1,2,3,max(x)) IN () FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "36.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1,2,max(x),3) IN () FROM t1;",
+          "expect": "0"
+        }
+      ]
+    }
+  ]
+}

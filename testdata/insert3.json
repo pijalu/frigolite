@@ -1,0 +1,83 @@
+{
+  "file": "insert3.test",
+  "name": "insert3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    CREATE TABLE log(x UNIQUE, y);\n    CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n      UPDATE log SET y=y+1 WHERE x=new.a;\n      INSERT OR IGNORE INTO log VALUES(new.a, 1);\n    END;\n    INSERT INTO t1 VALUES('hello','world');\n    INSERT INTO t1 VALUES(5,10);\n    SELECT * FROM log ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a, b+10 FROM t1;\n    SELECT * FROM log ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log2(x PRIMARY KEY,y);\n    CREATE TRIGGER r2 BEFORE INSERT ON t1 BEGIN\n      UPDATE log2 SET y=y+1 WHERE x=new.b;\n      INSERT OR IGNORE INTO log2 VALUES(new.b,1);\n    END;\n    INSERT INTO t1 VALUES(453,'hi');\n    SELECT * FROM log ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM log2 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1;\n      SELECT 'a:', x, y FROM log UNION ALL \n          SELECT 'b:', x, y FROM log2 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'a:', x, y FROM log UNION ALL \n          SELECT 'b:', x, y FROM log2 ORDER BY x, y;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES('xyz');\n      SELECT * FROM log ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'b',\n      c DEFAULT 'c'\n    );\n    CREATE TABLE t2dup(a,b,c);\n    CREATE TRIGGER t2r1 BEFORE INSERT ON t2 BEGIN\n      INSERT INTO t2dup(a,b,c) VALUES(new.a,new.b,new.c);\n    END;\n    INSERT INTO t2(a) VALUES(123);\n    INSERT INTO t2(b) VALUES(234);\n    INSERT INTO t2(c) VALUES(345);\n    SELECT * FROM t2dup;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2dup;\n    INSERT INTO t2(a) SELECT 1 FROM t1 LIMIT 1;\n    INSERT INTO t2(b) SELECT 987 FROM t1 LIMIT 1;\n    INSERT INTO t2(c) SELECT 876 FROM t1 LIMIT 1;\n    SELECT * FROM t2dup;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE TRIGGER t3r1 BEFORE INSERT on t3 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b,c);\n    CREATE TRIGGER t4r1 AFTER INSERT on t4 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'xyz'\n    );\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x,y DEFAULT 4.3, z DEFAULT x'6869');\n      INSERT INTO t6 DEFAULT VALUES;\n      SELECT * FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET a = randstr(10,10) WHERE (rowid%4)==0;\n      DELETE FROM t1 WHERE rowid%2;\n      INSERT INTO t1 SELECT randstr(10,400), randstr(10,400), c FROM t1;\n    COMMIT;"
+        }
+      ]
+    }
+  ]
+}

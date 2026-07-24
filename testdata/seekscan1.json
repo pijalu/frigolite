@@ -1,0 +1,25 @@
+{
+  "file": "seekscan1.test",
+  "name": "seekscan1",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT, b INT, c INT NOT NULL, PRIMARY KEY(a,b,c));\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1997)\n    INSERT INTO t1(a,b,c) SELECT printf('xyz%d',x/10),x/6,x FROM c;\n  INSERT INTO t1 VALUES('abc',234,6);\n  INSERT INTO t1 VALUES('abc',345,7);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c FROM t1 WHERE b IN (235, 345) AND c<=3 AND a='abc' ORDER BY a, b;",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

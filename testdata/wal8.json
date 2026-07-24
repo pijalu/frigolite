@@ -1,0 +1,23 @@
+{
+  "file": "wal8.test",
+  "name": "wal8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = wal;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    }
+  ]
+}

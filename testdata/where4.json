@@ -1,0 +1,109 @@
+{
+  "file": "where4.test",
+  "name": "where4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(w, x, y);\n    CREATE INDEX i1wxy ON t1(w,x,y);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,NULL,3);\n    INSERT INTO t1 VALUES('a','b','c');\n    INSERT INTO t1 VALUES('a',NULL,'c');\n    INSERT INTO t1 VALUES(X'78',x'79',x'7a');\n    INSERT INTO t1 VALUES(X'78',NULL,X'7A');\n    INSERT INTO t1 VALUES(NULL,NULL,NULL);\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 ORDER BY w, x, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 ORDER BY w DESC, x, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 ORDER BY w, x DESC, y"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 VALUES(3);\n    CREATE TABLE t3(x,y,UNIQUE(\"x\",'y' ASC)); -- Goofy syntax allowed\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,NULL);\n \n    SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE +y IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE y IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 LEFT JOIN t3 ON a=x WHERE NULL is y;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test(col1 TEXT PRIMARY KEY);\n    INSERT INTO test(col1) values('a');\n    INSERT INTO test(col1) values('b');\n    INSERT INTO test(col1) values('c');\n    CREATE TABLE test2(col1 TEXT PRIMARY KEY);\n    INSERT INTO test2(col1) values('a');\n    INSERT INTO test2(col1) values('b');\n    INSERT INTO test2(col1) values('c');\n    SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE +t2.col1 IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE t2.col1 IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE +t1.col1 IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test t1 LEFT OUTER JOIN test2 t2 ON t1.col1 = t2.col1\n      WHERE t1.col1 IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "-- Allow the 'x' syntax for backwards compatibility\n    CREATE TABLE t4(x,y,z,PRIMARY KEY('x' ASC, \"y\" ASC));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *\n      FROM t2 LEFT JOIN t4 b1\n              LEFT JOIN t4 b2 ON b2.x=b1.x AND b2.y IN (b1.y);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1,1,11);\n    INSERT INTO t4 VALUES(1,2,12);\n    INSERT INTO t4 VALUES(1,3,13);\n    INSERT INTO t4 VALUES(2,2,22);\n    SELECT rowid FROM t4 WHERE x IN (1,9,2,5) AND y IN (1,3,NULL,2) AND z!=13;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t4 WHERE x IN (1,9,NULL,2) AND y IN (1,3,2) AND z!=13;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f));\n    INSERT INTO t5 VALUES(1,1,1,1,1,11111);\n    INSERT INTO t5 VALUES(2,2,2,2,2,22222);\n    INSERT INTO t5 VALUES(1,2,3,4,5,12345);\n    INSERT INTO t5 VALUES(2,3,4,5,6,23456);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t5\n     WHERE a IN (1,9,2) AND b=2 AND c IN (1,2,3,4) AND d>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t5\n     WHERE a IN (1,NULL,2) AND b=2 AND c IN (1,2,3,4) AND d>0"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(y,z,PRIMARY KEY(y,z));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 WHERE y=NULL AND z IN ('hello');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t8(a, b, c, d);\n    CREATE INDEX t8_i ON t8(a, b, c);\n    CREATE TABLE t7(i);\n\n    INSERT INTO t7 VALUES(1);\n    INSERT INTO t7 SELECT i*2 FROM t7;\n    INSERT INTO t7 SELECT i*2 FROM t7;\n    INSERT INTO t7 SELECT i*2 FROM t7;\n    INSERT INTO t7 SELECT i*2 FROM t7;\n    INSERT INTO t7 SELECT i*2 FROM t7;\n    INSERT INTO t7 SELECT i*2 FROM t7;\n\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum((\n      SELECT d FROM t8 WHERE a = i AND b = i AND c < NULL\n    )) FROM t7;"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE u9(a UNIQUE, b);\n  INSERT INTO u9 VALUES(NULL, 1);\n  INSERT INTO u9 VALUES(NULL, 2);",
+          "expect": "do_execsql_test 8.2 { SELECT * FROM u9 WHERE a IS NULL  } {{} 1 {} 2}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "file": "subtype1.test",
+  "name": "subtype1",
+  "tests": [
+    {
+      "name": "subtype1-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_getsubtype('hello');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_getsubtype(test_setsubtype('hello',123));",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(test_setsubtype('hello',123));",
+          "expect": "{text}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a); INSERT INTO t1 VALUES ('x');\n  CREATE VIEW t2(b) AS SELECT json(TRUE);\n  CREATE TABLE t3(b); INSERT INTO t3 VALUES(json(TRUE));"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-230",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

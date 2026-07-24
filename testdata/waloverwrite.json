@@ -1,0 +1,55 @@
+{
+  "file": "waloverwrite.test",
+  "name": "waloverwrite",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(length(y)) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(length(y)) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(length(y)) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(length(y)) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

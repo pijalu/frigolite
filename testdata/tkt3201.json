@@ -1,0 +1,59 @@
+{
+  "file": "tkt3201.test",
+  "name": "tkt3201",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT l.a, r.a FROM t1 AS l, t1 AS r WHERE l.a < r.a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t2 VALUES(2, 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT l.a, r.a FROM t1 AS l, t2 AS r WHERE l.a < r.a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT l.a, r.a FROM t1 AS l, t2 AS r WHERE l.a < r.a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.a, t1.b, t2.a, t2.b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(c INTEGER PRIMARY KEY, d TEXT);\n    INSERT INTO t3 VALUES(2, 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c, d FROM t1, t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c, d FROM t1, t3 WHERE a < c"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n     CREATE TABLE t4_log(x);\n     CREATE TRIGGER r4_1 AFTER INSERT ON t4 WHEN new.x=1 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_2 AFTER INSERT ON t4 WHEN new.x=2 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_3 AFTER INSERT ON t4 WHEN new.x=3 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     CREATE TRIGGER r4_4 AFTER INSERT ON t4 WHEN new.x=4 BEGIN\n       INSERT INTO t4_log(x) VALUES(new.x);\n     END;\n     INSERT INTO t4 VALUES(1);\n     INSERT INTO t4 VALUES(2);\n     INSERT INTO t4 VALUES(3);\n     INSERT INTO t4 VALUES(4);\n     SELECT * FROM t4_log;"
+        }
+      ]
+    }
+  ]
+}

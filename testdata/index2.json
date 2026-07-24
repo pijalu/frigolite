@@ -1,0 +1,31 @@
+{
+  "file": "index2.test",
+  "name": "index2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c123 FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(sum(c1000)) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5, c6 LIMIT 5"
+        }
+      ]
+    }
+  ]
+}

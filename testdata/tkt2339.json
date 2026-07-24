@@ -1,0 +1,47 @@
+{
+  "file": "tkt2339.test",
+  "name": "tkt2339",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t1(num int);\n    insert into t1 values (1);\n    insert into t1 values (2);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    \n    create table t2(num int);\n    insert into t2 values (11);\n    insert into t2 values (12);\n    insert into t2 values (13);\n    insert into t2 values (14);\n    \n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    EXCEPT\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 LIMIT 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 LIMIT 2)"
+        }
+      ]
+    }
+  ]
+}

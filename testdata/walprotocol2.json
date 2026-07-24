@@ -1,0 +1,36 @@
+{
+  "file": "walprotocol2.test",
+  "name": "walprotocol2",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x;",
+          "expect": "{z}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;",
+          "expect": "{1 {database is locked}}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;",
+          "expect": "{0 {}}"
+        }
+      ]
+    }
+  ]
+}

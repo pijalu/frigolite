@@ -1,0 +1,35 @@
+{
+  "file": "ioerr2.test",
+  "name": "ioerr2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    PRAGMA default_cache_size = 10;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(a, b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(a, b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    PRAGMA temp_store = memory;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)"
+        }
+      ]
+    }
+  ]
+}

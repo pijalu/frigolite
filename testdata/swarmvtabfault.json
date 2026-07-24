@@ -1,0 +1,15 @@
+{
+  "file": "swarmvtabfault.test",
+  "name": "swarmvtabfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM xyz"
+        }
+      ]
+    }
+  ]
+}

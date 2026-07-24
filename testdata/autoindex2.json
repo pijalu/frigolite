@@ -1,0 +1,26 @@
+{
+  "file": "autoindex2.test",
+  "name": "autoindex2",
+  "tests": [
+    {
+      "name": "autoindex2-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n    t1_id largeint,\n    did char(9),\n    ptime largeint,\n    exbyte char(4),\n    pe_id int,\n    field_id int,\n    mass float,\n    param10 float,\n    param11 float,\n    exmass float,\n    deviation float,\n    trange float,\n    vstatus int,\n    commit_status int,\n    formula char(329),\n    tier int DEFAULT 2,\n    ssid int DEFAULT 0,\n    last_operation largeint DEFAULT 0,\n    admin_uuid int DEFAULT 0,\n    previous_value float,\n    job_id largeint,\n    last_t1 largeint DEFAULT 0,\n    data_t1 int,\n    previous_date largeint DEFAULT 0,\n    flg8 int DEFAULT 1,\n    failed_fields char(100)\n  );\n  CREATE INDEX t1x0 on t1 (t1_id);\n  CREATE INDEX t1x1 on t1 (ptime, vstatus);\n  CREATE INDEX t1x2 on t1 (did, ssid, ptime, vstatus, exbyte, t1_id);\n  CREATE INDEX t1x3 on t1 (job_id);\n  \n  CREATE TABLE t2(\n    did char(9),\n    client_did char(30),\n    description char(49),\n    uid int,\n    tzid int,\n    privilege int,\n    param2 int,\n    type char(30),\n    subtype char(32),\n    dparam1 char(7) DEFAULT '',\n    param5 char(3) DEFAULT '',\n    notional float DEFAULT 0.000000,\n    create_time largeint,\n    sample_time largeint DEFAULT 0,\n    param6 largeint,\n    frequency int,\n    expiration largeint,\n    uw_status int,\n    next_sample largeint,\n    last_sample largeint,\n    reserve1 char(29) DEFAULT '',\n    reserve2 char(29) DEFAULT '',\n    reserve3 char(29) DEFAULT '',\n    bxcdr char(19) DEFAULT 'XY',\n    ssid int DEFAULT 1,\n    last_t1_id largeint,\n    reserve4 char(29) DEFAULT '',\n    reserve5 char(29) DEFAULT '',\n    param12 int DEFAULT 0,\n    long_did char(100) DEFAULT '',\n    gr_code int DEFAULT 0,\n    drx char(100) DEFAULT '',\n    parent_id char(9) DEFAULT '',\n    param13 int DEFAULT 0,\n    position float DEFAULT 1.000000,\n    client_did3 char(100) DEFAULT '',\n    client_did4 char(100) DEFAULT '',\n    dlib_id char(9) DEFAULT ''\n  );\n  CREATE INDEX t2x0 on t2 (did);\n  CREATE INDEX t2x1 on t2 (client_did);\n  CREATE INDEX t2x2 on t2 (long_did);\n  CREATE INDEX t2x3 on t2 (uid);\n  CREATE INDEX t2x4 on t2 (param2);\n  CREATE INDEX t2x5 on t2 (type);\n  CREATE INDEX t2x6 on t2 (subtype);\n  CREATE INDEX t2x7 on t2 (last_sample);\n  CREATE INDEX t2x8 on t2 (param6);\n  CREATE INDEX t2x9 on t2 (frequency);\n  CREATE INDEX t2x10 on t2 (privilege);\n  CREATE INDEX t2x11 on t2 (sample_time);\n  CREATE INDEX t2x12 on t2 (notional);\n  CREATE INDEX t2x13 on t2 (tzid);\n  CREATE INDEX t2x14 on t2 (gr_code);\n  CREATE INDEX t2x15 on t2 (parent_id);\n  \n  CREATE TABLE t3(\n    uid int,\n    param3 int,\n    uuid int,\n    acc_id int,\n    cust_num int,\n    numerix_id int,\n    pfy char(29),\n    param4 char(29),\n    param15 int DEFAULT 0,\n    flg7 int DEFAULT 0,\n    param21 int DEFAULT 0,\n    bxcdr char(2) DEFAULT 'PC',\n    c31 int DEFAULT 0,\n    c33 int DEFAULT 0,\n    c35 int DEFAULT 0,\n    c37 int,\n    mgr_uuid int,\n    back_up_uuid int,\n    priv_mars int DEFAULT 0,\n    is_qc int DEFAULT 0,\n    c41 int DEFAULT 0,\n    deleted int DEFAULT 0,\n    c47 int DEFAULT 1\n  );\n  CREATE INDEX t3x0 on t3 (uid);\n  CREATE INDEX t3x1 on t3 (param3);\n  CREATE INDEX t3x2 on t3 (uuid);\n  CREATE INDEX t3x3 on t3 (acc_id);\n  CREATE INDEX t3x4 on t3 (param4);\n  CREATE INDEX t3x5 on t3 (pfy);\n  CREATE INDEX t3x6 on t3 (is_qc);\n  SELECT count(*) FROM sqlite_master;",
+          "expect": "{30}"
+        }
+      ]
+    },
+    {
+      "name": "autoindex2-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT\n     t1_id,\n     t1.did,\n     param2,\n     param3,\n     t1.ptime,\n     t1.trange,\n     t1.exmass,\n     t1.mass,\n     t1.vstatus,\n     type,\n     subtype,\n     t1.deviation,\n     t1.formula,\n     dparam1,\n     reserve1,\n     reserve2,\n     param4,\n     t1.last_operation,\n     t1.admin_uuid,\n     t1.previous_value,\n     t1.job_id,\n     client_did, \n     t1.last_t1,\n     t1.data_t1,\n     t1.previous_date,\n     param5,\n     param6,\n     mgr_uuid\n  FROM\n     t1,\n     t2,\n     t3\n  WHERE\n     t1.ptime > 1393520400\n     AND param3<>9001\n     AND t3.flg7 = 1\n     AND t1.did = t2.did\n     AND t2.uid = t3.uid\n  ORDER BY t1.ptime desc LIMIT 500;",
+          "expect": "{~/AUTO/}"
+        }
+      ]
+    }
+  ]
+}

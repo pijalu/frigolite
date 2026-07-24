@@ -1,0 +1,106 @@
+{
+  "file": "walslow.test",
+  "name": "walslow",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t1(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE a!=b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE a!=b"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);",
+          "expect": "{wal}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT blob(400), blob(400) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2"
+        }
+      ]
+    }
+  ]
+}

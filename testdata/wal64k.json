@@ -1,0 +1,20 @@
+{
+  "file": "wal64k.test",
+  "name": "wal64k",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);",
+          "expect": "{wal}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randstr(900,1100) )"
+        }
+      ]
+    }
+  ]
+}

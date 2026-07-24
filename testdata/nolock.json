@@ -1,0 +1,39 @@
+{
+  "file": "nolock.test",
+  "name": "nolock",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n     INSERT INTO t1 VALUES('hello','world');\n     CREATE TABLE t2(x,y);\n     INSERT INTO t2 VALUES(12345,67890);\n     SELECT * FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ]
+}

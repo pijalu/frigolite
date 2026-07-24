@@ -1,0 +1,31 @@
+{
+  "file": "fts3am.test",
+  "name": "fts3am",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 1;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 2;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 3;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 4;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

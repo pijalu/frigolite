@@ -1,0 +1,106 @@
+{
+  "file": "json101.test",
+  "name": "json101",
+  "tests": [
+    {
+      "name": "json101-1.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb_array(1,printf('%.1000c','x'),x'abcd',3);",
+          "expect": "{1 {JSON cannot hold BLOB values}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-2.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',1,'b',2.5,'c',null,'d','String Test'));",
+          "expect": "{{{\"a\":1,\"b\":2.5,\"c\":null,\"d\":\"String Test\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-2.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT jsonb_object('a',printf('%.1000c','x'),2,2.5);",
+          "expect": "{1 {json_object() labels must be TEXT}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-2.2.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',jsonb_array('xyx',77,4.5),'x',2.5));",
+          "expect": "{{{\"a\":[\"xyx\",77,4.5],\"x\":2.5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-8.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=jsonb_array(a);\n  SELECT json(b) FROM t8;",
+          "expect": "{{[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json101-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));",
+          "expect": "{1 {malformed JSON}}"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(NULL);",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NULL->0;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json101-21.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NULL->>0;",
+          "expect": "NULL"
+        }
+      ]
+    }
+  ]
+}

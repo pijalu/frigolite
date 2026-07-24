@@ -1,0 +1,23 @@
+{
+  "file": "tkt2920.test",
+  "name": "tkt2920",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA max_page_count=40;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE filler (fill);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count=41"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count=42"
+        }
+      ]
+    }
+  ]
+}

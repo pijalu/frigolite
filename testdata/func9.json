@@ -1,0 +1,126 @@
+{
+  "file": "func9.test",
+  "name": "func9",
+  "tests": [
+    {
+      "name": "func9-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat('abc',123,null,'xyz');",
+          "expect": "{abc123xyz}"
+        }
+      ]
+    },
+    {
+      "name": "func9-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(concat(null));",
+          "expect": "{text}"
+        }
+      ]
+    },
+    {
+      "name": "func9-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat();",
+          "expect": "{1 {wrong number of arguments to function concat()}}"
+        }
+      ]
+    },
+    {
+      "name": "func9-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws(',',1,2,3,4,5,6,7,8,NULL,9,10,11,12);",
+          "expect": "{1,2,3,4,5,6,7,8,9,10,11,12}"
+        }
+      ]
+    },
+    {
+      "name": "func9-131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws(',',1,2,3,4,'',6,7,8,NULL,9,10,11,12);",
+          "expect": "{1,2,3,4,,6,7,8,9,10,11,12}"
+        }
+      ]
+    },
+    {
+      "name": "func9-132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws(',','',2,3,4,'',6,7,8,NULL,9,10,11,12);",
+          "expect": "{,2,3,4,,6,7,8,9,10,11,12}"
+        }
+      ]
+    },
+    {
+      "name": "func9-133",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws(',',NULL,'',3,4,'',6,7,8,NULL,9,10,11,12);",
+          "expect": "{,3,4,,6,7,8,9,10,11,12}"
+        }
+      ]
+    },
+    {
+      "name": "func9-134",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws(',',NULL,NULL,NULL,'',3,4,'',6,7,8,NULL,9,10,11,12);",
+          "expect": "{,3,4,,6,7,8,9,10,11,12}"
+        }
+      ]
+    },
+    {
+      "name": "func9-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws(NULL,1,2,3,4,5,6,7,8,NULL,9,10,11,12);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func9-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT concat_ws();",
+          "expect": "{1 {wrong number of arguments to function concat_ws()}}"
+        }
+      ]
+    },
+    {
+      "name": "func9-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unistr('G\\u00e4ste');",
+          "expect": "{G\u00e4ste}"
+        }
+      ]
+    },
+    {
+      "name": "func9-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unistr_quote(unistr('G\\u00e4ste'));",
+          "expect": "{'G\u00e4ste'}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "file": "subselect.test",
+  "name": "subselect",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a int, b int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = (SELECT count(*) FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = (SELECT * FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b from t1 where a = (SELECT a FROM t1 WHERE b=8)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1\n       WHERE a = (SELECT a FROM t1 UNION SELECT b FROM t1 ORDER BY 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b from t1 where a = coalesce((SELECT a FROM t1 WHERE b=5),1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x int, y int);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 VALUES(3,8);\n    INSERT INTO t2 VALUES(4,16);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y from t2 \n    WHERE x = (SELECT sum(b) FROM t1 where a notnull) - (SELECT sum(a) FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE x < 0.5*(SELECT max(x) FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT a FROM t1 ORDER BY a), (SELECT a FROM t1 ORDER BY a DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 IN (SELECT a FROM t1 ORDER BY a);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2 IN (SELECT a FROM t1 ORDER BY a DESC);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1 UNION ALL SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x int);\n    INSERT INTO t3 SELECT a FROM t1; \n    INSERT INTO t3 SELECT b FROM t1;\n    SELECT * FROM t3 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT x FROM t3 ORDER BY x LIMIT 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM (SELECT x FROM t3 ORDER BY x DESC LIMIT 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT x FROM t3 ORDER BY x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT x FROM t3 ORDER BY x DESC);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT x FROM t3 ORDER BY x LIMIT 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT x FROM t3 ORDER BY x DESC LIMIT 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT x FROM t3 ORDER BY x LIMIT 1 OFFSET 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT x FROM t3 ORDER BY x DESC LIMIT 1 OFFSET 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN\n       (SELECT x FROM t3 ORDER BY x DESC LIMIT 1 OFFSET 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a TEXT, b TEXT);\n    INSERT INTO t4 VALUES('a','1');\n    INSERT INTO t4 VALUES('b','2');\n    INSERT INTO t4 VALUES('c','3');\n    SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b LIMIT 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE b IN (SELECT b FROM t4 ORDER BY b DESC LIMIT 1);"
+        }
+      ]
+    }
+  ]
+}

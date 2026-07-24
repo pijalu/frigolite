@@ -1,0 +1,95 @@
+{
+  "file": "tkt3718.test",
+  "name": "tkt3718",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');\n    CREATE TABLE t2(a PRIMARY KEY, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 SELECT a, b FROM t1;\n    INSERT INTO t2 SELECT a+5, f1(b) FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE a > 5;\n    PRAGMA count_changes = 1;\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT a+5, b||'+5' FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f2('three')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT a FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma count_changes=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql(1, 'DELETE FROM t2 WHERE a = '||a ) FROM t2 WHERE a>5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a from t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE a > 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, f2(b) FROM t1'\n    ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT a FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE a > 5;\n    BEGIN;\n    INSERT INTO t2 SELECT a+5, sql(a==3,\n        'INSERT INTO t2 SELECT a+10, b FROM t1'\n    ) FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY a+0"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY a+0"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "file": "tkt-02a8e81d44.test",
+  "name": "tkt_02a8e81d44",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    SELECT * FROM (SELECT a FROM t1 LIMIT 1) UNION ALL SELECT 3;"
+        }
+      ]
+    }
+  ]
+}

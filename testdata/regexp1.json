@@ -1,0 +1,723 @@
+{
+  "file": "regexp1.test",
+  "name": "regexp1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT regexpi('abc','ABC');",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT regexpi('ABC','ABC');",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT regexpi('ABC','abc');",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'by|in' ORDER BY x;",
+          "expect": "{1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'by|Christ' ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE regexp('by|christ',y) ORDER BY x;",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE regexpi('by|christ',y) ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE regexpi('BY|CHRIST',y) ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'shal+ al+' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'shall x*y*z*all' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE regexp('shall x*y*z*all',y) ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE regexp('SHALL x*y*z*all',y) ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE regexpi('SHALL x*y*z*all',y) ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'shallx?y? ?z?all' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '[Aa]dam' ORDER BY x;",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '[^Aa]dam' ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '[^b-zB-Z]dam' ORDER BY x;",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'alive' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '^alive' ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'alive$' ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'alive.$' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'alive\\.$' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'ma[nd]' ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '\\bma[nd]' ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'ma[nd]\\b' ORDER BY x;",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'ma\\w' ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'ma\\W' ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '\\sma\\w' ORDER BY x;",
+          "expect": "{1 2 4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP '\\Sma\\w' ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-1.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE y REGEXP 'alive\\S$' ORDER BY x;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'aaaabbbbcccc' REGEXP 'ab*c', \n         'aaaacccc' REGEXP 'ab*c';",
+          "expect": "{1 1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'aaaabbbbcccc' REGEXP 'ab+c',\n         'aaaacccc' REGEXP 'ab+c';",
+          "expect": "{1 0}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'aaaabbbbcccc' REGEXP 'ab?c',\n         'aaaacccc' REGEXP 'ab?c';",
+          "expect": "{0 1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'aaaabbbbcccc' REGEXP '^a(a|bb|c)+c$',\n         'aaaabbbbcccc' REGEXP '^a(a|bbb|c)+c$',\n         'aaaabbbbcccc' REGEXP '^a(a|bbbb|c)+c$'",
+          "expect": "{1 0 1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-2.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc$\u00a2\u20acxyz' REGEXP '^abc\\u0024\\u00a2\\u20acxyz$',\n         'abc$\u00a2\u20acxyz' REGEXP '^abc\\u0024\\u00A2\\u20ACxyz$',\n         'abc$\u00a2\u20acxyz' REGEXP '^abc\\x24\\xa2\\u20acxyz$'",
+          "expect": "{1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a TEXT);\n  INSERT INTO t1(id, a) VALUES(1, '\u65e5\u672c\u8a9e');\n  SELECT a, hex(a), length(a) FROM t1;",
+          "expect": "{\u65e5\u672c\u8a9e E697A5E69CACE8AA9E 3}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a='\u65e5\u672c\u8a9e';",
+          "expect": "{1 \u65e5\u672c\u8a9e}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a LIKE '\u65e5\u672c\u8a9e';",
+          "expect": "{1 \u65e5\u672c\u8a9e}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xab' REGEXP 'a(b$|cd)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xab' REGEXP '(b$|cd)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xaby' REGEXP 'a(b$|cd)';",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xacd' REGEXP 'a(b$|cd)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xacdy' REGEXP 'a(b$|cd)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xab' REGEXP 'a(cd|b$)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xaby' REGEXP 'a(cd|b$)';",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xacd' REGEXP 'a(cd|b$)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xacdy' REGEXP 'a(cd|b$)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xab' REGEXP 'a(cd|b$|e)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xaby' REGEXP 'a(cd|b$|e)';",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xacd' REGEXP 'a(cd|b$|e)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'foo' REGEXP '[a-z]';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'foo' REGEXP '^[a-z]+$';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'foo' REGEXP '^([a-z]+)$';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'foo' REGEXP '(^[a-z]+)$';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'foo' REGEXP '(^[a-z]+$)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' REGEXP '(^abc|def)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'xabc' REGEXP '(^abc|def)';",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'def' REGEXP '(^abc|def)';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0x7ff,0x62) REGEXP char(0x7ff);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0x800,0x62) REGEXP char(0x800);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0xabc,0x62) REGEXP char(0xabc);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0xfff,0x62) REGEXP char(0xfff);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0x1000,0x62) REGEXP char(0x1000);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0xffff,0x62) REGEXP char(0xffff);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-7.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x61,0x10000,0x62) REGEXP char(0x10000);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2 WHERE a REGEXP '[1-5]';",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2 WHERE a REGEXP '[1\\-5]';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2 WHERE a REGEXP '[x\\-]';",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2 WHERE a REGEXP '[x-]';",
+          "expect": "{1 {unclosed '['}}"
+        }
+      ]
+    },
+    {
+      "name": "regexp1-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2 WHERE a REGEXP '-';",
+          "expect": "{1}"
+        }
+      ]
+    }
+  ]
+}

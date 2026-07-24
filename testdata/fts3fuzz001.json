@@ -1,0 +1,23 @@
+{
+  "file": "fts3fuzz001.test",
+  "name": "fts3fuzz001",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(x1) VALUES('merge=10,2')"
+        }
+      ]
+    }
+  ]
+}

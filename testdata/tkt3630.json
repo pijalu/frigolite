@@ -1,0 +1,23 @@
+{
+  "file": "tkt3630.test",
+  "name": "tkt3630",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE temp1(a,b,c);\n    SELECT * FROM temp.sqlite_master WHERE sql GLOB '*TEMP*';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main1(a,b,c);\n    CREATE TEMP TABLE temp2 AS SELECT * FROM main1;\n    SELECT * FROM sqlite_temp_master WHERE sql GLOB '*TEMP*';"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE temp2 ADD COLUMN d;\n      ALTER TABLE temp2 RENAME TO temp2rn;\n      SELECT name FROM temp.sqlite_master WHERE name LIKE 'temp2%';"
+        }
+      ]
+    }
+  ]
+}

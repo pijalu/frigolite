@@ -1,0 +1,16 @@
+{
+  "file": "autovacuum2.test",
+  "name": "autovacuum2",
+  "tests": [
+    {
+      "name": "autovacuum2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "{}"
+        }
+      ]
+    }
+  ]
+}

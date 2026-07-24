@@ -1,0 +1,15 @@
+{
+  "file": "tkt3457.test",
+  "name": "tkt3457",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);"
+        }
+      ]
+    }
+  ]
+}

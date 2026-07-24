@@ -1,0 +1,16 @@
+{
+  "file": "readonly.test",
+  "name": "readonly",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);",
+          "expect": "db close"
+        }
+      ]
+    }
+  ]
+}

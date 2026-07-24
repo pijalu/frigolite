@@ -1,0 +1,32 @@
+{
+  "file": "orderbyA.test",
+  "name": "orderbyA",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('one',   1, 11);\n  INSERT INTO t1 VALUES('three', 7, 11);\n  INSERT INTO t1 VALUES('one',   2, 11);\n  INSERT INTO t1 VALUES('one',   3, 11);\n  INSERT INTO t1 VALUES('two',   4, 11);\n  INSERT INTO t1 VALUES('two',   6, 11);\n  INSERT INTO t1 VALUES('three', 8, 11);\n  INSERT INTO t1 VALUES('two',   5, 11);\n  INSERT INTO t1 VALUES('three', 9, 11);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        }
+      ]
+    }
+  ]
+}

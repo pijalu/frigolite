@@ -1,0 +1,43 @@
+{
+  "file": "tkt-a7b7803e.test",
+  "name": "tkt_a7b7803e",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, (t1.b='fuzzy') AS x\n      FROM t1\n     WHERE x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (a=99) AS x, (t1.b='fuzzy') AS y, *\n      FROM t1\n     WHERE x AND y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (a=99) AS x, (t1.b='first') AS y, *\n      FROM t1\n     WHERE x OR y\n     ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x OR y\n     ORDER BY M.a, N.a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M, t1 N\n     WHERE x AND y\n     ORDER BY M.a, N.a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x AND y\n     ORDER BY M.a, N.a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a"
+        }
+      ]
+    }
+  ]
+}

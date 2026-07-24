@@ -1,0 +1,23 @@
+{
+  "file": "tkt2767.test",
+  "name": "tkt2767",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x>0;\n    SELECT count(*), sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=x+1;\n    SELECT count(*), sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT x+32 FROM t1;\n    SELECT count(*), sum(x) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

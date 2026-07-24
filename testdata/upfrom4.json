@@ -1,0 +1,62 @@
+{
+  "file": "upfrom4.test",
+  "name": "upfrom4",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT);\n  INSERT INTO t1(a) VALUES(1),(2),(8),(19);\n  CREATE TABLE c1(x INTEGER PRIMARY KEY, b INT);\n  INSERT INTO c1(x,b) VALUES(1,1),(8,8),(17,17),(NULL,NULL);\n  CREATE TABLE c2(x INT,c INT);\n  INSERT INTO c2(x,c) VALUES(2,2),(8,8),(NULL,NULL);\n  CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  UPDATE t1 SET b=c1.b, c=c2.c\n    FROM dual, c1 NATURAL RIGHT JOIN c2\n   WHERE x=a;\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;",
+          "expect": "{\n  1  -  -\n  2  -  -\n  8  -  -\n  19 -  -\n  1  -  -\n  2  -  2\n  8  8  8\n  19 -  -\n}"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n  CREATE TRIGGER AFTER INSERT ON t2 BEGIN\n    UPDATE t1 SET b=c1.b, c=c2.c\n      FROM dual, c1 NATURAL RIGHT JOIN c2\n     WHERE x=a;\n  END;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "{789 123 789 123 0 0}"
+        }
+      ]
+    }
+  ]
+}

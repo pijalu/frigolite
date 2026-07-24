@@ -1,0 +1,15 @@
+{
+  "file": "fts3ae.test",
+  "name": "fts3ae",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT COUNT(*) FROM t1"
+        }
+      ]
+    }
+  ]
+}

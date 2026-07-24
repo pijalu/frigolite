@@ -1,0 +1,62 @@
+{
+  "file": "hook2.test",
+  "name": "hook2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2a ON t2(a);"
+        }
+      ]
+    },
+    {
+      "name": "2.1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE d1(a DEFAULT 4, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX d1a ON d1(a);\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(11, 12, 13);"
+        }
+      ]
+    },
+    {
+      "name": "2.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 ORDER BY b, c;",
+          "expect": "{\n  4 1 1\n  1 2 3\n  11 12 13\n  21 22 23\n  31 32 33\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 ORDER BY b,c;",
+          "expect": "{\n  1    2   3 \n  45  22  23 \n  4   32  33 \n  11 100 100\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y PRIMARY KEY, z UNIQUE) WITHOUT ROWID;\n  INSERT INTO t3 VALUES('a', 'b', 'c');\n  INSERT INTO t3 VALUES('d', 'e', 'f');\n\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 2, 2);\n  INSERT INTO t3 VALUES(3, 3, 3);"
+        }
+      ]
+    }
+  ]
+}

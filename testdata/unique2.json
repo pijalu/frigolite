@@ -1,0 +1,37 @@
+{
+  "file": "unique2.test",
+  "name": "unique2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x,y) VALUES(1,1),(2,2),(3,2),(4,3)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(w,x,y,z) VALUES(1,2,3,4),(2,3,3,4)"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE err1(a,b,c,UNIQUE(rowid));",
+          "expect": "{1 {no such column: rowid}}"
+        }
+      ]
+    }
+  ]
+}

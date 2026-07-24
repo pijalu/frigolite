@@ -1,0 +1,19 @@
+{
+  "file": "walsetlk_recover.test",
+  "name": "walsetlk_recover",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ]
+}

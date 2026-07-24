@@ -1,0 +1,15 @@
+{
+  "file": "window4.test",
+  "name": "window4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT avg(a)) FROM t2 ORDER BY 1"
+        }
+      ]
+    }
+  ]
+}

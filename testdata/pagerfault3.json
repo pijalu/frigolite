@@ -1,0 +1,15 @@
+{
+  "file": "pagerfault3.test",
+  "name": "pagerfault3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    VACUUM;"
+        }
+      ]
+    }
+  ]
+}

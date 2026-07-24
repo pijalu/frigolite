@@ -1,0 +1,32 @@
+{
+  "file": "vacuum-into.test",
+  "name": "vacuum_into",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size;\n      PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-700",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    }
+  ]
+}

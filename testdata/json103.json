@@ -1,0 +1,16 @@
+{
+  "file": "json103.test",
+  "name": "json103",
+  "tests": [
+    {
+      "name": "json103-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(jsonb_group_array(a)) FROM t1 WHERE a<0 AND typeof(a)!='blob';",
+          "expect": "{X'0B'}"
+        }
+      ]
+    }
+  ]
+}

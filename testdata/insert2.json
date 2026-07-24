@@ -1,0 +1,170 @@
+{
+  "file": "insert2.test",
+  "name": "insert2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE d1(n int, log int);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM d1 ORDER BY n"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=on;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN INSERT INTO t1 SELECT log, count(*) FROM d1 GROUP BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT log, count(*) FROM d1 GROUP BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(log int, cnt int);\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       EXCEPT SELECT n-1,log FROM d1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(log int, cnt int);\n    PRAGMA count_changes=off;\n    INSERT INTO t1 \n       SELECT log, count(*) FROM d1 GROUP BY log\n       INTERSECT SELECT n-1,log FROM d1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=off;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(log int, cnt int);\n    CREATE INDEX i1 ON t1(log);\n    CREATE INDEX i2 ON t1(cnt);\n    INSERT INTO t1 SELECT log, count() FROM d1 GROUP BY log;\n    SELECT * FROM t1 ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM t1 WHERE log=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log FROM t1 WHERE cnt=4 ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,2);\n    SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(a,c) SELECT * FROM t4;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3(c,b) SELECT * FROM t4;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3(c,a,b) SELECT x, 'hi', y FROM t4;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * from t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t4 VALUES(2,4);\n    INSERT INTO t4 VALUES(3,6);\n    INSERT INTO t4 VALUES(4,8);\n    INSERT INTO t4 VALUES(5,10);\n    INSERT INTO t4 VALUES(6,12);\n    INSERT INTO t4 VALUES(7,14);\n    INSERT INTO t4 VALUES(8,16);\n    INSERT INTO t4 VALUES(9,18);\n    INSERT INTO t4 VALUES(10,20);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      INSERT INTO t4 SELECT x+(SELECT max(x) FROM t4),y FROM t4;\n      COMMIT;\n      SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t4 SELECT x+max_x_t4() ,y FROM t4;\n      INSERT INTO t4 SELECT x+max_x_t4() ,y FROM t4;\n      INSERT INTO t4 SELECT x+max_x_t4() ,y FROM t4;\n      INSERT INTO t4 SELECT x+max_x_t4() ,y FROM t4;\n      COMMIT;\n      SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t4 SET y='lots of data for the row where x=' || x\n                     || ' and y=' || y || ' - even more data to fill space';\n    COMMIT;\n    SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t4 SELECT x+(SELECT max(x)+1 FROM t4),y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t4 SELECT x+max_x_t4()+1,y FROM t4;\n      SELECT count(*) from t4;\n      ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t4 WHERE x!=123;\n    SELECT count(*) FROM t4;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Dependencies(depId integer primary key,\n        class integer, name str, flag str);\n      CREATE TEMPORARY TABLE DepCheck(troveId INT, depNum INT,\n        flagCount INT, isProvides BOOL, class INTEGER, name STRING,\n        flag STRING);\n      INSERT INTO DepCheck \n         VALUES(-1, 0, 1, 0, 2, 'libc.so.6', 'GLIBC_2.0');\n      INSERT INTO Dependencies \n         SELECT DISTINCT \n             NULL, \n             DepCheck.class, \n             DepCheck.name, \n             DepCheck.flag \n         FROM DepCheck LEFT OUTER JOIN Dependencies ON \n             DepCheck.class == Dependencies.class AND \n             DepCheck.name == Dependencies.name AND \n             DepCheck.flag == Dependencies.flag \n         WHERE \n             Dependencies.depId is NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);\n    CREATE INDEX t2i1 ON t2(a);\n    INSERT INTO t2 SELECT a, 3 FROM t2 WHERE a = 1;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT (SELECT a FROM t2), 4;\n      SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c DEFAULT 'c', d);"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t0 SELECT 0 UNION SELECT 0 AS 'x' ORDER BY x;\n    SELECT * FROM t0;",
+          "expect": "{0}"
+        }
+      ]
+    }
+  ]
+}

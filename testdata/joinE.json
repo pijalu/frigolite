@@ -1,0 +1,379 @@
+{
+  "file": "joinE.test",
+  "name": "joinE",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);"
+        }
+      ]
+    },
+    {
+      "name": "joinE-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 2\n  1 -\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON true WHERE b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 2\n  1 -\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON true WHERE b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 2\n  1 -\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON true WHERE b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 FULL JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 2\n  1 -\n  - 2\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#  SELECT a, b\n#  FROM t1 FULL JOIN t2 ON a IS NULL\n#  ORDER BY coalesce(a,b,3);\n#",
+          "expect": "{"
+        }
+      ]
+    },
+    {
+      "name": "joinE-20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#   SELECT a, b\n#   FROM t1 FULL JOIN t2 ON b IS NULL\n#   ORDER BY coalesce(a,b,3);\n#",
+          "expect": "{"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1);\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(NULL);"
+        }
+      ]
+    },
+    {
+      "name": "joinE-21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON true WHERE b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 INNER JOIN t2 ON b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON true WHERE b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 LEFT JOIN t2 ON b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{"
+        }
+      ]
+    },
+    {
+      "name": "joinE-33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  - -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON true WHERE b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 RIGHT JOIN t2 ON b IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 FULL JOIN t2 ON true\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{\n  1 -\n}"
+        }
+      ]
+    },
+    {
+      "name": "joinE-37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b\n  FROM t1 FULL JOIN t2 ON true WHERE a IS NULL\n  ORDER BY coalesce(a,b,3);",
+          "expect": "{"
+        }
+      ]
+    },
+    {
+      "name": "joinE-38",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#   SELECT a, b\n#   FROM t1 FULL JOIN t2 ON a IS NULL\n#   ORDER BY coalesce(a,b,3);\n#",
+          "expect": "{"
+        }
+      ]
+    },
+    {
+      "name": "joinE-40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#   SELECT a, b\n#   FROM t1 FULL JOIN t2 ON b IS NULL\n#   ORDER BY coalesce(a,b,3);\n#",
+          "expect": "{"
+        }
+      ]
+    }
+  ]
+}

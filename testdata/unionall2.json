@@ -1,0 +1,43 @@
+{
+  "file": "unionall2.test",
+  "name": "unionall2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n\n  CREATE VIEW v1 AS SELECT * FROM t1, t2;\n  CREATE VIEW v2 AS SELECT * FROM t1, t2;\n\n  CREATE VIEW vA AS\n    SELECT * FROM v1, (\n      SELECT * FROM t1 LEFT JOIN t2 ON (a=c)\n    )\n    UNION ALL\n    SELECT * FROM v1, v2"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM vA, vA, vA, vA, vA, vA, vA, vA, vA, vA"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(a INTEGER, b);\n  CREATE TABLE y2(c INTEGER, d);\n\n  CREATE TABLE x3_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE x3_b(c INTEGER PRIMARY KEY, d TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1 CROSS JOIN y2 WHERE y1.a=y2.c AND y2.c IN (\n    SELECT a FROM x3_a UNION ALL\n    SELECT c FROM x3_b ORDER BY 1\n  )",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

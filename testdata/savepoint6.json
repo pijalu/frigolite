@@ -1,0 +1,27 @@
+{
+  "file": "savepoint6.test",
+  "name": "savepoint6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    }
+  ]
+}

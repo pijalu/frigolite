@@ -1,0 +1,27 @@
+{
+  "file": "crash6.test",
+  "name": "crash6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=2048;\n    BEGIN;\n    CREATE TABLE abc AS SELECT 1 AS a, 2 AS b, 3 AS c;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;"
+        }
+      ]
+    }
+  ]
+}

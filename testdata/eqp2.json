@@ -1,0 +1,32 @@
+{
+  "file": "eqp2.test",
+  "name": "eqp2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX i1 ON t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n  CREATE TABLE t2(x INT, y INT);\n  CREATE INDEX t1_a ON t1(a);\n  CREATE INDEX t1_b ON t1(b);\n  CREATE INDEX t2_x ON t2(x);\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<999)\n  INSERT INTO t1 SELECT i%33, i FROM s;\n\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<59)\n  INSERT INTO t2 SELECT i, i%3 FROM s;\n\n  ANALYZE;"
+        }
+      ]
+    }
+  ]
+}

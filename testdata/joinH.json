@@ -1,0 +1,457 @@
+{
+  "file": "joinH.test",
+  "name": "joinH",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2(b) VALUES(NULL);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t1 FULL JOIN t2 ON true WHERE (b ISNULL);",
+          "expect": "{NULL}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 FULL JOIN t2 ON true;",
+          "expect": "{NULL}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 FULL JOIN t2 ON true WHERE (b ISNULL);",
+          "expect": "{NULL}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE r3(x);\n  CREATE TABLE r4(y INTEGER PRIMARY KEY);\n  INSERT INTO r4 VALUES(55);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c0);\n  CREATE TABLE t2 (c0 , c1 , c2 , UNIQUE (c0), UNIQUE (c2 DESC));\n  INSERT INTO t2 VALUES ('x', 'y', 'z');\n  ANALYZE;\n  CREATE VIEW v0(c0) AS SELECT FALSE;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f,g,h,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  CREATE TABLE t2(i, j);\n  INSERT INTO t2 VALUES(10, 20);"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1( (d IS NULL), d );"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(w);\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  INSERT INTO t3 VALUES('t3val');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t1 VALUES(3);\n  SELECT CASE WHEN t2.b THEN 0 ELSE 1 END FROM t1 LEFT JOIN t2 ON true;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n\n  INSERT INTO t1 VALUES ('a', 'a');\n  INSERT INTO t2 VALUES ('ddd');\n  INSERT INTO t3 VALUES(1234);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b = t2.rowid FROM t2, t3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE x2(c, d);\n  CREATE TABLE x3(rowid, _rowid_);\n\n  CREATE TABLE x4(rowid, _rowid_, oid);\n\n  INSERT INTO x1 VALUES(1000, 'thousand');\n  INSERT INTO x2 VALUES('c', 'd');\n  INSERT INTO x3(oid, rowid, _rowid_) VALUES(43, 'hello', 'world');\n  INSERT INTO x4(oid, rowid, _rowid_) VALUES('forty three', 'hello', 'world');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a);\n  CREATE TABLE x2(b);\n  CREATE TABLE x3(c);\n\n  CREATE TABLE wo1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE wo2(a PRIMARY KEY, rowid) WITHOUT ROWID;\n  CREATE TABLE wo3(a PRIMARY KEY, b) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM wo1, x1, x2;",
+          "expect": "{1 {ambiguous column name: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM wo1, (x1, x2);",
+          "expect": "{1 {ambiguous column name: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM wo1 JOIN (x1 JOIN x2);",
+          "expect": "{1 {ambiguous column name: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "9.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO wo1(a, b) VALUES('mya', 'myb');\n  INSERT INTO wo2(a, rowid) VALUES('mypk', 'myrowid');\n  INSERT INTO wo3(a, b) VALUES('MYA', 'MYB');\n  INSERT INTO x3(rowid, c) VALUES(99, 'x3B');"
+        }
+      ]
+    },
+    {
+      "name": "9.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM x1 JOIN (x2 JOIN wo2);",
+          "expect": "{0 myrowid}"
+        }
+      ]
+    },
+    {
+      "name": "9.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT _rowid_ FROM wo1 JOIN (wo3 JOIN x3)",
+          "expect": "{0 99}"
+        }
+      ]
+    },
+    {
+      "name": "9.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT oid FROM wo1 JOIN (wo3 JOIN x3)",
+          "expect": "{0 99}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rt0 (c0 INTEGER, c1 INTEGER, c2 INTEGER, c3 INTEGER, c4 INTEGER);\n  CREATE TABLE rt3 (c3 INTEGER);\n\n  INSERT INTO rt0(c3, c1) VALUES (x'', '1');\n  INSERT INTO rt0(c3, c1) VALUES ('-1', -1e500);\n  INSERT INTO rt0(c3, c1) VALUES (1, x'');\n\n  CREATE VIEW v6(c0, c1, c2) AS SELECT 0, 0, 0;"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t3 VALUES(3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a1 INT, b1 TEXT);\n  INSERT INTO t1 VALUES(88,'');\n  CREATE TABLE t2(c2 INT, d2 TEXT);\n  INSERT INTO t2 VALUES(88,'');\n  CREATE TABLE t3(e3 TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('');"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true RIGHT JOIN t3 ON d2=e3 WHERE c2 BETWEEN NULL AND a1;"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true RIGHT JOIN t3 ON d2=e3 WHERE c2 BETWEEN NULL AND a1;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT AS (b), b INT);\n  INSERT INTO t1(b) VALUES(123);\n  CREATE TABLE t2(a INT, c INT);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1a ON t1(a);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a INT, b INT);\n  CREATE UNIQUE INDEX t3x ON t3(a, a+b);\n  INSERT INTO t3(a,b) VALUES(1,2),(4,8),(16,32),(4,80),(1,-300);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t4(x,y) SELECT a, b FROM t3;\n  INSERT INTO t4(x,y) VALUES(99,99);\n  SELECT a1.a, sum( a1.a+a1.b ) FROM t3 AS a1 RIGHT JOIN t4 ON a=x\n   GROUP BY a1.a ORDER BY 1;",
+          "expect": "{NULL NULL 1 -592 4 192 16 48}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(c0 INT);\n  CREATE TABLE t2(c0 BLOB);\n  CREATE TABLE t3(c0 BLOB);\n  CREATE TABLE t4(c4 BLOB);\n  INSERT INTO t1(c0) VALUES(0);\n  INSERT INTO t3(c0) VALUES('0');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n  CREATE TABLE t2(c0);\n  INSERT INTO t0 VALUES ('1.0');\n  INSERT INTO t2(c0) VALUES (9);\n  SELECT t0.c0,t2.c0 FROM (SELECT CAST(t0.c0 as REAL) AS c0 FROM t0) as subquery NATURAL LEFT JOIN t1  NATURAL JOIN t0  RIGHT JOIN t2 ON 1;",
+          "expect": "{1.0 9}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "16.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0_a (c0 INT);\n  CREATE TABLE t0_b (c0 INT);\n\n  CREATE TABLE t2 (c0 INT);\n  INSERT INTO t2 VALUES (1);"
+        }
+      ]
+    },
+    {
+      "name": "16.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (t0_a RIGHT JOIN (              t2 LEFT JOIN t0_b))",
+          "expect": "{{} 1 {}}"
+        }
+      ]
+    },
+    {
+      "name": "16.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x0(a TEXT);\n  CREATE TABLE x1(a TEXT);\n  CREATE TABLE x2(a TEXT);\n\n  INSERT INTO x1 VALUES('blue');\n  INSERT INTO x2 VALUES('red');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "16.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0 INT);\n  CREATE TABLE t1 (c0 INT);\n  CREATE TABLE t2 (c0 INT);\n\n  INSERT INTO t1(c0) VALUES (NULL);\n  INSERT INTO t2 VALUES (1);\n\n  CREATE VIEW v0(c0) AS SELECT 1 AS col_0 FROM t0;"
+        }
+      ]
+    }
+  ]
+}

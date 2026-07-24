@@ -1,0 +1,126 @@
+{
+  "file": "without_rowid6.test",
+  "name": "without_rowid6",
+  "tests": [
+    {
+      "name": "without_rowid6-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t1 WHERE a=123;",
+          "expect": "{x123y}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t1 WHERE b=1123;",
+          "expect": "{x123y}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t1 ORDER BY a DESC LIMIT 5;",
+          "expect": "{x1000y x999y x998y x997y x996y}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b UNIQUE,\n    c UNIQUE,\n    PRIMARY KEY(b)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{4 1}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b PRIMARY KEY,\n    c UNIQUE,\n    UNIQUE(b)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{4 1}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b UNIQUE PRIMARY KEY,\n    c UNIQUE\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{4 1}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,\n    UNIQUE(b,c),\n    PRIMARY KEY(b,c)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{4 1}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-510",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
+          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+        }
+      ]
+    }
+  ]
+}

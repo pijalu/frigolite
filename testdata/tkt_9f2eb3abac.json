@@ -1,0 +1,24 @@
+{
+  "file": "tkt-9f2eb3abac.test",
+  "name": "tkt_9f2eb3abac",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,d,e))",
+          "expect": "do_execsql_test 2.1 { CREATE TABLE t2(x) }"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1,t2 WHERE a=? AND b=? AND c=? AND d=? AND e=?"
+        }
+      ]
+    }
+  ]
+}

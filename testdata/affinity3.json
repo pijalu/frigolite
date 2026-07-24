@@ -1,0 +1,114 @@
+{
+  "file": "affinity3.test",
+  "name": "affinity3",
+  "tests": [
+    {
+      "name": "affinity3-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE customer (id INT PRIMARY KEY);\n  CREATE TABLE apr (id INT PRIMARY KEY, apr REAL);\n  \n  CREATE VIEW v1 AS\n  SELECT c.id, i.apr\n  FROM customer c\n  LEFT JOIN apr i ON i.id=c.id;\n  \n  CREATE VIEW v1rj AS\n  SELECT c.id, i.apr\n  FROM apr i\n  RIGHT JOIN customer c ON i.id=c.id;\n  \n  CREATE VIEW v2 AS\n  SELECT c.id, v1.apr\n  FROM customer c\n  LEFT JOIN v1 ON v1.id=c.id;\n  \n  CREATE VIEW v2rj AS\n  SELECT c.id, v1.apr\n  FROM v1 RIGHT JOIN customer c ON v1.id=c.id;\n  \n  CREATE VIEW v2rjrj AS\n  SELECT c.id, v1rj.apr\n  FROM v1rj RIGHT JOIN customer c ON v1rj.id=c.id;\n  \n  INSERT INTO customer (id) VALUES (1);\n  INSERT INTO apr (id, apr) VALUES (1, 12);\n  INSERT INTO customer (id) VALUES (2);\n  INSERT INTO apr (id, apr) VALUES (2, 12.01);"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index=ON;\n  SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index=ON;\n  SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1rj;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rj;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-122",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rjrj;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index=OFF;\n  SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1rj;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rj;",
+          "expect": "{1 0.12 real 2 0.1201 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE map_integer (id INT, name);\n  INSERT INTO map_integer VALUES(1,'a');\n  CREATE TABLE map_text (id TEXT, name);\n  INSERT INTO map_text VALUES('4','e');\n  CREATE TABLE data (id TEXT, name);\n  INSERT INTO data VALUES(1,'abc');\n  INSERT INTO data VALUES('4','xyz');\n  CREATE VIEW idmap as\n      SELECT * FROM map_integer\n      UNION SELECT * FROM map_text;\n  CREATE TABLE mzed AS SELECT * FROM idmap;"
+        }
+      ]
+    }
+  ]
+}

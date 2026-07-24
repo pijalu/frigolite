@@ -1,0 +1,47 @@
+{
+  "file": "interrupt.test",
+  "name": "interrupt",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(300,400));\n    INSERT INTO t1 SELECT a+1, randstr(300,400) FROM t1;\n    INSERT INTO t1 SELECT a+2, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+4, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+8, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+16, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+32, a || '-' || b FROM t1;\n    COMMIT;\n    UPDATE t1 SET b=substr(b,-5,5);\n    SELECT count(*) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(a || b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(a || b) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        CREATE TEMP TABLE t2(x,y);\n        SELECT name FROM sqlite_temp_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM temp.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM temp.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 SELECT round(a/10), randstr(50,80), randstr(50,60) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "file": "vtabD.test",
+  "name": "vtabD",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tv1 WHERE a = 1 OR b = 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tv1 WHERE a = 1 OR b = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tv1 WHERE (a > 0 AND a < 5) OR (b > 15 AND b < 65)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tv1 WHERE a < 500 OR b = 810000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a < 500;\n  SELECT * FROM t1 WHERE b = 810000 AND NOT (a < 500);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tv1 WHERE a < 90000 OR b = 8100000000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a < 90000;\n  SELECT * FROM t1 WHERE b = 8100000000 AND NOT (a < 90000);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tv1 WHERE a = 90001 OR b = 810000"
+        }
+      ]
+    }
+  ]
+}

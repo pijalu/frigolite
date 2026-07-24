@@ -1,0 +1,66 @@
+{
+  "file": "skipscan3.test",
+  "name": "skipscan3",
+  "tests": [
+    {
+      "name": "skipscan3-1.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT d FROM t1 WHERE +a=1 AND c=32;",
+          "expect": "{/*ANY(a) AND ANY(b)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan3-1.3eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT d FROM t1 WHERE a=1 AND c=32;",
+          "expect": "{/*ANY(a) AND ANY(b)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c,d,PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t2(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan3-2.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT d FROM t2 WHERE +a=1 AND c=32;",
+          "expect": "{/*ANY(a) AND ANY(b)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan3-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d FROM t2 WHERE +a=1 AND c=32;",
+          "expect": "{x0032}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan3-2.3eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT d FROM t2 WHERE a=1 AND c=32;",
+          "expect": "{/*ANY(a) AND ANY(b)*/}"
+        }
+      ]
+    }
+  ]
+}

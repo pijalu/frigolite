@@ -1,0 +1,201 @@
+{
+  "file": "date2.test",
+  "name": "date2",
+  "tests": [
+    {
+      "name": "date2-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "date2-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x,y) VALUES('now','two');",
+          "expect": "{1 {non-deterministic use of date() in a CHECK constraint}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "{2017-07-20 one}"
+        }
+      ]
+    },
+    {
+      "name": "date2-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES(1, '2017-07-20'), (2, 'xyzzy');\n  CREATE INDEX t2y ON t2(date(y));"
+        }
+      ]
+    },
+    {
+      "name": "date2-210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(x,y) VALUES(3, 'now');",
+          "expect": "{1 {non-deterministic use of date() in an index}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t3(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t3 SET b='now' WHERE a=500;"
+        }
+      ]
+    },
+    {
+      "name": "date2-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t3b1 ON t3(datetime(b));",
+          "expect": "{1 {non-deterministic use of datetime() in an index}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-320",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t3\n   WHERE typeof(b)='real'\n     AND datetime(b) BETWEEN '2017-07-04' AND '2017-07-08';",
+          "expect": "{/USING INDEX t3b/}"
+        }
+      ]
+    },
+    {
+      "name": "date2-400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t4(a,b) SELECT x, julianday('2017-07-01')+x FROM c;\n  UPDATE t4 SET b='now' WHERE a=500;"
+        }
+      ]
+    },
+    {
+      "name": "date2-410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';",
+          "expect": "{1 {non-deterministic use of date() in an index}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-420",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4 WHERE a=500;\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';"
+        }
+      ]
+    },
+    {
+      "name": "date2-500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE mods(x);\n  INSERT INTO mods(x) VALUES\n    ('+10 days'),\n    ('-10 days'),\n    ('+10 hours'),\n    ('-10 hours'),\n    ('+10 minutes'),\n    ('-10 minutes'),\n    ('+10 seconds'),\n    ('-10 seconds'),\n    ('+10 months'),\n    ('-10 months'),\n    ('+10 years'),\n    ('-10 years'),\n    ('start of month'),\n    ('start of year'),\n    ('start of day'),\n    ('weekday 1'),\n    ('unixepoch');\n  CREATE TABLE t5(y,m);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t5(y,m) SELECT julianday('2017-07-01')+c.x, mods.x FROM c, mods;\n  CREATE INDEX t5x1 on t5(y) WHERE datetime(y,m) IS NOT NULL;"
+        }
+      ]
+    },
+    {
+      "name": "date2-510",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5(y,m) VALUES('2017-07-20','localtime');",
+          "expect": "{1 {non-deterministic use of datetime() in an index}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-600",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t600(a REAL CHECK( a<julianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);",
+          "expect": "{1 {non-deterministic use of julianday() in a CHECK constraint}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-601",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-602",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t601(a,b) VALUES(1e100, '1970-01-01');",
+          "expect": "{1 {CHECK constraint failed: a<julianday(b)}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-603",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t601(a,b) VALUES(10, 'now');",
+          "expect": "{1 {non-deterministic use of julianday() in a CHECK constraint}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-610",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t610(a,b);\n  CREATE INDEX t610x1 ON t610(julianday('now')+b);\n  INSERT INTO t610(a,b) VALUES(123,456);",
+          "expect": "{1 {non-deterministic use of julianday() in an index}}"
+        }
+      ]
+    },
+    {
+      "name": "date2-611",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);",
+          "expect": "{0 {}}"
+        }
+      ]
+    }
+  ]
+}

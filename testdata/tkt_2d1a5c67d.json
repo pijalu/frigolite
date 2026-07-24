@@ -1,0 +1,53 @@
+{
+  "file": "tkt-2d1a5c67d.test",
+  "name": "tkt_2d1a5c67d",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=$::ii"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=$::ii"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      BEGIN;\n      INSERT INTO t1(a,b) VALUES(1,2);\n      SELECT sum(length(y)) FROM t2;\n      COMMIT;\n      SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 10;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t4(a);"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t4 VALUES('xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        }
+      ]
+    }
+  ]
+}

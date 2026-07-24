@@ -1,0 +1,91 @@
+{
+  "file": "fts3an.test",
+  "name": "fts3an",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES(NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE ft SET x = 'abc' || rowid"
+        }
+      ]
+    }
+  ]
+}

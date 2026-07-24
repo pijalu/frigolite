@@ -1,0 +1,67 @@
+{
+  "file": "alias.test",
+  "name": "alias",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(8);\n    INSERT INTO t1 VALUES(7);\n    SELECT x, sequence() FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1 WHERE y>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99 AND y!=55"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1\n     WHERE y>0 AND y<99 AND y!=55 AND y NOT IN (56,57,58)\n       AND y NOT LIKE 'abc%' AND y%10==2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1 WHERE y BETWEEN 0 AND 99"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT x, sequence() AS y FROM t1 WHERE y IN (55,66,3)\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, 1-sequence() AS y FROM t1 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1 ORDER BY -y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, sequence() AS y FROM t1 ORDER BY x%2, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT random()&2147483647 AS r FROM t1, t1, t1, t1 ORDER BY r"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 4 UNION SELECT 1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 4 UNION SELECT 1 UNION SELECT 9 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sequence(*) AS y, count(*) AS z FROM t1 GROUP BY y ORDER BY z, y"
+        }
+      ]
+    }
+  ]
+}

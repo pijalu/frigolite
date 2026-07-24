@@ -1,0 +1,510 @@
+{
+  "file": "analyzeE.test",
+  "name": "analyzeE",
+  "tests": [
+    {
+      "name": "analyzeE-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b) SELECT x, x FROM cnt;\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500;",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000;",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750;",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1a;\n  CREATE INDEX t1a ON t1(a DESC);\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500;",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000;",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750;",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100",
+          "expect": "{/SEARCH t1 USING INDEX t1a/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE\n    cnt(x) AS (VALUES(1000) UNION ALL SELECT x+1 FROM cnt WHERE x<2000)\n  INSERT INTO t1(a,b,c) SELECT x, x, 123 FROM cnt;\n  CREATE INDEX t1ca ON t1(c,a);\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500 AND c=123;",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000 AND c=123;",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750 AND c=123;",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100 AND c=123",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1ca;\n  CREATE INDEX t1ca ON t1(c ASC,a DESC);\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 500 AND 2500 AND c=123;",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 2900 AND 3000 AND c=123;",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1700 AND 1750 AND c=123;",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 1 AND 500 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a BETWEEN 3000 AND 3000000 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<500 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>2500 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1900 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a>1100 AND c=123",
+          "expect": "{/SCAN t1/}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a<1100 AND c=123",
+          "expect": "{/SEARCH t1 USING INDEX t1ca/}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x,x,x,x,x||2);\n  CREATE INDEX i2 ON t1(1<2);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT x FROM c;\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i2' AND neq='1000 1';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_stat4 WHERE idx='i2' AND neq<>'1000 1';",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*)>1 FROM sqlite_stat4 WHERE idx='i1' AND neq='1 1 1 1 1 1';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

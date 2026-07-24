@@ -1,0 +1,127 @@
+{
+  "file": "selectB.test",
+  "name": "selectB",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n\n    INSERT INTO t1 VALUES( 2,  4,  6);\n    INSERT INTO t1 VALUES( 8, 10, 12);\n    INSERT INTO t1 VALUES(14, 16, 18);\n\n    INSERT INTO t2 VALUES(3,   6,  9);\n    INSERT INTO t2 VALUES(12, 15, 18);\n    INSERT INTO t2 VALUES(21, 24, 27);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);\n        CREATE INDEX i2 ON t2(d);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    DROP INDEX i2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);\n          CREATE INDEX i2 ON t1(b);\n          CREATE INDEX i3 ON t1(c);\n          CREATE INDEX i4 ON t2(d);\n          CREATE INDEX i5 ON t2(e);\n          CREATE INDEX i6 ON t2(f);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT * FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c, count(*) FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      GROUP BY c ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c, count(*) FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      GROUP BY c HAVING count(*)>1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t4.c, t3.a FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) AS t4, t1 AS t3\n      WHERE t3.a=14\n      ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 \n      EXCEPT \n      SELECT a FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)\n      EXCEPT \n      SELECT * FROM (SELECT a FROM t1 UNION ALL SELECT d FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1\n      EXCEPT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      EXCEPT \n      SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      EXCEPT \n      SELECT c FROM t1\n      ORDER BY c DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      UNION \n      SELECT c FROM t1\n      ORDER BY c DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1\n      UNION \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 UNION SELECT e FROM t2 UNION ALL SELECT f FROM t2\n      ORDER BY c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      UNION \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1\n      INTERSECT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      INTERSECT \n      SELECT c FROM t1\n      ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      INTERSECT \n      SELECT * FROM (SELECT e FROM t2 UNION ALL SELECT f FROM t2)\n      ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT a FROM t1 UNION ALL SELECT d FROM t2 LIMIT 4\n      ) LIMIT 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT a FROM t1 UNION ALL SELECT d FROM t2 LIMIT 4 OFFSET 2\n      ) LIMIT 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT DISTINCT (a/10) FROM t1 UNION ALL SELECT DISTINCT(d%2) FROM t2\n      )"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT * FROM (\n        SELECT DISTINCT (a/10) FROM t1 UNION ALL SELECT DISTINCT(d%2) FROM t2\n      )"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 UNION ALL SELECT * FROM t2) ORDER BY a+b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT 345 UNION ALL SELECT d FROM t2) ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 LEFT JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x+y FROM (\n        SELECT a AS x, b AS y FROM t1\n        UNION ALL\n        SELECT a*10 + 0.1, f*10 + 0.1 FROM t1 LEFT JOIN t2 ON (c=d)\n        UNION ALL\n        SELECT a*100, b*100 FROM t1\n      ) WHERE y+x NOT NULL ORDER BY 1;"
+        }
+      ]
+    }
+  ]
+}

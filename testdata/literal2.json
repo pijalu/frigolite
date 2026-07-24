@@ -1,0 +1,35 @@
+{
+  "file": "literal2.test",
+  "name": "literal2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 123__456"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e1_2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0xFF__EF"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0xFFEF_"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0XFF__EF"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0XFFEF_"
+        }
+      ]
+    }
+  ]
+}

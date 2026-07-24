@@ -1,0 +1,186 @@
+{
+  "file": "strict2.test",
+  "name": "strict2",
+  "tests": [
+    {
+      "name": "strict2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA quick_check('t1');",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a=2.5 WHERE b=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-INT value in t1.a}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a='xyz' WHERE b=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-INT value in t1.a}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a=x'445566' WHERE b=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-INT value in t1.a}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a=2.5 WHERE b=2;\n  PRAGMA quick_check('t1nn');",
+          "expect": "{{non-INT value in t1nn.a}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a='xyz' WHERE b=2;\n  PRAGMA quick_check('t1nn');",
+          "expect": "{{non-INT value in t1nn.a}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a=2 WHERE b=2;\n  UPDATE t2 SET b=2.5 WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-INTEGER value in t1.b}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b='two' WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-INTEGER value in t1.b}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b=x'b0b1b2b3b4' WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-INTEGER value in t1.b}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b=NULL WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b=2.5 WHERE a=2;\n  PRAGMA quick_check('t1nn');",
+          "expect": "{{non-INTEGER value in t1nn.b}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b=2 WHERE a=2;\n  UPDATE t2 SET c=9 WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-TEXT value in t1.c}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET c=9.5 WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-TEXT value in t1.c}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET c='two' WHERE a=2;\n  UPDATE t2 SET d=9 WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.34",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET d='nine' WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-REAL value in t1.d}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.43",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET d=2.5 WHERE a=2;\n  UPDATE t2 SET e=9 WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-BLOB value in t1.e}}"
+        }
+      ]
+    },
+    {
+      "name": "strict2-1.44",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e=9.5 WHERE a=2;\n  PRAGMA quick_check('t1');",
+          "expect": "{{non-BLOB value in t1.e}}"
+        }
+      ]
+    }
+  ]
+}

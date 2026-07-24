@@ -1,0 +1,85 @@
+{
+  "file": "notnull2.test",
+  "name": "notnull2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE T1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE T3(k, v);"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT a, b FROM t1) LEFT JOIN t3 ON a IS NULL;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES (0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '/'\n  FROM (\n      SELECT NULL val FROM (SELECT 1)\n      UNION ALL\n      SELECT 'missing' FROM (SELECT 1)\n  ) a\n  LEFT JOIN (SELECT 1)\n      ON a.val IS NULL;",
+          "expect": "{{} 1 / missing {} /}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,373 @@
+{
+  "file": "trustschema1.test",
+  "name": "trustschema1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b AS (f1(a+1)), c AS (f2(a+2)));\n    INSERT INTO t1 VALUES(100),(200);"
+        }
+      ]
+    },
+    {
+      "name": "1.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c FROM t1;",
+          "expect": "{0 {100 101 102 200 201 202}}"
+        }
+      ]
+    },
+    {
+      "name": "1.120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=OFF;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "1.130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1;",
+          "expect": "{0 {100 101 200 201}}"
+        }
+      ]
+    },
+    {
+      "name": "1.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c FROM t1;",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  DROP TABLE t1;\n  CREATE TABLE t1(a, b AS (f3(a+1)));",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  CREATE TABLE t2(a,b,c,CHECK(f3(c)==c));",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=Off;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.211",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=On;\n  CREATE TABLE t2(a,b,c,CHECK(f2(c)==c));",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "1.220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1,2,3);\n  SELECT * FROM t2;",
+          "expect": "{0 {1 2 3}}"
+        }
+      ]
+    },
+    {
+      "name": "1.230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=off;\n  INSERT INTO t2 VALUES(4,5,6);",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.231",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b DEFAULT(f2(25)));",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "1.310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=Off;\n  INSERT INTO t3(a) VALUES(1);",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.311",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(a,b) VALUES(1,2);",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "1.400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b,c);\n  INSERT INTO t4 VALUES(1,2,3),('a','b','c'),(4,'d',0);\n  SELECT * FROM t4;\n  CREATE TEMP TABLE temp4(a,b,c);\n  INSERT INTO temp4 SELECT * FROM t4;",
+          "expect": "{1 2 3 a b c 4 d 0}"
+        }
+      ]
+    },
+    {
+      "name": "1.410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4a ON t4(a) WHERE f3(c);",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=OFF;\n  CREATE INDEX t4a ON t4(a) WHERE f2(c);",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.421",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4a ON t4(a) WHERE f1(c);\n  SELECT a FROM t4 WHERE f1(c) ORDER BY a;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "1.430",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  CREATE INDEX t4b ON t4(b) WHERE f2(c);\n  SELECT b FROM t4 WHERE f2(c) ORDER BY b;",
+          "expect": "{2}"
+        }
+      ]
+    },
+    {
+      "name": "1.500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a,b,c);\n  INSERT INTO t5 VALUES(1,2,3),(4,5,6),(7,0,-3);\n  SELECT * FROM t5;\n  CREATE TEMP TABLE temp5(a,b,c);\n  INSERT INTO temp5 SELECT * FROM t5;",
+          "expect": "{1 2 3 4 5 6 7 0 -3}"
+        }
+      ]
+    },
+    {
+      "name": "1.510",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t5x1 ON t5(a+f3(b));",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=OFF;\n  CREATE INDEX t5x1 ON t5(a+f2(b));",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "1.521",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t5x1 ON t5(a+f1(b));\n  SELECT * FROM t5 INDEXED BY t5x1 WHERE a+f1(b)=3;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.530",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  CREATE INDEX t5x2 ON t5(b+f2(c));\n  SELECT * FROM t5 INDEXED BY t5x2 WHERE b+f2(c)=11;",
+          "expect": "{4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),(100,50,75),(-11,22,-33);\n  CREATE VIEW v1a AS SELECT f3(a+b) FROM t1;\n  SELECT f3(a+b) FROM t1;",
+          "expect": "{3 150 11}"
+        }
+      ]
+    },
+    {
+      "name": "2.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  SELECT * FROM v1a;",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "2.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1a;",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "2.120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1a;\n  CREATE TEMP VIEW v1a AS SELECT f3(a+b) FROM t1;\n  SELECT * FROM v1a;",
+          "expect": "{3 150 11}"
+        }
+      ]
+    },
+    {
+      "name": "2.130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1b AS SELECT f2(b+c) FROM t1;\n  SELECT f2(b+c) FROM t1;",
+          "expect": "{5 125 -11}"
+        }
+      ]
+    },
+    {
+      "name": "2.140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=ON;\n  SELECT * FROM v1b;",
+          "expect": "{0 {5 125 -11}}"
+        }
+      ]
+    },
+    {
+      "name": "2.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema=OFF;\n  SELECT * FROM v1b;",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    },
+    {
+      "name": "3.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  CREATE TABLE t2(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x) SELECT f3(new.a);\n  END;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7,6,5);",
+          "expect": "{1 {unsafe use of f3()}}"
+        }
+      ]
+    },
+    {
+      "name": "3.120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER r1;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x) SELECT f2(new.a)+100;\n  END;\n  PRAGMA trusted_schema=ON;\n  INSERT INTO t1 VALUES(7,6,5);\n  SELECT * FROM t1, t2;",
+          "expect": "{7 6 5 107}"
+        }
+      ]
+    },
+    {
+      "name": "3.130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  DELETE FROM t2;\n  PRAGMA trusted_schema=OFF;\n  INSERT INTO t1 VALUES(7,6,5);",
+          "expect": "{1 {unsafe use of f2()}}"
+        }
+      ]
+    }
+  ]
+}

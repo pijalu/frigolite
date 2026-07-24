@@ -1,0 +1,15 @@
+{
+  "file": "corruptA.test",
+  "name": "corruptA",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
+        }
+      ]
+    }
+  ]
+}

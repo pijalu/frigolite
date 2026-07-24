@@ -1,0 +1,15 @@
+{
+  "file": "bigmmap.test",
+  "name": "bigmmap",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%'"
+        }
+      ]
+    }
+  ]
+}

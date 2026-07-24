@@ -1,0 +1,23 @@
+{
+  "file": "tkt1443.test",
+  "name": "tkt1443",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Items(\n    \titemId integer primary key,\n    \t item str unique\n    );\n    INSERT INTO \"Items\" VALUES(0, 'ALL');\n    INSERT INTO \"Items\" VALUES(1, 'double:source');\n    INSERT INTO \"Items\" VALUES(2, 'double');\n    INSERT INTO \"Items\" VALUES(3, 'double:runtime');\n    INSERT INTO \"Items\" VALUES(4, '.*:runtime');\n    \n    CREATE TABLE Labels(\n    \tlabelId INTEGER PRIMARY KEY,\n    \tlabel STR UNIQUE\n    );\n    INSERT INTO \"Labels\" VALUES(0, 'ALL');\n    INSERT INTO \"Labels\" VALUES(1, 'localhost@rpl:linux');\n    INSERT INTO \"Labels\" VALUES(2, 'localhost@rpl:branch');\n    \n    CREATE TABLE LabelMap(\n    \titemId INTEGER,\n    \tlabelId INTEGER,\n    \tbranchId integer\n    );\n    INSERT INTO \"LabelMap\" VALUES(1, 1, 1);\n    INSERT INTO \"LabelMap\" VALUES(2, 1, 1);\n    INSERT INTO \"LabelMap\" VALUES(3, 1, 1);\n    INSERT INTO \"LabelMap\" VALUES(1, 2, 2);\n    INSERT INTO \"LabelMap\" VALUES(2, 2, 3);\n    INSERT INTO \"LabelMap\" VALUES(3, 2, 3);\n    \n    CREATE TABLE Users (\n    \tuserId INTEGER PRIMARY KEY,\n    \tuser STRING UNIQUE,\n    \tsalt BINARY,\n    \tpassword STRING\n    );\n    INSERT INTO \"Users\" VALUES(1, 'test', '\u008a\u00e6$d',\n               '43ba0f45014306bd6df529551ffdb3df');\n    INSERT INTO \"Users\" VALUES(2, 'limited', '\u00aa\u009a>S',\n               'cf07c8348fdf675cc1f7696b7d45191b');\n    CREATE TABLE UserGroups (\n    \tuserGroupId INTEGER PRIMARY KEY,\n    \tuserGroup STRING UNIQUE\n    );\n    INSERT INTO \"UserGroups\" VALUES(1, 'test');\n    INSERT INTO \"UserGroups\" VALUES(2, 'limited');\n    \n    CREATE TABLE UserGroupMembers (\n    \tuserGroupId INTEGER,\n    \tuserId INTEGER\n    );\n    INSERT INTO \"UserGroupMembers\" VALUES(1, 1);\n    INSERT INTO \"UserGroupMembers\" VALUES(2, 2);\n    \n    CREATE TABLE Permissions (\n    \tuserGroupId INTEGER,\n    \tlabelId INTEGER NOT NULL,\n    \titemId INTEGER NOT NULL,\n    \twrite INTEGER,\n    \tcapped INTEGER,\n    \tadmin INTEGER\n    );\n    INSERT INTO \"Permissions\" VALUES(1, 0, 0, 1, 0, 1);\n    INSERT INTO \"Permissions\" VALUES(2, 2, 4, 0, 0, 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX PermissionsIdx\n         ON Permissions(userGroupId, labelId, itemId);\n    select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern"
+        }
+      ]
+    }
+  ]
+}

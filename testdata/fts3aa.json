@@ -1,0 +1,40 @@
+{
+  "file": "fts3aa.test",
+  "name": "fts3aa",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(content) VALUES(NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(rowid, content) VALUES(0, 'four five')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(rowid, content) VALUES(-1, 'three four')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t1 WHERE rowid = -1"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    }
+  ]
+}

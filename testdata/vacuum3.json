@@ -1,0 +1,103 @@
+{
+  "file": "vacuum3.test",
+  "name": "vacuum3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN d;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n      CREATE TABLE t1(a, b, c, d);\n      INSERT INTO t1 VALUES(1, 2, 3, NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 2048;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=16384;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    }
+  ]
+}

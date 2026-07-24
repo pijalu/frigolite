@@ -1,0 +1,31 @@
+{
+  "file": "tkt3992.test",
+  "name": "tkt3992",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parameters1(\n       mountcnt    INT NOT NULL CHECK (typeof(mountcnt) == 'integer'),\n       version     REAL NOT NULL\n    );\n    INSERT INTO parameters1(mountcnt, version) VALUES(1, 1.0);\n\n    CREATE TABLE parameters2(\n       mountcnt    INT NOT NULL CHECK (typeof(mountcnt) == 'integer'),\n       version     REAL CHECK (typeof(version) == 'real')\n    );\n    INSERT INTO parameters2(mountcnt, version) VALUES(1, 1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parameters1 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parameters2 SET mountcnt = mountcnt + 1;\n    SELECT * FROM parameters2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      ALTER TABLE t1 ADD COLUMN c DEFAULT 3;\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 'one';\n      SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

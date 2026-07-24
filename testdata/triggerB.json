@@ -1,0 +1,47 @@
+{
+  "file": "triggerB.test",
+  "name": "triggerB",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(x INTEGER PRIMARY KEY, y INT NOT NULL);\n    INSERT INTO x(y) VALUES(1);\n    INSERT INTO x(y) VALUES(1);\n    CREATE TEMP VIEW vx AS SELECT x, y, 0 AS yy FROM x;\n    CREATE TEMP TRIGGER tx INSTEAD OF UPDATE OF y ON vx\n    BEGIN\n      UPDATE x SET y = new.y WHERE x = new.x;\n    END;\n    SELECT * FROM vx;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE vx SET y = yy;\n    SELECT * FROM vx;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 VALUES(1,2);\n    CREATE TABLE changes(x,y);\n    CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n      INSERT INTO changes VALUES(new.a, new.b);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a=a+10;\n    SELECT * FROM changes;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER r2t2 AFTER DELETE ON t2 BEGIN\n      INSERT INTO changes VALUES(old.a, old.c);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n       c0,  c1,  c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9,\n       c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n       c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n       c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n       c40, c41, c42, c43, c44, c45, c46, c47, c48, c49,\n       c50, c51, c52, c53, c54, c55, c56, c57, c58, c59,\n       c60, c61, c62, c63, c64, c65\n    );\n    CREATE TABLE t3_changes(colnum, oldval, newval);\n    INSERT INTO t3 VALUES(\n       'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9',\n       'a10','a11','a12','a13','a14','a15','a16','a17','a18','a19',\n       'a20','a21','a22','a23','a24','a25','a26','a27','a28','a29',\n       'a30','a31','a32','a33','a34','a35','a36','a37','a38','a39',\n       'a40','a41','a42','a43','a44','a45','a46','a47','a48','a49',\n       'a50','a51','a52','a53','a54','a55','a56','a57','a58','a59',\n       'a60','a61','a62','a63','a64','a65'\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3_changes"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET c$i='b$i';\n      SELECT * FROM t3_changes ORDER BY rowid DESC LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3_changes"
+        }
+      ]
+    }
+  ]
+}

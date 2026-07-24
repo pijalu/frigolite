@@ -1,0 +1,15 @@
+{
+  "file": "win32longpath.test",
+  "name": "win32longpath",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;"
+        }
+      ]
+    }
+  ]
+}

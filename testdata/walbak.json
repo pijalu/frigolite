@@ -1,0 +1,115 @@
+{
+  "file": "walbak.test",
+  "name": "walbak",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    PRAGMA main.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n    PRAGMA main.journal_mode;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT * FROM t1;\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n    SELECT md5sum(a, b) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('I', 'II');\n      INSERT INTO t1 VALUES('III', 'IV');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode"
+        }
+      ]
+    }
+  ]
+}

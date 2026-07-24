@@ -1,0 +1,31 @@
+{
+  "file": "ioerr6.test",
+  "name": "ioerr6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 6);\n    INSERT INTO t1 VALUES(4, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES('abc');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    CREATE TABLE t2(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x)"
+        }
+      ]
+    }
+  ]
+}

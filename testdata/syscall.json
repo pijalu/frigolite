@@ -1,0 +1,36 @@
+{
+  "file": "syscall.test",
+  "name": "syscall",
+  "tests": [
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);",
+          "expect": "db_save_and_close"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n          INSERT INTO t1 VALUES(5, 6);\n          INSERT INTO t2 VALUES(7, 8);\n        COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n        SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        }
+      ]
+    }
+  ]
+}

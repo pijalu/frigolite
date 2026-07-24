@@ -1,0 +1,59 @@
+{
+  "file": "quota.test",
+  "name": "quota",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA journal_mode=DELETE;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('x', 'y')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('v', 'w')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('t', 'u')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('r', 's')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x); INSERT INTO t2 VALUES('tab-t2');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    }
+  ]
+}

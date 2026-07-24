@@ -1,0 +1,417 @@
+{
+  "file": "alterlegacy.test",
+  "name": "alterlegacy",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(c, d);\n  ALTER TABLE t3 RENAME TO t3new;\n  DROP TABLE t3new;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME TO t2new;",
+          "expect": "{1 {error in index t2expr after rename: no such column: t2.b}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE fff RENAME TO ggg;",
+          "expect": "{1 {no such module: echo}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM vvv;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE txx RENAME TO \"t xx\";"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM vvv;",
+          "expect": "{1 {no such table: main.txx}}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uuu;",
+          "expect": "{1 {no such table: main.txx}}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ttt;",
+          "expect": "{1 {no such table: txx}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1);\n  ALTER TABLE t1 RENAME TO t11;"
+        }
+      ]
+    },
+    {
+      "name": "4.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t11 VALUES(2, 2);",
+          "expect": "{1 {no such table: main.t1}}"
+        }
+      ]
+    },
+    {
+      "name": "4.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t11 RENAME TO t1;\n  ALTER TABLE t2 RENAME TO t22;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE temp.t9 RENAME TO 't1234567890'"
+        }
+      ]
+    },
+    {
+      "name": "5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME TO one;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE aux.p1 RENAME TO ppp;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t3;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "9.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t3 RENAME TO t1;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1;\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t3 RENAME TO t1;\n  DROP TRIGGER tr;\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TRIGGER tr AFTER INSERT ON t1 WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END;\n\n  CREATE TABLE aux.t1(x);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END;"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE main.t1 RENAME TO t3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ggg;",
+          "expect": "{a b c}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO main.t1 VALUES(1, 2, 3);\n  INSERT INTO aux.t1 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "11.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux.t2 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE main.t2 RENAME TO t3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "14.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE mytable_renamed RENAME TO mytable2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "14.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO tt1;",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

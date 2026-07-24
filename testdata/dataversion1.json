@@ -1,0 +1,31 @@
+{
+  "file": "dataversion1.test",
+  "name": "dataversion1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=x+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET y=y+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ]
+}

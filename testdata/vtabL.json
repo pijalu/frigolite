@@ -1,0 +1,24 @@
+{
+  "file": "vtabL.test",
+  "name": "vtabL",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x1"
+        }
+      ]
+    },
+    {
+      "name": "2.$tn.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM x1"
+        }
+      ]
+    }
+  ]
+}

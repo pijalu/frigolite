@@ -83,6 +83,12 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "COALESCE", Type: TypeScalar, MinArgs: 1, MaxArgs: -1, ScalarFn: fnCOALESCE})
 	r.register(&Func{Name: "ROUND", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnROUND})
 	r.register(&Func{Name: "RANDOM", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnRANDOM})
+	r.register(&Func{Name: "RANDOMBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnRANDOMBLOB})
+	r.register(&Func{Name: "RANDSTR", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnRANDSTR})
+	r.register(&Func{Name: "ZEROBLOB", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnZEROBLOB})
+	r.register(&Func{Name: "LIKELIHOOD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnLIKELIHOOD})
+	r.register(&Func{Name: "LIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnLIKELY})
+	r.register(&Func{Name: "UNLIKELY", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnUNLIKELY})
 	r.register(&Func{Name: "TYPEOF", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnTYPEOF})
 	r.register(&Func{Name: "SUBSTR", Type: TypeScalar, MinArgs: 2, MaxArgs: 3, ScalarFn: fnSUBSTR})
 	r.register(&Func{Name: "REPLACE", Type: TypeScalar, MinArgs: 3, MaxArgs: 3, ScalarFn: fnREPLACE})
@@ -368,6 +374,51 @@ func fnRANDOM(args []interface{}) (interface{}, error) {
 	return int64(rand.Int63()), nil
 }
 
+func fnRANDOMBLOB(args []interface{}) (interface{}, error) {
+	n := int(toInt64(args[0]))
+	if n <= 0 {
+		return []byte{}, nil
+	}
+	buf := make([]byte, n)
+	for i := 0; i < n; i++ {
+		buf[i] = byte(rand.Intn(256))
+	}
+	return buf, nil
+}
+
+func fnRANDSTR(args []interface{}) (interface{}, error) {
+	n := int(toInt64(args[0]))
+	if n <= 0 {
+		return "", nil
+	}
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	buf := make([]byte, n)
+	for i := 0; i < n; i++ {
+		buf[i] = chars[rand.Intn(len(chars))]
+	}
+	return string(buf), nil
+}
+
+func fnZEROBLOB(args []interface{}) (interface{}, error) {
+	n := int(toInt64(args[0]))
+	if n <= 0 {
+		return []byte{}, nil
+	}
+	return make([]byte, n), nil
+}
+
+func fnLIKELIHOOD(args []interface{}) (interface{}, error) {
+	return args[0], nil
+}
+
+func fnLIKELY(args []interface{}) (interface{}, error) {
+	return args[0], nil
+}
+
+func fnUNLIKELY(args []interface{}) (interface{}, error) {
+	return args[0], nil
+}
+
 func fnTYPEOF(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return "null", nil
@@ -416,7 +467,32 @@ func fnQUOTE(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return "NULL", nil
 	}
-	return fmt.Sprintf("%q", args[0]), nil
+	switch v := args[0].(type) {
+	case int64:
+		return fmt.Sprintf("%d", v), nil
+	case float64:
+		// Format float like SQLite: use %g but ensure .0 for whole numbers
+		s := fmt.Sprintf("%g", v)
+		// Handle negative zero: SQLite shows -0 as 0
+		if v == 0 {
+			s = "0"
+		}
+		// If no decimal point and no exponent, add .0
+		if !strings.Contains(s, ".") && !strings.ContainsAny(s, "eE") {
+			s += ".0"
+		}
+		return s, nil
+	case string:
+		// Escape single quotes by doubling them, wrap in single quotes
+		escaped := strings.ReplaceAll(v, "'", "''")
+		return "'" + escaped + "'", nil
+	case []byte:
+		// Blob: X'hex'
+		return fmt.Sprintf("X'%x'", v), nil
+	default:
+		// For bool and other types
+		return fmt.Sprintf("'%v'", v), nil
+	}
 }
 
 func fnUNICODE(args []interface{}) (interface{}, error) {
@@ -547,7 +623,7 @@ func GlobMatch(s, pattern string) bool {
 				continue
 			}
 		}
-		if 0 < nextPx && nextPx <= len(pattern) {
+		if 0 < nextPx && nextPx <= len(pattern) && nextSx <= len(s) {
 			px, sx = nextPx, nextSx
 			nextSx++
 			continue

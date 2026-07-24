@@ -1,0 +1,16 @@
+{
+  "file": "memjournal.test",
+  "name": "memjournal",
+  "tests": [
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "file": "tkt-38cb5df375.test",
+  "name": "tkt_38cb5df375",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 3)\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a)\n      ORDER BY 1 DESC\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 9 FROM (SELECT * FROM t1)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT 90+a FROM (SELECT a FROM t1 ORDER BY a LIMIT 3)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 2)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 5)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      INTERSECT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 5)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      EXCEPT SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 FROM (SELECT * FROM t1 LIMIT 3)\n      UNION ALL SELECT 9 FROM (SELECT a FROM t1 LIMIT 4)\n      UNION ALL SELECT 88 FROM (SELECT a FROM t1 LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION ALL SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION ALL SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a LIMIT 3)\n      UNION SELECT a+10 FROM (SELECT a FROM t1 ORDER BY a LIMIT 4)\n      UNION SELECT a+20 FROM (SELECT a FROM t1 ORDER BY a LIMIT 2)\n      ORDER BY 1\n      LIMIT $::ii;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT $::ii)\n      ORDER BY a DESC\n      LIMIT $::jj;"
+        }
+      ]
+    }
+  ]
+}

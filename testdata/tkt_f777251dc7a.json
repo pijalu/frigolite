@@ -1,0 +1,43 @@
+{
+  "file": "tkt-f777251dc7a.test",
+  "name": "tkt_f777251dc7a",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);\n     CREATE TEMP TABLE t3(w, z);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO t1 VALUES(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n     DROP TABLE IF EXISTS t2;\n     DROP TABLE IF EXISTS t3;\n\n     CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;\n    CREATE TEMP TABLE t3(w, z);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    DROP TABLE IF EXISTS t3;\n\n    CREATE TEMP TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n  \n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('hello')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        }
+      ]
+    }
+  ]
+}

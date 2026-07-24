@@ -1,0 +1,15 @@
+{
+  "file": "vtabF.test",
+  "name": "vtabF",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM tv1 WHERE a IS NOT NULL"
+        }
+      ]
+    }
+  ]
+}

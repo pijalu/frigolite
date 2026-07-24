@@ -1,0 +1,89 @@
+{
+  "file": "recover.test",
+  "name": "recover",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "2.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';"
+        }
+      ]
+    },
+    {
+      "name": "2.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE lost_and_found(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "2.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE lost_and_found_0(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;",
+          "expect": "recover_with_opts \"\""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "file": "fts4aa.test",
+  "name": "fts4aa",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE docid!=1050026;\n    SELECT hex(size) FROM t1_docsize;\n    SELECT hex(value) FROM t1_stat;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1"
+        }
+      ]
+    }
+  ]
+}

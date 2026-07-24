@@ -1,0 +1,43 @@
+{
+  "file": "vtab3.test",
+  "name": "vtab3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pachyderm;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE pachyderm;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type = 'table';"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "file": "fts3comp1.test",
+  "name": "fts3comp1",
+  "tests": [
+    {
+      "name": "1.$tn.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c0a, c1b FROM t1_content",
+          "expect": "{3 4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema = OFF;",
+          "expect": "set ::myfunc_invoked 0"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT myfunc('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

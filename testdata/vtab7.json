@@ -1,0 +1,75 @@
+{
+  "file": "vtab7.test",
+  "name": "vtab7",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO log VALUES('xSync');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(msg);\n    INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE newtab(d, e, f);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE newtab"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS db2;\n      CREATE TABLE db2.stuff(description, shape, color);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO db2.stuff VALUES('abc', 'square', 'green');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n      SELECT * from stuff;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO log VALUES('hello')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"
+        }
+      ]
+    }
+  ]
+}

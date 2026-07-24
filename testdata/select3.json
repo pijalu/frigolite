@@ -1,0 +1,269 @@
+{
+  "file": "select3.test",
+  "name": "select3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(n int, log int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(n),min(log),max(n),max(log),sum(n),sum(log),avg(n),avg(log)\n    FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(n)/avg(n), max(log)/avg(log) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY log ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, avg(n) FROM t1 GROUP BY log ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, avg(n)+1 FROM t1 GROUP BY log ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1, avg(n)-min(n) FROM t1 GROUP BY log ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1 as x, count(*) FROM t1 GROUP BY x ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY y, x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log*2+1 AS x, count(*) AS y FROM t1 GROUP BY x ORDER BY 10-(x+y)"
+        }
+      ]
+    },
+    {
+      "name": "select3-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT log, count(*) FROM t1 HAVING log>=4",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "select3-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 HAVING log>=4",
+          "expect": "{}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY log HAVING log>=4 ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 \n    GROUP BY log \n    HAVING count(*)>=4 \n    ORDER BY max(n)+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log AS x, count(*) AS y FROM t1 \n    GROUP BY x\n    HAVING y>=4 \n    ORDER BY max(n)+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log AS x FROM t1 \n    GROUP BY x\n    HAVING count(*)>=4 \n    ORDER BY max(n)+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, avg(n)+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*), avg(n), max(n+log*2) FROM t1 \n    GROUP BY log \n    ORDER BY max(n+log*2)+0, min(log,avg(n))+0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, min(n) FROM t1 GROUP BY log ORDER BY 1 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) FROM t2 WHERE b=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(sum(a3)) FROM a GROUP BY a1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "select3.11.$tn.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1234);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )",
+          "expect": "{abc constant}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE TABLE t2(x);"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(45);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
+          "expect": "{\n  2 59\n  1 59\n  1 59\n}"
+        }
+      ]
+    },
+    {
+      "name": "12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(210);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
+          "expect": "{\n  4 59\n  2 59\n  2 59\n}"
+        }
+      ]
+    },
+    {
+      "name": "12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
+          "expect": "{\n  4 59\n  2 59\n  2 59\n}"
+        }
+      ]
+    },
+    {
+      "name": "12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES('value');\n  INSERT INTO t2 VALUES('hello');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "12.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(x), m FROM t1 \n    LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
+          "expect": "{\n  hello 59\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "file": "upfrom2.test",
+  "name": "upfrom2",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;"
+        }
+      ]
+    },
+    {
+      "name": "4.$tn.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET a=t FROM map WHERE a=o;\n    SELECT * FROM x1 ORDER BY a;",
+          "expect": "{2 2 2   5 5 5   10 1 1  30 3 3  40 4 4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);\n  CREATE TABLE x2(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

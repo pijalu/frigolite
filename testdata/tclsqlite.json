@@ -1,0 +1,362 @@
+{
+  "file": "tclsqlite.test",
+  "name": "tclsqlite",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a int, b int)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t\\u0123x"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a*2, b*2 FROM t1;\n    INSERT INTO t1 SELECT a*2+1, b*2+1 FROM t1;\n    INSERT INTO t1 SELECT a*2+3, b*2+3 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(99,510)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES($::x(1),$::x(2),$::x(3));\n      SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET a=$::x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), typeof(b), typeof(c) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30,NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT concat('a', b, 'z') FROM t1 WHERE b is NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(ret_str())"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(ret_dbl())"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(ret_int())"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(banu()), typeof(banu(1))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT banu(), banu(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT r1(10)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT r1(100)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(7)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4;\n      INSERT INTO t4 VALUES('one');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('two')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('three')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('two');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('three')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('four')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('B')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('C')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('five')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES('five')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(6)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x BLOB)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(x) FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES(@x);\n      SELECT typeof(x) FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n      INSERT INTO t5 VALUES(@y);\n      SELECT hex(x), typeof(x) FROM t5"
+        }
+      ]
+    },
+    {
+      "name": "tcl-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x);\n  INSERT INTO t6 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a); INSERT INTO t1 VALUES(1),(2),(3);"
+        }
+      ]
+    },
+    {
+      "name": "tcl-16.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(@def), typeof(@def)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tad(a,b)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tad(a,b) VALUES('aa','bb'),('AA','BB')"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tad"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT closedb(),func1() UNION ALL SELECT 20,30 UNION ALL SELECT 30,40"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 2 3;"
+        }
+      ]
+    }
+  ]
+}

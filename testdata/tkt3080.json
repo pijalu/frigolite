@@ -1,0 +1,47 @@
+{
+  "file": "tkt3080.test",
+  "name": "tkt3080",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT execsql('CREATE TABLE t1(x)');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t2(y);');\n    SELECT execsql(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('CREATE TABLE t3(z); DROP TABLE t3;');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT execsql(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        }
+      ]
+    }
+  ]
+}

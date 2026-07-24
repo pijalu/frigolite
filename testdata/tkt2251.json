@@ -1,0 +1,43 @@
+{
+  "file": "tkt2251.test",
+  "name": "tkt2251",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(9);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    ALTER TABLE t1 ADD COLUMN b REAL DEFAULT 4.0;\n    SELECT avg(b), typeof(avg(b)) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(b), typeof(sum(b)) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b), typeof(sum(b)) FROM t1 GROUP BY a ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b, typeof(b) FROM t1 WHERE a=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1i1 ON t1(a,b);\n    SELECT b, typeof(b) FROM t1 WHERE a=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    SELECT b, typeof(b) FROM t1 WHERE a=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT y, typeof(y) FROM t2 WHERE x=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT b, typeof(b) FROM t3 WHERE a=3;"
+        }
+      ]
+    }
+  ]
+}

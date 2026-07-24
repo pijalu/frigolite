@@ -1,0 +1,26 @@
+{
+  "file": "tkt-8c63ff0ec.test",
+  "name": "tkt_8c63ff0ec",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d, e);\n  INSERT INTO t1 VALUES(1,20,30,40,50),(3,60,70,80,90);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(z);\n  INSERT INTO t3 VALUES(2),(2),(2),(2);\n  \n  SELECT a, b+c FROM t1\n  UNION ALL\n  SELECT x, 5 FROM t2 JOIN t3 ON z=x WHERE x=2\n  ORDER BY a;",
+          "expect": "{1 50 2 5 2 5 2 5 2 5 3 130}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b+c+d FROM t1\n  UNION ALL\n  SELECT x, 5 FROM t2 JOIN t3 ON z=x WHERE x=2\n  ORDER BY a;",
+          "expect": "{1 90 2 5 2 5 2 5 2 5 3 210}"
+        }
+      ]
+    }
+  ]
+}

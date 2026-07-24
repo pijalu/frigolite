@@ -1,0 +1,1164 @@
+{
+  "file": "tkt-80e031a00f.test",
+  "name": "tkt_80e031a00f",
+  "tests": [
+    {
+      "name": "tkt-80e031a00f.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN ()",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN (2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.1c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN (2,3,4,5,6,7,8,9)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN ()",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN (2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.2c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN (2,3,4,5,6,7,8,9)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN ()",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN ()",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  SELECT 1 IN t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(y INTEGER PRIMARY KEY);\n  SELECT 1 IN t2;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN t2",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t2",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t2",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(z INT UNIQUE);\n  SELECT 1 IN t3;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN t3",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t3",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t3",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN (SELECT x+y FROM t1, t2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN (SELECT x+y FROM t1,t2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN (SELECT x+y FROM t1,t2)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN (SELECT x+y FROM t1,t2)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 IN ()",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 NOT IN ()",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 IN t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 NOT IN t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'hello' IN ()",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'hello' NOT IN ()",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'hello' IN t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'hello' NOT IN t1",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x'303132' IN ()",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x'303132' NOT IN ()",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x'303132' IN t1",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN (2,3,4)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN (2,3,4)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN ('b','c','d')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' NOT IN ('b','c','d')",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a UNIQUE);\n     CREATE TABLE t5(b INTEGER PRIMARY KEY);\n     CREATE TABLE t6(c);\n     INSERT INTO t4 VALUES(2);\n     INSERT INTO t4 VALUES(3);\n     INSERT INTO t4 VALUES(4);\n     INSERT INTO t5 SELECT * FROM t4;\n     INSERT INTO t6 SELECT * FROM t4;\n     CREATE TABLE t4n(a UNIQUE);\n     CREATE TABLE t6n(c);\n     INSERT INTO t4n SELECT * FROM t4;\n     INSERT INTO t4n VALUES(null);\n     INSERT INTO t6n SELECT * FROM t4n;\n     CREATE TABLE t7(a UNIQUE);\n     CREATE TABLE t8(c);\n     INSERT INTO t7 VALUES('b');\n     INSERT INTO t7 VALUES('c');\n     INSERT INTO t7 VALUES('d');\n     INSERT INTO t8 SELECT * FROM t7;\n     CREATE TABLE t7n(a UNIQUE);\n     CREATE TABLE t8n(c);\n     INSERT INTO t7n SELECT * FROM t7;\n     INSERT INTO t7n VALUES(null);\n     INSERT INTO t8n SELECT * FROM t7n;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 IN t4"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.105",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN t4",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.106",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN t5",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.107",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN t5",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.108",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN t6",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.109",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN t6",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN t7",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' NOT IN t7",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.112",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN t8",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.113",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' NOT IN t8",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 IN (2,3,4,null)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 3 NOT IN (2,3,4,null)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.302",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 4 IN (2,3,4)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.303",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 NOT IN (2,3,4)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.304",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'b' IN ('b','c','d')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.305",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'c' NOT IN ('b','c','d')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.306",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'd' IN ('b','c',null,'d')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.307",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'b' NOT IN (null,'b','c','d')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.308",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 IN t4",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.309",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 3 NOT IN t4",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 4 IN t4n",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.311",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 NOT IN t4n",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.312",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 IN t5",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.313",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 3 NOT IN t5",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.314",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 IN t6",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.315",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 3 NOT IN t6",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.316",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 4 IN t6n",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.317",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 NOT IN t6n",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.318",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'b' IN t7",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.319",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'c' NOT IN t7",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'c' IN t7n",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'd' NOT IN t7n",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.322",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'b' IN t8",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.323",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'c' NOT IN t8",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.324",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'c' IN t8n",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.325",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'd' NOT IN t8n",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.326",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN (NULL,'a')",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.327",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN (NULL,'b')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.328",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' NOT IN (NULL,'a')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.329",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' NOT IN (NULL,'b')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN (2,3,4,null)",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 NOT IN (2,3,4,null)",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN ('b','c',null,'d')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' NOT IN (null,'b','c','d')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 IN t4n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 5 NOT IN t4n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.406",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 6 IN t6n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.407",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 7 NOT IN t6n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.408",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a' IN t7n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.409",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'e' NOT IN t7n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'f' IN t8n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.411",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'g' NOT IN t8n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN (2,3,4,null)",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.501",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN (2,3,4,null)",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.502",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN (2,3,4)",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.503",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN (2,3,4)",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.504",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN ('b','c','d')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.505",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN ('b','c','d')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.506",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN ('b','c',null,'d')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.507",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN (null,'b','c','d')",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.508",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t4",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.509",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t4",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.510",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t4n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.511",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t4n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.512",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t5",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.513",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t5",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.514",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t6",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.515",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t6",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.516",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t6n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.517",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t6n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.518",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t7",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.519",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t7",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t7n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.521",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t7n",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.522",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t8",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.523",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null NOT IN t8",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-80e031a00f.524",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT null IN t8n",
+          "expect": "{{}}"
+        }
+      ]
+    }
+  ]
+}

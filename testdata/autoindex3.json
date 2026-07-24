@@ -1,0 +1,52 @@
+{
+  "file": "autoindex3.test",
+  "name": "autoindex3",
+  "tests": [
+    {
+      "name": "autoindex3-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d>b AND x=y;",
+          "expect": "{/AUTO/}"
+        }
+      ]
+    },
+    {
+      "name": "autoindex3-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d<b AND x=y;",
+          "expect": "{/AUTO/}"
+        }
+      ]
+    },
+    {
+      "name": "autoindex3-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d IS NULL AND x=y;",
+          "expect": "{/AUTO/}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

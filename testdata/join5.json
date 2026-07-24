@@ -1,0 +1,252 @@
+{
+  "file": "join5.test",
+  "name": "join5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a integer primary key, b integer, c integer);\n    CREATE TABLE t2(x integer primary key, y);\n    CREATE TABLE t3(p integer primary key, q);\n    INSERT INTO t3 VALUES(11,'t3-11');\n    INSERT INTO t3 VALUES(12,'t3-12');\n    INSERT INTO t2 VALUES(11,'t2-11');\n    INSERT INTO t2 VALUES(12,'t2-12');\n    INSERT INTO t1 VALUES(1, 5, 0);\n    INSERT INTO t1 VALUES(2, 11, 2);\n    INSERT INTO t1 VALUES(3, 12, 1);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left join t2 on t1.b=t2.x and t1.c=1"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left join t2 on t1.b=t2.x where t1.c=1"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n                     left join t3 on t1.b=t3.p and t1.c=2"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from t1 left join t2 on t1.b=t2.x and t1.c=1\n                     left join t3 on t1.b=t3.p where t1.c=2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a,b);\n    INSERT INTO \"ab\" VALUES(1,2);\n    INSERT INTO \"ab\" VALUES(3,NULL);\n\n    CREATE TABLE xy(x,y);\n    INSERT INTO \"xy\" VALUES(2,3);\n    INSERT INTO \"xy\" VALUES(NULL,1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 0 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 1 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON NULL WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 0 WHERE 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 1 WHERE 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON NULL WHERE 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 0 WHERE NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON 1 WHERE NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM xy LEFT JOIN ab ON NULL WHERE NULL"
+        }
+      ]
+    },
+    {
+      "name": "join5-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;",
+          "expect": "{1 {} {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "join5-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t1(x text NOT NULL, y text);\n  CREATE TABLE t2(u text NOT NULL, x text NOT NULL);\n  CREATE TABLE t3(w text NOT NULL, v text);\n  CREATE TABLE t4(w text NOT NULL, z text NOT NULL);\n  CREATE TABLE t5(z text NOT NULL, m text);\n  INSERT INTO t1 VALUES('f6d7661f-4efe-4c90-87b5-858e61cd178b',NULL);\n  INSERT INTO t1 VALUES('f6ea82c3-2cad-45ce-ae8f-3ddca4fb2f48',NULL);\n  INSERT INTO t1 VALUES('f6f47499-ecb4-474b-9a02-35be73c235e5',NULL);\n  INSERT INTO t1 VALUES('56f47499-ecb4-474b-9a02-35be73c235e5',NULL);\n  INSERT INTO t3 VALUES('007f2033-cb20-494c-b135-a1e4eb66130c',\n                        'f6d7661f-4efe-4c90-87b5-858e61cd178b');\n  SELECT *\n    FROM t3\n         INNER JOIN t1 ON t1.x= t3.v AND t1.y IS NULL\n         LEFT JOIN t4  ON t4.w = t3.w\n         LEFT JOIN t5  ON t5.z = t4.z\n         LEFT JOIN t2  ON t2.u = t5.m\n         LEFT JOIN t1 xyz ON xyz.y = t2.x;",
+          "expect": "{007f2033-cb20-494c-b135-a1e4eb66130c f6d7661f-4efe-4c90-87b5-858e61cd178b f6d7661f-4efe-4c90-87b5-858e61cd178b {} {} {} {} {} {} {} {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "join5-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n  FROM (\n      SELECT 'apple' fruit\n      UNION ALL SELECT 'banana'\n  ) a\n  JOIN (\n      SELECT 'apple' fruit\n      UNION ALL SELECT 'banana'\n  ) b ON a.fruit=b.fruit\n  LEFT JOIN (\n      SELECT 1 isyellow\n  ) c ON b.fruit='banana';",
+          "expect": "{apple apple {} banana banana 1}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(x, y, z);\n  INSERT INTO y1 VALUES(0, 0, 1);\n  CREATE TABLE y2(a);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x); \n  INSERT INTO t1 VALUES(1);\n\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,a,b);\n  INSERT INTO t2 VALUES(1,2,3);\n  CREATE INDEX t2a ON t2(a); \n  CREATE INDEX t2b ON t2(b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0, c1, PRIMARY KEY (c0, c1));\n  CREATE TABLE t1 (c0);\n\n  INSERT INTO t1 VALUES (2);\n\n  INSERT INTO t0 VALUES(0, 10);\n  INSERT INTO t0 VALUES(1, 10);\n  INSERT INTO t0 VALUES(2, 10);\n  INSERT INTO t0 VALUES(3, 10);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 LEFT JOIN t2 ON c=b WHERE d IS NULL;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 LEFT JOIN t2 ON c=b WHERE d=100;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x, x*1000, x*1000000 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%3==0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%4==0;\n  CREATE INDEX t3c ON t3(c);\n  INSERT INTO t1(a,b,c) VALUES(200, 200000, NULL);\n  ANALYZE;",
+          "expect": "{}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "file": "tkt-5ee23731f.test",
+  "name": "tkt_5ee23731f",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x UNIQUE);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=x+1 WHERE rowid=:rowid"
+        }
+      ]
+    }
+  ]
+}

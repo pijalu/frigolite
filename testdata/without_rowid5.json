@@ -1,0 +1,230 @@
+{
+  "file": "without_rowid5.test",
+  "name": "without_rowid5",
+  "tests": [
+    {
+      "name": "without_rowid5-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY,b,c);\n  CREATE TABLE t1w(a PRIMARY KEY,b,c) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1565,681,1148),(1429,1190,1619),(425,358,1306);\n  INSERT INTO t1w SELECT a,b,c FROM t1;\n  SELECT rowid, _rowid_, oid FROM t1 ORDER BY a DESC;",
+          "expect": "{1 1 1 2 2 2 3 3 3}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1w;",
+          "expect": "{1 {no such column: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT _rowid_ FROM t1w;",
+          "expect": "{1 {no such column: _rowid_}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS wordcount(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT ROWID;\n  INSERT INTO wordcount VALUES('one',1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS wordcount_b(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_b VALUES('one',1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM wordcount_b;",
+          "expect": "{1 {no such column: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS wordcount_c(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) without rowid;\n  INSERT INTO wordcount_c VALUES('one',1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM wordcount_c;",
+          "expect": "{1 {no such column: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS wordcount_d(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT rowid;\n  INSERT INTO wordcount_d VALUES('one',1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS error1(\n    word TEXT PRIMARY KEY,\n    cnt INTEGER\n  ) WITHOUT _rowid_;",
+          "expect": "{1 {unknown table option: _rowid_}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;",
+          "expect": "{rival bonus}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO ipk VALUES(NULL,'sample'); -- no automatic generation of keys",
+          "expect": "{1 {NOT NULL constraint failed: ipk.key}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nn(a, b, c, d, e, PRIMARY KEY(c,a,e));\n  CREATE TABLE nnw(a, b, c, d, e, PRIMARY KEY(c,a,e)) WITHOUT ROWID;\n  INSERT INTO nn VALUES(1,2,3,4,5);\n  INSERT INTO nnw VALUES(1,2,3,4,5);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO nn VALUES(NULL, 3,4,5,6);\n  INSERT INTO nn VALUES(3,4,NULL,7,8);\n  INSERT INTO nn VALUES(4,5,6,7,NULL);\n  SELECT count(*) FROM nn;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO nnw VALUES(NULL, 3,4,5,6);",
+          "expect": "{1 {NOT NULL constraint failed: nnw.a}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO nnw VALUES(3,4,NULL,7,8)",
+          "expect": "{1 {NOT NULL constraint failed: nnw.c}}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO nnw VALUES(4,5,6,7,NULL)",
+          "expect": "{1 {NOT NULL constraint failed: nnw.e}}"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT ROLLBACK,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    BEGIN;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5(a,b,c) VALUES(NULL,6,7);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT ABORT,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    BEGIN;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5(a,b,c) VALUES(NULL,6,7);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT FAIL,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT IGNORE,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT REPLACE DEFAULT 3,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a INTEGER PRIMARY KEY, b BLOB) WITHOUT ROWID;\n  INSERT INTO b1 VALUES(1,x'0102030405060708090a0b0c0d0e0f');",
+          "expect": "{}"
+        }
+      ]
+    }
+  ]
+}

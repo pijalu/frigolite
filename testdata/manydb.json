@@ -1,0 +1,19 @@
+{
+  "file": "manydb.test",
+  "name": "manydb",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n       SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

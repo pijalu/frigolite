@@ -1,0 +1,31 @@
+{
+  "file": "tkt3554.test",
+  "name": "tkt3554",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES('a', 10000, 11000);\n    SELECT * FROM test;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES('a', 9000, 10500);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES('a', 10000, 12000);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test"
+        }
+      ]
+    }
+  ]
+}

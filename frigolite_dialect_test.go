@@ -65,7 +65,7 @@ func TestDialectExists(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("EXISTS: %v", res.Error)
 	}
-	if res.Rows[0][0] != true {
+	if res.Rows[0][0] != int64(1) {
 		t.Errorf("expected true, got %v", res.Rows[0][0])
 	}
 
@@ -73,7 +73,7 @@ func TestDialectExists(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("NOT EXISTS: %v", res.Error)
 	}
-	if res.Rows[0][0] != true {
+	if res.Rows[0][0] != int64(1) {
 		t.Errorf("expected true for NOT EXISTS, got %v", res.Rows[0][0])
 	}
 }

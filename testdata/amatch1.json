@@ -1,0 +1,37 @@
+{
+  "file": "amatch1.test",
+  "name": "amatch1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5"
+        }
+      ]
+    },
+    {
+      "name": "amatch1-2.3a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE vtemp(w TEXT UNIQUE);\n      INSERT OR IGNORE INTO vtemp SELECT term FROM t1aux;",
+          "expect": "{}} 1]\""
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

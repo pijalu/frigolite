@@ -1,0 +1,72 @@
+{
+  "file": "tkt-80ba201079.test",
+  "name": "tkt_80ba201079",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('A');\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES('B');\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES('C');\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE entry_types (\n                        id     integer primary key,\n                        name   text\n                    );\n    INSERT INTO \"entry_types\" VALUES(100,'cli_command');\n    INSERT INTO \"entry_types\" VALUES(300,'object_change');\n    CREATE TABLE object_changes (\n                        change_id    integer primary key,\n                        system_id    int,\n                        obj_id       int,\n                        obj_context  text,\n                        change_type  int,\n                        command_id   int\n                    );\n    INSERT INTO \"object_changes\" VALUES(1551,1,114608,'exported_pools',1,2114);\n    INSERT INTO \"object_changes\" VALUES(2048,1,114608,'exported_pools',2,2319);\n    CREATE TABLE timeline (\n                        rowid        integer primary key,\n                        timestamp    text,\n                        system_id    int,\n                        entry_type   int,\n                        entry_id     int\n                    );\n    INSERT INTO \"timeline\" VALUES(6735,'2010-11-21 17:08:27.000',1,300,2048);\n    INSERT INTO \"timeline\" VALUES(6825,'2010-11-21 17:09:21.000',1,300,2114);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX timeline_entry_id_idx on timeline(entry_id);\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));"
+        }
+      ]
+    },
+    {
+      "name": "301",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');"
+        }
+      ]
+    },
+    {
+      "name": "304",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE\n      (a='A' AND d='E') OR\n      (b='B' AND c IN (SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'))",
+          "expect": "{A B C D E}"
+        }
+      ]
+    },
+    {
+      "name": "307",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE\n      (b='B' AND c IN (SELECT 'B' UNION SELECT 'C' UNION SELECT 'D')) OR\n      (a='A' AND d='E')",
+          "expect": "{A B C D E}"
+        }
+      ]
+    }
+  ]
+}

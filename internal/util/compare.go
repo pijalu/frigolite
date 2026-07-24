@@ -45,6 +45,16 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 		}
 	}
 
+	// SQLite affinity: when comparing numeric with text, try to convert
+	// text to numeric. This matches SQLite's type affinity rules for
+	// comparisons (rules 2, 3 from SQLite docs on type affinity).
+	if isNumeric(ta) && tb == typeText {
+		return compareNumericText(a, b, -1)
+	}
+	if isNumeric(tb) && ta == typeText {
+		return compareTextNumeric(a, b, 1)
+	}
+
 	// Different types: compare by type ordering
 	if ta != tb {
 		return int(ta) - int(tb)
@@ -59,6 +69,42 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 	default:
 		return 0
 	}
+}
+
+// compareNumericText compares a numeric value a with a text value b.
+// If b can be parsed as a number, compare numerically; otherwise
+// return typeOrder (numeric < text).
+func compareNumericText(a, b interface{}, typeOrder int) int {
+	if f, err := strconv.ParseFloat(toStr(b), 64); err == nil {
+		fa := toFloat64(a)
+		switch {
+		case fa < f:
+			return -1
+		case fa > f:
+			return 1
+		default:
+			return 0
+		}
+	}
+	return typeOrder
+}
+
+// compareTextNumeric compares a text value a with a numeric value b.
+// If a can be parsed as a number, compare numerically; otherwise
+// return typeOrder (text > numeric).
+func compareTextNumeric(a, b interface{}, typeOrder int) int {
+	if f, err := strconv.ParseFloat(toStr(a), 64); err == nil {
+		fb := toFloat64(b)
+		switch {
+		case f < fb:
+			return -1
+		case f > fb:
+			return 1
+		default:
+			return 0
+		}
+	}
+	return typeOrder
 }
 
 type valueClass int

@@ -1,0 +1,400 @@
+{
+  "file": "minmax.test",
+  "name": "minmax",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1i1 ON t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(y) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE x=5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE x>=5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE x>=4.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE x<4.5"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(max_a_t2()+1,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(max_a_t2()+1,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t2 WHERE a=(SELECT max(a) FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t2 WHERE a=max_a_t2()"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(min(x+0),-1), coalesce(max(x+0),-1) FROM\n        (SELECT * FROM t1 UNION SELECT NULL as 'x', NULL as 'y')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, coalesce(sum(x),0) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(x), count(*) FROM\n        (SELECT null AS x, y+1 AS y FROM t1 UNION SELECT * FROM t1)\n      GROUP BY y ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x INTEGER UNIQUE NOT NULL);\n    SELECT coalesce(min(x),999) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(min(rowid),999) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(max(x),999) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(max(rowid),999) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(max(rowid),999) FROM t3 WHERE rowid<25;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(a) FROM t2 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2 LIMIT 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(a) FROM t2 LIMIT 0,100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2 LIMIT 1,100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t3 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t3 LIMIT 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t2 LIMIT 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT max(x) FROM t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT min(x) FROM t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a TEXT);\n    INSERT INTO t4 VALUES('1234');\n    INSERT INTO t4 VALUES('234');\n    INSERT INTO t4 VALUES('34');\n    SELECT min(a), max(a) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a INTEGER);\n    INSERT INTO t5 VALUES('1234');\n    INSERT INTO t5 VALUES('234');\n    INSERT INTO t5 VALUES('34');\n    SELECT min(a), max(a) FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 UNION SELECT max(rowid) FROM t5\n      )"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(yy) FROM (\n        SELECT max(rowid) AS yy FROM t4 EXCEPT SELECT max(rowid) FROM t5\n      )"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 VALUES(NULL);\n    SELECT coalesce(min(x),-1) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i6 ON t6(x);\n    SELECT coalesce(min(x),-1) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t6 WHERE x NOT NULL;\n    SELECT count(*) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(x) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x), max(x) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    INSERT INTO t6 SELECT * FROM t6;\n    SELECT count(*) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(x) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT min(x) FROM t6), (SELECT max(x) FROM t6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x), max(x) FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1i2 ON t1(y,x);\n    SELECT min(x) FROM t1 WHERE y=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1 WHERE y=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE y=6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1 WHERE y=6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE y=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1 WHERE y=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE y=0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1 WHERE y=0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE y=5 AND x>=17.5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1 WHERE y=5 AND x>=17.5;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a,b,c);\n    INSERT INTO t7 SELECT y, x, x*y FROM t1;\n    INSERT INTO t7 SELECT y, x, x*y+1000 FROM t1;\n    CREATE INDEX t7i1 ON t7(a,b,c);\n    SELECT min(a) FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a) FROM t7 WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t7 WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(b) FROM t7 WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(b) FROM t7 WHERE a=4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(b) FROM t7 WHERE a=4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(c) FROM t7 WHERE a=4 AND b=10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(c) FROM t7 WHERE a=4 AND b=10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(rowid) FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(rowid) FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(rowid) FROM t7 WHERE a=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(rowid) FROM t7 WHERE a=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(rowid) FROM t7 WHERE a=3 AND b=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(rowid) FROM t7 WHERE a=3 AND b=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(rowid) FROM t7 WHERE a=3 AND b=5 AND c=1015;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(rowid) FROM t7 WHERE a=3 AND b=5 AND c=15;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 1, 1);\n  INSERT INTO t1 VALUES('b', 6, 6);\n  INSERT INTO t1 VALUES('c', 5, 5);\n  INSERT INTO t1 VALUES('a', 4, 4);\n  INSERT INTO t1 VALUES('a', 5, 5);\n  INSERT INTO t1 VALUES('c', 6, 6);\n  INSERT INTO t1 VALUES('b', 4, 4);\n  INSERT INTO t1 VALUES('c', 7, 7);\n  INSERT INTO t1 VALUES('b', 2, 2);\n  INSERT INTO t1 VALUES('b', 3, 3);\n  INSERT INTO t1 VALUES('a', 3, 3);\n  INSERT INTO t1 VALUES('b', 5, 5);\n  INSERT INTO t1 VALUES('c', 4, 4);\n  INSERT INTO t1 VALUES('c', 3, 3);\n  INSERT INTO t1 VALUES('a', 2, 2);\n  SELECT * FROM t1 ORDER BY a, b, c;",
+          "expect": "{a 1 1 a 2 2 a 3 3 a 4 4 a 5 5\n   b 2 2 b 3 3 b 4 4 b 5 5 b 6 6\n   c 3 3 c 4 4 c 5 5 c 6 6 c 7 7\n}"
+        }
+      ]
+    },
+    {
+      "name": "13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b, c)"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t14(a INTEGER, b INTEGER);\n  INSERT INTO t14(a,b) VALUES(100,2),(200,2),(300,2),(400,1),(500,2);\n  SELECT min(a) FROM t14 WHERE b='2' AND a>'50';",
+          "expect": "{100}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

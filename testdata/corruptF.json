@@ -1,0 +1,15 @@
+{
+  "file": "corruptF.test",
+  "name": "corruptF",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);         /* root page = 2 */\n    CREATE TABLE t2(x);         /* root page = 3 */\n    CREATE TABLE t3(x);         /* root page = 4 */\n\n    INSERT INTO t1 VALUES(str(1));\n    INSERT INTO t1 SELECT str(rowid+1) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+2) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+4) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+8) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+16) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+32) FROM t1;\n    INSERT INTO t1 SELECT str(rowid+64) FROM t1;\n    DROP TABLE t2;\n    DROP TABLE t3;"
+        }
+      ]
+    }
+  ]
+}

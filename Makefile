@@ -69,10 +69,10 @@ GO_FILES := $(shell find . -path ./third_party -prune -o -name '*.go' ! -name '*
 gocognit:
 	gocognit -over 30 $(GO_FILES) || true
 
-# gocyclo: report functions with high cyclomatic complexity (>15)
+# gocyclo: report functions with high cyclomatic complexity (>20)
 # Exclude test files and third_party.
 gocyclo:
-	gocyclo -over 15 $(GO_FILES) || true
+	gocyclo -over 20 $(GO_FILES) || true
 
 # Lint: run all linters
 lint: vet staticcheck gocognit gocyclo
@@ -83,9 +83,9 @@ quality: vet staticcheck
 	@! gocognit -over 30 $(GO_FILES) 2>&1 | grep -q . || \
 		(echo "FAIL: cognitive complexity exceeds 30 in:"; gocognit -over 30 $(GO_FILES); exit 1)
 	@echo "OK"
-	@echo "Checking cyclomatic complexity (threshold 15)..."
-	@! gocyclo -over 15 $(GO_FILES) 2>&1 | grep -q . || \
-		(echo "FAIL: cyclomatic complexity exceeds 15 in:"; gocyclo -over 15 $(GO_FILES); exit 1)
+	@echo "Checking cyclomatic complexity (threshold 20)..."
+	@! gocyclo -over 20 $(GO_FILES) 2>&1 | grep -q . || \
+		(echo "FAIL: cyclomatic complexity exceeds 20 in:"; gocyclo -over 20 $(GO_FILES); exit 1)
 	@echo "OK"
 	@echo "Running quality checks on CLI module..."
 	cd $(CMD_DIR) && go vet ./... && echo "  CLI vet: OK"

@@ -1,0 +1,16 @@
+{
+  "file": "rowvalue8.test",
+  "name": "rowvalue8",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t1(a,b,c,d) VALUES\n     (1,1,2,3),\n     (2,2,3,4),\n     (3,1,2,4),\n     (4,2,3,5),\n     (5,3,4,6),\n     (6,4,5,9);\n  SELECT a, CASE (b,c) WHEN (1,2) THEN 'aleph'\n                       WHEN (2,3) THEN 'bet'\n                       WHEN (3,4) THEN 'gimel'\n                       ELSE '-' END,\n         '|'\n    FROM t1\n   ORDER BY a;",
+          "expect": "{1 aleph | 2 bet | 3 aleph | 4 bet | 5 gimel | 6 - |}"
+        }
+      ]
+    }
+  ]
+}

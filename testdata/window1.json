@@ -1,0 +1,1225 @@
+{
+  "file": "window1.test",
+  "name": "window1",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(0, 0, 0);\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 0, 2);\n  INSERT INTO t2 VALUES(3, 1, 0);\n  INSERT INTO t2 VALUES(4, 0, 1);\n  INSERT INTO t2 VALUES(5, 1, 2);\n  INSERT INTO t2 VALUES(6, 0, 0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);"
+        }
+      ]
+    },
+    {
+      "name": "7.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT nth_value(x, 1) FROM t1;",
+          "expect": "{1 {misuse of window function nth_value()}}"
+        }
+      ]
+    },
+    {
+      "name": "8.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{1 1 1  3 1 2  6 1 3  10 1 4  15 1 5  21 1 6}"
+        }
+      ]
+    },
+    {
+      "name": "8.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{1 1 1  3 1 2  6 1 3  10 1 4  15 1 5  21 1 6}"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sales(emp TEXT PRIMARY KEY, region, total);\n  INSERT INTO sales VALUES\n      ('Alice',     'North', 34),\n      ('Frank',     'South', 22),\n      ('Charles',   'North', 45),\n      ('Darrell',   'South', 8),\n      ('Grant',     'South', 23),\n      ('Brad' ,     'North', 22),\n      ('Elizabeth', 'South', 99),\n      ('Horace',    'East',   1);",
+          "expect": "# Best two salespeople from each region"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "12.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INT, b VARCHAR, c VARCHAR);\n  INSERT INTO t1 VALUES(1, 'A', 'one');\n  INSERT INTO t1 VALUES(2, 'B', 'two');\n  INSERT INTO t1 VALUES(3, 'C', 'three');\n  INSERT INTO t1 VALUES(4, 'D', 'one');\n  INSERT INTO t1 VALUES(5, 'E', 'two');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x \n    FROM t1 WHERE id>1\n   ORDER BY b LIMIT 1;",
+          "expect": "{2 B two}"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a int, b int);\n  INSERT INTO t1 VALUES(1,11);\n  INSERT INTO t1 VALUES(2,12);"
+        }
+      ]
+    },
+    {
+      "name": "13.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, rank() OVER(ORDER BY b) FROM t1;\n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;",
+          "expect": "{\n  1 1   2 2   2 1   1 2\n}"
+        }
+      ]
+    },
+    {
+      "name": "13.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, rank() OVER(ORDER BY b) FROM t1\n    UNION ALL\n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;",
+          "expect": "{\n  1 1   2 2   2 1   1 2\n}"
+        }
+      ]
+    },
+    {
+      "name": "14.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM(\n    SELECT * FROM (SELECT 1 AS c) WHERE c IN (\n        SELECT (row_number() OVER()) FROM (VALUES (0))\n    )\n  );",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "16.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a,b); \n  INSERT INTO t7(rowid, a, b) VALUES\n      (1, 1, 3),\n      (2, 10, 4),\n      (3, 100, 2);"
+        }
+      ]
+    },
+    {
+      "name": "17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a);\n  INSERT INTO t8 VALUES(1), (2), (3);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "18.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d INTEGER);\n  INSERT INTO t1 VALUES(1, 'odd',  'one',   1);\n  INSERT INTO t1 VALUES(2, 'even', 'two',   2);\n  INSERT INTO t1 VALUES(3, 'odd',  'three', 3);\n  INSERT INTO t1 VALUES(4, 'even', 'four',  4);\n  INSERT INTO t1 VALUES(5, 'odd',  'five',  5);\n  INSERT INTO t1 VALUES(6, 'even', 'six',   6);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "19.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES\n    (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),\n    ('a', 6), ('b', 7), ('c', 8), ('d', 9), ('e', 10);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "20.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES\n    (NULL, 100), (NULL, 100), \n    (1, 1), (2, 2), (3, 3), (4, 4), (5, 5),\n    ('a', 6), ('b', 7), ('c', 8), ('d', 9), ('e', 10);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "23.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c);\n  CREATE INDEX t5ab ON t5(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "25.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 ( t1_id INTEGER PRIMARY KEY );\n  CREATE TABLE t2 ( t2_id INTEGER PRIMARY KEY );\n  CREATE TABLE t3 ( t3_id INTEGER PRIMARY KEY );\n\n  INSERT INTO t1 VALUES(1),  (3), (5);\n  INSERT INTO t2 VALUES      (3), (5);\n  INSERT INTO t3 VALUES(10), (11), (12);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "26.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "27.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(NULL), (1), (2), (3), (4), (5);"
+        }
+      ]
+    },
+    {
+      "name": "27.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(x) FROM t1;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "28.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), c CHAR(2), d ANY);\n  INSERT INTO t1 VALUES (3, 'C', 'cc', 1.0);\n  INSERT INTO t1 VALUES (13,'M', 'cc', NULL);"
+        }
+      ]
+    },
+    {
+      "name": "28.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a TEXT, b INTEGER);\n  INSERT INTO t2 VALUES('A', NULL);\n  INSERT INTO t2 VALUES('B', NULL);"
+        }
+      ]
+    },
+    {
+      "name": "28.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), c CHAR(2), d ANY);\n  INSERT INTO t1 VALUES\n    (10,'J', 'cc', NULL),\n    (11,'K', 'cc', 'xyz'),\n    (13,'M', 'cc', NULL);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), c CHAR(2), d ANY);\n  INSERT INTO t1 VALUES\n    (1, 'A', 'aa', 2.5),\n    (2, 'B', 'bb', 3.75),\n    (3, 'C', 'cc', 1.0),\n    (4, 'D', 'cc', 8.25),\n    (5, 'E', 'bb', 6.5),\n    (6, 'F', 'aa', 6.5),\n    (7, 'G', 'aa', 6.0),\n    (8, 'H', 'bb', 9.0),\n    (9, 'I', 'aa', 3.75),\n    (10,'J', 'cc', NULL),\n    (11,'K', 'cc', 'xyz'),\n    (12,'L', 'cc', 'xyZ'),\n    (13,'M', 'cc', NULL);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(aa, bb);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(5, 6);\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "36.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(count(*)OVER());",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "36.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(count(*)OVER()),(2);",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "36.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(2),(count(*)OVER());",
+          "expect": "{2 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "37.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(a UNIQUE, b PRIMARY KEY);\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN 10 AND 20;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "39.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 UNIQUE);"
+        }
+      ]
+    },
+    {
+      "name": "39.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT FIRST_VALUE(0) OVER();",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "39.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE(c0, 0) IN(SELECT FIRST_VALUE(0) OVER(), 0);"
+        }
+      ]
+    },
+    {
+      "name": "39.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE (t0.c0, 1) IN(SELECT NTILE(1) OVER(), 0 FROM t0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',355);\n  INSERT INTO t1 VALUES('CC','aa',158);\n  INSERT INTO t1 VALUES('GG','bb',929);\n  INSERT INTO t1 VALUES('FF','Rb',574);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "42.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2);"
+        }
+      ]
+    },
+    {
+      "name": "42.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (0, 0) IN ( SELECT count(*), 0 FROM t1 )",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "42.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('a', 1);\n  INSERT INTO t2 VALUES('a', 2);\n  INSERT INTO t2 VALUES('a', 3);\n  INSERT INTO t2 VALUES('b', 4);\n  INSERT INTO t2 VALUES('b', 5);\n  INSERT INTO t2 VALUES('b', 6);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "43.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES (10);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "43.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1(a, b) VALUES(1,  10); -- 10\n  INSERT INTO t1(a, b) VALUES(2,  15); -- 25\n  INSERT INTO t1(a, b) VALUES(3,  -5); -- 20\n  INSERT INTO t1(a, b) VALUES(4,  -5); -- 15\n  INSERT INTO t1(a, b) VALUES(5,  20); -- 35\n  INSERT INTO t1(a, b) VALUES(6, -11); -- 24"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "44.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "45.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(x);\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1000);\n  INSERT INTO t1 VALUES(1000);\n  INSERT INTO t0 VALUES(10000);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "46.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES (10);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "47.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a,\n      e,\n      f,\n      g UNIQUE,\n      h UNIQUE\n  );"
+        }
+      ]
+    },
+    {
+      "name": "47.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW t2(k) AS\n     SELECT e FROM t1 WHERE g = 'abc' OR h BETWEEN 10 AND f;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "49.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a PRIMARY KEY);\n  INSERT INTO t1 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "50.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a DOUBLE PRIMARY KEY);\n  INSERT INTO t1 VALUES(10.0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "52.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('AA','bb',356);\n  INSERT INTO t1 VALUES('CC','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "54.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a VARCHAR(20), b FLOAT);\n  INSERT INTO t1 VALUES('1',10.0);"
+        }
+      ]
+    },
+    {
+      "name": "54.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('2',5.0);\n  INSERT INTO t1 VALUES('3',15.0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "56.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b INTEGER); \n  CREATE TABLE t2(c, d);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "57.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b, c, d, e);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "57.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v0 ( v1 INTEGER PRIMARY KEY ) ; \n  INSERT INTO v0 VALUES ( 10 ) ; \n  SELECT DISTINCT v1, lead(v1) OVER() FROM v0 GROUP BY v1 ORDER BY 2;",
+          "expect": "{10 {}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "61.2.$tn",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )",
+          "expect": "{0 {1.0 1.0 1.0}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "61.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE TABLE t2(y);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "62.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a VARCHAR(20), b FLOAT);\n  INSERT INTO t1 VALUES('1',10.0);"
+        }
+      ]
+    },
+    {
+      "name": "62.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ( \n      SELECT sum(b) OVER() AS c FROM t1 \n      UNION\n      SELECT b AS c FROM t1\n      ) WHERE c>10;"
+        }
+      ]
+    },
+    {
+      "name": "62.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('2',5.0);\n  INSERT INTO t1 VALUES('3',15.0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "63.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(b, x);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "64.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'abcd');\n  INSERT INTO t1 VALUES(2, 'BCDE');\n  INSERT INTO t1 VALUES(3, 'cdef');\n  INSERT INTO t1 VALUES(4, 'DEFG');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "65.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(c1);\n  INSERT INTO t1 VALUES('abcd');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "66.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER);\n  INSERT INTO t1 VALUES(3578824042033200656);\n  INSERT INTO t1 VALUES(3029012920382354029);"
+        }
+      ]
+    },
+    {
+      "name": "66.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER);\n  INSERT INTO t2 VALUES(45);\n  INSERT INTO t2 VALUES(30);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "67.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "70.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "70.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(a,4,lag(a,7) OVER(PARTITION BY 'cf23' ORDER BY 2)) AS ca0 FROM t1 ORDER BY ca0;"
+        }
+      ]
+    },
+    {
+      "name": "70.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(a,4,lag(a,7) OVER(PARTITION BY 'cf23' ORDER BY likely(2))) AS ca0 FROM t1 ORDER BY ca0;",
+          "expect": "# 2021-11-07"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "73.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1),(2),(4);\n  CREATE VIEW t2(b,c) AS SELECT * FROM t1 JOIN t1 A ORDER BY sum(0) OVER(PARTITION BY 0);\n  CREATE TRIGGER x1 INSTEAD OF UPDATE ON t2 BEGIN SELECT true; END;"
+        }
+      ]
+    },
+    {
+      "name": "73.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "{1 1 1 2 1 4 2 1 2 2 2 4 4 1 4 2 4 4}"
+        }
+      ]
+    },
+    {
+      "name": "73.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, nth_value(15,2) OVER() FROM t2, t1 WHERE b=4;",
+          "expect": "{\n  4 1 1 15\n  4 2 1 15\n  4 4 1 15\n  4 1 2 15\n  4 2 2 15\n  4 4 2 15\n  4 1 4 15\n  4 2 4 15\n  4 4 4 15\n}"
+        }
+      ]
+    },
+    {
+      "name": "73.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER x1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "74.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a INT, b INT);\n  CREATE TABLE t2 (c INT, d INT);\n  CREATE INDEX idx ON t1(abs(a));\n  INSERT INTO t1 VALUES(1,2),(3,4);\n  INSERT INTO t2 VALUES(5,6),(7,8);"
+        }
+      ]
+    },
+    {
+      "name": "74.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT count( a ) FROM t2 LIMIT 1\n  )\n  FROM t1;",
+          "expect": "{2}  ;# Verified using PG 14.2"
+        }
+      ]
+    },
+    {
+      "name": "74.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT count( a+c ) FROM t2 LIMIT 1\n  )\n  FROM t1;",
+          "expect": "{2 2}  ;# verified on PG 14.2.  Crashes PG 9.6!"
+        }
+      ]
+    },
+    {
+      "name": "74.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT count( ( SELECT(sum(0) OVER(ORDER BY c, abs(a))) ) )\n      FROM t2 GROUP BY c LIMIT 1\n  ) \n  FROM t1;",
+          "expect": "{1 1}  ;# verified on PG 14.2"
+        }
+      ]
+    },
+    {
+      "name": "75.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a+b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "76.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a,b) VALUES (111,222),(111,223),(118,229);\n  CREATE INDEX t1a ON t1(a);\n  CREATE TABLE t2(x INT);\n  INSERT INTO t2 VALUES (333),(444),(555);"
+        }
+      ]
+    },
+    {
+      "name": "76.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x);\n  CREATE TABLE t4(y);\n  INSERT INTO t3 VALUES(100), (200), (400);\n  INSERT INTO t4 VALUES(100), (300), (400);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "77.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT);\n  CREATE INDEX t1x ON t1(likely(x));\n  INSERT INTO t1 VALUES(1),(2),(4),(8);"
+        }
+      ]
+    },
+    {
+      "name": "79.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0 INTEGER );\n  INSERT INTO t0 VALUES(1);\n  INSERT INTO t0 VALUES(2);\n  INSERT INTO t0 VALUES(3);"
+        }
+      ]
+    }
+  ]
+}

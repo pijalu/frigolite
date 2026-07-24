@@ -1,0 +1,26 @@
+{
+  "file": "json501.test",
+  "name": "json501",
+  "tests": [
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[5, 6 , ]'->>1;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[5, 6,,]'->>1;",
+          "expect": "{1 {malformed JSON}}"
+        }
+      ]
+    }
+  ]
+}

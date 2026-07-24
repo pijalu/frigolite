@@ -1,0 +1,23 @@
+{
+  "file": "btree02.test",
+  "name": "btree02",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT printf('(%s,%s)',quote(a),quote(b)) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT; BEGIN"
+        }
+      ]
+    }
+  ]
+}

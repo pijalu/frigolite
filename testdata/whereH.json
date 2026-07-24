@@ -1,0 +1,86 @@
+{
+  "file": "whereH.test",
+  "name": "whereH",
+  "tests": [
+    {
+      "name": "whereH-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;",
+          "expect": "{/INDEX t1abc /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1abc ON t1(a,b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;",
+          "expect": "{/INDEX t1abc /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;",
+          "expect": "{/INDEX t1abcd /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;",
+          "expect": "{/INDEX t1abcd /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;",
+          "expect": "{/INDEX t1abcd /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;",
+          "expect": "{/INDEX t1abcd /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;",
+          "expect": "{/INDEX t1abcd /}"
+        }
+      ]
+    },
+    {
+      "name": "whereH-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e);\n  CREATE INDEX t1abcd ON t1(a,b,c,d);\n  CREATE INDEX t1cd ON t1(c,d);\n  CREATE INDEX t1bcd ON t1(b,c,d);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c=? AND d>=? ORDER BY d;",
+          "expect": "{/INDEX t1abcd /}"
+        }
+      ]
+    }
+  ]
+}

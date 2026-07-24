@@ -1,0 +1,23 @@
+{
+  "file": "skipscan5.test",
+  "name": "skipscan5",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);"
+        }
+      ]
+    }
+  ]
+}

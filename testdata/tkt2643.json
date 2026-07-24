@@ -1,0 +1,19 @@
+{
+  "file": "tkt2643.test",
+  "name": "tkt2643",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(c);\n    SELECT count(*) FROM t1 WHERE c IS NOT NULL"
+        }
+      ]
+    }
+  ]
+}

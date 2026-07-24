@@ -1,0 +1,35 @@
+{
+  "file": "tkt2832.test",
+  "name": "tkt2832",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(3);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE t1 SET a = 1;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    CREATE TRIGGER t2_t AFTER UPDATE ON t2 BEGIN\n      DELETE FROM t2 WHERE a = new.a + 1;\n    END;\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b);\n    CREATE TRIGGER t3_t AFTER DELETE ON t3 BEGIN\n      DELETE FROM t3 WHERE a = old.a + 1;\n    END;\n    INSERT INTO t3 VALUES(1, 2);\n    INSERT INTO t3 VALUES(2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE 1"
+        }
+      ]
+    }
+  ]
+}

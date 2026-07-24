@@ -1,0 +1,15 @@
+{
+  "file": "fts4incr.test",
+  "name": "fts4incr",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(t2) VALUES('optimize')"
+        }
+      ]
+    }
+  ]
+}

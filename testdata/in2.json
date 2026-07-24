@@ -1,0 +1,31 @@
+{
+  "file": "in2.test",
+  "name": "in2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a(i INTEGER PRIMARY KEY, a);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a VALUES($::ii, $::ii)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a VALUES(4000, '')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a VALUES(NULL, $::t)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 IN (SELECT a FROM a WHERE (i < $::ii) OR (i >= $::N))"
+        }
+      ]
+    }
+  ]
+}

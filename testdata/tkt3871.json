@@ -1,0 +1,31 @@
+{
+  "file": "tkt3871.test",
+  "name": "tkt3871",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM e WHERE a = 1 OR a = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM e WHERE a = 1 OR a = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9"
+        }
+      ]
+    }
+  ]
+}

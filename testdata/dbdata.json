@@ -1,0 +1,45 @@
+{
+  "file": "dbdata.test",
+  "name": "dbdata",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT load_extension('../dbdata')"
+        }
+      ]
+    },
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE T1(a, b);\n  INSERT INTO t1(rowid, a ,b) VALUES(5, 'v', 'five');\n  INSERT INTO t1(rowid, a, b) VALUES(10, 'x', 'ten');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT load_extension('../dbdata')"
+        }
+      ]
+    }
+  ]
+}

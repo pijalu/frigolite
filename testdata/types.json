@@ -1,0 +1,123 @@
+{
+  "file": "types.test",
+  "name": "types",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(i integer, n numeric, t text, o blob);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a integer);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(120);\n    INSERT INTO t1 VALUES(-120);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(30000);\n    INSERT INTO t1 VALUES(-30000);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2100000000);\n    INSERT INTO t1 VALUES(-2100000000);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9000000*1000000*1000000);\n    INSERT INTO t1 VALUES(-9000000*1000000*1000000);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't1'"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't1'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a float);\n    INSERT INTO t2 VALUES(0.0);\n    INSERT INTO t2 VALUES(12345.678);\n    INSERT INTO t2 VALUES(-12345.678);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't2'"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't2'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a nullvalue);\n    INSERT INTO t3 VALUES(NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a ISNULL FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't3'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't4'"
+        },
+        {
+          "type": "exec",
+          "sql": "select rootpage from sqlite_master where name = 't4'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    DROP TABLE t4;\n    CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

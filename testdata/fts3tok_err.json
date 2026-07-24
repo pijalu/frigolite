@@ -1,0 +1,15 @@
+{
+  "file": "fts3tok_err.test",
+  "name": "fts3tok_err",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT token FROM t1 WHERE input = 'A galaxy far, far away'"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "file": "sidedelete.test",
+  "name": "sidedelete",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sequence"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

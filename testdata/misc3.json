@@ -1,0 +1,175 @@
+{
+  "file": "misc3.test",
+  "name": "misc3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n        VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      UPDATE t1 SET b=b||b;\n      INSERT INTO t1 VALUES(2,'x');\n      UPDATE t1 SET b=substr(b,1,500);\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y);\n      COMMIT;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n      DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE,b);\n      INSERT INTO t1\n      VALUES(1,'a23456789_b23456789_c23456789_d23456789_e23456789_');\n      INSERT INTO t1 SELECT a+1, b||b FROM t1;\n      INSERT INTO t1 SELECT a+2, b||b FROM t1;\n      INSERT INTO t1 SELECT a+4, b FROM t1;\n      INSERT INTO t1 SELECT a+8, b FROM t1;\n      INSERT INTO t1 SELECT a+16, b FROM t1;\n      INSERT INTO t1 SELECT a+32, b FROM t1;\n      INSERT INTO t1 SELECT a+64, b FROM t1;\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(200,'hello out there');\n      COMMIT;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2e-25*0.5e25"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2.0e-25*000000.500000000000000000000000000000e+00025"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 000000000002e-0000000025*0.5e25"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2e-25*0.5e250"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT format('%.15e',2.0e-250*0.5e25)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '-2.0e-127' * '-0.5e27'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '+2.0e-127' * '-0.5e27'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2.0e-27 * '+0.5e+127'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 2.0e-27 * '+0.000005e+132'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INT UNIQUE);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(2147483648);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(-2147483649);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(+2147483649);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(+2147483647);\n    INSERT INTO t2 VALUES(-2147483648);\n    INSERT INTO t2 VALUES(-2147483647);\n    INSERT INTO t2 VALUES(2147483646);\n    SELECT * FROM t2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>=-2147483648 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>-2147483648 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>-2147483649 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>=0 AND a<2147483649 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>=0 AND a<=2147483648 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>=0 AND a<2147483648 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>=0 AND a<=2147483647 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE a>=0 AND a<2147483647 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3(b) VALUES('abc');\n    INSERT INTO t3(b) VALUES('xyz');\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) SELECT b||'d' FROM t3;\n    INSERT INTO t3(b) SELECT b||'e' FROM t3;\n    INSERT INTO t3(b) SELECT b||'f' FROM t3;\n    INSERT INTO t3(b) SELECT b||'g' FROM t3;\n    INSERT INTO t3(b) SELECT b||'h' FROM t3;\n    SELECT count(a), count(b) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a) FROM t3 WHERE b IN (SELECT b FROM t3 ORDER BY a+1);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; EXPLAIN ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ex1(\n        a INTEGER DEFAULT 54321,\n        b TEXT DEFAULT \"hello\",\n        c REAL DEFAULT 3.1415926\n      );\n      CREATE UNIQUE INDEX ex1i1 ON ex1(a);\n      EXPLAIN REINDEX;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1 ORDER BY +a, b DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE y1(a);\n    CREATE TABLE y2(b);\n    CREATE TABLE y3(c);\n    CREATE TRIGGER r1 AFTER DELETE ON y1 FOR EACH ROW BEGIN\n      INSERT INTO y3(c) SELECT b FROM y2 ORDER BY b LIMIT 1;\n    END;\n    INSERT INTO y1 VALUES(1);\n    INSERT INTO y1 VALUES(2);\n    INSERT INTO y1 SELECT a+2 FROM y1;\n    INSERT INTO y1 SELECT a+4 FROM y1;\n    INSERT INTO y1 SELECT a+8 FROM y1;\n    INSERT INTO y1 SELECT a+16 FROM y1;\n    INSERT INTO y2 SELECT a FROM y1;\n    COMMIT;\n    SELECT count(*) FROM y1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM y1;\n    SELECT count(*) FROM y1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM y3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(CASE WHEN b IN ('abc','xyz') THEN 'x' END) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3 WHERE 1+(b IN ('abc','xyz'))==2"
+        }
+      ]
+    }
+  ]
+}

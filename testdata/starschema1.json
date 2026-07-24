@@ -1,0 +1,76 @@
+{
+  "file": "starschema1.test",
+  "name": "starschema1",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03\n    FROM t1, x01, x02, x03\n   WHERE a01=b01 AND a02=b02 AND a03=b03;",
+          "expect": "{/SCAN t1.*SEARCH.*SEARCH.*SEARCH/}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04\n    FROM t1, x01, x02, x03, x04\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04;",
+          "expect": "{/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH /}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04, c05\n    FROM t1, x01, x02, x03, x04, x05\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05;",
+          "expect": "{/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/}"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04, c05, c06\n    FROM t1, x01, x02, x03, x04, x05, x06\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05\n     AND a06=b06;",
+          "expect": "{/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/}"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04, c05, c06, c07\n    FROM t1, x01, x02, x03, x04, x05, x06, x07\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05\n     AND a06=b06 AND a07=b07;",
+          "expect": "{/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/}"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04, c05, c06, c07, c08\n    FROM t1, x01, x02, x03, x04, x05, x06, x07, x08\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05\n     AND a06=b06 AND a07=b07 AND a08=b08;",
+          "expect": "{~/SCAN.*SCAN/}"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04, c05, c06, c07, c08,\n         c09, c10, c11, c12, c13, c14, c15, c16,\n         c17, c18, c19, c20, c21, c22, c23, c24,\n         c25, c26, c27, c28, c29, c30, c31, c32\n    FROM t1, x01, x02, x03, x04, x05, x06, x07, x08,\n             x09, x10, x11, x12, x13, x14, x15, x16,\n             x17, x18, x19, x20, x21, x22, x23, x24,\n             x25, x26, x27, x28, x29, x30, x31, x32\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05 AND a06=b06\n     AND a07=b07 AND a08=b08 AND a09=b09 AND a10=b10 AND a11=b11 AND a12=b12\n     AND a13=b13 AND a14=b14 AND a15=b15 AND a16=b16 AND a17=b17 AND a18=b18\n     AND a19=b19 AND a20=b20 AND a21=b21 AND a22=b22 AND a23=b23 AND a24=b24\n     AND a25=b25 AND a26=b26 AND a27=b27 AND a28=b28 AND a29=b29 AND a30=b30\n     AND a31=b31 AND a32=b32;",
+          "expect": "{~/SCAN.*SCAN/}"
+        }
+      ]
+    }
+  ]
+}

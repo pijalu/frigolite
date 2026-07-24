@@ -1,0 +1,15 @@
+{
+  "file": "numcast.test",
+  "name": "numcast",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        }
+      ]
+    }
+  ]
+}

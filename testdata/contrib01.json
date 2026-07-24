@@ -1,0 +1,23 @@
+{
+  "file": "contrib01.test",
+  "name": "contrib01",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE T1 (B INTEGER NOT NULL,\n                     C INTEGER NOT NULL,\n                     D INTEGER NOT NULL,\n                     E INTEGER NOT NULL,\n                     F INTEGER NOT NULL,\n                     G INTEGER NOT NULL,\n                     H INTEGER NOT NULL,\n                     PRIMARY KEY (B, C, D));\n    \n    CREATE TABLE T2 (A INTEGER NOT NULL,\n                     B INTEGER NOT NULL,\n                     C INTEGER NOT NULL,\n                     PRIMARY KEY (A, B, C));\n    \n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15527);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15560);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15561);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15563);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15564);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15566);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15567);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15569);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15612);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15613);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15638);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15681);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15682);\n    \n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15527,6,0,5,5,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15560,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15561,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15563,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15564,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15566,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15567,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15569,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15612,6,0,5,5,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15613,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15638,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15681,6,0,5,5,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15682,6,0,5,2,0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n      FROM T1, T2\n     WHERE T1.B = T2.B\n       AND T1.C = T2.C\n     GROUP BY T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H\n     ORDER BY +max(t1.c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT T2.A, T2.B, T1.D, T1.E, T1.F, T1.G, T1.H, MAX(T1.C), '^'\n     FROM T1, T2\n    WHERE T1.B = T2.B\n      AND T1.C = T2.C\n    GROUP BY T2.A, T2.B, T1.F, T1.D, T1.E, T1.G, T1.H\n    ORDER BY +max(t1.c);"
+        }
+      ]
+    }
+  ]
+}

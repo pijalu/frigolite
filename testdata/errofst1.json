@@ -1,0 +1,25 @@
+{
+  "file": "errofst1.test",
+  "name": "errofst1",
+  "tests": [
+    {
+      "name": "errofst1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 as select 1 as aa;\n  CREATE VIEW t2 AS\n     WITH t3 AS (SELECT 1 FROM t1 AS bb, t1 AS cc WHERE cc.aa <= sts.aa)\n     SELECT 1 FROM t3 AS dd;"
+        }
+      ]
+    },
+    {
+      "name": "errofst1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "{1 {no such column: sts.aa}}"
+        }
+      ]
+    }
+  ]
+}

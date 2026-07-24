@@ -1,0 +1,35 @@
+{
+  "file": "tkt2640.test",
+  "name": "tkt2640",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE persons(person_id, name);\n    INSERT INTO persons VALUES(1,'fred');\n    INSERT INTO persons VALUES(2,'barney');\n    INSERT INTO persons VALUES(3,'wilma');\n    INSERT INTO persons VALUES(4,'pebbles');\n    INSERT INTO persons VALUES(5,'bambam');\n    CREATE TABLE directors(person_id);\n    INSERT INTO directors VALUES(5);\n    INSERT INTO directors VALUES(3);\n    CREATE TABLE writers(person_id);\n    INSERT INTO writers VALUES(2);\n    INSERT INTO writers VALUES(3);\n    INSERT INTO writers VALUES(4);\n    SELECT DISTINCT p.name\n      FROM persons p, directors d\n     WHERE d.person_id=p.person_id\n       AND NOT EXISTS (\n             SELECT person_id FROM directors d1 WHERE d1.person_id=p.person_id\n             EXCEPT\n             SELECT person_id FROM writers w\n           );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT p.name\n      FROM persons p CROSS JOIN directors d\n     WHERE d.person_id=p.person_id\n       AND NOT EXISTS (\n             SELECT person_id FROM directors d1 WHERE d1.person_id=p.person_id\n             EXCEPT\n             SELECT person_id FROM writers w\n           );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT p.name\n      FROM directors d CROSS JOIN persons p\n     WHERE d.person_id=p.person_id\n       AND NOT EXISTS (\n             SELECT person_id FROM directors d1 WHERE d1.person_id=p.person_id\n             EXCEPT\n             SELECT person_id FROM writers w\n           );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT p.name\n      FROM persons p, directors d\n     WHERE d.person_id=p.person_id\n       AND NOT EXISTS (\n             SELECT person_id FROM directors d1 WHERE d1.person_id=d.person_id\n             EXCEPT\n             SELECT person_id FROM writers w\n           );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT p.name\n      FROM persons p CROSS JOIN directors d\n     WHERE d.person_id=p.person_id\n       AND NOT EXISTS (\n             SELECT person_id FROM directors d1 WHERE d1.person_id=d.person_id\n             EXCEPT\n             SELECT person_id FROM writers w\n           );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT p.name\n      FROM directors d CROSS JOIN persons p\n     WHERE d.person_id=p.person_id\n       AND NOT EXISTS (\n             SELECT person_id FROM directors d1 WHERE d1.person_id=d.person_id\n             EXCEPT\n             SELECT person_id FROM writers w\n           );"
+        }
+      ]
+    }
+  ]
+}

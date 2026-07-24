@@ -1,0 +1,27 @@
+{
+  "file": "tkt-3fe897352e.test",
+  "name": "tkt_3fe897352e",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex_to_utf16be('D800'));\n    SELECT hex(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('00D8'));\n    SELECT hex(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16be('DFFF'));\n    SELECT hex(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('FFDF'));\n    SELECT hex(x) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

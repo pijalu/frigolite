@@ -1,0 +1,25 @@
+{
+  "file": "cachespill.test",
+  "name": "cachespill",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA cache_size = 100;\n  CREATE TABLE t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

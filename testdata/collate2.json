@@ -1,0 +1,506 @@
+{
+  "file": "collate2.test",
+  "name": "collate2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate2t1(\n      a COLLATE BINARY, \n      b COLLATE NOCASE, \n      c COLLATE BACKWARDS\n    );\n    INSERT INTO collate2t1 VALUES( NULL, NULL, NULL );\n\n    INSERT INTO collate2t1 VALUES( 'aa', 'aa', 'aa' );\n    INSERT INTO collate2t1 VALUES( 'ab', 'ab', 'ab' );\n    INSERT INTO collate2t1 VALUES( 'ba', 'ba', 'ba' );\n    INSERT INTO collate2t1 VALUES( 'bb', 'bb', 'bb' );\n\n    INSERT INTO collate2t1 VALUES( 'aA', 'aA', 'aA' );\n    INSERT INTO collate2t1 VALUES( 'aB', 'aB', 'aB' );\n    INSERT INTO collate2t1 VALUES( 'bA', 'bA', 'bA' );\n    INSERT INTO collate2t1 VALUES( 'bB', 'bB', 'bB' );\n\n    INSERT INTO collate2t1 VALUES( 'Aa', 'Aa', 'Aa' );\n    INSERT INTO collate2t1 VALUES( 'Ab', 'Ab', 'Ab' );\n    INSERT INTO collate2t1 VALUES( 'Ba', 'Ba', 'Ba' );\n    INSERT INTO collate2t1 VALUES( 'Bb', 'Bb', 'Bb' );\n\n    INSERT INTO collate2t1 VALUES( 'AA', 'AA', 'AA' );\n    INSERT INTO collate2t1 VALUES( 'AB', 'AB', 'AB' );\n    INSERT INTO collate2t1 VALUES( 'BA', 'BA', 'BA' );\n    INSERT INTO collate2t1 VALUES( 'BB', 'BB', 'BB' );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate2t1_i1 ON collate2t1(a);\n      CREATE INDEX collate2t1_i2 ON collate2t1(b);\n      CREATE INDEX collate2t1_i3 ON collate2t1(c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a COLLATE binary > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE b COLLATE binary > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE c COLLATE binary > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b > 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE a COLLATE nocase > 'aa'\n     ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b COLLATE nocase > 'aa'\n     ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE c COLLATE nocase > 'aa'\n     ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b > 'aa' ORDER BY +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE a COLLATE nocase > 'aa' ORDER BY +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b COLLATE nocase > 'aa' ORDER BY +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE c COLLATE nocase > 'aa' ORDER BY +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE a COLLATE backwards > 'aa'\n    ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE b COLLATE backwards > 'aa'\n    ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c COLLATE backwards > 'aa'\n    ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a < 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b < 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b < 'aa' ORDER BY +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c < 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a = 'aa';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b = 'aa' ORDER BY oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c = 'aa';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a >= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b >= 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c >= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a <= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b <= 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c <= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a BETWEEN 'Aa' AND 'Bb' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b BETWEEN 'Aa' AND 'Bb' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b BETWEEN 'Aa' AND 'Bb' ORDER BY +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c BETWEEN 'Aa' AND 'Bb' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE \n      CASE a WHEN 'aa' THEN 1 ELSE 0 END\n        ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE \n      CASE b WHEN 'aa' THEN 1 ELSE 0 END\n        ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE \n      CASE c WHEN 'aa' THEN 1 ELSE 0 END\n        ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb') ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b IN ('aa', 'bb') ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c IN ('aa', 'bb') ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 \n        WHERE a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 \n        WHERE b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 \n        WHERE c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT a > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT b > 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT c > 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT a < 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT b < 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT c < 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT a = 'aa';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT b = 'aa';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT c = 'aa';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT a >= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT b >= 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT c >= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT a <= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT b <= 'aa' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT c <= 'aa' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE a NOT BETWEEN 'Aa' AND 'Bb' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE b NOT BETWEEN 'Aa' AND 'Bb' ORDER BY 1, oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE c NOT BETWEEN 'Aa' AND 'Bb' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT CASE a WHEN 'aa' THEN 1 ELSE 0 END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT CASE b WHEN 'aa' THEN 1 ELSE 0 END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT CASE c WHEN 'aa' THEN 1 ELSE 0 END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 WHERE NOT a IN ('aa', 'bb');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 WHERE NOT b IN ('aa', 'bb');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 WHERE NOT c IN ('aa', 'bb');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate2t1 \n        WHERE NOT a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM collate2t1 \n        WHERE NOT b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM collate2t1 \n        WHERE NOT c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb'));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a > 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b > 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c > 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a < 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b < 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c < 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a = 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b = 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c = 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a <= 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b <= 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c <= 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a >= 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b >= 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c >= 'aa' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a BETWEEN 'Aa' AND 'Bb' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b BETWEEN 'Aa' AND 'Bb' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c BETWEEN 'Aa' AND 'Bb' FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CASE a WHEN 'aa' THEN 1 ELSE 0 END FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CASE b WHEN 'aa' THEN 1 ELSE 0 END FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CASE c WHEN 'aa' THEN 1 ELSE 0 END FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a IN ('aa', 'bb') FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b IN ('aa', 'bb') FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c IN ('aa', 'bb') FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c IN (SELECT a FROM collate2t1 WHERE a IN ('aa', 'bb')) \n        FROM collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate2t2(b COLLATE binary);\n    CREATE TABLE collate2t3(b text);\n    INSERT INTO collate2t2 VALUES('aa');\n    INSERT INTO collate2t3 VALUES('aa');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.a FROM collate2t1, collate2t2 \n      WHERE collate2t1.b = collate2t2.b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.a FROM collate2t1, collate2t2 \n      WHERE collate2t2.b = collate2t1.b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.a FROM collate2t1, collate2t3 \n      WHERE collate2t1.b = collate2t3.b||''\n      ORDER BY +collate2t1.a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.a FROM collate2t1, collate2t3 \n      WHERE collate2t3.b||'' = collate2t1.b\n      ORDER BY +collate2t1.a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate2t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.b FROM collate2t1 NATURAL JOIN collate2t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.b FROM collate2t2 NATURAL JOIN collate2t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t2.b FROM collate2t2 RIGHT JOIN collate2t1 ON collate2t1.b=collate2t2.b\n     ORDER BY collate2t1.oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t2.b FROM collate2t1 LEFT JOIN collate2t2 ON collate2t2.b=collate2t1.b\n     ORDER BY collate2t1.oid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT collate2t1.b, collate2t2.b\n      FROM collate2t1 RIGHT JOIN collate2t2 ON collate2t2.b=collate2t1.b"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('b');\n  INSERT INTO t1 VALUES('B');"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x COLLATE nocase BETWEEN 'a' AND 'c';",
+          "expect": "{b B}"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x BETWEEN 'a' COLLATE nocase AND 'c' COLLATE nocase;",
+          "expect": "{b B}"
+        }
+      ]
+    },
+    {
+      "name": "6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 \n  WHERE x COLLATE nocase BETWEEN 'a' COLLATE nocase AND 'c' COLLATE nocase;",
+          "expect": "{b B}"
+        }
+      ]
+    },
+    {
+      "name": "6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE +x COLLATE nocase BETWEEN 'a' AND 'c';",
+          "expect": "{b B}"
+        }
+      ]
+    },
+    {
+      "name": "6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE +x BETWEEN 'a' COLLATE nocase AND 'c' COLLATE nocase;",
+          "expect": "{b B}"
+        }
+      ]
+    }
+  ]
+}

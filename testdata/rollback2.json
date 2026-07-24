@@ -1,0 +1,16 @@
+{
+  "file": "rollback2.test",
+  "name": "rollback2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT int2hex(0), int2hex(100), int2hex(255)",
+          "expect": "{00 64 FF}"
+        }
+      ]
+    }
+  ]
+}

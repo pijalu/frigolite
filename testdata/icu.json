@@ -1,0 +1,94 @@
+{
+  "file": "icu.test",
+  "name": "icu",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test1 VALUES(1,2,1.1,2.2,'hello','world')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; \n      UPDATE test1 SET %s; \n      SELECT %s FROM test1; \n      ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE fruit(name);\n    INSERT INTO fruit VALUES('plum');\n    INSERT INTO fruit VALUES('cherry');\n    INSERT INTO fruit VALUES('apricot');\n    INSERT INTO fruit VALUES('peach');\n    INSERT INTO fruit VALUES('chokecherry');\n    INSERT INTO fruit VALUES('yamot');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT icu_load_collation('en_US', 'AmericanEnglish');\n    SELECT icu_load_collation('lt_LT', 'Lithuanian');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM fruit ORDER BY name COLLATE AmericanEnglish ASC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;"
+        }
+      ]
+    },
+    {
+      "name": "icu-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x TEXT);\n  INSERT INTO t1 VALUES\n    (1,'abcde'),\n    (2,'abc_'),\n    (3,'abc__'),\n    (4,'abc%'),\n    (5,'abc%%');\n  SELECT id FROM t1 WHERE x LIKE 'abc%%' ESCAPE '%';",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "icu-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT icu_load_collation('en_US','error','xyzzy');",
+          "expect": "{1 {unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL}}"
+        }
+      ]
+    },
+    {
+      "name": "icu-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT icu_load_collation('en_US','prim','PRIMARY'),\n         icu_load_collation('en_US','dflt','DEFAULT');",
+          "expect": "{{} {}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "icu-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');"
+        }
+      ]
+    }
+  ]
+}

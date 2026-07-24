@@ -1,0 +1,43 @@
+{
+  "file": "tkt3461.test",
+  "name": "tkt3461",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b+1 AS b_plus_one FROM t1 WHERE a=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA vdbe_trace = 1; PRAGMA vdbe_listing=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b+1 AS b_plus_one FROM t1 WHERE a=1 OR b_plus_one"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b+1 AS b_plus_one \n    FROM t1 \n    WHERE CASE WHEN a=1 THEN 1 ELSE b_plus_one END"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c, d);\n    INSERT INTO t2 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA vdbe_trace = 1; PRAGMA vdbe_listing=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b+1 AS b_plus_one, c, d \n    FROM t1 LEFT JOIN t2 \n    ON (a=c AND d=b_plus_one)"
+        }
+      ]
+    }
+  ]
+}

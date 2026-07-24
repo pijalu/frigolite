@@ -1,0 +1,223 @@
+{
+  "file": "e_dropview.test",
+  "name": "e_dropview",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";",
+          "expect": "{{a main} {b main} {a main} {b main}}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW \"new view\";\n  SELECT * FROM sqlite_master WHERE name = 'new view';",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM temp.v1",
+          "expect": "{{a temp} {b temp}}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW temp.v1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM temp.v1",
+          "expect": "{1 {no such table: temp.v1}}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{{a main} {b main}}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM main.v1",
+          "expect": "{1 {no such table: main.v1}}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v2",
+          "expect": "{{a main} {b main}}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v2",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM main.v2",
+          "expect": "{1 {no such table: main.v2}}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{{a aux} {b aux}}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{1 {no such table: v1}}"
+        }
+      ]
+    },
+    {
+      "name": "3.5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aux.v2",
+          "expect": "{{a aux} {b aux}}"
+        }
+      ]
+    },
+    {
+      "name": "3.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW aux.v2",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aux.v2",
+          "expect": "{1 {no such table: aux.v2}}"
+        }
+      ]
+    },
+    {
+      "name": "3.6.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v3",
+          "expect": "{{a aux} {b aux}}"
+        }
+      ]
+    },
+    {
+      "name": "3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v3",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v3",
+          "expect": "{1 {no such table: v3}}"
+        }
+      ]
+    }
+  ]
+}

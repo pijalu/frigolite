@@ -1,0 +1,83 @@
+{
+  "file": "fuzz.test",
+  "name": "fuzz",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' LIKE X'ABCD';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT (\n        SELECT (SELECT -2147483648) FROM (SELECT 1) ORDER BY 1\n    ))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM (SELECT * FROM sqlite_master WHERE random())"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(1, substr( 1, 2, length('in' IN (SELECT 1))))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'A' FROM (SELECT 'B') ORDER BY EXISTS (\n      SELECT 'C' FROM (SELECT 'D' LIMIT 0)\n    )"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(b);\n    INSERT INTO abc VALUES('ABCDE');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 IN ( SELECT b UNION SELECT 1 ) FROM (SELECT b FROM abc);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abcd' UNION SELECT 'efgh' ORDER BY 1 ASC, 1 ASC;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(123, 456, 789);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM abc\n    GROUP BY c HAVING EXISTS (SELECT a UNION SELECT 123);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc; DROP TABLE def; DROP TABLE ghi;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);"
+        }
+      ]
+    }
+  ]
+}

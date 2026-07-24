@@ -1,0 +1,31 @@
+{
+  "file": "exprfault.test",
+  "name": "exprfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);                 \n  CREATE TABLE t2(d);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a = ( SELECT d FROM (SELECT d FROM t2) ) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex ( unhex('ABCDEF') );"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

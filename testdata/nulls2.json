@@ -1,0 +1,25 @@
+{
+  "file": "nulls2.test",
+  "name": "nulls2",
+  "tests": [
+    {
+      "name": "1.$tn.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2 WHERE (d, e, f) IN (\n        SELECT a, b, c FROM t1\n    )"
+        }
+      ]
+    },
+    {
+      "name": "1.$tn.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (NULL, 'two', 'three') IN (\n        SELECT a, b, c FROM t1\n    ) IS NULL",
+          "expect": "1"
+        }
+      ]
+    }
+  ]
+}

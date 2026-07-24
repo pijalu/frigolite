@@ -1,0 +1,16 @@
+{
+  "file": "e_blobbytes.test",
+  "name": "e_blobbytes",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;",
+          "expect": "# EVIDENCE-OF: R-07796-55423 Returns the size in bytes of the BLOB"
+        }
+      ]
+    }
+  ]
+}

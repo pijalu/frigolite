@@ -1,0 +1,184 @@
+{
+  "file": "affinity2.test",
+  "name": "affinity2",
+  "tests": [
+    {
+      "name": "affinity2-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT xi, typeof(xi) FROM t1 ORDER BY rowid;",
+          "expect": "{1 integer 2 integer 3 integer}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT xr, typeof(xr) FROM t1 ORDER BY rowid;",
+          "expect": "{1.0 real 2.0 real 3.0 real}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT xb, typeof(xb) FROM t1 ORDER BY rowid;",
+          "expect": "{1 integer 2 text 03 text}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT xn, typeof(xn) FROM t1 ORDER BY rowid;",
+          "expect": "{1 integer 2 integer 3 integer}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, xi==xt, xi==xb, xi==+xt FROM t1 ORDER BY rowid;",
+          "expect": "{1 1 1 1 2 1 1 1 3 1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, xr==xt, xr==xb, xr==+xt FROM t1 ORDER BY rowid;",
+          "expect": "{1 1 1 1 2 1 1 1 3 1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ttt(c0, c1);\n  CREATE INDEX ii ON ttt(CAST(c0 AS NUMERIC)); \n  INSERT INTO ttt VALUES('abc', '-1');"
+        }
+      ]
+    },
+    {
+      "name": "410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ttt WHERE CAST(c0 AS NUMERIC) > c1 GROUP BY rowid;",
+          "expect": "{abc -1}"
+        }
+      ]
+    },
+    {
+      "name": "430",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c INTEGER);\n  CREATE INDEX t3ac ON t3(a, c-1);\n  INSERT INTO t3 VALUES(1, 1, 1);\n  INSERT INTO t3 VALUES(2, 1, 0);\n  INSERT INTO t3 VALUES(3, 1, 1);\n  INSERT INTO t3 VALUES(4, 1, 0);\n  INSERT INTO t3 VALUES(5, 1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 TEXT UNIQUE, c1);\n  INSERT INTO t0(c0) VALUES (-1);\n  SELECT quote(- x'ce'), quote(t0.c0), quote(- x'ce' >= t0.c0) FROM t0;",
+          "expect": "{0 '-1' 1}"
+        }
+      ]
+    },
+    {
+      "name": "501",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE - x'ce' >= t0.c0;",
+          "expect": "{-1 {}}"
+        }
+      ]
+    },
+    {
+      "name": "502",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(+-+x'ce'), quote(t0.c0), quote(+-+x'ce' >= t0.c0) FROM t0;",
+          "expect": "{0 '-1' 1}"
+        }
+      ]
+    },
+    {
+      "name": "503",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE +-+x'ce' >= t0.c0;",
+          "expect": "{-1 {}}"
+        }
+      ]
+    },
+    {
+      "name": "504",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(- 'ce'), quote(t0.c0), quote(- 'ce' >= t0.c0) FROM t0;",
+          "expect": "{0 '-1' 1}"
+        }
+      ]
+    },
+    {
+      "name": "505",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE - 'ce' >= t0.c0;",
+          "expect": "{-1 {}}"
+        }
+      ]
+    },
+    {
+      "name": "506",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(+-+'ce'), quote(t0.c0), quote(+-+'ce' >= t0.c0) FROM t0;",
+          "expect": "{0 '-1' 1}"
+        }
+      ]
+    },
+    {
+      "name": "601",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t0 WHERE 3175546974276630385 < c0;",
+          "expect": "{1}"
+        }
+      ]
+    }
+  ]
+}

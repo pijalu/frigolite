@@ -1,0 +1,226 @@
+{
+  "file": "offset1.test",
+  "name": "offset1",
+  "tests": [
+    {
+      "name": "offset1-1.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 0;",
+          "expect": "{1 a 2 b 3 c}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 2;",
+          "expect": "{3 c 4 d 5 e}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 3;",
+          "expect": "{4 d 5 e 6 w}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 4;",
+          "expect": "{5 e 6 w 7 x}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 5;",
+          "expect": "{6 w 7 x 8 y}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 6;",
+          "expect": "{7 x 8 y 9 z}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 7;",
+          "expect": "{8 y 9 z}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 8;",
+          "expect": "{9 z}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 0 OFFSET 1;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 1 OFFSET 1;",
+          "expect": "{2 b}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 2 OFFSET 1;",
+          "expect": "{2 b 3 c}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 3 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 4 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d 5 e}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 5 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d 5 e 6 w}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 6 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d 5 e 6 w 7 x}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 7 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d 5 e 6 w 7 x 8 y}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-1.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1\n  UNION ALL\n  SELECT * FROM (SELECT x, y FROM t2 ORDER BY y)\n  LIMIT 8 OFFSET 1;",
+          "expect": "{2 b 3 c 4 d 5 e 6 w 7 x 8 y 9 z}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE employees (\n    id integer primary key,\n    name text,\n    city text,\n    department text,\n    salary integer\n  );\n  INSERT INTO employees VALUES\n    (11,'Diane','London','hr',70),\n    (12,'Bob','London','hr',78),\n    (21,'Emma','London','it',84),\n    (22,'Grace','Berlin','it',90),\n    (23,'Henry','London','it',104),\n    (24,'Irene','Berlin','it',104),\n    (25,'Frank','Berlin','it',120),\n    (31,'Cindy','Berlin','sales',96),\n    (32,'Dave','London','sales',96),\n    (33,'Alice','Berlin','sales',100);\n  CREATE VIEW v AS\n    SELECT * FROM (\n      SELECT * FROM employees \n       WHERE salary < 100\n       ORDER BY salary desc)\n     UNION ALL \n     SELECT * FROM (\n       SELECT * FROM employees\n       WHERE salary >= 100\n       ORDER BY salary asc);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v ORDER BY +id;",
+          "expect": "{\n  11  Diane  London  hr      70\n  12  Bob    London  hr      78\n  21  Emma   London  it      84\n  22  Grace  Berlin  it      90\n  23  Henry  London  it     104\n  24  Irene  Berlin  it     104\n  25  Frank  Berlin  it     120\n  31  Cindy  Berlin  sales   96\n  32  Dave   London  sales   96\n  33  Alice  Berlin  sales  100\n}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v LIMIT 5 OFFSET 2;",
+          "expect": "{\n  22  Grace  Berlin  it      90\n  21  Emma   London  it      84\n  12  Bob    London  hr      78\n  11  Diane  London  hr      70\n  33  Alice  Berlin  sales   100\n}"
+        }
+      ]
+    },
+    {
+      "name": "offset1-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v LIMIT 3 OFFSET 6;",
+          "expect": "{\n  33  Alice  Berlin  sales  100\n  23  Henry  London  it     104\n  24  Irene  Berlin  it     104\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "file": "tkt-18458b1a.test",
+  "name": "tkt_18458b1a",
+  "tests": [
+    {
+      "name": "$tn.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM v0 WHERE ((c1 >= c0) OR 0+0);",
+          "expect": "1"
+        }
+      ]
+    }
+  ]
+}

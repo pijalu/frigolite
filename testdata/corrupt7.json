@@ -1,0 +1,27 @@
+{
+  "file": "corrupt7.test",
+  "name": "corrupt7",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "#    DROP TABLE t1;\n#    CREATE TABLE t1(a, b);\n#    INSERT INTO t1 VALUES(1, 'one');\n#    INSERT INTO t1 VALUES(100, 'one hundred');\n#    INSERT INTO t1 VALUES(100000, 'one hundred thousand');\n#    CREATE INDEX i1 ON t1(b);\n#"
+        }
+      ]
+    }
+  ]
+}

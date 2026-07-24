@@ -1,0 +1,63 @@
+{
+  "file": "collate9.test",
+  "name": "collate9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xy(x COLLATE \"reverse sort\", y COLLATE binary);\n    INSERT INTO xy VALUES('one', 'one');\n    INSERT INTO xy VALUES('two', 'two');\n    INSERT INTO xy VALUES('three', 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM xy ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM xy ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX xy_i ON xy(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, x < 'seven' FROM xy ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, y < 'seven' FROM xy ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, y COLLATE \"reverse sort\" < 'seven' FROM xy ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM xy ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\""
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX xy_i2 ON xy(y COLLATE \"reverse sort\");"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

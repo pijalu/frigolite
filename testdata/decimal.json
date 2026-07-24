@@ -1,0 +1,394 @@
+{
+  "file": "decimal.test",
+  "name": "decimal",
+  "tests": [
+    {
+      "name": "1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal(1);",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "1001",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('+0'), decimal('-0');",
+          "expect": "{0 0}"
+        }
+      ]
+    },
+    {
+      "name": "1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('1.0');",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "1020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('0001.0');",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "1030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('+0001.0');",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "1040",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('-0001.0');",
+          "expect": "{-1.0}"
+        }
+      ]
+    },
+    {
+      "name": "1041",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('-0000.0');",
+          "expect": "{0.0}"
+        }
+      ]
+    },
+    {
+      "name": "1042",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal(0.0)==decimal(-0.0);",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "1050",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('1.0e72');",
+          "expect": "{1000000000000000000000000000000000000000000000000000000000000000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "1060",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('1.0e-72');",
+          "expect": "{0.0000000000000000000000000000000000000000000000000000000000000000000000010}"
+        }
+      ]
+    },
+    {
+      "name": "1070",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('-123e-4');",
+          "expect": "{-0.0123}"
+        }
+      ]
+    },
+    {
+      "name": "1080",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('+123e+4');",
+          "expect": "{1230000}"
+        }
+      ]
+    },
+    {
+      "name": "2000",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(seq INTEGER PRIMARY KEY, val TEXT);\n  INSERT INTO t1 VALUES\n    (1, '-9999e99'),\n    (2, '-9998.000e+99'),\n    (3, '-9999.0'),\n    (4, '-1'),\n    (5, '-9999e-20'),\n    (6, '0'),\n    (7, '1e-30'),\n    (8, '1e-29'),\n    (9, '1'),\n    (10,'1.00000000000000001'),\n    (11,'+1.00001'),\n    (12,'99e+99');\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<b.seq\n     AND decimal_cmp(a.val,b.val)>=0;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2001",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH vx(a,b) AS (VALUES\n    ('-0','+0'),\n    ('-000.000','0'),\n    ('1.2','1.2000')\n  )\n  SELECT *, '|' FROM vx \n   WHERE decimal_cmp(a,b)!=0\n      OR decimal_cmp(b,a)!=0;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<>b.seq\n     AND decimal_cmp(a.val,b.val)==0;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq>b.seq\n     AND decimal_cmp(a.val,b.val)<=0;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT seq FROM t1 ORDER BY val COLLATE decimal;",
+          "expect": "{1 2 3 4 5 6 7 8 9 10 11 12}"
+        }
+      ]
+    },
+    {
+      "name": "3000",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(seq INTEGER PRIMARY KEY, val TEXT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t3(seq, val) SELECT x, x FROM c;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t3(seq, val) SELECT x+10, x*1000 FROM c;\n  SELECT decimal(val) FROM t3 ORDER BY seq;",
+          "expect": "{1 2 3 4 5 6 7 8 9 10 1000 2000 3000 4000 5000}"
+        }
+      ]
+    },
+    {
+      "name": "3020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal_add(val,'0.5') FROM t3 WHERE seq>5 ORDER BY seq",
+          "expect": "{6.5 7.5 8.5 9.5 10.5 1000.5 2000.5 3000.5 4000.5 5000.5}"
+        }
+      ]
+    },
+    {
+      "name": "4000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal_sum(val) FROM t3;",
+          "expect": "{15055}"
+        }
+      ]
+    },
+    {
+      "name": "4010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal_sum(decimal_add(val,val||'e+10')) FROM t3;",
+          "expect": "{150550000015055}"
+        }
+      ]
+    },
+    {
+      "name": "5100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal_mul('1234.00','2.00');",
+          "expect": "{2468.00}"
+        }
+      ]
+    },
+    {
+      "name": "5101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal_mul('1234.00','2.0000');",
+          "expect": "{2468.00}"
+        }
+      ]
+    },
+    {
+      "name": "5102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal_mul('1234.0000','2.000');",
+          "expect": "{2468.000}"
+        }
+      ]
+    },
+    {
+      "name": "6000",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pow2(x INTEGER PRIMARY KEY, v TEXT);\n  WITH RECURSIVE c(x,v) AS (\n    VALUES(0,'1')\n    UNION ALL\n    SELECT x+1, decimal_mul(v,'2') FROM c WHERE x+1<=971\n  ) INSERT INTO pow2(x,v) SELECT x, v FROM c;\n  WITH RECURSIVE c(x,v) AS (\n    VALUES(-1,'0.5')\n    UNION ALL\n    SELECT x-1, decimal_mul(v,'0.5') FROM c WHERE x-1>=-1075\n  ) INSERT INTO pow2(x,v) SELECT x, v FROM c;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "6010",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(n) AS (SELECT ieee754_from_blob(x'0000000000000001'))\nSELECT decimal_mul(ieee754_mantissa(c.n),pow2.v)\n  FROM pow2, c WHERE pow2.x=ieee754_exponent(c.n);",
+          "expect": "{0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359923797965646954457177309266567103559397963987747960107818781263007131903114045278458171678489821036887186360569987307230500063874091535649843873124733972731696151400317153853980741262385655911710266585566867681870395603106249319452715914924553293054565444011274801297099995419319894090804165633245247571478690147267801593552386115501348035264934720193790268107107491703332226844753335720832431936092382893458368060106011506169809753078342277318329247904982524730776375927247874656084778203734469699533647017972677717585125660551199131504891101451037862738167250955837389733598993664809941164205702637090279242767544565229087538682506419718265533447265625}"
+        }
+      ]
+    },
+    {
+      "name": "6011",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(n) AS (SELECT ieee754_from_blob(x'0000000000000001'))\nSELECT decimal(c.n) FROM c;",
+          "expect": "{0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004940656458412465441765687928682213723650598026143247644255856825006755072702087518652998363616359923797965646954457177309266567103559397963987747960107818781263007131903114045278458171678489821036887186360569987307230500063874091535649843873124733972731696151400317153853980741262385655911710266585566867681870395603106249319452715914924553293054565444011274801297099995419319894090804165633245247571478690147267801593552386115501348035264934720193790268107107491703332226844753335720832431936092382893458368060106011506169809753078342277318329247904982524730776375927247874656084778203734469699533647017972677717585125660551199131504891101451037862738167250955837389733598993664809941164205702637090279242767544565229087538682506419718265533447265625}"
+        }
+      ]
+    },
+    {
+      "name": "6100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ieee754(ieee754_from_blob(x'0000000000000001'));",
+          "expect": "{ieee754(1,-1074)}"
+        }
+      ]
+    },
+    {
+      "name": "6110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ieee754(ieee754_from_blob(x'7fefffffffffffff'));",
+          "expect": "{ieee754(9007199254740991,971)}"
+        }
+      ]
+    },
+    {
+      "name": "6120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT printf('%.8e',ieee754_from_blob(x'0000000000000001'));",
+          "expect": "{4.94065646e-324}"
+        }
+      ]
+    },
+    {
+      "name": "7000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('999999999999999', 1);",
+          "expect": "{1000000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "7010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('999999999999999', 2);",
+          "expect": "{1000000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "7020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('999999999999999', 14);",
+          "expect": "{1000000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "7030",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('999999999999999', 15);",
+          "expect": "{999999999999999}"
+        }
+      ]
+    },
+    {
+      "name": "7040",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('899999999999999', 1);",
+          "expect": "{900000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "7050",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('899999999999999', 14);",
+          "expect": "{900000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "7060",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('899999999999999', 15);",
+          "expect": "{899999999999999}"
+        }
+      ]
+    },
+    {
+      "name": "7070",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT decimal('989999999999999', 14);",
+          "expect": "{990000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

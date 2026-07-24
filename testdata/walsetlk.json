@@ -1,0 +1,62 @@
+{
+  "file": "walsetlk.test",
+  "name": "walsetlk",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(9, 10);"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "# Launch a non-blocking testfixture process to write-lock the"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n     INSERT INTO x1 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n     INSERT INTO x1 VALUES(7, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    }
+  ]
+}

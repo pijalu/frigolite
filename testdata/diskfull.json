@@ -1,0 +1,19 @@
+{
+  "file": "diskfull.test",
+  "name": "diskfull",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(1000,1000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x AS a, x AS b FROM t1;\n    CREATE INDEX t2i1 ON t2(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "#     PRAGMA default_cache_size = 10;\n#     CREATE TABLE t3(a, b, UNIQUE(a, b));\n#     INSERT INTO t3 VALUES( randstr(100, 100), randstr(100, 100) );\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     UPDATE t3 \n#     SET b = (SELECT a FROM t3 WHERE rowid = (SELECT max(rowid)-1 FROM t3))\n#     WHERE rowid = (SELECT max(rowid) FROM t3);\n#     PRAGMA cache_size;\n#"
+        }
+      ]
+    }
+  ]
+}

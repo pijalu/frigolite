@@ -1,0 +1,55 @@
+{
+  "file": "tkt3334.test",
+  "name": "tkt3334",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,934);\n    INSERT INTO t1 VALUES(2,221);\n    INSERT INTO t1 VALUES(1,372);\n    INSERT INTO t1 VALUES(3,552);\n    INSERT INTO t1 VALUES(1,719);\n    INSERT INTO t1 VALUES(4,102);\n    SELECT * FROM t1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1) WHERE a=1;"
+        }
+      ]
+    }
+  ]
+}

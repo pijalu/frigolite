@@ -1,0 +1,61 @@
+{
+  "file": "hidden.test",
+  "name": "hidden",
+  "tests": [
+    {
+      "name": "2.$tn.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;",
+          "expect": "{1 2 3 4 5 {} 7 8 9}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, __hidden__b, c UNIQUE);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(1, 2, 3);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(4, 5, 6);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(7, 8, 9);\n  DELETE FROM t1 WHERE __hidden__b = 5;\n  SELECT rowid, a, __hidden__b, c FROM t1;",
+          "expect": "{1 1 2 3   3 7 8 9}"
+        }
+      ]
+    }
+  ]
+}

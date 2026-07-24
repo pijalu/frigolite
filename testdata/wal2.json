@@ -1,0 +1,239 @@
+{
+  "file": "wal2.test",
+  "name": "wal2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "Pragma Journal_Mode = Wal;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    PRAGMA lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    PRAGMA lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    PRAGMA lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    Pragma loCK_STATus;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE; COMMIT;\n    pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n    pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('Groucho');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('V', 'VI')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('VII', 'VIII')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('IX', 'X')"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage>=8192 FROM sqlite_master WHERE tbl_name = 't2';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x VALUES('Watson')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(y, z);\n      PRAGMA journal_mode = WAL;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tx DEFAULT VALUES"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 14)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('def')"
+        }
+      ]
+    }
+  ]
+}

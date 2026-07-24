@@ -1,0 +1,287 @@
+{
+  "file": "instr.test",
+  "name": "instr",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','a');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','b');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','c');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','d');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','e');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','f');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','g');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','h');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','abcdefg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','abcdefgh');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','bcdefg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','bcdefgh');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','cdefg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','cdefgh');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','defg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','defgh');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','efg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','efgh');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','fg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','fgh');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(instr('abcdefg',NULL),'nil');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(instr(NULL,'x'),'nil');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(12345,34);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(123456.78,34);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(123456.78,x'3334');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('\u00e4bcdefg','efg');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('\u20acxyzzy','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abc\u20acxyzzy','xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abc\u20acxyzzy','\u20acxyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abc\u20acxyzzy','c\u20acxyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'01');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'02');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'03');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'04');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'05');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'06');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'0102030405');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'02030405');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'030405');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'0405');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'0506');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'0102030405',x'');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'',x'');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('','');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('abcdefg','');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79','x');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79','y');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79',x'79');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79',x'7a');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79',x'78');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79',x'a4');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('x\u00e4\u20acy',x'79');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr('x\u00e4\u20acy',x'a4');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(x'78c3a4e282ac79','y');"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(instr(NULL,'abc'), 999);",
+          "expect": "{999}"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.61",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(instr('abc',NULL), 999);",
+          "expect": "{999}"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.63",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT instr(X'', 'abc')",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  INSERT INTO t0(c0) VALUES (x'bb'), (0);\n  SELECT COUNT(*) FROM t0 WHERE INSTR(x'aabb', t0.c0) ORDER BY t0.c0, t0.c1;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(c0) FROM t0 WHERE INSTR(x'aabb', t0.c0) ORDER BY t0.c0, t0.c1;",
+          "expect": "{X'BB'}"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('text'),(x'bb');\n  SELECT quote(x) FROM t1 WHERE instr(x'aabb',x);",
+          "expect": "{X'BB'}"
+        }
+      ]
+    }
+  ]
+}

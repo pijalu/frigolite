@@ -1,0 +1,55 @@
+{
+  "file": "securedel.test",
+  "name": "securedel",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;"
+        }
+      ]
+    }
+  ]
+}

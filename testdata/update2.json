@@ -1,0 +1,125 @@
+{
+  "file": "update2.test",
+  "name": "update2",
+  "tests": [
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b = repeat(b, 100)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b = repeat(b, 100)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a PRIMARY KEY, b, c);\n  CREATE INDEX t3i ON t3(b);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET c=1 WHERE b=?",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE INDEX t4c ON t4(c);\n  INSERT INTO t4 VALUES(1, 2, 3);\n  INSERT INTO t4 VALUES(2, 3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
+        }
+      ]
+    },
+    {
+      "name": "4.$tn.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;",
+          "expect": "{\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  }"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1c ON x1(b, c);\n  INSERT INTO x1 VALUES(1, 'a', 1);\n  INSERT INTO x1 VALUES(2, 'a', 2);\n  INSERT INTO x1 VALUES(3, 'a', 3);"
+        }
+      ]
+    },
+    {
+      "name": "5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET c=c+1 WHERE b='a';"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a'"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE d1(a,b);\n  CREATE INDEX d1b ON d1(a);\n  CREATE INDEX d1c ON d1(b);\n  INSERT INTO d1 VALUES(1,2);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE d1 SET a = a+2 WHERE a>0 OR b>0;"
+        }
+      ]
+    },
+    {
+      "name": "7.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  CREATE UNIQUE INDEX t1x1 ON t1(x) WHERE x IS NOT NULL;\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE INDEX t1x2 ON t1(y);\n  SELECT quote(x), quote(y), '|' FROM t1;",
+          "expect": "{NULL NULL | NULL NULL |}"
+        }
+      ]
+    }
+  ]
+}

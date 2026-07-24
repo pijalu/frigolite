@@ -1,0 +1,37 @@
+{
+  "file": "swarmvtab3.test",
+  "name": "swarmvtab3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE swarm(id, tbl, minval, maxval);",
+          "expect": "# Set up 100 databases with filenames \"remote_test.dbN\", where N is between"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS s"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS s"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS s"
+        }
+      ]
+    }
+  ]
+}

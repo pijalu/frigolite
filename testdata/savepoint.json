@@ -1,0 +1,291 @@
+{
+  "file": "savepoint.test",
+  "name": "savepoint",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4, 5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10, 11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(d, e, f);\n    SELECT sql FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(g, h, i);\n    INSERT INTO t3 VALUES('III', 'IV', 'V');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT sql FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE blobs(x);\n      INSERT INTO blobs VALUES('a twentyeight character blob');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; SELECT count(*) FROM blobs"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM blobs WHERE rowid = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM blobs"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n      CREATE INDEX i1 ON t1(a, b);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT a, b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = incremental"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux1;\n      ATTACH 'test3.db' AS aux2;\n      DROP TABLE t1;\n      CREATE TABLE main.t1(x, y);\n      CREATE TABLE aux1.t2(x, y);\n      CREATE TABLE aux2.t3(x, y);\n      SELECT name FROM sqlite_master;\n      SELECT name FROM aux1.sqlite_master;\n      SELECT name FROM aux2.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(3, 4);\n      PRAGMA lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'a', * FROM t1 ; SELECT 'b', * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n      SELECT * FROM t2;\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n      SELECT * FROM t2;\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n      SELECT * FROM t2;\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n      SELECT * FROM t2;\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n      SELECT * FROM t2;\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = full;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    DROP TABLE IF EXISTS t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 2);\n      COMMIT;\n      PRAGMA journal_mode = off;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 SELECT a+4,b+4  FROM t1;\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM foo"
+        }
+      ]
+    }
+  ]
+}

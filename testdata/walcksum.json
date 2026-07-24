@@ -1,0 +1,94 @@
+{
+  "file": "walcksum.test",
+  "name": "walcksum",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(34, 'thirtyfour');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n      SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n      INSERT INTO t1 VALUES(55, 'fiftyfive');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n      SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n      SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT i, t FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT i, t FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT i, t FROM t1"
+        }
+      ]
+    }
+  ]
+}

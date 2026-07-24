@@ -1,0 +1,150 @@
+{
+  "file": "stat.test",
+  "name": "stat",
+  "tests": [
+    {
+      "name": "stat-0.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE dbstat;",
+          "expect": "{1 {table dbstat may not be dropped}}"
+        }
+      ]
+    },
+    {
+      "name": "stat-0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = delete;\n    SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat;",
+          "expect": "{wal delete sqlite_schema / 1 leaf 0 0 916 0}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1(rowid, a, b) VALUES(2, 2, 3);\n    INSERT INTO t1(rowid, a, b) VALUES(3, 4, 5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 't1';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'i1';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'sqlite_schema';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "stat-5.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, quote(path), pageno, quote(pagetype), ncell, payload,\n         unused, mx_payload, '|' FROM dbstat('main',1);",
+          "expect": "{sqlite_schema NULL 1 NULL 1 34 878 34 | tx NULL 1 NULL 0 0 1016 0 |}"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS '123';\n  PRAGMA \"123\".auto_vacuum = OFF;\n  CREATE TABLE \"123\".x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "7.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dbstat('123');",
+          "expect": "{\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n}"
+        }
+      ]
+    },
+    {
+      "name": "7.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dbstat(123);",
+          "expect": "{\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n}"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH 123;\n  DROP TABLE x2;\n  DROP TABLE x3;\n  ATTACH 'test.db2' AS '123corp';"
+        }
+      ]
+    },
+    {
+      "name": "7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dbstat('123corp');",
+          "expect": "{\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM dbstat(123corp);",
+          "expect": "{1 {unrecognized token: \"123corp\"}}"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM st4 WHERE st4.aggregate = NULL;"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT aggregate=1 FROM st4 WHERE aggregate = 5"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM st4 WHERE name = NULL;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "file": "tkt3419.test",
+  "name": "tkt3419",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table a(id integer primary key);\n    create table b(id integer primary key, a_id integer);\n    create table c(id integer primary key, b_id integer);\n  \n    insert into a values (1);\n    insert into a values (2);\n  \n    insert into b values (3, 1);\n    insert into b values (4, 1);\n    insert into b values (5, 1);\n    insert into b values (6, 1);\n    insert into b values (9, 2);\n  \n    insert into c values (4, 3);\n    insert into c values (5, 5);\n    insert into c values (6, 4);\n    insert into c values (7, 6);\n    insert into c values (8, 9);\n  \n    select * FROM a, b, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * FROM a, c, b WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * FROM b, a, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * FROM b, c, a WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * FROM c, a, b WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * FROM c, b, a WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;"
+        }
+      ]
+    }
+  ]
+}

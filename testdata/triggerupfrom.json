@@ -1,0 +1,78 @@
+{
+  "file": "triggerupfrom.test",
+  "name": "triggerupfrom",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four');\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t3(x, y);\n  INSERT INTO aux.t3 VALUES('x', 'y');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(k, a, b);\n  INSERT INTO t1 VALUES('a', 1, 'one');\n  INSERT INTO t1 VALUES('b', 2, 'two');\n  INSERT INTO t1 VALUES('c', 3, 'three');\n  INSERT INTO t1 VALUES('d', 4, 'four');\n\n  CREATE TABLE log(x);\n  CREATE VIEW v1 AS SELECT k, a, b AS __hidden__b FROM t1;\n  CREATE TRIGGER tr1 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES(\n      '('||old.a||','||old.__hidden__b||')->('||new.a||','||new.__hidden__b||')'\n    );\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.1-hc-enabled",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{a 1 b 2 c 3 d 4}"
+        }
+      ]
+    },
+    {
+      "name": "4.1-hc-disabled",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "{a 1 one b 2 two c 3 three d 4 four}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "file": "windowC.test",
+  "name": "windowC",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(i INTEGER PRIMARY KEY, x);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

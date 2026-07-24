@@ -1,0 +1,87 @@
+{
+  "file": "triggerA.test",
+  "name": "triggerA",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT UNIQUE);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER UNIQUE, c TEXT);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 UNION ALL SELECT count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT y, x FROM t1;\n     SELECT * FROM v1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2 AS SELECT x, y FROM t1 WHERE y GLOB '*e*';\n     SELECT * FROM v2 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v3 AS\n       SELECT CAST(x AS TEXT) AS c1 FROM t1 UNION SELECT y FROM t1;\n     SELECT * FROM v3 ORDER BY c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v4 AS\n        SELECT CAST(x AS TEXT) AS c1 FROM t1\n        UNION SELECT y FROM t1 WHERE x BETWEEN 3 and 5;\n     SELECT * FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v5 AS SELECT x, b FROM t1, t2 WHERE y=c;\n     SELECT * FROM v5 ORDER BY x DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE result2(a,b);\n     CREATE TRIGGER r1d INSTEAD OF DELETE ON v1 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v1 WHERE x=5;\n     SELECT * FROM result2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE result4(a,b,c,d);\n     CREATE TRIGGER r1u INSTEAD OF UPDATE ON v1 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v1 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result2;\n     CREATE TRIGGER r2d INSTEAD OF DELETE ON v2 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.y, old.x);\n     END;\n     DELETE FROM v2 WHERE x=5;\n     SELECT * FROM result2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result4;\n     CREATE TRIGGER r2u INSTEAD OF UPDATE ON v2 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.y, old.x, new.y, new.x);\n     END;\n     UPDATE v2 SET y=y||'-extra' WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE result1(a);\n     CREATE TRIGGER r3d INSTEAD OF DELETE ON v3 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v3 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result2;\n     CREATE TRIGGER r3u INSTEAD OF UPDATE ON v3 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v3 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result1;\n     CREATE TRIGGER r4d INSTEAD OF DELETE ON v4 BEGIN\n       INSERT INTO result1(a) VALUES(old.c1);\n     END;\n     DELETE FROM v4 WHERE c1 BETWEEN '8' AND 'eight';\n     SELECT * FROM result1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result2;\n     CREATE TRIGGER r4u INSTEAD OF UPDATE ON v4 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.c1, new.c1);\n     END;\n     UPDATE v4 SET c1 = c1 || '-extra' WHERE c1 BETWEEN '8' and 'eight';\n     SELECT * FROM result2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result2;\n     CREATE TRIGGER r5d INSTEAD OF DELETE ON v5 BEGIN\n       INSERT INTO result2(a,b) VALUES(old.x, old.b);\n     END;\n     DELETE FROM v5 WHERE x=5;\n     SELECT * FROM result2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result4;\n     CREATE TRIGGER r5u INSTEAD OF UPDATE ON v5 BEGIN\n       INSERT INTO result4(a,b,c,d) VALUES(old.x, old.b, new.x, new.b);\n     END;\n     UPDATE v5 SET b = b+9900000 WHERE x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM result4;\n     UPDATE v5 SET b = main.v5.b+9900000 WHERE main.v5.x BETWEEN 3 AND 5;\n     SELECT * FROM result4 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v5; -- warm up the cache"
+        }
+      ]
+    }
+  ]
+}

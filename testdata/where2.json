@@ -1,0 +1,330 @@
+{
+  "file": "where2.test",
+  "name": "where2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();",
+          "expect": "{/ random/}"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.5b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();",
+          "expect": "{/ SorterOpen /}"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);",
+          "expect": "{~/ abs/}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t614a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t614a VALUES('AAA','BBB');\n  CREATE TABLE t614b(x,y,c TEXT);\n  INSERT INTO t614b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t614b_c ON t614b(c);\n  SELECT c FROM t614a, t614b WHERE a=c OR b=c;",
+          "expect": "{aaa bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t614a, t614b WHERE c=a OR c=b;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t614a, t614b WHERE c=a OR b=c;",
+          "expect": "{bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t614a, t614b WHERE a=c OR c=b;",
+          "expect": "{aaa}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t615a(a TEXT, b TEXT);\n  INSERT INTO t615a VALUES('AAA','BBB');\n  CREATE TABLE t615b(x,y,c TEXT COLLATE NOCASE);\n  INSERT INTO t615b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t615b_c ON t615b(c);\n  SELECT c FROM t615a, t615b WHERE c=a OR c=b;",
+          "expect": "{aaa bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t615a, t615b WHERE a=c OR b=c;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t615a, t615b WHERE c=a OR b=c;",
+          "expect": "{aaa}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t615a, t615b WHERE a=c OR c=b;",
+          "expect": "{bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t616a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t616a VALUES('AAA','BBB');\n  CREATE TABLE t616b(x,y,c TEXT COLLATE NOCASE);\n  INSERT INTO t616b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t616b_c ON t616b(c);\n  SELECT c FROM t616a, t616b WHERE c=a OR c=b;",
+          "expect": "{aaa bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t616a, t616b WHERE a=c OR b=c;",
+          "expect": "{aaa bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t616a, t616b WHERE c=a OR b=c;",
+          "expect": "{aaa bbb}"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t617_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t617_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE VIEW t617 AS SELECT a, b FROM t617_a UNION ALL SELECT c, c FROM t617_b;"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT EXISTS(\n    SELECT 1\n      FROM (SELECT 1 FROM t617 WHERE a='two' OR b='i')\n     WHERE a='ex' OR b='iv'\n  ) FROM t617;",
+          "expect": "{}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx AS SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "where2-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t4(g INTEGER PRIMARY KEY, h INT);",
+          "expect": "# Here the query planner wants to move t4 forward so that it is in front of"
+        }
+      ]
+    },
+    {
+      "name": "where2-17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('A'),('b');\n  SELECT * FROM t1 WHERE (a='a' COLLATE nocase) OR a='b' ORDER BY +a;",
+          "expect": "{A b}"
+        }
+      ]
+    }
+  ]
+}

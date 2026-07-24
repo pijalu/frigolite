@@ -1,0 +1,25 @@
+{
+  "file": "tkt-b75a9ca6b0.test",
+  "name": "tkt_b75a9ca6b0",
+  "tests": [
+    {
+      "name": "1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (1, 3); \n  INSERT INTO t1 VALUES (2, 2);\n  INSERT INTO t1 VALUES (3, 1);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x, y);",
+          "expect": "set idxscan {SCAN t1 USING COVERING INDEX i1}"
+        }
+      ]
+    }
+  ]
+}

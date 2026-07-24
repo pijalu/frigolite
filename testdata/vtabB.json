@@ -1,0 +1,31 @@
+{
+  "file": "vtabB.test",
+  "name": "vtabB",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM echo_t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT rowid FROM echo_t2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT y FROM t2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (SELECT y FROM echo_t2);"
+        }
+      ]
+    }
+  ]
+}

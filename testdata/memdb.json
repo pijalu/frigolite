@@ -1,0 +1,175 @@
+{
+  "file": "memdb.test",
+  "name": "memdb",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=NORMAL"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b,c,d);\n    BEGIN;\n    INSERT INTO t4 VALUES(1,2,3,4);\n    SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4;\n    SELECT name FROM sqlite_master WHERE type='table';"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 UNION SELECT b FROM t2 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(c);\n    SELECT a FROM t2 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY c DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t5(x,y);\n    INSERT INTO t5 VALUES(1,2);\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x PRIMARY KEY, y UNIQUE);\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY y DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(1,2);\n      INSERT INTO t5 VALUES(3,4);\n      REPLACE INTO t5 VALUES(1,4);\n      SELECT rowid,* FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE x>5;\n      SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE y<3;\n      SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5 WHERE x>0;\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = full;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));\n      INSERT INTO t1 VALUES(randstr(1000,1000));"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    }
+  ]
+}

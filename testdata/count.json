@@ -1,0 +1,104 @@
+{
+  "file": "count.test",
+  "name": "count",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1;          --   4\n      INSERT INTO t1 SELECT * FROM t1;          --   8\n      INSERT INTO t1 SELECT * FROM t1;          --  16\n      INSERT INTO t1 SELECT * FROM t1;          --  32\n      INSERT INTO t1 SELECT * FROM t1;          --  64\n      INSERT INTO t1 SELECT * FROM t1;          -- 128\n      INSERT INTO t1 SELECT * FROM t1;          -- 256\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1;          --  512\n      INSERT INTO t1 SELECT * FROM t1;          -- 1024\n      INSERT INTO t1 SELECT * FROM t1;          -- 2048\n      INSERT INTO t1 SELECT * FROM t1;          -- 4096\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;          --  8192\n      INSERT INTO t1 SELECT * FROM t1;          -- 16384\n      INSERT INTO t1 SELECT * FROM t1;          -- 32768\n      INSERT INTO t1 SELECT * FROM t1;          -- 65536\n      COMMIT;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "count-2.9a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2 HAVING count(*)>1;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "count-2.9b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2 HAVING count(*)<10;",
+          "expect": "{0}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT 1 AS a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('a', 'b');\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4i2 ON t4(b);\n    SELECT count(*) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t4i1;\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "count-8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a INT,b TEXT,c BLOB,d REAL);\n  CREATE TABLE t8(a INT,b TEXT,c BLOB,d REAL);\n  CREATE INDEX t8a ON t8(a);"
+        }
+      ]
+    }
+  ]
+}

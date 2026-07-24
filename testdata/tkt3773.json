@@ -1,0 +1,15 @@
+{
+  "file": "tkt3773.test",
+  "name": "tkt3773",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(2,1);\n    INSERT INTO t1 VALUES(33,3);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(123,2);\n    INSERT INTO t2 VALUES(4,4);\n    SELECT a FROM (\n      SELECT a, b FROM t1\n      UNION ALL\n      SELECT x, y FROM t2\n      ORDER BY 2\n    );"
+        }
+      ]
+    }
+  ]
+}

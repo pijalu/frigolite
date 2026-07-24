@@ -1,0 +1,15 @@
+{
+  "file": "exprfault2.test",
+  "name": "exprfault2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;"
+        }
+      ]
+    }
+  ]
+}

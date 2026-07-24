@@ -1,0 +1,19 @@
+{
+  "file": "vtab9.test",
+  "name": "vtab9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     INSERT INTO t5(rowid, a) VALUES(1, 'goodbye');\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#     REPLACE INTO t5(rowid, a) VALUES(1, 'goodbye');\n#     SELECT * FROM t5;\n#"
+        }
+      ]
+    }
+  ]
+}

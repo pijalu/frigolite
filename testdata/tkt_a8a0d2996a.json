@@ -1,0 +1,186 @@
+{
+  "file": "tkt-a8a0d2996a.test",
+  "name": "tkt_a8a0d2996a",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(x,y);\n  INSERT INTO t VALUES('1','1');\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x-0 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x*1 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x/1 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t SET x='1xyzzy';\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x-0 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x*1 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x/1 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t SET x='1.0';\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x-0 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x*1 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x/1 AND y=='1';",
+          "expect": "{text text}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1+1.;",
+          "expect": "{2.0}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '1.23e64'/'1.0000e+62';",
+          "expect": "{123.0}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '100x'+'-2y';",
+          "expect": "{98}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '100x'+'4.5y';",
+          "expect": "{104.5}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '-9223372036854775807x'-'1x';",
+          "expect": "{-9223372036854775808}"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '9223372036854775806x'+'1x';",
+          "expect": "{9223372036854775807}"
+        }
+      ]
+    }
+  ]
+}

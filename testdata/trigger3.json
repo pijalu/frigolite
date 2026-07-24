@@ -1,0 +1,75 @@
+{
+  "file": "trigger3.test",
+  "name": "trigger3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl;\n        ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl (a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl VALUES(4, 5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE tbl SET c = 10;\n        SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tbl;\n        SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER after_tbl2_insert AFTER INSERT ON tbl2 BEGIN\n        UPDATE tbl SET c = 10;\n        INSERT INTO tbl2 VALUES (new.a, new.b, new.c);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW tbl_view AS SELECT * FROM tbl"
+        }
+      ]
+    }
+  ]
+}

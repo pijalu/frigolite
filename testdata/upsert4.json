@@ -1,0 +1,26 @@
+{
+  "file": "upsert4.test",
+  "name": "upsert4",
+  "tests": [
+    {
+      "name": "2.$tn.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM xyz;",
+          "expect": "{10 1 1 one}"
+        }
+      ]
+    },
+    {
+      "name": "3.$tn.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "{1 one two}"
+        }
+      ]
+    }
+  ]
+}

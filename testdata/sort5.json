@@ -1,0 +1,32 @@
+{
+  "file": "sort5.test",
+  "name": "sort5",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b);",
+          "expect": "db close"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = 1"
+        }
+      ]
+    }
+  ]
+}

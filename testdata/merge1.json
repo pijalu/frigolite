@@ -1,0 +1,26 @@
+{
+  "file": "merge1.test",
+  "name": "merge1",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;",
+          "expect": "{1 1 4 7 8 10 10 10 13 14 15 16 18 18 19 20 22 22 22 25 25 26 26 28 29 30 30 30 31 34 34 35 36 36 40 42 42 43 45 48 50 50 50 54 58 60 66 74}"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;",
+          "expect": "{1 1 4 7 8 10 10 10 13 14 15 16 18 18 19 20 22 22 22 25 25 26 26 28 29 30 30 30 31 34 34 35 36 36 40 42 42 43 45 48 50 50 50 54 58 60 66 74}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "file": "lastinsert.test",
+  "name": "lastinsert",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t3(a, b);\n    CREATE TRIGGER after_t2 AFTER INSERT ON t2 BEGIN\n      INSERT INTO t3 VALUES(new.x, new.y);\n    END;\n    INSERT INTO t2 VALUES(5000000000, 1);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(123456789012345,0)"
+        }
+      ]
+    }
+  ]
+}

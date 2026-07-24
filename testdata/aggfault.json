@@ -1,0 +1,23 @@
+{
+  "file": "aggfault.test",
+  "name": "aggfault",
+  "tests": [
+    {
+      "name": "1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_schema"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 AS a1 WHERE (\n      SELECT count(x AND 0=a1.x) FROM t1 GROUP BY abs(1)\n    ) AND x=(\n      SELECT * FROM t1 AS a1 \n      WHERE (SELECT count(x IS 1 AND a1.x=0) \n      FROM t1 \n      GROUP BY abs(1)) AND x=0\n    );"
+        }
+      ]
+    }
+  ]
+}

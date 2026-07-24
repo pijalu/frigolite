@@ -1,0 +1,35 @@
+{
+  "file": "walbig.test",
+  "name": "walbig",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY rowid"
+        }
+      ]
+    }
+  ]
+}

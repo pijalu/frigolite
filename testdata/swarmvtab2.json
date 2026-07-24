@@ -1,0 +1,36 @@
+{
+  "file": "swarmvtab2.test",
+  "name": "swarmvtab2",
+  "tests": [
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM v1 WHERE a=3875;",
+          "expect": "{**03875**}"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM v1 WHERE a BETWEEN 3999 AND 4000 ORDER BY a;",
+          "expect": "{**03999** **04000**}"
+        }
+      ]
+    },
+    {
+      "name": "150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM v1 WHERE a>=99998;",
+          "expect": "{**99998** **99999**}"
+        }
+      ]
+    }
+  ]
+}

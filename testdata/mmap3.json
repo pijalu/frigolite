@@ -1,0 +1,27 @@
+{
+  "file": "mmap3.test",
+  "name": "mmap3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        }
+      ]
+    }
+  ]
+}

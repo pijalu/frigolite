@@ -1,0 +1,25 @@
+{
+  "file": "prefixes.test",
+  "name": "prefixes",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(k TEXT UNIQUE, v INTEGER);\n  INSERT INTO t1 VALUES\n    ('aback', 1),\n    ('abaft', 2),\n    ('abandon', 3),\n    ('abandoned', 4),\n    ('abandoning', 5),\n    ('abandonment', 6),\n    ('abandons', 7),\n    ('abase', 8),\n    ('abased', 9),\n    ('abasement', 10),\n    ('abasements', 11),\n    ('abases', 12),\n    ('abash', 13),\n    ('abashed', 14),\n    ('abashes', 15),\n    ('abashing', 16),\n    ('abasing', 17),\n    ('abate', 18),\n    ('abated', 19),\n    ('abatement', 20),\n    ('abatements', 21);"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length(null,'abc');",
+          "expect": "0"
+        }
+      ]
+    }
+  ]
+}

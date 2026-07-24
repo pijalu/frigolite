@@ -1,0 +1,46 @@
+{
+  "file": "resolver01.test",
+  "name": "resolver01",
+  "tests": [
+    {
+      "name": "resolver01-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), substr(m,2,1) AS mx FROM t5 GROUP BY mx ORDER BY 1, 2;",
+          "expect": "{1 y 2 x}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t61(name);\n  SELECT min(name) FROM t61 GROUP BY lower(name);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(name) AS name FROM t61 GROUP BY lower(name);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "resolver01-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 AS x WHERE (SELECT x AS y WHERE 3>y);",
+          "expect": "{2}"
+        }
+      ]
+    }
+  ]
+}

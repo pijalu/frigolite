@@ -1,0 +1,112 @@
+{
+  "file": "bloom1.test",
+  "name": "bloom1",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('hello', 'world');\n  INSERT INTO t2 VALUES(14, 'fourteen');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(x TEXT COLLATE rtrim);\n  INSERT INTO t0(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v0(y) AS SELECT DISTINCT x FROM t0;\n  SELECT count(*) FROM t0, v0 WHERE x='b ';",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT COLLATE rtrim);\n  INSERT INTO t1(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v1(y) AS SELECT DISTINCT x FROM t1;\n  SELECT count(*) FROM t1, v1 WHERE x='b ';",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 NATURAL JOIN t1 WHERE z=t1.x;",
+          "expect": "{aa bb aa}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(a TEXT);\n  INSERT INTO t0 VALUES ('xyz');\n  CREATE INDEX t0x ON t0(a IS FALSE) WHERE false;\n  DROP TABLE t1;\n  CREATE TABLE t1(b INT);\n  INSERT INTO t1 VALUES('aaa'),('bbb'),('ccc'),('ddd'),(NULL);\n  CREATE TABLE t2(c REAL);\n  INSERT INTO t2 VALUES(7);\n  ANALYZE;\n  CREATE INDEX t2x ON t2(true IN ());"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (c1);\n  INSERT INTO t1 VALUES (101);\n  CREATE TABLE t2 ( x );\n  INSERT INTO t2 VALUES(404);"
+        }
+      ]
+    }
+  ]
+}

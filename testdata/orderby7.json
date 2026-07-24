@@ -1,0 +1,26 @@
+{
+  "file": "orderby7.test",
+  "name": "orderby7",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;",
+          "expect": "{{a row that occurs twice}}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;",
+          "expect": "{{a row that occurs twice} 111}"
+        }
+      ]
+    }
+  ]
+}

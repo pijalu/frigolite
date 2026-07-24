@@ -1,0 +1,35 @@
+{
+  "file": "stmt.test",
+  "name": "stmt",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a integer primary key, b INTEGER NOT NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = file;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+1, b+1 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 SELECT a+2, b+2 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+4, b+4 FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "file": "window9.test",
+  "name": "window9",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE fruits(\n     name TEXT COLLATE NOCASE,\n     color TEXT COLLATE NOCASE\n  );"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO fruits (name, color) VALUES ('apple', 'RED');\n  INSERT INTO fruits (name, color) VALUES ('APPLE', 'yellow');\n  INSERT INTO fruits (name, color) VALUES ('pear', 'YELLOW');\n  INSERT INTO fruits (name, color) VALUES ('PEAR', 'green');"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a BLOB, b INTEGER, c COLLATE nocase);\n  INSERT INTO t1 VALUES(1, 2, 'abc');\n  INSERT INTO t1 VALUES(3, 4, 'ABC');"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c=='Abc' FROM t1",
+          "expect": "{1     1}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b=='2' FROM t1",
+          "expect": "{1     0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE TABLE t2(a,b,c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b TEXT);\n  INSERT INTO t1 VALUES('A', 1), ('A', 2), ('2', 1), ('2', 2);"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, b=count(*), '1,2'                   FROM t1 GROUP BY b;",
+          "expect": "{1 0 1,2 2 1 1,2}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');"
+        }
+      ]
+    }
+  ]
+}

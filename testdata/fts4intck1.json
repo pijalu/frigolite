@@ -1,0 +1,14 @@
+{
+  "file": "fts4intck1.test",
+  "name": "fts4intck1",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

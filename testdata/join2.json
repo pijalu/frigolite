@@ -1,0 +1,276 @@
+{
+  "file": "join2.test",
+  "name": "join2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n  INSERT INTO aa VALUES('one');\n  INSERT INTO bb VALUES('one');\n  INSERT INTO cc VALUES('one');"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa LEFT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));",
+          "expect": "{1 {ON clause references tables to its right}}"
+        }
+      ]
+    },
+    {
+      "name": "2.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM aa RIGHT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));",
+          "expect": "{1 {ON clause references tables to its right}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(k1 INTEGER PRIMARY KEY, k2, k3);\n  CREATE TABLE t2(k2 INTEGER PRIMARY KEY, v2);\n\n  -- Prior to this problem being fixed, table t3_2 would be omitted from\n  -- the join queries below, but if t3_1 were used in its place it would\n  -- not.\n  CREATE TABLE t3_1(k3 PRIMARY KEY, v3) WITHOUT ROWID;\n  CREATE TABLE t3_2(v3, k3 PRIMARY KEY) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(k INTEGER PRIMARY KEY, v1);\n  CREATE TABLE c2(k INTEGER PRIMARY KEY, v2);\n  CREATE TABLE c3(k INTEGER PRIMARY KEY, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 ON (c2.k=v1) LEFT JOIN c3 ON (c3.k=v2);",
+          "expect": "{2 v3 1112 {}}"
+        }
+      ]
+    },
+    {
+      "name": "4.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c1;\n  DROP TABLE c2;\n  DROP TABLE c3;\n  CREATE TABLE c1(k UNIQUE, v1);\n  CREATE TABLE c2(k UNIQUE, v2);\n  CREATE TABLE c3(k UNIQUE, v3);\n\n  INSERT INTO c1 VALUES(1, 2);\n  INSERT INTO c2 VALUES(2, 3);\n  INSERT INTO c3 VALUES(3, 'v3');\n\n  INSERT INTO c1 VALUES(111, 1112);\n  INSERT INTO c2 VALUES(112, 1113);\n  INSERT INTO c3 VALUES(113, 'v1113');"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 ON (c2.k=v1) LEFT JOIN c3 ON (c3.k=v2);",
+          "expect": "{2 v3 1112 {}}"
+        }
+      ]
+    },
+    {
+      "name": "4.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(x);\n  SELECT a.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE s1 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s2 (a INTEGER PRIMARY KEY);\n  CREATE TABLE s3 (a INTEGER);\n  CREATE UNIQUE INDEX ndx on s3(a);"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE u1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE u2(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX u1ab ON u1(b, c);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 LEFT JOIN t1 \n  WHERE (t1.c0 BETWEEN 0 AND 0) > ('' AND t0.c0);",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 INT);\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  INSERT INTO t0(c0) VALUES (0);"
+        }
+      ]
+    },
+    {
+      "name": "9.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (aaa);\n  INSERT INTO t1 VALUES(23456);\n  CREATE TABLE t2(bbb);\n  CREATE VIEW v2(ccc) AS SELECT bbb IS 1234 FROM t2;\n  SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;",
+          "expect": "{{} 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (x INTEGER);\n  INSERT INTO t1 VALUES(1);   -- Some true value\n  CREATE TABLE t2 (z TEXT);\n  INSERT INTO t2 VALUES('some value');\n  CREATE TABLE t3(w TEXT);\n  INSERT INTO t3 VALUES('some other value');"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v OR FALSE)\n  ) FROM t1;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v)\n  ) FROM t1;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1 INT);\n  CREATE TABLE t2(c2 INT, d2 INTEGER PRIMARY KEY);\n  CREATE TABLE t3(e3 INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(33,0);\n  INSERT INTO t2 VALUES(33,1),(33,2);"
+        }
+      ]
+    }
+  ]
+}

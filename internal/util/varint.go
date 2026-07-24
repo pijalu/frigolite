@@ -33,7 +33,7 @@ func PutVarint(buf []byte, v uint64) int {
 }
 
 func putVarintSlow(buf []byte, v uint64) int {
-	var tmp [10]byte
+	var tmp [11]byte
 	n := 0
 	// Write 7-bit groups from LSB to MSB, all with continuation bit set
 	for v != 0 {
@@ -53,20 +53,38 @@ func putVarintSlow(buf []byte, v uint64) int {
 
 // GetVarint decodes a SQLite varint from buf, returning the value and the
 // number of bytes consumed. buf must have at least 1 byte; otherwise returns
-// (0, 1). SQLite varints are at most 9 bytes; longer sequences terminate at
-// 9 bytes without error (the caller must validate against the expected field
-// size).
+// (0, 1). SQLite varints are at most 9 bytes; for values >= 2^63, 10 bytes
+// are produced (the 9th byte has continuation and the 10th byte is 8 bits).
 func GetVarint(buf []byte) (uint64, int) {
 	var v uint64
 	n := 0
 	for {
-		if n >= len(buf) || n >= 9 {
+		if n >= len(buf) || n >= 10 {
 			break
 		}
-		v = (v << 7) | uint64(buf[n]&0x7f)
-		n++
-		if buf[n-1]&0x80 == 0 {
-			break
+		if n < 8 {
+			// Standard 7-bit continuation for first 8 bytes
+			v = (v << 7) | uint64(buf[n]&0x7f)
+			n++
+			if buf[n-1]&0x80 == 0 {
+				break
+			}
+		} else {
+			// 9th byte: if continuation bit is clear, read as 7 bits
+			// (standard varint, 63 bits max). If continuation bit is
+			// set, read as 8 bits (SQLite extension for >= 2^63).
+			if n == 8 && buf[n]&0x80 == 0 {
+				// 9th byte, no continuation: standard 7-bit
+				v = (v << 7) | uint64(buf[n]&0x7f)
+				n++
+				break
+			}
+			// 9th (or 10th) byte with 8 bits
+			v = (v << 8) | uint64(buf[n])
+			n++
+			if n >= 10 || buf[n-1]&0x80 == 0 {
+				break
+			}
 		}
 	}
 	return v, n

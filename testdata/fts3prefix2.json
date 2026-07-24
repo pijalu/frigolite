@@ -1,0 +1,24 @@
+{
+  "file": "fts3prefix2.test",
+  "name": "fts3prefix2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t1 LIMIT 10;\n  INSERT INTO t1 SELECT * FROM t1 LIMIT 10;\n  INSERT INTO t1 SELECT * FROM t1 LIMIT 10;\n  DELETE FROM t1 WHERE docid > 5;"
+        }
+      ]
+    }
+  ]
+}

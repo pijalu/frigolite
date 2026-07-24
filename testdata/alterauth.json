@@ -1,0 +1,27 @@
+{
+  "file": "alterauth.test",
+  "name": "alterauth",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME c TO ccc"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN d"
+        }
+      ]
+    }
+  ]
+}

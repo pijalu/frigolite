@@ -1,0 +1,16 @@
+{
+  "file": "selectF.test",
+  "name": "selectF",
+  "tests": [
+    {
+      "name": "1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO \"t1\" VALUES(1,'one','I');\n  CREATE TABLE t2(d, e, f);\n  INSERT INTO \"t2\" VALUES(5,'ten','XX');\n  INSERT INTO \"t2\" VALUES(6,NULL,NULL);\n\n  CREATE INDEX i1 ON t1(b, a);\n  COMMIT;",
+          "expect": "#explain_i {"
+        }
+      ]
+    }
+  ]
+}

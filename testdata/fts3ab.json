@@ -1,0 +1,15 @@
+{
+  "file": "fts3ab.test",
+  "name": "fts3ab",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT english, spanish, german FROM t1 WHERE rowid=1"
+        }
+      ]
+    }
+  ]
+}

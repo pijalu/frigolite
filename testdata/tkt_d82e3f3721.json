@@ -1,0 +1,39 @@
+{
+  "file": "tkt-d82e3f3721.test",
+  "name": "tkt_d82e3f3721",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(null,'abc');\n    INSERT INTO t1 VALUES(null,'def');\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(null,'ghi');\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t2 VALUES(null,'jkl');\n    INSERT INTO t2 VALUES(null,'mno');\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(null,'pqr');\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t3(x);\n    INSERT INTO t3 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM temp.t3 JOIN main.t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;"
+        }
+      ]
+    }
+  ]
+}

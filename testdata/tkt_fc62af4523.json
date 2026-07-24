@@ -1,0 +1,23 @@
+{
+  "file": "tkt-fc62af4523.test",
+  "name": "tkt_fc62af4523",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

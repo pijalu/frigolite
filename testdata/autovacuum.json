@@ -1,0 +1,251 @@
+{
+  "file": "autovacuum.test",
+  "name": "autovacuum",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from av1 order by rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from av1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from av1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select x from av2"
+        },
+        {
+          "type": "exec",
+          "sql": "select x from av3"
+        },
+        {
+          "type": "exec",
+          "sql": "select x from av4"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM av3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM av4;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master ORDER by rootpage"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master ORDER by rootpage"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av1(a PRIMARY KEY, b, c);\n    INSERT INTO av1 VALUES('av1 a', 'av1 b', 'av1 c');\n\n    CREATE TABLE av2(a PRIMARY KEY, b, c);\n    CREATE INDEX av2_i1 ON av2(b);\n    CREATE INDEX av2_i2 ON av2(c);\n    INSERT INTO av2 VALUES('av2 a', 'av2 b', 'av2 c');\n\n    CREATE TABLE av3(a PRIMARY KEY, b, c);\n    CREATE INDEX av3_i1 ON av3(b);\n    INSERT INTO av3 VALUES('av3 a', 'av3 b', 'av3 c');\n\n    CREATE TABLE av4(a, b, c);\n    CREATE INDEX av4_i1 ON av4(a);\n    CREATE INDEX av4_i2 ON av4(b);\n    CREATE INDEX av4_i3 ON av4(c);\n    CREATE INDEX av4_i4 ON av4(a, b, c);\n    INSERT INTO av4 VALUES('av4 a', 'av4 b', 'av4 c');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, rootpage FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av1 WHERE a = 'av1 a';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av3 WHERE a = 'av3 a' AND b = 'av3 b';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av3;\n    SELECT name, rootpage FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av1 WHERE a = 'av1 a';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av1;\n    SELECT name, rootpage FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av4 WHERE a = 'av4 a' AND b = 'av4 b' AND c = 'av4 c';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av4;\n    SELECT name, rootpage FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM av2 WHERE a = 'av2 a' AND b = 'av2 b' AND c = 'av2 c'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE av1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE av1(a, b);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a) FROM av1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a) FROM av1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    DROP TABLE t1;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);\n    CREATE INDEX i2 ON t2(a);\n    CREATE TABLE t3(a);\n    CREATE INDEX i3 ON t2(a);\n    CREATE INDEX x ON t1(b);\n    DROP TABLE t3;\n    PRAGMA integrity_check;\n    DROP TABLE t2;\n    PRAGMA integrity_check;\n    DROP TABLE t1;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(NULL, randstr(50,50));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid > (SELECT max(a)/2 FROM t1)"
+        }
+      ]
+    }
+  ]
+}

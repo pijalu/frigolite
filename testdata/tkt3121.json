@@ -1,0 +1,15 @@
+{
+  "file": "tkt3121.test",
+  "name": "tkt3121",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select\n      t1.field as Field,\n      t2.descr as Descr\n    from t1 inner join t2 on t1.field = t2.col order by t1.field"
+        }
+      ]
+    }
+  ]
+}

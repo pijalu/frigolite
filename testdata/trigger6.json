@@ -1,0 +1,39 @@
+{
+  "file": "trigger6.test",
+  "name": "trigger6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    CREATE TABLE log(a, b, c);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(1, new.x, new.y);\n    END;\n    CREATE TRIGGER r2 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(2, new.x, new.y);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    DELETE FROM log;\n    INSERT INTO t1 VALUES(2,counter(2,3)+4);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    UPDATE t1 SET y=counter(5);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM log;"
+        }
+      ]
+    }
+  ]
+}

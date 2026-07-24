@@ -1,0 +1,23 @@
+{
+  "file": "vtab_err.test",
+  "name": "vtab_err",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE xyz(x);\n      SELECT a FROM e;\n    COMMIT;"
+        }
+      ]
+    }
+  ]
+}

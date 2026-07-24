@@ -1,0 +1,85 @@
+{
+  "file": "tkt-99378177930f87bd.test",
+  "name": "tkt_99378177930f87bd",
+  "tests": [
+    {
+      "name": "tkt-99378-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,\n         SUM(1)                              AS t1,\n         SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n         SUM(c)                              AS t3,\n         SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1\n   WHERE d BETWEEN 0 and 10\n   GROUP BY a;",
+          "expect": "{\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN\n  SELECT a,\n         SUM(1)                              AS t1,\n         SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n         SUM(c)                              AS t3,\n         SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1\n   WHERE d BETWEEN 0 and 10\n   GROUP BY a;",
+          "expect": "{~/Function/}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,\n         SUM(1)                              AS t1,\n         SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n         SUM(c)                              AS t3,\n         SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1\n   WHERE d BETWEEN 0 and 10\n   GROUP BY +a;",
+          "expect": "{\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1x;\n  CREATE INDEX t1x ON t1(a, d, b->>'x', c);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,\n         SUM(1)                              AS t1,\n         SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n         SUM(c)                              AS t3,\n         SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1\n   WHERE d BETWEEN 0 and 10\n   GROUP BY a;",
+          "expect": "{\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN\n  SELECT a,\n         SUM(1)                              AS t1,\n         SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n         SUM(c)                              AS t3,\n         SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1\n   WHERE d BETWEEN 0 and 10\n   GROUP BY a;",
+          "expect": "{~/Function/}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,\n         SUM(1)                              AS t1,\n         SUM(CASE WHEN b->>'x'=1 THEN 1 END) AS t2,\n         SUM(c)                              AS t3,\n         SUM(CASE WHEN b->>'x'=1 THEN c END) AS t4\n    FROM t1\n   WHERE d BETWEEN 0 and 10\n   GROUP BY a;",
+          "expect": "{\n  1  2  1 16 12\n  2  2  1 26 22\n  3  1  1  6  6\n}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-99378-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT);\n  CREATE INDEX i1 ON t1(a,a=a);\n  INSERT INTO t1 VALUES(1),(2),(3),(4);\n  SELECT * FROM t1 NATURAL JOIN t1 \n   WHERE a==1\n      OR (\n           (SELECT avg(\n                (SELECT sum((SELECT 1 FROM t1 NATURAL RIGHT JOIN t1 WHERE a=a)))) AS xyz\n           )\n           AND a==2\n         );",
+          "expect": "{1 2}"
+        }
+      ]
+    }
+  ]
+}

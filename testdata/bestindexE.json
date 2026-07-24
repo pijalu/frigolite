@@ -1,0 +1,61 @@
+{
+  "file": "bestindexE.test",
+  "name": "bestindexE",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_schema"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM tcl",
+          "expect": "{123 A B}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x);",
+          "expect": "db close"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "# Modify the schema on disk"
+        }
+      ]
+    }
+  ]
+}

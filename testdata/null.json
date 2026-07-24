@@ -1,0 +1,168 @@
+{
+  "file": "null.test",
+  "name": "null",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "begin;\n    create table t1(a,b,c);\n    insert into t1 values(1,0,0);\n    insert into t1 values(2,0,1);\n    insert into t1 values(3,1,0);\n    insert into t1 values(4,1,1);\n    insert into t1 values(5,null,0);\n    insert into t1 values(6,null,1);\n    insert into t1 values(7,null,null);\n    commit;\n    select * from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(a+b,99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(b*c,99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when b<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when not b<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when b<>0 and c<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when not (b<>0 and c<>0) then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when b<>0 or c<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when not (b<>0 or c<>0) then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case b when c then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case c when b then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select count(*), count(b), count(c), sum(b), sum(c), \n           avg(b), avg(c), min(b), max(b) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(b), total(b) FROM t1 WHERE b<0"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where b<10"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where not b>10"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where b<10 or c=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where b<10 and c=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where not (b<10 and c=1);"
+        },
+        {
+          "type": "exec",
+          "sql": "select distinct b from t1 order by b;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by b;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by t1.b;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by main.t1.b;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t2(a, b unique on conflict ignore);\n      insert into t2 values(1,1);\n      insert into t2 values(2,null);\n      insert into t2 values(3,null);\n      insert into t2 values(4,1);\n      select a from t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t3(a, b, c, unique(b,c) on conflict ignore);\n      insert into t3 values(1,1,1);\n      insert into t3 values(2,null,1);\n      insert into t3 values(3,null,1);\n      insert into t3 values(4,1,1);\n      select a from t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,11);\n    INSERT INTO t4 VALUES(2,NULL);\n    SELECT x FROM t4 WHERE y=NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4i1 ON t4(y);\n    SELECT x FROM t4 WHERE y=NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;"
+        }
+      ]
+    },
+    {
+      "name": "null-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c);\n  CREATE UNIQUE INDEX t5ab ON t5(a, b);\n\n  INSERT INTO t5 VALUES(1, NULL, 'one');\n  INSERT INTO t5 VALUES(1, NULL, 'i');\n  INSERT INTO t5 VALUES(NULL, 'x', 'two');\n  INSERT INTO t5 VALUES(NULL, 'x', 'ii');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

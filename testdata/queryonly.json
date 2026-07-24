@@ -1,0 +1,66 @@
+{
+  "file": "queryonly.test",
+  "name": "queryonly",
+  "tests": [
+    {
+      "name": "queryonly-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(123),(456);\n  SELECT a FROM t1 ORDER BY a;",
+          "expect": "{123 456}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA query_only;",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA query_only=ON;\n  PRAGMA query_only;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA query_only;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA query_only=OFF;\n  PRAGMA query_only;",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(789);\n  SELECT a FROM t1 ORDER BY a;",
+          "expect": "{123 456 789}"
+        }
+      ]
+    }
+  ]
+}

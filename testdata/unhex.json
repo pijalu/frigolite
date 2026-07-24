@@ -1,0 +1,36 @@
+{
+  "file": "unhex.test",
+  "name": "unhex",
+  "tests": [
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT unhex();",
+          "expect": "{1 {wrong number of arguments to function unhex()}}"
+        }
+      ]
+    },
+    {
+      "name": "6.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(unhex(NULL))",
+          "expect": "{null}"
+        }
+      ]
+    },
+    {
+      "name": "6.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(unhex(NULL, ' '))",
+          "expect": "{null}"
+        }
+      ]
+    }
+  ]
+}

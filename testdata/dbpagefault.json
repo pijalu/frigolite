@@ -1,0 +1,93 @@
+{
+  "file": "dbpagefault.test",
+  "name": "dbpagefault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = off"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;",
+          "expect": "# This test case no longer works, as it is no longer possible to use"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema = 1;"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;",
+          "expect": "{1 {unsafe use of virtual table \"sqlite_dbpage\"}}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA trusted_schema = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 DEFAULT VALUES;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "file": "bestindex4.test",
+  "name": "bestindex4",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

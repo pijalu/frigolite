@@ -1,0 +1,235 @@
+{
+  "file": "collateA.test",
+  "name": "collateA",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc123                         '='abc123' COLLATE RTRIM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '  '='      ' COLLATE RTRIM, '  '='        '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=' '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='                    '"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=' '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='                    '"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        }
+      ]
+    }
+  ]
+}

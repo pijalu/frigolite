@@ -1,0 +1,23 @@
+{
+  "file": "tkt-b351d95f9.test",
+  "name": "tkt_b351d95f9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE table t1(a,b);\n    INSERT INTO t1 VALUES('name1','This is a test');\n    INSERT INTO t1 VALUES('name2','xyz');\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT a, CASE b WHEN 'xyz' THEN null ELSE b END FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2 SELECT a, coalesce(b,a) FROM t1;\n    SELECT x, y BETWEEN 'xy' AND 'xz' FROM t2 ORDER BY x;"
+        }
+      ]
+    }
+  ]
+}

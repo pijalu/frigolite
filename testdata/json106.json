@@ -1,0 +1,15 @@
+{
+  "file": "json106.test",
+  "name": "json106",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(j0,j5,p);\n  CREATE TEMP TABLE kv(n,key,val);"
+        }
+      ]
+    }
+  ]
+}

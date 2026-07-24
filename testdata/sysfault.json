@@ -1,0 +1,43 @@
+{
+  "file": "sysfault.test",
+  "name": "sysfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('y');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS 'aux';\n    SELECT * FROM t1;\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n      INSERT INTO t1 VALUES('jkl', 'mno', 'pqr');\n      UPDATE t2 SET x = 2;\n    COMMIT;\n    SELECT * FROM t1;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=OFF;\n    CREATE TABLE t1(a, b);\n    BEGIN;\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

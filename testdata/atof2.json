@@ -1,0 +1,26 @@
+{
+  "file": "atof2.test",
+  "name": "atof2",
+  "tests": [
+    {
+      "name": "atof2-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%g',192.496475);",
+          "expect": "192.496"
+        }
+      ]
+    },
+    {
+      "name": "atof2-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%!.30f',ieee754_inc(100.0,-1));",
+          "expect": "99.9999999999999858"
+        }
+      ]
+    }
+  ]
+}

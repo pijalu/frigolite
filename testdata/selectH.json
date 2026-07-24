@@ -1,0 +1,103 @@
+{
+  "file": "selectH.test",
+  "name": "selectH",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n     c0,  c1,  c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9,\n     c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n     c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n     c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n     c40, c41, c42, c43, c44, c45, c46, c47, c48, c49,\n     c50, c51, c52, c53, c54, c55, c56, c57, c58, c59,\n     c60, c61, c62, c63, c64, c65\n  );\n  INSERT INTO t1 VALUES(\n     0,  1,  2,  3,  4,  5,  6,  7,  8,  9,\n     10, 11, 12, 13, 14, 15, 16, 17, 18, 19,\n     20, 21, 22, 23, 24, 25, 26, 27, 28, 29,\n     30, 31, 32, 33, 34, 35, 36, 37, 38, 39,\n     40, 41, 42, 43, 44, 45, 46, 47, 48, 49,\n     50, 51, 52, 53, 54, 55, 56, 57, 58, 59,\n     60, 61, 62, 63, 64, 65\n  );\n  CREATE INDEX t1c60 ON t1(c60);",
+          "expect": "# The SQL counter(N) function adjusts the value of the global"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT c44 FROM (\n    SELECT c0 AS a, *, counter(1) FROM t1\n    UNION ALL\n    SELECT c1 AS a, *, counter(1) FROM t1\n  ) WHERE c60=60;",
+          "expect": "{44}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM (\n    SELECT counter(1) AS cnt, c15 AS a, *, c62 AS b FROM t1\n    UNION ALL\n    SELECT counter(1) AS cnt, c16 AS a, *, c61 AS b FROM t1\n    ORDER BY b\n  );",
+          "expect": "{16 15}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS\n    SELECT c16 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c17 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c18 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c19 AS a, *, counter(1) AS x FROM t1;\n  SELECT count(*) FROM v1 WHERE c60=60;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(a) FROM v1 WHERE c60=60;",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM v1 WHERE c60=60;",
+          "expect": "{16 17 18 19}"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM v1 WHERE c60=60;",
+          "expect": "{1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (val1);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  CREATE TABLE t2 (val2);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT val1 FROM t1 UNION ALL SELECT val2 FROM t2;",
+          "expect": "{\n  4 5\n}"
+        }
+      ]
+    }
+  ]
+}

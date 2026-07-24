@@ -1,0 +1,71 @@
+{
+  "file": "analyze7.test",
+  "name": "analyze7",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND d=123 AND b=123"
+        }
+      ]
+    }
+  ]
+}

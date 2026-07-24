@@ -1,0 +1,15 @@
+{
+  "file": "wal9.test",
+  "name": "wal9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"
+        }
+      ]
+    }
+  ]
+}

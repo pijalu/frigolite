@@ -1,0 +1,43 @@
+{
+  "file": "vtab_alter.test",
+  "name": "vtab_alter",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b VARCHAR, c INTEGER)"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1echo RENAME TO new"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1_base VALUES(1, 2, 3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x_base;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y_base(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x"
+        }
+      ]
+    }
+  ]
+}

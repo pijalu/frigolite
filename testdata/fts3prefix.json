@@ -1,0 +1,188 @@
+{
+  "file": "fts3prefix.test",
+  "name": "fts3prefix",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS fts3check1;\n      DROP TABLE IF EXISTS fts3check2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS temp.terms;\n      DROP TABLE IF EXISTS temp.prefixes;\n      CREATE TEMP TABLE terms AS SELECT * FROM fts3check1;\n      CREATE TEMP TABLE prefixes AS SELECT * FROM fts3check2;\n      CREATE INDEX temp.idx ON prefixes(term);\n      DROP TABLE fts3check1;\n      DROP TABLE fts3check2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT term, docid, col, pos FROM temp.terms"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE temp.prefixes"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE temp.terms"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('sqlite mysql firebird');",
+          "expect": "do_execsql_test 1.3.1 { SELECT term FROM p1 } {f m s}"
+        }
+      ]
+    },
+    {
+      "name": "1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term FROM p2",
+          "expect": "{fir mys sql}"
+        }
+      ]
+    },
+    {
+      "name": "1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT term FROM p3",
+          "expect": "{firebi sqlite}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('FTS3 and FTS4 are an SQLite virtual table modules');\n  INSERT INTO t1 VALUES('that allows users to perform full-text searches on');\n  INSERT INTO t1 VALUES('a set of documents. The most common (and');\n  INSERT INTO t1 VALUES('effective) way to describe full-text searches is');\n  INSERT INTO t1 VALUES('\"what Google, Yahoo and Altavista do with');\n  INSERT INTO t1 VALUES('documents placed on the World Wide Web\". Users');\n  INSERT INTO t1 VALUES('input a term, or series of terms, perhaps');\n  INSERT INTO t1 VALUES('connected by a binary operator or grouped together');\n  INSERT INTO t1 VALUES('into a phrase, and the full-text query system');\n  INSERT INTO t1 VALUES('finds the set of documents that best matches those');\n  INSERT INTO t1 VALUES('terms considering the operators and groupings the');\n  INSERT INTO t1 VALUES('user has specified. This article describes the');\n  INSERT INTO t1 VALUES('deployment and usage of FTS3 and FTS4.');\n  INSERT INTO t1 VALUES('FTS1 and FTS2 are obsolete full-text search');\n  INSERT INTO t1 VALUES('modules for SQLite. There are known issues with');\n  INSERT INTO t1 VALUES('these older modules and their use should be');\n  INSERT INTO t1 VALUES('avoided. Portions of the original FTS3 code were');\n  INSERT INTO t1 VALUES('contributed to the SQLite project by Scott Hess of');\n  INSERT INTO t1 VALUES('Google. It is now developed and maintained as part');\n  INSERT INTO t1 VALUES('of SQLite. ');",
+          "expect": "fts3_tap_test 2.2 db t1 {1 3 6}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE docid%2;"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize')"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT optimize(t2) FROM t2 LIMIT 1",
+          "expect": "{{Index optimized}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t1_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(quote(root)) FROM t2_segdir"
+        }
+      ]
+    }
+  ]
+}

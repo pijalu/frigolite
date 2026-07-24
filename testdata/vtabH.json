@@ -1,0 +1,14 @@
+{
+  "file": "vtabH.test",
+  "name": "vtabH",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

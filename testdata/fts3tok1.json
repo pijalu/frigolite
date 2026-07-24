@@ -1,0 +1,15 @@
+{
+  "file": "fts3tok1.test",
+  "name": "fts3tok1",
+  "tests": [
+    {
+      "name": "1.13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(x);\n  INSERT INTO c1(x) VALUES('a b c');\n  INSERT INTO c1(x) VALUES('d e f');"
+        }
+      ]
+    }
+  ]
+}

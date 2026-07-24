@@ -1,0 +1,63 @@
+{
+  "file": "join6.test",
+  "name": "join6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT t1.a, t3.b \n      FROM t1 LEFT JOIN t2 ON t1.a=t2.a LEFT JOIN t3 ON t2.a=t3.a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.a, t3.b\n      FROM t1 LEFT JOIN t2 ON t1.a=t2.a LEFT JOIN t3 ON t1.a=t3.a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 NATURAL JOIN t2 NATURAL JOIN t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n\n    CREATE TABLE t1(a,x,y);\n    INSERT INTO t1 VALUES(1,91,92);\n    INSERT INTO t1 VALUES(2,93,94);\n    \n    CREATE TABLE t2(b,y,z);\n    INSERT INTO t2 VALUES(3,92,93);\n    INSERT INTO t2 VALUES(4,94,95);\n    \n    CREATE TABLE t3(c,x,z);\n    INSERT INTO t3 VALUES(5,91,93);\n    INSERT INTO t3 VALUES(6,99,95);\n    \n    SELECT * FROM t1 NATURAL JOIN t2 NATURAL JOIN t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 JOIN t2 NATURAL JOIN t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n         (SELECT 1 AS a, 91 AS x, 92 AS y UNION SELECT 2, 93, 94)\n         NATURAL JOIN t2 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 NATURAL JOIN\n         (SELECT 3 AS b, 92 AS y, 93 AS z UNION SELECT 4, 94, 95)\n         NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 NATURAL JOIN t2 NATURAL JOIN\n         (SELECT 5 AS c, 91 AS x, 93 AS z UNION SELECT 6, 99, 95)"
+        }
+      ]
+    },
+    {
+      "name": "join6-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o PRIMARY KEY) \n  WITHOUT ROWID;\n  INSERT INTO tx VALUES(\n    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "join6-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ty(a,\u00d1,x6,x7,x8,Q,I,v,x1,L,E,x2,x3,x4,x5,s,g PRIMARY KEY,b,c)\n  WITHOUT ROWID;\n  SELECT a FROM ty NATURAL JOIN ty;",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

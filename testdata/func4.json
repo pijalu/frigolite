@@ -1,0 +1,573 @@
+{
+  "file": "func4.test",
+  "name": "func4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT toreal(-9223372036854775808 + 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT toreal(9007199254740992 + 1);"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(NULL);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('   ');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('1234');",
+          "expect": "{1234}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('   1234');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('bad');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('0xBAD');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('123BAD');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('0x123BAD');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('123NO');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('0x123NO');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('-0x1');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('-0x0');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('0x0');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger('0x1');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-1);",
+          "expect": "{-1}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-0);",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(0);",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(1);",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-1.79769313486232e308 - 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-1.79769313486232e308);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-1.79769313486232e308 + 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-9223372036854775808 - 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-9223372036854775808);",
+          "expect": "{-9223372036854775808}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-9223372036854775808 + 1);",
+          "expect": "{-9223372036854775807}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-9223372036854775807 - 1);",
+          "expect": "{-9223372036854775808}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-9223372036854775807);",
+          "expect": "{-9223372036854775807}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-9223372036854775807 + 1);",
+          "expect": "{-9223372036854775806}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.29",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-2147483648 - 1);",
+          "expect": "{-2147483649}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-2147483648);",
+          "expect": "{-2147483648}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(-2147483648 + 1);",
+          "expect": "{-2147483647}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.32",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(2147483647 - 1);",
+          "expect": "{2147483646}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(2147483647);",
+          "expect": "{2147483647}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(2147483647 + 1);",
+          "expect": "{2147483648}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775807 - 1);",
+          "expect": "{9223372036854775806}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775807);",
+          "expect": "{9223372036854775807}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(1.79769313486232e308 - 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(1.79769313486232e308);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(1.79769313486232e308 + 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(4503599627370496 - 1);",
+          "expect": "{4503599627370495}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.42",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(4503599627370496);",
+          "expect": "{4503599627370496}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(4503599627370496 + 1);",
+          "expect": "{4503599627370497}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.44",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9007199254740992 - 1);",
+          "expect": "{9007199254740991}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.45",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9007199254740992);",
+          "expect": "{9007199254740992}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.46",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9007199254740992 + 1);",
+          "expect": "{9007199254740993}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.47",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775807 - 1);",
+          "expect": "{9223372036854775806}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.48",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775807);",
+          "expect": "{9223372036854775807}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(9223372036854775808 + 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(18446744073709551616 - 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-1.54",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(18446744073709551616);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-2.53",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT toreal(tointeger(18446744073709551616) + 1);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-5.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(toreal(18446744073709551616 + 1));",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tointeger(x'0102030405060708');",
+          "expect": "{578437695752307201}"
+        }
+      ]
+    },
+    {
+      "name": "func4-6.3.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT toreal(x'7fffffffffffffff');",
+          "expect": "{{}}"
+        }
+      ]
+    }
+  ]
+}

@@ -25,6 +25,14 @@ type SelectStmt struct {
 	Union    *SelectStmt    // combined query (optional)
 	SetOp    SetOp          // UNION / INTERSECT / EXCEPT
 	UnionAll bool           // UNION ALL vs UNION
+	CTEs     []CTEDef       // WITH clause CTE definitions
+}
+
+// CTEDef represents a Common Table Expression definition.
+type CTEDef struct {
+	Name    string
+	Columns []string
+	Select  *SelectStmt // body of the CTE (subquery)
 }
 
 // SetOp represents the type of set operation.
@@ -67,11 +75,14 @@ type OrderByTerm struct {
 
 // InsertStmt represents an INSERT statement.
 type InsertStmt struct {
-	Table     string
-	Columns   []string
-	Values    [][]Expr    // list of value tuples; empty means DEFAULT VALUES
-	Select    *SelectStmt // for INSERT ... SELECT
-	OnConflict *OnConflictClause
+	Table        string
+	Columns      []string
+	Values       [][]Expr    // list of value tuples; empty means DEFAULT VALUES
+	Select       *SelectStmt // for INSERT ... SELECT
+	CTEs         []CTEDef    // WITH clause CTE definitions
+	OnConflict   *OnConflictClause
+	Returning    SelectColumn
+	HasReturning bool
 }
 
 func (s *InsertStmt) stmt() {}
@@ -94,9 +105,14 @@ const (
 
 // UpdateStmt represents an UPDATE statement.
 type UpdateStmt struct {
-	Table   string
-	Assignments []Assignment
-	Where   Expr
+	Table        string
+	Assignments  []Assignment
+	Where        Expr
+	OrderBy      []OrderByTerm
+	Limit        Expr
+	Offset       Expr
+	Returning    SelectColumn
+	HasReturning bool
 }
 
 func (s *UpdateStmt) stmt() {}
@@ -109,17 +125,23 @@ type Assignment struct {
 
 // DeleteStmt represents a DELETE statement.
 type DeleteStmt struct {
-	Table string
-	Where Expr
+	Table        string
+	Where        Expr
+	OrderBy      []OrderByTerm
+	Limit        Expr
+	Offset       Expr
+	Returning    SelectColumn
+	HasReturning bool
 }
 
 func (s *DeleteStmt) stmt() {}
 
 // CreateTableStmt represents a CREATE TABLE statement.
 type CreateTableStmt struct {
-	Name    string
-	Columns []ColumnDef
+	Name      string
+	Columns   []ColumnDef
 	IfNotExists bool
+	AsSelect  *SelectStmt // CREATE TABLE ... AS SELECT
 }
 
 func (s *CreateTableStmt) stmt() {}
@@ -193,6 +215,7 @@ type CreateTriggerStmt struct {
 	Table      string
 	Event      string // INSERT, UPDATE, DELETE
 	Time       string // BEFORE, AFTER, INSTEAD OF
+	When       Expr   // WHEN clause (optional)
 	Statements []Stmt
 }
 
@@ -418,3 +441,11 @@ type CastExpr struct {
 }
 
 func (e *CastExpr) expr() {}
+
+// RowValue represents a parenthesized list of expressions (row value / tuple).
+// (a, b, c) is a row value used in comparisons: (a,b) = (1,2)
+type RowValue struct {
+	Values []Expr
+}
+
+func (r *RowValue) expr() {}

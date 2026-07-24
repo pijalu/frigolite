@@ -1,0 +1,202 @@
+{
+  "file": "json102.test",
+  "name": "json102",
+  "tests": [
+    {
+      "name": "json102-100b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex','[52,3.14159]'));",
+          "expect": "{{{\"ex\":\"[52,3.14159]\"}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',json('[52,3.14159]')));",
+          "expect": "{{{\"ex\":[52,3.14159]}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',jsonb('[52,3.14159]')));",
+          "expect": "{{{\"ex\":[52,3.14159]}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',jsonb_array(52,3.14159)));",
+          "expect": "{{{\"ex\":[52,3.14159]}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-140b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(1,2,'3',4));",
+          "expect": "{{[1,2,\"3\",4]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-150b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array('[1,2]'));",
+          "expect": "{{[\"[1,2]\"]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(jsonb_array(1,2)));",
+          "expect": "{{[[1,2]]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-410b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c',4));",
+          "expect": "{{{\"a\":2,\"c\":4}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c',jsonb_object('e',5)));",
+          "expect": "{{{\"a\":2,\"c\":{\"e\":5}}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]'));",
+          "expect": "{{[0,1,3,4]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]'));",
+          "expect": "{{[0,1,3,4]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('[0,1,2,3,4]','$[2]','$[0]'));",
+          "expect": "{{[1,3,4]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]'));",
+          "expect": "{{[1,3,4]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove('[0,1,2,3,4]','$[0]','$[2]'));",
+          "expect": "{{[1,2,4]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]'));",
+          "expect": "{{[1,2,4]}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "json102-1810",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'->>'1';",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "json102-1811",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'->>1;",
+          "expect": "one"
+        }
+      ]
+    },
+    {
+      "name": "json102-1830",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '[\"zero\",\"one\",\"two\"]'->'1';",
+          "expect": "{NULL}"
+        }
+      ]
+    }
+  ]
+}

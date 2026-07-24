@@ -1,0 +1,75 @@
+{
+  "file": "fts3b.test",
+  "name": "fts3b",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE rowid = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES ('another test');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t4 WHERE rowid <> docid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE rowid = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid, * FROM t4 WHERE rowid = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid, * FROM t4 WHERE docid = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES ('another test');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 (docid, c) VALUES (10, 'yet another test');\n    SELECT * FROM t4 WHERE docid = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 (docid, c) VALUES (12, 'still testing');\n    SELECT * FROM t4 WHERE docid = 12;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE rowid = 14;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE rowid = 12;"
+        }
+      ]
+    }
+  ]
+}

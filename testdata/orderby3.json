@@ -1,0 +1,146 @@
+{
+  "file": "orderby3.test",
+  "name": "orderby3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, c INTEGER);\n  CREATE TABLE t3(d INTEGER);\n    \n  INSERT INTO t1 VALUES(1),(2),(3);\n    \n  INSERT INTO t2 VALUES(3, 1);\n  INSERT INTO t2 VALUES(4, 2);\n  INSERT INTO t2 VALUES(5, 3);\n    \n  INSERT INTO t3 VALUES(4),(3),(5);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "1.1.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t1, t2, t3\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.1.desc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t1, t2, t3\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a DESC;",
+          "expect": "{3 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "1.123.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t1 CROSS JOIN t2 CROSS JOIN t3\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.123.desc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t1 CROSS JOIN t2 CROSS JOIN t3\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a DESC;",
+          "expect": "{3 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "1.132.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t1 CROSS JOIN t3 CROSS JOIN t2\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.132.desc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t1 CROSS JOIN t3 CROSS JOIN t2\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a DESC;",
+          "expect": "{3 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "1.213.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t2 CROSS JOIN t1 CROSS JOIN t3\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.213.desc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t2 CROSS JOIN t1 CROSS JOIN t3\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a DESC;",
+          "expect": "{3 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "1.231.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t2 CROSS JOIN t3 CROSS JOIN t1\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.231.desc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t2 CROSS JOIN t3 CROSS JOIN t1\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a DESC;",
+          "expect": "{3 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "1.312.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t3 CROSS JOIN t1 CROSS JOIN t2\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "1.312.desc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t3 CROSS JOIN t1 CROSS JOIN t2\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a DESC;",
+          "expect": "{3 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "1.321.asc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a\n    FROM t3 CROSS JOIN t2 CROSS JOIN t1\n   WHERE t1.a=t2.c AND t2.b=t3.d\n   ORDER BY t1.a;",
+          "expect": "{1 2 3}"
+        }
+      ]
+    }
+  ]
+}

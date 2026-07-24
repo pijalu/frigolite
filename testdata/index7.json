@@ -1,0 +1,201 @@
+{
+  "file": "index7.test",
+  "name": "index7",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\""
+        }
+      ]
+    },
+    {
+      "name": "index7-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b,c)\n     VALUES('abcde',1,101),('abdef',2,102),('xyz',3,103),('abcz',4,104);\n  SELECT c FROM t1 WHERE a NOT LIKE 'abc%' AND a=7 ORDER BY +b;",
+          "expect": "{7}"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.7eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT b FROM t1 WHERE a NOT LIKE 'abc%' AND a=7 ORDER BY +b;",
+          "expect": "{/SEARCH t1 USING COVERING INDEX bad1 /}"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.101",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2a1;\n  UPDATE t2 SET a=b, b=b+10000;\n  SELECT b FROM t2 WHERE a=15;",
+          "expect": "{10015}"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.102",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2a2 ON t2(a) WHERE a<100 OR a>200;\n  SELECT b FROM t2 WHERE a=15;\n  PRAGMA integrity_check;",
+          "expect": "{10015 ok}"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.102eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT b FROM t2 WHERE a=15;",
+          "expect": "{~/.*INDEX t2a2.*/}"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a=15 AND a<100;",
+          "expect": "{10015}"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.103eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT b FROM t2 WHERE a=15 AND a<100;",
+          "expect": "{/.*INDEX t2a2.*/}"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a=515 AND a>200;",
+          "expect": "{10515}"
+        }
+      ]
+    },
+    {
+      "name": "index7-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b PRIMARY KEY) without rowid;\n  INSERT INTO t3 SELECT value, value FROM nums WHERE value<200;\n  UPDATE t3 SET a=999 WHERE b%5!=0;\n  CREATE UNIQUE INDEX t3a ON t3(a) WHERE a<>999;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "index7-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3 WHERE a=999;",
+          "expect": "{162}"
+        }
+      ]
+    },
+    {
+      "name": "index7-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b);\n  CREATE TABLE t4(c, d);\n  INSERT INTO t5 VALUES(1, 'xyz');\n  INSERT INTO t4 VALUES('abc', 'not xyz');\n  SELECT * FROM (SELECT * FROM t5 WHERE a=1 AND b='xyz'), t4 WHERE c='abc';",
+          "expect": "{\n  1 xyz abc {not xyz}"
+        }
+      ]
+    },
+    {
+      "name": "index7-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i4 ON t4(c) WHERE d='xyz';\n  SELECT * FROM (SELECT * FROM t5 WHERE a=1 AND b='xyz'), t4 WHERE c='abc';",
+          "expect": "{\n  1 xyz abc {not xyz}"
+        }
+      ]
+    },
+    {
+      "name": "index7-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v4 AS SELECT * FROM t4;\n  INSERT INTO t4 VALUES('def', 'xyz');\n  SELECT * FROM v4 WHERE d='xyz' AND c='def'",
+          "expect": "{\n  def xyz\n}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

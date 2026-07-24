@@ -1,0 +1,113 @@
+{
+  "file": "with5.test",
+  "name": "with5",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE link(aa INT, bb INT);\n  CREATE INDEX link_f ON link(aa,bb);\n  CREATE INDEX link_t ON link(bb,aa);\n  INSERT INTO link(aa,bb) VALUES\n    (1,3),\n    (5,3),\n    (7,1),\n    (7,9),\n    (9,9),\n    (5,11),\n    (11,7),\n    (2,4),\n    (4,6),\n    (8,6);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM closure, link WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;",
+          "expect": "{1 3 5 7 9 11}"
+        }
+      ]
+    },
+    {
+      "name": "111",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;",
+          "expect": "{1 3 5 7 9 11}"
+        }
+      ]
+    },
+    {
+      "name": "112",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;",
+          "expect": "{1 3 5 7 9 11}"
+        }
+      ]
+    },
+    {
+      "name": "113",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     INTERSECT\n     VALUES(1)\n     UNION\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;",
+          "expect": "{1 3 5 7 9 11}"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n     VALUES(1),(200),(300),(400)\n     UNION ALL\n     VALUES(2)\n     UNION ALL\n     SELECT bb FROM closure, link WHERE link.aa=closure.x\n     UNION\n     SELECT aa FROM link, closure WHERE link.bb=closure.x\n  )\n  SELECT x FROM closure ORDER BY x;",
+          "expect": "{1 {circular reference: closure}}"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n    SELECT 1 AS x\n    UNION\n    SELECT aa FROM link JOIN closure ON bb=x\n    UNION\n    SELECT bb FROM link JOIN closure on aa=x\n    ORDER BY x LIMIT 4\n  )\n  SELECT * FROM closure;",
+          "expect": "{1 3 5 7}"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE linkA(aa1,aa2);\n  INSERT INTO linkA(aa1,aa2) VALUES(1,3),(5,7),(9,11);\n  CREATE TABLE linkB(bb1,bb2);\n  INSERT INTO linkB(bb1,bb2) VALUES(7,9),(11,13),(3,5);\n  CREATE TABLE linkC(cc1,cc2);\n  INSERT INTO linkC(cc1,cc2) VALUES(1,2),(2,4),(6,8);\n  CREATE TABLE linkD(dd1,dd2);\n  INSERT INTO linkD(dd1,dd2) VALUES(4,6),(100,110);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE closure(x) AS (\n    VALUES(1)\n    UNION ALL\n    SELECT aa2 FROM linkA JOIN closure ON x=aa1\n    UNION ALL\n    SELECT bb2 FROM linkB JOIN closure ON x=bb1\n    UNION ALL\n    SELECT cc2 FROM linkC JOIN closure ON x=cc1\n    UNION ALL\n    SELECT dd2 FROM linkD JOIN closure ON x=dd1\n  )\n  SELECT x FROM closure ORDER BY +x;",
+          "expect": "{1 2 3 4 5 6 7 8 9 11 13}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tree(id INTEGER PRIMARY KEY, parent INTEGER);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(2, 3);"
+        }
+      ]
+    }
+  ]
+}

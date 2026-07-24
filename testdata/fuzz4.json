@@ -1,0 +1,16 @@
+{
+  "file": "fuzz4.test",
+  "name": "fuzz4",
+  "tests": [
+    {
+      "name": "fuzz4-600",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMPORARY TABLE Table6(\n    Col0 DEFAULT (CASE x'5d' WHEN 1 THEN\n        CASE CURRENT_TIMESTAMP WHEN 1 THEN 1 ELSE 1 END\n        ELSE CASE WHEN 1 THEN FALSE END  END )\n  );\n  INSERT INTO temp.Table6 DEFAULT VALUES ;\n  SELECT * FROM Table6;",
+          "expect": "{0}"
+        }
+      ]
+    }
+  ]
+}

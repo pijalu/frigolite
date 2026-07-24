@@ -1,0 +1,23 @@
+{
+  "file": "journal1.test",
+  "name": "journal1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(10,400));\n    INSERT INTO t1 VALUES(2,randstr(10,400));\n    INSERT INTO t1 SELECT a+2, a||b FROM t1;\n    INSERT INTO t1 SELECT a+4, a||b FROM t1;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        }
+      ]
+    }
+  ]
+}

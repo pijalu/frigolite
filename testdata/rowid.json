@@ -1,0 +1,622 @@
+{
+  "file": "rowid.test",
+  "name": "rowid",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x int, y int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT x FROM t1 ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, oid FROM t1 order by x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, RowID FROM t1 order by x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, _rowid_ FROM t1 order by x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idxt1 ON t1(rowid)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idxt1 ON t1(_rowid_)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idxt1 ON t1(oid)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idxt1 ON t1(x, rowid)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(rowid int, x int, y int);\n    INSERT INTO t2 VALUES(0,2,3);\n    INSERT INTO t2 VALUES(4,5,6);\n    INSERT INTO t2 VALUES(7,8,9);\n    SELECT * FROM t2 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x, y FROM t2 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT _rowid_, rowid FROM t2 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT _rowid_, rowid FROM t2 ORDER BY x DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT _rowid_, rowid FROM t2 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    DELETE FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT _rowid_, x*y, y*y FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1.rowid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.rowid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.oid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1._rowid_==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t2.rowid==t1.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t2.rowid==t1.oid AND t1.x==4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1._rowid_==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t2.rowid==t1.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t2.rowid==t1.oid AND t1.x==4"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idxt1 ON t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1.rowid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t1.x==4 AND t1._rowid_==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t1, t2 WHERE t2.rowid==t1.oid AND 4==t1.x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1.rowid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t1.x==4 AND t1._rowid_==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.y FROM t2, t1 WHERE t2.rowid==t1.oid AND 4==t1.x"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idxt2 ON t2(y)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.x FROM t2, t1 \n    WHERE t2.y==256 AND t1.rowid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.x FROM t2, t1 \n    WHERE t1.OID==t2.rowid AND t2.y==81"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.x FROM t1, t2\n    WHERE t2.y==256 AND t1.rowid==t2.rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE _rowid_ IN (SELECT oid FROM t1 WHERE x>8)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT oid FROM t1 WHERE x>8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    DROP TABLE t2;\n    DROP INDEX idxt1;\n    INSERT INTO t1 VALUES(1,2);\n    SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(99,100);\n    SELECT rowid,* FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2(b) VALUES(55);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(b) VALUES(66);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(a,b) VALUES(1000000,77);\n    INSERT INTO t2(b) VALUES(88);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(a,b) VALUES(2147483647,99);\n    INSERT INTO t2(b) VALUES(11);\n    SELECT b FROM t2 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(b) VALUES(22);\n      INSERT INTO t2(b) VALUES(33);\n      INSERT INTO t2(b) VALUES(44);\n      INSERT INTO t2(b) VALUES(55);\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647) \n          ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE a!=2;\n    INSERT INTO t2(b) VALUES(111);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a integer primary key);\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    CREATE TRIGGER r3 AFTER INSERT on t3 FOR EACH ROW BEGIN\n      INSERT INTO t4 VALUES(NEW.a+10);\n    END;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(123);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(NULL);\n    SELECT last_insert_rowid();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a integer primary key);\n    INSERT INTO t3 VALUES(123);\n    INSERT INTO t3 VALUES(124);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a<123.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a<124.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>123.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>122.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a==123.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a==123.000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>100.5 AND a<200.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>'xyz';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a<'xyz';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>=122.9 AND a<=123.1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 SELECT a+2 FROM t5;\n    INSERT INTO t5 SELECT a+4 FROM t5;\n    SELECT rowid, * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>=5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>=5.0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>5.0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5<=rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5<rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<=5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5>=rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5>rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>=5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>=5.0 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>5.0 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5<=rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5<rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<=5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5>=rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE 5.5>rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a);\n    INSERT INTO t6(rowid,a) SELECT -a,a FROM t5;\n    SELECT rowid, * FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>=-5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>=-5.0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>=-5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>=-5.0 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5<=rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5<=rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>-5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>-5.0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>-5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid>-5.0 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5<rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5<rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid<=-5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid<=-5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5>=rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5>=rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid<-5.5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE rowid<-5.5 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5>rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t6 WHERE -5.5>rowid ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>'abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<'abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>'abc' ORDER BY 1 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>='abc' ORDER BY 1 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<'abc' ORDER BY 1 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<='abc' ORDER BY 1 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>'abc' ORDER BY 1 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid>='abc' ORDER BY 1 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<'abc' ORDER BY 1 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t5 WHERE rowid<='abc' ORDER BY 1 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t7temp(a INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(9223372036854775807,'a');\n    SELECT y FROM t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES(NULL,'b');\n    SELECT x, y FROM t7 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES(2,'y');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES(NULL,'x');\n      SELECT count(*) FROM t7 WHERE y=='x';"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "rowid-14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t14(x INTEGER PRIMARY KEY);\n  INSERT INTO t14(x) VALUES (100);"
+        }
+      ]
+    },
+    {
+      "name": "rowid-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid ASC;",
+          "expect": "{100}"
+        }
+      ]
+    },
+    {
+      "name": "rowid-14.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t14;\n  SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid ASC;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "rowid-15.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "16.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT x FROM t1;\n  CREATE TABLE t3(z);\n\n  INSERT INTO t1(rowid, x) VALUES(1, 1);\n  INSERT INTO t2(y) VALUES(2);\n  INSERT INTO t3(rowid, z) VALUES(3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "16.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM (SELECT 123), t3;",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "16.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM (SELECT 123), t3;",
+          "expect": "{3}"
+        }
+      ]
+    }
+  ]
+}

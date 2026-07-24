@@ -1,0 +1,43 @@
+{
+  "file": "eval.test",
+  "name": "eval",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY); \n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    SELECT count(*), max(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, test_eval('SELECT max(x) FROM t1 WHERE x<' || x) FROM t1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT x, x+1 FROM t1 WHERE x<5;\n    SELECT x, test_eval('DELETE FROM t2 WHERE x='||x), y FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT x, x+1 FROM t1 WHERE x<5;\n    SELECT x, test_eval('DELETE FROM t2 WHERE x='||x), y FROM t2\n     ORDER BY rowid DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT x, x+1 FROM t1 WHERE x<5;\n    SELECT x, test_eval('UPDATE t2 SET y=y+100 WHERE x='||x), y FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_eval('SELECT ''abcdefghij''')"
+        }
+      ]
+    }
+  ]
+}

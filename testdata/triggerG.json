@@ -1,0 +1,54 @@
+{
+  "file": "triggerG.test",
+  "name": "triggerG",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = 1;\n  \n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1(a) VALUES(0),(2),(3),(8),(9);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c);\n  \n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    INSERT INTO t3 SELECT new.c+1 WHERE new.c<5;\n    INSERT INTO t2 SELECT new.c*100+a FROM t1 WHERE a IN (1, 2, 3, 4);\n  END;\n  \n  INSERT INTO t3 VALUES(2);\n  SELECT c FROM t3 ORDER BY c;;",
+          "expect": "{2 3 4 5}"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n  CREATE TRIGGER tr4 AFTER INSERT ON t4 BEGIN\n    SELECT 0x2147483648e0e0099 AS y WHERE y;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v0(a) AS SELECT 1234;\n  CREATE TRIGGER t0001 INSTEAD OF DELETE ON v0 BEGIN\n    SELECT old.a;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM v0;",
+          "expect": "{1234}"
+        }
+      ]
+    },
+    {
+      "name": "410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM v0;",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

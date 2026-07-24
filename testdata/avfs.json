@@ -1,0 +1,71 @@
+{
+  "file": "avfs.test",
+  "name": "avfs",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(a TEXT);\n    INSERT INTO t1 VALUES ('dog'),('cat');\n    SELECT group_concat(a) as pets FROM (SELECT a FROM t1 ORDER BY a);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(a) as pets FROM (SELECT a FROM t1 ORDER BY a DESC);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size=512;\n    PRAGMA cache_size=0;\n    CREATE TABLE t1(a TEXT);\n    INSERT INTO t1 VALUES ('dog'),('cat'),('pig');\n    SELECT group_concat(a) as pets FROM (SELECT a FROM t1 ORDER BY a);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(a) as pets FROM (SELECT a FROM t1 ORDER BY a DESC);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    PRAGMA cache_size=10;\n    CREATE TABLE ri (i INTEGER);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT integrity_check as ic FROM pragma_integrity_check();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) as ic FROM ri;\n    DELETE FROM ri WHERE (i % 50) <> 25;\n    SELECT integrity_check as ic FROM pragma_integrity_check();\n    VACUUM;\n    SELECT integrity_check as ic FROM pragma_integrity_check();\n    SELECT count(*) as ic FROM ri;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT integrity_check as ic FROM pragma_integrity_check();"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT integrity_check as ic FROM pragma_integrity_check();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT integrity_check as ic FROM pragma_integrity_check();"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM ri WHERE rowid % 8 <> 0;\n    SELECT integrity_check as ic FROM pragma_integrity_check();\n    VACUUM;\n    SELECT integrity_check as ic FROM pragma_integrity_check();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT integrity_check as ic FROM pragma_integrity_check();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) as n FROM sqlar"
+        }
+      ]
+    }
+  ]
+}

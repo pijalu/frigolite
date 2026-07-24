@@ -1,0 +1,16 @@
+{
+  "file": "date4.test",
+  "name": "date4",
+  "tests": [
+    {
+      "name": "date4-$i",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT strftime($::FMT,$::TS,'unixepoch');",
+          "expect": "[list [strftime $FMT $TS]]"
+        }
+      ]
+    }
+  ]
+}

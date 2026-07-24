@@ -1,0 +1,63 @@
+{
+  "file": "alterdropcol2.test",
+  "name": "alterdropcol2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(c, b, a, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3), (4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP c;",
+          "expect": "# EVIDENCE-OF: The DROP COLUMN command removes the named column from the table,"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema;",
+          "expect": "{\n  {CREATE TABLE t1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE yyy(q, w, e CHECK (e > 0), r);\n  INSERT INTO yyy VALUES(1,1,1,1), (2,2,2,2);\n\n  CREATE TABLE zzz(q, w, e, r, CHECK (e > 0));\n  INSERT INTO zzz VALUES(1,1,1,1), (2,2,2,2);"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO yyy VALUES(0,0,0,0);",
+          "expect": "{1 {CHECK constraint failed: e > 0}}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE yyy DROP e;"
+        }
+      ]
+    }
+  ]
+}

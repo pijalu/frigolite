@@ -1,0 +1,15 @@
+{
+  "file": "tkt3791.test",
+  "name": "tkt3791",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y DEFAULT(datetime('now')));\n    INSERT INTO t1(x) VALUES(1);\n    SELECT x, length(y) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

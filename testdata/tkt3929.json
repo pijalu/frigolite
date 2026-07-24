@@ -1,0 +1,19 @@
+{
+  "file": "tkt3929.test",
+  "name": "tkt3929",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE TRIGGER t1_t1 AFTER INSERT ON t1 BEGIN\n      UPDATE t1 SET b = 'value: ' || a WHERE t1.rowid = new.rowid;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(1);\n    INSERT INTO t1(a) VALUES(2);\n    SELECT * FROM t1;"
+        }
+      ]
+    }
+  ]
+}

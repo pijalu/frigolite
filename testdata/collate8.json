@@ -1,0 +1,103 @@
+{
+  "file": "collate8.test",
+  "name": "collate8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT COLLATE nocase);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('BBB');\n    INSERT INTO t1 VALUES('ccc');\n    INSERT INTO t1 VALUES('DDD');\n    SELECT a FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE a<'ccc' ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE a<'ccc' COLLATE binary ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE +a<'ccc' ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY +a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t1 ORDER BY \"x\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t1 WHERE x<'ccc' ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t1 WHERE x<'ccc' COLLATE binary ORDER BY [x]"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t1 WHERE +x<'ccc' ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t1 ORDER BY +x"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('abc');\n    INSERT INTO t2 VALUES('ABC');\n    SELECT a AS x FROM t2 WHERE x='abc';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t2 WHERE x='abc' COLLATE nocase;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a AS x FROM t2 WHERE (x COLLATE nocase)='abc';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a COLLATE nocase AS x FROM t2 WHERE x='abc';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a COLLATE nocase AS x FROM t2 WHERE (x COLLATE binary)='abc';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a COLLATE nocase AS x FROM t2 WHERE x='abc' COLLATE binary;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE (a COLLATE nocase)='abc' COLLATE binary;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a COLLATE nocase AS x FROM t2 WHERE 'abc'=x COLLATE binary;"
+        }
+      ]
+    },
+    {
+      "name": "collate8-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc'==('ABC'||'') COLLATE nocase;\n  SELECT 'abc'==('ABC'||'' COLLATE nocase);\n  SELECT 'abc'==('ABC'||('' COLLATE nocase));\n  SELECT 'abc'==('ABC'||upper('' COLLATE nocase));",
+          "expect": "{1 1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "collate8-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc'==('ABC'||CASE WHEN 1-1=2 THEN '' COLLATE nocase\n                                        ELSE '' COLLATE binary END);\n  SELECT 'abc'==('ABC'||CASE WHEN 1+1=2 THEN '' COLLATE nocase\n                                        ELSE '' COLLATE binary END);",
+          "expect": "{1 1}"
+        }
+      ]
+    }
+  ]
+}

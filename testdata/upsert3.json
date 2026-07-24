@@ -1,0 +1,16 @@
+{
+  "file": "upsert3.test",
+  "name": "upsert3",
+  "tests": [
+    {
+      "name": "upsert3-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);",
+          "expect": "{}"
+        }
+      ]
+    }
+  ]
+}

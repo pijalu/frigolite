@@ -1,0 +1,79 @@
+{
+  "file": "bigfile.test",
+  "name": "bigfile",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyz');\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t3;"
+        }
+      ]
+    }
+  ]
+}

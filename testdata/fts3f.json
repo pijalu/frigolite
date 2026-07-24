@@ -1,0 +1,15 @@
+{
+  "file": "fts3f.test",
+  "name": "fts3f",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "file": "shell5.test",
+  "name": "shell5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *, '|' FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT hex(c) FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b, c FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, '|' FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "file": "orderby8.test",
+  "name": "orderby8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT $::result_set FROM t1 ORDER BY x LIMIT -1"
+        }
+      ]
+    }
+  ]
+}

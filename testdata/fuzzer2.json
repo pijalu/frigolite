@@ -1,0 +1,20 @@
+{
+  "file": "fuzzer2.test",
+  "name": "fuzzer2",
+  "tests": [
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);",
+          "expect": "puts \"This test is slow - perhaps around 7 seconds on an average pc\""
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE x1_rules SET cost = 20 WHERE cost<20 AND cFrom!='xx'"
+        }
+      ]
+    }
+  ]
+}

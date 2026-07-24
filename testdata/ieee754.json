@@ -1,0 +1,19 @@
+{
+  "file": "ieee754.test",
+  "name": "ieee754",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT ieee754(1,1024), ieee754(4503599627370495,972);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ieee754(-1,1024), ieee754(-4503599627370495,972);"
+        }
+      ]
+    }
+  ]
+}

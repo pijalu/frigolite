@@ -1,0 +1,55 @@
+{
+  "file": "vtab2.test",
+  "name": "vtab2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT length(tablename) FROM schema GROUP by tablename;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tablename FROM schema GROUP by length(tablename);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(tablename) FROM schema GROUP by length(tablename);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, arrayname, value FROM vars WHERE name='A';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM schema WHERE dflt_value IS NULL LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, b.rowid\n      FROM schema a LEFT JOIN schema b ON a.dflt_value=b.dflt_value\n     WHERE a.rowid=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT *, b.rowid\n      FROM schema a LEFT JOIN schema b ON a.dflt_value IS b.dflt_value\n                                      AND a.dflt_value IS NOT NULL\n     WHERE a.rowid=1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE fkey(\n      to_tbl,\n      to_col\n    );\n    INSERT INTO \"fkey\" VALUES('t1',NULL);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM v_col WHERE tablename = 't1' AND pk"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE fkey \n    SET to_col = (SELECT name FROM v_col WHERE tablename = 't1' AND pk);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM fkey"
+        }
+      ]
+    }
+  ]
+}

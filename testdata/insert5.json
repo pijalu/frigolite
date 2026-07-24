@@ -1,0 +1,23 @@
+{
+  "file": "insert5.test",
+  "name": "insert5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE MAIN(Id INTEGER, Id1 INTEGER); \n    CREATE TABLE B(Id INTEGER, Id1 INTEGER); \n    CREATE VIEW v1 AS SELECT * FROM B;\n    CREATE VIEW v2 AS SELECT * FROM MAIN;\n    INSERT INTO MAIN(Id,Id1) VALUES(2,3); \n    INSERT INTO B(Id,Id1) VALUES(2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO B \n        SELECT * FROM B UNION ALL \n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO B SELECT * FROM B;\n      INSERT INTO B\n        SELECT * FROM MAIN WHERE exists (select * FROM B WHERE B.Id = MAIN.Id);\n      SELECT * FROM B;"
+        }
+      ]
+    }
+  ]
+}

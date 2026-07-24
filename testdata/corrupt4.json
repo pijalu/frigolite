@@ -1,0 +1,33 @@
+{
+  "file": "corrupt4.test",
+  "name": "corrupt4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA freelist_count"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512;\n  CREATE TABLE t1(a, b, c);",
+          "expect": "# Create a database with a schema so large that the root of the"
+        }
+      ]
+    }
+  ]
+}

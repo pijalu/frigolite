@@ -1,0 +1,176 @@
+{
+  "file": "spellfix4.test",
+  "name": "spellfix4",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cost1(iLang, cFrom, cTo, iCost);\n  INSERT INTO cost1 VALUES\n    (0, '', '?',  97),\n    (0, '?', '',  98),\n    (0, '?', '?', 99),\n    (0, 'm', 'n', 50),\n    (0, 'n', 'm', 50)\n  ;\n  SELECT editdist3('cost1');\n  SELECT editdist3('anchor','amchor');",
+          "expect": "{{} 50}"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','anchoxr');",
+          "expect": "{97}"
+        }
+      ]
+    },
+    {
+      "name": "111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','xanchor');",
+          "expect": "{97}"
+        }
+      ]
+    },
+    {
+      "name": "112",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','anchorx');",
+          "expect": "{97}"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','anchr');",
+          "expect": "{98}"
+        }
+      ]
+    },
+    {
+      "name": "121",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','ancho');",
+          "expect": "{98}"
+        }
+      ]
+    },
+    {
+      "name": "122",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','nchor');",
+          "expect": "{98}"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','anchur');",
+          "expect": "{99}"
+        }
+      ]
+    },
+    {
+      "name": "131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','onchor');",
+          "expect": "{99}"
+        }
+      ]
+    },
+    {
+      "name": "132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('anchor','anchot');",
+          "expect": "{99}"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cost1 VALUES\n    (0, 'a', '\u00e4', 5),\n    (0, 'ss', '\u00df', 8)\n  ;\n  SELECT editdist3('cost1');\n  SELECT editdist3('strasse','stra\u00dfe');\n  SELECT editdist3('stra\u00dfe','strasse');",
+          "expect": "{{} 8 196}"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('baume','b\u00e4ume');",
+          "expect": "{5}"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('baum','b\u00e4ume');",
+          "expect": "{102}"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cost1;\n  INSERT INTO cost1 VALUES\n    (0, '', '?',  97),\n    (0, '?', '',  98),\n    (0, '?', '?', 99),\n    (0, 'a', 'e', 50),\n    (0, 'a', 'i', 70),\n    (0, 'a', 'o', 75),\n    (0, 'a', 'u', 81),\n    (0, 'e', 'a', 50),\n    (0, 'e', 'i', 52),\n    (0, 'e', 'o', 72),\n    (0, 'e', 'u', 82),\n    (0, 'i', 'a', 70),\n    (0, 'i', 'e', 52),\n    (0, 'i', 'o', 75),\n    (0, 'i', 'u', 83),\n    (0, 'o', 'a', 75),\n    (0, 'o', 'e', 72),\n    (0, 'o', 'i', 75),\n    (0, 'o', 'u', 40),\n    (0, 'u', 'a', 81),\n    (0, 'u', 'e', 82),\n    (0, 'u', 'i', 83),\n    (0, 'u', 'o', 40),\n    (0, 'm', 'n', 45),\n    (0, 'n', 'm', 45)\n  ;\n  CREATE TABLE words(x TEXT);\n  INSERT INTO words VALUES\n   ('abraham'),\n   ('action'),\n   ('africa'),\n   ('aladdin'),\n   ('alert'),\n   ('alien'),\n   ('amazon'),\n   ('analog'),\n   ('animal'),\n   ('apollo'),\n   ('archive'),\n   ('arnold'),\n   ('aspirin'),\n   ('august'),\n   ('average'),\n   ('bahama'),\n   ('bambino'),\n   ('barcode'),\n   ('bazooka'),\n   ('belgium'),\n   ('between'),\n   ('biology'),\n   ('blonde'),\n   ('border'),\n   ('brave'),\n   ('british'),\n   ('bucket'),\n   ('button'),\n   ('caesar'),\n   ('camilla'),\n   ('cannon'),\n   ('caramel'),\n   ('carpet'),\n   ('catalog'),\n   ('century'),\n   ('chaos'),\n   ('chef'),\n   ('china'),\n   ('circus'),\n   ('classic'),\n   ('clinic'),\n   ('coconut'),\n   ('combine'),\n   ('complex'),\n   ('congo'),\n   ('convert'),\n   ('cosmos'),\n   ('crack'),\n   ('crown'),\n   ('cyclone'),\n   ('deal'),\n   ('delete'),\n   ('denver'),\n   ('detail'),\n   ('diana'),\n   ('direct'),\n   ('dolby'),\n   ('double'),\n   ('dublin'),\n   ('echo'),\n   ('edition'),\n   ('electra'),\n   ('emotion'),\n   ('enjoy'),\n   ('escape'),\n   ('everest'),\n   ('exile'),\n   ('express'),\n   ('family'),\n   ('ferrari'),\n   ('filter'),\n   ('fish'),\n   ('florida'),\n   ('ford'),\n   ('forum'),\n   ('frank'),\n   ('frozen'),\n   ('gallery'),\n   ('garlic'),\n   ('geneva'),\n   ('gibson'),\n   ('gloria'),\n   ('gordon'),\n   ('gravity'),\n   ('ground'),\n   ('habitat'),\n   ('harlem'),\n   ('hazard'),\n   ('herbert'),\n   ('hobby'),\n   ('house'),\n   ('icon'),\n   ('immune'),\n   ('india'),\n   ('inside'),\n   ('isotope'),\n   ('jamaica'),\n   ('jazz'),\n   ('joker'),\n   ('juliet'),\n   ('jupiter'),\n   ('kevin'),\n   ('korea'),\n   ('latin'),\n   ('legal'),\n   ('lexicon'),\n   ('limbo'),\n   ('lithium'),\n   ('logo'),\n   ('lucas'),\n   ('madrid'),\n   ('major'),\n   ('manual'),\n   ('mars'),\n   ('maximum'),\n   ('medical'),\n   ('mental'),\n   ('meter'),\n   ('miguel'),\n   ('mimosa'),\n   ('miranda'),\n   ('modern'),\n   ('money'),\n   ('morgan'),\n   ('motor'),\n   ('mystic'),\n   ('nebula'),\n   ('network'),\n   ('nice'),\n   ('nitro'),\n   ('norway'),\n   ('nurse'),\n   ('octavia'),\n   ('olympic'),\n   ('opus'),\n   ('orient'),\n   ('othello'),\n   ('pacific'),\n   ('panama'),\n   ('paper'),\n   ('parking'),\n   ('pasta'),\n   ('paul'),\n   ('people'),\n   ('permit'),\n   ('phrase'),\n   ('pilgrim'),\n   ('planet'),\n   ('pocket'),\n   ('police'),\n   ('popular'),\n   ('prefer'),\n   ('presto'),\n   ('private'),\n   ('project'),\n   ('proxy'),\n   ('python'),\n   ('quota'),\n   ('rainbow'),\n   ('raymond'),\n   ('region'),\n   ('report'),\n   ('reward'),\n   ('risk'),\n   ('robot'),\n   ('rose'),\n   ('russian'),\n   ('sailor'),\n   ('salt'),\n   ('saturn'),\n   ('scorpio'),\n   ('second'),\n   ('seminar'),\n   ('shadow'),\n   ('shave'),\n   ('shock'),\n   ('silence'),\n   ('sinatra'),\n   ('sleep'),\n   ('social'),\n   ('sonata'),\n   ('spain'),\n   ('sphere'),\n   ('spray'),\n   ('state'),\n   ('stone'),\n   ('strong'),\n   ('sugar'),\n   ('supreme'),\n   ('swing'),\n   ('talent'),\n   ('telecom'),\n   ('thermos'),\n   ('tina'),\n   ('tommy'),\n   ('torso'),\n   ('trade'),\n   ('trick'),\n   ('tropic'),\n   ('turtle'),\n   ('uniform'),\n   ('user'),\n   ('vega'),\n   ('vertigo'),\n   ('village'),\n   ('visible'),\n   ('vocal'),\n   ('voyage'),\n   ('weekend'),\n   ('winter'),\n   ('year'),\n   ('zipper')\n  ;\n  SELECT editdist3('cost1');",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3(a.x,b.x), a.x, b.x\n    FROM words a, words b\n   WHERE a.x<b.x\n   ORDER BY 1, 2\n   LIMIT 20",
+          "expect": "{139 bucket pocket 144 meter motor 149 manual mental 169 crack trick 173 sinatra sonata 174 edition emotion 174 major motor 174 risk rose 174 state stone 194 deal detail 196 alert talent 196 analog catalog 196 deal legal 196 ford forum 196 risk trick 196 stone strong 197 china tina 197 congo logo 197 diana tina 197 florida gloria}"
+        }
+      ]
+    },
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3(format('%.10001c','x'),'abc');",
+          "expect": "{1 {string or blob too big}}"
+        }
+      ]
+    },
+    {
+      "name": "401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT editdist3('xxxabc',format('%.10001c','x'));",
+          "expect": "{1 {string or blob too big}}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "file": "trigger4.test",
+  "name": "trigger4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table test1(id integer primary key,a);\n    create table test2(id integer,b);\n    create view test as\n      select test1.id as id,a as a,b as b\n      from test1 join test2 on test2.id =  test1.id;\n    create trigger I_test instead of insert on test\n      begin\n        insert into test1 (id,a) values (NEW.id,NEW.a);\n        insert into test2 (id,b) values (NEW.id,NEW.b);\n      end;\n    insert into test values(1,2,3);\n    select * from test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from test2;"
+        },
+        {
+          "type": "exec",
+          "sql": "insert into test values(4,5,6);\n    select * from test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from test2;"
+        },
+        {
+          "type": "exec",
+          "sql": "create trigger U_test instead of update on test\n      begin\n        update test1 set a=NEW.a where id=NEW.id;\n        update test2 set b=NEW.b where id=NEW.id;\n      end;\n    update test set a=22 where id=1;\n    select * from test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from test2;"
+        },
+        {
+          "type": "exec",
+          "sql": "update test set b=66 where id=4;\n    select * from test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from test2;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table test2(id,b);\n    insert into test values(7,8,9);\n    select * from test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from test2;"
+        },
+        {
+          "type": "exec",
+          "sql": "update test set b=99 where id=7;\n    select * from test2;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table tbl(a integer primary key, b integer);\n\tcreate view vw as select * from tbl;\n\tcreate trigger t_del_tbl instead of delete on vw for each row begin\n\t  delete from tbl where a = old.a;\n\tend;\n\tcreate trigger t_upd_tbl instead of update on vw for each row begin\n\t  update tbl set a=new.a, b=new.b where a = old.a;\n\tend;\n\tcreate trigger t_ins_tbl instead of insert on vw for each row begin\n\t  insert into tbl values (new.a,new.b);\n\tend;\n\tinsert into tbl values(101,1001);\n\tinsert into tbl values(102,1002);\n\tinsert into tbl select a+2, b+2 from tbl;\n\tinsert into tbl select a+4, b+4 from tbl;\n\tinsert into tbl select a+8, b+8 from tbl;\n\tinsert into tbl select a+16, b+16 from tbl;\n\tinsert into tbl select a+32, b+32 from tbl;\n\tinsert into tbl select a+64, b+64 from tbl;\n\tselect count(*) from vw;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a, b from vw where a<103 or a>226 order by a"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from vw"
+        },
+        {
+          "type": "exec",
+          "sql": "select count(*) from vw"
+        },
+        {
+          "type": "exec",
+          "sql": "select a, b from vw where a<=102 or a>=227 order by a"
+        }
+      ]
+    }
+  ]
+}

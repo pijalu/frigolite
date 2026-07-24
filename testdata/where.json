@@ -1,0 +1,431 @@
+{
+  "file": "where.test",
+  "name": "where",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT 101-w, x, (SELECT max(y) FROM t1)+1-y, y FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select max(y) from t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1w ON t1(\"w\");  -- Verify quoted identifier names\n    CREATE INDEX i1xy ON t1(`x`,'y' ASC); -- Old MySQL compatibility\n    CREATE INDEX i2p ON t2(p);\n    CREATE INDEX i2r ON t2(r);\n    CREATE INDEX i2qs ON t2(q, s);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, w FROM t1 WHERE +w=10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 0.1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 99 WHERE 0.0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE t1.w"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x DESC, y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w, x, y FROM t1 WHERE x IN (1,5) AND y IN (9,8,3025,1000,3969)\n       ORDER BY x, y DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x<10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 WHERE x<10 ORDER BY x DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 WHERE x=10;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 WHERE abs(random())<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE tclvar('v1');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t99(Dte INT, X INT);\n   DELETE FROM t99 WHERE (Dte = 2451337) OR (Dte = 2451339) OR\n     (Dte BETWEEN 2451345 AND 2451347) OR (Dte = 2451351) OR \n     (Dte BETWEEN 2451355 AND 2451356) OR (Dte = 2451358) OR\n     (Dte = 2451362) OR (Dte = 2451365) OR (Dte = 2451367) OR\n     (Dte BETWEEN 2451372 AND 2451376) OR (Dte BETWEEN 2451382 AND 2451384) OR\n     (Dte = 2451387) OR (Dte BETWEEN 2451389 AND 2451391) OR \n     (Dte BETWEEN 2451393 AND 2451395) OR (Dte = 2451400) OR \n     (Dte = 2451402) OR (Dte = 2451404) OR (Dte BETWEEN 2451416 AND 2451418) OR \n     (Dte = 2451422) OR (Dte = 2451426) OR (Dte BETWEEN 2451445 AND 2451446) OR\n     (Dte = 2451456) OR (Dte = 2451458) OR (Dte BETWEEN 2451465 AND 2451467) OR\n     (Dte BETWEEN 2451469 AND 2451471) OR (Dte = 2451474) OR\n     (Dte BETWEEN 2451477 AND 2451501) OR (Dte BETWEEN 2451503 AND 2451509) OR\n     (Dte BETWEEN 2451511 AND 2451514) OR (Dte BETWEEN 2451518 AND 2451521) OR\n     (Dte BETWEEN 2451523 AND 2451531) OR (Dte BETWEEN 2451533 AND 2451537) OR\n     (Dte BETWEEN 2451539 AND 2451544) OR (Dte BETWEEN 2451546 AND 2451551) OR\n     (Dte BETWEEN 2451553 AND 2451555) OR (Dte = 2451557) OR\n     (Dte BETWEEN 2451559 AND 2451561) OR (Dte = 2451563) OR\n     (Dte BETWEEN 2451565 AND 2451566) OR (Dte BETWEEN 2451569 AND 2451571) OR \n     (Dte = 2451573) OR (Dte = 2451575) OR (Dte = 2451577) OR (Dte = 2451581) OR\n     (Dte BETWEEN 2451583 AND 2451586) OR (Dte BETWEEN 2451588 AND 2451592) OR \n     (Dte BETWEEN 2451596 AND 2451598) OR (Dte = 2451600) OR\n     (Dte BETWEEN 2451602 AND 2451603) OR (Dte = 2451606) OR (Dte = 2451611);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a1(id INTEGER PRIMARY KEY, v);\n    CREATE TABLE a2(id INTEGER PRIMARY KEY, v);\n    INSERT INTO a1 VALUES(1, 'one');\n    INSERT INTO a1 VALUES(2, 'two');\n    INSERT INTO a2 VALUES(1, 'one');\n    INSERT INTO a2 VALUES(2, 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM a2 CROSS JOIN a1 WHERE a1.id=1 AND a1.v='one';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE foo(idx INTEGER);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(1);\n    INSERT INTO foo VALUES(2);\n    INSERT INTO foo VALUES(2);\n    CREATE TEMP TABLE bar(stuff INTEGER);\n    INSERT INTO bar VALUES(100);\n    INSERT INTO bar VALUES(200);\n    INSERT INTO bar VALUES(300);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT bar.RowID id FROM foo, bar WHERE foo.idx = bar.RowID AND id = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbooking (\n      id INTEGER PRIMARY KEY,\n      eventtype INTEGER NOT NULL\n    );\n    INSERT INTO tbooking VALUES(42, 3);\n    INSERT INTO tbooking VALUES(43, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.id\n    FROM tbooking AS a\n    WHERE a.eventtype=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM tbooking AS a\n    WHERE a.eventtype=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.id, (SELECT b.id FROM tbooking AS b WHERE b.id>a.id)\n    FROM (SELECT 1.5 AS id) AS a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tother(a, b);\n    INSERT INTO tother VALUES(1, 3.7);\n    SELECT id, a FROM tbooking, tother WHERE id>a;"
+        }
+      ]
+    },
+    {
+      "name": "where-18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t181(a);\n  CREATE TABLE t182(b,c);\n  INSERT INTO t181 VALUES(1);\n  SELECT DISTINCT a FROM t181 LEFT JOIN t182 ON a=b ORDER BY c IS NULL;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.1rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t182 RIGHT JOIN t181 ON a=b ORDER BY c IS NULL;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t181 LEFT JOIN t182 ON a=b ORDER BY +c;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t181 LEFT JOIN t182 ON a=b ORDER BY c;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.3rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t182 RIGHT JOIN t181 ON a=b ORDER BY c;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t181 VALUES(1),(1),(1),(1);\n  SELECT DISTINCT a FROM t181 LEFT JOIN t182 ON a=b ORDER BY +c;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.4rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t182 RIGHT JOIN t181 ON a=b ORDER BY +c;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-18.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t181 VALUES(2);\n  SELECT DISTINCT a FROM t181 LEFT JOIN t182 ON a=b ORDER BY c IS NULL, +a;",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "where-21.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t12(a, b, c);\n  CREATE TABLE t13(x);\n  CREATE INDEX t12ab ON t12(b, a);\n  CREATE INDEX t12ac ON t12(c, a);\n\n  INSERT INTO t12 VALUES(4, 0, 1);\n  INSERT INTO t12 VALUES(4, 1, 0);\n  INSERT INTO t12 VALUES(5, 0, 1);\n  INSERT INTO t12 VALUES(5, 1, 0);\n\n  INSERT INTO t13 VALUES(1), (2), (3), (4);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "where-24.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "where-25.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';",
+          "expect": "db close"
+        }
+      ]
+    },
+    {
+      "name": "where-25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE c='iii'",
+          "expect": "{1 {database disk image is malformed}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "where-25.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';",
+          "expect": "db close"
+        }
+      ]
+    },
+    {
+      "name": "where-25.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE c='iii'",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;",
+          "expect": "{1 a}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE '-1' BETWEEN 0 AND t1.c0;",
+          "expect": "{1 a}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE '-1'>=0 AND '-1'<=t0.c0;",
+          "expect": "{1 a}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE '-1'>=0 AND '-1'<=t1.c0;",
+          "expect": "{1 a}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '-1' BETWEEN 0 AND t0.c0 FROM t0;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '-1' BETWEEN 0 AND t1.c0 FROM t1;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-26.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '-1'>=0 AND '-1'<=t0.c0 FROM t0;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "where-27.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a>=9223372036854775807+1 FROM t1;",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "where-29.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT 'xyz' FROM pragma_cache_size\n      WHERE rowid OR abs(0)\n      ORDER BY\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\n      1, 1, 1, 1;",
+          "expect": "{xyz}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;"
+        }
+      ]
+    }
+  ]
+}

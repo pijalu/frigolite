@@ -1,0 +1,62 @@
+{
+  "file": "rowvalue2.test",
+  "name": "rowvalue2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);",
+          "expect": "do_execsql_test 1.1.1 { SELECT c FROM t1 WHERE (a, b) >= (1, 0) } {2 3}"
+        }
+      ]
+    },
+    {
+      "name": "2.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER, b INTEGER, c INTEGER, d INTEGER);\n  CREATE INDEX i2 ON t2(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a>2 OR (a=2 AND b>=2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>=2))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE +a=1 AND (b>1 OR (b==1 AND c>2))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c, w);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b, c);\n  INSERT INTO t4 VALUES(NULL, NULL, NULL);\n  INSERT INTO t4 VALUES(NULL, NULL, 0);\n  INSERT INTO t4 VALUES(NULL, NULL, 1);\n  INSERT INTO t4 VALUES(NULL,    0, NULL);\n  INSERT INTO t4 VALUES(NULL,    0, 0);\n  INSERT INTO t4 VALUES(NULL,    0, 1);\n  INSERT INTO t4 VALUES(NULL,    1, NULL);\n  INSERT INTO t4 VALUES(NULL,    1, 0);\n  INSERT INTO t4 VALUES(NULL,    1, 1);\n\n  INSERT INTO t4 VALUES(   0, NULL, NULL);\n  INSERT INTO t4 VALUES(   0, NULL, 0);\n  INSERT INTO t4 VALUES(   0, NULL, 1);\n  INSERT INTO t4 VALUES(   0,    0, NULL);\n  INSERT INTO t4 VALUES(   0,    0, 0);\n  INSERT INTO t4 VALUES(   0,    0, 1);\n  INSERT INTO t4 VALUES(   0,    1, NULL);\n  INSERT INTO t4 VALUES(   0,    1, 0);\n  INSERT INTO t4 VALUES(   0,    1, 1);\n\n  INSERT INTO t4 VALUES(   1, NULL, NULL);\n  INSERT INTO t4 VALUES(   1, NULL, 0);\n  INSERT INTO t4 VALUES(   1, NULL, 1);\n  INSERT INTO t4 VALUES(   1,    0, NULL);\n  INSERT INTO t4 VALUES(   1,    0, 0);\n  INSERT INTO t4 VALUES(   1,    0, 1);\n  INSERT INTO t4 VALUES(   1,    1, NULL);\n  INSERT INTO t4 VALUES(   1,    1, 0);\n  INSERT INTO t4 VALUES(   1,    1, 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i4"
+        }
+      ]
+    }
+  ]
+}

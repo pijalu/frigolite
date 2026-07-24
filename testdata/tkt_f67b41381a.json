@@ -1,0 +1,19 @@
+{
+  "file": "tkt-f67b41381a.test",
+  "name": "tkt_f67b41381a",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1; DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN INSERT INTO t1 SELECT * FROM t2"
+        }
+      ]
+    }
+  ]
+}

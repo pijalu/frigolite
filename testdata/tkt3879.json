@@ -1,0 +1,23 @@
+{
+  "file": "tkt3879.test",
+  "name": "tkt3879",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES ('w',  1);\n    INSERT INTO t1 VALUES ('z', -1);\n  \n    CREATE TABLE t2 (m INTEGER PRIMARY KEY, n, a, p);\n    INSERT INTO t2 VALUES (25, 13, 'w', 1);\n    INSERT INTO t2 VALUES (26, 25, 'z', 153);\n    INSERT INTO t2 VALUES (27, 25, 'z', 68);\n\n    CREATE TABLE t3 (m);\n    INSERT INTO t3 VALUES (25);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 111, t1.b*123\n    FROM t3, t2 AS j0, t2 AS j1, t1\n    WHERE j0.m=t3.m AND t1.a=j0.a AND j1.n=j0.m;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 222, t1.b*123\n    FROM t3, t2 AS j0, t2 AS j1, t1\n    WHERE j0.m=t3.m AND t1.a=j0.a AND j1.n=j0.m\n    ORDER BY t1.b;"
+        }
+      ]
+    }
+  ]
+}

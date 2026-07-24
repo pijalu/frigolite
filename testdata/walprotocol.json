@@ -1,0 +1,43 @@
+{
+  "file": "walprotocol.test",
+  "name": "walprotocol",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO b VALUES('Qazvin')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO b VALUES('Gilan');\n    INSERT INTO b VALUES('Ardabil');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "file": "analyzeG.test",
+  "name": "analyzeG",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, x);\n  CREATE TABLE t2(b, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT (i%50), NULL FROM s;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t2 SELECT (CASE WHEN i<95 THEN 44 ELSE i END), NULL FROM s;",
+          "expect": "# Join tables t1 and t2. Both contain 100 rows. (a=44) matches 2 rows"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2b ON t2(b);\n  ANALYZE;",
+          "expect": "# Now, with the ANALYZE data, the planner knows that (b=44) matches a"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,513 @@
+{
+  "file": "limit.test",
+  "name": "limit",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x int, y int);\n  BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 LIMIT  5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x+1 LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 AS a, t1 AS b ORDER BY a.x, b.x LIMIT 5 OFFSET 32"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM t1 LIMIT 2;\n      SELECT count(*) FROM (SELECT * FROM v1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 2;\n    SELECT count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE rowid IN (SELECT rowid FROM t1 LIMIT 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM (SELECT y*10+x AS z FROM t1 ORDER BY x LIMIT 10)\n      ORDER BY z LIMIT 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      END;\n      SELECT count(*) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "END;\n      SELECT count(*) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 LIMIT 2 OFFSET 10000"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT x,\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x AS y\n    FROM t3 LIMIT 1000;\n    SELECT x FROM t4 ORDER BY y DESC LIMIT 1 OFFSET 999;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x,y);\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x DESC LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x ORDER BY x DESC LIMIT 31;\n    SELECT * FROM t5 ORDER BY x LIMIT 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t5 ORDER BY x DESC, y DESC LIMIT 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t5;\n    INSERT INTO t5 SELECT a.x*100+b.x, a.y*100+b.y FROM t1 AS a, t1 AS b\n                   ORDER BY 1, 2 LIMIT 1000;\n    SELECT count(*), sum(x), sum(y), min(x), max(x), min(y), max(y) FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t6(a);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 SELECT a+2 FROM t6;\n    COMMIT;\n    SELECT * FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT -1 OFFSET -1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT 2 OFFSET -123;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT -432 OFFSET 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT -1 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6 LIMIT 0 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT 3 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 UNION ALL SELECT a FROM t6 ORDER BY 1 LIMIT 3 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 UNION SELECT x+2 FROM t2 LIMIT 2 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 UNION SELECT x+2 FROM t2 ORDER BY 1 DESC LIMIT 2 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 LIMIT 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+9 FROM t6 EXCEPT SELECT y FROM t2 ORDER BY 1 DESC LIMIT 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+26 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 LIMIT 1 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a+27 FROM t6 INTERSECT SELECT x FROM t2 \n       ORDER BY 1 DESC LIMIT 1 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT cast(round(x/100) as integer) FROM t3 LIMIT 5 OFFSET 25;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t6 LIMIT 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7 AS SELECT * FROM t6;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t7 LIMIT 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM t6 LIMIT 3)\n        UNION\n        SELECT * FROM (SELECT * FROM t7 LIMIT 3)\n        ORDER BY 1\n        LIMIT 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 LIMIT :limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 LIMIT :limit OFFSET :offset;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x<10 LIMIT :limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x<10 LIMIT :limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x<10 LIMIT :limit;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 ORDER BY x LIMIT 0) ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t13(x);\n    INSERT INTO t13 VALUES(1),(2);\n    CREATE VIEW v13a AS SELECT x AS y FROM t13;\n    CREATE VIEW v13b AS SELECT y AS z FROM v13a UNION ALL SELECT y+10 FROM v13a;\n    CREATE VIEW v13c AS SELECT z FROM v13b UNION ALL SELECT z+20 FROM v13b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 7"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 9"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 4 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 5 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 6 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 7 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 8 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 4 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 6 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 7 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 4 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 5 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 6 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3 OFFSET 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 4 OFFSET 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 5 OFFSET 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 4 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 3 OFFSET 6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 7"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 2 OFFSET 7"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT z FROM v13c LIMIT 1 OFFSET 8"
+        }
+      ]
+    },
+    {
+      "name": "limit-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 LIMIT 1 OFFSET 0",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "limit-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 LIMIT 1 OFFSET 1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "limit-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 LIMIT 0 OFFSET 0",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "limit-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 LIMIT 0 OFFSET 1",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "limit-14.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 LIMIT -1 OFFSET 0",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

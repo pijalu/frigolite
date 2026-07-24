@@ -1,0 +1,39 @@
+{
+  "file": "tkt-78e04e52ea.test",
+  "name": "tkt_78e04e52ea",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"\"(\"\" UNIQUE, x CHAR(100));\n    CREATE TABLE t2(x);\n    INSERT INTO \"\"(\"\") VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT * FROM \"\", t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(\"\");"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON \"\"(\"\" COLLATE nocase);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN SELECT \"\" FROM \"\" WHERE \"\" LIKE '1e5%';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"\";\n    SELECT name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX \"\" ON t2(x);\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX \"\";\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=2;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "file": "tkt-f973c7ac31.test",
+  "name": "tkt_f973c7ac31",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(c1 INTEGER, c2 INTEGER);\n    INSERT INTO t VALUES(5, 5);\n    INSERT INTO t VALUES(5, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "file": "func8.test",
+  "name": "func8",
+  "tests": [
+    {
+      "name": "func8-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cross(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE full(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE inner(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE left(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE natural(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE outer(cross,full,inner,left,natural,outer,right);\n  CREATE TABLE right(cross,full,inner,left,natural,outer,right);\n  INSERT INTO cross VALUES(1,2,3,4,5,6,7);\n  INSERT INTO full VALUES(1,2,3,4,5,6,7);\n  INSERT INTO inner VALUES(1,2,3,4,5,6,7);\n  INSERT INTO left VALUES(1,2,3,4,5,6,7);\n  INSERT INTO natural VALUES(1,2,3,4,5,6,7);\n  INSERT INTO outer VALUES(1,2,3,4,5,6,7);\n  INSERT INTO right VALUES(1,2,3,4,5,6,7);"
+        }
+      ]
+    },
+    {
+      "name": "func8-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cross(cross,full,inner,left,natural,outer,right) FROM cross;",
+          "expect": "cross-1-2-3-4-5-6-7"
+        }
+      ]
+    },
+    {
+      "name": "func8-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT full(cross,full,inner,left,natural,outer,right) FROM full;",
+          "expect": "full-1-2-3-4-5-6-7"
+        }
+      ]
+    },
+    {
+      "name": "func8-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT inner(cross,full,inner,left,natural,outer,right) FROM inner;",
+          "expect": "inner-1-2-3-4-5-6-7"
+        }
+      ]
+    },
+    {
+      "name": "func8-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT left(cross,full,inner,left,natural,outer,right) FROM left;",
+          "expect": "left-1-2-3-4-5-6-7"
+        }
+      ]
+    },
+    {
+      "name": "func8-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT natural(cross,full,inner,left,natural,outer,right) FROM natural;",
+          "expect": "natural-1-2-3-4-5-6-7"
+        }
+      ]
+    },
+    {
+      "name": "func8-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT outer(cross,full,inner,left,natural,outer,right) FROM outer;",
+          "expect": "outer-1-2-3-4-5-6-7"
+        }
+      ]
+    }
+  ]
+}

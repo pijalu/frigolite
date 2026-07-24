@@ -1,0 +1,53 @@
+{
+  "file": "upfrom1.test",
+  "name": "upfrom1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b=1 FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(y INT);  INSERT INTO t2 VALUES(2);\n  WITH t1 AS (SELECT y+100 AS x FROM t2) \n    UPDATE t1 SET x=(SELECT x FROM t1);\n  SELECT x, y FROM t1, t2;",
+          "expect": "{102 2}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

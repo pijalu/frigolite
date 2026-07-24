@@ -1,0 +1,27 @@
+{
+  "file": "tkt2450.test",
+  "name": "tkt2450",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"t a\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \"t a\".* FROM \"t a\";"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM \"t a\", t1;"
+        }
+      ]
+    }
+  ]
+}

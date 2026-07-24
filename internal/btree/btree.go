@@ -396,8 +396,12 @@ func (t *BTree) insertIntoLeafRoot(pg *pager.Page, page *storage.BTreePage, newC
 		return t.writeLeafCell(pg, page, newCell, cellData, coff)
 	}
 
-	// Root leaf is full. Split it into an interior root with two leaves.
-	// First, create a new leaf with half the cells (original keeps the other half).
+	// Root leaf is full. If the page is empty, the cell is too large.
+	if page.CellCount == 0 {
+		return fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
+	}
+
+	// Split it into an interior root with two leaves.
 	newLeafNum, medianKey, err := t.splitLeaf(pg, page)
 	if err != nil {
 		return err
@@ -658,7 +662,11 @@ func (t *BTree) insertIntoInterior(pg *pager.Page, page *storage.BTreePage, newC
 			// Just insert into the child
 			return t.writeLeafCell(childPg, childPageType, newCell, cellData, childCoff)
 		}
-		// Child is full — split it (without the new cell)
+		// Child is full. If empty, the cell is too large.
+		if childPageType.CellCount == 0 {
+			return fmt.Errorf("btree: cell too large for leaf child (size=%d, pageSize=%d)", len(cellData), t.pageSize)
+		}
+		// Split it (without the new cell)
 		newLeafNum, medianKey, err := t.splitLeaf(childPg, childPageType)
 		if err != nil {
 			return err

@@ -1,0 +1,94 @@
+{
+  "file": "csv01.test",
+  "name": "csv01",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE c1='10';",
+          "expect": "{9 10 11 12}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE b=10;",
+          "expect": "{9 10 11 12}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE c=11;",
+          "expect": "{9 10 11 12}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE d=12;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE d='12';",
+          "expect": "{9 10 11 12}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM t5_1;",
+          "expect": "{a b c d | 1 2 3 4 | one two three four | 5 6 7 8 |}"
+        }
+      ]
+    },
+    {
+      "name": "6.$ii.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM abc",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "7.$ii.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc",
+          "expect": "[list abcd $T]"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "file": "windowB.test",
+  "name": "windowB",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(a);\n  INSERT INTO x VALUES(1);\n  INSERT INTO x VALUES(2);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(0, 421);\n  INSERT INTO t1 VALUES(1, 844);\n  INSERT INTO t1 VALUES(2, 1001);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES('abc', 1001);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, c);\n  CREATE INDEX i1 ON t1(a);\n\n  INSERT INTO t1 VALUES(NULL, 46);\n  INSERT INTO t1 VALUES(NULL, 45);\n  INSERT INTO t1 VALUES(7,  997);\n  INSERT INTO t1 VALUES(7,  1000);\n  INSERT INTO t1 VALUES(8,  997);\n  INSERT INTO t1 VALUES(8,  1000);\n  INSERT INTO t1 VALUES('abc', 1001);\n  INSERT INTO t1 VALUES('abc', 1004);\n  INSERT INTO t1 VALUES('xyz', 3333);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t1(a, c);\n    INSERT INTO t1 VALUES('aa', 111);\n    INSERT INTO t1 VALUES('BB', 660);\n    INSERT INTO t1 VALUES('CC', 938);\n    INSERT INTO t1 VALUES('dd', 979);\n  COMMIT;\n\n  CREATE INDEX i1 ON t1(a COLLATE nocase);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );"
+        }
+      ]
+    }
+  ]
+}

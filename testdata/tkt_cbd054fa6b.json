@@ -1,0 +1,39 @@
+{
+  "file": "tkt-cbd054fa6b.test",
+  "name": "tkt_cbd054fa6b",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES (NULL, '');\n    INSERT INTO t1 VALUES (NULL, 'A');\n    INSERT INTO t1 VALUES (NULL, 'B');\n    INSERT INTO t1 VALUES (NULL, 'C');\n    INSERT INTO t1 VALUES (NULL, 'D');\n    INSERT INTO t1 VALUES (NULL, 'E');\n    INSERT INTO t1 VALUES (NULL, 'F');\n    INSERT INTO t1 VALUES (NULL, 'G');\n    INSERT INTO t1 VALUES (NULL, 'H');\n    INSERT INTO t1 VALUES (NULL, 'I');\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n    CREATE VIEW vvv AS \n    SELECT tbl,idx,neq,nlt,ndlt,test_extract(sample,0) AS sample\n    FROM sqlite_stat4;\n    PRAGMA writable_schema = 0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tbl,idx,string_agg(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE NOT NULL);\n    CREATE INDEX t1_x ON t1(b);\n    INSERT INTO t1 VALUES(NULL, X'');\n    INSERT INTO t1 VALUES(NULL, X'41');\n    INSERT INTO t1 VALUES(NULL, X'42');\n    INSERT INTO t1 VALUES(NULL, X'43');\n    INSERT INTO t1 VALUES(NULL, X'44');\n    INSERT INTO t1 VALUES(NULL, X'45');\n    INSERT INTO t1 VALUES(NULL, X'46');\n    INSERT INTO t1 VALUES(NULL, X'47');\n    INSERT INTO t1 VALUES(NULL, X'48');\n    INSERT INTO t1 VALUES(NULL, X'49');\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tbl,idx,group_concat(s(sample),' ') \n    FROM vvv \n    WHERE idx = 't1_x' \n    GROUP BY tbl,idx"
+        }
+      ]
+    }
+  ]
+}

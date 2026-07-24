@@ -1,0 +1,95 @@
+{
+  "file": "walcrash.test",
+  "name": "walcrash",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a)==max(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a)==max(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a)==max(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a)==max(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "#       ATTACH 'test2.db' AS aux;\n#       SELECT * FROM t1 EXCEPT SELECT * FROM t2;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*)==33 OR count(*)==34 FROM t1 WHERE x != 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) BETWEEN 34 AND 36 FROM t1 WHERE x != 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.journal_mode"
+        }
+      ]
+    }
+  ]
+}

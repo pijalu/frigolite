@@ -1,0 +1,15 @@
+{
+  "file": "thread3.test",
+  "name": "thread3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    }
+  ]
+}

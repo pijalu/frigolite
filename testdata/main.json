@@ -1,0 +1,31 @@
+{
+  "file": "main.test",
+  "name": "main",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * from T1 where x!!5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * from T1 where ^x"
+        },
+        {
+          "type": "exec",
+          "sql": "create table T1(X REAL);  /* C-style comments allowed */\n    insert into T1 values(0.5);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5e-002);\n    insert into T1 values(5e-002);\n    insert into T1 values(-5.0e-2);\n    insert into T1 values(-5.1e-2);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5E+02);\n    insert into T1 values(5E+02);\n    insert into T1 values(5.0E+03);\n    select x*10 from T1 order by x*5;"
+        },
+        {
+          "type": "exec",
+          "sql": "create bogus"
+        },
+        {
+          "type": "exec",
+          "sql": "create"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "file": "tkt-4a03edc4c8.test",
+  "name": "tkt_4a03edc4c8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY ON CONFLICT REPLACE,\n      b UNIQUE ON CONFLICT FAIL\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a;"
+        }
+      ]
+    }
+  ]
+}

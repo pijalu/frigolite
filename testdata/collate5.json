@@ -1,0 +1,173 @@
+{
+  "file": "collate5.test",
+  "name": "collate5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate5t1(a COLLATE nocase, b COLLATE text);\n\n    INSERT INTO collate5t1 VALUES('a', 'apple');\n    INSERT INTO collate5t1 VALUES('A', 'Apple');\n    INSERT INTO collate5t1 VALUES('b', 'banana');\n    INSERT INTO collate5t1 VALUES('B', 'banana');\n    INSERT INTO collate5t1 VALUES('n', NULL);\n    INSERT INTO collate5t1 VALUES('N', NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a FROM collate5t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT b FROM collate5t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT a, b FROM collate5t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tkt3376(a COLLATE nocase PRIMARY KEY);\n    INSERT INTO tkt3376 VALUES('abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz');\n    INSERT INTO tkt3376 VALUES('ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789ABXYZ012234567890123456789');\n    SELECT DISTINCT a FROM tkt3376;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate5t2(a COLLATE text, b COLLATE nocase);\n\n    INSERT INTO collate5t2 VALUES('a', 'apple');\n    INSERT INTO collate5t2 VALUES('A', 'apple');\n    INSERT INTO collate5t2 VALUES('b', 'banana');\n    INSERT INTO collate5t2 VALUES('B', 'Banana');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t1 UNION select a FROM collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t2 UNION select a FROM collate5t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM collate5t1 UNION select a, b FROM collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM collate5t2 UNION select a, b FROM collate5t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t1 EXCEPT select a FROM collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t2 EXCEPT select a FROM collate5t1 WHERE a != 'a';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM collate5t1 EXCEPT select a, b FROM collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM collate5t2 EXCEPT select a, b FROM collate5t1 \n      where a != 'a';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t1 INTERSECT select a FROM collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t2 INTERSECT select a FROM collate5t1 WHERE a != 'a';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM collate5t1 INTERSECT select a, b FROM collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM collate5t2 INTERSECT select a, b FROM collate5t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE collate5t3(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM collate5t3 UNION SELECT * FROM collate5t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate5t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t1 UNION ALL SELECT a FROM collate5t2 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t2 UNION ALL SELECT a FROM collate5t1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t1 UNION ALL SELECT a FROM collate5t2 \n      ORDER BY 1 COLLATE TEXT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate5t_cn(a COLLATE NUMERIC);\n    CREATE TABLE collate5t_ct(a COLLATE TEXT);\n    INSERT INTO collate5t_cn VALUES('1');\n    INSERT INTO collate5t_cn VALUES('11');\n    INSERT INTO collate5t_cn VALUES('101');\n    INSERT INTO collate5t_ct SELECT * FROM collate5t_cn;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t_cn INTERSECT SELECT a FROM collate5t_ct ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate5t_ct INTERSECT SELECT a FROM collate5t_cn ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate5t_cn;\n    DROP TABLE collate5t_ct;\n    DROP TABLE collate5t1;\n    DROP TABLE collate5t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate5t1(a COLLATE NOCASE, b COLLATE NUMERIC); \n    INSERT INTO collate5t1 VALUES('a', '1');\n    INSERT INTO collate5t1 VALUES('A', '1.0');\n    INSERT INTO collate5t1 VALUES('b', '2');\n    INSERT INTO collate5t1 VALUES('B', '3');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(*) FROM collate5t1 GROUP BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, count(*) FROM collate5t1 GROUP BY a, b ORDER BY a, b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate5t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b COLLATE nocase);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2 VALUES(1, 'bbb');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c COLLATE NOCASE);\n  INSERT INTO t1 VALUES(NULL,'C','c');\n  CREATE VIEW v2 AS\n    SELECT a,b,c FROM t1 INTERSECT SELECT a,b,b FROM t1\n    WHERE 'eT\"3qRkL+oJMJjQ9z0'>=b\n    ORDER BY a,b,c;"
+        }
+      ]
+    }
+  ]
+}

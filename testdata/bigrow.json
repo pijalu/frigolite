@@ -1,0 +1,135 @@
+{
+  "file": "bigrow.test",
+  "name": "bigrow",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a text, b text, c text);\n    SELECT name FROM sqlite_master\n      WHERE type='table' OR type='index'\n      ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 ORDER BY c"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a='abc2'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a;\n    SELECT b,c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1','2','3');\n    INSERT INTO t1 VALUES('A','B','C');\n    SELECT b FROM t1 WHERE a=='1';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b, b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;\n    UPDATE t1 SET b=b||b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=substr(b,1,65515)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1(a,b,c) VALUES('one','abcdefghijklmnopqrstuvwxyz0123','hi');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,length(b),c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT length(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    }
+  ]
+}

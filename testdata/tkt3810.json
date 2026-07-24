@@ -1,0 +1,64 @@
+{
+  "file": "tkt3810.test",
+  "name": "tkt3810",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n       INSERT INTO t2 VALUES(new.rowid);\n     END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM temp.sqlite_master ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_temp_master;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t1(x);\n    CREATE TEMP TRIGGER r1 DELETE ON t1 BEGIN SELECT *; END;\n    CREATE VIEW t1 AS SELECT *;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(z);"
+        }
+      ]
+    }
+  ]
+}

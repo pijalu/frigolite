@@ -1,0 +1,242 @@
+{
+  "file": "skipscan1.test",
+  "name": "skipscan1",
+  "tests": [
+    {
+      "name": "skipscan1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t1 WHERE b=345 ORDER BY a;",
+          "expect": "{abc 345 7 8 | def 345 9 10 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE d<>99 AND b=345 ORDER BY a;",
+          "expect": "{/* USING INDEX t1abc (ANY(a) AND b=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t1 WHERE d<>99 AND b=345 ORDER BY a DESC;",
+          "expect": "{def 345 9 10 | abc 345 7 8 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.3eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE d<>99 AND b=345 ORDER BY a DESC;",
+          "expect": "{/* USING INDEX t1abc (ANY(a) AND b=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t1 WHERE c=6 ORDER BY a, b, c;",
+          "expect": "{abc 234 6 7 | bcd 100 6 11 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.4eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE c=6 ORDER BY a, b, c;",
+          "expect": "{/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t1 WHERE c IN (6,7) ORDER BY a, b, c;",
+          "expect": "{abc 234 6 7 | abc 345 7 8 | bcd 100 6 11 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.5eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE c IN (6,7) ORDER BY a, b, c;",
+          "expect": "{/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t1 WHERE c BETWEEN 6 AND 7 ORDER BY a, b, c;",
+          "expect": "{abc 234 6 7 | abc 345 7 8 | bcd 100 6 11 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.6eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE c BETWEEN 6 AND 7 ORDER BY a, b, c;",
+          "expect": "{/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c>? AND c<?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t1 WHERE b IN (234, 345) AND c BETWEEN 6 AND 7\n   ORDER BY a, b;",
+          "expect": "{abc 234 6 7 | abc 345 7 8 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.7eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE b IN (234, 345) AND c BETWEEN 6 AND 7\n   ORDER BY a, b;",
+          "expect": "{/* USING INDEX t1abc (ANY(a) AND b=? AND c>? AND c<?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-1.52",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, a, b, c, d, '|' FROM t1j LEFT JOIN t1 ON c=y ORDER BY +y, +a;",
+          "expect": "{one {} {} {} {} | six abc 234 6 7 | six bcd 100 6 11 | ninty-nine {} {} {} {} |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t2 WHERE d<>99 AND b=345 ORDER BY a;",
+          "expect": "{abc 345 7 8 | def 345 9 10 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-2.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t2 WHERE d<>99 AND b=345 ORDER BY a;",
+          "expect": "{/* USING INDEX sqlite_autoindex_t2_1 (ANY(a) AND b=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d,'|' FROM t3 WHERE b=345 ORDER BY a;",
+          "expect": "{abc 345 7 8 | def 345 9 10 |}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-3.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t3 WHERE b=345 ORDER BY a;",
+          "expect": "{/* PRIMARY KEY (ANY(a) AND b=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(\n    id INTEGER PRIMARY KEY,\n    loc TEXT,\n    lang INTEGER,\n    utype INTEGER,\n    xa INTEGER,\n    xd INTEGER,\n    xh INTEGER\n  );\n  CREATE INDEX t5i1 on t5(loc, xh, xa, utype, lang);\n  CREATE INDEX t5i2 ON t5(xd,loc,utype,lang);\n  EXPLAIN QUERY PLAN\n    SELECT xh, loc FROM t5 WHERE loc >= 'M' AND loc < 'N';",
+          "expect": "{/.*COVERING INDEX t5i1 .*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-8.1eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1\n   WHERE (y = 'AB' AND x <= 4)\n      OR (y = 'EF' AND x = 5);",
+          "expect": "{/ANY/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT  * FROM t9a WHERE b IN (SELECT x FROM t9b WHERE y!=5);",
+          "expect": "{/{SCAN t9a}/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-2.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a;",
+          "expect": "{/* USING INDEX t6abc (ANY(a) AND b=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-2.3eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a DESC;",
+          "expect": "{/* USING INDEX t6abc (ANY(a) AND b=?)*/}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

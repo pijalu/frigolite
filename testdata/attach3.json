@@ -1,0 +1,175 @@
+{
+  "file": "attach3.test",
+  "name": "attach3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t3(e, f);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master WHERE name = 't3';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.sqlite_master WHERE name = 't3';"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 2);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX aux.i1 on t3(e);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master WHERE name = 'i1';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX aux.i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX aux.i1 on t3(e);\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE aux.t1;\n    SELECT name FROM aux.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW aux.v1 AS SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.sqlite_master WHERE name = 'v1';"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux.t3 VALUES('hello', 'world');\n    SELECT * FROM v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW aux.v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.sqlite_master WHERE name = 'v1';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER aux.tr1 AFTER INSERT ON t3 BEGIN\n      INSERT INTO t3 VALUES(new.e*2, new.f*2);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3 VALUES(10, 20);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.sqlite_master WHERE name = 'tr1';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER aux.tr1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux.sqlite_master WHERE name = 'tr1';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TEMP TRIGGER tst_trigger BEFORE INSERT ON aux.t4 BEGIN \n        SELECT 'hello world';\n      END;\n      SELECT count(*) FROM temp.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE main.t4;\n      SELECT count(*) FROM sqlite_temp_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list;"
+        },
+        {
+          "type": "exec",
+          "sql": "create temp table dummy(dummy)"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE ? AS ?"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH aux"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH ?"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE '' AS ''"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH ''"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE '' AS ?"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH ''"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE '' AS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH ?"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH '';"
+        }
+      ]
+    }
+  ]
+}

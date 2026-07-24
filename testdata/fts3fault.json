@@ -1,0 +1,68 @@
+{
+  "file": "fts3fault.test",
+  "name": "fts3fault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('registers the FTS3 module');\n      INSERT INTO t1 VALUES('various support functions');"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(t3) VALUES('nodesize=50')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT content FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT optimize(t4) FROM t4 LIMIT 1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t5 VALUES('influential in shaping his future outlook');\n      INSERT INTO t5 VALUES('might be acceptable to the British electorate');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    }
+  ]
+}

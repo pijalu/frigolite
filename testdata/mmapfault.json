@@ -1,0 +1,23 @@
+{
+  "file": "mmapfault.test",
+  "name": "mmapfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(a_string(200), a_string(300))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(a_string(201), a_string(301))"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "file": "in5.test",
+  "name": "in5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1x(x INTEGER PRIMARY KEY);\n    INSERT INTO t1x VALUES(1),(3),(5),(7),(9);\n    CREATE TABLE t1y(y INTEGER UNIQUE);\n    INSERT INTO t1y VALUES(2),(4),(6),(8);\n    CREATE TABLE t1z(z TEXT UNIQUE);\n    INSERT INTO t1z VALUES('a'),('c'),('e'),('g');\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT, d TEXT);\n    INSERT INTO t2 VALUES(1,2,'a','12a'),(1,2,'b','12b'),\n                         (2,3,'g','23g'),(3,5,'c','35c'),\n                         (4,6,'h','46h'),(5,6,'e','56e');\n    CREATE TABLE t3x AS SELECT x FROM t1x;\n    CREATE TABLE t3y AS SELECT y FROM t1y;\n    CREATE TABLE t3z AS SELECT z FROM t1z;\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2abc ON t2(a,b,c);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t3x AND b IN t3y AND c IN t3z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t3x AND b IN t1y AND c IN t1z"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t3y AND c IN t1z"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t3z"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2abc;\n    CREATE INDEX t2ab ON t2(a,b);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2ab;\n    CREATE INDEX t2abcd ON t2(a,b,c,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2abcd;\n    CREATE INDEX t2cbad ON t2(c,b,a,d);\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 WHERE a IN t1y AND b IN t1x AND c IN t1z ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE nocase);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('ONE');"
+        }
+      ]
+    },
+    {
+      "name": "6.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 4);\n  INSERT INTO t3 VALUES(2, 5);\n  INSERT INTO t3 VALUES(2, 6);\n  INSERT INTO t3 VALUES(3, 7);\n  INSERT INTO t3 VALUES(3, 8);\n  INSERT INTO t3 VALUES(3, 9);"
+        }
+      ]
+    },
+    {
+      "name": "6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3 WHERE b IN (SELECT DISTINCT a FROM t3 LIMIT 5);",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM y1 WHERE b NOT IN (SELECT a FROM y2);",
+          "expect": "{1 3}"
+        }
+      ]
+    },
+    {
+      "name": "7.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX y2c ON y2(c);\n  SELECT a FROM y1 WHERE b NOT IN (SELECT a FROM y2);",
+          "expect": "{1 3}"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE n1(a INTEGER PRIMARY KEY, b VARCHAR(500));\n  CREATE UNIQUE INDEX n1a ON n1(a);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM n1 WHERE a IN (1, 2, 3)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM n1 WHERE a IN (SELECT +a FROM n1)",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO n1 VALUES(1, NULL), (2, NULL), (3, NULL);\n  SELECT count(*) FROM n1 WHERE a IN (1, 2, 3)",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(a INTEGER PRIMARY KEY);\n  INSERT INTO t9 VALUES (44), (45);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE VIEW v0(c0) AS SELECT LOWER(CAST('1e500' AS TEXT)) FROM t0;\n  INSERT INTO t0(c0) VALUES (NULL);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc', 'def');\n  INSERT INTO t1 VALUES('ghi', 'jkl');"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b COLLATE BINARY);"
+        }
+      ]
+    }
+  ]
+}

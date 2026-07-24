@@ -1,0 +1,55 @@
+{
+  "file": "pcache.test",
+  "name": "pcache",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    CREATE TABLE t3(a, b, c);\n    CREATE TABLE t4(a, b, c);\n    CREATE TABLE t5(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE TABLE t7(a, b, c);\n    CREATE TABLE t8(a, b, c);\n    CREATE TABLE t9(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t2(a, b);\n    CREATE INDEX i3 ON t3(a, b);\n    CREATE INDEX i4 ON t4(a, b);\n    CREATE INDEX i5 ON t5(a, b);\n    CREATE INDEX i6 ON t6(a, b);\n    CREATE INDEX i7 ON t7(a, b);\n    CREATE INDEX i8 ON t8(a, b);\n    CREATE INDEX i9 ON t9(a, b);\n    CREATE INDEX i10 ON t9(a, b);\n    CREATE INDEX i11 ON t9(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 20"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT * FROM t6;\n    SELECT * FROM t7 ORDER BY a; SELECT * FROM t7;\n    SELECT * FROM t8 ORDER BY a; SELECT * FROM t8;\n    SELECT * FROM t9 ORDER BY a; SELECT * FROM t9;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 15"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a; SELECT * FROM t1;\n    SELECT * FROM t2 ORDER BY a; SELECT * FROM t2;\n    SELECT * FROM t3 ORDER BY a; SELECT * FROM t3;\n    SELECT * FROM t4 ORDER BY a; SELECT * FROM t4;\n    SELECT * FROM t5 ORDER BY a; SELECT * FROM t5;\n    SELECT * FROM t6 ORDER BY a; SELECT * FROM t6;\n    SELECT * FROM t7 ORDER BY a; SELECT * FROM t7;\n    SELECT * FROM t8 ORDER BY a; SELECT * FROM t8;\n    SELECT * FROM t9 ORDER BY a; SELECT * FROM t9;"
+        }
+      ]
+    }
+  ]
+}

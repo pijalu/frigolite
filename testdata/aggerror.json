@@ -1,0 +1,31 @@
+{
+  "file": "aggerror.test",
+  "name": "aggerror",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(40);\n    SELECT x_count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=41 WHERE a=40"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x_count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(40);\n    INSERT INTO t1 VALUES(42);"
+        }
+      ]
+    }
+  ]
+}

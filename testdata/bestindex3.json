@@ -1,0 +1,25 @@
+{
+  "file": "bestindex3.test",
+  "name": "bestindex3",
+  "tests": [
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ttt(a, b, c);\n\n  INSERT INTO ttt VALUES(1, 'two',   'three');\n  INSERT INTO ttt VALUES(2, 'one',   'two');\n  INSERT INTO ttt VALUES(3, 'three', 'one');\n  INSERT INTO ttt VALUES(4, 'y',     'one');\n  INSERT INTO ttt VALUES(5, 'x',     'two');\n  INSERT INTO ttt VALUES(6, 'y',     'three');"
+        }
+      ]
+    },
+    {
+      "name": "1.6.$omit.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE c = 'three' OR c LIKE 'o%'",
+          "expect": "{1 6 3 4}"
+        }
+      ]
+    }
+  ]
+}

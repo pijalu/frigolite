@@ -1,0 +1,15 @@
+{
+  "file": "mallocH.test",
+  "name": "mallocH",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x UNIQUE, y);\n    INSERT INTO t1 VALUES(1,2);"
+        }
+      ]
+    }
+  ]
+}

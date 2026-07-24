@@ -1,0 +1,96 @@
+{
+  "file": "spellfix3.test",
+  "name": "spellfix3",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('And God said, \u201cLet there be light\u201d');",
+          "expect": "{215}"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('\u0411\u043e\u0433 \u0441\u043a\u0430\u0437\u0430\u043b: \"\u0414\u0430 \u0431\u0443\u0434\u0435\u0442 \u0441\u0432\u0435\u0442\"');",
+          "expect": "{220}"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('\u03ba\u03b1\u03b9 \u03b5\u03b9\u03c0\u03b5\u03bd \u03bf \u03b8\u03b5\u03bf\u03c2 \u03b3\u03b5\u03bd\u03b7\u03b8\u03b7\u03c4\u03c9 \u03c6\u03c9\u03c2 \u03ba\u03b1\u03b9 \u03b5\u03b3\u03b5\u03bd\u03b5\u03c4\u03bf \u03c6\u03c9\u03c2');",
+          "expect": "{200}"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('\u05d5\u05b7\u05d9\u05b9\u05bc\u05a5\u05d0\u05de\u05b6\u05e8 \u05d0\u05b1\u05dc\u05b9\u05d4\u05b4\u0596\u05d9\u05dd \u05d9\u05b0\u05d4\u05b4\u05a3\u05d9 \u05d0\u0591\u05d5\u05b9\u05e8 \u05d5\u05b7\u05bd\u05d9\u05b0\u05d4\u05b4\u05d9\u05be\u05d0\u05bd\u05d5\u05b9\u05e8\u05c3');",
+          "expect": "{125}"
+        }
+      ]
+    },
+    {
+      "name": "140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('\u0641\u0650\u064a \u0630\u064e\u0644\u0650\u0643\u064e \u0627\u0644\u0648\u064e\u0642\u062a\u0650\u060c \u0642\u0627\u0644\u064e \u0627\u0644\u0644\u0647\u064f: \u0644\u0650\u064a\u064e\u0643\u064f\u0646\u0652 \u0646\u064f\u0648\u0631\u064c. \u0641\u064e\u0635\u064e\u0627\u0631\u064e \u0646\u064f\u0648\u0631\u064c.');",
+          "expect": "{160}"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('+3.14159');",
+          "expect": "{215}"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('And God said: \"\u0414\u0430 \u0431\u0443\u0434\u0435\u0442 \u0441\u0432\u0435\u0442\"');",
+          "expect": "{998}"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('+3.14159 light');",
+          "expect": "{215}"
+        }
+      ]
+    },
+    {
+      "name": "230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT spellfix1_scriptcode('+3.14159 \u0441\u0432\u0435\u0442');",
+          "expect": "{220}"
+        }
+      ]
+    }
+  ]
+}

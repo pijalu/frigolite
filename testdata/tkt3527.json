@@ -1,0 +1,19 @@
+{
+  "file": "tkt3527.test",
+  "name": "tkt3527",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Element (\n     Code INTEGER PRIMARY KEY,\n     Name VARCHAR(60)\n    );\n    \n    CREATE TABLE ElemOr (\n     CodeOr INTEGER NOT NULL,\n     Code INTEGER NOT NULL,\n     PRIMARY KEY(CodeOr,Code)\n    );\n    \n    CREATE TABLE ElemAnd (\n     CodeAnd INTEGER,\n     Code INTEGER,\n     Attr1 INTEGER,\n     Attr2 INTEGER,\n     Attr3 INTEGER,\n     PRIMARY KEY(CodeAnd,Code)\n    );\n    \n    INSERT INTO Element VALUES(1,'Elem1');\n    INSERT INTO Element VALUES(2,'Elem2');\n    INSERT INTO Element VALUES(3,'Elem3');\n    INSERT INTO Element VALUES(4,'Elem4');\n    INSERT INTO Element VALUES(5,'Elem5');\n    INSERT INTO ElemOr Values(3,4);\n    INSERT INTO ElemOr Values(3,5);\n    INSERT INTO ElemAnd VALUES(1,3,'a','b','c');\n    INSERT INTO ElemAnd VALUES(1,2,'x','y','z');\n    \n    CREATE VIEW ElemView1 AS\n    SELECT\n      CAST(Element.Code AS VARCHAR(50)) AS ElemId,\n     Element.Code AS ElemCode,\n     Element.Name AS ElemName,\n     ElemAnd.Code AS InnerCode,\n     ElemAnd.Attr1 AS Attr1,\n     ElemAnd.Attr2 AS Attr2,\n     ElemAnd.Attr3 AS Attr3,\n     0 AS Level,\n     0 AS IsOrElem\n    FROM Element JOIN ElemAnd ON ElemAnd.CodeAnd=Element.Code\n    WHERE ElemAnd.CodeAnd NOT IN (SELECT CodeOr FROM ElemOr)\n    UNION ALL\n    SELECT\n      CAST(ElemOr.CodeOr AS VARCHAR(50)) AS ElemId,\n      Element.Code AS ElemCode,\n      Element.Name AS ElemName,\n      ElemOr.Code AS InnerCode,\n      NULL AS Attr1,\n      NULL AS Attr2,\n      NULL AS Attr3,\n      0 AS Level,\n      1 AS IsOrElem\n    FROM ElemOr JOIN Element ON Element.Code=ElemOr.CodeOr\n    ORDER BY ElemId, InnerCode;\n    \n    CREATE VIEW ElemView2 AS\n    SELECT\n      ElemId,\n      ElemCode,\n      ElemName,\n      InnerCode,\n      Attr1,\n      Attr2,\n      Attr3,\n      Level,\n      IsOrElem\n    FROM ElemView1\n    UNION ALL\n    SELECT\n      Element.ElemId || '.' || InnerElem.ElemId AS ElemId,\n      InnerElem.ElemCode,\n      InnerElem.ElemName,\n      InnerElem.InnerCode,\n      InnerElem.Attr1,\n      InnerElem.Attr2,\n      InnerElem.Attr3,\n      InnerElem.Level+1,\n      InnerElem.IsOrElem\n    FROM ElemView1 AS Element\n    JOIN ElemView1 AS InnerElem\n         ON Element.Level=0 AND Element.InnerCode=InnerElem.ElemCode\n    ORDER BY ElemId, InnerCode;\n \n    SELECT * FROM ElemView1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ElemView2;"
+        }
+      ]
+    }
+  ]
+}

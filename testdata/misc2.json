@@ -1,0 +1,235 @@
+{
+  "file": "misc2.test",
+  "name": "misc2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(7,8,9);"
+        }
+      ]
+    },
+    {
+      "name": "misc2-2.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'rowid', * FROM (SELECT * FROM t1, t2);",
+          "expect": "{0 {rowid 1 2 3 7 8 9}}"
+        }
+      ]
+    },
+    {
+      "name": "misc2-2.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'rowid', * FROM v1;",
+          "expect": "{0 {rowid 1 2 3 7 8 9}}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4000000000,'a','b');\n    SELECT a FROM t1 WHERE a>1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2147483648,'b2','c2');\n    INSERT INTO t1 VALUES(2147483647,'b3','c3');\n    SELECT a FROM t1 WHERE a>2147483647;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a<2147483648;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a<=2147483648;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a<10000000000;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a<1000000000000 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(a,b);\n    CREATE VIEW y AS \n      SELECT x1.b AS p, x2.b AS q FROM x AS x1, x AS x2 WHERE x1.a=x2.a;\n    CREATE VIEW z AS\n      SELECT y1.p, y2.p FROM y AS y1, y AS y2 WHERE y1.q=y2.q;\n    SELECT * from z;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(1);\n      INSERT INTO t1 VALUES(2);\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1(rowid,x) VALUES(10,10);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, x FROM t1 ORDER BY rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE counts(n INTEGER PRIMARY KEY);\n      INSERT INTO counts VALUES(0);\n      INSERT INTO counts VALUES(1);\n      INSERT INTO counts SELECT n+2 FROM counts;\n      INSERT INTO counts SELECT n+4 FROM counts;\n      INSERT INTO counts SELECT n+8 FROM counts;\n      COMMIT;\n  \n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n<10 AND dim2.n<10 AND dim3.n<10;\n  \n      SELECT count(*) FROM x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3\n      WHERE dim1.n>=6 AND dim2.n>=6 AND dim3.n>=6;\n  \n      SELECT count(*) FROM x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE x;\n      CREATE TEMP TABLE x AS\n      SELECT dim1.n, dim2.n, dim3.n, dim4.n\n      FROM counts AS dim1, counts AS dim2, counts AS dim3, counts AS dim4\n      WHERE dim1.n<5 AND dim2.n<5 AND dim3.n<5 AND dim4.n<5;\n  \n      SELECT count(*) FROM x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1229(x);\n      CREATE TRIGGER r1229 BEFORE INSERT ON t1229 BEGIN\n        INSERT INTO t1229 SELECT y FROM (SELECT new.x y);\n      END;\n      INSERT INTO t1229 VALUES(1);"
+        }
+      ]
+    }
+  ]
+}

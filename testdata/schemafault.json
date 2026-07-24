@@ -1,0 +1,20 @@
+{
+  "file": "schemafault.test",
+  "name": "schemafault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(aaa INTTT);\n  CREATE VIEW v2(xxx , yyy) AS SELECT aaa, aaa+1 FROM t2;",
+          "expect": "do_faultsim_test 1 -faults oom-* -prep {"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v2"
+        }
+      ]
+    }
+  ]
+}

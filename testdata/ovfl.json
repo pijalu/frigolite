@@ -1,0 +1,15 @@
+{
+  "file": "ovfl.test",
+  "name": "ovfl",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;"
+        }
+      ]
+    }
+  ]
+}

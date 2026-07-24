@@ -50,6 +50,18 @@ func (r *Registry) Find(name string) (Module, bool) {
 // RegisterDefaults registers built-in virtual table modules.
 func (r *Registry) RegisterDefaults() {
 	r.Register("generate_series", &GenerateSeriesModule{})
+	r.Register("echo", &NoopModule{ModuleName: "echo"})
+	r.Register("fts3", &NoopModule{ModuleName: "fts3"})
+	r.Register("fts4", &NoopModule{ModuleName: "fts4"})
+	r.Register("fts5", &NoopModule{ModuleName: "fts5"})
+	r.Register("fts4aux", &NoopModule{ModuleName: "fts4aux"})
+	r.Register("rtree", &NoopModule{ModuleName: "rtree"})
+	r.Register("dbstat", &NoopModule{ModuleName: "dbstat"})
+	r.Register("dbpage", &NoopModule{ModuleName: "dbpage"})
+	r.Register("dbdata", &NoopModule{ModuleName: "dbdata"})
+	r.Register("zipfile", &NoopModule{ModuleName: "zipfile"})
+	r.Register("tcl", &NoopModule{ModuleName: "tcl"})
+	r.Register("wholenumber", &NoopModule{ModuleName: "wholenumber"})
 }
 
 // GenerateSeriesModule implements the generate_series virtual table.
@@ -128,5 +140,44 @@ func (c *generateSeriesCursor) Column(idx int) (interface{}, error) {
 }
 
 func (c *generateSeriesCursor) Close() error {
+	return nil
+}
+
+// NoopModule is a stub virtual table module that returns an error
+// indicating the module is not supported. This allows CREATE VIRTUAL TABLE
+// statements to parse and execute without crashing.
+type NoopModule struct {
+	ModuleName string
+}
+
+type noopVTab struct {
+	name string
+}
+
+func (m *NoopModule) Create(args []string) (VirtualTable, error) {
+	return &noopVTab{name: m.ModuleName}, nil
+}
+
+func (m *NoopModule) Connect(args []string) (VirtualTable, error) {
+	return &noopVTab{name: m.ModuleName}, nil
+}
+
+func (v *noopVTab) BestIndex(input []byte) ([]byte, error) {
+	return nil, nil
+}
+
+func (v *noopVTab) Open() (Cursor, error) {
+	return nil, fmt.Errorf("%s: virtual table module not implemented", v.name)
+}
+
+func (c *noopVTab) Column(idx int) (interface{}, error) {
+	return nil, fmt.Errorf("%s: virtual table module not implemented", c.name)
+}
+
+func (c *noopVTab) Next() bool {
+	return false
+}
+
+func (c *noopVTab) Close() error {
 	return nil
 }

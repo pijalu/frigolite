@@ -1,0 +1,299 @@
+{
+  "file": "existsexpr.test",
+  "name": "existsexpr",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x)",
+          "expect": "{~/SUBQUERY/}"
+        }
+      ]
+    },
+    {
+      "name": "1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE x=1 AND EXISTS (SELECT 1 FROM x1 WHERE a=x)",
+          "expect": "{~/SUBQUERY/}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  ) INSERT INTO t1 SELECT i, i FROM s;\n\n  CREATE TABLE t2(c, d);\n  WITH s(i) AS (\n    SELECT 10 UNION ALL SELECT i+10 FROM s WHERE i<1000\n  ) INSERT INTO t2 SELECT i, i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a)",
+          "expect": "{100}"
+        }
+      ]
+    },
+    {
+      "name": "2.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX t2c ON t2(c);\n  CREATE UNIQUE INDEX t1a ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "2.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(a, b, c);\n  CREATE TABLE y2(x, y, z);\n  CREATE UNIQUE INDEX y2zy ON y2(z, y);\n\n  INSERT INTO y1 VALUES(1, 1, 1);\n  INSERT INTO y1 VALUES(2, 2, 2);\n  INSERT INTO y1 VALUES(3, 3, 3);\n  INSERT INTO y1 VALUES(4, 4, 4);\n\n  INSERT INTO y2 VALUES(1, 1, 1);\n  INSERT INTO y2 VALUES(3, 3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx1(a TEXT COLLATE nocase, b TEXT);\n  CREATE UNIQUE INDEX tx1ab ON tx1(a, b);\n\n  INSERT INTO tx1 VALUES('a', 'a');\n  INSERT INTO tx1 VALUES('B', 'b');\n  INSERT INTO tx1 VALUES('c', 'c');\n  INSERT INTO tx1 VALUES('D', 'd');\n  INSERT INTO tx1 VALUES('e', 'e');\n\n  CREATE TABLE tx2(x, y);\n  INSERT INTO tx2 VALUES('A', 'a');\n  INSERT INTO tx2 VALUES('b', 'b');\n  INSERT INTO tx2 VALUES('C', 'c');\n  INSERT INTO tx2 VALUES('D', 'd');"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX tx1ab;\n  CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a2(o);\n  INSERT INTO a2 VALUES(2), (5);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n  CREATE TABLE t2(a INfEGER PRIMARY KEY, b);\n  CREATE UNIQUE INDEX t2b ON t2(b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y UNIQUE);\n\n  INSERT INTO t1 VALUES(1), (2);\n  INSERT INTO t2 VALUES(1), (3);\n\n  SELECT * FROM t1 one LEFT JOIN t1 two ON (one.x=two.x AND EXISTS (\n    SELECT 1 FROM t2 WHERE y=one.x\n  ));",
+          "expect": "{\n  1 1\n  2 {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index = off;\n  CREATE TABLE t2(ii);\n  INSERT INTO t2 VALUES(100);\n  INSERT INTO t2 VALUES(200);"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(yy);\n  INSERT INTO t3 VALUES(200);"
+        }
+      ]
+    },
+    {
+      "name": "9.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t3;\n  CREATE TABLE t3(x INT, y INT);\n  CREATE TABLE t4(z INT);\n  INSERT INTO t3 VALUES (1,0),(2,2),(3,3);\n  INSERT INTO t4 VALUES (4),(5);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE TABLE x1(x);"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT EXISTS( SELECT 1 FROM t1 ) aaa FROM x1 WHERE aaa AND aaa"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    EXISTS( SELECT 1 FROM t1 ) aaa\n  WHERE (\n    SELECT 1 FROM x1 WHERE aaa AND aaa\n  );",
+          "expect": "# https://sqlite.org/forum/forumpost/2026-01-03T14:05:48z"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent (id TEXT PRIMARY KEY);\n  CREATE TABLE child_a (id TEXT);\n  CREATE TABLE child_b (id TEXT);\n  INSERT INTO parent VALUES ('p1');\n  INSERT INTO child_a VALUES ('p1');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(id INT, data INT);\n  CREATE TABLE t3(amount INT);\n\n  INSERT INTO t2 VALUES (1,0),(2,0);\n  INSERT INTO t3 VALUES (1),(1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(b,c);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(p,q);\n\n  INSERT INTO t1 VALUES(7,10);\n  INSERT INTO t2 VALUES(1,1), (4,7);\n  INSERT INTO t3 VALUES(4,7);\n\n  PRAGMA automatic_index = 0;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "14.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(n INTEGER, parent INTEGER);\n  CREATE INDEX idx ON t(parent);\n  INSERT INTO t VALUES (1,  NULL);\n  INSERT INTO t VALUES (10, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "14.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(20, 20);\n\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2c ON t2(c);\n  CREATE INDEX t2d ON t2(d);\n\n  INSERT INTO t2 VALUES(20, -1);\n  INSERT INTO t2 VALUES(20,  0);"
+        }
+      ]
+    }
+  ]
+}

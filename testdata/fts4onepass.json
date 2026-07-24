@@ -1,0 +1,15 @@
+{
+  "file": "fts4onepass.test",
+  "name": "fts4onepass",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;"
+        }
+      ]
+    }
+  ]
+}

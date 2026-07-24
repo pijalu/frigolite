@@ -1,0 +1,315 @@
+{
+  "file": "rowvalue9.test",
+  "name": "rowvalue9",
+  "tests": [
+    {
+      "name": "1.0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a1(c, b INTEGER, a TEXT, PRIMARY KEY(a, b));\n \n  INSERT INTO a1 (rowid, c, b, a) VALUES(3,  '0x03', 1, 1);\n  INSERT INTO a1 (rowid, c, b, a) VALUES(14, '0x0E', 2, 2);\n  INSERT INTO a1 (rowid, c, b, a) VALUES(15, '0x0F', 3, 3);\n  INSERT INTO a1 (rowid, c, b, a) VALUES(92, '0x5C', 4, 4);\n\n  CREATE TABLE a2(x BLOB, y BLOB);\n  INSERT INTO a2(x, y) VALUES(1, 1);\n  INSERT INTO a2(x, y) VALUES(2, '2');\n  INSERT INTO a2(x, y) VALUES('3', 3);\n  INSERT INTO a2(x, y) VALUES('4', '4');"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT rowid FROM a1 WHERE a=x AND b=y) FROM a2",
+          "expect": "{{} {} 15 92}"
+        }
+      ]
+    },
+    {
+      "name": "1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a1.rowid FROM a1, a2 WHERE a=x AND b=y;",
+          "expect": "{15 92}"
+        }
+      ]
+    },
+    {
+      "name": "1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a1.rowid FROM a1, a2 WHERE coalesce(NULL,x)=a AND coalesce(NULL,y)=b",
+          "expect": "{3 14 15 92}"
+        }
+      ]
+    },
+    {
+      "name": "1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a1.rowid FROM a1, a2 WHERE +x=a AND +y=b",
+          "expect": "{3 14 15 92}"
+        }
+      ]
+    },
+    {
+      "name": "1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT rowid FROM a1 WHERE a=+x AND b=+y) FROM a2",
+          "expect": "{3 14 15 92}"
+        }
+      ]
+    },
+    {
+      "name": "1.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT rowid FROM a1 WHERE (a, b) = (+x, +y)) FROM a2",
+          "expect": "{3 14 15 92}"
+        }
+      ]
+    },
+    {
+      "name": "1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a1.rowid FROM a1 WHERE (a, b) IN (SELECT x, y FROM a2)",
+          "expect": "{15 92}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a TEXT);\n  CREATE TABLE b2(x BLOB);\n  INSERT INTO b1 VALUES(1);\n  INSERT INTO b2 VALUES(1);",
+          "expect": "do_execsql_test 2.2 { SELECT * FROM b1, b2 WHERE a=x; } {}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b1 WHERE a IN (SELECT x FROM b2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX b1a ON b1(a);"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(a INTEGER, b TEXT);\n  INSERT INTO c1 VALUES(1, 1);\n  CREATE TABLE c2(x BLOB, y BLOB);\n  INSERT INTO c2 VALUES(1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c1 WHERE (a, b) IN (SELECT x, y FROM c2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX c1ab ON c1(a, b);\n  SELECT * FROM c1 WHERE (a, b) IN (SELECT x, y FROM c2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c1.rowid FROM c1 WHERE b = (SELECT y FROM c2);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE d1(a TEXT, b INTEGER, c NUMERIC);\n  CREATE TABLE d2(x BLOB, y BLOB);\n\n  INSERT INTO d1 VALUES(1, 1, 1);\n  INSERT INTO d1 VALUES(2, 2, 2);\n  INSERT INTO d1 VALUES(3, 3, 3);\n  INSERT INTO d1 VALUES(4, 4, 4);\n\n  INSERT INTO d2 VALUES (1, 1);\n  INSERT INTO d2 VALUES (2, '2');\n  INSERT INTO d2 VALUES ('3', 3);\n  INSERT INTO d2 VALUES ('4', '4');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS idx3"
+        }
+      ]
+    },
+    {
+      "name": "4.$tn.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );",
+          "expect": "{2 4}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);",
+          "expect": "{2}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
+          "expect": "{\n  2 2 3 3\n}"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
+          "expect": "{\n  2 2 3 3\n}"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
+          "expect": "{\n  2 2 3 3\n}"
+        }
+      ]
+    }
+  ]
+}

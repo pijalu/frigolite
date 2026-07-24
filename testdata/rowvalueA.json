@@ -1,0 +1,62 @@
+{
+  "file": "rowvalueA.test",
+  "name": "rowvalueA",
+  "tests": [
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x2 (x, y);\n  INSERT INTO x2 VALUES (1234, 'abc');\n\n  CREATE TABLE x1 (a, b PRIMARY KEY COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO x1 VALUES (1234, 'ABCD');"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX x1a ON x1(a);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (a PRIMARY KEY, b COLLATE NOCASE) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('BBB', 'a');"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t0 (c0);\n  INSERT INTO t0 VALUES ('True');\n\n  CREATE TABLE t1 (c0 COLLATE NOCASE, c1 PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES ('a', 1);\n  INSERT INTO t1 VALUES ('a', 'True');"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b TEXT);\n  CREATE INDEX t1_ab ON t1(a COLLATE NOCASE, b COLLATE NOCASE);\n  INSERT INTO t1 VALUES('a',null),('b', 'ABCD');",
+          "expect": "db null NULL"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1\n   WHERE ('B' COLLATE nocase,'abc')>(a,b)\n   ORDER BY +a;",
+          "expect": "{a NULL b ABCD}"
+        }
+      ]
+    }
+  ]
+}

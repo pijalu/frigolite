@@ -1,0 +1,263 @@
+{
+  "file": "whereB.test",
+  "name": "whereB",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x,y);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b TEXT);  -- affinity of t2.b is TEXT\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y TEXT);    -- affinity of t1.y is TEXT\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b NUMERIC);  -- affinity of t2.b is NUMERIC\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b INT);  -- affinity of t2.b is INTEGER\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y BLOB);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,'99');\n\n    CREATE TABLE t2(a, b REAL);  -- affinity of t2.b is REAL\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99.0);\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y NUMERIC);  -- affinity of t1.y is NUMERIC\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y INT);  -- affinity of t1.y is INTEGER\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n\n    CREATE TABLE t1(x, y REAL);  -- affinity of t1.y is REAL\n    INSERT INTO t1 VALUES(1,99.0);\n\n    CREATE TABLE t2(a, b BLOB);  -- affinity of t2.b is NONE\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,'99');\n\n    SELECT x, a, y=b FROM t1, t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2b;\n    SELECT x, a, y=b FROM t1, t2 WHERE y=b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE b=y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, a, y=b FROM t1, t2 WHERE +y=+b;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "file": "incrvacuum2.test",
+  "name": "incrvacuum2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(5);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.incremental_vacuum(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.incremental_vacuum(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.incremental_vacuum(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.incremental_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1)"
+        }
+      ]
+    }
+  ]
+}

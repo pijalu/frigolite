@@ -1,0 +1,95 @@
+{
+  "file": "altermalloc2.test",
+  "name": "altermalloc2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(abcd, efgh);"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME abcd TO dcba"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME abcd TO dcba"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(abcd, efgh);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE abcd>efgh;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME abcd TO dcba"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE rr RENAME a TO c;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE rr RENAME TO c;"
+        }
+      ]
+    }
+  ]
+}

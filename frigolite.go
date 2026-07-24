@@ -134,6 +134,8 @@ func (db *DB) Exec(sqlStr string) *Result {
 }
 
 // Query executes a SQL query and returns rows.
+// Multiple semicolon-separated statements are all executed and their results
+// concatenated, matching SQLite's behavior for multi-statement queries.
 func (db *DB) Query(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized")}
@@ -148,7 +150,26 @@ func (db *DB) Query(sqlStr string) *Result {
 		return &Result{}
 	}
 
-	return execResult(db.engine.Exec(stmts[0]))
+	var allRows [][]interface{}
+	var allColumns []string
+	for _, stmt := range stmts {
+		res := db.engine.Exec(stmt)
+		if res.Error != nil {
+			return execResult(res)
+		}
+		allRows = append(allRows, res.Rows...)
+		if allColumns == nil {
+			allColumns = res.Columns
+		}
+		if res.LastInsertRowID > 0 {
+			db.lastRowID = res.LastInsertRowID
+		}
+	}
+
+	return &Result{
+		Columns: allColumns,
+		Rows:    allRows,
+	}
 }
 
 // DumpAll logs all schema entries and table contents (debug helper).

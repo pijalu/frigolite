@@ -1,0 +1,19 @@
+{
+  "file": "fts3sort.test",
+  "name": "fts3sort",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1"
+        }
+      ]
+    }
+  ]
+}

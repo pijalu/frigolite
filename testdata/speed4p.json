@@ -1,0 +1,39 @@
+{
+  "file": "speed4p.test",
+  "name": "speed4p",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(t);\n  CREATE INDEX i2 ON t2(t);\n  CREATE INDEX i3 ON t3(t);\n  COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4;\n  DROP TABLE log;\n  VACUUM;\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    }
+  ]
+}

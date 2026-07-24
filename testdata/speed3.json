@@ -1,0 +1,47 @@
+{
+  "file": "speed3.test",
+  "name": "speed3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux.t1 SELECT * FROM main.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM aux.sqlite_master ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(500000)"
+        }
+      ]
+    }
+  ]
+}

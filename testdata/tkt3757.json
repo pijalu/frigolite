@@ -1,0 +1,19 @@
+{
+  "file": "tkt3757.test",
+  "name": "tkt3757",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER, y INTEGER, z TEXT);\n     CREATE INDEX t1i1 ON t1(y,z);\n     INSERT INTO t1 VALUES(1,2,'three');\n     CREATE TABLE t2(a INTEGER, b TEXT);\n     INSERT INTO t2 VALUES(2, 'two');\n     ANALYZE;\n     SELECT * FROM sqlite_stat1 ORDER BY 1, 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t1','t1i1','250000 50000 30');"
+        }
+      ]
+    }
+  ]
+}

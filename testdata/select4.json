@@ -1,0 +1,497 @@
+{
+  "file": "select4.test",
+  "name": "select4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(n int, log int);\n  BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 WHERE log=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      UNION ALL\n      SELECT n FROM t1 WHERE log=2;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION ALL\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 UNION\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log\n    UNION\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 ORDER BY (SELECT 0) UNION SELECT 0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS \n      SELECT DISTINCT log FROM t1\n      EXCEPT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 EXCEPT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log\n    EXCEPT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT 6\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY t1.log;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS\n      SELECT DISTINCT log FROM t1 UNION ALL SELECT 6\n      INTERSECT\n      SELECT n FROM t1 WHERE log=3\n      ORDER BY log DESC;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log FROM t1 WHERE n IN \n        (SELECT DISTINCT log FROM t1 INTERSECT\n         SELECT n FROM t1 WHERE log=3)\n      ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t2\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log AS \"xyzzy\" FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY xyzzy;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log AS xyzzy FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY \"xyzzy\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY \"xyzzy\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    INTERSECT\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY \"xyzzy\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY n;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log, n FROM t1\n    UNION ALL\n    SELECT n FROM t1 WHERE log=3\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log FROM t1 WHERE n=2\n    UNION ALL\n    SELECT log FROM t1 WHERE n=3\n    UNION ALL\n    SELECT log FROM t1 WHERE n=4\n    UNION ALL\n    SELECT log FROM t1 WHERE n=5\n    ORDER BY log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) as cnt FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY cnt, log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT log, count(*) FROM t1 GROUP BY log\n    UNION\n    SELECT log, n FROM t1 WHERE n=7\n    ORDER BY count(*), log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION SELECT NULL UNION\n    SELECT 1 UNION SELECT 2 AS 'x'\n    ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL UNION ALL SELECT NULL UNION ALL\n    SELECT 1 UNION ALL SELECT 2 AS 'x'\n    ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT * FROM (\n         SELECT NULL, 1 UNION ALL SELECT NULL, 1\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT * FROM (\n         SELECT 1,2  UNION ALL SELECT 1,2\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT NULL EXCEPT SELECT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT log AS 'x', count(*) AS 'y' FROM t1 GROUP BY log;\n    SELECT * FROM t2 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(a text, b float, c text);\n    INSERT INTO t3 VALUES(1, 1.1, '1.1');\n    INSERT INTO t3 VALUES(2, 1.10, '1.10');\n    INSERT INTO t3 VALUES(3, 1.10, '1.1');\n    INSERT INTO t3 VALUES(4, 1.1, '1.10');\n    INSERT INTO t3 VALUES(5, 1.2, '1.2');\n    INSERT INTO t3 VALUES(6, 1.3, '1.3');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT b FROM t3 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT c FROM t3 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0 AS x, 1 AS y\n    UNION\n    SELECT 2 AS y, -3 AS x\n    ORDER BY x LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT -1 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 3 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY +log LIMIT 3 OFFSET 20"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT log FROM t1 ORDER BY log LIMIT 0 OFFSET 3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT max(n), log FROM t1 ORDER BY +log; -- LIMIT 2 OFFSET 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t13(a,b);\n    INSERT INTO t13 VALUES(1,1);\n    INSERT INTO t13 VALUES(2,1);\n    INSERT INTO t13 VALUES(3,1);\n    INSERT INTO t13 VALUES(2,2);\n    INSERT INTO t13 VALUES(3,2);\n    INSERT INTO t13 VALUES(4,2);\n    CREATE INDEX t13ab ON t13(a,b);\n    SELECT DISTINCT b from t13 WHERE a IN (1,2,3);"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t14(a,b,c);\n  INSERT INTO t14 VALUES(1,2,3),(4,5,6);\n  SELECT * FROM t14 INTERSECT VALUES(3,2,1),(2,3,1),(1,2,3),(2,1,3);",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 INTERSECT VALUES(1,2,3);",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14\n   UNION VALUES(3,2,1),(2,3,1),(1,2,3),(7,8,9),(4,5,6)\n   UNION SELECT * FROM t14 ORDER BY 1, 2, 3",
+          "expect": "{1 2 3 2 3 1 3 2 1 4 5 6 7 8 9}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14\n   UNION VALUES(3,2,1)\n   UNION SELECT * FROM t14 ORDER BY 1, 2, 3",
+          "expect": "{1 2 3 3 2 1 4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 EXCEPT VALUES(3,2,1),(2,3,1),(1,2,3),(2,1,3);",
+          "expect": "{4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 EXCEPT VALUES(1,2,3)",
+          "expect": "{4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 EXCEPT VALUES(1,2,3) EXCEPT VALUES(4,5,6)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 EXCEPT VALUES('a','b','c') EXCEPT VALUES(4,5,6)",
+          "expect": "{1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t14 UNION ALL VALUES(3,2,1),(2,3,1),(1,2,3),(2,1,3);",
+          "expect": "{1 2 3 4 5 6 3 2 1 2 3 1 1 2 3 2 1 3}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (VALUES(1),(2),(3),(4))",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4)",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(1) UNION VALUES(2);",
+          "expect": "{1 2}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(1),(2),(3) EXCEPT VALUES(2);",
+          "expect": "{1 3}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(1),(2),(3) EXCEPT VALUES(1),(3);",
+          "expect": "{2}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT 123), (SELECT 456) ON likely(0 OR 1) OR 0;",
+          "expect": "{123 456}"
+        }
+      ]
+    },
+    {
+      "name": "select4-14.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(1),(2),(3),(4) UNION ALL SELECT 5 LIMIT 99;",
+          "expect": "{1 2 3 4 5}"
+        }
+      ]
+    },
+    {
+      "name": "select4-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z,\n  PRIMARY KEY(a,b DESC)) WITHOUT ROWID;\n\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b,c,d)\n    SELECT x%10, x/10, x, printf('xyz%dabc',x) FROM c;\n\n  SELECT t3.c FROM \n    (SELECT a,max(b) AS m FROM t1 WHERE a>=5 GROUP BY a) AS t2\n    JOIN t1 AS t3\n  WHERE t2.a=t3.a AND t2.m=t3.b\n  ORDER BY t3.a;",
+          "expect": "{95 96 97 98 99}"
+        }
+      ]
+    },
+    {
+      "name": "select4-16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t3.c FROM \n    (SELECT a,max(b) AS m FROM t1 WHERE a>=5 GROUP BY a) AS t2\n    CROSS JOIN t1 AS t3\n  WHERE t2.a=t3.a AND t2.m=t3.b\n  ORDER BY t3.a;",
+          "expect": "{95 96 97 98 99}"
+        }
+      ]
+    },
+    {
+      "name": "select4-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a int, b int);\n  INSERT INTO t1 VALUES(1,2),(1,18),(2,19);\n  SELECT x, y FROM (\n    SELECT 98 AS x, 99 AS y\n    UNION\n    SELECT a AS x, sum(b) AS y FROM t1 GROUP BY a\n  ) AS w WHERE y>=20\n  ORDER BY +x;",
+          "expect": "{1 20 98 99}"
+        }
+      ]
+    },
+    {
+      "name": "select4-17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 GROUP BY a\n    UNION\n    SELECT 98 AS x, 99 AS y\n  ) AS w WHERE y>=20\n  ORDER BY +x;",
+          "expect": "{1 20 98 99}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "select4-18.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW t1(aa) AS\n     WITH t2(bb) AS (SELECT 123)\n     SELECT (SELECT min(bb) OVER()) FROM t2 GROUP BY bb;\n  SELECT * FROM t1;",
+          "expect": "{123}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

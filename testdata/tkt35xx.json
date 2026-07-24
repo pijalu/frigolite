@@ -1,0 +1,23 @@
+{
+  "file": "tkt35xx.test",
+  "name": "tkt35xx",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3"
+        }
+      ]
+    }
+  ]
+}

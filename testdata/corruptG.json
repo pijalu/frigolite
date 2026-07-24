@@ -1,0 +1,15 @@
+{
+  "file": "corruptG.test",
+  "name": "corruptG",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);"
+        }
+      ]
+    }
+  ]
+}

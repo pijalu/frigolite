@@ -1,0 +1,35 @@
+{
+  "file": "tkt3298.test",
+  "name": "tkt3298",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE VIEW v1 AS SELECT a AS x, b+1 AS y FROM t1;\n    CREATE TRIGGER r1 INSTEAD OF UPDATE ON v1\n      BEGIN\n        UPDATE t1 SET b=new.y-1 WHERE a=new.x;\n      END;\n    CREATE TRIGGER r2 INSTEAD OF DELETE ON v1\n      BEGIN\n        DELETE FROM t1 WHERE a=old.x;\n      END;\n    SELECT * FROM v1 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE v1 SET y=3 WHERE x=0;\n    SELECT * FROM v1 ORDER by x;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE v1 SET y=4 WHERE v1.x=2;\n    SELECT * FROM v1 ORDER by x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM v1 WHERE x=1;\n    SELECT * FROM v1 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM v1 WHERE v1.x=2;\n    SELECT * FROM v1 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(p,q);\n    INSERT INTO t2 VALUES(1,11);\n    INSERT INTO t2 VALUES(2,22);\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,'one');\n\n    SELECT *, (SELECT z FROM (SELECT y AS z FROM t3 WHERE x=t1.a+1) ) FROM t1;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "file": "schema4.test",
+  "name": "schema4",
+  "tests": [
+    {
+      "name": "schema4-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    DROP TABLE t1;\n    INSERT INTO tbl VALUES(1, 2);\n    UPDATE tbl SET b=a+b, a=a+1;\n    DELETE FROM tbl;\n    SELECT x, a, b FROM log;",
+          "expect": "{{after insert} 1 2 {after update} 2 3 {after delete} 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(456);\n    SELECT * FROM x1",
+          "expect": "{123 456}"
+        }
+      ]
+    }
+  ]
+}

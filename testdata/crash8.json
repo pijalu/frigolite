@@ -1,0 +1,99 @@
+{
+  "file": "crash8.test",
+  "name": "crash8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    INSERT INTO t1 VALUES(6, randstr(1000,1000));\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = off;\n    BEGIN;\n    DELETE FROM t1;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;\n    PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = persist;\n      CREATE TABLE ab(a, b);\n      INSERT INTO ab VALUES(0, 'abc');\n      INSERT INTO ab VALUES(1, NULL);\n      INSERT INTO ab VALUES(2, NULL);\n      INSERT INTO ab VALUES(3, NULL);\n      INSERT INTO ab VALUES(4, NULL);\n      INSERT INTO ab VALUES(5, NULL);\n      INSERT INTO ab VALUES(6, NULL);\n      UPDATE ab SET b = randstr(1000,1000);\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE aux.ab(a, b);\n      INSERT INTO aux.ab SELECT * FROM main.ab;\n\n      UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        UPDATE aux.ab SET b = 'def' WHERE a = 0;\n        UPDATE main.ab SET b = 'def' WHERE a = 0;\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM main.ab WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM  aux.ab WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM main.ab WHERE a = 0;\n      SELECT b FROM aux.ab WHERE a = 0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM aux.ab WHERE a = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM main.ab WHERE a = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

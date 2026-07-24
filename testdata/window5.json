@@ -1,0 +1,15 @@
+{
+  "file": "window5.test",
+  "name": "window5",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(4, 'a');\n  INSERT INTO t1 VALUES(6, 'b');\n  INSERT INTO t1 VALUES(1, 'c');\n  INSERT INTO t1 VALUES(5, 'd');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'f');"
+        }
+      ]
+    }
+  ]
+}

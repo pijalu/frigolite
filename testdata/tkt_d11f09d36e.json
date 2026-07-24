@@ -1,0 +1,27 @@
+{
+  "file": "tkt-d11f09d36e.test",
+  "name": "tkt_d11f09d36e",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

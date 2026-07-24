@@ -1,0 +1,277 @@
+{
+  "file": "with1.test",
+  "name": "with1",
+  "tests": [
+    {
+      "name": "5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;",
+          "expect": "{0 0 1 10 2 20 3 30 4 40 5 50 6 60 7 70 8 80 9 90}"
+        }
+      ]
+    },
+    {
+      "name": "5.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;",
+          "expect": "{0 0 1 10 2 20 3 30 4 40 4 40 5 50 6 60 7 70 7 70 8 80 8 80 8 80 8 80 9 90 9 90 9 90 9 90}"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE f(\n      id INTEGER PRIMARY KEY, parentid REFERENCES f, name TEXT\n  );\n\n  INSERT INTO f VALUES(0, NULL, '');\n  INSERT INTO f VALUES(1, 0, 'bin');\n    INSERT INTO f VALUES(2, 1, 'true');\n    INSERT INTO f VALUES(3, 1, 'false');\n    INSERT INTO f VALUES(4, 1, 'ls');\n    INSERT INTO f VALUES(5, 1, 'grep');\n  INSERT INTO f VALUES(6, 0, 'etc');\n    INSERT INTO f VALUES(7, 6, 'rc.d');\n      INSERT INTO f VALUES(8, 7, 'rc.apache');\n      INSERT INTO f VALUES(9, 7, 'rc.samba');\n  INSERT INTO f VALUES(10, 0, 'home');\n    INSERT INTO f VALUES(11, 10, 'dan');\n      INSERT INTO f VALUES(12, 11, 'public_html');\n        INSERT INTO f VALUES(13, 12, 'index.html');\n          INSERT INTO f VALUES(14, 13, 'logo.gif');"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tree(i, p);\n  INSERT INTO tree VALUES(1, NULL);\n  INSERT INTO tree VALUES(2, 1);\n  INSERT INTO tree VALUES(3, 1);\n  INSERT INTO tree VALUES(4, 2);\n  INSERT INTO tree VALUES(5, 4);"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tree"
+        }
+      ]
+    },
+    {
+      "name": "10.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a\n  ) \n  SELECT * FROM t",
+          "expect": "{1 {1st ORDER BY term does not match any column in the result set}}"
+        }
+      ]
+    },
+    {
+      "name": "10.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t",
+          "expect": "{1 2 3 4 5}"
+        }
+      ]
+    },
+    {
+      "name": "10.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH flat(fid, depth, p) AS (\n    SELECT id, 1, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, depth+1, p||'/'||payload FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3 COLLATE nocase\n  )\n  SELECT p FROM flat;",
+          "expect": "{\n  /a /B /c\n  /a/b /a/C /a/d /B/e /B/F /B/g /c/h /c/I /c/j\n}"
+        }
+      ]
+    },
+    {
+      "name": "10.8.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tst(a,b);\n  INSERT INTO tst VALUES('a', 'A');\n  INSERT INTO tst VALUES('b', 'B');\n  INSERT INTO tst VALUES('c', 'C');\n  SELECT a COLLATE nocase FROM tst UNION ALL SELECT b FROM tst ORDER BY 1;",
+          "expect": "{a A b B c C}"
+        }
+      ]
+    },
+    {
+      "name": "10.8.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM tst UNION ALL SELECT b COLLATE nocase FROM tst ORDER BY 1;",
+          "expect": "{A B C a b c}"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;",
+          "expect": "{{Alice"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;",
+          "expect": "{{Alice"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;",
+          "expect": "{{Alice"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(i) AS (SELECT * UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;",
+          "expect": "{1 {no tables specified}}"
+        }
+      ]
+    },
+    {
+      "name": "13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(i) AS (SELECT 5,* UNION ALL SELECT i+1 FROM c WHERE i<10)\n  SELECT i FROM c;",
+          "expect": "{1 {no tables specified}}"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH x AS (\n        WITH y(b) AS (SELECT 10)\n        SELECT * FROM y UNION ALL SELECT * FROM y\n    )\n    SELECT * FROM x"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;",
+          "expect": "{NULL}"
+        }
+      ]
+    },
+    {
+      "name": "19.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB",
+          "expect": "{1 1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "21.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "/* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB",
+          "expect": "{1 1 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc"
+        }
+      ]
+    },
+    {
+      "name": "25.$id",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH cte1 AS (\n      SELECT TRUE, (\n        WITH cte2 AS (SELECT avg(DISTINCT TRUE) FROM dual)\n        SELECT 2571 FROM cte2\n      ) AS subquery1\n      FROM dual\n      GROUP BY 1\n    )\n    SELECT (SELECT 1324 FROM cte1) FROM cte1;",
+          "expect": "{1324}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;",
+          "expect": "{a 1 a 2 a 3 b 1 b 2 b 3}"
+        }
+      ]
+    },
+    {
+      "name": "26.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;",
+          "expect": "{a 1 a 2 a 3 b 1 b 2 b 3}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "file": "in6.test",
+  "name": "in6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;"
+        }
+      ]
+    },
+    {
+      "name": "in6-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d FROM t1\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;",
+          "expect": "{1 2 3 4 5 8 9}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b, c, d);\n  INSERT INTO t2(b,c,d) VALUES(4,5,3),(4,5,4),(4,5,8);\n  CREATE INDEX t2bcd ON t2(b, c, d);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL AND c=5 AND d IN (2,3,4);",
+          "expect": "{0 {} {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT, b TEXT);\n  INSERT INTO t1 VALUES(null,10),(0,10),(10,10);\n  CREATE INDEX t1ab ON t1(a,b);\n  SELECT quote(a), quote(b), '|' FROM t1 WHERE b in (SELECT a FROM t1) AND a=0;",
+          "expect": "{'0' '10' |}"
+        }
+      ]
+    }
+  ]
+}

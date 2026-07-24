@@ -1,0 +1,26 @@
+{
+  "file": "pragma5.test",
+  "name": "pragma5",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name='upper' AND builtin",
+          "expect": "{upper 1}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_module_list WHERE name='fts5'",
+          "expect": "{fts5}"
+        }
+      ]
+    }
+  ]
+}

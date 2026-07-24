@@ -1,0 +1,23 @@
+{
+  "file": "tkt1435.test",
+  "name": "tkt1435",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Instances(\n    \tinstanceId INTEGER PRIMARY KEY,\n    \ttroveName STR,\n    \tversionId INT,\n    \tflavorId INT,\n    \ttimeStamps STR,\n    \tisPresent INT,\n    \tpinned BOOLEAN\n    );\n    INSERT INTO \"Instances\"\n       VALUES(1, 'libhello:runtime', 1, 1, 1126929880.094, 1, 1);\n    INSERT INTO \"Instances\"\n       VALUES(2, 'libhello:user', 1, 1, 1126929880.094, 1, 0);\n    INSERT INTO \"Instances\"\n       VALUES(3, 'libhello:script', 1, 1, 1126929880.094, 1, 0);\n    INSERT INTO \"Instances\"\n       VALUES(4, 'libhello', 1, 1, 1126929880.094, 1, 0);\n    \n    CREATE TABLE Versions(versionId INTEGER PRIMARY KEY,version STR UNIQUE);\n    INSERT INTO \"Versions\" VALUES(0, NULL);\n    INSERT INTO \"Versions\" VALUES(1, '/localhost@rpl:linux/0-1-1');\n    \n    CREATE TABLE Flavors(flavorId integer primary key, flavor str unique);\n    INSERT INTO \"Flavors\" VALUES(0, NULL);\n    INSERT INTO \"Flavors\" VALUES(1, '1#x86');\n    \n    CREATE TEMPORARY TABLE tlList (\n       row INTEGER PRIMARY KEY,\n       name STRING,\n       version STRING,\n       flavor STRING\n    );\n    \n    INSERT INTO tlList \n      values(NULL, 'libhello:script', '/localhost@rpl:linux/0-1-1', '1#x86');\n    INSERT INTO tlList \n      values(NULL, 'libhello:user', '/localhost@rpl:linux/0-1-1', '1#x86');\n    INSERT INTO tlList \n      values(NULL, 'libhello:runtime', '/localhost@rpl:linux/0-1-1', '1#x86');"
+        },
+        {
+          "type": "exec",
+          "sql": "select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX InstancesNameIdx ON Instances(troveName);\n    CREATE UNIQUE INDEX InstancesIdx \n      ON Instances(troveName, versionId, flavorId);\n    ANALYZE;\n    select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;"
+        }
+      ]
+    }
+  ]
+}

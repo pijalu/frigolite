@@ -1,0 +1,15 @@
+{
+  "file": "unordered.test",
+  "name": "unordered",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE sqlite_stat1 SET stat = stat || ' unordered'"
+        }
+      ]
+    }
+  ]
+}

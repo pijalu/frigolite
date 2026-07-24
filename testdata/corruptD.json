@@ -1,0 +1,19 @@
+{
+  "file": "corruptD.test",
+  "name": "corruptD",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 10;\n    DELETE FROM t1 WHERE a = 20;\n    DELETE FROM t1 WHERE a = 30;\n    DELETE FROM t1 WHERE a = 40;"
+        }
+      ]
+    }
+  ]
+}

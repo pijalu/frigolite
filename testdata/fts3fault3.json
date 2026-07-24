@@ -1,0 +1,40 @@
+{
+  "file": "fts3fault3.test",
+  "name": "fts3fault3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE x1(a PRIMARY KEY);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        }
+      ]
+    }
+  ]
+}

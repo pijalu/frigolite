@@ -1,0 +1,401 @@
+{
+  "file": "intpkey.test",
+  "name": "intpkey",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master\n    WHERE type='index' AND tbl_name='t1';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    SELECT name FROM sqlite_master\n      WHERE type='index' AND tbl_name='t1';"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,'hello','world');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5,'second','entry');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,'second','entry');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(b,c) VALUES('one','two');\n    SELECT b FROM t1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=4 WHERE b='one';\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a==4;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t1 WHERE a==4;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('x','y','z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('','y','z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3.4,'y','z');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-3,'y','z');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b=='y'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b=='y' AND rowid<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b=='y' AND rowid<0 AND rowid>=-20"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b>='y'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b>='y' AND rowid<10"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=8 WHERE b=='y';\n    SELECT * FROM t1 WHERE b=='y';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1 WHERE b<'second'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1 WHERE 'second'>b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1 WHERE 8>rowid AND 'second'>b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1 WHERE 8>rowid AND 'second'>b AND 0<rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, * FROM t1 WHERE b>'a'"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid=4;\n    SELECT * FROM t1 WHERE b>'a';"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=-4 WHERE rowid=8;\n    SELECT * FROM t1 WHERE b>'a';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i3 ON t1(c,a);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11,'hello','world')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0,'zero','entry');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, a FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(20,'b-20','c-20');\n    INSERT INTO t1 VALUES(21,'b-21','c-21');\n    INSERT INTO t1 VALUES(22,'b-22','c-22');\n    COMMIT;\n    SELECT * FROM t1 WHERE a>=20;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b=='hello'"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b='b-21';\n    SELECT * FROM t1 WHERE b=='b-21';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a>=20"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(c,b,a) VALUES('row','new',30);\n    SELECT * FROM t1 WHERE rowid>=30;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid>20;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT rowid FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET c='www' WHERE c='world';\n    SELECT rowid, a, c FROM t1 WHERE c=='www';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z);\n    INSERT INTO t2 VALUES(NULL, 1, 2);\n    SELECT * from t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL, 2, 3);\n    SELECT * from t2 WHERE x=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT NULL, z, y FROM t2;\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=2.0+3.0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=2.0+3.5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1.0',2,3);\n    SELECT * FROM t1 WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY, b INTEGER, c TEXT);\n    INSERT INTO t3 VALUES(1, 1, 'one');\n    INSERT INTO t3 VALUES(2, 2, '2');\n    INSERT INTO t3 VALUES(3, 3, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a>'2';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a<'2';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a<c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE a=c;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2147483647, 'big-1', 123);\n    SELECT * FROM t1 WHERE a>2147483648;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL, 'big-2', 234);\n    SELECT b FROM t1 WHERE a>=2147483648;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a>2147483648;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a>=2147483647;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a<2147483648;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a<12345678901;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a>12345678901;"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-16.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t16a(id \"INTEGER\" PRIMARY KEY AUTOINCREMENT, b [TEXT], c `INT`);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t17(x INTEGER PRIMARY KEY, y TEXT);\n  INSERT INTO t17(x,y) VALUES(123,'elephant'),(248,'giraffe');\n  CREATE INDEX t17x ON t17(x);\n  DELETE FROM t17 WHERE x=99 OR x<130;\n  SELECT * FROM t17;",
+          "expect": "{248 giraffe}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t17x;\n  DELETE FROM t17;\n  INSERT INTO t17(x,y) VALUES(123,'elephant'),(248,'giraffe');\n  CREATE UNIQUE INDEX t17x ON t17(abs(x));\n  DELETE FROM t17 WHERE abs(x) IS NULL OR abs(x)<130;\n  SELECT * FROM t17;",
+          "expect": "{248 giraffe}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(rowid,x) VALUES\n    (-9223372036854775808, 'min-int'),\n    (0, 'zero'),\n    (9223372036854775807, 'max-int');\n  SELECT rowid, * FROM t1 ORDER BY rowid;",
+          "expect": "{-9223372036854775808 min-int 0 zero 9223372036854775807 max-int}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = -9223372036854775808;",
+          "expect": "{min-int}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = -9223372036854775808.0;",
+          "expect": "{min-int}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = -9223372036854775809.0;",
+          "expect": "{min-int}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = -9223372036854777856.0;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = +9223372036854775807;",
+          "expect": "{max-int}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = +9223372036854775807.0;",
+          "expect": "{max-int}"
+        }
+      ]
+    },
+    {
+      "name": "intpkey-18.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 WHERE rowid = +9223372036854775808.0;",
+          "expect": "{max-int}"
+        }
+      ]
+    }
+  ]
+}

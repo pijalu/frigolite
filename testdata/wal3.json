@@ -1,0 +1,139 @@
+{
+  "file": "wal3.test",
+  "name": "wal3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 SELECT a_string(800) FROM t1 LIMIT 100;\n      ROLLBACK;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE filler(a,b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = off"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('o', 't');\n    INSERT INTO t1 VALUES('t', 'f');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = off"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('h', 'h');\n    INSERT INTO t1 VALUES('l', 'b');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('b', 'c');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('n', 'o');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM blue"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO blue VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO blue VALUES(3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM blue"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO blue VALUES(5, 6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM blue"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SELECT * FROM whoami"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM whoami"
+        }
+      ]
+    }
+  ]
+}

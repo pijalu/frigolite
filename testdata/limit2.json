@@ -1,0 +1,146 @@
+{
+  "file": "limit2.test",
+  "name": "limit2",
+  "tests": [
+    {
+      "name": "limit2-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);",
+          "expect": "set sqlite_search_count 0"
+        }
+      ]
+    },
+    {
+      "name": "limit2-100.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY b LIMIT 5;",
+          "expect": "{2 2 | 4 4 | 1 1000 | 1 1001 | 1 1002 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-100.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY +b LIMIT 5;",
+          "expect": "{2 2 | 4 4 | 1 1000 | 1 1001 | 1 1002 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES('a',1),('a',2),('a',3),('a',4);\n  INSERT INTO t2(x,y) VALUES('b',1),('c',2),('d',3),('e',4);\n  CREATE INDEX t2xy ON t2(x,y);",
+          "expect": "set sqlite_search_count 0"
+        }
+      ]
+    },
+    {
+      "name": "limit2-110.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, '|' FROM t2, t1 WHERE t2.x='a' AND t1.a=t2.y ORDER BY t1.b LIMIT 5;",
+          "expect": "{2 2 | 4 4 | 1 1000 | 1 1001 | 1 1002 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-110.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, '|' FROM t2, t1 WHERE t2.x='a' AND t1.a=t2.y ORDER BY +t1.b LIMIT 5;",
+          "expect": "{2 2 | 4 4 | 1 1000 | 1 1001 | 1 1002 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1ab;\n  CREATE INDEX t1ab ON t1(a,b DESC);",
+          "expect": "set sqlite_search_count 0"
+        }
+      ]
+    },
+    {
+      "name": "limit2-120.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY b DESC LIMIT 5;",
+          "expect": "{5 9999 | 1 1999 | 1 1998 | 1 1997 | 1 1996 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-120.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY +b DESC LIMIT 5;",
+          "expect": "{5 9999 | 1 1999 | 1 1998 | 1 1997 | 1 1996 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t200(a, b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t200(a,b) SELECT x, x FROM c;\n  CREATE TABLE t201(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t201(x,y) VALUES(2,12345);\n\n  SELECT *, '|' FROM t200, t201 WHERE x=b ORDER BY y LIMIT 3;",
+          "expect": "{2 2 2 12345 |}"
+        }
+      ]
+    },
+    {
+      "name": "limit2-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t300(a,b,c);\n  CREATE INDEX t300x ON t300(a,b,c);\n  INSERT INTO t300 VALUES(0,1,99),(0,1,0),(0,0,0);\n  SELECT *,'.' FROM t300 WHERE a=0 AND (c=0 OR c=99) ORDER BY c DESC;",
+          "expect": "{0 1 99 . 0 0 0 . 0 1 0 .}"
+        }
+      ]
+    },
+    {
+      "name": "500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t500(i INTEGER PRIMARY KEY, j);\n  INSERT INTO t500 VALUES(1, 1);\n  INSERT INTO t500 VALUES(2, 2);\n  INSERT INTO t500 VALUES(3, 3);\n  INSERT INTO t500 VALUES(4, 0);\n  INSERT INTO t500 VALUES(5, 5);\n  SELECT j FROM t500 WHERE i IN (1,2,3,4,5) ORDER BY j DESC LIMIT 3;",
+          "expect": "{5 3 2}"
+        }
+      ]
+    },
+    {
+      "name": "501",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t501(i INTEGER PRIMARY KEY, j);\n  INSERT INTO t501 VALUES(1, 5);\n  INSERT INTO t501 VALUES(2, 4);\n  INSERT INTO t501 VALUES(3, 3);\n  INSERT INTO t501 VALUES(4, 6);\n  INSERT INTO t501 VALUES(5, 1);\n  SELECT j FROM t501 WHERE i IN (1,2,3,4,5) ORDER BY j LIMIT 3;",
+          "expect": "{1 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "710",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(aa, bb);\n  INSERT INTO t1 VALUES('maroon','meal');\n  CREATE TABLE t2(cc, dd, ee, x VARCHAR(100));\n  INSERT INTO t2(cc,dd,ee) VALUES('maroon',1,'one');\n  INSERT INTO t2(cc,dd,ee) VALUES('maroon',2,'two');\n  INSERT INTO t2(cc,dd,ee) VALUES('maroon',0,'zero');\n  CREATE INDEX t2ddee ON t2(dd,ee);\n  CREATE INDEX t2cc ON t2(cc);\n   ANALYZE;\n  SELECT t2.cc, t2.dd, t2.ee FROM t1 CROSS JOIN t2 ON t1.aa=t2.cc\n  ORDER BY t2.dd LIMIT 1;",
+          "expect": "{maroon 0 zero}"
+        }
+      ]
+    }
+  ]
+}

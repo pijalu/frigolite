@@ -1,0 +1,141 @@
+{
+  "file": "with6.test",
+  "name": "with6",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;",
+          "expect": "{000 001 010 011 100 101 110 111}"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;",
+          "expect": "{000 001 010 011 100 101 110 111}"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x FROM c c1, c c2, c c3;",
+          "expect": "{000 001 010 011 100 101 110 111}"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 5) AS c2,\n         (SELECT x FROM c LIMIT 5) AS c3;",
+          "expect": "{000 001 010 011 100 101 110 111}"
+        }
+      ]
+    },
+    {
+      "name": "140",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS MATERIALIZED (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;",
+          "expect": "{000 001 010 011 100 101 110 111}"
+        }
+      ]
+    },
+    {
+      "name": "150",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c1.x||c2.x||c3.x\n    FROM (SELECT x FROM c LIMIT 5) AS c1,\n         (SELECT x FROM c LIMIT 6) AS c2,\n         (SELECT x FROM c LIMIT 7) AS c3;",
+          "expect": "{000 001 010 011 100 101 110 111}"
+        }
+      ]
+    },
+    {
+      "name": "160",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;",
+          "expect": "{100 301}"
+        }
+      ]
+    },
+    {
+      "name": "170",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS NOT MATERIALIZED (VALUES(0),(1))\n  SELECT c2.x + 100*(SELECT sum(x+1) FROM c WHERE c.x<=c2.x)\n    FROM c AS c2 WHERE c2.x<10;",
+          "expect": "{100 301}"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(4);\n  CREATE VIEW t2(y) AS\n    WITH c(z) AS (VALUES(4),(5),(6))\n    SELECT c1.z+c2.z*100+t1.x*10000\n      FROM t1,\n           (SELECT z FROM c LIMIT 5) AS c1,\n           (SELECT z FROM c LIMIT 5) AS c2;\n  SELECT y FROM t2 ORDER BY y;",
+          "expect": "{40404 40405 40406 40504 40505 40506 40604 40605 40606}"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW t2;\n  CREATE VIEW t2(y) AS\n    WITH c(z) AS NOT MATERIALIZED (VALUES(4),(5),(6))\n    SELECT c1.z+c2.z*100+t1.x*10000\n      FROM t1,\n           (SELECT z FROM c LIMIT 5) AS c1,\n           (SELECT z FROM c LIMIT 5) AS c2;\n  SELECT y FROM t2 ORDER BY y;",
+          "expect": "{40404 40405 40406 40504 40505 40506 40604 40605 40606}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INT,b INT,d INT); INSERT INTO t2 VALUES(4,5,6),(7,8,9);\n  CREATE TABLE t3(a INT,b INT,e INT); INSERT INTO t3 VALUES(3,3,3),(8,8,8);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));"
+        }
+      ]
+    }
+  ]
+}

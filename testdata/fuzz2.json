@@ -1,0 +1,19 @@
+{
+  "file": "fuzz2.test",
+  "name": "fuzz2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(t) FROM t0"
+        }
+      ]
+    }
+  ]
+}

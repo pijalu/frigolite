@@ -1,0 +1,15 @@
+{
+  "file": "incrblobfault.test",
+  "name": "incrblobfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE blob(x INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blob VALUES(1, 'hello world');\n  INSERT INTO blob VALUES(2, 'world hello');\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;\n  INSERT INTO blob SELECT NULL, v FROM blob;"
+        }
+      ]
+    }
+  ]
+}

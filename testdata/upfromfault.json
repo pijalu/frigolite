@@ -1,0 +1,62 @@
+{
+  "file": "upfromfault.test",
+  "name": "upfromfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH data(k, v) AS (\n          VALUES(3, 'thirty'), (1, 'ten')\n      )\n      UPDATE t1 SET z=v FROM data WHERE x=k;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);",
+          "expect": "faultsim_save_and_close"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE t2 SET x=a FROM t1 WHERE c=z;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL, NULL, 1), (NULL, NULL, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ]
+}

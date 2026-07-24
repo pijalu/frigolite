@@ -1,0 +1,36 @@
+{
+  "file": "notnullfault.test",
+  "name": "notnullfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE d NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b, c)) WITHOUT ROWID;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "file": "select5.test",
+  "name": "select5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x int, y int);\n  BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT y FROM t1 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(*) FROM t1 GROUP BY y ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(*) FROM t1 GROUP BY y ORDER BY count(*), y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), y FROM t1 GROUP BY y ORDER BY count(*), y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(*) FROM t1 GROUP BY z(y) ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(*) FROM t1 GROUP BY y HAVING count(*)<3 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(*) FROM t1 GROUP BY y HAVING z(y)<3 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, count(*) FROM t1 GROUP BY y HAVING count(*)<z ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, count(*), avg(y) FROM t1 GROUP BY x HAVING x<4 ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT avg(x) FROM t1 WHERE x>100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(x) FROM t1 WHERE x>100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(x) FROM t1 WHERE x>100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(x) FROM t1 WHERE x>100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(x) FROM t1 WHERE x>100"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 4, 5);\n    INSERT INTO t2 VALUES(6, 4, 7);\n    CREATE INDEX t2_idx ON t2(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 GROUP BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 WHERE a>2 GROUP BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t2 GROUP BY a, b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t2 GROUP BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(c), b*a, b, a FROM t2 GROUP BY b*a, b, a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,NULL);\n    INSERT INTO t3 VALUES(2,NULL);\n    INSERT INTO t3 VALUES(3,4);\n    SELECT count(x), y FROM t3 GROUP BY y ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x,y,z);\n    INSERT INTO t4 VALUES(1,2,NULL);\n    INSERT INTO t4 VALUES(2,3,NULL);\n    INSERT INTO t4 VALUES(3,NULL,5);\n    INSERT INTO t4 VALUES(4,NULL,6);\n    INSERT INTO t4 VALUES(4,NULL,6);\n    INSERT INTO t4 VALUES(5,NULL,NULL);\n    INSERT INTO t4 VALUES(5,NULL,NULL);\n    INSERT INTO t4 VALUES(6,7,8);\n    SELECT max(x), count(x), y, z FROM t4 GROUP BY y, z ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), count(x) as cnt FROM t4 GROUP BY y ORDER BY cnt;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8a(a,b);\n    CREATE TABLE t8b(x);\n    INSERT INTO t8a VALUES('one', 1);\n    INSERT INTO t8a VALUES('one', 2);\n    INSERT INTO t8a VALUES('two', 3);\n    INSERT INTO t8a VALUES('one', NULL);\n    INSERT INTO t8b(rowid,x) VALUES(1,111);\n    INSERT INTO t8b(rowid,x) VALUES(2,222);\n    INSERT INTO t8b(rowid,x) VALUES(3,333);\n    SELECT a, count(b) FROM t8a, t8b WHERE b=t8b.rowid GROUP BY a ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(b) FROM t8a, t8b WHERE b=+t8b.rowid GROUP BY a ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t8a.a, count(t8a.b) FROM t8a, t8b WHERE t8a.b=t8b.rowid\n     GROUP BY 1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(*) FROM t8a, t8b WHERE b=+t8b.rowid GROUP BY a ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(b) FROM t8a, t8b WHERE b<x GROUP BY a ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(t8a.b) FROM t8a, t8b WHERE b=t8b.rowid \n     GROUP BY a ORDER BY 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(b) FROM t8a, t8b GROUP BY a ORDER BY 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, count(*) FROM t8a, t8b GROUP BY a ORDER BY 2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

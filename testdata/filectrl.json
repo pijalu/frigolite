@@ -1,0 +1,15 @@
+{
+  "file": "filectrl.test",
+  "name": "filectrl",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE x(y);"
+        }
+      ]
+    }
+  ]
+}

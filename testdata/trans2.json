@@ -1,0 +1,51 @@
+{
+  "file": "trans2.test",
+  "name": "trans2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(u1), md5sum(u2) FROM t1 ORDER BY id"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "file": "rowvalue3.test",
+  "name": "rowvalue3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');"
+        }
+      ]
+    },
+    {
+      "name": "2.$tn.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)",
+          "expect": "{d e f}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');"
+        }
+      ]
+    }
+  ]
+}

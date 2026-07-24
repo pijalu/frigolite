@@ -1,0 +1,138 @@
+{
+  "file": "pagesize.test",
+  "name": "pagesize",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=511;\n    PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=512;\n    PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=8192;\n      PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=65537;\n      PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1234;\n      PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      INSERT INTO t1 VALUES(randstr(10,9000));\n      BEGIN;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      INSERT INTO t1 SELECT x||x FROM t1;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid%5!=0;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid%5!=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "pagesize-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;",
+          "expect": "{1024}"
+        }
+      ]
+    },
+    {
+      "name": "pagesize-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  COMMIT;"
+        }
+      ]
+    }
+  ]
+}

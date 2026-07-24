@@ -1,0 +1,36 @@
+{
+  "file": "e_insert.test",
+  "name": "e_insert",
+  "tests": [
+    {
+      "name": "e_insert-2.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a1 VALUES('x', 'y');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-4.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;",
+          "expect": "$err"
+        }
+      ]
+    }
+  ]
+}

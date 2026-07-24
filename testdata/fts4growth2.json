@@ -1,0 +1,31 @@
+{
+  "file": "fts4growth2.test",
+  "name": "fts4growth2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(docid, words);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, count(*) FROM x1_segdir GROUP BY level"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(level) FROM x1_segdir"
+        }
+      ]
+    }
+  ]
+}

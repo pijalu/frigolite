@@ -1,0 +1,73 @@
+{
+  "file": "closure01.test",
+  "name": "closure01",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), min(id), max(id) FROM c2 WHERE root=1;",
+          "expect": "{31 1 31}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM c2 WHERE root=10;",
+          "expect": "{10 20 21}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM c2 WHERE root=12;",
+          "expect": "{12 24 25}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM c2 WHERE root IN (10,12) ORDER BY id;",
+          "expect": "{10 12 20 21 24 25}"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4, vt4 WHERE t4.id = vt4.root AND vt4.id=4 AND vt4.depth=2;",
+          "expect": "# Bug 2026-06-26T10:06:27Z"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);"
+        }
+      ]
+    }
+  ]
+}

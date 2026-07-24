@@ -1,0 +1,15 @@
+{
+  "file": "wal4.test",
+  "name": "wal4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        }
+      ]
+    }
+  ]
+}

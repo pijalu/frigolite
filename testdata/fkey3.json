@@ -1,0 +1,195 @@
+{
+  "file": "fkey3.test",
+  "name": "fkey3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c, d, \n    UNIQUE(a, b),\n    FOREIGN KEY(c, d) REFERENCES t3(a, b)\n  );\n  INSERT INTO t3 VALUES(1, 2, 1, 2);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(NULL, 2, 5, 2);",
+          "expect": "{1 {FOREIGN KEY constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a UNIQUE, b REFERENCES t4(a));"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b REFERENCES t5(a));\n  INSERT INTO t5 VALUES(NULL, 1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,\n    FOREIGN KEY(c, d) REFERENCES t6(a, b)\n  );\n  CREATE UNIQUE INDEX t6i ON t6(b, a);",
+          "expect": "do_execsql_test 3.4.2  { INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); } {}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(2, 'a', 2, 'a');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(NULL, 'a', 1, 'a');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(5, 'a', 2, 'a');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  DELETE FROM t6 WHERE a = 100;"
+        }
+      ]
+    },
+    {
+      "name": "3.4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(100, 'one', 100, 'one');\n  UPDATE t6 SET c = 1, d = 'a' WHERE a = 100;\n  DELETE FROM t6 WHERE a = 100;"
+        }
+      ]
+    },
+    {
+      "name": "3.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a, b, c, d INTEGER PRIMARY KEY,\n    FOREIGN KEY(c, d) REFERENCES t7(a, b)\n  );\n  CREATE UNIQUE INDEX t7i ON t7(a, b);",
+          "expect": "do_execsql_test 3.5.2  { INSERT INTO t7 VALUES('x', 1, 'x', NULL) } {}"
+        }
+      ]
+    },
+    {
+      "name": "3.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES('x', 2, 'x', 2)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "3.5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES('x', 450, 'x', NULL);",
+          "expect": "{1 {FOREIGN KEY constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "3.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(a, b, c, d, e, FOREIGN KEY(c, d) REFERENCES t8(a, b));\n  CREATE UNIQUE INDEX t8i1 ON t8(a, b);\n  CREATE UNIQUE INDEX t8i2 ON t8(c);\n  INSERT INTO t8 VALUES(1, 1, 1, 1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "3.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t8 SET d = 2;",
+          "expect": "{1 {FOREIGN KEY constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "3.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t8 SET d = 1;"
+        }
+      ]
+    },
+    {
+      "name": "3.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t8 SET e = 2;"
+        }
+      ]
+    }
+  ]
+}

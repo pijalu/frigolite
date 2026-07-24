@@ -1,0 +1,27 @@
+{
+  "file": "withM.test",
+  "name": "withM",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH tmp AS ( SELECT * FROM t1 )\n    SELECT * FROM tmp;"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH w1 AS ( SELECT * FROM t1 ),\n         w2 AS ( \n           WITH w3 AS ( SELECT * FROM w1 )\n           SELECT * FROM w3\n         )\n    SELECT * FROM w2;"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH w1(a,b) AS ( \n      SELECT 1, 1\n      UNION ALL\n      SELECT a+1, b + 2*a + 1 FROM w1\n    )\n    SELECT * FROM w1 LIMIT 5;"
+        }
+      ]
+    }
+  ]
+}

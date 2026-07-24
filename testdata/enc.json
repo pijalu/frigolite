@@ -1,0 +1,79 @@
+{
+  "file": "enc.test",
+  "name": "enc",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a COLLATE test_collate, b);\n    INSERT INTO ab VALUES(CAST (X'C388' AS TEXT), X'888800');\n    INSERT INTO ab VALUES(CAST (X'C0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808388' AS TEXT), X'888800');\n    CREATE INDEX ab_i ON ab(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM ab WHERE a = $::cp200;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "enc-12.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA function_list"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_schema"
+        }
+      ]
+    },
+    {
+      "name": "enc-13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;",
+          "expect": "{ok ok ok}"
+        }
+      ]
+    }
+  ]
+}

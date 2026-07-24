@@ -1,0 +1,58 @@
+{
+  "file": "fts3conf.test",
+  "name": "fts3conf",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');",
+          "expect": "{1 {datatype mismatch}}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "do_execsql_test 2.2.3 { SELECT * FROM t1 } {{a b c} {a b c}}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "4.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

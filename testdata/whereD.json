@@ -1,0 +1,273 @@
+{
+  "file": "whereD.test",
+  "name": "whereD",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(i,j,k,m,n);\n  CREATE INDEX ijk ON t(i,j,k);\n  CREATE INDEX jmn ON t(j,m,n);\n\n  INSERT INTO t VALUES(3, 3, 'three', 3, 'tres');\n  INSERT INTO t VALUES(2, 2, 'two', 2, 'dos');\n  INSERT INTO t VALUES(1, 1, 'one', 1, 'uno');\n  INSERT INTO t VALUES(4, 4, 'four', 4, 'cuatro');"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2);",
+          "expect": "{one two}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (+i=2 AND j=2);",
+          "expect": "{one two}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2);",
+          "expect": "{uno dos}"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k, n FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2);",
+          "expect": "{one uno two dos}"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2) OR (i=3 AND j=3);",
+          "expect": "{one two three}"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2) OR (i=3 AND j=3);",
+          "expect": "{uno dos tres}"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (j=2 AND m=2);",
+          "expect": "{one two}"
+        }
+      ]
+    },
+    {
+      "name": "1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2) OR (j=3 AND m=3);",
+          "expect": "{one two three}"
+        }
+      ]
+    },
+    {
+      "name": "1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t WHERE (i=1 AND j=1) OR (i=2 AND j=2) OR (j=3 AND m=3);",
+          "expect": "{uno dos tres}"
+        }
+      ]
+    },
+    {
+      "name": "1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (j=2 AND m=2) OR (i=3 AND j=3);",
+          "expect": "{one two three}"
+        }
+      ]
+    },
+    {
+      "name": "1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t WHERE (i=1 AND j=1) OR (j=2 AND m=2) OR (i=3 AND j=3);",
+          "expect": "{uno dos tres}"
+        }
+      ]
+    },
+    {
+      "name": "1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (j=1 AND m=1) OR (i=2 AND j=2) OR (i=3 AND j=3);",
+          "expect": "{one two three}"
+        }
+      ]
+    },
+    {
+      "name": "1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=1) OR (j=2 AND i=2) OR (i=3 AND j=3);",
+          "expect": "{one two three}"
+        }
+      ]
+    },
+    {
+      "name": "1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT k FROM t WHERE (i=1 AND j=2) OR (i=2 AND j=1) OR (i=3 AND j=4);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n  CREATE INDEX t1d ON t1(d);\n  CREATE TABLE t2(x,y);\n  CREATE INDEX t2y ON t2(y);\n  \n  INSERT INTO t1 VALUES(1,2,3,4);\n  INSERT INTO t1 VALUES(5,6,7,8);\n  INSERT INTO t2 VALUES(1,2);\n  INSERT INTO t2 VALUES(2,7);\n  INSERT INTO t2 VALUES(3,4);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, x FROM t1 JOIN t2 ON +y=d OR x=7 ORDER BY a, x;",
+          "expect": "{1 3}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c);\n  CREATE UNIQUE INDEX i3 ON t3(a, b);\n  INSERT INTO t3 VALUES(1, 'one', 'i');\n  INSERT INTO t3 VALUES(3, 'three', 'iii');\n  INSERT INTO t3 VALUES(6, 'six', 'vi');\n  INSERT INTO t3 VALUES(2, 'two', 'ii');\n  INSERT INTO t3 VALUES(4, 'four', 'iv');\n  INSERT INTO t3 VALUES(5, 'five', 'v');\n\n  CREATE TABLE t4(x PRIMARY KEY, y);\n  INSERT INTO t4 VALUES('a', 'one');\n  INSERT INTO t4 VALUES('b', 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t41(a,b,c);\n    INSERT INTO t41 VALUES(1,2,3), (4,5,6);\n    CREATE TABLE t42(d,e,f);\n    INSERT INTO t42 VALUES(3,6,9), (4,8,12);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t42d ON t42(d);\n    CREATE INDEX t42e ON t42(e);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.d=x.b);"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t44(a INTEGER, b INTEGER);\n  INSERT INTO t44 VALUES(1,2);\n  INSERT INTO t44 VALUES(3,4);\n  SELECT *\n    FROM t44 AS x\n       LEFT JOIN (SELECT a AS c, b AS d FROM t44) AS y ON a=c\n   WHERE d=4 OR d IS NULL;",
+          "expect": "{3 4 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n    FROM t44 AS x\n       LEFT JOIN (SELECT a AS c, b AS d FROM t44) AS y ON a=c\n   WHERE d=4 OR d IS NULL\n   ORDER BY a;",
+          "expect": "{3 4 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t46(c INTEGER, d INTEGER);\n  INSERT INTO t46 SELECT a, b FROM t44;\n  SELECT * FROM t44 LEFT JOIN t46 ON a=c\n   WHERE d=4 OR d IS NULL;",
+          "expect": "{3 4 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t;\n  CREATE TABLE t(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17);\n  CREATE INDEX tc0 ON t(c0);\n  CREATE INDEX tc1 ON t(c1);\n  CREATE INDEX tc2 ON t(c2);\n  CREATE INDEX tc3 ON t(c3);\n  CREATE INDEX tc4 ON t(c4);\n  CREATE INDEX tc5 ON t(c5);\n  CREATE INDEX tc6 ON t(c6);\n  CREATE INDEX tc7 ON t(c7);\n  CREATE INDEX tc8 ON t(c8);\n  CREATE INDEX tc9 ON t(c9);\n  CREATE INDEX tc10 ON t(c10);\n  CREATE INDEX tc11 ON t(c11);\n  CREATE INDEX tc12 ON t(c12);\n  CREATE INDEX tc13 ON t(c13);\n  CREATE INDEX tc14 ON t(c14);\n  CREATE INDEX tc15 ON t(c15);\n  CREATE INDEX tc16 ON t(c16);\n  CREATE INDEX tc17 ON t(c17);\n  \n  INSERT INTO t(c0, c16) VALUES (1,1);\n  \n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;",
+          "expect": "{1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1 {}}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t;\n  INSERT INTO t(c0,c17) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;",
+          "expect": "{1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1}"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c, d, e);\n  CREATE INDEX x1a  ON x1(a);\n  CREATE INDEX x1bc ON x1(b, c);\n  CREATE INDEX x1cd ON x1(c, d);\n\n  INSERT INTO x1 VALUES(1, 2, 3, 4, 'A');\n  INSERT INTO x1 VALUES(5, 6, 7, 8, 'B');\n  INSERT INTO x1 VALUES(9, 10, 11, 12, 'C');\n  INSERT INTO x1 VALUES(13, 14, 15, 16, 'D');"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(a, b);\n  CREATE TABLE y2(x, y);\n  CREATE INDEX y2xy ON y2(x, y);\n  INSERT INTO y1 VALUES(1, 1);\n  INSERT INTO y2 VALUES(3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE foo (Id INTEGER PRIMARY KEY, fa INTEGER, fb INTEGER); \n  CREATE TABLE bar (Id INTEGER PRIMARY KEY, ba INTEGER, bb INTEGER);\n\n  INSERT INTO foo VALUES(1, 1, 1);\n  INSERT INTO foo VALUES(2, 1, 2);\n  INSERT INTO foo VALUES(3, 1, 3);\n  INSERT INTO foo VALUES(4, 1, 4);\n  INSERT INTO foo VALUES(5, 1, 5);\n  INSERT INTO foo VALUES(6, 1, 6);\n  INSERT INTO foo VALUES(7, 1, 7);\n  INSERT INTO foo VALUES(8, 1, 8);\n  INSERT INTO foo VALUES(9, 1, 9);\n\n  INSERT INTO bar VALUES(NULL, 1, 1);\n  INSERT INTO bar VALUES(NULL, 2, 2);\n  INSERT INTO bar VALUES(NULL, 3, 3);\n  INSERT INTO bar VALUES(NULL, 1, 4);\n  INSERT INTO bar VALUES(NULL, 2, 5);\n  INSERT INTO bar VALUES(NULL, 3, 6);\n  INSERT INTO bar VALUES(NULL, 1, 7);\n  INSERT INTO bar VALUES(NULL, 2, 8);\n  INSERT INTO bar VALUES(NULL, 3, 9);"
+        }
+      ]
+    }
+  ]
+}

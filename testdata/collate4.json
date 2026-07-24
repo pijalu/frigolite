@@ -1,0 +1,167 @@
+{
+  "file": "collate4.test",
+  "name": "collate4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a COLLATE NOCASE, b COLLATE TEXT);\n    INSERT INTO collate4t1 VALUES( 'a', 'a' );\n    INSERT INTO collate4t1 VALUES( 'b', 'b' );\n    INSERT INTO collate4t1 VALUES( NULL, NULL );\n    INSERT INTO collate4t1 VALUES( 'B', 'B' );\n    INSERT INTO collate4t1 VALUES( 'A', 'A' );\n    CREATE INDEX collate4i1 ON collate4t1(a);\n    CREATE INDEX collate4i2 ON collate4t1(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t2(\n      a PRIMARY KEY COLLATE NOCASE, \n      b UNIQUE COLLATE TEXT\n    );\n    INSERT INTO collate4t2 VALUES( 'a', 'a' );\n    INSERT INTO collate4t2 VALUES( NULL, NULL );\n    INSERT INTO collate4t2 VALUES( 'B', 'B' );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t3(\n      b COLLATE TEXT,  \n      a COLLATE NOCASE, \n      UNIQUE(a), PRIMARY KEY(b)\n    );\n    INSERT INTO collate4t3 VALUES( 'a', 'a' );\n    INSERT INTO collate4t3 VALUES( NULL, NULL );\n    INSERT INTO collate4t3 VALUES( 'B', 'B' );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t4(a COLLATE NOCASE, b COLLATE TEXT);\n    INSERT INTO collate4t4 VALUES( 'a', 'a' );\n    INSERT INTO collate4t4 VALUES( 'b', 'b' );\n    INSERT INTO collate4t4 VALUES( NULL, NULL );\n    INSERT INTO collate4t4 VALUES( 'B', 'B' );\n    INSERT INTO collate4t4 VALUES( 'A', 'A' );\n    CREATE INDEX collate4i3 ON collate4t4(a COLLATE TEXT);\n    CREATE INDEX collate4i4 ON collate4t4(b COLLATE NOCASE);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n    DROP TABLE collate4t3;\n    DROP TABLE collate4t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a COLLATE NOCASE, b COLLATE TEXT);\n    INSERT INTO collate4t1 VALUES( 'a', 'a' );\n    INSERT INTO collate4t1 VALUES( 'b', 'b' );\n    INSERT INTO collate4t1 VALUES( NULL, NULL );\n    INSERT INTO collate4t1 VALUES( 'B', 'B' );\n    INSERT INTO collate4t1 VALUES( 'A', 'A' );\n    CREATE INDEX collate4i1 ON collate4t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t2(\n      a COLLATE NOCASE, \n      b COLLATE TEXT, \n      PRIMARY KEY(a, b)\n    );\n    INSERT INTO collate4t2 VALUES( 'a', 'a' );\n    INSERT INTO collate4t2 VALUES( NULL, NULL );\n    INSERT INTO collate4t2 VALUES( 'B', 'B' );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t3(a COLLATE NOCASE, b COLLATE TEXT);\n    INSERT INTO collate4t3 VALUES( 'a', 'a' );\n    INSERT INTO collate4t3 VALUES( 'b', 'b' );\n    INSERT INTO collate4t3 VALUES( NULL, NULL );\n    INSERT INTO collate4t3 VALUES( 'B', 'B' );\n    INSERT INTO collate4t3 VALUES( 'A', 'A' );\n    CREATE INDEX collate4i2 ON collate4t3(a COLLATE TEXT, b COLLATE NOCASE);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n    DROP TABLE collate4t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA automatic_index=OFF;\n    CREATE TABLE collate4t1(a COLLATE NOCASE);\n    CREATE TABLE collate4t2(b COLLATE TEXT);\n\n    INSERT INTO collate4t1 VALUES('a');\n    INSERT INTO collate4t1 VALUES('A');\n    INSERT INTO collate4t1 VALUES('b');\n    INSERT INTO collate4t1 VALUES('B');\n    INSERT INTO collate4t1 VALUES('c');\n    INSERT INTO collate4t1 VALUES('C');\n    INSERT INTO collate4t1 VALUES('d');\n    INSERT INTO collate4t1 VALUES('D');\n    INSERT INTO collate4t1 VALUES('e');\n    INSERT INTO collate4t1 VALUES('D');\n\n    INSERT INTO collate4t2 VALUES('A');\n    INSERT INTO collate4t2 VALUES('Z');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate4i1 ON collate4t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;\n    DROP TABLE collate4t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a COLLATE nocase, b COLLATE text, c);\n    CREATE TABLE collate4t2(a COLLATE nocase, b COLLATE text, c COLLATE TEXT);\n\n    INSERT INTO collate4t1 VALUES('0', '0', '0');\n    INSERT INTO collate4t1 VALUES('0', '0', '1');\n    INSERT INTO collate4t1 VALUES('0', '1', '0');\n    INSERT INTO collate4t1 VALUES('0', '1', '1');\n    INSERT INTO collate4t1 VALUES('1', '0', '0');\n    INSERT INTO collate4t1 VALUES('1', '0', '1');\n    INSERT INTO collate4t1 VALUES('1', '1', '0');\n    INSERT INTO collate4t1 VALUES('1', '1', '1');\n    insert into collate4t2 SELECT * FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate4i1 ON collate4t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c COLLATE text);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;\n    DROP TABLE collate4t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a PRIMARY KEY COLLATE NOCASE);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;\n    CREATE TABLE collate4t1(a COLLATE NOCASE UNIQUE);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;\n    CREATE TABLE collate4t1(a);\n    CREATE UNIQUE INDEX collate4i1 ON collate4t1(a COLLATE NOCASE);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a COLLATE TEXT);\n    INSERT INTO collate4t1 VALUES('2');\n    INSERT INTO collate4t1 VALUES('10');\n    INSERT INTO collate4t1 VALUES('20');\n    INSERT INTO collate4t1 VALUES('104');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate4i1 ON collate4t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE NUMERIC);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a COLLATE TEXT, b COLLATE NUMERIC);\n    INSERT INTO collate4t1 VALUES('11', '101');\n    INSERT INTO collate4t1 VALUES('101', '11')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a, b) FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(b, a) FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(a, '101') FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max('101', a) FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(b, '101') FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max('101', b) FROM collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate4t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate4t1(a INTEGER PRIMARY KEY);\n    INSERT INTO collate4t1 VALUES(101);\n    INSERT INTO collate4t1 VALUES(10);\n    INSERT INTO collate4t1 VALUES(15);"
+        }
+      ]
+    }
+  ]
+}

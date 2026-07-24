@@ -1,0 +1,34 @@
+{
+  "file": "reservebytes.test",
+  "name": "reservebytes",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM",
+          "expect": "do_execsql_test -db db2 1.3.4 { PRAGMA integrity_check } {ok}"
+        }
+      ]
+    },
+    {
+      "name": "1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM",
+          "expect": "do_execsql_test -db db2 1.4.3 { PRAGMA integrity_check } {ok}"
+        }
+      ]
+    }
+  ]
+}

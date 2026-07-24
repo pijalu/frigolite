@@ -1,0 +1,19 @@
+{
+  "file": "corruptB.test",
+  "name": "corruptB",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't2'"
+        }
+      ]
+    }
+  ]
+}

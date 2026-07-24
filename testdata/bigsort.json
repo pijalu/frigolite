@@ -1,0 +1,16 @@
+{
+  "file": "bigsort.test",
+  "name": "bigsort",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);",
+          "expect": "finish_test"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "file": "autoanalyze1.test",
+  "name": "autoanalyze1",
+  "tests": [
+    {
+      "name": "autoanalyze1-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=55;",
+          "expect": "{55 55 55 55}"
+        }
+      ]
+    },
+    {
+      "name": "autoanalyze1-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a IN (55,199,299);",
+          "expect": "{55 55 55 55}"
+        }
+      ]
+    },
+    {
+      "name": "autoanalyze1-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (b,c)=(45,45);",
+          "expect": "{45 45 45 45}"
+        }
+      ]
+    },
+    {
+      "name": "autoanalyze1-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE d=45;",
+          "expect": "{45 45 45 45}"
+        }
+      ]
+    },
+    {
+      "name": "autoanalyze1-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE d=45 AND a=45;",
+          "expect": "{45 45 45 45}"
+        }
+      ]
+    },
+    {
+      "name": "autoanalyze1-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE d=45 AND a IN (45,46);",
+          "expect": "{45 45 45 45}"
+        }
+      ]
+    },
+    {
+      "name": "autoanalyze1-400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b=45;",
+          "expect": "{45 45 45 45}"
+        }
+      ]
+    }
+  ]
+}

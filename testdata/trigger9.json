@@ -1,0 +1,123 @@
+{
+  "file": "trigger9.test",
+  "name": "trigger9",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TRIGGER trig1 BEFORE DELETE ON t1 WHEN old.x='1' BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      DELETE FROM t1;\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.rowid);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TRIGGER trig1 BEFORE UPDATE ON t1 WHEN old.x>='2' BEGIN\n        INSERT INTO t2 VALUES(old.x);\n      END;\n      UPDATE t1 SET y = '';\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b);\n    INSERT INTO t3 VALUES(1, 'one');\n    INSERT INTO t3 VALUES(2, 'two');\n    INSERT INTO t3 VALUES(3, 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE VIEW v1 AS SELECT * FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE VIEW v1 AS SELECT a, b AS c FROM t3 WHERE c > 'one';\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET c = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t3 VALUES(3, 'three');\n      INSERT INTO t3 VALUES(3, 'four');\n      CREATE VIEW v1 AS SELECT DISTINCT a, b FROM t3;\n      CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n        INSERT INTO t2 VALUES(old.a);\n      END;\n      UPDATE v1 SET b = 'hello';\n      SELECT * FROM t2;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t3 VALUES(1, 'uno');\n        CREATE VIEW v1 AS SELECT a, b FROM t3 EXCEPT SELECT 1, 'one';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t3 VALUES(1, 'zero');\n        CREATE VIEW v1 AS \n          SELECT sum(a) AS a, max(b) AS b FROM t3 GROUP BY t3.a HAVING b>'two';\n        CREATE TRIGGER trig1 INSTEAD OF UPDATE ON v1 BEGIN\n          INSERT INTO t2 VALUES(old.a);\n        END;\n        UPDATE v1 SET b = 'hello';\n        SELECT * FROM t2;\n      ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  CREATE VIEW v1 AS SELECT a, b FROM t1;\n\n  CREATE TRIGGER tr1 INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n\n  CREATE TRIGGER tr2 INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n  CREATE TRIGGER tr3 INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE v1 SET a=b WHERE rowid=2;",
+          "expect": "{1 {no such column: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "4.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM log;"
+        }
+      ]
+    }
+  ]
+}

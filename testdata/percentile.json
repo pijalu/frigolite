@@ -1,0 +1,116 @@
+{
+  "file": "percentile.test",
+  "name": "percentile",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT percentile(x,0) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT median(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.median",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT median(x) FROM t1;",
+          "expect": "8.0"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.distinct.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT percentile(DISTINCT 50) WITHIN GROUP (ORDER BY x) FROM t1;",
+          "expect": "{1 {DISTINCT not allowed on ordered-set aggregate percentile()}}"
+        }
+      ]
+    },
+    {
+      "name": "percentile-1.1.median",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1;",
+          "expect": "{1 {near \"(\": syntax error}}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL),(NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT median(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2 SELECT x+0.0 FROM t1 ORDER BY random();"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT median(x) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT median() WITHIN GROUP (ORDER BY x) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "percentile-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);"
+        }
+      ]
+    },
+    {
+      "name": "percential-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);"
+        }
+      ]
+    },
+    {
+      "name": "percentile-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);"
+        }
+      ]
+    }
+  ]
+}

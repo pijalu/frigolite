@@ -1,0 +1,27 @@
+{
+  "file": "fts3c.test",
+  "name": "fts3c",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT level, idx FROM t1_segdir ORDER BY level, idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, idx FROM t1_segdir ORDER BY level, idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, idx FROM t1_segdir ORDER BY level, idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, idx FROM t1_segdir ORDER BY level, idx;"
+        }
+      ]
+    }
+  ]
+}

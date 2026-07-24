@@ -1,0 +1,56 @@
+{
+  "file": "pager4.test",
+  "name": "pager4",
+  "tests": [
+    {
+      "name": "pager4-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "{0 {673 stone philips}}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "{0 {673 stone philips}}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;",
+          "expect": "{0 {off 107 stone philips}}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';",
+          "expect": "{1 {attempt to write a readonly database}}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';",
+          "expect": "{1 {attempt to write a readonly database}}"
+        }
+      ]
+    }
+  ]
+}

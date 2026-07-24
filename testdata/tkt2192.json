@@ -1,0 +1,35 @@
+{
+  "file": "tkt2192.test",
+  "name": "tkt2192",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- Raw data (RBS) --------\n    \n    create table records (\n      date          real,\n      type          text,\n      description   text,\n      value         integer,\n      acc_name      text,\n      acc_no        text\n    );\n    \n    -- Direct Debits ----------------\n    create view direct_debits as\n      select * from records where type = 'D/D';\n    \n    create view monthly_direct_debits as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits\n       group by strftime('%Y-%m', date);\n    \n    -- Expense Categories ---------------\n    create view energy as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits\n       where description like '%NPOWER%'\n       group by strftime('%Y-%m', date);\n    \n    create view phone_internet as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits\n       where description like '%BT DIRECT%'\n          or description like '%SUPANET%'\n          or description like '%ORANGE%'\n       group by strftime('%Y-%m', date);\n    \n    create view credit_cards as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits where description like '%VISA%'\n       group by strftime('%Y-%m', date);\n    \n    -- Overview ---------------------\n    \n    create view expense_overview as\n      select 'Energy' as expense, date, value from energy\n      union\n      select 'Phone/Internet' as expense, date, value from phone_internet\n      union\n      select 'Credit Card' as expense, date, value from credit_cards;\n    \n    create view jan as\n      select 'jan', expense, value from expense_overview\n       where date like '%-01';\n    \n    create view nov as\n      select 'nov', expense, value from expense_overview\n       where date like '%-11';\n    \n    create view summary as\n      select * from jan join nov on (jan.expense = nov.expense);"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from summary;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    CREATE VIEW v1 AS\n      SELECT * FROM t1 WHERE b%7=0 UNION SELECT * FROM t1 WHERE b%5=0;\n    INSERT INTO t1 VALUES(1,7);\n    INSERT INTO t1 VALUES(2,10);\n    INSERT INTO t1 VALUES(3,14);\n    INSERT INTO t1 VALUES(4,15);\n    INSERT INTO t1 VALUES(1,16);\n    INSERT INTO t1 VALUES(2,17);\n    INSERT INTO t1 VALUES(3,20);\n    INSERT INTO t1 VALUES(4,21);\n    INSERT INTO t1 VALUES(1,22);\n    INSERT INTO t1 VALUES(2,24);\n    INSERT INTO t1 VALUES(3,25);\n    INSERT INTO t1 VALUES(4,26);\n    INSERT INTO t1 VALUES(1,27);\n \n    SELECT b FROM v1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v1 ORDER BY a, b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x.a || '/' || x.b || '/' || y.b\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2 AS\n    SELECT x.a || '/' || x.b || '/' || y.b AS z\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b;\n    SELECT * FROM v2;"
+        }
+      ]
+    }
+  ]
+}

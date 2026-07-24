@@ -1,0 +1,59 @@
+{
+  "file": "crash4.test",
+  "name": "crash4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a(id INTEGER, name CHAR(50))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(1,'one')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(2,'two')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(3,'three')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(4,'four')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(5,'five')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(6,'six')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(7,'seven')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(8,'eight')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(9,'nine')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a(id,name) VALUES(10,'ten')"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE A SET name='new text for row 3' WHERE id=3"
+        }
+      ]
+    }
+  ]
+}

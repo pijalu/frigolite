@@ -1,0 +1,23 @@
+{
+  "file": "tkt-54844eea3f.test",
+  "name": "tkt_54844eea3f",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(4);\n\n    CREATE TABLE t2(b INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT b+2 FROM t2;\n    INSERT INTO t2 SELECT b+4 FROM t2;\n    INSERT INTO t2 SELECT b+8 FROM t2;\n    INSERT INTO t2 SELECT b+16 FROM t2;\n\n    CREATE TABLE t3(c INTEGER PRIMARY KEY);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 VALUES(3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'test-2', t3.c, (\n          SELECT count(*) \n          FROM t1 JOIN (SELECT DISTINCT t3.c AS p FROM t2) AS x ON t1.a=x.p\n    )\n    FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES('a', 1, 'one');\n    INSERT INTO t4 VALUES('a', 2, 'two');\n    INSERT INTO t4 VALUES('b', 1, 'three');\n    INSERT INTO t4 VALUES('b', 2, 'four');\n    SELECT ( \n      SELECT c FROM (\n        SELECT * FROM t4 WHERE a=out.a ORDER BY b LIMIT 10 OFFSET 1\n      ) WHERE b=out.b\n    ) FROM t4 AS out;"
+        }
+      ]
+    }
+  ]
+}

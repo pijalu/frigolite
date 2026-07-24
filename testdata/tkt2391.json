@@ -1,0 +1,27 @@
+{
+  "file": "tkt2391.test",
+  "name": "tkt2391",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE folders(folderid, parentid, foldername COLLATE binary);\n    INSERT INTO folders VALUES(1, 3, 'FolderA');\n    INSERT INTO folders VALUES(1, 3, 'folderB');\n    INSERT INTO folders VALUES(4, 0, 'FolderC');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM folders WHERE foldername < 'FolderC';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX f_i ON folders(foldername);\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;"
+        }
+      ]
+    }
+  ]
+}

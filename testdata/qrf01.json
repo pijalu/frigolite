@@ -1,0 +1,68 @@
+{
+  "file": "qrf01.test",
+  "name": "qrf01",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1,2.5,'three'),(x'424c4f42',NULL,'\u1f08\u03bc\u03ae\u03bd');"
+        }
+      ]
+    },
+    {
+      "name": "2.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET c='\u0397 \u03b3\u03c1\u03ae\u03b3\u03bf\u03c1\u03b7 \u03b1\u03bb\u03b5\u03c0\u03bf\u03cd \u03c0\u03b7\u03b4\u03ac\u03b5\u03b9 \u03c0\u03ac\u03bd\u03c9 \u03b1\u03c0\u03cc \u03c4\u03bf \u03c4\u03b5\u03bc\u03c0\u03ad\u03bb\u03b9\u03ba\u03bf \u03ba\u03b1\u03c6\u03ad \u03c3\u03ba\u03c5\u03bb\u03af';\n  SELECT hex(c) FROM t1;",
+          "expect": "{CE9720CEB3CF81CEAECEB3CEBFCF81CEB720CEB1CEBBCEB5CF80CEBFCF8D20CF80CEB7CEB4CEACCEB5CEB920CF80CEACCEBDCF8920CEB1CF80CF8C20CF84CEBF20CF84CEB5CEBCCF80CEADCEBBCEB9CEBACEBF20CEBACEB1CF86CEAD20CF83CEBACF85CEBBCEAF}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n  INSERT INTO t2 VALUES\n     (1, 2.5, 'three', x'342028666f757229', null);"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abc\u3041def\u304bghi\u306ejkl\u306fmnop');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(x);\n    INSERT INTO t9 VALUES\n      (x'4331323334'),\n      (x'c30431323334'),\n      (x'd3000431323334'),\n      (x'e30000000431323334'),\n      (x'f3000000000000000431323334');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES\n      ('alice'),\n      ('bob'),\n      ('cinderella-cinderella'),\n      ('daniel'),\n      ('emma'),\n      ('fred'),\n      ('gertrude'),\n      ('harold'),\n      ('ingrid'),\n      ('jake'),\n      ('lisa'),\n      ('mike'),\n      ('nina'),\n      ('octavian'),\n      ('paula'),\n      ('quintus'),\n      ('rita'),\n      ('sam'),\n      ('tammy'),\n      ('ulysses'),\n      ('violet'),\n      ('william'),\n      ('xanthippe'),\n      ('yates'),\n      ('zoe');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t13(a,b);\n    INSERT INTO t13(a,b) VALUES\n      (1,'NULL'),\n      (0,'-NULL-'),\n      (0,''),\n      (1,'''abcde'),\n      (1,'abcde'''),\n      (0,'abcde'),\n      (1,' abcde'),\n      (1,'abcde '),\n      (1,'+0'),\n      (1,'-0'),\n      (1,'012345'),\n      (0,'012xyz345'),\n      (1,'0123.45'),\n      (0,'12.34.56'),\n      (0,'12.3e'),\n      (1,'12.3e+123'),\n      (1,'12.3e-34'),\n      (1,'12.3E56'),\n      (1,'12E56'),\n      (0,'12.5E5.6'),\n      (0,'12.5e+'),\n      (0,'12.5e-'),\n      (1,'+Inf'),(1,'-Inf'),(1,'Inf');"
+        }
+      ]
+    }
+  ]
+}

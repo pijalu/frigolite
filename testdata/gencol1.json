@@ -1,0 +1,447 @@
+{
+  "file": "gencol1.test",
+  "name": "gencol1",
+  "tests": [
+    {
+      "name": "gencol1-2.$tn.150",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;",
+          "expect": "{30 null ntalo | 40 text balaya | 150 integer {} | 1010 real {} |}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-3.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = true;\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 AS (c0+c1-c3) REFERENCES t0, c3);\n  INSERT INTO t0 VALUES (0, 0, 0), (11, 5, 5);\n  UPDATE t0 SET c1 = c0, c3 = c0;\n  SELECT *, '|' FROM t0 ORDER BY +c0;",
+          "expect": "{0 0 0 0 | 11 11 11 11 |}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-4.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0 GENERATED ALWAYS AS (1), c1 UNIQUE, c2 UNIQUE);\n  INSERT INTO t0(c1) VALUES (1);\n  SELECT quote(0 = t0.c2 OR t0.c1 BETWEEN t0.c2 AND 1) FROM t0;",
+          "expect": "{NULL}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 NOT NULL DEFAULT 'xyz', c1 AS(c0) NOT NULL);\n  REPLACE INTO t0(c0) VALUES(NULL);\n  SELECT * FROM t0;",
+          "expect": "{xyz xyz}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 NOT NULL DEFAULT 'xyz', c1 AS(c0) STORED NOT NULL);\n  REPLACE INTO t0(c0) VALUES(NULL);\n  SELECT * FROM t0;",
+          "expect": "{xyz xyz}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(c) NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t1(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t1;",
+          "expect": "{aaa ccc ccc}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(c) STORED NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t1(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t1;",
+          "expect": "{aaa ccc ccc}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(a) NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t2(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t2;",
+          "expect": "{aaa aaa ccc}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n  CREATE TABLE t2(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(a) STORED NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t2(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t2;",
+          "expect": "{aaa aaa ccc}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a NOT NULL DEFAULT 123, b AS(a) UNIQUE);\n  REPLACE INTO t3 VALUES(NULL);\n  SELECT * FROM t3;",
+          "expect": "{123 123}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE b=123;",
+          "expect": "{123 123}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-7.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a NOT NULL DEFAULT 123, b AS(a*10+4) STORED UNIQUE);\n  REPLACE INTO t4 VALUES(NULL);\n  SELECT * FROM t4;",
+          "expect": "{123 1234}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-8.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0 AS (('a', 9) < ('b', c1)),\n    c1 AS (1),\n    c2 CHECK (1 = c1)\n  );\n  INSERT INTO t0 VALUES (0),(99);\n  SELECT * FROM t0;",
+          "expect": "{1 1 0 1 1 99}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-9.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=OFF;\n  CREATE TABLE t1(aa , bb AS (17) UNIQUE);\n  INSERT INTO t1 VALUES(17);\n  CREATE TABLE t2(cc);\n  INSERT INTO t2 VALUES(41);\n  SELECT * FROM t2 JOIN t1 WHERE t1.bb=t1.aa AND t1.bb=17;",
+          "expect": "{41 17 17}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
+          "expect": "{1 {FOREIGN KEY constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
+          "expect": "{1 {FOREIGN KEY constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(\n    c0,\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.60",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)",
+          "expect": "{1 {FOREIGN KEY constraint failed}}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-11.70",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(\n    c3 BLOB GENERATED ALWAYS AS (1), \n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-14.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 AS(1 >= 1), c1 UNIQUE AS(TYPEOF(c0)), c2);\n  INSERT INTO t0 VALUES(0);\n  REINDEX;\n  SELECT * FROM t0;",
+          "expect": "{1 integer 0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-16.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1, c2 AS(1));\n  INSERT INTO t0 VALUES(0);\n  SELECT c0, c1, c2 FROM t0 LEFT JOIN t1;",
+          "expect": "{0 {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-16.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(c1, c2 AS (c1 ISNULL));\n  SELECT c0, c1, c2 FROM t0 LEFT JOIN t1;",
+          "expect": "{0 {} {}}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-16.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(c1) VALUES(1),(NULL);\n  SELECT * FROM t1;",
+          "expect": "{1 0 {} 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-17.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 REAL AS(1) UNIQUE, c1 INT);\n  INSERT INTO t0 VALUES('');\n  SELECT quote(c0), quote(c1) from t0;",
+          "expect": "{1.0 ''}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-17.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, (1 BETWEEN CAST(t0.c0 AS TEXT) AND t0.c0) FROM t0;",
+          "expect": "{1.0 {} 0}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-17.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE (1 BETWEEN CAST(t0.c0 AS TEXT) AND t0.c0);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-17.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT AS(b) COLLATE nocase, b TEXT, c INT, d DEFAULT 1);\n  INSERT INTO t1(b,c) VALUES('abc',11),('DEF',22),('ghi',33);\n  SELECT a FROM t1 WHERE b='DEF' AND a='def';",
+          "expect": "{DEF}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-18.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 UNIQUE AS(0), c1, c2);\n  INSERT INTO t0(c1) VALUES(0);\n  SELECT * FROM t0;",
+          "expect": "{0 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;",
+          "expect": "{2001-01-01 0 0 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a integer primary key,\n      b int generated always as (a+5),\n      c text    GENERATED   ALWAYS as (printf('%08x',a)),\n      d Generated\n        Always\n        AS ('xyzzy'),\n      e int                         Always default(5)\n    );\n    INSERT INTO t1(a) VALUES(5);\n    SELECT name, type FROM pragma_table_xinfo('t1');",
+          "expect": "{a INTEGER b INT c TEXT d {} e INT}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_42",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(\n    x,\n    a INT AS (x) VIRTUAL,\n    b BLOB AS (x) VIRTUAL\n  );\n  CREATE INDEX x2 ON t1(a);\n  INSERT INTO t1(x) VALUES(NULL),('1'),('xyz'),(2),(3.5);\n  SELECT quote(a) FROM t1 INDEXED BY x2;",
+          "expect": "{NULL 1 2 3.5 'xyz'}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN SELECT a FROM t1 INDEXED BY x2;",
+          "expect": "{~/Column 0/}"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN SELECT b FROM t1 INDEXED BY x2;",
+          "expect": "{/Column 0/}"
+        }
+      ]
+    }
+  ]
+}

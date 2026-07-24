@@ -1,0 +1,111 @@
+{
+  "file": "select2.test",
+  "name": "select2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl1(f1 int, f2 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE tbl2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM tbl2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM tbl2 WHERE f2>1000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON tbl2(f2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE 1000=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE f2=1000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl2 WHERE 1000=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl2 WHERE f2=1000"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX idx1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM tbl2 WHERE f2==2000"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)>2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO bb VALUES(0);\n    SELECT * FROM aa CROSS JOIN bb WHERE b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa CROSS JOIN bb WHERE NOT b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE min(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE NOT min(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 1 END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa, bb WHERE CASE WHEN a=b-1 THEN 0 ELSE 1 END;"
+        }
+      ]
+    }
+  ]
+}

@@ -22,7 +22,25 @@ UNSUPPORTED = re.compile(
   
 def has_unsupported_features(sql):
     """Check if SQL uses features the engine doesn't support."""
-    return bool(UNSUPPORTED.search(sql))
+    if bool(UNSUPPORTED.search(sql)):
+        return True
+    # Additional TCL-specific checks
+    # TCL variable references like $var (but not $N positional params like $1)
+    if re.search(r'(?<!\w)\$[a-zA-Z_]\w*', sql):
+        return True
+    # TCL variable substitution ${var}
+    if '${' in sql:
+        return True
+    # TCL brace escaping (uneven braces in SQL)
+    if '{' in sql or '}' in sql:
+        return True
+    # TCL command embedded in SQL
+    if re.search(r'\bsql\s*\{', sql):
+        return True
+    # TCL virtual table module
+    if re.search(r'\btcl\s*\(', sql, re.IGNORECASE) or 'vtab_command' in sql:
+        return True
+    return False
 
 def has_sql(content):
     for pattern in [r'execsql\s*\{([^}]*)\}', r'd(?:o_execsql|o_catchsql)?_test\s+\S+\s*\{([^}]*)\}', r'db\s+eval\s*\{([^}]*)\}']:
@@ -46,25 +64,37 @@ print(f"Skipping {len(skip_files)} non-SQL test files")
 
 def go_escape(s):
     s = str(s)
-    s = s.replace('\\', '\\\\')
-    s = s.replace('"', '\\"')
-    s = s.replace('\n', '\\n')
-    s = s.replace('\r', '\\r')
-    if len(s) > 300:
-        cutoff = 297
-        while cutoff > 260 and s[cutoff-1] == '\\':
-            cutoff -= 1
-        s = s[:cutoff] + '...'
-    return s
+    result = []
+    for ch in s:
+        code = ord(ch)
+        if code == 0x5c:  # backslash
+            result.append('\\\\')
+        elif code == 0x22:  # double quote
+            result.append('\\"')
+        elif code == 0x0a:  # newline
+            result.append('\\n')
+        elif code == 0x0d:  # carriage return
+            result.append('\\r')
+        elif code == 0x09:  # tab
+            result.append('\\t')
+        elif code < 0x20:  # other control characters
+            result.append('\\x%02x' % code)
+        elif code >= 0x80:  # non-ASCII characters
+            result.append('\\x%02x' % code)
+        else:
+            result.append(ch)
+    return ''.join(result)
 
 def extract_sql_pairs(content):
-    """Extract (sql, expected) pairs from TCL test content.
+    """Extract (sql, expected) pairs from TCL test content in file order.
     For do_execsql_test and do_catchsql_test, expected is the result after SQL.
-    For execsql and db eval, expected is None."""
+    For execsql and db eval, expected is None.
+    Returns pairs in the order they appear in the file."""
     pairs = []
     
-    # do_execsql_test / do_catchsql_test: format is: command name { sql } [expected]
-    for m in re.finditer(r'(do_execsql_test|do_catchsql_test)\s+(\S+)\s*\{([^}]*)\}\s*(\{[^}]*\}|[^\n]*?)(?=\n\S|$)', content, re.DOTALL):
+    # Collect all patterns with their positions in file
+    pattern = r'(do_execsql_test|do_catchsql_test)\s+(\S+)\s*\{([^}]*)\}\s*(\{[^}]*\}|[^\n]*?)(?=\n\S|$)'
+    for m in re.finditer(pattern, content, re.DOTALL):
         sql = m.group(3).strip()
         if not sql:
             continue
@@ -72,27 +102,31 @@ def extract_sql_pairs(content):
         expected = expected_raw.strip()
         if not expected:
             expected = None
-        pairs.append((sql, expected, m.group(1)))
+        pairs.append((sql, expected, m.group(1), m.start()))
     
-    # execsql: no expected result
     for m in re.finditer(r'execsql\s*\{([^}]*)\}', content):
         sql = m.group(1).strip()
         if sql:
-            pairs.append((sql, None, "execsql"))
+            pairs.append((sql, None, "execsql", m.start()))
     
-    # db eval { sql }
     for m in re.finditer(r'db\s+eval\s*\{([^}]*)\}', content):
         sql = m.group(1).strip()
         if sql:
-            pairs.append((sql, None, "db_eval"))
+            pairs.append((sql, None, "db_eval", m.start()))
     
-    # db eval "sql"
     for m in re.finditer(r'db\s+eval\s+"([^"]*)"', content):
         sql = m.group(1).strip()
         if sql:
-            pairs.append((sql, None, "db_eval"))
+            pairs.append((sql, None, "db_eval", m.start()))
     
-    return pairs
+    for m in re.finditer(r'^reset_db\s*$', content, re.MULTILINE):
+        pairs.append(('__RESET_DB__', None, 'reset_db', m.start()))
+    
+    # Sort by position in file
+    pairs.sort(key=lambda x: x[3])
+    
+    # Return only the first 3 fields (sql, expected, cmd_type)
+    return [(sql, expected, cmd_type) for sql, expected, cmd_type, _ in pairs]
 
 def generate(filename, content):
     func_name = re.sub(r'\.test$', '', filename)
@@ -108,18 +142,37 @@ def generate(filename, content):
     seen = {}
     unique_pairs = []
     for sql, expected, cmd_type in pairs:
-        if sql not in seen:
-            seen[sql] = True
-            unique_pairs.append((sql, expected))
+     # Handle reset_db: create a fresh database
+     if sql == '__RESET_DB__':
+      unique_pairs.append(('__RESET_DB__', None, 'reset_db'))
+      continue
+     # Skip SQL with unsupported/TCL-specific features
+     if has_unsupported_features(sql):
+      continue
+     if sql not in seen:
+      seen[sql] = True
+      unique_pairs.append((sql, expected, cmd_type))
+	
+    if not unique_pairs:
+     return None
     
     lines = [f'// Auto-generated from {filename}']
     lines.append(f'func TestSQLite_{func_name}(t *testing.T) {{')
     lines.append('\tdb := setupDB(t)')
-    lines.append('\tdefer db.Close()')
+    # Track databases for cleanup and reset
+    lines.append('\tvar dbs []*DB')
+    lines.append('\tdbs = append(dbs, db)')
     
     unique_pairs = unique_pairs[:40]  # limit to 40 per test function
-      
-    for sql, expected in unique_pairs:
+    
+    for sql, expected, cmd_type in unique_pairs:
+        if sql == '__RESET_DB__':
+            # Reset the database by closing and reopening
+            lines.append('\tdb.Close()')
+            lines.append('\tdb = setupDB(t)')
+            lines.append('\tdbs = append(dbs, db)')
+            continue
+        
         go_sql = go_escape(sql)
         is_query = bool(re.match(r'\s*SELECT\b|\s*PRAGMA\b|\s*EXPLAIN\b', sql, re.IGNORECASE))
           
@@ -132,6 +185,8 @@ def generate(filename, content):
         else:
             lines.append(f'\tcheckExecOK(t, db.Exec("{go_sql}"))')
     
+    # Close all databases
+    lines.append('\tfor _, d := range dbs { d.Close() }')
     lines.append('}')
     return '\n'.join(lines)
 

@@ -1,0 +1,29 @@
+{
+  "file": "shell7.test",
+  "name": "shell7",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT tn, length(x) AS l, x FROM f1"
+        }
+      ]
+    },
+    {
+      "name": "1.$tn.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)",
+          "expect": "{1}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM dbstat"
+        }
+      ]
+    }
+  ]
+}

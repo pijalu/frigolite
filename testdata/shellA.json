@@ -1,0 +1,15 @@
+{
+  "file": "shellA.test",
+  "name": "shellA",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2(x) VALUES\n      ('one'), ('two'), ('three'), ('four'), ('five'),\n      ('six'), ('seven'), ('eight'), ('nine'), ('ten'),\n      ('eleven'), ('twelve'), ('thirteen'), ('fourteen');"
+        }
+      ]
+    }
+  ]
+}

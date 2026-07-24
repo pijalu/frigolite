@@ -1,0 +1,93 @@
+{
+  "file": "whereA.test",
+  "name": "whereA",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    VACUUM;\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "whereA-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b=2 AND a IS NULL;",
+          "expect": "{}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE a>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE a>0 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=0;\n    SELECT * FROM t1 WHERE b>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 WHERE b>0 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT x FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2x ON t2(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2x;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

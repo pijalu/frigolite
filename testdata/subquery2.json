@@ -1,0 +1,146 @@
+{
+  "file": "subquery2.test",
+  "name": "subquery2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n    INSERT INTO t2 VALUES(7,49);\n    CREATE TABLE t3(e,f);\n    INSERT INTO t3 VALUES(1,1);\n    INSERT INTO t3 VALUES(3,27);\n    INSERT INTO t3 VALUES(5,125);\n    INSERT INTO t3 VALUES(7,343);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES(3, 5);\n\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 3);\n  INSERT INTO t4 VALUES(3, 6);\n  INSERT INTO t4 VALUES(4, 10);\n  INSERT INTO t4 VALUES(5, 15);"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (id INTEGER PRIMARY KEY, data TEXT);\n  INSERT INTO t1(id,data) VALUES(9,'nine-a');\n  INSERT INTO t1(id,data) VALUES(10,'ten-a');\n  INSERT INTO t1(id,data) VALUES(11,'eleven-a');\n  CREATE TABLE t2 (id INTEGER PRIMARY KEY, data TEXT);\n  INSERT INTO t2(id,data) VALUES(9,'nine-b');\n  INSERT INTO t2(id,data) VALUES(10,'ten-b');\n  INSERT INTO t2(id,data) VALUES(11,'eleven-b');\n  \n  SELECT id FROM (\n    SELECT id,data FROM (\n       SELECT * FROM t1 UNION ALL SELECT * FROM t2\n    )\n    WHERE id=10 ORDER BY data\n  );",
+          "expect": "{10 10}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT data FROM (\n     SELECT 'dummy', data FROM (\n       SELECT data FROM t1 UNION ALL SELECT data FROM t1\n     ) ORDER BY data\n  );",
+          "expect": "{eleven-a eleven-a nine-a nine-a ten-a ten-a}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);"
+        }
+      ]
+    }
+  ]
+}

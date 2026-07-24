@@ -1,0 +1,155 @@
+{
+  "file": "temptable.test",
+  "name": "temptable",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2;\n    SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(x);\n    DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(9,8,7);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x unique, y);\n    INSERT INTO t2 VALUES(3,4);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE mask(a,b,c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX mask ON t2(x);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM t2 WHERE x=3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('xyzzy');\n    SELECT * FROM t8;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t8;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl2(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl(a, b);\n    INSERT INTO tbl VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tbl"
+        }
+      ]
+    }
+  ]
+}

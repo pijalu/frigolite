@@ -1,0 +1,33 @@
+{
+  "file": "tempdb2.test",
+  "name": "tempdb2",
+  "tests": [
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1;\n    UPDATE t2 SET b=int2str(a+1);\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10001, int2str(1001) || int2str(1001) || int2str(1001));"
+        }
+      ]
+    }
+  ]
+}

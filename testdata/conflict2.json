@@ -1,0 +1,305 @@
+{
+  "file": "conflict2.test",
+  "name": "conflict2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma temp_store=file"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a PRIMARY KEY, b) without rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), min(a), max(b) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=1000;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2,4);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(2,4);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER PRIMARY KEY ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    ) WITHOUT rowid;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "-- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c) WITHOUT rowid;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b text) WITHOUT rowid;\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t13(a PRIMARY KEY CHECK(a!=2)) WITHOUT rowid;\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;"
+        }
+      ]
+    },
+    {
+      "name": "conflict2-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    x TEXT PRIMARY KEY NOT NULL, \n    y TEXT NOT NULL,\n    z INTEGER\n  );\n  INSERT INTO t1 VALUES('alpha','beta',1);\n  CREATE UNIQUE INDEX t1xy ON t1(x,y);\n  REPLACE INTO t1(x,y,z) VALUES('alpha','gamma',1);\n  PRAGMA integrity_check;\n  SELECT x,y FROM t1 INDEXED BY t1xy;\n  SELECT x,y,z FROM t1 NOT INDEXED;",
+          "expect": "{ok alpha gamma alpha gamma 1}"
+        }
+      ]
+    }
+  ]
+}

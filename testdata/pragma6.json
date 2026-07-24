@@ -1,0 +1,23 @@
+{
+  "file": "pragma6.test",
+  "name": "pragma6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t2(\n        a t1 PRIMARY KEY default 27,\n        b default(current_timestamp),\n        d TEXT UNIQUE DEFAULT 'ch`arlie',\n        c TEXT UNIQUE DEFAULT 084,\n        UNIQUE(c,b,b,a,b)\n    ) WITHOUT ROWID;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "file": "reindex.test",
+  "name": "reindex",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    CREATE INDEX i1 ON t1(a);\n    REINDEX;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t2 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t2 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t2 ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

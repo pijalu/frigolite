@@ -1,0 +1,27 @@
+{
+  "file": "tkt2285.test",
+  "name": "tkt2285",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE abc(a, b, c);\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE abc(a, b, c);\n      ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_temp_master;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,463 @@
+{
+  "file": "altercons2.test",
+  "name": "altercons2",
+  "tests": [
+    {
+      "name": "1.$tn.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
+          "expect": "[list $final]"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE x1 ADD CONSTRAINT ccc CHECK (a!='a')",
+          "expect": "{1 {not authorized}}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE x1 ALTER c SET NOT NULL",
+          "expect": "{1 {not authorized}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ALTER x SET NOT NULL;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c, CONSTRAINT one CONSTRAINT two CHECK (b!=c));"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE abc DROP CONSTRAINT one"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{\n  {CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c))}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)",
+          "expect": "{1 {near \"d\": syntax error}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b CONSTRAINT two COLLATE nocase CHECK (a!=b), c CONSTRAINT one DEFAULT 'abc');"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE abc DROP CONSTRAINT one;\n  ALTER TABLE abc DROP CONSTRAINT two;"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{\n  {CREATE TABLE abc(a, b COLLATE nocase CHECK (a!=b), c DEFAULT 'abc')}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c, CONSTRAINT one CHECK (a>b) FOREIGN KEY(a) REFERENCES abc);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE abc DROP CONSTRAINT one"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{\n  {CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c, CONSTRAINT one FOREIGN KEY(a) REFERENCES abc);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE abc DROP CONSTRAINT one",
+          "expect": "{0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b NOT NULL AS (a+1))"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE abc ALTER b SET NOT NULL;"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(NULL);",
+          "expect": "{1 {NOT NULL constraint failed: abc.b}}"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(3);\n  ALTER TABLE abc ALTER COLUMN b DROP NOT NULL;"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(NULL);",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "11.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD CONSTRAINT c1 CHECK(a=b) --comment\n  ;"
+        }
+      ]
+    },
+    {
+      "name": "11.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD CONSTRAINT c2 CHECK(a=b) --comment"
+        }
+      ]
+    },
+    {
+      "name": "11.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema;",
+          "expect": "{\n  {CREATE TABLE t1(a, b, c, CONSTRAINT c1 CHECK(a=b), CONSTRAINT c2 CHECK(a=b))}"
+        }
+      ]
+    },
+    {
+      "name": "11.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);",
+          "expect": "do_execsql_test 11.2.2 {ALTER TABLE t2 ALTER b SET NOT NULL --new cons}"
+        }
+      ]
+    },
+    {
+      "name": "11.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='t2';",
+          "expect": "{\n  {CREATE TABLE t2(a, b NOT NULL)}"
+        }
+      ]
+    },
+    {
+      "name": "11.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ALTER b DROP NOT NULL;\n  SELECT sql FROM sqlite_schema WHERE name='t2';",
+          "expect": "{\n  {CREATE TABLE t2(a, b)}"
+        }
+      ]
+    },
+    {
+      "name": "11.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ALTER b SET NOT NULL --new cons\n;",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE Test DROP CONSTRAINT BooleanZeroOrOne"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{\n  {CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE Test;\n  CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER, \n      CONSTRAINT \"BooleanZeroOrOne\" CHECK (\"IsActive\" IN (0, 1)) \n  );"
+        }
+      ]
+    },
+    {
+      "name": "12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE Test DROP CONSTRAINT \"BooleanZeroOrOne\""
+        }
+      ]
+    },
+    {
+      "name": "12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{\n  {CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}"
+        }
+      ]
+    },
+    {
+      "name": "12.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b CONSTRAINT \"a\"\"b\" CHECK (b IS NOT NULL));"
+        }
+      ]
+    },
+    {
+      "name": "12.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP CONSTRAINT \"a\"\"b\""
+        }
+      ]
+    }
+  ]
+}

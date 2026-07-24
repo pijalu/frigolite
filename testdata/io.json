@@ -1,0 +1,227 @@
+{
+  "file": "io.test",
+  "name": "io",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE abc(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(2,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(3,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(4,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(5,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(6,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(7,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(8,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(9,randstr(230,230));"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc; VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE def(d, e)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(7, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO def VALUES('a', 'b');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;\n    -- INSERT INTO abc VALUES(9, randstr(1000,1000));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_size = 1024;\n      CREATE TABLE aux.abc2(a, b);\n      BEGIN;\n      INSERT INTO abc VALUES(9, 10);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc UNION ALL SELECT * FROM abc2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc UNION ALL SELECT * FROM abc2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(9, 10);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 2048;\n    CREATE TABLE abc(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(9, 10);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = memory;\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO abc VALUES('hello', 'world');\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES('a', 'b')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES('c', 'd')"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = full;\n      PRAGMA cache_size = 10;\n      PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE abc SET a = 'x';"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);"
+        }
+      ]
+    }
+  ]
+}

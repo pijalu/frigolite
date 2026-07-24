@@ -1,0 +1,27 @@
+{
+  "file": "sqldiff1.test",
+  "name": "sqldiff1",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS x2;\n    DELETE FROM x2.t1 WHERE a=49;\n    DELETE FROM x2.t2 WHERE a=48;\n    INSERT INTO x2.t1(a,b) VALUES(1234,'hello');\n    INSERT INTO x2.t2(a,b) VALUES(50.5,'xyzzy');\n    INSERT INTO x2.t2(a,b) VALUES(51.5,'');\n    INSERT INTO x2.t2(a,b) VALUES(52.5,''||X'0d0a');\n    INSERT INTO x2.t2(a,b) VALUES(53.5,'one'||X'0a0d');\n    INSERT INTO x2.t2(a,b) VALUES(54.5,'one'||X'0a'||'two');\n    CREATE TABLE x2.t3(a,b,c);\n    INSERT INTO x2.t3 VALUES(111,222,333);\n    CREATE TABLE main.t4(x,y,z);\n    INSERT INTO t4 SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "file": "fts3dropmod.test",
+  "name": "fts3dropmod",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

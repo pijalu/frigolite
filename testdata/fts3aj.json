@@ -1,0 +1,23 @@
+{
+  "file": "fts3aj.test",
+  "name": "fts3aj",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE two"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE two"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH DATABASE two"
+        }
+      ]
+    }
+  ]
+}

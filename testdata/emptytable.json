@@ -1,0 +1,16 @@
+{
+  "file": "emptytable.test",
+  "name": "emptytable",
+  "tests": [
+    {
+      "name": "emptytable-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1, t1 LEFT JOIN empty;",
+          "expect": "{0 10000}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "file": "speed2.test",
+  "name": "speed2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 ORDER BY random() LIMIT 50000"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 ORDER BY random() LIMIT 50000"
+        }
+      ]
+    }
+  ]
+}

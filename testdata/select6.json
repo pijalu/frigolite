@@ -1,0 +1,388 @@
+{
+  "file": "select6.test",
+  "name": "select6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT y FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT DISTINCT y FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT DISTINCT * FROM (SELECT y FROM t1))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT * FROM (SELECT DISTINCT y FROM t1))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * \n    FROM (SELECT count(*),y FROM t1 GROUP BY y) AS a,\n         (SELECT max(x),y FROM t1 GROUP BY y) as b\n    WHERE a.y=b.y ORDER BY a.y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.y, a.[count(*)], [max(x)], [count(*)]\n    FROM (SELECT count(*),y FROM t1 GROUP BY y) AS a,\n         (SELECT max(x),y FROM t1 GROUP BY y) as b\n    WHERE a.y=b.y ORDER BY a.y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT q, p, r\n    FROM (SELECT count(*) as p , y as q FROM t1 GROUP BY y) AS a,\n         (SELECT max(x) as r, y as s FROM t1 GROUP BY y) as b\n    WHERE q=s ORDER BY s"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT q, p, r, b.[min(x)+y]\n    FROM (SELECT count(*) as p , y as q FROM t1 GROUP BY y) AS a,\n         (SELECT max(x) as r, y as s, min(x)+y FROM t1 GROUP BY y) as b\n    WHERE q=s ORDER BY s"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT DISTINCT b FROM t2 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT b FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT DISTINCT b FROM t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT DISTINCT * FROM (SELECT b FROM t2))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT * FROM (SELECT DISTINCT b FROM t2))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * \n    FROM (SELECT count(*),b FROM t2 GROUP BY b) AS a,\n         (SELECT max(a),b FROM t2 GROUP BY b) as b\n    WHERE a.b=b.b ORDER BY a.b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.b, a.[count(*)], [max(a)], [count(*)]\n    FROM (SELECT count(*),b FROM t2 GROUP BY b) AS a,\n         (SELECT max(a),b FROM t2 GROUP BY b) as b\n    WHERE a.b=b.b ORDER BY a.b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT q, p, r\n    FROM (SELECT count(*) as p , b as q FROM t2 GROUP BY b) AS a,\n         (SELECT max(a) as r, b as s FROM t2 GROUP BY b) as b\n    WHERE q=s ORDER BY s"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.q, a.p, b.r\n    FROM (SELECT count(*) as p , b as q FROM t2 GROUP BY q) AS a,\n         (SELECT max(a) as r, b as s FROM t2 GROUP BY s) as b\n    WHERE a.q=b.s ORDER BY a.q"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      (SELECT a.q, a.p, b.r\n       FROM (SELECT count(*) as p , b as q FROM t2 GROUP BY q) AS a,\n            (SELECT max(a) as r, b as s FROM t2 GROUP BY s) as b\n       WHERE a.q=b.s ORDER BY a.q)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1 WHERE y=4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x,y,x+y FROM (SELECT avg(a) as 'x', avg(b) as 'y' FROM t2 WHERE a=4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1)\n    WHERE a>10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1)\n    WHERE a<10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1 WHERE y=4)\n    WHERE a>10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', avg(y) as 'b' FROM t1 WHERE y=4)\n    WHERE a<10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM (SELECT avg(x) as 'a', y as 'b' FROM t1 GROUP BY b)\n    ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM \n       (SELECT avg(x) as 'a', y as 'b' FROM t1 GROUP BY b)\n    WHERE b<4 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM \n       (SELECT avg(x) as 'a', y as 'b' FROM t1 GROUP BY b HAVING a>1)\n    WHERE b<4 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,a+b FROM \n       (SELECT avg(x) as 'a', y as 'b' FROM t1 GROUP BY b HAVING a>1)\n    ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT [count(*)],y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY [count(*)]"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT [count(*)],y FROM (SELECT count(*), y FROM t1 GROUP BY y)\n    ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b,c FROM \n      (SELECT x AS 'a', y AS 'b', x+y AS 'c' FROM t1 WHERE y=4)\n    WHERE a<10 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y FROM (SELECT DISTINCT y FROM t1) WHERE y<5 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT y FROM (SELECT y FROM t1) WHERE y<5 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT avg(y) FROM (SELECT DISTINCT y FROM t1) WHERE y<5 ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT avg(y) FROM (SELECT DISTINCT y FROM t1 WHERE y<5) ORDER BY y"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,x,b FROM\n      (SELECT x+3 AS 'a', x FROM t1 WHERE y=3) AS 'p',\n      (SELECT x AS 'b' FROM t1 WHERE y=4) AS 'q'\n    WHERE a=b\n    ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,x,b FROM\n      (SELECT x+3 AS 'a', x FROM t1 WHERE y=3),\n      (SELECT x AS 'b' FROM t1 WHERE y=4)\n    WHERE a=b\n    ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x>4;\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION ALL SELECT x+10 AS 'a' FROM t1\n      ) ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION ALL SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT x AS 'a' FROM t1 UNION SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT x AS 'a' FROM t1 INTERSECT SELECT x+1 AS 'a' FROM t1\n      ) ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n        SELECT x AS 'a' FROM t1 EXCEPT SELECT x*2 AS 'a' FROM t1\n      ) ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c,b,a,* FROM (SELECT 1 AS 'a', 2 AS 'b', 'abc' AS 'c')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c,b,a,* FROM (SELECT 1 AS 'a', 2 AS 'b', 'abc' AS 'c' WHERE 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(p,q);\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,22);\n    CREATE TABLE t4(q,r);\n    INSERT INTO t4 VALUES(11,111);\n    INSERT INTO t4 VALUES(22,222);\n    COMMIT;\n    SELECT * FROM t3 NATURAL JOIN t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT y, p, q, r FROM\n       (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m,\n       (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n\n    WHERE  y=p"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT y, p, q, r FROM\n       (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m,\n       (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n\n    WHERE  y=p"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \n      (SELECT y, p, q, r FROM\n         (SELECT t1.y AS y, t2.b AS b FROM t1, t2 WHERE t1.x=t2.a) AS m,\n         (SELECT t3.p AS p, t3.q AS q, t4.r AS r FROM t3 NATURAL JOIN t4) as n\n      WHERE  y=p) AS e,\n      (SELECT r AS z FROM t4 WHERE q=11) AS f\n    WHERE e.r=f.z"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a.x, b.x FROM t1 AS a, (SELECT x FROM t1 LIMIT 2) AS b\n     ORDER BY 1, 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 LIMIT 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 LIMIT 2 OFFSET 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1) LIMIT 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1) LIMIT 2 OFFSET 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 LIMIT 2) LIMIT 3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 LIMIT -1) LIMIT 3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 LIMIT -1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM (SELECT x FROM t1 LIMIT -1 OFFSET 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM (SELECT x, (SELECT 10+x) y FROM t1 LIMIT -1 OFFSET 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM (SELECT x, (SELECT 10)+x y FROM t1 LIMIT -1 OFFSET 1);"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT * FROM t), j;"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t UNION ALL SELECT * FROM j",
+          "expect": "$err"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT i FROM t UNION ALL SELECT l, m FROM j)",
+          "expect": "$err"
+        }
+      ]
+    },
+    {
+      "name": "10.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT j FROM t UNION ALL SELECT * FROM j)",
+          "expect": "$err"
+        }
+      ]
+    },
+    {
+      "name": "10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT * FROM t UNION ALL SELECT * FROM j)",
+          "expect": "$err"
+        }
+      ]
+    },
+    {
+      "name": "10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n    SELECT * FROM t UNION ALL \n    SELECT l,m,l FROM j UNION ALL\n    SELECT * FROM k\n  )",
+          "expect": "$err"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(w INT, x INT);\n  INSERT INTO t1(w,x)\n   VALUES(1,10),(2,20),(3,30),\n         (2,21),(3,31),\n         (3,32);\n  CREATE INDEX t1wx ON t1(w,x);\n\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(w INT, y VARCHAR(8));\n  INSERT INTO t2(w,y) VALUES(1,'one'),(2,'two'),(3,'three'),(4,'four');\n  CREATE INDEX t2wy ON t2(w,y);\n\n  SELECT cnt, xyz, (SELECT y FROM t2 WHERE w=cnt), '|'\n    FROM (SELECT count(*) AS cnt, w AS xyz FROM t1 GROUP BY 2)\n   ORDER BY cnt, xyz;",
+          "expect": "{1 1 one | 2 2 two | 3 3 three |}"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt, xyz, lower((SELECT y FROM t2 WHERE w=cnt)), '|'\n    FROM (SELECT count(*) AS cnt, w AS xyz FROM t1 GROUP BY 2)\n   ORDER BY cnt, xyz;",
+          "expect": "{1 1 one | 2 2 two | 3 3 three |}"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt, xyz, '|'\n    FROM (SELECT count(*) AS cnt, w AS xyz FROM t1 GROUP BY 2)\n   WHERE (SELECT y FROM t2 WHERE w=cnt)!='two'\n   ORDER BY cnt, xyz;",
+          "expect": "{1 1 | 3 3 |}"
+        }
+      ]
+    },
+    {
+      "name": "11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt, xyz, '|'\n    FROM (SELECT count(*) AS cnt, w AS xyz FROM t1 GROUP BY 2)\n   ORDER BY lower((SELECT y FROM t2 WHERE w=cnt));",
+          "expect": "{1 1 | 3 3 | 2 2 |}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE  TABLE  t1(y INT);\n  INSERT INTO t1 (y) VALUES (1);\n\n  CREATE  TABLE  t2(x INTEGER);\n  INSERT INTO t2 VALUES(0);\n\n  CREATE  TABLE  empty1(z);"
+        }
+      ]
+    }
+  ]
+}

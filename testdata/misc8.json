@@ -1,0 +1,118 @@
+{
+  "file": "misc8.test",
+  "name": "misc8",
+  "tests": [
+    {
+      "name": "misc8-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6);\n  SELECT quote(eval('SELECT * FROM t1 ORDER BY a','-abc-'));",
+          "expect": "{'1-abc-2-abc-3-abc-4-abc-5-abc-6'}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(eval('SELECT * FROM t1 ORDER BY a'));",
+          "expect": "{{'1 2 3 4 5 6'}}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(eval('SELECT d FROM t1 ORDER BY a'));",
+          "expect": "{1 {no such column: d}}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7,null,9);\n  SELECT eval('SELECT * FROM t1 ORDER BY a',',');",
+          "expect": "{1,2,3,4,5,6,7,,9}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('ROLLBACK; SELECT ''bam'';')), c\n   FROM t1 ORDER BY a;",
+          "expect": "{0 {1 2 3 4 5 6 7 bam 9}}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10,11,12);\n  SELECT a, coalesce(b, eval('SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;",
+          "expect": "{0 {1 2 3 4 5 6 7 bam 9 10 11 12}}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, coalesce(b, eval('DELETE FROM t1; SELECT ''bam''')), c\n    FROM t1\n   ORDER BY rowid;",
+          "expect": "{0 {1 2 3 4 5 6 7 bam {}}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "misc8-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  ATTACH 'test2.db' AS aux2;\n  CREATE TABLE aux2.t2(c,d,e);\n  INSERT INTO t2 VALUES(4,5,6);\n  SELECT * FROM t1, t2;",
+          "expect": "{1 2 3 4 5 6}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA database_list;",
+          "expect": "{/0 main .* 2 aux2/}"
+        }
+      ]
+    },
+    {
+      "name": "misc8-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM icecube.sqlite_master;",
+          "expect": "{t1}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        }
+      ]
+    }
+  ]
+}

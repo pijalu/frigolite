@@ -1,0 +1,19 @@
+{
+  "file": "vtab8.test",
+  "name": "vtab8",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2244e WHERE rowid = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2244e SET a = 'hello world' WHERE 0;\n    SELECT rowid, * FROM t2244e;"
+        }
+      ]
+    }
+  ]
+}

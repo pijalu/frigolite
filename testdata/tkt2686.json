@@ -1,0 +1,35 @@
+{
+  "file": "tkt2686.test",
+  "name": "tkt2686",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE filler (fill);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO filler (fill) VALUES (randstr(1000, 10000))"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE filler (fill);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO filler (fill) VALUES (randstr(1000, 10000))"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM filler \n       WHERE rowid <= (SELECT MAX(rowid) FROM filler LIMIT 20)"
+        }
+      ]
+    }
+  ]
+}

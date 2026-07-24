@@ -1,0 +1,71 @@
+{
+  "file": "collate6.test",
+  "name": "collate6",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate6log(a, b);\n    CREATE TABLE collate6tab(a COLLATE NOCASE, b COLLATE BINARY);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER collate6trig BEFORE INSERT ON collate6tab \n      WHEN new.a = 'a' BEGIN\n        INSERT INTO collate6log VALUES(new.a, new.b);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO collate6tab VALUES('a', 'b');\n    SELECT * FROM collate6log;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO collate6tab VALUES('A', 'B');\n    SELECT * FROM collate6log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER collate6trig;\n    DELETE FROM collate6log;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER collate6trig BEFORE INSERT ON collate6tab BEGIN\n      INSERT INTO collate6log VALUES(new.a='a', new.b='b');\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO collate6tab VALUES('a', 'b');\n    SELECT * FROM collate6log;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO collate6tab VALUES('A', 'B');\n    SELECT * FROM collate6log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER collate6trig;\n    DELETE FROM collate6log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate6tab;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a COLLATE binary, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TRIGGER abc_t1 AFTER INSERT ON abc BEGIN\n      INSERT INTO def SELECT * FROM abc WHERE a < new.a COLLATE nocase;\n    END"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES('One', 'Two', 'Three');\n    INSERT INTO abc VALUES('one', 'two', 'three');\n    SELECT * FROM def;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE abc SET a = 'four' WHERE a = 'one';\n    CREATE TRIGGER abc_t2 AFTER UPDATE ON abc BEGIN\n      INSERT INTO def SELECT * FROM abc WHERE a < new.a COLLATE nocase;\n    END;\n    SELECT * FROM def;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM sqlite_master WHERE name COLLATE nocase = 'hello';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM sqlite_master WHERE 'hello' = name COLLATE nocase;"
+        }
+      ]
+    }
+  ]
+}

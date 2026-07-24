@@ -1,0 +1,83 @@
+{
+  "file": "collate3.test",
+  "name": "collate3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(c1 UNIQUE);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from collate3t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        }
+      ]
+    }
+  ]
+}

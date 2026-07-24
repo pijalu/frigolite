@@ -1,0 +1,156 @@
+{
+  "file": "regexp2.test",
+  "name": "regexp2",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "{1 0 1}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b = 'a_abc_1';",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' REGEXP '\\W'",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a c' REGEXP '\\W'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '   ' REGEXP '\\W'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' REGEXP '\\w'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a c' REGEXP '\\w'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '   ' REGEXP '\\w'",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' REGEXP '\\D'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' REGEXP '[^a-z]'",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a c' REGEXP '[^a-z]'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '   ' REGEXP '[^a-z]'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'abc' REGEXP '[a-z]'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'a c' REGEXP '[a-z]'",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "4.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '   ' REGEXP '[a-z]'",
+          "expect": "{0}"
+        }
+      ]
+    }
+  ]
+}

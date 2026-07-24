@@ -1,0 +1,23 @@
+{
+  "file": "atomic2.test",
+  "name": "atomic2",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1; PRAGMA integrity_check"
+        }
+      ]
+    }
+  ]
+}

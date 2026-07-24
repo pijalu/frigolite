@@ -1,0 +1,16 @@
+{
+  "file": "jsonb01.test",
+  "name": "jsonb01",
+  "tests": [
+    {
+      "name": "jsonb01-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(x'6B37616263162d');",
+          "expect": "{1 {malformed JSON}}"
+        }
+      ]
+    }
+  ]
+}

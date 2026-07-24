@@ -1,0 +1,396 @@
+{
+  "file": "index6.test",
+  "name": "index6",
+  "tests": [
+    {
+      "name": "index6-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS bad1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%2==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;"
+        }
+      ]
+    },
+    {
+      "name": "index6-2.101",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2a1;\n  UPDATE t2 SET a=b, b=b+10000;\n  SELECT b FROM t2 WHERE a=15;",
+          "expect": "{10015}"
+        }
+      ]
+    },
+    {
+      "name": "index6-2.102",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2a2 ON t2(a) WHERE a<100 OR a>200;\n  SELECT b FROM t2 WHERE a=15;\n  PRAGMA integrity_check;",
+          "expect": "{10015 ok}"
+        }
+      ]
+    },
+    {
+      "name": "index6-2.102eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT b FROM t2 WHERE a=15;",
+          "expect": "{~/.*INDEX t2a2.*/}"
+        }
+      ]
+    },
+    {
+      "name": "index6-2.103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a=15 AND a<100;",
+          "expect": "{10015}"
+        }
+      ]
+    },
+    {
+      "name": "index6-2.103eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT b FROM t2 WHERE a=15 AND a<100;",
+          "expect": "{/.*INDEX t2a2.*/}"
+        }
+      ]
+    },
+    {
+      "name": "index6-2.104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a=515 AND a>200;",
+          "expect": "{10515}"
+        }
+      ]
+    },
+    {
+      "name": "index6-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b);\n  INSERT INTO t3 SELECT value, value FROM nums WHERE value<200;\n  UPDATE t3 SET a=999 WHERE b%5!=0;\n  CREATE UNIQUE INDEX t3a ON t3(a) WHERE a<>999;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "index6-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3 WHERE a=999;",
+          "expect": "{162}"
+        }
+      ]
+    },
+    {
+      "name": "index6-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a,b);\n  CREATE UNIQUE INDEX t6ab ON t1(a,b);\n  CREATE INDEX t6b ON t6(b) WHERE b=1;\n  INSERT INTO t6(a,b) VALUES(123,456);\n  SELECT * FROM t6;",
+          "expect": "{123 456}"
+        }
+      ]
+    },
+    {
+      "name": "index6-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE t6 SET b=789;\n  SELECT * FROM t6;",
+          "expect": "{123 789}"
+        }
+      ]
+    },
+    {
+      "name": "index6-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7a(x);\n  CREATE TABLE t7b(y);\n  INSERT INTO t7a(x) VALUES(1);\n  CREATE INDEX t7ax ON t7a(x) WHERE x=99;\n  PRAGMA automatic_index=OFF;\n  SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;",
+          "expect": "{1 {}}"
+        }
+      ]
+    },
+    {
+      "name": "index6-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7b(y) VALUES(2);\n  SELECT * FROM t7a JOIN t7b ON (x=99) ORDER BY x;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "index6-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7a(x) VALUES(99);\n  SELECT * FROM t7a LEFT JOIN t7b ON (x=99) ORDER BY x;",
+          "expect": "{1 {} 99 2}"
+        }
+      ]
+    },
+    {
+      "name": "index6-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t7a JOIN t7b ON (x=99) ORDER BY x;",
+          "expect": "{99 2}"
+        }
+      ]
+    },
+    {
+      "name": "index6-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(a int, b int, c int);\n  CREATE INDEX t9ca ON t9(c,a) WHERE a in (10,12,20);\n  INSERT INTO t9 VALUES(1,1,9),(10,2,35),(11,15,82),(20,19,5),(NULL,7,3);\n  UPDATE t9 SET b=c WHERE a in (10,12,20);\n  SELECT a,b,c,'|' FROM t9 ORDER BY a;",
+          "expect": "{{} 7 3 | 1 1 9 | 10 35 35 | 11 15 82 | 20 5 5 |}"
+        }
+      ]
+    },
+    {
+      "name": "index6-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(a,b,c,d,e INTEGER PRIMARY KEY);\n  INSERT INTO t10 VALUES\n    (1,2,3,4,5),\n    (2,3,4,5,6),\n    (3,4,5,6,7),\n    (1,2,3,8,9);\n  CREATE INDEX t10x ON t10(d) WHERE a=1 AND b=2 AND c=3;\n  SELECT e FROM t10 WHERE a=1 AND b=2 AND c=3 ORDER BY d;",
+          "expect": "{5 9}"
+        }
+      ]
+    },
+    {
+      "name": "index6-10.1eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT e FROM t10 WHERE a=1 AND b=2 AND c=3 ORDER BY d;",
+          "expect": "{/USING INDEX t10x/}"
+        }
+      ]
+    },
+    {
+      "name": "index6-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT e FROM t10 WHERE c=3 AND 2=b AND a=1 ORDER BY d DESC;",
+          "expect": "{9 5}"
+        }
+      ]
+    },
+    {
+      "name": "index6-10.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT e FROM t10 WHERE c=3 AND 2=b AND a=1 ORDER BY d DESC;",
+          "expect": "{/USING INDEX t10x/}"
+        }
+      ]
+    },
+    {
+      "name": "index6-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT e FROM t10 WHERE a=1 AND b=2 ORDER BY d DESC;",
+          "expect": "{9 5}"
+        }
+      ]
+    },
+    {
+      "name": "index6-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(a,b,c);\n  CREATE INDEX t11x ON t11(a) WHERE b<>99;\n  EXPLAIN QUERY PLAN SELECT a FROM t11 WHERE b<>99;",
+          "expect": "{/USING INDEX t11x/}"
+        }
+      ]
+    },
+    {
+      "name": "index6-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(1);\n  INSERT INTO t2 VALUES(2);\n  SELECT 'one', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);\n  CREATE INDEX t1a ON t1(a) WHERE b=1;\n  SELECT 'two', * FROM t2 WHERE x NOT IN (SELECT a FROM t1);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "index6-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (NULL);\n  CREATE INDEX i0 ON t0(1) WHERE c0 NOT NULL;\n  SELECT 1 FROM t0 WHERE (t0.c0 IS FALSE) IS FALSE;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "index6-15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t0 WHERE (t0.c0 IS FALSE) BETWEEN FALSE AND TRUE;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "index6-15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t0 WHERE TRUE BETWEEN (t0.c0 IS FALSE) AND TRUE;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "index6-15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t0 WHERE FALSE BETWEEN FALSE AND (t0.c0 IS FALSE);",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "index6-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 COLLATE NOCASE, c1);\n  CREATE INDEX i0 ON t0(0) WHERE c0 >= c1;\n  INSERT INTO t0 VALUES('a', 'B');\n  SELECT c1 <= c0, c0 >= c1 FROM t0;",
+          "expect": "{1 0}"
+        }
+      ]
+    },
+    {
+      "name": "index6-16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 2 FROM t0 WHERE c0 >= c1;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "index6-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(0) WHERE c0 GLOB c0;\n  INSERT INTO t0 VALUES (0);\n  CREATE UNIQUE INDEX i1 ON t0(0);\n  PRAGMA integrity_check;",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "index6-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i2 ON t0(0);\n  REPLACE INTO t0 VALUES(0);\n  PRAGMA integrity_check;",
+          "expect": "{ok}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "index6-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1(a) VALUES(2);\n  CREATE TABLE t2(c INT);\n  CREATE INDEX i0 ON t2(c) WHERE c=3;\n  CREATE TABLE t3(d INT);\n  INSERT INTO t3 VALUES(1);"
+        }
+      ]
+    }
+  ]
+}

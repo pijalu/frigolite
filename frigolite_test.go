@@ -19,7 +19,8 @@ func setupDB(t *testing.T) *DB {
 // checkQueryResult checks that a query result matches the expected value.
 // Parse errors are silently ignored (expected for unsupported features).
 // If the query succeeds but the result doesn't match expected, the test FAILS.
-// expected is a space-separated list of values, optionally in TCL { } braces.
+// expected is in TCL list format with optional { } braces.
+// In TCL, {} represents NULL and individual values may be braced.
 func checkQueryResult(t *testing.T, res *Result, expected string) {
 	t.Helper()
 	if res.Error != nil {
@@ -31,17 +32,94 @@ func checkQueryResult(t *testing.T, res *Result, expected string) {
 			if val == nil {
 				parts = append(parts, "NULL")
 			} else {
-				parts = append(parts, fmt.Sprintf("%v", val))
+				parts = append(parts, formatSQLiteValue(val))
 			}
 		}
 	}
 	got := strings.Join(parts, " ")
-	want := strings.TrimSpace(expected)
-	want = strings.Trim(want, "{}")
-	want = strings.TrimSpace(want)
+	// Parse TCL list format: strip outer braces, split into tokens,
+	// where {} represents NULL and {value} represents a braced value.
+	want := parseTCLList(expected)
 	if got != want {
 		t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 	}
+}
+
+// parseTCLList parses a TCL list string into a space-separated string.
+// In TCL lists, {} represents NULL and {value} represents a braced value.
+func parseTCLList(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	// If the entire string is wrapped in { }, strip the outer braces
+	if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+		// Need to match braces properly
+		depth := 0
+		for i, c := range s {
+			if c == '{' {
+				depth++
+			} else if c == '}' {
+				depth--
+				if depth == 0 && i < len(s)-1 {
+					// Multiple top-level values: braces don't wrap entire string
+					break
+				}
+				if depth == 0 && i == len(s)-1 {
+					// Braces wrap entire string
+					inner := s[1 : len(s)-1]
+					return parseTCLList(inner)
+				}
+			}
+		}
+	}
+	// Parse tokens
+	var tokens []string
+	i := 0
+	for i < len(s) {
+		// Skip whitespace
+		for i < len(s) && (s[i] == ' ' || s[i] == '\t' || s[i] == '\n') {
+			i++
+		}
+		if i >= len(s) {
+			break
+		}
+		if s[i] == '{' {
+			// Braced token: find matching }
+			depth := 1
+			start := i + 1
+			i++
+			for i < len(s) && depth > 0 {
+				if s[i] == '{' {
+					depth++
+				} else if s[i] == '}' {
+					depth--
+				}
+				i++
+			}
+			// Guard against slice bounds: if i <= start, the braces were empty/malformed
+			if i <= start {
+				i = start
+				tokens = append(tokens, "NULL")
+			} else {
+				token := s[start : i-1]
+				// {} represents NULL, otherwise it's the braced value
+				if token == "" {
+					tokens = append(tokens, "NULL")
+				} else {
+					tokens = append(tokens, token)
+				}
+			}
+		} else {
+			// Unbraced token: read until whitespace
+			start := i
+			for i < len(s) && s[i] != ' ' && s[i] != '\t' && s[i] != '\n' {
+				i++
+			}
+			tokens = append(tokens, s[start:i])
+		}
+	}
+	return strings.Join(tokens, " ")
 }
 
 // checkExecOK checks that an exec statement completed without error.
@@ -118,4 +196,19 @@ func TestDumpAll(t *testing.T) {
 	db.Exec("INSERT INTO t1 VALUES (1)")
 
 	db.DumpAll()
+}
+
+// formatSQLiteValue formats a value the way SQLite does.
+// For float64, integer-valued floats get ".0" suffix (1.0 not 1).
+func formatSQLiteValue(val interface{}) string {
+	switch v := val.(type) {
+	case float64:
+		// Check if float is a whole number
+		if v == float64(int64(v)) {
+			return fmt.Sprintf("%.1f", v)
+		}
+		return fmt.Sprintf("%g", v)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }

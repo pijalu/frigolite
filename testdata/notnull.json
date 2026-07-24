@@ -1,0 +1,49 @@
+{
+  "file": "notnull.test",
+  "name": "notnull",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    CREATE INDEX t1d ON t1(d);\n    CREATE INDEX t1e ON t1(e);\n    CREATE INDEX t1abc ON t1(a,b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a, b NOT NULL);\n    CREATE TABLE t2(c, d);\n    INSERT INTO t2 VALUES(3, 4);\n    INSERT INTO t2 VALUES(5, NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "notnull-6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);",
+          "expect": "do_uses_op_next_test notnull-6.1 \"SELECT * FROM t1 WHERE a IS ?\" 1"
+        }
+      ]
+    }
+  ]
+}

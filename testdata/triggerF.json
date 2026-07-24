@@ -1,0 +1,16 @@
+{
+  "file": "triggerF.test",
+  "name": "triggerF",
+  "tests": [
+    {
+      "name": "1.$tn.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM log ORDER BY rowid;",
+          "expect": "$log"
+        }
+      ]
+    }
+  ]
+}

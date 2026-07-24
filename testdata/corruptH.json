@@ -1,0 +1,73 @@
+{
+  "file": "corruptH.test",
+  "name": "corruptH",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a IN (1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a IN (1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name, rootpage FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a IN (1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE c=1;"
+        }
+      ]
+    }
+  ]
+}

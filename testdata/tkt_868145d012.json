@@ -1,0 +1,26 @@
+{
+  "file": "tkt-868145d012.test",
+  "name": "tkt_868145d012",
+  "tests": [
+    {
+      "name": "tkt-868145d012.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p (\n    id INTEGER PRIMARY KEY,\n    uid VARCHAR(36),\n    t INTEGER\n  );\n  \n  CREATE TABLE pa (\n    id INTEGER PRIMARY KEY,\n    a_uid VARCHAR(36)\n  );\n  \n  CREATE TABLE a (\n    id INTEGER PRIMARY KEY,\n    uid VARCHAR(36),\n    t INTEGER\n  );\n  \n  INSERT INTO pa VALUES(1,'1234');\n  INSERT INTO pa VALUES(2,'2345');\n  INSERT INTO p VALUES(3,'1234',97);\n  INSERT INTO p VALUES(4,'1234',98);\n  INSERT INTO a VALUES(5,'1234',98);\n  INSERT INTO a VALUES(6,'1234',99);",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-868145d012.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT pa.id, p.id, a.id\n  FROM\n    pa\n    LEFT JOIN p ON p.uid='1234'\n    LEFT JOIN a ON a.uid=pa.a_uid\n  WHERE\n    a.t=p.t\n  ;",
+          "expect": "{1 4 5}"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "file": "index8.test",
+  "name": "index8",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1abc;\n  CREATE INDEX t1abd ON t1(a,b,d);\n  SELECT * FROM t1 WHERE c=4 ORDER BY a, b LIMIT 2;",
+          "expect": "{0 4 4 4 2 3 4 23}"
+        }
+      ]
+    }
+  ]
+}

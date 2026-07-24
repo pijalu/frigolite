@@ -1,0 +1,19 @@
+{
+  "file": "tkt-313723c356.test",
+  "name": "tkt_313723c356",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(rowid) FROM t1"
+        }
+      ]
+    }
+  ]
+}

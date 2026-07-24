@@ -1,0 +1,23 @@
+{
+  "file": "rowhash.test",
+  "name": "rowhash",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    CREATE INDEX i3 ON t1(c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM t1 WHERE a = 'a' OR b = 'b' OR c = 'c';"
+        }
+      ]
+    }
+  ]
+}

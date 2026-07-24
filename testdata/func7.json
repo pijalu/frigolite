@@ -1,0 +1,696 @@
+{
+  "file": "func7.test",
+  "name": "func7",
+  "tests": [
+    {
+      "name": "func7-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ceil(99.9), ceiling(-99.01), floor(17), floor(-17.99);",
+          "expect": "{100.0 -99.0 17 -18.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(ceil(NULL)), ceil('-99.99');",
+          "expect": "{NULL -99.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(ln(5),2), log(100.0), log(100), log(2,'256');",
+          "expect": "{1.61 2.0 2.0 8.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT abs(-17.4)",
+          "expect": "{17.4}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ceil(42.2)",
+          "expect": "{43.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ceil(-42.2)",
+          "expect": "{-42.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(exp(1.0),7)",
+          "expect": "{2.7182818}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT floor(42.8)",
+          "expect": "{42.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT floor(-42.8)",
+          "expect": "{-43.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(ln(2.0),7)",
+          "expect": "{0.6931472}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT log(100.0)",
+          "expect": "{2.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-180",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT log10(1000.0)",
+          "expect": "{3.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-181",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.30f', log10(100.0) );",
+          "expect": "{2.000000000000000000000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-182",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.30f', ln(exp(2.0)) );",
+          "expect": "{2.000000000000000000000000000000}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT log(2.0, 64.0)",
+          "expect": "{6.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT mod(9,4);",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(pi(),7);",
+          "expect": "{3.1415927}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT power(9,3);",
+          "expect": "{729.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(radians(45.0),7);",
+          "expect": "{0.7853982}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-240",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(42.4);",
+          "expect": "{42.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-250",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(42.4382,2);",
+          "expect": "{42.44}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-260",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sign(-8.4);",
+          "expect": "{-1}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-270",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( sqrt(2), 7);",
+          "expect": "{1.4142136}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-280",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT trunc(42.8), trunc(-42.8);",
+          "expect": "{42.0 -42.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT acos(1);",
+          "expect": "{0.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%f',degrees(acos(0.5)));",
+          "expect": "{60.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( asin(1), 7);",
+          "expect": "{1.5707963}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-311",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%f',degrees( asin(0.5) ));",
+          "expect": "{30.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( atan(1), 7);",
+          "expect": "{0.7853982}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT degrees( atan(1) );",
+          "expect": "{45.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( atan2(1,0), 7);",
+          "expect": "{1.5707963}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-331",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT degrees( atan2(1,0) );",
+          "expect": "{90.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cos(0);",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-401",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cos( radians(60.0) );",
+          "expect": "{0.5}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-400",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cos(0);",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( sin(1), 7);",
+          "expect": "{0.841471}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-411",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sin( radians(30) );",
+          "expect": "{0.5}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( tan(1), 7);",
+          "expect": "{1.5574077}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-421",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(tan( radians(45) ),10);",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( sinh(1), 7);",
+          "expect": "{1.1752012}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-510",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( cosh(0), 7);",
+          "expect": "{1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( tanh(1), 7);",
+          "expect": "{0.7615942}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-530",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( asinh(1), 7);",
+          "expect": "{0.8813736}"
+        }
+      ]
+    },
+    {
+      "name": "func7-pg-540",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( acosh(1), 7);",
+          "expect": "{0.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT acos(1);",
+          "expect": "{0.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT acos(1.0001);",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( acos(0.0), 7);",
+          "expect": "{1.5707963}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( asin(0.2), 7);",
+          "expect": "{0.2013579}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( atan(2), 7), round( atan(-2), 7);",
+          "expect": "{1.1071487 -1.1071487}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( atan2(-2,2), 7), round( atan2(pi(),0), 7);",
+          "expect": "{-0.7853982 1.5707963}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ceiling(1.23), ceiling(-1.23);",
+          "expect": "{2.0 -1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-180",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cos(pi());",
+          "expect": "{-1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT degrees(pi()), degrees(pi()/2);",
+          "expect": "{180.0 90.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round( exp(2), 7), round( exp(-2), 7), exp(0);",
+          "expect": "{7.3890561 0.1353353 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT floor(1.23), floor(-1.23);",
+          "expect": "{1.0 -2.0}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(ln(2),7), quote(ln(-2));",
+          "expect": "{0.6931472 NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#   SELECT round(log(2),7), log(-2);\n#",
+          "expect": "{0.6931472 NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-230",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT log(2,65536), log(10,100), quote(log(1,100)), quote(log(0,100));",
+          "expect": "{16.0 2.0 NULL NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-240",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT log2(65536), quote(log2(-100)), quote(log2(0));",
+          "expect": "{16.0 NULL NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-250",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(log10(2),7), log10(100), quote(log10(-100));",
+          "expect": "{0.30103 2.0 NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-260",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT mod(234,10), 253%7, mod(29,9), 29%9;",
+          "expect": "{4.0 1 2.0 2}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-270",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT mod(34.5,3);",
+          "expect": "{1.5}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-280",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pow(2,2), pow(2,-2);",
+          "expect": "{4.0 0.25}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-281",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT power(2,2), power(2,-2);",
+          "expect": "{4.0 0.25}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-290",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT round(radians(90),7);",
+          "expect": "{1.5707963}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sign(-32), sign(0), sign(234);",
+          "expect": "{-1 0 1}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sin(pi()) BETWEEN -1.0e-15 AND 1.0e-15;",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sqrt(4), round(sqrt(20),7), quote(sqrt(-16));",
+          "expect": "{2.0 4.472136 NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func7-mysql-330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tan(pi()) BETWEEN -1.0e-15 AND 1.0e-15;",
+          "expect": "{1}"
+        }
+      ]
+    }
+  ]
+}

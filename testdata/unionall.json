@@ -1,0 +1,295 @@
+{
+  "file": "unionall.test",
+  "name": "unionall",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n\n  INSERT INTO t1_a VALUES(1, 'one'), (4, 'four');\n  INSERT INTO t1_b VALUES(2, 'two'), (5, 'five');\n  INSERT INTO t1_c VALUES(3, 'three'), (6, 'six');\n\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n\n  CREATE TABLE i1(x);\n  INSERT INTO i1 VALUES(2), (5), (6), (1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a UNION ALL SELECT c, c FROM t1_b;\n  SELECT * FROM (SELECT t1.a, t1.b AS b, t0.c0 FROM t0, t1);",
+          "expect": "{1 one 0 2 2 0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(1, 'ONE');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(2, 'TWO');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(3, 'THREE');"
+        }
+      ]
+    },
+    {
+      "name": "2.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2_a(k INTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t2_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t2 AS \n    SELECT * FROM t2_a \n    UNION ALL \n    SELECT * FROM t2_b;\n\n  CREATE TRIGGER t2_insert INSTEAD OF INSERT ON t2 BEGIN\n    INSERT INTO t2_a SELECT new.k, new.v WHERE (new.k%2)==0;\n    INSERT INTO t2_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;\n\n  INSERT INTO t2 VALUES(5, 'v'), (4, 'iv'), (3, 'iii'), (2, 'ii');"
+        }
+      ]
+    },
+    {
+      "name": "2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY y;",
+          "expect": "{\n  3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY y||'';",
+          "expect": "{\n  3 THREE 3 iii \n  2 TWO 2 ii \n  3 three 3 iii \n  2 two 2 ii\n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY v",
+          "expect": "{\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY v||''",
+          "expect": "{\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE x=k ORDER BY k,v||''",
+          "expect": "{\n  2 two   2 ii\n  2 TWO   2 ii \n  3 three 3 iii \n  3 THREE 3 iii \n}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(123, 't1_a');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n\n  CREATE VIEW t1 AS\n    SELECT a, b FROM t1_a\n    UNION ALL\n    SELECT c, d FROM t1_b;\n\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(456, 't3_a');\n  CREATE TABLE t3_b(k INTEGER PRIMARY KEY, v TEXT);\n\n  CREATE VIEW t3 AS\n    SELECT * FROM t3_a\n    UNION ALL\n    SELECT * FROM t3_b;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(0,NULL);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE TABLE t2(k,v);\n  INSERT INTO t2 VALUES(5,'v');\n  INSERT INTO t2 VALUES(4,'iv');\n  INSERT INTO t2 VALUES(3,'iii');\n  INSERT INTO t2 VALUES(2,'ii');\n  CREATE TABLE t3_a(k INTEGER PRIMARY KEY, v TEXT);\n  INSERT INTO t3_a VALUES(2,'ii');\n  INSERT INTO t3_a VALUES(4,'iv');\n  CREATE TABLE t3_b(k INTEG5R PRIMARY KEY, v TEXT);\n  INSERT INTO t3_b VALUES(NULL,'iii');\n  INSERT INTO t3_b VALUES(NULL,'v');\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  CREATE VIEW t3 AS \n      SELECT * FROM t3_a \n      UNION ALL \n      SELECT * FROM t3_b;\n  CREATE TRIGGER t3_insert INSTEAD OF INSERT ON t3 BEGIN\n      INSERT INTO t3_a SELECT new.k, new.v WHERE (new.k%2)==0;\n      INSERT INTO t3_b SELECT new.k, new.v WHERE (new.k%2)==1;\n  END;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '+' FROM t1 LEFT JOIN t2 ON (a NOT IN(SELECT v FROM t1, t3 WHERE a=k)=NOT EXISTS(SELECT 1 FROM t1 LEFT JOIN t3 ON (a=k)));",
+          "expect": "{0 {} {} {} + 1 one {} {} + 2 two {} {} + 5 five {} {} + 3 three {} {} + 6 six {} {} +}"
+        }
+      ]
+    },
+    {
+      "name": "5.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '+' FROM t1 LEFT JOIN t3 ON (a NOT IN(SELECT v FROM t1 LEFT JOIN t2 ON (a=k))=k);",
+          "expect": "{0 {} {} {} + 1 one {} {} + 2 two {} {} + 5 five {} {} + 3 three {} {} + 6 six {} {} +}"
+        }
+      ]
+    },
+    {
+      "name": "5.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (t1 NATURAL JOIN pragma_table_xinfo('t1_a') NATURAL JOIN t3) t1\n                NATURAL JOIN t2 NATURAL JOIN t3\n   WHERE rowid ISNULL>0 AND 0%y;",
+          "expect": "{1 {ambiguous column name: rowid}}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(a,b);\n  INSERT INTO t2 VALUES(3,4);\n\n  CREATE TABLE t3(a,b);\n  INSERT INTO t3 VALUES(5,6);\n  CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES(7,8);\n\n  CREATE TABLE t5(a,b);\n  INSERT INTO t5 VALUES(9,10);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;",
+          "expect": "{2 2 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2.0;",
+          "expect": "{2 2 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;",
+          "expect": "{2 2 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2.0;",
+          "expect": "{2 2 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;",
+          "expect": "{2 2 0 {}}"
+        }
+      ]
+    },
+    {
+      "name": "8.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2.0;",
+          "expect": "{2 2 0 {}}"
+        }
+      ]
+    }
+  ]
+}

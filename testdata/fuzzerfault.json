@@ -1,0 +1,40 @@
+{
+  "file": "fuzzerfault.test",
+  "name": "fuzzerfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1_a(a INTEFDR PRIMARY KEY, b TEXT);\n  CREATE TABLE t3_a(k FnTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t3_b(k INTE\u00c05R PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM t1_a LEFT JOIN t3 ON ((1+1) AND k=1)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "file": "join7.test",
+  "name": "join7",
+  "tests": [
+    {
+      "name": "join7-$id.141",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2",
+          "expect": "{\n    NULL NULL 5    55\n    1    2    NULL NULL\n  }"
+        }
+      ]
+    }
+  ]
+}

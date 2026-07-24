@@ -1,0 +1,54 @@
+{
+  "file": "fts4noti.test",
+  "name": "fts4noti",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cc(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "2.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "3.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "4.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    },
+    {
+      "name": "5.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2",
+          "expect": "#-------------------------------------------------------------------------"
+        }
+      ]
+    }
+  ]
+}

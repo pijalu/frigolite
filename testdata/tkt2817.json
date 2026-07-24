@@ -1,0 +1,27 @@
+{
+  "file": "tkt2817.test",
+  "name": "tkt2817",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl(a, b, c);\n    -- INSERT INTO tbl VALUES(1, 'abc', 'def');\n    -- INSERT INTO tbl VALUES(2, 'ghi', 'jkl');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.tbl(a, b, c); \n    CREATE INDEX main.tbli ON tbl(a, b, c);\n    INSERT INTO main.tbl SELECT a, b, c FROM temp.tbl;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE tmp(a, b, c);\n    INSERT INTO tmp VALUES(1, 'abc', 'def');\n    INSERT INTO tmp VALUES(2, 'ghi', 'jkl');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.tbl(a, b, c); \n    CREATE INDEX main.tbli ON tbl(a, b, c);\n    INSERT INTO main.tbl SELECT a, b, c FROM temp.tmp;"
+        }
+      ]
+    }
+  ]
+}

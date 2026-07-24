@@ -1,0 +1,31 @@
+{
+  "file": "index5.test",
+  "name": "index5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randstr(100,100))"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);\n    DROP INDEX I1;\n    PRAGMA main.page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x)"
+        }
+      ]
+    }
+  ]
+}

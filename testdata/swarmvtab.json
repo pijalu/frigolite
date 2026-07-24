@@ -1,0 +1,48 @@
+{
+  "file": "swarmvtab.test",
+  "name": "swarmvtab",
+  "tests": [
+    {
+      "name": "1.5.1.(5-seconds-or-so)",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;",
+          "expect": "{80000}"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t0 WHERE rowid<=200"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 1 AND 100;",
+          "expect": "{1 {unable to open database file}}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 101 AND 200;",
+          "expect": "{1 {no such rowid table: t15}}"
+        }
+      ]
+    }
+  ]
+}

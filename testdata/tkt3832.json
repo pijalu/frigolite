@@ -1,0 +1,15 @@
+{
+  "file": "tkt3832.test",
+  "name": "tkt3832",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INTEGER PRIMARY KEY);\n    CREATE TABLE log(x);\n    CREATE TRIGGER t1r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(new.b);\n    END;\n    INSERT INTO t1 VALUES(NULL,5);\n    INSERT INTO t1 SELECT b, a FROM t1 ORDER BY b;\n    SELECT rowid, * FROM t1;\n    SELECT rowid, * FROM log;"
+        }
+      ]
+    }
+  ]
+}

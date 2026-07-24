@@ -1,0 +1,23 @@
+{
+  "file": "tkt3935.test",
+  "name": "tkt3935",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT j1.b FROM ( SELECT * FROM t1 INNER JOIN t2 ON a=c ) AS j1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT j1.b FROM (t1 INNER JOIN t2 ON a=c) AS j1"
+        }
+      ]
+    }
+  ]
+}

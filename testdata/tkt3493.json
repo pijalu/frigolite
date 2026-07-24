@@ -1,0 +1,115 @@
+{
+  "file": "tkt3493.test",
+  "name": "tkt3493",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE A (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT);\n    INSERT INTO A VALUES(1,'123');\n    INSERT INTO A VALUES(2,'456');\n    CREATE TABLE B (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT);\n    INSERT INTO B VALUES(1,1);\n    INSERT INTO B VALUES(2,2);\n    CREATE TABLE A_B (B_id INTEGER NOT NULL, A_id INTEGER);\n    INSERT INTO A_B VALUES(1,1);\n    INSERT INTO A_B VALUES(2,2);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \n      CASE \n         WHEN B.val = 1 THEN 'XYZ' \n         ELSE A.val \n      END AS Col1\n    FROM B  \n    LEFT OUTER JOIN A_B ON B.id = A_B.B_id  \n    LEFT OUTER JOIN A ON A.id = A_B.A_id\n    ORDER BY Col1 ASC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT\n      CASE \n         WHEN B.val = 1 THEN 'XYZ' \n         ELSE A.val \n      END AS Col1\n    FROM B  \n    LEFT OUTER JOIN A_B ON B.id = A_B.B_id  \n    LEFT OUTER JOIN A ON A.id = A_B.A_id\n    ORDER BY Col1 ASC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b.val, CASE WHEN b.val = 1 THEN 'xyz' ELSE b.val END AS col1 FROM b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT \n      b.val, \n      CASE WHEN b.val = 1 THEN 'xyz' ELSE b.val END AS col1 \n    FROM b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT \n      b.val, \n      CASE WHEN b.val = '1' THEN 'xyz' ELSE b.val END AS col1 \n    FROM b;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT, b INT);\n    INSERT INTO t1 VALUES(123, 456);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a=123 FROM t1 GROUP BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a=123 FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a='123' FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), a=123 FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), +a=123 FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b='456' FROM t1 GROUP BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b='456' FROM t1 GROUP BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b='456' FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), a FROM t1 GROUP BY a HAVING a=123"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a), a FROM t1 GROUP BY b HAVING a=123"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(b), b FROM t1 GROUP BY a HAVING b='456'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(b), b FROM t1 GROUP BY b HAVING b='456'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a COLLATE NOCASE, b COLLATE BINARY);\n    INSERT INTO t2 VALUES('aBc', 'DeF');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a='abc' FROM t2 GROUP BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a='abc' FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a>b FROM t2 GROUP BY a, b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a>b COLLATE BINARY FROM t2 GROUP BY a, b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b>a FROM t2 GROUP BY a, b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b>a COLLATE NOCASE FROM t2 GROUP BY a, b"
+        }
+      ]
+    }
+  ]
+}

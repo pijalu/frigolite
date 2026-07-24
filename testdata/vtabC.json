@@ -1,0 +1,39 @@
+{
+  "file": "vtabC.test",
+  "name": "vtabC",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE m(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO m VALUES(1000);\n      SELECT * FROM m;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO m VALUES(9000000);\n      SELECT * FROM m;"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "file": "backup2.test",
+  "name": "backup2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    CREATE VIEW v1 AS SELECT substr(x,10,10) FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 SELECT a+2, (a+2)*2 FROM t2;\n    INSERT INTO t2 SELECT a+4, (a+4)*2 FROM t2;\n    INSERT INTO t2 SELECT a+8, (a+8)*2 FROM t2;\n    INSERT INTO t2 SELECT a+16, (a+16)*2 FROM t2;\n    INSERT INTO t2 SELECT a+32, (a+32)*2 FROM t2;\n    INSERT INTO t2 SELECT a+64, (a+64)*2 FROM t2;\n    INSERT INTO t2 SELECT a+128, (a+128)*2 FROM t2;\n    CREATE INDEX t2i1 ON t2(a,b);\n    CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n      SELECT 'hello';\n    END;\n    ANALYZE;\n    PRAGMA integrity_check;"
+        }
+      ]
+    }
+  ]
+}

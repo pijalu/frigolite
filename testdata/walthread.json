@@ -1,0 +1,79 @@
+{
+  "file": "walthread.test",
+  "name": "walthread",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        PRAGMA integrity_check;\n        SELECT md5sum(x) FROM t1 WHERE rowid != (SELECT max(rowid) FROM t1);\n        SELECT x FROM t1 WHERE rowid = (SELECT max(rowid) FROM t1);\n        SELECT md5sum(x) FROM t1 WHERE rowid != (SELECT max(rowid) FROM t1);\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y UNIQUE)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(cnt PRIMARY KEY, sum1, sum2);\n    CREATE INDEX i1 ON t1(sum1);\n    CREATE INDEX i2 ON t1(sum2);\n    INSERT INTO t1 VALUES(0, 0, 0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(cnt) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(cnt) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(sum1) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt, sum1, sum2 FROM t1 ORDER BY cnt"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    }
+  ]
+}

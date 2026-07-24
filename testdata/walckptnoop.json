@@ -1,0 +1,15 @@
+{
+  "file": "walckptnoop.test",
+  "name": "walckptnoop",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=NONE;\n  PRAGMA secure_delete=OFF;"
+        }
+      ]
+    }
+  ]
+}

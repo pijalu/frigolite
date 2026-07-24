@@ -1,0 +1,24 @@
+{
+  "file": "returningfault.test",
+  "name": "returningfault",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (b);",
+          "expect": "{}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_schema"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ]
+}
