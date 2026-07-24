@@ -1519,7 +1519,7 @@ func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, w
 	buf.WriteString(name)
 	buf.WriteString(" ON ")
 	buf.WriteString(table)
-	buf.WriteString(" (")
+	buf.WriteString("(")
 	for i, col := range columns {
 		if i > 0 {
 			buf.WriteString(", ")

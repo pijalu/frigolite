@@ -429,31 +429,27 @@ func (m *Manager) RemoveEntry(name string) error {
 	return err
 }
 
-// nextRowID generates a new rowid.
+// nextRowID generates a new rowid for schema entries.
+// It scans the schema page (page 1) to find the maximum existing rowid
+// and returns the next available value.
 func (m *Manager) nextRowID() int64 {
-	entries, _ := m.GetEntries("")
+	tree := btree.NewBTree(m.pager, 1, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 1
+	}
 	var maxID int64
-	for _, e := range entries {
-		if e.RootPage == 0 {
-			continue // views, triggers, virtual tables have no root page
-		}
-		tree := btree.NewBTree(m.pager, e.RootPage, true)
-		cursor, err := tree.OpenCursor()
+	for {
+		cell, err := cursor.ReadCell()
 		if err != nil {
-			continue
+			break
 		}
-		for {
-			cell, err := cursor.ReadCell()
-			if err != nil {
-				break
-			}
-			if cell.RowID > maxID {
-				maxID = cell.RowID
-			}
-			ok, err := cursor.Next()
-			if err != nil || !ok {
-				break
-			}
+		if cell.RowID > maxID {
+			maxID = cell.RowID
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
 		}
 	}
 	return maxID + 1

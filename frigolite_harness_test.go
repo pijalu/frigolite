@@ -127,9 +127,8 @@ func flattenResult(res *Result) string {
 
 func cleanExpected(s string) string {
 	s = strings.TrimSpace(s)
-	// Only strip outermost braces if the entire string is enclosed in them
+	// Check if the entire string is wrapped in a single pair of braces
 	if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
-		// Check if braces are balanced
 		depth := 0
 		fullyBraced := true
 		for i, ch := range s {
@@ -148,9 +147,62 @@ func cleanExpected(s string) string {
 		}
 		if fullyBraced && depth == 0 {
 			s = s[1 : len(s)-1]
+			return strings.TrimSpace(s)
 		}
 	}
-	return strings.TrimSpace(s)
+	// Handle TCL lists with braced elements: {a} {b} {c} or 1 {error message}
+	// Split by top-level whitespace, extracting braced content and preserving unbraced tokens
+	var parts []string
+	depth := 0
+	tokenStart := 0
+	for i, ch := range s {
+		switch ch {
+		case '{':
+			if depth == 0 {
+				// Add any unbraced text before this brace
+				if tokenStart < i {
+					token := strings.TrimSpace(s[tokenStart:i])
+					if token != "" {
+						parts = append(parts, token)
+					}
+				}
+				tokenStart = i + 1
+			}
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				if tokenStart <= i {
+					token := strings.TrimSpace(s[tokenStart:i])
+					if token != "" {
+						parts = append(parts, token)
+					}
+				}
+				tokenStart = i + 1
+			}
+		case ' ', '\n', '\r', '\t':
+			if depth == 0 {
+				if tokenStart < i {
+					token := strings.TrimSpace(s[tokenStart:i])
+					if token != "" {
+						parts = append(parts, token)
+					}
+				}
+				tokenStart = i + 1
+			}
+		}
+	}
+	// Handle remaining text after last brace
+	if tokenStart < len(s) {
+		token := strings.TrimSpace(s[tokenStart:])
+		if token != "" && token != "}" {
+			parts = append(parts, token)
+		}
+	}
+	if len(parts) > 0 {
+		return strings.TrimSpace(strings.Join(parts, " "))
+	}
+	return s
 }
 
 func splitExpect(expect string) []string {
