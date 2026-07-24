@@ -403,11 +403,20 @@ func (e *Engine) execDropIndex(s *sql.DropIndexStmt) *Result {
 // --- CREATE VIEW ---
 
 func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
-	sqlStr := fmt.Sprintf("CREATE VIEW %s AS %s", s.Name, selectStmtToString(s.Select))
+	// Strip known schema prefixes (main, temp) like execCreateTable does
+	viewName := s.Name
+	if dotIdx := strings.Index(viewName, "."); dotIdx >= 0 {
+		prefix := strings.ToUpper(viewName[:dotIdx])
+		if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+			viewName = viewName[dotIdx+1:]
+		}
+	}
+
+	sqlStr := fmt.Sprintf("CREATE VIEW %s AS %s", viewName, selectStmtToString(s.Select))
 	entry := &schema.Entry{
 		Type:     schema.TypeView,
-		Name:     s.Name,
-		TblName:  s.Name,
+		Name:     viewName,
+		TblName:  viewName,
 		RootPage: 0,
 		SQL:      sqlStr,
 	}
@@ -420,12 +429,28 @@ func (e *Engine) execCreateView(s *sql.CreateViewStmt) *Result {
 // --- CREATE TRIGGER ---
 
 func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
+	// Strip known schema prefixes (main, temp) from trigger name and table
+	triggerName := s.Name
+	if dotIdx := strings.Index(triggerName, "."); dotIdx >= 0 {
+		prefix := strings.ToUpper(triggerName[:dotIdx])
+		if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+			triggerName = triggerName[dotIdx+1:]
+		}
+	}
+	tableName := s.Table
+	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
+		prefix := strings.ToUpper(tableName[:dotIdx])
+		if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
+			tableName = tableName[dotIdx+1:]
+		}
+	}
+
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,
-		Name:     s.Name,
-		TblName:  s.Table,
+		Name:     triggerName,
+		TblName:  tableName,
 		RootPage: 0,
-		SQL:      fmt.Sprintf("CREATE TRIGGER %s %s %s ON %s BEGIN END", s.Name, s.Time, s.Event, s.Table),
+		SQL:      fmt.Sprintf("CREATE TRIGGER %s %s %s ON %s BEGIN END", triggerName, s.Time, s.Event, tableName),
 	}
 	if err := e.schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}

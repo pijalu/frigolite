@@ -246,10 +246,28 @@ func (m *Manager) FindView(name string) (*Entry, error) {
 	if err != nil {
 		return nil, err
 	}
-	upper := strings.ToUpper(name)
-	for _, e := range entries {
-		if strings.ToUpper(e.Name) == upper {
-			return e, nil
+
+	// Try original name first, then without schema prefix
+	searchNames := []string{name}
+	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
+		shortName := name[dotIdx+1:]
+		searchNames = []string{name, shortName}
+	}
+
+	for _, searchName := range searchNames {
+		searchUpper := strings.ToUpper(searchName)
+		for _, e := range entries {
+			eUpper := strings.ToUpper(e.Name)
+			if eUpper == searchUpper {
+				return e, nil
+			}
+			// If stored entry has a schema prefix, try matching the short name
+			if dotIdx := strings.Index(e.Name, "."); dotIdx >= 0 {
+				shortUpper := strings.ToUpper(e.Name[dotIdx+1:])
+				if shortUpper == searchUpper {
+					return e, nil
+				}
+			}
 		}
 	}
 	return nil, fmt.Errorf("schema: view not found: %s", name)
@@ -261,10 +279,28 @@ func (m *Manager) FindTrigger(name string) (*Entry, error) {
 	if err != nil {
 		return nil, err
 	}
-	upper := strings.ToUpper(name)
-	for _, e := range entries {
-		if strings.ToUpper(e.Name) == upper {
-			return e, nil
+
+	// Try original name first, then without schema prefix
+	searchNames := []string{name}
+	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
+		shortName := name[dotIdx+1:]
+		searchNames = []string{name, shortName}
+	}
+
+	for _, searchName := range searchNames {
+		searchUpper := strings.ToUpper(searchName)
+		for _, e := range entries {
+			eUpper := strings.ToUpper(e.Name)
+			if eUpper == searchUpper {
+				return e, nil
+			}
+			// If stored entry has a schema prefix, try matching the short name
+			if dotIdx := strings.Index(e.Name, "."); dotIdx >= 0 {
+				shortUpper := strings.ToUpper(e.Name[dotIdx+1:])
+				if shortUpper == searchUpper {
+					return e, nil
+				}
+			}
 		}
 	}
 	return nil, fmt.Errorf("schema: trigger not found: %s", name)
@@ -292,10 +328,28 @@ func (m *Manager) FindIndex(name string) (*Entry, error) {
 	if err != nil {
 		return nil, err
 	}
-	upper := strings.ToUpper(name)
-	for _, e := range entries {
-		if strings.ToUpper(e.Name) == upper {
-			return e, nil
+
+	// Try original name first, then without schema prefix
+	searchNames := []string{name}
+	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
+		shortName := name[dotIdx+1:]
+		searchNames = []string{name, shortName}
+	}
+
+	for _, searchName := range searchNames {
+		searchUpper := strings.ToUpper(searchName)
+		for _, e := range entries {
+			eUpper := strings.ToUpper(e.Name)
+			if eUpper == searchUpper {
+				return e, nil
+			}
+			// If stored entry has a schema prefix, try matching the short name
+			if dotIdx := strings.Index(e.Name, "."); dotIdx >= 0 {
+				shortUpper := strings.ToUpper(e.Name[dotIdx+1:])
+				if shortUpper == searchUpper {
+					return e, nil
+				}
+			}
 		}
 	}
 	return nil, fmt.Errorf("schema: index not found: %s", name)
