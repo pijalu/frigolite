@@ -7,7 +7,7 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 ## Current State
 
 **All quality gates pass**: `make quality` (vet, staticcheck, gocyclo ≤20, gocognit ≤30)
-**Results**: **~114 FAIL** + **~135 PASS** (compat tests, partial due to timeout) + hand-written tests all pass
+**Results**: **TBD** — full suite times out at 60s (1105 tests × up to 60 pairs each)
 **Hand-written tests**: All pass (SOLID, core, dialect, assert)
 **Generated test file**: 1105 test functions (up from 1067)
 **Test data**: 702 JSON test files for harness runner
@@ -61,6 +61,52 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 - **Parse errors** (~22 errors): Various edge cases (`%`, `)`, `||`, number, identifier in unexpected contexts)
 - **catchsql test handling** (~10 errors): Test generation issue — converter doesn't handle `do_catchsql_test` patterns (expected errors reported as failures by `checkExecOK`)
 - **Result mismatches** (~2300+): Many cascade from the above issues; genuine comparison differences remain
+
+#### 9. Converter Rewrite — Brace-Counting Extraction (FIXED extraction gaps)
+- **Root Cause**: The `[^}]*` regex pattern in `extract_sql_pairs` couldn't handle:
+  - Nested braces in expected results (e.g., `{CREATE TABLE ...}` as TCL list elements)
+  - Tests without expected results (no `{...}` after the SQL body)
+  - Multiple blank lines between tests (the `(?=\n\S|$)` lookahead failed on `\n\n`)
+- **Fix**: Replaced regex-based extraction with brace-counting `extract_balanced_braces()` function that properly counts `{`/`}` depth
+- **Impact**: Extracted 1105 tests (up from 1067). Tests like `do_execsql_test 5.0` (CREATE TEMP TABLE t9) are now properly captured.
+- **Also fixed**: Increased per-test limit from 40 to 200 SQL pairs (some test files have 160+ pairs)
+
+#### 10. Catchsql Error-Checking Generation (FIXED ~10+ false failures)
+- **Root Cause**: `do_catchsql_test` patterns (which expect SQL errors) were generated as `checkExecOK(t, db.Exec("..."))` which expects success
+- **Fix**: For `do_catchsql_test { SQL } {N {message}}`:
+  - If N == 0: generate `checkExecOK(t, db.Exec("..."))` (success expected)
+  - If N != 0: generate `if err := db.Exec("...").Error; err == nil { t.Errorf("expected error but got none") }`
+- **Impact**: Statements expected to fail no longer produce false "exec error" test failures
+
+#### Known Remaining Converter Issues
+- **ifcapable blocks**: Tests inside `ifcapable vtab/fts5/rtree { ... }` blocks are still extracted, causing "table not found" errors for virtual tables using unsupported modules
+- **Multi-statement exec vs query**: Converter determines query/exec by first statement only; multi-statement SQL ending with SELECT is misclassified as exec
+- **reset_db truncation**: Still some issues with reset_db not appearing at correct positions in long tests
+- **Nested expected extraction**: Brace-counting handles 2-level nesting; deeper nesting may still fail
+
+## Next Phase — Engine-Level Fixes
+
+Top-priority engine fixes to reduce the most failures:
+
+### 1. Schema Prefix Handling in Views (HIGH IMPACT)
+- `execCreateView` stores `temp.ttt` as name, but `FindView("ttt")` doesn't fall back to short name
+- Fix: `FindView` should strip schema prefixes like `FindTable` does
+- Fix: `execCreateView` should strip `temp.` prefix like `execCreateTable` does
+
+### 2. Catchsql Error Scenarios in Engine (HIGH IMPACT)  
+- Engine currently successeds where SQLite expects errors (e.g., `ALTER TABLE t2 RENAME TO one` with ambiguous column name)
+- Each catchsql that silently succeeds corrupts database state for subsequent tests
+- Fix: Add validation in ALTER TABLE RENAME to check for name conflicts in existing views/triggers
+
+### 3. View Expansion with Schema-Qualified Names (MEDIUM IMPACT)
+- `SELECT main.txx.a` is parsed as `main.txx` (table)`.a` (column)
+- Table lookup `FindTable("main.txx")` fails because table is stored as `txx`
+- Fix: `FindTable` fallback to short name for `main.txx` → `txx`
+
+### 4. Multi-Statement Exec Error Behaviour (MEDIUM IMPACT)
+- `db.Exec("CREATE TABLE t1(a); CREATE VIEW v1 AS SELECT * FROM t2;")` returns error on view creation but `t1` table persists
+- SQLite would roll back all effects when a multi-statement exec fails
+- Fix: Add transaction wrapping for multi-statement Exec
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |

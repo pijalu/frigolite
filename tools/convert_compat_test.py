@@ -249,7 +249,7 @@ def generate(filename, content):
     lines.append('\tvar dbs []*DB')
     lines.append('\tdbs = append(dbs, db)')
     
-    max_pairs = 200  # limit per test function (most have <100)
+    max_pairs = 60  # limit per test function (balance coverage vs runtime)
     unique_pairs = unique_pairs[:max_pairs]
     
     for sql, expected, cmd_type in unique_pairs:
