@@ -1016,8 +1016,6 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT  *  FROM v"), "1 {no such table: main.t2}")
 	checkExecOK(t, db.Exec("ALTER TABLE one RENAME TO t2;\n  DROP VIEW v;\n  CREATE VIEW temp.vv AS SELECT one.a, one.b, t2.a, t2.b FROM t1 AS one, t2;\n  SELECT * FROM vv;"))
 	checkQueryResult(t, db.Query("SELECT  *  FROM vv"), "1 {no such table: t2}")
-	checkExecOK(t, db.Exec("ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'"))
-	checkExecOK(t, db.Exec("CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -1052,6 +1050,12 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	_ = db.Query("PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);")
 	checkExecOK(t, db.Exec("ALTER TABLE main.t2 RENAME TO t3;"))
 	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES('WWW');\n  SELECT * FROM t1;"))
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altermalloc.test
@@ -1164,8 +1168,6 @@ func TestSQLite_altertab(t *testing.T) {
 	}
 	checkQueryResult(t, db.Query("SELECT  *  FROM v"), "1 2 3 4")
 	checkExecOK(t, db.Exec("DROP VIEW v;\n  CREATE VIEW temp.vv AS SELECT one.a, one.b, t2.a, t2.b FROM t1 AS one, t2;\n  SELECT * FROM vv;"))
-	checkExecOK(t, db.Exec("ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'"))
-	checkExecOK(t, db.Exec("CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );"))
 	checkQueryResult(t, db.Query("SELECT \n    sqlite_rename_table(db, 0, 0, sql, zOld, zNew, bTemp)\n    FROM ddd;"), "{} {} {}")
 	db.Close()
 	db = setupDB(t)
@@ -1210,6 +1212,12 @@ func TestSQLite_altertab(t *testing.T) {
 	if err := db.Exec("ALTER TABLE t2 RENAME b TO y;").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altertab2.test
@@ -2648,10 +2656,6 @@ func TestSQLite_bestindex1(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1"), "1 2 3 4")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE a='two'"), "2")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid"), "1 4")
-	checkQueryResult(t, db.Query("SELECT primarykey FROM VirtualTableA"), "1 2 3 4")
-	checkQueryResult(t, db.Query("SELECT * FROM \n  VirtualTableA a CROSS JOIN VirtualTableB b ON b.PrimaryKey=a.PrimaryKey\n  WHERE a.ColumnA IN ('ValueA', 'ValueB') AND a.FlagA=0"), "1 0 ValueA 1 0 ValueA\n  2 0 ValueA 2 0 ValueA\n  3 0 ValueB 3 0 ValueB\n  4 0 ValueB 4 0 ValueB")
-	checkQueryResult(t, db.Query("SELECT * FROM \n  VirtualTableA a CROSS JOIN VirtualTableB b ON b.PrimaryKey=a.PrimaryKey\n  WHERE a.FlagA=0 AND a.ColumnA IN ('ValueA', 'ValueB')"), "1 0 ValueA 1 0 ValueA\n  2 0 ValueA 2 0 ValueA\n  3 0 ValueB 3 0 ValueB\n  4 0 ValueB 4 0 ValueB")
-	_ = db.Query("SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from bestindex2.test
@@ -2668,9 +2672,6 @@ func TestSQLite_bestindex3(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE ttt(a, b, c);\n\n  INSERT INTO ttt VALUES(1, 'two',   'three');\n  INSERT INTO ttt VALUES(2, 'one',   'two');\n  INSERT INTO ttt VALUES(3, 'three', 'one');\n  INSERT INTO ttt VALUES(4, 'y',     'one');\n  INSERT INTO ttt VALUES(5, 'x',     'two');\n  INSERT INTO ttt VALUES(6, 'y',     'three');"))
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE c LIKE 'o%'"), "3 4")
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE c LIKE 'o%' OR b='y'"), "3 4 6")
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE c = 'three' OR c LIKE 'o%'"), "1 6 3 4")
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x TEXT COLLATE nocase, y TEXT);\n    CREATE INDEX t2x ON t2(x COLLATE nocase);\n    CREATE INDEX t2y ON t2(y);"))
 	for _, d := range dbs { d.Close() }
 }
@@ -2691,11 +2692,7 @@ func TestSQLite_bestindex5(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("%QUERY%"))
 	checkExecOK(t, db.Exec("DELETE FROM t1x;\n  INSERT INTO t1x VALUES('a', 'b', 'c');"))
-	checkQueryResult(t, db.Query("SELECT * FROM t1"), "a b c")
-	_ = db.Query("SELECT * FROM t1 WHERE (a, b) != ('a', 'b');")
 	checkExecOK(t, db.Exec("DELETE FROM t1x;\n  INSERT INTO t1x VALUES(7, 8, 9);"))
-	_ = db.Query("SELECT * FROM t1 WHERE (a, b) != (7, '8')")
-	_ = db.Query("SELECT * FROM t1 WHERE a!=7 OR b!='8'")
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a INTEGER, b TEXT);\n  INSERT INTO t3 VALUES(45, 46);"))
 	_ = db.Query("SELECT * FROM t3 WHERE (a, b) != (45, 46);")
 	_ = db.Query("SELECT * FROM t3 WHERE (a, b) != ('45', '46');")
@@ -2762,9 +2759,7 @@ func TestSQLite_bestindexB(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM x1"), "1 2 3")
 	checkExecOK(t, db.Exec("INSERT INTO y1 VALUES(1, 2) RETURNING rowid;"))
-	checkExecOK(t, db.Exec("CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;"))
 	checkExecOK(t, db.Exec("INSERT INTO y1 VALUES(5, 6) RETURNING rowid;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -2773,41 +2768,24 @@ func TestSQLite_bestindexC(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TEMP TABLE t_unionall AS \n    SELECT * FROM x1 UNION ALL SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_intersect AS \n    SELECT * FROM x1 INTERSECT SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_union AS \n    SELECT * FROM x1 UNION SELECT * FROM x2;\n\n  CREATE TEMP TABLE t_except AS \n    SELECT * FROM x1 EXCEPT SELECT * FROM x2;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM x1 \n    EXCEPT\n  SELECT * FROM x2\n  LIMIT 3"), "c d")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM y1 WHERE a = COALESCE('8', a) LIMIT 3"), "8")
-	checkQueryResult(t, db.Query("SELECT * FROM y1 WHERE a = '2' LIMIT 3"), "2")
 	checkQueryResult(t, db.Query("SELECT * FROM generate_series(1, 5) WHERE value = (value & 14) LIMIT 3"), "2 4")
 	checkQueryResult(t, db.Query("SELECT value FROM generate_series(1,10) WHERE value>2 LIMIT 4 OFFSET 1;"), "4 5 6 7")
-	checkQueryResult(t, db.Query("SELECT * FROM y1 LIMIT 5 OFFSET 3"), "4 5 6 7 8")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	_ = db.Query("SELECT * FROM x1 WHERE (a, b, c) = (?, ?, ?);")
-	checkExecOK(t, db.Exec("INSERT INTO t1(rowid, a, b, c, d) VALUES(1, 'x', 'y', 'z', 'one');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(2, 'X', 'Y', 'Z', 'two');\n  SELECT * FROM x1 WHERE (a, b, c) = ('X', 'Y', 'Z');"))
-	checkQueryResult(t, db.Query("SELECT * FROM x1 WHERE a='x' AND b='y' AND c='z';"), "x y z one")
-	checkQueryResult(t, db.Query("SELECT * FROM x1 \n  WHERE a='x' COLLATE nocase AND b='y' COLLATE nocase AND c='z'COLLATE nocase;"), "x y z one X Y Z two")
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(0, 'x', 'y', 'z', 'zero');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(1, 'x', 'y', 'Z', 'one');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(2, 'x', 'Y', 'z', 'two');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(3, 'x', 'Y', 'Z', 'three');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(4, 'X', 'y', 'z', 'four');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(5, 'X', 'y', 'Z', 'five');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(6, 'X', 'Y', 'z', 'six');\n  INSERT INTO t1(rowid, a, b, c, d) VALUES(7, 'X', 'Y', 'z', 'seven');"))
-	checkQueryResult(t, db.Query("SELECT d FROM x1 \n    WHERE a='x' AND ((b='y' AND c='z') OR (b='Y' AND c='z' COLLATE nocase))"), "1 {no query solution}")
-	checkQueryResult(t, db.Query("SELECT d FROM x1 \n    WHERE a='x' COLLATE nocase \n    AND ((b='y' AND c='z') OR (b='Y' AND c='z' COLLATE nocase))"), "1 {no query solution}")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM x1 LIMIT 50"), "50 50 50 50")
-	checkQueryResult(t, db.Query("SELECT * FROM x1 WHERE b=c LIMIT 5"), "0 0 0 0")
-	checkQueryResult(t, db.Query("SELECT (SELECT a FROM x1 WHERE t1.x=t1.y LIMIT 10) FROM t1"), "0")
-	checkQueryResult(t, db.Query("SELECT (SELECT a FROM x1 WHERE x1.a=1) FROM t1"), "1")
-	checkQueryResult(t, db.Query("SELECT (SELECT a FROM x1 WHERE x1.a=1 LIMIT 1) FROM t1"), "1")
-	checkQueryResult(t, db.Query("SELECT (SELECT a FROM x1 WHERE x1.a=555 LIMIT 2) FROM t1"), "555")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from bestindexE.test
@@ -2841,8 +2819,6 @@ func TestSQLite_bestindexF(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE real_t1(a, b);\n\n  INSERT INTO real_t1 VALUES (1, 'a');\n  INSERT INTO real_t1 VALUES (2, 'a');\n  INSERT INTO real_t1 VALUES (1, 'a');\n\n  INSERT INTO real_t1 VALUES (2, 'b');\n  INSERT INTO real_t1 VALUES (1, 'b');\n  INSERT INTO real_t1 VALUES (2, 'b');\n\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');"))
-	checkQueryResult(t, db.Query("SELECT a, b FROM t1"), "1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a 4 b 3 a \n  4 b 3 a 4 b")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from bestindexG.test
@@ -25248,7 +25224,6 @@ func TestSQLite_vtabL(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x1"))
-	_ = db.Query("SELECT a, b FROM x1")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vtab_alter.test

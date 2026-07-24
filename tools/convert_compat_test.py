@@ -310,6 +310,62 @@ def extract_sql_pairs(content):
     # Return only the first 3 fields (sql, expected, cmd_type)
     return [(sql, expected, cmd_type) for sql, expected, cmd_type, _ in unique]
 
+def find_vtab_orphans(pairs):
+    """Find table names created by CREATE VIRTUAL TABLE with unsupported modules
+    that will be filtered out by has_unsupported_features. Returns a set of table
+    names (uppercase) that are orphaned — any SQL referencing these tables should
+    also be filtered.
+    
+    This prevents cascade failures like:
+    - CREATE VIRTUAL TABLE x1 USING tcl(tcl_command) → FILTERED (has tcl()
+    - ALTER TABLE x1 RENAME TO x2 → NOT FILTERED (no tcl() reference)
+    - But x1 doesn't exist, so ALTER TABLE fails"""
+    orphan_tables = set()
+    for sql, expected, cmd_type in pairs:
+        # Only check CREATE VIRTUAL TABLE statements
+        if not sql.strip().upper().startswith('CREATE VIRTUAL TABLE'):
+            continue
+        # Extract the table name and module
+        m = re.search(r'CREATE\s+VIRTUAL\s+TABLE\s+(\S+)\s+USING\s+(\S+)', sql, re.IGNORECASE)
+        if not m:
+            continue
+        table_name = m.group(1)
+        # Strip schema prefix (main., temp.)
+        if '.' in table_name:
+            parts = table_name.split('.')
+            if parts[0].upper() in ('MAIN', 'TEMP', 'TEMPORARY'):
+                table_name = parts[1]
+        # Check if this CREATE will be filtered by has_unsupported_features
+        # The tcl module check is the primary case
+        if re.search(r'\btcl\s*\(', sql, re.IGNORECASE):
+            orphan_tables.add(table_name.upper())
+        # Add other module patterns that cause filtering
+        if re.search(r'\bvtab_command\b', sql):
+            orphan_tables.add(table_name.upper())
+    return orphan_tables
+
+
+def references_table(sql, table_name):
+    """Check if a SQL statement references the given table name (case-insensitive)."""
+    upper = table_name.upper()
+    # Common SQL patterns that reference a table
+    patterns = [
+        r'\bALTER\s+TABLE\s+' + re.escape(upper) + r'\b',
+        r'\bDROP\s+TABLE\s+' + re.escape(upper) + r'\b',
+        r'\bINSERT\s+INTO\s+' + re.escape(upper) + r'\b',
+        r'\bDELETE\s+FROM\s+' + re.escape(upper) + r'\b',
+        r'\bUPDATE\s+' + re.escape(upper) + r'\b',
+        r'\bFROM\s+' + re.escape(upper) + r'\b',
+        r'\bTABLE\s+' + re.escape(upper) + r'\b',
+        r'\s+' + re.escape(upper) + r'\s*\.',
+        re.escape(upper) + r'\s*\(',
+    ]
+    sql_upper = sql.upper()
+    for pat in patterns:
+        if re.search(pat, sql_upper):
+            return True
+    return False
+
 def generate(filename, content):
     func_name = re.sub(r'\.test$', '', filename)
     func_name = re.sub(r'[^a-zA-Z0-9]', '_', func_name)
@@ -319,7 +375,13 @@ def generate(filename, content):
     pairs = extract_sql_pairs(content)
     if not pairs:
         return None
-    
+      
+    # Find table names from CREATE VIRTUAL TABLE USING tcl(...) that will be
+    # filtered out by has_unsupported_features. Subsequent SQL referencing
+    # these tables (e.g., ALTER TABLE x1) would fail because the table
+    # doesn't exist — filter them too.
+    orphan_tables = find_vtab_orphans(pairs)
+      
     # Deduplicate by SQL (not cmd_type), keep the first occurrence with expected
     seen = {}
     unique_pairs = []
@@ -330,6 +392,9 @@ def generate(filename, content):
       continue
      # Skip SQL with unsupported/TCL-specific features
      if has_unsupported_features(sql):
+      continue
+     # Skip SQL that references an orphaned virtual table
+     if any(references_table(sql, orphan) for orphan in orphan_tables):
       continue
      if sql not in seen:
       seen[sql] = True
