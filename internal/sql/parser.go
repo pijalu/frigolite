@@ -360,16 +360,24 @@ func (p *Parser) parseJoinType() string {
 		p.expectKeyword("JOIN")
 		return "FULL"
 	case "NATURAL":
-		p.next()
-		if p.cur.Type == TokenKeyword && (p.cur.Value == "LEFT" || p.cur.Value == "RIGHT") {
-			p.next()
-		}
-		p.expectKeyword("JOIN")
-		return "NATURAL"
+		return p.parseNaturalJoinType()
 	default:
 		p.expectKeyword("JOIN")
 		return ""
 	}
+}
+
+// parseNaturalJoinType handles NATURAL [LEFT|RIGHT|INNER|FULL|CROSS] [OUTER] JOIN.
+func (p *Parser) parseNaturalJoinType() string {
+	p.next()
+	if p.cur.Type == TokenKeyword && (p.cur.Value == "LEFT" || p.cur.Value == "RIGHT" || p.cur.Value == "INNER" || p.cur.Value == "FULL" || p.cur.Value == "CROSS") {
+		p.next()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "OUTER" {
+			p.next()
+		}
+	}
+	p.expectKeyword("JOIN")
+	return "NATURAL"
 }
 
 // parseUsingClause converts JOIN ... USING (col1, col2) into ON left.col = right.col AND ...

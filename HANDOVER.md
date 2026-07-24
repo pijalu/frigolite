@@ -28,14 +28,19 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 - **Extension functions** (20+): TOINTEGER, TOREAL, TOCHAR, TOBLOB, TOHEX, UNHEX, CONCAT, CONCAT_WS, SUBSTRING, UNISTR, NEXT_CHAR, INT2HEX, REGEXPI, PREFIX_LENGTH, FORMAT, EDITDIST3, SPELLFIX1_SCRIPTCODE, DECIMAL, DECIMAL_MUL/ADD/SUB/DIV, JSON/JSONB family, JSONB_REMOVE, FIRST_VALUE, LAST_INSERT_ROWID, LOAD_EXTENSION, EVAL, Ieee754/Ieee754_from_blob/Ieee754_inc, CHANGES
 - **Impact**: Eliminated all "unknown function" errors across 132+ test cases
 
-#### 4. Remaining Work
-- **FULL/INNER JOIN syntax** (~64 errors): `expected keyword 'JOIN' but got 'FULL'/'INNER'`
+#### 4. NATURAL JOIN with INNER/FULL/CROSS/OUTER (FIXED ~68 errors)
+- `NATURAL INNER JOIN`, `NATURAL FULL JOIN`, `NATURAL CROSS JOIN`, `NATURAL LEFT OUTER JOIN` now parse correctly
+- Extracted `parseNaturalJoinType()` helper to keep cyclomatic complexity ≤20
+- **Impact**: Eliminated all "expected keyword 'JOIN'" parse errors (FULL=36, INNER=28, CROSS=3, OUTER=1)
+
+#### 5. Remaining Work
 - **`>` in expression context** (~18 errors)
 - **`column not found: CONSTRAINT`** (~16 errors)
 - **INSERT value evaluation** (~33 errors)
 - **Schema prefix `main.t1`** (~14 errors)
-- Various "table not found" cascade issues (~500+ errors) — many cascade from DDL failures
-- Result mismatches (~2959) — many cascade from the above issues
+- **ALTER TABLE on non-existent table** (~10+ errors): Test generation issue (catchsql expected errors reported as failures by checkExecOK)
+- Various "table not found" cascade issues (~500+ errors) — many cascade from DDL or schema-qualified name failures
+- Result mismatches (~3000+) — many cascade from the above issues
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
