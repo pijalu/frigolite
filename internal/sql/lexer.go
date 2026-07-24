@@ -19,6 +19,8 @@ const (
 	TokenNeq       // != or <>
 	TokenLt        // <
 	TokenGt        // >
+	TokenArrow     // ->
+	TokenDoubleArrow // ->>
 	TokenLe        // <=
 	TokenGe        // >=
 	TokenPlus      // +
@@ -188,7 +190,18 @@ func (t *Tokenizer) trySingleCharToken(ch byte, pos int) *Token {
 		}
 		t.last = Token{Type: TokenDot, Value: ".", Pos: pos}
 		return &t.last
-	case '+', '-', '*', '/', '(', ')', ',', ';':
+	case '-':
+		// Check for -> and ->> operators
+		if t.pos+1 < len(t.input) && t.input[t.pos+1] == '>' {
+			t.pos += 2
+			if t.pos < len(t.input) && t.input[t.pos] == '>' {
+				t.pos++
+				return &Token{Type: TokenDoubleArrow, Value: "->>", Pos: pos}
+			}
+			return &Token{Type: TokenArrow, Value: "->", Pos: pos}
+		}
+		return t.simpleSingleCharToken(ch, pos)
+	case '+', '*', '/', '(', ')', ',', ';':
 		return t.simpleSingleCharToken(ch, pos)
 	default:
 		return nil

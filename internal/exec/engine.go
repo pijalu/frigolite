@@ -2539,6 +2539,11 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	tableName := s.Table
 
+	// Handle DROP CONSTRAINT as no-op (constraints not enforced)
+	if s.Column == "CONSTRAINT" {
+		return &Result{}
+	}
+
 	// Remove column from cached column definitions
 	colDefs := e.colCache[tableName]
 	found := false
@@ -2812,6 +2817,9 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 	case "NOT MATCH":
 		// FTS not supported — NOT MATCH always returns 1
 		return int64(1), nil
+	case "->", "->>":
+		// JSON extract operators — not supported, return NULL
+		return nil, nil
 	default:
 		return evalArithmeticOp(op, left, right)
 	}

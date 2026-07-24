@@ -113,6 +113,8 @@ func tokenName(typ TokenType, value string) string {
 		TokenMinus:      "'-'",
 		TokenStar:       "'*'",
 		TokenSlash:      "'/'",
+		TokenArrow:      "'->'",
+		TokenDoubleArrow: "'->>'",
 		TokenMod:        "'%'",
 		TokenLParen:     "'('",
 		TokenRParen:     "')'",
@@ -2912,6 +2914,16 @@ func (p *Parser) parsePrimaryExpr() Expr {
 	result := p.parsePrimaryExprInner()
 	if result != nil {
 		result = p.skipCollateExpr(result)
+	}
+	// Handle JSON operators: -> and ->>
+	for p.cur.Type == TokenArrow || p.cur.Type == TokenDoubleArrow {
+		op := "->"
+		if p.cur.Type == TokenDoubleArrow {
+			op = "->>"
+		}
+		p.next()
+		right := p.parsePrimaryExpr()
+		result = &BinaryOp{Left: result, Right: right, Operator: op}
 	}
 	return result
 }
