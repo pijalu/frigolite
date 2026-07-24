@@ -142,11 +142,11 @@ Top-priority engine fixes to reduce the most failures:
    - Now only strips outermost braces if the entire string is enclosed
    - Preserves `{}` as NULL in expected results
 
-#### Remaining Failures (163 total in JSON suite)
+#### Remaining Failures (157 total in JSON suite)
 | File | exec | qry | mis | exp | err | Total |
 |------|------|-----|-----|-----|-----|-------|
 | affinity2 | 0 | 0 | 6 | 1 | 0 | 7 |
-| affinity3 | 0 | 0 | 10 | 0 | 0 | 10 |
+| affinity3 | 0 | 2 | 0 | 0 | 0 | 2 |
 | aggnested | 0 | 0 | 12 | 3 | 0 | 15 |
 | aggorderby | 0 | 0 | 9 | 2 | 0 | 11 |
 | alias | 1 | 0 | 0 | 0 | 0 | 1 |
@@ -160,17 +160,9 @@ Top-priority engine fixes to reduce the most failures:
 | altermalloc2 | 1 | 0 | 0 | 0 | 0 | 1 |
 | altertab2 | 5 | 0 | 1 | 4 | 0 | 10 |
 | altertab3 | 9 | 0 | 5 | 6 | 5 | 25 |
-| **TOTAL** | **28** | **1** | **69** | **46** | **19** | **163** |
+| **TOTAL** | **28** | **3** | **67** | **46** | **19** | **157** |
 
-#### Still Needed (Future Sessions)
-1. View expansion error handling (alterlegacy 3.x, 5.x — return error rows for missing tables)
-2. ALTER TABLE RENAME validation (alterlegacy 1.2 — check for broken constraint/index references)
-3. Type affinity comparison fixes (affinity2-300, affinity3)
-4. Column lookup in ALTER TABLE operations (alterdropcol, altertab2, altertab3)
-5. Virtual table module error messages (alterlegacy 2.x — echo module errors)
-6. Generated column enforcement (altercons2 10.x)
-7. LEFT JOIN NULL handling (affinity2 501/503/505/507)
-8. Stack overflow in generated Go compat tests (TestSQLite_*) — view self-reference infinite recursion
+
 
 ### Remaining Work Status
 - ✅ Catchsql error-checking generation (converter) — DONE

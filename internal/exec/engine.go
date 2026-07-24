@@ -734,19 +734,215 @@ func selectStmtToString(s *sql.SelectStmt) string {
 		if i > 0 {
 			result += ", "
 		}
-		if ref, ok := col.Expr.(*sql.ColumnRef); ok {
-			result += ref.Name
-		} else {
-			result += "?"
-		}
-		if col.As != "" {
-			result += " AS " + col.As
-		}
+		result += selectColumnToString(col)
 	}
 	if s.From.Name != "" {
 		result += " FROM " + s.From.Name
+		if s.From.As != "" {
+			result += " " + s.From.As
+		}
+	}
+	result += joinClausesToString(s.Joins)
+	if s.Where != nil {
+		result += " WHERE " + exprToString(s.Where)
+	}
+	// Handle GROUP BY
+	if len(s.GroupBy) > 0 {
+		result += " GROUP BY "
+		for i, gb := range s.GroupBy {
+			if i > 0 {
+				result += ", "
+			}
+			result += exprToString(gb)
+		}
+	}
+	// Handle HAVING
+	if s.Having != nil {
+		result += " HAVING " + exprToString(s.Having)
+	}
+	// Handle ORDER BY
+	if len(s.OrderBy) > 0 {
+		result += " ORDER BY "
+		for i, ob := range s.OrderBy {
+			if i > 0 {
+				result += ", "
+			}
+			result += exprToString(ob.Expr)
+			if ob.Desc {
+				result += " DESC"
+			}
+		}
+	}
+	// Handle LIMIT/OFFSET
+	if s.Limit != nil {
+		result += " LIMIT " + exprToString(s.Limit)
+		if s.Offset != nil {
+			result += " OFFSET " + exprToString(s.Offset)
+		}
 	}
 	return result
+}
+
+func selectColumnToString(col sql.SelectColumn) string {
+	if ref, ok := col.Expr.(*sql.ColumnRef); ok {
+		if ref.Table != "" {
+			return ref.Table + "." + ref.Name + aliasClause(col.As)
+		}
+		return ref.Name + aliasClause(col.As)
+	}
+	if fn, ok := col.Expr.(*sql.FuncCall); ok {
+		result := fn.Name + "("
+		for j, arg := range fn.Args {
+			if j > 0 {
+				result += ", "
+			}
+			if ref, ok := arg.(*sql.ColumnRef); ok {
+				if ref.Table != "" {
+					result += ref.Table + "." + ref.Name
+				} else {
+					result += ref.Name
+				}
+			} else {
+				result += exprToString(arg)
+			}
+		}
+		result += ")"
+		return result + aliasClause(col.As)
+	}
+	return exprToString(col.Expr) + aliasClause(col.As)
+}
+
+func aliasClause(as string) string {
+	if as != "" {
+		return " AS " + as
+	}
+	return ""
+}
+
+func joinClausesToString(joins []sql.JoinClause) string {
+	result := ""
+	for _, j := range joins {
+		switch j.JoinType {
+		case "LEFT":
+			result += " LEFT JOIN "
+		case "LEFT OUTER":
+			result += " LEFT OUTER JOIN "
+		case "RIGHT":
+			result += " RIGHT JOIN "
+		case "RIGHT OUTER":
+			result += " RIGHT OUTER JOIN "
+		case "CROSS":
+			result += " CROSS JOIN "
+		case "NATURAL":
+			result += " NATURAL JOIN "
+		case "INNER":
+			result += " INNER JOIN "
+		default:
+			result += " JOIN "
+		}
+		result += j.Table.Name
+		if j.Table.As != "" {
+			result += " " + j.Table.As
+		}
+		if j.On != nil {
+			result += " ON " + exprToString(j.On)
+		}
+	}
+	return result
+}
+
+// exprToString converts an expression to its string representation.
+func exprToString(expr sql.Expr) string {
+	if expr == nil {
+		return ""
+	}
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		if v.Table != "" {
+			return v.Table + "." + v.Name
+		}
+		return v.Name
+	case *sql.NumericLit:
+		return v.Value
+	case *sql.StringLit:
+		return "'" + v.Value + "'"
+	case *sql.NullLit:
+		return "NULL"
+	case *sql.BinaryOp:
+		return exprToString(v.Left) + " " + v.Operator + " " + exprToString(v.Right)
+	case *sql.UnaryOp:
+		return v.Operator + exprToString(v.Operand)
+	case *sql.FuncCall:
+		return funcCallToString(v)
+	case *sql.IsNull:
+		return exprToString(v.Operand) + " IS NULL"
+	case *sql.IsNotNull:
+		return exprToString(v.Operand) + " IS NOT NULL"
+	case *sql.Between:
+		return betweenToString(v)
+	case *sql.InList:
+		return inListToString(v)
+	case *sql.Subquery:
+		return "(SELECT ...)"
+	case *sql.CaseExpr:
+		return caseExprToString(v)
+	case *sql.CastExpr:
+		return "CAST(" + exprToString(v.Operand) + " AS " + v.AsType + ")"
+	default:
+		return "?"
+	}
+}
+
+func funcCallToString(v *sql.FuncCall) string {
+	result := v.Name + "("
+	for i, arg := range v.Args {
+		if i > 0 {
+			result += ", "
+		}
+		result += exprToString(arg)
+	}
+	result += ")"
+	return result
+}
+
+func betweenToString(v *sql.Between) string {
+	result := exprToString(v.Operand)
+	if v.Negated {
+		result += " NOT BETWEEN "
+	} else {
+		result += " BETWEEN "
+	}
+	return result + exprToString(v.Low) + " AND " + exprToString(v.High)
+}
+
+func inListToString(v *sql.InList) string {
+	result := exprToString(v.Operand)
+	if v.Negated {
+		result += " NOT IN ("
+	} else {
+		result += " IN ("
+	}
+	for i, item := range v.List {
+		if i > 0 {
+			result += ", "
+		}
+		result += exprToString(item)
+	}
+	return result + ")"
+}
+
+func caseExprToString(v *sql.CaseExpr) string {
+	result := "CASE"
+	if v.Operand != nil {
+		result += " " + exprToString(v.Operand)
+	}
+	for _, w := range v.Whens {
+		result += " WHEN " + exprToString(w.When) + " THEN " + exprToString(w.Then)
+	}
+	if v.Else != nil {
+		result += " ELSE " + exprToString(v.Else)
+	}
+	return result + " END"
 }
 
 // --- INSERT ---
@@ -1313,12 +1509,11 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	tableEntry, err := e.schema.FindTable(s.From.Name)
 	if err != nil {
-		// Try to find as a view
 		viewEntry, viewErr := e.schema.FindView(s.From.Name)
 		if viewErr != nil {
 			return &Result{Error: err}
 		}
-		return e.execSelectView(viewEntry)
+		return e.execSelectViewWithOuter(s, viewEntry)
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
@@ -1515,6 +1710,45 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 		return e.execSelect(sel)
 	}
 	return &Result{Error: fmt.Errorf("exec: view does not contain SELECT")}
+}
+
+// execSelectViewWithOuter executes a view and applies the outer SELECT's
+// column expressions, aggregates, ORDER BY, etc. on the view's result.
+func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.Entry) *Result {
+	viewResult := e.execSelectView(viewEntry)
+	if viewResult.Error != nil {
+		return viewResult
+	}
+	// Build colDefs from view result's column names
+	var viewColDefs []sql.ColumnDef
+	for _, colName := range viewResult.Columns {
+		viewColDefs = append(viewColDefs, sql.ColumnDef{Name: colName})
+	}
+	// Build rowMaps from view result rows for expression evaluation
+	var rowMaps []map[string]interface{}
+	for _, row := range viewResult.Rows {
+		rowMap := make(map[string]interface{})
+		for i, val := range row {
+			if i < len(viewColDefs) {
+				rowMap[viewColDefs[i].Name] = val
+			}
+		}
+		rowMaps = append(rowMaps, rowMap)
+	}
+	// Handle aggregates in outer SELECT
+	if aggResult := e.handleSelectAggregates(s, rowMaps, viewColDefs); aggResult != nil {
+		return aggResult
+	}
+	// Build output from outer SELECT expressions (e.g., val/100)
+	allRows := make([][]interface{}, len(rowMaps))
+	for i, rowMap := range rowMaps {
+		allRows[i] = e.buildOutputRow(s.Columns, viewColDefs, rowMap)
+	}
+	result := &Result{
+		Columns: e.buildColumnNames(s.Columns, viewColDefs),
+		Rows:    allRows,
+	}
+	return e.finalizeSelectResult(result, s, rowMaps)
 }
 
 // execSelectNoFrom handles SELECT without FROM clause.
