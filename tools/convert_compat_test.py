@@ -32,7 +32,8 @@ def has_unsupported_features(sql):
     # TCL variable substitution ${var}
     if '${' in sql:
         return True
-    # TCL brace escaping (uneven braces in SQL)
+    # TCL brace escaping (uneven braces in SQL) 
+    # Note: With proper brace extraction, SQL should never contain { or }
     if '{' in sql or '}' in sql:
         return True
     # TCL command embedded in SQL
@@ -94,6 +95,24 @@ def tcl_variable_substitute(sql):
     sql = re.sub(r'\$\{::temp\}', 'TEMP', sql)
     return sql
 
+def extract_balanced_braces(text, start_pos):
+    """Extract content inside balanced braces starting at start_pos ('{' character).
+    Returns (content_without_braces, end_position_after_closing_brace) or None if unbalanced."""
+    if start_pos >= len(text) or text[start_pos] != '{':
+        return None
+    depth = 0
+    i = start_pos
+    while i < len(text):
+        ch = text[i]
+        if ch == '{':
+            depth += 1
+        elif ch == '}':
+            depth -= 1
+            if depth == 0:
+                return (text[start_pos+1:i], i+1)
+        i += 1
+    return None  # Unbalanced braces
+
 def extract_sql_pairs(content):
     """Extract (sql, expected) pairs from TCL test content in file order.
     For do_execsql_test and do_catchsql_test, expected is the result after SQL.
@@ -101,43 +120,71 @@ def extract_sql_pairs(content):
     Returns pairs in the order they appear in the file."""
     pairs = []
     
-    # Collect all patterns with their positions in file
-    pattern = r'(do_execsql_test|do_catchsql_test)\s+(\S+)\s*\{([^}]*)\}\s*(\{[^}]*\}|[^\n]*?)(?=\n\S|$)'
-    for m in re.finditer(pattern, content, re.DOTALL):
-        sql = m.group(3).strip()
-        if not sql:
+    # Phase 1: Extract do_execsql_test and do_catchsql_test using brace counting
+    pattern = r'(do_execsql_test|do_catchsql_test)\s+(\S+)\s*'
+    for m in re.finditer(pattern, content):
+        cmd_type = m.group(1)
+        pos = m.end()
+        
+        # Skip whitespace before SQL body opening brace
+        while pos < len(content) and content[pos] in ' \t\n\r':
+            pos += 1
+        
+        if pos >= len(content) or content[pos] != '{':
             continue
-        expected_raw = m.group(4).strip() if m.group(4) else ""
-        expected = expected_raw.strip()
-        if not expected:
-            expected = None
-        pairs.append((sql, expected, m.group(1), m.start()))
+        
+        # Extract SQL body using balanced brace matching
+        result = extract_balanced_braces(content, pos)
+        if result is None:
+            continue
+        sql_body, pos = result
+        sql_body = sql_body.strip()
+        if not sql_body:
+            continue
+        
+        # Skip whitespace before expected result (or next test)
+        while pos < len(content) and content[pos] in ' \t\n\r':
+            pos += 1
+        
+        # Check for expected result (another balanced brace block)
+        expected = None
+        if pos < len(content) and content[pos] == '{':
+            exp_result = extract_balanced_braces(content, pos)
+            if exp_result is not None:
+                expected_raw, _ = exp_result
+                expected = expected_raw.strip()
+                if not expected:
+                    expected = None
+        
+        pairs.append((sql_body, expected, cmd_type, m.start()))
     
+    # Phase 2: Extract execsql { ... } patterns
     for m in re.finditer(r'execsql\s*\{([^}]*)\}', content):
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "execsql", m.start()))
       
-    # Match execsql [subst -nocommands { SQL }] patterns
+    # Phase 3: Match execsql [subst -nocommands { SQL }] patterns
     for m in re.finditer(r'execsql\s*\[subst -nocommands\s*\{([^}]*)\}\]', content):
         sql = m.group(1).strip()
         if sql:
             sql = tcl_variable_substitute(sql)
             pairs.append((sql, None, "execsql", m.start()))
     
-    # Match execsql [subst { SQL }] patterns (full substitution)
+    # Phase 4: Match execsql [subst { SQL }] patterns (full substitution)
     for m in re.finditer(r'execsql\s*\[subst\s+\{([^}]*)\}\]', content):
         sql = m.group(1).strip()
         if sql:
             sql = tcl_variable_substitute(sql)
             pairs.append((sql, None, "execsql", m.start()))
     
-    # Match execsql { ... } inside ifcapable blocks
+    # Phase 5: Match execsql { ... } inside ifcapable blocks
     for m in re.finditer(r'ifcapable\s+\w+\s*\{[^}]*execsql\s*\{([^}]*)\}[^}]*\}', content):
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "execsql", m.start()))
     
+    # Phase 6: Match db eval patterns
     for m in re.finditer(r'db\s+eval\s*\{([^}]*)\}', content):
         sql = m.group(1).strip()
         if sql:
@@ -148,14 +195,24 @@ def extract_sql_pairs(content):
         if sql:
             pairs.append((sql, None, "db_eval", m.start()))
     
+    # Phase 7: Match reset_db
     for m in re.finditer(r'^reset_db\s*$', content, re.MULTILINE):
         pairs.append(('__RESET_DB__', None, 'reset_db', m.start()))
     
-    # Sort by position in file
+    # Sort by position in file to maintain original order
     pairs.sort(key=lambda x: x[3])
     
+    # Remove duplicates (keep first occurrence) while preserving order
+    seen = set()
+    unique = []
+    for sql, expected, cmd_type, pos in pairs:
+        key = (sql, cmd_type)
+        if key not in seen:
+            seen.add(key)
+            unique.append((sql, expected, cmd_type, pos))
+    
     # Return only the first 3 fields (sql, expected, cmd_type)
-    return [(sql, expected, cmd_type) for sql, expected, cmd_type, _ in pairs]
+    return [(sql, expected, cmd_type) for sql, expected, cmd_type, _ in unique]
 
 def generate(filename, content):
     func_name = re.sub(r'\.test$', '', filename)
@@ -167,7 +224,7 @@ def generate(filename, content):
     if not pairs:
         return None
     
-    # Deduplicate by SQL, keep the first occurrence with expected
+    # Deduplicate by SQL (not cmd_type), keep the first occurrence with expected
     seen = {}
     unique_pairs = []
     for sql, expected, cmd_type in pairs:
@@ -181,7 +238,7 @@ def generate(filename, content):
      if sql not in seen:
       seen[sql] = True
       unique_pairs.append((sql, expected, cmd_type))
-	
+ 	
     if not unique_pairs:
      return None
     
@@ -192,7 +249,8 @@ def generate(filename, content):
     lines.append('\tvar dbs []*DB')
     lines.append('\tdbs = append(dbs, db)')
     
-    unique_pairs = unique_pairs[:40]  # limit to 40 per test function
+    max_pairs = 200  # limit per test function (most have <100)
+    unique_pairs = unique_pairs[:max_pairs]
     
     for sql, expected, cmd_type in unique_pairs:
         if sql == '__RESET_DB__':
@@ -211,6 +269,19 @@ def generate(filename, content):
                 lines.append(f'\tcheckQueryResult(t, db.Query("{go_sql}"), "{go_exp}")')
             else:
                 lines.append(f'\t_ = db.Query("{go_sql}")')
+        elif cmd_type == 'do_catchsql_test':
+            # catchsql tests expect a specific error code
+            # Expected format: {N {message}} where N is error code
+            # If N == 0, expect success; if N != 0, expect error
+            if expected and expected.startswith('{0'):
+                # Expected success (error code 0)
+                lines.append(f'\tcheckExecOK(t, db.Exec("{go_sql}"))')
+            else:
+                # Expected error - verify that an error occurs
+                # Using if-with-assignment to scope the variable
+                lines.append(f'\tif err := db.Exec("{go_sql}").Error; err == nil {{')
+                lines.append(f'\t\tt.Errorf("expected error but got none")')
+                lines.append(f'\t}}')
         else:
             lines.append(f'\tcheckExecOK(t, db.Exec("{go_sql}"))')
     
