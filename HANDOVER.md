@@ -7,9 +7,9 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 ## Current State
 
 **All quality gates pass**: `make quality` (vet, staticcheck, gocyclo ≤20, gocognit ≤30)
-**Results**: **TBD** — full suite times out at 60s (1105 tests × up to 60 pairs each)
+**Results**: **TBD** — full suite times out at 60s (1103 tests × up to 60 pairs each)
 **Hand-written tests**: All pass (SOLID, core, dialect, assert)
-**Generated test file**: 1105 test functions (up from 1067)
+**Generated test file**: 1103 test functions (up from 1067)
 **Test data**: 702 JSON test files for harness runner
 
 ### This Session's Fixes (Current)
@@ -107,18 +107,26 @@ Top-priority engine fixes to reduce the most failures:
 - Various minor differences in how results are formatted
 - Many cascade from issues 1-3 above
 
-### Session 3 Progress (Completed)
+### Session 3 and 4 Progress (Completed)
 - ✅ `FindView`: Added schema prefix fallback (main.ttt → ttt)
 - ✅ `execCreateView`: Strip main/temp prefixes before storing
 - ✅ `FindTrigger`: Added schema prefix fallback
 - ✅ `FindIndex`: Added schema prefix fallback
 - ✅ `execCreateTrigger`: Strip main/temp prefixes from names
-- ✅ Committed with quality gates passing
+- ✅ **ifcapable block filtering**: Skip tests inside unsupported ifcapable blocks (fts5, rtree, json1, etc.)
+- ✅ **db close + sqlite3 pattern**: Handle `db close; sqlite3 db test.db` as reset_db equivalent
+- ✅ **Orphaned vtab tracking**: Filter dependent tests after filtered CREATE VIRTUAL TABLE (tcl module)
+- ✅ **View/trigger SQL update on ALTER TABLE RENAME**: Update view SQL, trigger tbl_name/SQL, and index entries when a table is renamed
+- All committed with quality gates passing
 
-### Remaining Session 2 Work
-- ⏳ Catchsql error-checking generation (converter) - PARTIALLY DONE
-- ⏳ ifcapable block filtering - NOT STARTED
-- ⏳ Multi-statement exec/query classification - NOT STARTED
+### Remaining Work Status
+- ✅ Catchsql error-checking generation (converter) — DONE
+- ✅ ifcapable block filtering (converter) — DONE
+- ✅ Orphaned vtab dependent tests — DONE  
+- ✅ View rename SQL updates — DONE
+- ⏳ Multi-statement exec/query classification — NOT STARTED
+- ⏳ View expansion error handling (deep behavioral difference from SQLite) — NOT STARTED
+- ⏳ Result formatting differences — NOT STARTED
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
