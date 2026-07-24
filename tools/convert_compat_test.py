@@ -429,7 +429,13 @@ def generate(filename, content):
             continue
         
         go_sql = go_escape(sql)
-        is_query = bool(re.match(r'\s*SELECT\b|\s*PRAGMA\b|\s*EXPLAIN\b', sql, re.IGNORECASE))
+        # Determine if this is a query: check both first and last statement.
+        # Multi-statement SQL like "ALTER TABLE t RENAME TO t2; SELECT * FROM t2"
+        # should be treated as a query because the last statement produces the result.
+        parts = [p.strip() for p in sql.split(';') if p.strip()]
+        last_stmt = parts[-1] if parts else sql
+        is_query = bool(re.match(r'\s*SELECT\b|\s*PRAGMA\b|\s*EXPLAIN\b', sql, re.IGNORECASE)) or \
+                   bool(re.match(r'\s*SELECT\b|\s*PRAGMA\b|\s*EXPLAIN\b', last_stmt, re.IGNORECASE))
           
         if is_query:
             if expected is not None:
