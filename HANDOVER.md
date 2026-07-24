@@ -119,6 +119,12 @@ Top-priority engine fixes to reduce the most failures:
 - ✅ **View/trigger SQL update on ALTER TABLE RENAME**: Update view SQL, trigger tbl_name/SQL, and index entries when a table is renamed
 - All committed with quality gates passing
 
+### Session 5 Progress (Completed)
+- ✅ **Skip TCL variable test names**: Skip tests whose names contain `$` (e.g., `3.$tn.2`)
+- ✅ **windowfunc ifcapable**: Add `windowfunc` to `UNSUPPORTED_IFCAPABLE` to skip entire blocks
+- ✅ **Column rename fix**: ALTER TABLE RENAME COLUMN no longer accidentally renames the table
+- ✅ **Quality gates maintained**: All at gocyclo ≤20, gocognit ≤30
+
 ### Remaining Work Status
 - ✅ Catchsql error-checking generation (converter) — DONE
 - ✅ ifcapable block filtering (converter) — DONE
@@ -127,6 +133,7 @@ Top-priority engine fixes to reduce the most failures:
 - ⏳ Multi-statement exec/query classification — NOT STARTED
 - ⏳ View expansion error handling (deep behavioral difference from SQLite) — NOT STARTED
 - ⏳ Result formatting differences — NOT STARTED
+- ⏳ CREATE TABLE SQL generation missing REFERENCES/FOREIGN KEY clauses — NOT STARTED
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
