@@ -119,10 +119,16 @@ Top-priority engine fixes to reduce the most failures:
 - ✅ **View/trigger SQL update on ALTER TABLE RENAME**: Update view SQL, trigger tbl_name/SQL, and index entries when a table is renamed
 - All committed with quality gates passing
 
-### Session 5 Progress (Completed)
+### Session 5 and 6 Progress (Completed)
 - ✅ **Skip TCL variable test names**: Skip tests whose names contain `$` (e.g., `3.$tn.2`)
 - ✅ **windowfunc ifcapable**: Add `windowfunc` to `UNSUPPORTED_IFCAPABLE` to skip entire blocks
 - ✅ **Column rename fix**: ALTER TABLE RENAME COLUMN no longer accidentally renames the table
+- ✅ **Multi-statement classification**: Converter now checks LAST statement for query detection
+- ✅ **COLLATE expression support**:
+  - Parser: `skipCollateExpr` creates BinaryOp{COLLATE} wrapper instead of discarding
+  - Executor: `collatedValue` type carries collation through expression evaluation
+  - Comparison operators use `compareValuesWithCollate` to apply collation
+  - `evalConcat` preserves collation through `||` concatenation
 - ✅ **Quality gates maintained**: All at gocyclo ≤20, gocognit ≤30
 
 ### Remaining Work Status
@@ -130,10 +136,14 @@ Top-priority engine fixes to reduce the most failures:
 - ✅ ifcapable block filtering (converter) — DONE
 - ✅ Orphaned vtab dependent tests — DONE  
 - ✅ View rename SQL updates — DONE
-- ⏳ Multi-statement exec/query classification — NOT STARTED
+- ✅ TCL variable test name skipping — DONE
+- ✅ windowfunc block handling — DONE
+- ✅ Column rename engine fix — DONE
+- ✅ Multi-statement exec/query classification — DONE
+- ✅ COLLATE expression support — DONE
 - ⏳ View expansion error handling (deep behavioral difference from SQLite) — NOT STARTED
-- ⏳ Result formatting differences — NOT STARTED
 - ⏳ CREATE TABLE SQL generation missing REFERENCES/FOREIGN KEY clauses — NOT STARTED
+- ⏳ Result formatting differences — NOT STARTED
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
