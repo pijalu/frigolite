@@ -6,9 +6,11 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 
 ## Current State
 
-**All quality gates pass**: `make quality` (vet, staticcheck, gocyclo, gocognit)
-**Results**: **~114 FAIL** + **~135 PASS** (compat tests, partial due to timeout) + 702 harness tests
+**All quality gates pass**: `make quality` (vet, staticcheck, gocyclo ≤20, gocognit ≤30)
+**Results**: **~114 FAIL** + **~135 PASS** (compat tests, partial due to timeout) + hand-written tests all pass
 **Hand-written tests**: All pass (SOLID, core, dialect, assert)
+**Generated test file**: 1067 test functions (up from 1055)
+**Test data**: 702 JSON test files for harness runner
 
 ### This Session's Fixes (Current)
 
@@ -53,12 +55,12 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 - **Fix**: All schema operations now consistently use the full name including schema prefix. FindTable searches for full name first, then falls back to short name. RenameEntry/RemoveEntry similarly search for both.
 - **Impact**: Fixed ~500 "table not found" cascade errors (regenerated test count: 1067, up from 1055)
 
-#### 8. Remaining Work
-- **INSERT value evaluation** (~33 errors): Fix expression evaluation in INSERT
-- **`btree: page is full`** (~8 errors): B-tree page overflow during insert
-- **ALTER TABLE on non-existent table** (~10 errors): Test generation issue (catchsql tests generate checkExecOK instead of error-checking code)
-- **ATTACH DATABASE** related issues: ATTACH is still a no-op, causing `aux.*` table references to fail for ALTER TABLE rename operations
-- Result mismatches (~3000+) — many cascade from the above issues
+#### 8. Remaining Work (After This Session)
+- **INSERT value evaluation** (~8 errors): Expression evaluation in INSERT fails for complex expressions
+- **`btree: page is full`** (~8 errors): B-tree page overflow during insert (interior pages)
+- **Parse errors** (~22 errors): Various edge cases (`%`, `)`, `||`, number, identifier in unexpected contexts)
+- **catchsql test handling** (~10 errors): Test generation issue — converter doesn't handle `do_catchsql_test` patterns (expected errors reported as failures by `checkExecOK`)
+- **Result mismatches** (~2300+): Many cascade from the above issues; genuine comparison differences remain
 
 #### Skipped Tests (6 — hanging or crashing)
 | Test | Reason |
@@ -77,7 +79,7 @@ Frigolite is a pure Go reimplementation of SQLite. It reads/writes standard SQLi
 frigolite/
 ├── frigolite.go                    # Public API (Open, Close, Exec, Query)
 ├── frigolite_test.go               # Test helpers (setupDB, checkQueryResult, checkExecOK)
-├── frigolite_sqlite_compat_test.go # Auto-generated SQLite compat tests (1055 test functions)
+├── frigolite_sqlite_compat_test.go # Auto-generated SQLite compat tests (1067 test functions)
 ├── frigolite_sqlite_assert_test.go # 11 hand-crafted core assertion tests
 ├── frigolite_harness_test.go       # JSON-based test runner (TestSQLiteSuite)
 ├── Makefile                        # Quality gate targets
@@ -162,6 +164,12 @@ frigolite/
 | COMMIT/ROLLBACK TRANSACTION | ✅ | Optional TRANSACTION keyword |
 | DETACH DATABASE | ✅ | DETACH DATABASE statement |
 | END TRANSACTION | ✅ | END as synonym for COMMIT |
+| IS DISTINCT FROM | ✅ | `IS DISTINCT FROM`, `IS NOT DISTINCT FROM` in expressions |
+| JSON `->`/`->>` operators | ✅ | `->` and `->>` parse and execute (return NULL, JSON not implemented) |
+| NATURAL JOIN modifiers | ✅ | `NATURAL INNER/FULL/CROSS/LEFT/RIGHT OUTER JOIN` |
+| Modulo `%` operator | ✅ | `x % y` modulo arithmetic |
+| Math functions | ✅ | ACOS, ASIN, ATAN, CEIL, COS, DEGREES, EXP, FLOOR, LN, LOG, MOD, PI, POW, RADIANS, SIGN, SIN, SQRT, TAN, TRUNC, etc. |
+| Extension functions | ✅ | TOINTEGER, TOREAL, TOCHAR, TOHEX, UNHEX, CONCAT, CONCAT_WS, UNISTR, NEXT_CHAR, REGEXPI, FORMAT, EDITDIST3, DECIMAL, JSON family, CHANGES |
 | Window function stubs | ✅ | OVER/FILTER/WITHIN GROUP skipped (not implemented) |
 | COLLATE in expressions | ✅ | COLLATE clause in expressions |
 | Unary `+` operator | ✅ | `+expr` syntax |
@@ -169,7 +177,8 @@ frigolite/
 | FTS/rtree/echo/zipfile/tcl stubs | ✅ | Registered as no-op virtual table modules |
 | Internal system tables | ✅ | sqlite_stat1/4, sqlite_sequence, sqlite_temp_master return empty results |
 | `reset_db` handling | ✅ | TCL reset_db creates fresh database in generated tests |
-| Schema-qualified names | ✅ | `schema.table` in DROP TABLE and FindTable |
+| Schema-qualified names | ✅ | `schema.table` in DROP TABLE, FindTable, RENAME TO, and CREATE TABLE (main, temp, aux prefixes) |
+| ALTER TABLE DROP CONSTRAINT | ✅ | `ALTER TABLE x1 DROP CONSTRAINT name` (no-op, no crash) |
 | Cyclomatic complexity | ✅ | All functions ≤20 (gocyclo threshold raised to 20) |
 | Cognitive complexity | ✅ | All functions ≤30 (gocognit) |
 
@@ -289,48 +298,45 @@ Tests with reduced error counts:
 
 ## Remaining Work
 
-### ~498 Remaining Failing Tests (all 1055 complete in ~0.7s)
+### ~114 Failing Tests (approximate — partial run)
 
-All 1055 test functions produce results (PASS/FAIL/SKIP). Error breakdown across all failures:
+Current error breakdown across failures:
 
-| Failure Type | Count | Root Cause | Difficulty |
+| Failure Type | Approx Count | Root Cause | Difficulty |
 |-------------|-------|------------|------------|
-| `result mismatch` | ~655 | Expected results differ from actual (many cascading) | Varies |
-| `schema: table not found: t1` | ~272 | Cascade from DDL/context failures | Cascade |
-| `schema: table not found: t2` | ~75 | Cascade | Cascade |
-| `schema: table not found: c` | ~44 | CTAS (CREATE TABLE AS SELECT) | Hard |
-| `schema: table not found: t3` | ~33 | Cascade | Cascade |
-| `schema: table not found: v1` | ~32 | VIEW not found | Medium |
-| Various parse errors | ~153 | Diverse edge cases (MATERIALIZED, BY, WHERE, KEY, NATURAL, etc.) | Hard |
-| `failed to evaluate INSERT values` | ~21 | INSERT expression evaluation | Hard |
+| `result mismatch` | ~2300 | Expected results differ from actual (many cascading) | Varies |
+| `schema: table not found: t1` | ~168 | Cascade from DDL/context failures | Cascade |
+| `schema: table not found: t2` | ~57 | Cascade | Cascade |
+| `schema: table not found: uu` | ~46 | VIEW resolution | Medium |
+| `schema: table not found: main.t1` | ~10 | Schema prefix in DDL | Medium |
+| `failed to evaluate INSERT values` | ~8 | INSERT expression evaluation | Hard |
+| `btree: page is full` | ~8 | B-tree page overflow during insert | Hard |
+| Various parse errors | ~22 | Edge cases (`%`, `)`, `||`, number, identifier) | Hard |
 
 ### Key Remaining Features Needed
 
-#### 1. Parser Expression Context Fixes (High Impact, ~130 failures)
-- **Complex function arguments**: Identifiers, numbers, parens inside function calls where the parser loses context (most common: `expected ')' but got identifier`, `unexpected token: number`, `unexpected token: '('`)
-- **WHERE inside aggregate FILTER**: `FILTER (WHERE ...)` clause
-- **STRICT table keyword**: `CREATE TABLE t1(a INT) STRICT`
-- **ON CONFLICT clause**: `ON CONFLICT (col) DO UPDATE SET ...`
-- **DESC inside ORDER BY in functions**: `group_concat(x ORDER BY y DESC)`
+#### 1. Expression Eval in Insert (Hard, ~8 failures)
+- Complex expression evaluation in INSERT VALUES context
+- `evalExpr` failing for nested function calls and subqueries in INSERT
 
-#### 2. Schema/DDL Fixes (Medium Impact, ~200+ cascade failures)
-- **CREATE TABLE ... AS SELECT**: The "c" table (alias result) not being found
-- **TEMP TABLE handling**: `CREATE TEMP TABLE t1(...)` not creating visible tables
-- **VIEW resolution**: Views referencing other tables/views not resolving
-- **ATTACH database**: Schema-qualified names like `main.t1`, `aux.t1`
-
-#### 3. Execution Engine (Hard, ~25 failures)
-- **INSERT value evaluation**: `evalExpr` failing for complex expressions in INSERT VALUES
-- **Column name resolution**: In nested subqueries and JOIN contexts
-- **Row value operations**: `(a, b) = (1, 2)` tuple comparison
-
-#### 4. B-Tree Issues (Medium, ~6 failures)
+#### 2. B-Tree Overflow (Hard, ~8 failures)
 - `btree: page is full` — Interior page overflow during insert
-- Need overflow page support for very large rows
+- Need overflow page support for very large rows (>page)
 
-#### 5. Result Mismatches (Cascade, ~496)
-- Many result mismatches cascade from earlier errors (parser/DDL)
-- Fixing parser bugs will automatically reduce this count
+#### 3. Parser Edge Cases (Medium, ~22 failures)
+- `%` in expression context (not modulo)
+- `)` unexpected in expression
+- `||` unexpected token
+- Number/identifier in unexpected contexts
+
+#### 4. catchsql Test Generation (Medium, ~10 failures)
+- Converter always generates `checkExecOK` for exec statements
+- `do_catchsql_test` patterns that expect errors produce false failures
+- Fix: generate error-checking code for catchsql patterns
+
+#### 5. Result Mismatches (Cascade, ~2300)
+- Many result mismatches cascade from earlier errors (INSERT eval, B-tree, schema)
+- Fixing the above issues will automatically reduce this count
 - Some are genuine result comparison differences (formatting, type coercion)
 
 ### Workflow for Fixing Tests
@@ -361,7 +367,7 @@ go test ./...
 ### How to Regenerate Compat Tests
 
 ```bash
-# Generate Go-based compat tests (1055 test functions)
+# Generate Go-based compat tests (1067 test functions)
 python3 tools/convert_compat_test.py
 
 # Generate JSON-based test data (702 test files)
@@ -430,7 +436,7 @@ Frigolite has three layers of testing:
 - Uses `assertResult(t, db.Query("SELECT 1"), "1")`
 
 ### 2. Generated Go Compat Tests (`frigolite_sqlite_compat_test.go`)
-- 1055 auto-generated test functions from SQLite TCL test suite
+- 1067 auto-generated test functions from SQLite TCL test suite
 - Each test function maps to a single TCL test file
 - Uses `checkQueryResult(t, db.Query(...), "...")` and `checkExecOK(t, db.Exec(...))`
 - Run as standard Go tests: `go test -run TestSQLite_alter -v`
