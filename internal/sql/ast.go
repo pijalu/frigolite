@@ -137,11 +137,30 @@ type DeleteStmt struct {
 func (s *DeleteStmt) stmt() {}
 
 // CreateTableStmt represents a CREATE TABLE statement.
+// ConstraintType represents the type of a table constraint.
+type ConstraintType string
+
+const (
+	ConstraintPrimaryKey ConstraintType = "PRIMARY KEY"
+	ConstraintUnique     ConstraintType = "UNIQUE"
+	ConstraintCheck      ConstraintType = "CHECK"
+	ConstraintForeignKey  ConstraintType = "FOREIGN KEY"
+)
+
+// TableConstraint represents a table-level constraint in CREATE TABLE.
+type TableConstraint struct {
+	Type    ConstraintType // PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY
+	Name    string         // optional constraint name
+	Expr    Expr           // for CHECK: the check expression
+	Columns []string       // for PRIMARY KEY/UNIQUE: column names
+}
+
 type CreateTableStmt struct {
-	Name      string
-	Columns   []ColumnDef
+	Name        string
+	Columns     []ColumnDef
 	IfNotExists bool
-	AsSelect  *SelectStmt // CREATE TABLE ... AS SELECT
+	AsSelect    *SelectStmt // CREATE TABLE ... AS SELECT
+	Constraints []TableConstraint // table-level constraints
 }
 
 func (s *CreateTableStmt) stmt() {}
@@ -167,6 +186,7 @@ type CreateIndexStmt struct {
 	Table      string
 	Columns    []IndexColumn
 	Unique     bool
+	Where      Expr // optional WHERE clause for partial indexes
 }
 
 func (s *CreateIndexStmt) stmt() {}

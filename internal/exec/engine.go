@@ -243,31 +243,76 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		buf.WriteString(col.Name)
-		if col.Type != "" {
-			buf.WriteString(" ")
-			buf.WriteString(col.Type)
-		}
-		if col.PrimaryKey {
-			buf.WriteString(" PRIMARY KEY")
-		}
-		if col.AutoInc {
-			buf.WriteString(" AUTOINCREMENT")
-		}
-		if col.NotNull {
-			buf.WriteString(" NOT NULL")
-		}
-		if col.Unique {
-			buf.WriteString(" UNIQUE")
-		}
-		if col.Check != nil {
-			buf.WriteString(" CHECK(")
-			buf.WriteString(sql.ExprString(col.Check))
-			buf.WriteString(")")
-		}
+		formatColumnDef(&buf, col)
+	}
+	// Add table-level constraints
+	for _, tc := range s.Constraints {
+		buf.WriteString(", ")
+		formatTableConstraint(&buf, tc)
 	}
 	buf.WriteString(")")
 	return buf.String()
+}
+
+func formatColumnDef(buf *strings.Builder, col sql.ColumnDef) {
+	buf.WriteString(col.Name)
+	if col.Type != "" {
+		buf.WriteString(" ")
+		buf.WriteString(col.Type)
+	}
+	if col.PrimaryKey {
+		buf.WriteString(" PRIMARY KEY")
+	}
+	if col.AutoInc {
+		buf.WriteString(" AUTOINCREMENT")
+	}
+	if col.NotNull {
+		buf.WriteString(" NOT NULL")
+	}
+	if col.Unique {
+		buf.WriteString(" UNIQUE")
+	}
+	if col.Check != nil {
+		buf.WriteString(" CHECK(")
+		buf.WriteString(sql.ExprString(col.Check))
+		buf.WriteString(")")
+	}
+}
+
+func formatTableConstraint(buf *strings.Builder, tc sql.TableConstraint) {
+	if tc.Name != "" {
+		buf.WriteString("CONSTRAINT ")
+		buf.WriteString(tc.Name)
+		buf.WriteString(" ")
+	}
+	switch tc.Type {
+	case sql.ConstraintCheck:
+		buf.WriteString("CHECK(")
+		if tc.Expr != nil {
+			buf.WriteString(sql.ExprString(tc.Expr))
+		}
+		buf.WriteString(")")
+	case sql.ConstraintPrimaryKey:
+		buf.WriteString("PRIMARY KEY (")
+		for i, colName := range tc.Columns {
+			if i > 0 {
+				buf.WriteString(", ")
+			}
+			buf.WriteString(colName)
+		}
+		buf.WriteString(")")
+	case sql.ConstraintUnique:
+		buf.WriteString("UNIQUE (")
+		for i, colName := range tc.Columns {
+			if i > 0 {
+				buf.WriteString(", ")
+			}
+			buf.WriteString(colName)
+		}
+		buf.WriteString(")")
+	case sql.ConstraintForeignKey:
+		buf.WriteString("FOREIGN KEY ... REFERENCES ...")
+	}
 }
 
 // --- CREATE INDEX ---
@@ -287,7 +332,7 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	// Build index SQL
-	sqlStr := buildIndexSQL(s.Name, s.Table, s.Columns, s.Unique)
+	sqlStr := buildIndexSQL(s.Name, s.Table, s.Columns, s.Unique, s.Where)
 
 	entry := &schema.Entry{
 		Type:     schema.TypeIndex,
@@ -1464,7 +1509,7 @@ func (e *Engine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []map[string]
 
 
 // buildIndexSQL builds the SQL string for creating an index.
-func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool) string {
+func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, where sql.Expr) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE ")
 	if unique {
@@ -1485,6 +1530,11 @@ func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool) s
 		}
 	}
 	buf.WriteString(")")
+	// Add WHERE clause for partial indexes
+	if where != nil {
+		buf.WriteString(" WHERE ")
+		buf.WriteString(sql.ExprString(where))
+	}
 	return buf.String()
 }
 
@@ -3090,6 +3140,11 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	oldName := s.Table
 	newName := s.NewName
 
+	// Find the table entry and validate it for broken references
+	if err := e.validateRename(oldName, newName); err != nil {
+		return &Result{Error: err}
+	}
+
 	// Rename in schema
 	if err := e.schema.RenameEntry(oldName, newName); err != nil {
 		return &Result{Error: err}
@@ -3101,43 +3156,95 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		delete(e.colCache, oldName)
 	}
 
-	// Update views and triggers that reference the renamed table
+	// Update views, triggers, and indexes that reference the renamed table
+	e.renameUpdateRelatedEntries(oldName, newName)
+
+	return &Result{}
+}
+
+// validateRename checks if the table can be renamed by verifying that
+// no CHECK constraints or index WHERE clauses reference the old table name.
+func (e *Engine) validateRename(oldName, newName string) error {
+	tableEntry, err := e.schema.FindTable(oldName)
+	if err != nil {
+		return err
+	}
+	// Check if the table's own SQL has qualified references to old table name
+	refs := findQualifiedTableRefs(tableEntry.SQL, oldName)
+	if len(refs) > 0 {
+		return fmt.Errorf("error in table %s after rename: no such column: %s", newName, refs[0])
+	}
+	// Check all indexes on this table for qualified references
 	entries, err := e.schema.GetEntries("")
-	if err == nil {
-		for _, entry := range entries {
-			switch entry.Type {
-			case schema.TypeView:
-				// Update view SQL to use new table name
-				if strings.Contains(entry.SQL, oldName) || strings.Contains(entry.SQL, strings.ToUpper(oldName)) {
-					newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
-					if newSQL != entry.SQL {
-						_ = e.schema.RemoveEntry(entry.Name)
-						entry.SQL = newSQL
-						_ = e.schema.AddEntry(entry)
-					}
-				}
-			case schema.TypeTrigger:
-				// Update trigger's tbl_name and SQL
-				if strings.EqualFold(entry.TblName, oldName) {
-					entry.TblName = newName
-					entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
-					_ = e.schema.RemoveEntry(entry.Name)
-					_ = e.schema.AddEntry(entry)
-				}
-			case schema.TypeIndex:
-				// Update index that references this table
-				if strings.EqualFold(entry.TblName, oldName) {
-					entry.TblName = newName
-					// Replace old table name with new name in index SQL
-					entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
-					_ = e.schema.RemoveEntry(entry.Name)
-					_ = e.schema.AddEntry(entry)
-				}
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		if entry.Type == schema.TypeIndex && strings.EqualFold(entry.TblName, oldName) {
+			refs := findQualifiedTableRefs(entry.SQL, oldName)
+			if len(refs) > 0 {
+				return fmt.Errorf("error in index %s after rename: no such column: %s", entry.Name, refs[0])
 			}
 		}
 	}
+	return nil
+}
 
-	return &Result{}
+// renameUpdateRelatedEntries updates views, triggers, and indexes that
+// reference the old table name to use the new table name.
+func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		switch entry.Type {
+		case schema.TypeView:
+			if strings.Contains(entry.SQL, oldName) || strings.Contains(entry.SQL, strings.ToUpper(oldName)) {
+				newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
+				if newSQL != entry.SQL {
+					_ = e.schema.RemoveEntry(entry.Name)
+					entry.SQL = newSQL
+					_ = e.schema.AddEntry(entry)
+				}
+			}
+		case schema.TypeTrigger:
+			if strings.EqualFold(entry.TblName, oldName) {
+				entry.TblName = newName
+				entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
+				_ = e.schema.RemoveEntry(entry.Name)
+				_ = e.schema.AddEntry(entry)
+			}
+		case schema.TypeIndex:
+			if strings.EqualFold(entry.TblName, oldName) {
+				entry.TblName = newName
+				entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
+				_ = e.schema.RemoveEntry(entry.Name)
+				_ = e.schema.AddEntry(entry)
+			}
+		}
+	}
+}
+
+// findQualifiedTableRefs finds qualified column references to tableName
+// in the given SQL string (e.g., "t1.col" or "t1.a").
+// Returns list of matching qualified references found.
+func findQualifiedTableRefs(sql, tableName string) []string {
+	if sql == "" || tableName == "" {
+		return nil
+	}
+	// Look for patterns like "tablename." followed by an identifier
+	// Use word boundary matching to avoid partial matches
+	re := regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + regexp.QuoteMeta(tableName) + `\.(?P<col>[a-zA-Z_][a-zA-Z0-9_]*)`)
+	matches := re.FindAllStringSubmatch(sql, -1)
+	var refs []string
+	for _, m := range matches {
+		if len(m) >= 3 {
+			// m[0] is full match, m[1] is boundary char, m[2] is column name (named group)
+			refs = append(refs, tableName+"."+m[2])
+		}
+	}
+	return refs
 }
 
 // replaceTableNameInSQL replaces occurrences of oldTableName with newTableName in SQL text.

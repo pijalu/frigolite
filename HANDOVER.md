@@ -142,7 +142,34 @@ Top-priority engine fixes to reduce the most failures:
    - Now only strips outermost braces if the entire string is enclosed
    - Preserves `{}` as NULL in expected results
 
-#### Remaining Failures (157 total in JSON suite)
+### Session 8 — View Expansion Fix
+
+#### Changes Made
+1. **View SQL storage** — `selectStmtToString` rewritten to properly serialize JOINs, table aliases, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT/OFFSET
+2. **Outer SELECT on views** — Added `execSelectViewWithOuter()` to apply outer SELECT's column expressions on view results
+3. **Cognitive complexity** — Refactored `selectStmtToString`, `exprToString`, `execSelect` into multiple helper functions
+
+### Session 9 — ALTER TABLE RENAME Validation & Table-Level Constraints
+
+#### Changes Made
+1. **AST: Added `Where` field to `CreateIndexStmt`** — Partial index WHERE clauses now stored in AST
+2. **AST: Added `TableConstraint` types** — CHECK, PRIMARY KEY, UNIQUE, FOREIGN KEY constraint types
+3. **AST: Added `Constraints` field to `CreateTableStmt`** — Table-level constraints now stored in AST
+4. **Parser: `parseCreateIndex` now stores WHERE clause** instead of skipping it
+5. **Parser: `parseColumnDefs` returns table constraints** instead of skipping them
+6. **Parser: Added `parseTableConstraint`, `parseParenExprOnly`, `skipForeignKeyClauses` helpers**
+7. **Engine: `buildCreateTableSQL` outputs table-level constraints** — CHECK, PK, UNIQUE constraints in stored SQL
+8. **Engine: `buildIndexSQL` outputs WHERE clause** — Partial index WHERE clause in stored SQL
+9. **Engine: ALTER TABLE RENAME validation** — Checks for qualified table name references in CHECK constraints and index WHERE clauses before allowing rename
+10. **Quality: Extracted helpers** — `formatColumnDef`, `formatTableConstraint`, `validateRename`, `renameUpdateRelatedEntries`, `skipForeignKeyClauses`
+
+#### Results
+- **1.2**: `ALTER TABLE t1 RENAME TO t1new` — now correctly returns error (CHECK constraint references t1)
+- **1.3#01**: `ALTER TABLE t2 RENAME TO t2new` — now correctly returns error (index WHERE references t2)
+- Test data SQL now includes CHECK constraints and INDEX WHERE clauses
+- Total JSON suite failures: 157 → 155
+
+#### Remaining Failures (155 total in JSON suite)
 | File | exec | qry | mis | exp | err | Total |
 |------|------|-----|-----|-----|-----|-------|
 | affinity2 | 0 | 0 | 6 | 1 | 0 | 7 |
@@ -160,7 +187,7 @@ Top-priority engine fixes to reduce the most failures:
 | altermalloc2 | 1 | 0 | 0 | 0 | 0 | 1 |
 | altertab2 | 5 | 0 | 1 | 4 | 0 | 10 |
 | altertab3 | 9 | 0 | 5 | 6 | 5 | 25 |
-| **TOTAL** | **28** | **3** | **67** | **46** | **19** | **157** |
+| **TOTAL** | **28** | **3** | **67** | **46** | **19** | **155** |
 
 
 

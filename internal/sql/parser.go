@@ -1556,8 +1556,11 @@ func (p *Parser) parseCreateTable() *CreateTableStmt {
 
 	if p.cur.Type == TokenLParen {
 		p.next()
-		s.Columns = p.parseColumnDefs()
-		p.skipTableConstraints()
+		cols, constraints := p.parseColumnDefs()
+		s.Columns = cols
+		// Parse any remaining table-level constraints after all columns
+		remaining := p.parseTableConstraints()
+		s.Constraints = append(constraints, remaining...)
 		if !p.expect(TokenRParen) {
 			return nil
 		}
@@ -1606,23 +1609,6 @@ func (p *Parser) parseTableOptions(s *CreateTableStmt) {
 	}
 }
 
-func (p *Parser) skipTableConstraints() {
-	for {
-		if p.cur.Type == TokenComma {
-			p.next()
-		}
-		if p.cur.Type == TokenKeyword && (p.cur.Value == "PRIMARY" || p.cur.Value == "UNIQUE" ||
-			p.cur.Value == "CHECK" || p.cur.Value == "FOREIGN" || p.cur.Value == "CONSTRAINT") {
-			p.skipTableConstraint()
-		} else {
-			break
-		}
-	}
-}
-
-
-
-// parseWithStatement handles WITH ... SELECT (CTE support).
 func (p *Parser) parseWithStatement() Stmt {
 	p.next() // skip WITH
 	if p.cur.Type == TokenKeyword && p.cur.Value == "RECURSIVE" {
@@ -1859,6 +1845,136 @@ func (p *Parser) skipParenExpr() {
 		}
 	}
 }
+
+// parseParenExpr parses (expr) and returns the expression.
+func (p *Parser) parseParenExprOnly() Expr {
+	if p.cur.Type == TokenLParen {
+		p.next()
+		expr := p.parseExpr()
+		if p.cur.Type == TokenRParen {
+			p.next()
+		}
+		return expr
+	}
+	return nil
+}
+
+// parseParenIdentList parses (ident1, ident2, ...) and returns the list of identifiers.
+func (p *Parser) parseParenIdentList() []string {
+	if p.cur.Type == TokenLParen {
+		p.next()
+		var names []string
+		for p.cur.Type != TokenRParen {
+			if p.cur.Type == TokenEOF {
+				return names
+			}
+			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+				names = append(names, p.cur.Value)
+				p.next()
+			}
+			if p.cur.Type == TokenComma {
+				p.next()
+			}
+		}
+		if p.cur.Type == TokenRParen {
+			p.next()
+		}
+		return names
+	}
+	return nil
+}
+
+// parseConstraintName parses the optional CONSTRAINT name prefix and returns the name.
+func (p *Parser) parseConstraintName() string {
+	if p.cur.Type == TokenKeyword && p.cur.Value == "CONSTRAINT" {
+		p.next()
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
+			name := p.cur.Value
+			p.next()
+			return name
+		}
+	}
+	return ""
+}
+
+// parseTableConstraint parses a table-level constraint and returns it.
+func (p *Parser) parseTableConstraint() TableConstraint {
+	name := p.parseConstraintName()
+	tc := TableConstraint{Name: name}
+
+	switch p.cur.Value {
+	case "PRIMARY":
+		tc.Type = ConstraintPrimaryKey
+		p.next()
+		p.expectKeyword("KEY")
+		tc.Columns = p.parseParenIdentList()
+		p.skipOnConflictInConstraint()
+	case "UNIQUE":
+		tc.Type = ConstraintUnique
+		p.next()
+		tc.Columns = p.parseParenIdentList()
+		p.skipOnConflictInConstraint()
+	case "CHECK":
+		tc.Type = ConstraintCheck
+		p.next()
+		tc.Expr = p.parseParenExprOnly()
+	case "FOREIGN":
+		tc.Type = ConstraintForeignKey
+		p.next()
+		p.expectKeyword("KEY")
+		p.skipParenExprList() // (col1, col2)
+		p.expectKeyword("REFERENCES")
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			p.next() // table name
+		}
+		if p.cur.Type == TokenLParen {
+			p.skipParenExprList() // (col1, col2)
+		}
+		p.skipForeignKeyClauses()
+	}
+	return tc
+}
+
+// parseTableConstraints parses table-level constraints and returns them.
+func (p *Parser) parseTableConstraints() []TableConstraint {
+	var constraints []TableConstraint
+	for p.cur.Type == TokenKeyword && (p.cur.Value == "PRIMARY" || p.cur.Value == "UNIQUE" ||
+		p.cur.Value == "CHECK" || p.cur.Value == "FOREIGN" || p.cur.Value == "CONSTRAINT") {
+		constraints = append(constraints, p.parseTableConstraint())
+		// Consume optional comma after constraint
+		if p.cur.Type == TokenComma {
+			p.next()
+		}
+	}
+	return constraints
+}
+
+// skipForeignKeyClauses consumes optional ON DELETE/UPDATE/MATCH/DEFERRABLE clauses.
+func (p *Parser) skipForeignKeyClauses() {
+	for p.cur.Type == TokenKeyword && (p.cur.Value == "ON" || p.cur.Value == "MATCH" || p.cur.Value == "NOT" || p.cur.Value == "DEFERRABLE") {
+		if p.cur.Value == "MATCH" {
+			p.next()
+			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+				p.next()
+			}
+		} else if p.cur.Value == "NOT" || p.cur.Value == "DEFERRABLE" {
+			if p.cur.Value == "NOT" {
+				p.next()
+			}
+			p.expectKeyword("DEFERRABLE")
+			if p.cur.Type == TokenKeyword && p.cur.Value == "INITIALLY" {
+				p.next()
+				p.next() // DEFERRED or IMMEDIATE
+			}
+		} else {
+			p.next() // ON
+			if p.cur.Type == TokenKeyword && (p.cur.Value == "DELETE" || p.cur.Value == "UPDATE") {
+				p.next()
+				p.parseReferencesOnAction()
+			}
+		}
+	}
+}
 func (p *Parser) parseCreateIndex() *CreateIndexStmt {
 	s := &CreateIndexStmt{}
 	p.next() // skip INDEX
@@ -1891,19 +2007,23 @@ func (p *Parser) parseCreateIndex() *CreateIndexStmt {
 	// Optional WHERE clause for partial indexes
 	if p.cur.Type == TokenKeyword && p.cur.Value == "WHERE" {
 		p.next()
-		p.parseExpr() // skip the WHERE expression
+		s.Where = p.parseExpr()
 	}
 
 	return s
 }
 
-func (p *Parser) parseColumnDefs() []ColumnDef {
+func (p *Parser) parseColumnDefs() ([]ColumnDef, []TableConstraint) {
 	var cols []ColumnDef
+	var constraints []TableConstraint
 	for {
-		// Skip table-level constraints (PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY)
+		// Parse table-level constraints instead of skipping them
 		if p.cur.Type == TokenKeyword && (p.cur.Value == "PRIMARY" || p.cur.Value == "UNIQUE" ||
 			p.cur.Value == "CHECK" || p.cur.Value == "FOREIGN" || p.cur.Value == "CONSTRAINT") {
-			p.skipTableConstraint()
+			constraints = append(constraints, p.parseTableConstraint())
+			if p.cur.Type == TokenComma {
+				p.next()
+			}
 			continue
 		}
 		// Handle optional comma before column definition
@@ -1925,7 +2045,7 @@ func (p *Parser) parseColumnDefs() []ColumnDef {
 			break
 		}
 	}
-	return cols
+	return cols, constraints
 }
 
 // isConstraintStart returns true if word is a SQL keyword that starts
