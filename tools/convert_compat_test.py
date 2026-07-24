@@ -27,7 +27,7 @@ UNSUPPORTED = re.compile(
 UNSUPPORTED_IFCAPABLE = {
     'fts3', 'fts4', 'fts5', 'rtree', 'json1', 'icu', 'session',
     'dbstat', 'csv', 'dbdata', 'decimal', 'memorydb', 'shared_cache',
-    'direct_read', 'dirread',
+    'direct_read', 'dirread', 'windowfunc',
 }
 
 # ifcapable features that ARE supported at the block level
@@ -191,8 +191,15 @@ def extract_sql_pairs(content):
             continue
         
         cmd_type = m.group(1)
+        test_name = m.group(2)
         pos = m.end()
-        
+          
+        # Skip tests whose names contain TCL variable references ($).
+        # These tests depend on TCL runtime state that the converter
+        # can't capture (e.g., 3.$tn.2 where $tn varies per TCL foreach loop).
+        if '$' in test_name:
+            continue
+          
         # Skip whitespace before SQL body opening brace
         while pos < len(content) and content[pos] in ' \t\n\r':
             pos += 1

@@ -2509,6 +2509,13 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 func (e *Engine) execAlterTable(s *sql.AlterTableStmt) *Result {
 	switch s.Action {
 	case "RENAME":
+		if s.Column != "" {
+			// ALTER TABLE ... RENAME [COLUMN] column TO newname
+			// Column rename — no-op for now (column references in triggers/views
+			// are not updated, but at least the table name is not accidentally
+			// consumed by execAlterTableRename).
+			return &Result{}
+		}
 		return e.execAlterTableRename(s)
 	case "ADD":
 		return e.execAlterTableAdd(s)

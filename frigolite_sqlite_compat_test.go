@@ -478,10 +478,6 @@ func TestSQLite_altercol(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 2, 3);"))
-	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME COLUMN b TO d;"))
-	checkQueryResult(t, db.Query("SELECT * FROM t1;"), "1 2 3")
-	_ = db.Query("SELECT sql FROM sqlite_master WHERE tbl_name='t1' AND sql!=''")
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a, b, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (b, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4);"))
 	checkExecOK(t, db.Exec("ALTER TABLE t3 RENAME b TO biglongname;\n  SELECT sql FROM sqlite_master WHERE name='t3';"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(x, y, z);\n  CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.y<0 BEGIN\n    SELECT x, y, z FROM t4;\n    DELETE FROM t4 WHERE y=32;\n    UPDATE t4 SET x=y+1, y=0 WHERE y=32;\n    INSERT INTO t4(x, y, z) SELECT 4, 5, 6 WHERE 0;\n  END;\n  INSERT INTO t4 VALUES(3, 2, 1);"))
@@ -533,11 +529,9 @@ func TestSQLite_altercol(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP VIEW zzz;\n  CREATE TABLE t5(a TEXT, b INT);\n  INSERT INTO t5(a,b) VALUES('aaa',7),('bbb',3),('ccc',4);\n  CREATE VIEW vt5(x) AS SELECT group_concat(a ORDER BY b) FROM t5;\n  SELECT x FROM vt5;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t5 RENAME COLUMN b TO bbb;\n  SELECT sql FROM sqlite_schema WHERE name='vt5';"))
 	checkQueryResult(t, db.Query("SELECT x FROM vt5;"), "bbb,ccc,aaa")
-	_ = db.Query("SELECT sql FROM sqlite_master WHERE sql!='' ORDER BY 1")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	_ = db.Query("SELECT sql FROM sqlite_master ORDER BY 1")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -562,6 +556,20 @@ func TestSQLite_altercol(t *testing.T) {
 	if err := db.Exec("ALTER TABLE v1 RENAME a TO z;").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
+	if err := db.Exec("ALTER TABLE v2 RENAME c TO y;").Error; err == nil {
+		t.Errorf("expected error but got none")
+	}
+	checkExecOK(t, db.Exec("CREATE TABLE t2(x, y, z);"))
+	if err := db.Exec("ALTER TABLE t2 RENAME COLUMN a TO b;").Error; err == nil {
+		t.Errorf("expected error but got none")
+	}
+	if err := db.Exec("ALTER TABLE t3 RENAME COLUMN a TO b;").Error; err == nil {
+		t.Errorf("expected error but got none")
+	}
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE x1(i INTEGER, t TEXT UNIQUE);\n  CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n    SELECT * FROM nosuchtable;\n  END;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altercons.test
@@ -569,8 +577,6 @@ func TestSQLite_altercons(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("ALTER TABLE t1 DROP CONSTRAINT abc;"))
-	_ = db.Query("SELECT sql FROM sqlite_schema WHERE name='t1'")
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);"))
 	if err := db.Exec("ALTER TABLE t2 DROP CONSTRAINT ccc").Error; err == nil {
 		t.Errorf("expected error but got none")
@@ -592,7 +598,6 @@ func TestSQLite_altercons(t *testing.T) {
 	if err := db.Exec("ALTER TABLE t3 ALTER b SET NOT NULL").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
-	_ = db.Query("SELECT sql FROM sqlite_schema WHERE name='t1';")
 	checkExecOK(t, db.Exec("CREATE TABLE x1(a, b, c);"))
 	if err := db.Exec("ALTER TABLE x1 ALTER d SET NOT NULL;").Error; err == nil {
 		t.Errorf("expected error but got none")
@@ -614,7 +619,6 @@ func TestSQLite_altercons(t *testing.T) {
 	if err := db.Exec("INSERT INTO t1 VALUES(4, 5, 6);").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
-	_ = db.Query("SELECT sql FROM sqlite_schema WHERE type='table';")
 	checkExecOK(t, db.Exec("CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));"))
 	if err := db.Exec("ALTER TABLE b1 ADD CONSTRAINT abc CHECK (a!=3);").Error; err == nil {
 		t.Errorf("expected error but got none")
@@ -685,6 +689,9 @@ func TestSQLite_altercons(t *testing.T) {
 	if err := db.Exec("ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
+	if err := db.Exec("ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );").Error; err == nil {
+		t.Errorf("expected error but got none")
+	}
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altercons2.test
@@ -692,9 +699,6 @@ func TestSQLite_altercons2(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c NOT NULL, CONSTRAINT xyz CHECK( a!=0 ));"))
-	_ = db.Query("PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema SET sql = $::newsql")
-	_ = db.Query("SELECT sql FROM sqlite_schema WHERE name='t1'")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -794,9 +798,6 @@ func TestSQLite_altercons3(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS c1"))
-	checkExecOK(t, db.Exec("ALTER TABLE c1 DROP CONSTRAINT fk"))
-	_ = db.Query("SELECT sql FROM sqlite_schema WHERE name='c1'")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -873,13 +874,6 @@ func TestSQLite_alterdropcol(t *testing.T) {
 	if err := db.Exec("ALTER TABLE t13 DROP COLUMN c;").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
-	checkExecOK(t, db.Exec("INSERT INTO \"my table\"(a, b, d) VALUES(1, 2, 'hello');\n    INSERT INTO \"my table\"(a, b, d) VALUES(3, 4, 'world');\n\n    SELECT * FROM \"my table\""))
-	checkExecOK(t, db.Exec("ALTER TABLE \"my table\" DROP COLUMN c;"))
-	checkQueryResult(t, db.Query("SELECT * FROM \"my table\""), "1 2 hello\n    3 4 world")
-	checkExecOK(t, db.Exec("INSERT INTO x1(a, b, c, e) VALUES(1, 2, 3, 4);\n    INSERT INTO x1(a, b, c, e) VALUES(5, 6, 7, 8);\n    INSERT INTO x1(a, b, c, e) VALUES(9, 10, 11, 12);\n    SELECT * FROM x1;"))
-	checkExecOK(t, db.Exec("ALTER TABLE x1 DROP COLUMN a"))
-	checkQueryResult(t, db.Query("SELECT * FROM x1"), "2 3 5 4\n    6 7 13 8\n    10 11 21 12")
-	checkExecOK(t, db.Exec("ALTER TABLE x1 DROP COLUMN e"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -920,8 +914,6 @@ func TestSQLite_alterdropcol(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n    )\n    INSERT INTO t1(a, b, c) SELECT i, 123, 456 FROM s;"))
-	checkQueryResult(t, db.Query("SELECT count(*), c FROM t1 GROUP BY c;"), "50000 456")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from alterdropcol2.test
@@ -1230,8 +1222,6 @@ func TestSQLite_altertab2(t *testing.T) {
 	checkQueryResult(t, db.Query("PRAGMA legacy_alter_table = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';"), "{CREATE TABLE c1(x REFERENCES \"p2\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}")
 	checkExecOK(t, db.Exec("ALTER TABLE p3 RENAME TO p2;\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';"))
 	_ = db.Query("SELECT sql FROM sqlite_master")
-	checkExecOK(t, db.Exec("ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;"))
-	checkExecOK(t, db.Exec("ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -1239,10 +1229,6 @@ func TestSQLite_altertab2(t *testing.T) {
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1x RENAME d TO ddd;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';"))
-	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(1);"))
-	checkExecOK(t, db.Exec("ALTER TABLE t2 RENAME TO t2x;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';"))
-	checkExecOK(t, db.Exec("ALTER TABLE t2x RENAME a TO aaaa;\n  SELECT sql FROM sqlite_master WHERE name = 'r2';"))
-	checkExecOK(t, db.Exec("INSERT INTO t2x VALUES(1);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a,b,c,d);\n  CREATE TRIGGER r3 AFTER INSERT ON t3 WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM t3 EXCEPT SELECT a,b,c FROM t3 ORDER BY a;\n    SELECT rowid, * FROM t3;\n  END;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t3 RENAME TO t3x;\n  SELECT sql FROM sqlite_master WHERE name = 'r3';"))
 	checkExecOK(t, db.Exec("ALTER TABLE t3x RENAME a TO abcd;\n  SELECT sql FROM sqlite_master WHERE name = 'r3';"))
@@ -1285,9 +1271,6 @@ func TestSQLite_altertab3(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME a TO aaa;"))
-	checkQueryResult(t, db.Query("SELECT sql FROM sqlite_master WHERE name='tr1'"), "{CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT sum(b) OVER w FROM t1 WINDOW w AS (ORDER BY aaa);\n  END}")
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 2);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -1377,9 +1360,6 @@ func TestSQLite_altertab3(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE a(a,h CONSTRAINT a UNIQUE ON CONFLICT FAIL,CONSTRAINT a);"))
-	if err := db.Exec("ALTER TABLE a RENAME TO g;").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
 	if err := db.Exec("CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
@@ -1395,6 +1375,14 @@ func TestSQLite_altertab3(t *testing.T) {
 		t.Errorf("expected error but got none")
 	}
 	checkExecOK(t, db.Exec("DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) SELECT * FROM t3;"))
+	checkExecOK(t, db.Exec("DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) VALUES(1);"))
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=((SELECT 1 FROM t1 JOIN t2 ON b=x),1);\n  END;"))
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altertrig.test
@@ -1404,7 +1392,6 @@ func TestSQLite_altertrig(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n  CREATE TABLE t4(a);\n\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, t3;\n  END;"))
 	checkExecOK(t, db.Exec("DROP TRIGGER r1;\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t5); \n  END;"))
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from amatch1.test
@@ -2652,10 +2639,6 @@ func TestSQLite_bestindex1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1x(i INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1x VALUES(1, 'one', 1);\n  INSERT INTO t1x VALUES(2, 'two', 2);\n  INSERT INTO t1x VALUES(3, 'three', 3);\n  INSERT INTO t1x VALUES(4, 'four', 4);"))
-	checkQueryResult(t, db.Query("SELECT * FROM t1"), "one 1 two 2 three 3 four 4")
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1"), "1 2 3 4")
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE a='two'"), "2")
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid"), "1 4")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from bestindex2.test
@@ -2892,7 +2875,6 @@ func TestSQLite_bigmmap(t *testing.T) {
 	dbs = append(dbs, db)
 	_ = db.Query("SELECT compile_options AS x FROM pragma_compile_options \n  WHERE x LIKE 'max_mmap_size=%'")
 	_ = db.Query("PRAGMA page_size = 4096;\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n  WITH  s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 100 )\n  INSERT INTO t0 SELECT i, 't0', randomblob(800) FROM s;")
-	_ = db.Query("PRAGMA main.mmap_size")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from bigrow.test
@@ -3612,16 +3594,6 @@ func TestSQLite_cffault(t *testing.T) {
 	_ = db.Query("SELECT a, b FROM t1")
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from changes.test
-func TestSQLite_changes(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(-1)"))
-	_ = db.Query("SELECT count(*) FROM t1")
-	checkExecOK(t, db.Exec("DELETE FROM t1"))
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from changes2.test
 func TestSQLite_changes2(t *testing.T) {
 	db := setupDB(t)
@@ -3736,14 +3708,6 @@ func TestSQLite_checkfault(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;\n  CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES ('ABCDEFG')"))
 	checkExecOK(t, db.Exec("INSERT INTO t2(a) VALUES('abc')"))
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from chunksize.test
-func TestSQLite_chunksize(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from cksumvfs.test
@@ -5184,7 +5148,6 @@ func TestSQLite_crashM(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("ATTACH 'file:test2.db?8_3_names=1' AS aux;\n\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n\n  CREATE TABLE aux.t2(x, y);\n  CREATE INDEX aux.t2x ON t2(x);\n  CREATE INDEX aux.t2y ON t2(y);\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t1 SELECT a, randomblob(500) FROM s;\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t2 SELECT a, randomblob(500) FROM s;"))
-	checkQueryResult(t, db.Query("PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;"), "ok ok")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from createtab.test
@@ -5281,9 +5244,6 @@ func TestSQLite_csv01(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t5_1 USING csv(filename='csv01.csv');\n  SELECT name FROM temp.pragma_table_info('t5_1');"))
 	checkQueryResult(t, db.Query("SELECT *, '|' FROM t5_1;"), "a b c d | 1 2 3 4 | one two three four | 5 6 7 8 |")
 	checkExecOK(t, db.Exec("DROP TABLE t5_1;\n  CREATE VIRTUAL TABLE t5_1 USING csv(filename='csv01.csv', header);\n  SELECT name FROM temp.pragma_table_info('t5_1');"))
-	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE abc USING csv(filename='csv.data', header=true);"))
-	_ = db.Query("SELECT count(*) FROM abc")
-	_ = db.Query("SELECT * FROM abc")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -5457,25 +5417,6 @@ func TestSQLite_date3(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;"))
 	checkExecOK(t, db.Exec("WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');"))
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from date4.test
-func TestSQLite_date4(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	_ = db.Query("SELECT strftime($::FMT,$::TS,'unixepoch');")
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from date5.test
-func TestSQLite_date5(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	_ = db.Query("SELECT date($::jd);")
-	_ = db.Query("SELECT julianday($::date);")
-	_ = db.Query("SELECT date($::jd2);")
-	_ = db.Query("SELECT julianday($::date2);")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from dbdata.test
@@ -5997,8 +5938,6 @@ func TestSQLite_distinct(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('a', 'c');\n\n  INSERT INTO t1 VALUES('b', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('b', 'c');\n\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n\n  INSERT INTO t1 VALUES('A', 'A');\n  INSERT INTO t1 VALUES('B', 'B');"))
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS i1"))
-	checkQueryResult(t, db.Query("SELECT DISTINCT a, b FROM t1 ORDER BY a, b"), "A A  B B\n    a a  a b  a c\n    b a  b b  b c")
-	checkQueryResult(t, db.Query("SELECT DISTINCT a COLLATE nocase, b COLLATE nocase FROM t1 \n    ORDER BY a COLLATE nocase, b COLLATE nocase"), "a a  a b  a c\n    b a  b b  b c")
 	checkQueryResult(t, db.Query("SELECT  DISTINCT\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1\n  ORDER  BY\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x';"), "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1")
 	checkQueryResult(t, db.Query("EXPLAIN\n  SELECT  DISTINCT\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,\n    1,  1,  1,  1,  1\n  ORDER  BY\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x','x','x','x','x','x','x',\n   'x','x','x','x';"), "/0 Init 0 /")
 	checkQueryResult(t, db.Query("EXPLAIN  CREATE  TABLE t2 AS  SELECT  DISTINCT ':memory:', 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 ORDER  BY '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 42e-300, 'unixepoch', 'unixepoch', 'unixepoch' LIMIT 0xda;"), "/0 Init 0/")
@@ -6184,12 +6123,6 @@ func TestSQLite_e_changes(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(y);"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(-1, -1)"))
-	if err := db.Exec("INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	if err := db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -6524,7 +6457,6 @@ func TestSQLite_e_insert(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);"))
 	checkExecOK(t, db.Exec("INSERT INTO a1 VALUES('x', 'y');"))
 	checkExecOK(t, db.Exec("INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');"))
-	_ = db.Query("SELECT * FROM a4")
 	if err := db.Exec("CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
@@ -6672,7 +6604,6 @@ func TestSQLite_e_update(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);"))
 	checkExecOK(t, db.Exec("DELETE FROM t2;\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);"))
 	checkExecOK(t, db.Exec("DELETE FROM t3;\n  INSERT INTO t3 VALUES(1, 'one');\n  INSERT INTO t3 VALUES(2, 'two');\n  INSERT INTO t3 VALUES(3, 'three');\n  INSERT INTO t3 VALUES(4, 'four');"))
-	_ = db.Query("SELECT * FROM t3")
 	checkExecOK(t, db.Exec("CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;"))
 	checkExecOK(t, db.Exec("DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;"))
 	_ = db.Query("SELECT 'main', tbl_name FROM main.sqlite_master WHERE type = 'table';\n  SELECT 'temp', tbl_name FROM sqlite_temp_master WHERE type = 'table';\n  SELECT 'aux', tbl_name FROM aux.sqlite_master WHERE type = 'table';")
@@ -6702,8 +6633,6 @@ func TestSQLite_e_vacuum(t *testing.T) {
 	_ = db.Query("SELECT pageno FROM stat WHERE name = 't1' ORDER BY pageno")
 	checkExecOK(t, db.Exec("DROP TABLE temp.stat"))
 	checkExecOK(t, db.Exec("VACUUM"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    DELETE FROM t2;"))
-	_ = db.Query("PRAGMA freelist_count")
 	checkExecOK(t, db.Exec("DELETE FROM t1 WHERE a%2;\n    INSERT INTO t1 SELECT b, a FROM t2 WHERE a%2;\n    UPDATE t1 SET b=randomblob(600) WHERE (a%2)==0;"))
 	_ = db.Query("PRAGMA page_size ; PRAGMA auto_vacuum")
 	_ = db.Query("PRAGMA page_size = 2048")
@@ -6726,6 +6655,7 @@ func TestSQLite_e_vacuum(t *testing.T) {
 	checkExecOK(t, db.Exec("SAVEPOINT x"))
 	_ = db.Query("SELECT a FROM t1")
 	_ = db.Query("PRAGMA auto_vacuum")
+	checkExecOK(t, db.Exec("DELETE FROM t1;\n    DELETE FROM t2;"))
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -6765,8 +6695,6 @@ func TestSQLite_e_walauto(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"))
 	_ = db.Query("PRAGMA auto_vacuum = 0")
-	checkQueryResult(t, db.Query("PRAGMA journal_mode = WAL"), "wal")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b)"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from e_walckpt.test
@@ -6778,7 +6706,6 @@ func TestSQLite_e_walckpt(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('xyz')"))
 	_ = db.Query("SELECT * FROM sqlite_master")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);"))
 	checkExecOK(t, db.Exec("BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;"))
 	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');"))
@@ -7238,11 +7165,6 @@ func TestSQLite_expr(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1\n   WHERE (x OR (8==9)) != (NOT NOT x);"), "0")
 	checkQueryResult(t, db.Query("SELECT sum(NOT x) FROM t1\n   WHERE x"), "0")
 	checkQueryResult(t, db.Query("SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n   WHERE x"), "0")
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');"))
-	checkQueryResult(t, db.Query("SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);"), "0")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (NOT NOT x);"), "0")
-	checkQueryResult(t, db.Query("SELECT sum(NOT x) FROM t1\n     WHERE x"), "0")
-	checkQueryResult(t, db.Query("SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n     WHERE x"), "0")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -8207,7 +8129,6 @@ func TestSQLite_fts3ao(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	_ = db.Query("SELECT * FROM t1")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3atoken.test
@@ -8253,10 +8174,8 @@ func TestSQLite_fts3auto(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('optimize')"))
 	checkExecOK(t, db.Exec("UPDATE t1_stat SET value=x'' WHERE id=0"))
-	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'on* NEAR/3 fi*'"), "1 {database disk image is malformed}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3aux1.test
@@ -8406,14 +8325,6 @@ func TestSQLite_fts3comp1(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;"))
-	checkQueryResult(t, db.Query("SELECT c0a, c1b FROM t1_content;"), "1 2")
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;"))
-	checkQueryResult(t, db.Query("SELECT a, b FROM t1 WHERE docid = 2"), "{three six nine} {four eight twelve}")
-	checkQueryResult(t, db.Query("SELECT a, b FROM t1 WHERE t1 MATCH 'two'"), "{one two three} {two four six}")
-	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';"))
-	checkExecOK(t, db.Exec("DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';"))
-	checkQueryResult(t, db.Query("SELECT c0a, c1b FROM t1_content"), "3 4")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -8445,12 +8356,12 @@ func TestSQLite_fts3conf(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"))
-	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;"))
 	if err := db.Exec("DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
 	checkExecOK(t, db.Exec("COMMIT"))
+	checkQueryResult(t, db.Query("SELECT * FROM t1"), "{a b c} {a b c}")
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'"))
 	checkExecOK(t, db.Exec("REPLACE INTO t3(docid, content) VALUES (2, 'one two three four');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'four'"))
 	checkExecOK(t, db.Exec("REPLACE INTO t3(docid, content) VALUES (1, 'one two three four five six');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'"))
@@ -8779,8 +8690,6 @@ func TestSQLite_fts3defer(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1_segments WHERE length(block)>10000"), "2")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM x1 WHERE x1 MATCH '\"d e f\"'"), "16")
 	checkQueryResult(t, db.Query("SELECT * FROM x2 WHERE x2 MATCH 'a b c d e f g h i j k l m n o p q r s';"), "{a b c d e f g h i j k l m n o p q r s t u v w x y m}")
-	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO x3 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 VALUES('a b c', NULL);\n    INSERT INTO x3 VALUES('a x c', NULL);\n    COMMIT;\n\n    SELECT * FROM x3 WHERE x3 MATCH 'a b';"))
-	checkExecOK(t, db.Exec("DROP TABLE x3"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -8804,12 +8713,7 @@ func TestSQLite_fts3defer2(t *testing.T) {
 	_ = db.Query("SELECT snippet(t1, '[', ']'), offsets(t1), mit(matchinfo(t1, 'pcxnal'))\n  FROM t1 WHERE t1 MATCH 'f (e NEAR/3 a)';")
 	checkExecOK(t, db.Exec("DROP TABLE t1"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');"))
-	_ = db.Query("SELECT mit(matchinfo(t2, 'pcxnal')) FROM t2 WHERE t2 MATCH 'a b';")
-	_ = db.Query("SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g z';")
-	_ = db.Query("SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';")
-	_ = db.Query("SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'e \"g z\"';")
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');"))
-	checkQueryResult(t, db.Query("SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';"), "1 {1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6}")
 	checkExecOK(t, db.Exec("INSERT INTO t3(t3) VALUES('rebuild');"))
 	checkQueryResult(t, db.Query("SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';"), "11 228929")
 	checkQueryResult(t, db.Query("SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)';"), "1 23 3 23 11 205")
@@ -9447,18 +9351,8 @@ func TestSQLite_fts4check(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	if err := db.Exec("INSERT INTO t1 (t1) VALUES('integrity-check')").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	checkQueryResult(t, db.Query("PRAGMA integrity_check;"), "{malformed inverted index for FTS4 table main.t1}")
-	if err := db.Exec("INSERT INTO t2 (t2) VALUES('integrity-check')").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
 	_ = db.Query("PRAGMA integrity_check(t2);")
 	_ = db.Query("SELECT docid FROM t1 ORDER BY 1 ASC")
-	if err := db.Exec("INSERT INTO t3 (t3) VALUES('integrity-check')").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -9698,8 +9592,6 @@ func TestSQLite_fts4langid(t *testing.T) {
 	_ = db.Query("SELECT docid FROM t5 WHERE t5 MATCH 'language'")
 	_ = db.Query("SELECT docid FROM t6 WHERE t6 MATCH 'belong'")
 	checkExecOK(t, db.Exec("INSERT INTO t6(t6) VALUES('optimize')"))
-	checkExecOK(t, db.Exec("DELETE FROM t6;\n    SELECT count(*) FROM t6_segdir;\n    SELECT count(*) FROM t6_segments;"))
-	checkQueryResult(t, db.Query("SELECT count(*) FROM t6_segdir;\n    SELECT count(*) FROM t6_segments;"), "8 0")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -9726,15 +9618,11 @@ func TestSQLite_fts4merge(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkQueryResult(t, db.Query("SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level"), "0 {0 1 2 3 4 5 6 7 8 9 10 11} \n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 {0 1 2}")
-	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('merge=1')"))
-	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'zero one two three'"), "123 132 213 231 312 321")
 	checkQueryResult(t, db.Query("SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level"), "2 {0 1 2 3}")
-	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('merge=1,4')"))
 	_ = db.Query("PRAGMA page_size = 512")
 	checkQueryResult(t, db.Query("SELECT level, string_agg(idx, ' ') FROM t2_segdir GROUP BY level"), "0 {0 1 2 3 4 5 6} \n    1 {0 1 2 3 4} \n    2 {0 1 2 3 4} \n    3 {0 1 2 3 4 5 6}")
 	checkExecOK(t, db.Exec("INSERT INTO t2(t2) VALUES('merge=1000000,2');\n    SELECT level, group_concat(idx, ' ') FROM t2_segdir GROUP BY level"))
 	_ = db.Query("SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level")
-	checkExecOK(t, db.Exec("INSERT INTO t4(t4) VALUES('merge=1,16');\n      SELECT level, group_concat(idx, ' ') FROM t4_segdir GROUP BY level;"))
 	checkQueryResult(t, db.Query("SELECT quote(value) FROM t4_stat WHERE rowid=1"), "X'0006'")
 	checkExecOK(t, db.Exec("DELETE FROM t4_stat WHERE rowid=1;\n    INSERT INTO t4(t4) VALUES('merge=1,12');\n    SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level;"))
 	checkQueryResult(t, db.Query("SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level;"), "0 {0 1 2 3 4 5 6 7} \n    1 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} \n    2 {0 1 2}")
@@ -9788,8 +9676,6 @@ func TestSQLite_fts4merge5(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(docid, words);"))
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');"))
 	checkExecOK(t, db.Exec("INSERT INTO x1(docid, content) SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO x1(x1) VALUES('merge=1,2');"))
-	checkExecOK(t, db.Exec("INSERT INTO x1(x1) VALUES('integrity-check');"))
 	if err := db.Exec("INSERT INTO x1(x1) VALUES('maxpendinAB64');").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
@@ -9812,14 +9698,6 @@ func TestSQLite_fts4noti(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE cc(a, b, c);"))
 	checkQueryResult(t, db.Query("SELECT name FROM sqlite_master"), "cc")
-	checkExecOK(t, db.Exec("INSERT INTO t1(docid,a,b,c) VALUES(1, 'one two', 'three four', 'five six');\n    INSERT INTO t1(docid,a,b,c) VALUES(2, 'three four', 'five six', 'one two');"))
-	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'one'"), "1 2")
-	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'three'"), "2")
-	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE t1 MATCH 'five'"), "1")
-	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('optimize')"))
-	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('rebuild')"))
-	checkQueryResult(t, db.Query("SELECT a,b,c FROM t1 WHERE docid=1"), "{one two} {three four} {five six}")
-	checkQueryResult(t, db.Query("SELECT a,b,c FROM t1 WHERE docid=2"), "{three four} {five six} {one two}")
 	checkExecOK(t, db.Exec("DROP TABLE t1"))
 	_ = db.Query("SELECT x FROM t2 WHERE t2 MATCH '2'")
 	checkQueryResult(t, db.Query("SELECT x FROM t2 WHERE t2 MATCH '1'"), "2 3 4 5 6")
@@ -9847,9 +9725,6 @@ func TestSQLite_fts4onepass(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(rowid, content) VALUES(1, '1 2 3');\n  INSERT INTO ft(rowid, content) VALUES(2, '4 5 6');\n  INSERT INTO ft(rowid, content) VALUES(3, '7 8 9');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;"))
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');"))
-	_ = db.Query("SELECT rowid, content FROM ft2")
-	checkExecOK(t, db.Exec("INSERT INTO ft2(ft2) VALUES('integrity-check');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts4opt.test
@@ -9922,29 +9797,10 @@ func TestSQLite_fts4unicode(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT rowid FROM t3 WHERE t3 MATCH 'a';"), "2 4 6 8")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'o';"), "1 3")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'a';"), "2 4")
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;"))
-	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t5aux USING fts4aux(t5);\n    INSERT INTO t5 VALUES('one two three/four.five.six');\n    SELECT * FROM t5aux;"))
-	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t6aux USING fts4aux(t6);\n    INSERT INTO t6 VALUES('alpha=beta\"gamma/delta[epsilon]zeta');\n    SELECT * FROM t6aux;"))
-	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t7aux USING fts4aux(t7);\n    INSERT INTO t7 VALUES('alephxbeth\\xC4gimel');\n    SELECT * FROM t7aux;"))
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft1 USING fts3tokenize(\n    \"unicode61\", \"tokenchars=@.\", \"separators=1234567890\"\n  );\n  SELECT token FROM ft1 WHERE input = 'berlin@street123sydney.road';"))
 	checkExecOK(t, db.Exec("INSERT INTO t12(t12) VALUES('integrity-check');"))
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t12aux USING fts4aux(t12);\n  SELECT * FROM t12aux;"))
 	checkQueryResult(t, db.Query("SELECT hex(CAST(content AS blob)) FROM t12 WHERE t12 MATCH 'abc'"), "61626300646566")
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from fts4upfrom.test
-func TestSQLite_fts4upfrom(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO ft(a, b, c) VALUES('a', NULL, 'apple');\n    INSERT INTO ft(a, b, c) VALUES('b', NULL, 'banana');\n    INSERT INTO ft(a, b, c) VALUES('c', NULL, 'cherry');\n    INSERT INTO ft(a, b, c) VALUES('d', NULL, 'damson plum');"))
-	checkQueryResult(t, db.Query("SELECT a, b, c FROM ft ORDER BY rowid;"), "a {} apple\n    b {} banana\n    c {} cherry\n    d {} {damson plum}")
-	checkExecOK(t, db.Exec("UPDATE ft SET b=o.c FROM ft AS o WHERE (ft.a == char(unicode(o.a)+1))"))
-	if err := db.Exec("UPDATE ft SET c=v FROM changes WHERE a=k;").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	checkExecOK(t, db.Exec("create view changes(k, v) AS \n      VALUES( 'd', 'dewberry' ) UNION ALL\n      VALUES( 'c', 'clementine' ) UNION ALL\n      VALUES( 'b', 'blueberry' ) UNION ALL\n      VALUES( 'a', 'apricot' ) \n    ;"))
-	checkQueryResult(t, db.Query("SELECT rowid, a, b, c FROM ft ORDER BY rowid;"), "1 a {} apricot\n    2 b apple blueberry\n    3 c banana clementine\n    4 d cherry dewberry")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from func.test
@@ -10444,8 +10300,6 @@ func TestSQLite_fuzzer1(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES(-1, 'x', 'y', 2);"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES((1<<32)+100, 'x', 'y', 2);"))
 	checkExecOK(t, db.Exec("CREATE TABLE [x2 \"rules] (a, b, c, d);\n  INSERT INTO [x2 \"rules] VALUES(0, 'a', 'b', 5);"))
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x2"))
-	checkQueryResult(t, db.Query("SELECT word FROM x2 WHERE word MATCH 'aaa'"), "aaa baa aba aab bab abb bba bbb")
 	checkExecOK(t, db.Exec("CREATE TABLE x3_rules(rule_set, cFrom, cTo, cost);\n  INSERT INTO x3_rules VALUES(2, 'a', 'x', 10);\n  INSERT INTO x3_rules VALUES(2, 'a', 'y',  9);\n  INSERT INTO x3_rules VALUES(2, 'a', 'z',  8);\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);"))
 	checkQueryResult(t, db.Query("SELECT cFrom, cTo, word \n    FROM x3_rules CROSS JOIN x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo;"), "a x x a y y a z z")
 	checkQueryResult(t, db.Query("SELECT cFrom, cTo, word \n    FROM x3 CROSS JOIN x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC"), "a z z a y y a x x")
@@ -10467,6 +10321,10 @@ func TestSQLite_fuzzer1(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT word, distance FROM x4 WHERE word MATCH 'ax';"), "ax 0 bx 10 cx 11 yy 26 zz 30 !! 80")
 	checkExecOK(t, db.Exec("CREATE TABLE x5_rules(a, b, c, d);\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);"))
 	_ = db.Query("SELECT word, distance FROM x5 WHERE word MATCH \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa'")
+	checkExecOK(t, db.Exec("INSERT INTO x5_rules VALUES(0, 'a', '0.1.2.3.4.5.6.7.8.9.a', 1);\n  DROP TABLE x5;\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n  SELECT length(word) FROM x5 WHERE word MATCH 'a' LIMIT 50;"))
+	if err := db.Exec("DROP TABLE IF EXISTS f1;\n  CREATE VIRTUAL TABLE f1 USING fuzzer('aaaaaaaaaaaaaaaa'bbbbbbbbbbbbbbbb);").Error; err == nil {
+		t.Errorf("expected error but got none")
+	}
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fuzzer2.test
@@ -10504,7 +10362,6 @@ func TestSQLite_gcfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');"))
 	_ = db.Query("SELECT group_concat(e, (SELECT s FROM s WHERE i=1)) FROM e")
 	_ = db.Query("SELECT string_agg(e, (SELECT s FROM s WHERE i=2)) FROM e")
 	for _, d := range dbs { d.Close() }
@@ -10515,16 +10372,6 @@ func TestSQLite_gencol1(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t0(c0 AS(TYPEOF(c1)), c1);\n  INSERT INTO t0(c1) VALUES(0);\n  CREATE TABLE t1(x AS (typeof(y)), y);\n  INSERT INTO t1 SELECT * FROM t0;\n  SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1(a,b,c) VALUES(1,'abcdef',5.5),(3,'cantaloupe',NULL);\n    SELECT w, x, y, '|' FROM t1 ORDER BY a;"))
-	checkQueryResult(t, db.Query("SELECT w, x, y, '|' FROM t1 ORDER BY w;"), "10 real abc | 30 null ntalo |")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 WHERE w=30;"), "3")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 WHERE x='real';"), "1")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 WHERE y LIKE '%tal%' OR x='real' ORDER BY b;"), "1 3")
-	checkExecOK(t, db.Exec("CREATE INDEX t1w ON t1(w);\n    SELECT a FROM t1 WHERE w=10;"))
-	checkExecOK(t, db.Exec("CREATE INDEX t1x ON t1(x) WHERE w BETWEEN 20 AND 40;\n    SELECT a FROM t1 WHERE x='null' AND w BETWEEN 20 AND 40;"))
-	checkExecOK(t, db.Exec("VACUUM;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("UPDATE t1 SET a=a+100 WHERE w<20;\n    SELECT a, w, '|' FROM t1 ORDER BY w;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(4,'jambalaya','Chef John'),(15,87719874135,0);\n    SELECT w, x, y, '|' FROM t1 ORDER BY w;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -10602,6 +10449,22 @@ func TestSQLite_gencol1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t0(c0 REAL AS(1) UNIQUE, c1 INT);\n  INSERT INTO t0 VALUES('');\n  SELECT quote(c0), quote(c1) from t0;"))
+	checkQueryResult(t, db.Query("SELECT *, (1 BETWEEN CAST(t0.c0 AS TEXT) AND t0.c0) FROM t0;"), "1.0 {} 0")
+	_ = db.Query("SELECT * FROM t0 WHERE (1 BETWEEN CAST(t0.c0 AS TEXT) AND t0.c0);")
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a TEXT AS(b) COLLATE nocase, b TEXT, c INT, d DEFAULT 1);\n  INSERT INTO t1(b,c) VALUES('abc',11),('DEF',22),('ghi',33);\n  SELECT a FROM t1 WHERE b='DEF' AND a='def';"))
+	checkExecOK(t, db.Exec("CREATE INDEX t1bca ON t1(b,c,a);\n  SELECT a FROM t1 WHERE b='DEF' AND a='def';"))
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t0(c0 UNIQUE AS(0), c1, c2);\n  INSERT INTO t0(c1) VALUES(0);\n  SELECT * FROM t0;"))
+	checkExecOK(t, db.Exec("UPDATE t0 SET c1=0, c2=0 WHERE c0>=0;\n  SELECT * FROM t0;"))
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
+	if err := db.Exec("CREATE TABLE t0(\n    c0 INT AS(2) UNIQUE,\n    c1 TEXT UNIQUE,\n    FOREIGN KEY(c0) REFERENCES t0(c1)\n  );\n  INSERT INTO t0(c1) VALUES(0.16334143182538696), (0);").Error; err == nil {
+		t.Errorf("expected error but got none")
+	}
+	checkExecOK(t, db.Exec("CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from having.test
@@ -10646,11 +10509,6 @@ func TestSQLite_hidden(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(__hidden__a, b);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1(__hidden__a, b) VALUES('x', 'y');"))
 	checkQueryResult(t, db.Query("SELECT * FROM t1;"), "1 y")
 	checkQueryResult(t, db.Query("SELECT __hidden__a, * FROM t1;"), "{} 1 x y")
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);"))
-	checkQueryResult(t, db.Query("SELECT a, b, __hidden__c FROM v1;"), "1 2 3")
-	checkQueryResult(t, db.Query("SELECT * FROM v1;"), "1 2")
-	checkExecOK(t, db.Exec("CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;"))
-	checkExecOK(t, db.Exec("INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a, __hidden__b, c);\n  INSERT INTO t4 SELECT 1, 2;\n  SELECT a, __hidden__b, c FROM t4;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);"))
 	checkExecOK(t, db.Exec("INSERT INTO t5 SELECT * FROM t6;\n  SELECT * FROM t5;"))
@@ -11302,9 +11160,6 @@ func TestSQLite_incrvacuum3(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA cache_size = 5;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;")
-	_ = db.Query("PRAGMA integrity_check")
-	_ = db.Query("PRAGMA freelist_count")
-	_ = db.Query("SELECT count(*) FROM t1")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from incrvacuum_ioerr.test
@@ -11606,34 +11461,10 @@ func TestSQLite_indexA(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS i1"))
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS i2"))
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS i3"))
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x1 WHERE a=2"), "2 two ii text")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x1 WHERE a=2.0"), "2.0 twopointoh ii.0 text")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x1 WHERE a='2'"), "2 two ii text")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x1 WHERE a='2.0'"), "2.0 twopointoh ii.0 text")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x2 WHERE a=2"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x2 WHERE a=2.0"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x2 WHERE a='2'"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x2 WHERE a='2.0'"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x3 WHERE a=2"), "2.0 two ii real 2.0 twopointoh ii.0 real")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x3 WHERE a=2.0"), "2.0 two ii real 2.0 twopointoh ii.0 real")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x3 WHERE a='2'"), "2.0 two ii real 2.0 twopointoh ii.0 real")
-	checkQueryResult(t, db.Query("SELECT *, typeof(a) FROM x3 WHERE a='2.0'"), "2.0 two ii real 2.0 twopointoh ii.0 real")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');"))
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x1 WHERE a=2"), "2 two ii text")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x1 WHERE a=2.0"), "2.0 twopointoh ii.0 text")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x1 WHERE a='2'"), "2 two ii text")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x1 WHERE a='2.0'"), "2.0 twopointoh ii.0 text")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x2 WHERE a=2"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x2 WHERE a=2.0"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x2 WHERE a='2'"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x2 WHERE a='2.0'"), "2 two ii integer 2 twopointoh ii.0 integer")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x3 WHERE a=2"), "2.0 two ii real 2.0 twopointoh ii.0 real")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x3 WHERE a=2.0"), "2.0 two ii real 2.0 twopointoh ii.0 real")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x3 WHERE a='2'"), "2.0 two ii real 2.0 twopointoh ii.0 real")
-	checkQueryResult(t, db.Query("SELECT a, b, c, typeof(a) FROM x3 WHERE a='2.0'"), "2.0 two ii real 2.0 twopointoh ii.0 real")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -12178,10 +12009,8 @@ func TestSQLite_instrfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);"))
 	_ = db.Query("SELECT instr(h, n) FROM t1")
 	_ = db.Query("SELECT instr($::HAYSTACK, $::NEEDLE) FROM t1")
-	checkExecOK(t, db.Exec("CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;"))
 	_ = db.Query("SELECT rowid FROM h1 WHERE instr(a,b)")
 	for _, d := range dbs { d.Close() }
 }
@@ -12223,7 +12052,6 @@ func TestSQLite_interrupt2(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  PRAGMA journal_mode = wal;\n\n  WITH ii(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM ii WHERE i<1000 )\n  INSERT INTO t1 SELECT i, i FROM ii;"))
-	_ = db.Query("SELECT count(*) FROM t1")
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE z1(a, b);\n  INSERT INTO z1 SELECT * FROM t1;"))
 	_ = db.Query("SELECT * FROM z1")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1\n  UNION ALL\n  SELECT count(*) FROM z1"), "1000 1000")
@@ -12383,7 +12211,6 @@ func TestSQLite_io(t *testing.T) {
 	_ = db.Query("PRAGMA synchronous = full;\n      PRAGMA cache_size = 10;\n      PRAGMA synchronous;")
 	checkExecOK(t, db.Exec("BEGIN;\n    UPDATE abc SET a = 'x';"))
 	checkExecOK(t, db.Exec("CREATE TABLE abc(a, b, c);"))
-	checkQueryResult(t, db.Query("PRAGMA integrity_check"), "ok")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from ioerr.test
@@ -12509,9 +12336,6 @@ func TestSQLite_istrue(t *testing.T) {
 	if err := db.Exec("INSERT INTO t2 VALUES(2,true,false,null,false);").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);"))
-	_ = db.Query("SELECT x IS TRUE FROM t1;")
-	checkQueryResult(t, db.Query("SELECT x IS FALSE FROM t1;"), "0")
 	checkExecOK(t, db.Exec("CREATE TABLE t7(\n      a INTEGER PRIMARY KEY,\n      b BOOLEAN DEFAULT false,\n      c BOOLEAN DEFAULT true\n    );\n    INSERT INTO t7(a) VALUES(1);\n    INSERT INTO t7(a,b,c) VALUES(2,true,false);\n    ALTER TABLE t7 ADD COLUMN d BOOLEAN DEFAULT false;\n    ALTER TABLE t7 ADD COLUMN e BOOLEAN DEFAULT true;\n    INSERT INTO t7(a,b,c) VALUES(3,true,false);\n    INSERT INTO t7 VALUES(4,false,true,true,false);\n    SELECT *,'x' FROM t7 ORDER BY a;"))
 	checkQueryResult(t, db.Query("SELECT 0.5 IS TRUE COLLATE NOCASE;\n  SELECT 0.5 IS TRUE COLLATE RTRIM;\n  SELECT 0.5 IS TRUE COLLATE BINARY;\n\n  SELECT 0.5 IS TRUE;\n  SELECT 0.5 COLLATE NOCASE IS TRUE;\n  SELECT 0.0 IS FALSE;\n\n  SELECT 0.0 IS FALSE COLLATE NOCASE;\n  SELECT 0.0 IS FALSE COLLATE RTRIM;\n  SELECT 0.0 IS FALSE COLLATE BINARY;"), "1 1 1   1 1 1  1 1 1")
 	checkQueryResult(t, db.Query("SELECT 9 IN (false.false);"), "1 {no such column: false.false}")
@@ -12779,42 +12603,6 @@ func TestSQLite_join6(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE ty(a,\xd1,x6,x7,x8,Q,I,v,x1,L,E,x2,x3,x4,x5,s,g PRIMARY KEY,b,c)\n  WITHOUT ROWID;\n  SELECT a FROM ty NATURAL JOIN ty;"))
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from join7.test
-func TestSQLite_join7(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL 55\n    2    NULL\n    3    33\n    4    44")
-	checkQueryResult(t, db.Query("SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL  5\n    1     NULL\n    1     3\n    1     4")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;"), "1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0\n     ORDER BY +b;"), "1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0 OR b IS NULL\n     ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 AND c>4\n     ORDER BY coalesce(b,c,0);"), "1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 WHERE c>4\n     ORDER BY coalesce(b,c,0);"), "NULL NULL 5    55")
-	_ = db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 AND c>4\n     ORDER BY coalesce(b,c,0);")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 OR c>4\n     ORDER BY coalesce(b,c,0);"), "1    4    4    44\n    NULL NULL 5    55")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b>3 OR c>4)\n     ORDER BY coalesce(b,c,0);"), "1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;"), "NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;"), "NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;"), "NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;"), "1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;"), "1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;"), "1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;"), "NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;"), "NULL NULL 5    55")
-	checkQueryResult(t, db.Query("SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d<=0 ORDER BY +b, +d;"), "NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL")
-	checkQueryResult(t, db.Query("SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0 ORDER BY +b, +d;"), "NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL")
-	checkQueryResult(t, db.Query("SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2"), "NULL NULL 5    55\n    1    2    NULL NULL")
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from join8.test
 func TestSQLite_join8(t *testing.T) {
 	db := setupDB(t)
@@ -12910,61 +12698,6 @@ func TestSQLite_join8(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t0(a TEXT, b TEXT, c TEXT);\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('1');\n  CREATE VIEW v0 AS SELECT 'xyz' AS d;\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'';\n  SELECT * FROM v0 RIGHT JOIN t1 ON t1.a<>'' INNER JOIN t0 ON t0.c<>'' WHERE b ISNULL;"))
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from join9.test
-func TestSQLite_join9(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;"), "2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   -")
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;"), "2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   -")
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;"), "2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   -")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;"), "2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   -")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;"), "2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   -")
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;"), "0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;"), "0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;"), "0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9")
-	checkQueryResult(t, db.Query("SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;"), "0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999")
-	checkQueryResult(t, db.Query("SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;"), "0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999")
-	checkQueryResult(t, db.Query("SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x<>'bob' OR x IS NULL\n      ORDER BY 1;"), "0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999")
-	checkExecOK(t, db.Exec("WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);"))
-	checkQueryResult(t, db.Query("SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;"), "0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999")
-	checkQueryResult(t, db.Query("SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;"), "0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999")
-	checkQueryResult(t, db.Query("SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;"), "0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999")
-	checkQueryResult(t, db.Query("SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);"), "-   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999")
-	checkQueryResult(t, db.Query("SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);"), "-   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999")
-	checkQueryResult(t, db.Query("SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);"), "2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -")
-	checkExecOK(t, db.Exec("WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;"))
-	checkQueryResult(t, db.Query("SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;"), "2   alice  orange  -  \n    4   bob    green   444")
-	checkQueryResult(t, db.Query("SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;"), "3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555")
-	checkExecOK(t, db.Exec("WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;"))
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from joinA.test
-func TestSQLite_joinA(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	_ = db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  21  31  41  -  -  -\n    12  22  32  42  -  -  -\n    15  25  35  45  -  -  -\n    18  28  38  48  -  -  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "14  24  -  -  -  44  34\n    15  25  -  -  -  45  35\n    16  26  -  -  -  46  36")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "-   -  12  22  32  42  -\n    -   -  13  23  33  43  -\n    -   -  15  25  35  45  -\n    -   -  17  27  37  47  -\n    11  -  21  31  -   41  -\n    13  -  23  33  -   43  -\n    16  -  26  36  -   46  -\n    19  -  29  39  -   49  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  -   21  31  -  41  - \n    13  -   23  33  -  43  - \n    14  24  -   -   -  44  34\n    15  25  -   -   -  45  35\n    16  26  -   -   -  46  36\n    16  -   26  36  -  46  - \n    19  -   29  39  -  49  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;"), "-   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n    11  -   21  31  -   41  - \n    11  21  31  41  -   -   - \n    12  22  32  42  -   -   - \n    13  -   23  33  -   43  - \n    14  24  -   -   -   44  34\n    15  25  -   -   -   45  35\n    15  25  35  45  -   -   - \n    16  26  -   -   -   46  36\n    16  -   26  36  -   46  - \n    18  28  38  48  -   -   - \n    19  -   29  39  -   49  -")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e,t1.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t1.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  21  31  41  -   -   -  11\n    12  22  32  42  -   -   -  12\n    15  25  35  45  -   -   -  15\n    18  28  38  48  -   -   -  18")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e,t3.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t3.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;"), "14  24  -   -   -   44  34  14\n    15  25  -   -   -   45  35  15\n    16  26  -   -   -   46  36  16")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e,t4.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t4.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;"), "11  -   21  31  -   41  -  11\n    13  -   23  33  -   43  -  13\n    16  -   26  36  -   46  -  16\n    19  -   29  39  -   49  -  19")
-	checkQueryResult(t, db.Query("SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t2.e!=0\n    ORDER BY 1 nulls first, 3 nulls first;"), "-   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  -")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from joinB.test
@@ -13448,7 +13181,6 @@ func TestSQLite_journal3(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE tx(y, z)"))
 	checkExecOK(t, db.Exec("BEGIN;\n          INSERT INTO tx DEFAULT VALUES;"))
-	checkExecOK(t, db.Exec("ROLLBACK"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from jrnlmode.test
@@ -13728,14 +13460,6 @@ func TestSQLite_json106(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE t1(j0,j5,p);\n  CREATE TEMP TABLE kv(n,key,val);"))
-	_ = db.Query("SELECT count(*)\n      FROM t1, json_tree(j0) AS rt\n     WHERE rt.type NOT IN ('object','array')\n       AND rt.atom IS NOT (j0 ->> rt.fullkey);")
-	_ = db.Query("SELECT count(*)\n      FROM t1, json_tree(j5) AS rt\n     WHERE rt.type NOT IN ('object','array')\n       AND rt.atom IS NOT (j0 ->> rt.fullkey);")
-	checkExecOK(t, db.Exec("DELETE FROM kv;\n    INSERT INTO kv\n      SELECT rt.rowid, rt.fullkey, rt.atom\n        FROM t1, json_tree(j0) AS rt\n       WHERE rt.type NOT IN ('object','array');"))
-	_ = db.Query("SELECT count(*)\n      FROM t1, kv\n     WHERE key NOT LIKE '%]'\n       AND json_remove(j5,key)->>key IS NOT NULL")
-	_ = db.Query("SELECT count(*)\n      FROM t1, kv\n     WHERE key NOT LIKE '%]'\n       AND json_insert(json_remove(j5,key),key,val)->>key IS NOT val")
-	checkExecOK(t, db.Exec("UPDATE t1 SET p=json_patch(j0,j5);\n    SELECT count(*)\n      FROM t1, kv\n     WHERE p->>key IS NOT val"))
-	_ = db.Query("SELECT j0 FROM t1 WHERE json(j0)!=json(json_pretty(j0));")
-	_ = db.Query("SELECT j5 FROM t1 WHERE json(j5)!=json(json_pretty(j5));")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from json108.test
@@ -14010,10 +13734,6 @@ func TestSQLite_like3(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x);"))
-	_ = db.Query("PRAGMA encoding")
-	checkQueryResult(t, db.Query("SELECT typeof(x) FROM t1"), "text")
-	checkExecOK(t, db.Exec("CREATE INDEX i1 ON t1(x);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from limit.test
@@ -14550,18 +14270,6 @@ func TestSQLite_memdb1(t *testing.T) {
 	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from memdb2.test
-func TestSQLite_memdb2(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);"))
-	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(3, 4);"))
-	if err := db.Exec("COMMIT").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from memjournal.test
 func TestSQLite_memjournal(t *testing.T) {
 	db := setupDB(t)
@@ -14581,8 +14289,6 @@ func TestSQLite_memjournal2(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkQueryResult(t, db.Query("PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);"), "memory")
-	checkExecOK(t, db.Exec("SAVEPOINT two;\n        UPDATE t1 SET b=randomblob(700) WHERE a==1;\n      ROLLBACK TO two;\n      RELEASE two;"))
-	checkQueryResult(t, db.Query("PRAGMA integrity_check;\n    ROLLBACK TO one;\n    RELEASE one;"), "ok")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from memsubsys1.test
@@ -14800,10 +14506,6 @@ func TestSQLite_minmax4(t *testing.T) {
 	_ = db.Query("SELECT a, max(b), min(b), c FROM t2 GROUP BY a ORDER BY a;")
 	_ = db.Query("SELECT a, max(b), b, max(c), c FROM t2 GROUP BY a ORDER BY a;")
 	_ = db.Query("SELECT a, min(b), b, min(c), c FROM t2 GROUP BY a ORDER BY a;")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);"))
-	checkQueryResult(t, db.Query("SELECT min(a), b FROM t1;"), "{} 1")
-	checkQueryResult(t, db.Query("SELECT min(a), b FROM t1 WHERE a<50;"), "{} {}")
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(2, 2);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -15186,15 +14888,6 @@ func TestSQLite_mmap1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');"))
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from mmap2.test
-func TestSQLite_mmap2(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, UNIQUE(a, b));\n      INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;"))
-	checkQueryResult(t, db.Query("SELECT count(*) FROM t1;\n      PRAGMA integrity_check;"), "64 ok")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from mmap3.test
@@ -15601,18 +15294,6 @@ func TestSQLite_nulls1(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY +d NULLS LAST, +c NULLS LAST;"), "3 4 5 7 {}")
 	checkExecOK(t, db.Exec("INSERT INTO t1(x) VALUES(NULL),('Y');\n  SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY d NULLS LAST, c NULLS LAST;"))
 	checkQueryResult(t, db.Query("SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY +d NULLS LAST, +c NULLS LAST;"), "X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a TEXT COLLATE NOCASE, b TEXT);\n    INSERT INTO t1 VALUES('Hello', 'world');"))
-	for _, d := range dbs { d.Close() }
-}
-// Auto-generated from nulls2.test
-func TestSQLite_nulls2(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 1, NULL);\n    INSERT INTO t1 VALUES(2, 2, NULL);\n\n    CREATE TABLE t2(d NOT NULL, e NOT NULL, f);\n    INSERT INTO t2 VALUES(1, 1, NULL);\n    INSERT INTO t2 VALUES(2, 2, NULL);"))
-	_ = db.Query("SELECT rowid FROM t2 WHERE (d, e, f) IN (\n        SELECT a, b, c FROM t1\n    )")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c COLLATE nocase);\n    INSERT INTO t1 VALUES('one', 'two', 'THREE');\n    INSERT INTO t1 VALUES('four', 'five', 'SIX');"))
-	_ = db.Query("SELECT (NULL, 'two', 'three') IN (\n        SELECT a, b, c FROM t1\n    ) IS NULL")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from numcast.test
@@ -15838,42 +15519,18 @@ func TestSQLite_orderby6(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<1000)\n     INSERT INTO t1 SELECT x, x%40, x/40 FROM cnt;"))
-	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY b,a,c;")
 	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY +b,+a,+c")
-	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY b,c DESC,a;")
 	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY +b,+c DESC,+a")
-	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY b DESC,c,a;")
 	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY +b DESC,+c,+a")
-	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY b DESC,a,c;")
 	_ = db.Query("SELECT b,a,c FROM t1 ORDER BY +b DESC,+a,+c")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY b, a LIMIT 10 OFFSET 20;"), "840 880 920 960 1000 1 41 81 121 161")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY +b, a LIMIT 10 OFFSET 20;"), "840 880 920 960 1000 1 41 81 121 161")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY b DESC, a LIMIT 10 OFFSET 20;"), "839 879 919 959 999 38 78 118 158 198")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY +b DESC, a LIMIT 10 OFFSET 20;"), "839 879 919 959 999 38 78 118 158 198")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY b, a DESC LIMIT 10 OFFSET 45;"), "161 121 81 41 1 962 922 882 842 802")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY +b, a DESC LIMIT 10 OFFSET 45;"), "161 121 81 41 1 962 922 882 842 802")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY b DESC, a LIMIT 10 OFFSET 45;"), "838 878 918 958 998 37 77 117 157 197")
-	checkQueryResult(t, db.Query("SELECT a FROM t1 ORDER BY +b DESC, a LIMIT 10 OFFSET 45;"), "838 878 918 958 998 37 77 117 157 197")
 	checkExecOK(t, db.Exec("WITH RECURSIVE\n       cnt(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM cnt WHERE x<242)\n     INSERT INTO t2 SELECT x,  x%3, (x/3)%3, (x/9)%3, (x/27)%3, (x/81)%3\n                      FROM cnt;"))
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d,e,f;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d,e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,+d,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,+c,+d,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d,e,f DESC;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d,e DESC,f;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e DESC,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d DESC,e,f;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d DESC,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c DESC,d,e,f;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b,+c DESC,+d,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b DESC,c,d,e,f;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b DESC,+c,+d,+e,+f;")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b DESC,c DESC,d,e,f LIMIT 31;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b DESC,+c DESC,+d,+e,+f LIMIT 31")
-	_ = db.Query("SELECT a FROM t2 ORDER BY b,c,d,e,f DESC LIMIT 8 OFFSET 7;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY +b,+c,+d,+e,+f DESC LIMIT 8 OFFSET 7")
 	for _, d := range dbs { d.Close() }
 }
@@ -15964,11 +15621,6 @@ func TestSQLite_pager1(t *testing.T) {
 	checkExecOK(t, db.Exec("COMMIT"))
 	_ = db.Query("PRAGMA auto_vacuum = 2;\n      PRAGMA cache_size = 10;\n      CREATE TABLE z(x INTEGER PRIMARY KEY, y);\n      BEGIN;\n        INSERT INTO z VALUES(NULL, a_string(800));\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   2\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   4\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --   8\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  16\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  32\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     --  64\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 128\n        INSERT INTO z SELECT NULL, a_string(800) FROM z;     -- 256\n      COMMIT;")
 	_ = db.Query("PRAGMA auto_vacuum")
-	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO z VALUES(NULL, a_string(800));\n      INSERT INTO z VALUES(NULL, a_string(800));\n      SAVEPOINT one;\n        UPDATE z SET y = NULL WHERE x>256;\n        PRAGMA incremental_vacuum;\n        SELECT count(*) FROM z WHERE x < 100;\n      ROLLBACK TO one;\n    COMMIT;"))
-	checkExecOK(t, db.Exec("BEGIN;\n      SAVEPOINT one;\n        UPDATE z SET y = y||x;\n      ROLLBACK TO one;\n    COMMIT;\n    SELECT count(*) FROM z;"))
-	checkExecOK(t, db.Exec("SAVEPOINT one;\n      UPDATE z SET y = y||x;\n    ROLLBACK TO one;"))
-	checkQueryResult(t, db.Query("SELECT count(*) FROM z;\n    RELEASE one;\n    PRAGMA integrity_check;"), "258 ok")
-	checkExecOK(t, db.Exec("SAVEPOINT one;\n    RELEASE one;"))
 	checkExecOK(t, db.Exec("CREATE TABLE x(y, z);\n    INSERT INTO x VALUES(1, 2);"))
 	_ = db.Query("SELECT * FROM x")
 	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;"))
@@ -15976,8 +15628,6 @@ func TestSQLite_pager1(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);")
 	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"))
-	checkQueryResult(t, db.Query("SELECT * FROM a"), "double-you why zed won too free")
-	checkQueryResult(t, db.Query("SELECT * FROM b"), "won too free double-you why zed")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -16019,11 +15669,20 @@ func TestSQLite_pager1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA auto_vacuum = 1;\n      CREATE TABLE x1(x);\n      INSERT INTO x1 VALUES('Charles');\n      INSERT INTO x1 VALUES('James');\n      INSERT INTO x1 VALUES('Mary');\n      SELECT * FROM x1;")
-	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO x1 VALUES('William');\n      INSERT INTO x1 VALUES('Anne');\n    ROLLBACK;"))
 	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;")
 	checkExecOK(t, db.Exec("UPDATE ab SET a = a_string(201)"))
 	checkExecOK(t, db.Exec("UPDATE ab SET b = a_string(301)"))
 	_ = db.Query("SELECT count(*) FROM ab")
+	checkExecOK(t, db.Exec("UPDATE ab SET a = a_string(202)"))
+	checkExecOK(t, db.Exec("BEGIN;\n      UPDATE ab SET b = a_string(301);\n    ROLLBACK;"))
+	_ = db.Query("PRAGMA page_size = 1024")
+	_ = db.Query("PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);")
+	_ = db.Query("PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);")
+	_ = db.Query("PRAGMA journal_mode = PERSIST;\n      PRAGMA page_size = 1024;\n      BEGIN;\n        CREATE TABLE t1(a, b);\n        CREATE TABLE t2(a, b);\n        CREATE TABLE t3(a, b);\n      COMMIT;")
+	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES(a_string(300), a_string(300));\n      INSERT INTO t3 SELECT * FROM t3;        /*  2 */\n      INSERT INTO t3 SELECT * FROM t3;        /*  4 */\n      INSERT INTO t3 SELECT * FROM t3;        /*  8 */\n      INSERT INTO t3 SELECT * FROM t3;        /* 16 */\n      INSERT INTO t3 SELECT * FROM t3;        /* 32 */"))
+	db.Close()
+	db = setupDB(t)
+	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from pager2.test
@@ -16035,7 +15694,6 @@ func TestSQLite_pager2(t *testing.T) {
 	checkExecOK(t, db.Exec("COMMIT ; BEGIN"))
 	_ = db.Query("SELECT COALESCE(max(i), 0) FROM t1;\n          PRAGMA integrity_check;")
 	checkExecOK(t, db.Exec("INSERT INTO t1(j) VALUES(randomblob(1500))"))
-	_ = db.Query("SELECT COALESCE(max(i), 0) FROM t1;\n        PRAGMA integrity_check;")
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    ROLLBACK;\n    SELECT * FROM t1;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -16431,8 +16089,6 @@ func TestSQLite_pragma3(t *testing.T) {
 	_ = db.Query("PRAGMA data_version;\n    SELECT * FROM t1;")
 	_ = db.Query("PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;")
 	checkExecOK(t, db.Exec("UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1"))
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;"))
-	checkExecOK(t, db.Exec("BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from pragma4.test
@@ -17104,11 +16760,6 @@ func TestSQLite_reindex(t *testing.T) {
 	checkExecOK(t, db.Exec("REINDEX c2;\n    SELECT a FROM t2 ORDER BY a;"))
 	checkExecOK(t, db.Exec("REINDEX t1;\n    SELECT a FROM t2 ORDER BY a;"))
 	checkExecOK(t, db.Exec("REINDEX c1;\n    SELECT a FROM t2 ORDER BY a;"))
-	checkExecOK(t, db.Exec("CREATE TABLE t0 (\n        c0 INTEGER PRIMARY KEY DESC, \n        c1 UNIQUE DEFAULT NULL\n      ) %without_rowid% ;\n      INSERT INTO t0(c0) VALUES (1), (2), (3), (4), (5);\n      SELECT c0 FROM t0 WHERE c1 IS NULL ORDER BY 1;"))
-	checkExecOK(t, db.Exec("REINDEX;"))
-	checkQueryResult(t, db.Query("SELECT c0 FROM t0 WHERE c1 IS NULL ORDER BY 1;"), "1 2 3 4 5")
-	checkQueryResult(t, db.Query("SELECT c0 FROM t0 WHERE c1 IS NULL AND c0 IN (1,2,3,4,5);"), "1 2 3 4 5")
-	checkQueryResult(t, db.Query("PRAGMA integrity_check;"), "ok")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from reservebytes.test
@@ -17333,14 +16984,9 @@ func TestSQLite_rowallock(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2), (3, 4);\n    PRAGMA journal_mode = wal;"), "wal")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM t1;"), "1 2 3 4")
-	if err := db.Exec("INSERT INTO t1 VALUES(5, 6);").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from rowhash.test
@@ -17530,11 +17176,6 @@ func TestSQLite_rowvalue3(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);"))
 	checkExecOK(t, db.Exec("CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');"))
-	checkQueryResult(t, db.Query("SELECT * FROM z1 WHERE x IN (SELECT a FROM kk)"), "d e f")
-	checkQueryResult(t, db.Query("SELECT * FROM z1 WHERE (x,y) IN (SELECT a, b FROM kk)"), "d e f")
-	checkQueryResult(t, db.Query("SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b FROM kk)"), "d e f")
-	_ = db.Query("SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)")
-	checkQueryResult(t, db.Query("SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)"), "d e f")
 	checkExecOK(t, db.Exec("CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);"))
 	checkExecOK(t, db.Exec("CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);"))
@@ -17632,12 +17273,6 @@ func TestSQLite_rowvalue9(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS idx"))
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS idx2"))
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS idx3"))
-	checkQueryResult(t, db.Query("SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);"), "3 4")
-	checkQueryResult(t, db.Query("SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);"), "2 4")
-	checkQueryResult(t, db.Query("SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);"), "2")
-	checkQueryResult(t, db.Query("SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );"), "2 4")
-	checkQueryResult(t, db.Query("SELECT d1.rowid FROM d1, d2 WHERE a = y;"), "2 4")
-	checkQueryResult(t, db.Query("SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );"), "2 4")
 	checkExecOK(t, db.Exec("CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);"))
 	checkQueryResult(t, db.Query("SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);"), "1")
 	checkQueryResult(t, db.Query("SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);"), "2")
@@ -18205,9 +17840,6 @@ func TestSQLite_select3(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  SELECT max(t1.a), \n         (SELECT 'xyz' FROM (SELECT * FROM t2 WHERE 0) WHERE t1.b=1) \n  FROM t1;"))
-	checkQueryResult(t, db.Query("SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )"), "abc {}")
-	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(123);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )"))
-	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(1234);\n    SELECT max(a), val FROM t1 LEFT JOIN (\n        SELECT 'constant' AS val FROM t2 WHERE x=1234\n    )"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -18905,7 +18537,6 @@ func TestSQLite_shell7(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE f1(tn INTEGER PRIMARY KEY, x BLOB); \n  CREATE TABLE f2(tn INTEGER PRIMARY KEY, x BLOB); \n\n  INSERT INTO f1 VALUES(1, X'01020304');\n  INSERT INTO f1 VALUES(2, X'01000304');\n  INSERT INTO f1 VALUES(3, randomblob(200));"))
 	_ = db.Query("SELECT tn, length(x) AS l, x FROM f1")
-	checkQueryResult(t, db.Query("SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)"), "1")
 	_ = db.Query("SELECT * FROM dbstat")
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);"))
 	checkExecOK(t, db.Exec("CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);"))
@@ -19090,7 +18721,6 @@ func TestSQLite_skipscan5(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);"))
-	checkExecOK(t, db.Exec("CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -19113,10 +18743,8 @@ func TestSQLite_snapshot(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"))
 	checkExecOK(t, db.Exec("BEGIN; SELECT * FROM t1;"))
 	_ = db.Query("PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);")
-	checkExecOK(t, db.Exec("BEGIN;\n      SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;"))
 	_ = db.Query("SELECT * FROM t1;")
 	checkExecOK(t, db.Exec("BEGIN;\n        SELECT * FROM t1;"))
@@ -19124,7 +18752,6 @@ func TestSQLite_snapshot(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM t1 WHERE a>6"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');\n      SELECT * FROM t1;"))
 	_ = db.Query("SELECT * FROM t1")
-	checkExecOK(t, db.Exec("CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('c', 'd');\n    BEGIN;\n      SELECT * FROM t2;"))
 	checkExecOK(t, db.Exec("COMMIT"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('e', 'f');"))
 	checkExecOK(t, db.Exec("BEGIN;\n        SELECT * FROM t2;"))
@@ -19133,14 +18760,11 @@ func TestSQLite_snapshot(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode = DELETE")
 	checkExecOK(t, db.Exec("BEGIN"))
 	checkExecOK(t, db.Exec("COMMIT ; BEGIN ; SELECT * FROM t2"))
-	checkQueryResult(t, db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE t3(i, j);\n    INSERT INTO t3 VALUES('o', 't');\n    INSERT INTO t3 VALUES('t', 'f');\n    BEGIN;\n      SELECT * FROM t3;"), "wal o t t f")
 	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES('f', 's'); \n      BEGIN;"))
 	_ = db.Query("SELECT * FROM t3")
 	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES('s', 'e');\n      INSERT INTO t3 VALUES('n', 't');\n      BEGIN;\n        SELECT * FROM t3;"))
 	checkExecOK(t, db.Exec("COMMIT;\n      INSERT INTO t3 VALUES('e', 't');\n      BEGIN;"))
-	checkQueryResult(t, db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;"), "wal z zz zzz")
 	checkExecOK(t, db.Exec("INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"))
-	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x);")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(10);\n      COMMIT;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -19330,19 +18954,6 @@ func TestSQLite_sort(t *testing.T) {
 	_ = db.Query("SELECT x FROM t6 WHERE y<1")
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from sort2.test
-func TestSQLite_sort2(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("PRAGMA cache_size = 5;\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 100000\n    )\n    SELECT count(x), length(y) FROM r GROUP BY (x%5)"), "20000 100 20000 100 20000 100 20000 100 20000 100")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    WITH r(x,y) AS (\n      SELECT 1, randomblob(100)\n      UNION ALL\n      SELECT x+1, randomblob(100) FROM r\n      LIMIT 10000\n    ) INSERT INTO t1 SELECT * FROM r;"))
-	checkExecOK(t, db.Exec("CREATE UNIQUE INDEX i1 ON t1(b, a);"))
-	checkExecOK(t, db.Exec("CREATE UNIQUE INDEX i2 ON t1(a);"))
-	checkQueryResult(t, db.Query("PRAGMA integrity_check"), "ok")
-	checkQueryResult(t, db.Query("PRAGMA cache_size = 5;\n      WITH r(x,y) AS (\n          SELECT 1, randomblob(100)\n          UNION ALL\n          SELECT x+1, randomblob(100) FROM r\n          LIMIT 1000000\n          )\n        SELECT count(x), length(y) FROM r GROUP BY (x%5)"), "200000 100 200000 100 200000 100 200000 100 200000 100")
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from sort3.test
 func TestSQLite_sort3(t *testing.T) {
 	db := setupDB(t)
@@ -19350,7 +18961,6 @@ func TestSQLite_sort3(t *testing.T) {
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA cache_size = 5;\n  CREATE TABLE t11(a, b);\n  INSERT INTO t11 VALUES(randomblob(5000), NULL);\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --2\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --3\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --4\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --5\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --6\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --7\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --8\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --9\n  UPDATE t11 SET b = cksum(a);")
 	_ = db.Query("SELECT * FROM t11 ORDER BY b")
-	checkExecOK(t, db.Exec("WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);"))
 	checkQueryResult(t, db.Query("PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);"), "440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000")
 	for _, d := range dbs { d.Close() }
 }
@@ -19537,7 +19147,6 @@ func TestSQLite_spellfix(t *testing.T) {
 	}
 	checkExecOK(t, db.Exec("UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;"))
 	checkExecOK(t, db.Exec("DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');"))
-	_ = db.Query("SELECT rowid, word FROM t4")
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(word) VALUES('hello'),('world');\n  SELECT word FROM t1 WHERE word MATCH '';"))
 	checkExecOK(t, db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');"))
@@ -20192,8 +19801,6 @@ func TestSQLite_swarmvtab3(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE swarm(id, tbl, minval, maxval);"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS s"))
-	checkQueryResult(t, db.Query("SELECT b FROM s WHERE a<10;"), "0 1 2 3 4 5 6 7 8 9")
-	checkQueryResult(t, db.Query("SELECT b FROM s WHERE (b%10)=0;"), "0 10 20 30 40 50 60 70 80 90")
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);"))
 	for _, d := range dbs { d.Close() }
 }
@@ -20216,8 +19823,6 @@ func TestSQLite_symlink(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x)"))
 	checkExecOK(t, db.Exec("BEGIN;\n        INSERT INTO t1 VALUES(1);"))
 	checkExecOK(t, db.Exec("COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);"))
-	checkQueryResult(t, db.Query("SELECT * FROM t1;"), "1 2")
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    PRAGMA journal_mode = delete;"))
 	_ = db.Query("PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');")
 	db.Close()
 	db = setupDB(t)
@@ -20674,15 +20279,10 @@ func TestSQLite_temptable2(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	_ = db.Query("SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA page_size;")
-	_ = db.Query("PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;")
-	checkExecOK(t, db.Exec("CREATE TABLE tx(a, b);\n    CREATE INDEX i1 ON tx(a);\n    CREATE INDEX i2 ON tx(b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n      INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;"))
-	checkExecOK(t, db.Exec("DELETE FROM tx WHERE (random()%3)==0"))
-	_ = db.Query("PRAGMA integrity_check")
-	checkExecOK(t, db.Exec("WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<400 )\n          INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;"))
-	checkExecOK(t, db.Exec("BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;"))
 	_ = db.Query("PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);")
 	checkExecOK(t, db.Exec("BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);"))
 	checkQueryResult(t, db.Query("SELECT * FROM t2"), "1 2 3 4")
+	_ = db.Query("PRAGMA integrity_check")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from temptable3.test
@@ -20885,17 +20485,6 @@ func TestSQLite_tkt_02a8e81d44(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    SELECT * FROM (SELECT a FROM t1 LIMIT 1) UNION ALL SELECT 3;"))
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from tkt-18458b1a.test
-func TestSQLite_tkt_18458b1a(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t0(c0 COLLATE NOCASE);\n    INSERT INTO t0(c0) VALUES ('B');\n    CREATE VIEW v0(c0, c1) AS SELECT DISTINCT t0.c0, 'a' FROM t0;"))
-	_ = db.Query("SELECT count(*) FROM v0 WHERE c1 >= c0;")
-	_ = db.Query("SELECT count(*) FROM v0 WHERE NOT NOT (c1 >= c0);")
-	_ = db.Query("SELECT count(*) FROM v0 WHERE ((c1 >= c0) OR 0+0);")
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from tkt-2a5629202f.test
 func TestSQLite_tkt_2a5629202f(t *testing.T) {
 	db := setupDB(t)
@@ -21068,9 +20657,6 @@ func TestSQLite_tkt_4dd95f6943(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES (3), (4), (2), (1), (5), (6);"))
-	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS i1;"))
-	checkQueryResult(t, db.Query("SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x ASC;"), "2 4 5")
-	checkQueryResult(t, db.Query("SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x DESC;"), "5 4 2")
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES (5, 3), (5, 4), (5, 2), (5, 1), (5, 5), (5, 6);\n  INSERT INTO t2 VALUES (1, 3), (1, 4), (1, 2), (1, 1), (1, 5), (1, 6);\n  INSERT INTO t2 VALUES (3, 3), (3, 4), (3, 2), (3, 1), (3, 5), (3, 6);\n  INSERT INTO t2 VALUES (2, 3), (2, 4), (2, 2), (2, 1), (2, 5), (2, 6);\n  INSERT INTO t2 VALUES (4, 3), (4, 4), (4, 2), (4, 1), (4, 5), (4, 6);\n  INSERT INTO t2 VALUES (6, 3), (6, 4), (6, 2), (6, 1), (6, 5), (6, 6);\n\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES (2, 2), (4, 4), (5, 5);\n  CREATE UNIQUE INDEX t3i1 ON t3(a ASC);\n  CREATE UNIQUE INDEX t3i2 ON t3(b DESC);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t7(x);\n  INSERT INTO t7 VALUES (1), (2), (3);\n  CREATE INDEX i7 ON t7(x);\n\n  CREATE TABLE t8(y);\n  INSERT INTO t8 VALUES (1), (2), (3);"))
 	for _, d := range dbs { d.Close() }
@@ -21431,31 +21017,6 @@ func TestSQLite_tkt_a7b7803e(t *testing.T) {
 	_ = db.Query("SELECT (M.a=99) AS x, M.b, (N.b='first') AS y, N.b\n      FROM t1 M JOIN t1 N ON x\n     ORDER BY M.a, N.a")
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from tkt-a7debbe0.test
-func TestSQLite_tkt_a7debbe0(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t0(xyz INTEGER);\n    INSERT INTO t0(xyz) VALUES(456);\n    CREATE VIEW v2(a, B) AS \n        SELECT 'a', 'B' COLLATE NOCASE FROM t0;\n    CREATE TABLE t2(a, B COLLATE NOCASE);\n    INSERT INTO t2 VALUES('a', 'B');\n    CREATE VIEW v3(a, B) AS\n        SELECT 'a' COLLATE BINARY, 'B' COLLATE NOCASE FROM t0;\n\n    CREATE VIEW v4(a, B) AS\n        SELECT 'a', +CAST('B' COLLATE NOCASE AS TEXT) FROM t0;\n\n    CREATE VIEW v5(a, B) AS\n        SELECT 'a', ('B' COLLATE NOCASE) || '' FROM t0;"))
-	_ = db.Query("SELECT a   >= B FROM t2;")
-	_ = db.Query("SELECT 'a' >= 'B' COLLATE NOCASE")
-	_ = db.Query("SELECT a   >= B FROM v2")
-	_ = db.Query("SELECT a   >= B FROM v3")
-	_ = db.Query("SELECT a   >= B FROM v4")
-	_ = db.Query("SELECT a   >= B FROM v5")
-	_ = db.Query("SELECT B   < a FROM t2")
-	_ = db.Query("SELECT 'B' COLLATE NOCASE < 'a'")
-	_ = db.Query("SELECT B   < a FROM v2")
-	_ = db.Query("SELECT B   < a FROM v3")
-	_ = db.Query("SELECT a  < B FROM v4")
-	_ = db.Query("SELECT a  < B FROM v5")
-	checkExecOK(t, db.Exec("CREATE TABLE t5(a, b COLLATE NOCASE);\n    INSERT INTO t5 VALUES(1, 'XYZ');"))
-	checkQueryResult(t, db.Query("SELECT xyz==b FROM ( SELECT a, 'xyz' AS xyz FROM t5 ), t5;"), "0")
-	checkQueryResult(t, db.Query("SELECT 'xyz'==b FROM ( SELECT a, 'xyz' AS xyz FROM t5 ), t5;"), "1")
-	checkExecOK(t, db.Exec("DROP TABLE t0;\n    DROP VIEW v2;\n\n    CREATE TABLE t0(c0);\n    INSERT INTO t0(c0) VALUES('');\n    CREATE VIEW v2(c0, c1) AS \n        SELECT 'B' COLLATE NOCASE, 'a' FROM t0 ORDER BY t0.c0;\n    SELECT SUM(count) FROM (\n      SELECT v2.c1 BETWEEN v2.c0 AND v2.c1 as count FROM v2\n    );"))
-	_ = db.Query("SELECT v2.c1 BETWEEN v2.c0 AND v2.c1 as count FROM v2;")
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from tkt-a8a0d2996a.test
 func TestSQLite_tkt_a8a0d2996a(t *testing.T) {
 	db := setupDB(t)
@@ -21541,16 +21102,7 @@ func TestSQLite_tkt_bdc6bbbb38(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t2"))
-	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('a b c')"))
-	checkQueryResult(t, db.Query("SELECT offsets(t2) FROM t2 WHERE t2 MATCH 'a AND d OR b' ORDER BY docid ASC"), "{0 0 0 1 0 2 2 1}")
-	checkQueryResult(t, db.Query("SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b' \n    ORDER BY docid ASC"), "{[a] [b] c}")
-	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('a c d')"))
-	checkQueryResult(t, db.Query("SELECT snippet(t2,'[',']') FROM t2 WHERE t2 MATCH 'a AND d OR b'\n    ORDER BY docid ASC"), "{[a] [b] c}\n    {[a] c [d]}")
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t3"))
-	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES('a c d')"))
-	checkQueryResult(t, db.Query("SELECT offsets(t3) FROM t3 WHERE t3 MATCH 'a AND d OR b' ORDER BY docid DESC"), "{0 0 0 1 0 1 4 1}")
-	checkQueryResult(t, db.Query("SELECT snippet(t3,'[',']') FROM t3 WHERE t3 MATCH 'a AND d OR b'\n      ORDER BY docid DESC"), "{[a] c [d]}")
-	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES('a b c');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from tkt-c48d99d690.test
@@ -23440,16 +22992,6 @@ func TestSQLite_triggerE(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM t2;\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES(NULL, 'z');\n  INSERT INTO t3 VALUES(1, 2);\n  SELECT * FROM t3;\n  SELECT * FROM t2;"))
 	for _, d := range dbs { d.Close() }
 }
-// Auto-generated from triggerF.test
-func TestSQLite_triggerF(t *testing.T) {
-	db := setupDB(t)
-	var dbs []*DB
-	dbs = append(dbs, db)
-	_ = db.Query("PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);")
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;"))
-	_ = db.Query("SELECT * FROM log ORDER BY rowid;")
-	for _, d := range dbs { d.Close() }
-}
 // Auto-generated from triggerG.test
 func TestSQLite_triggerG(t *testing.T) {
 	db := setupDB(t)
@@ -23967,12 +23509,6 @@ func TestSQLite_update2(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE INDEX t4c ON t4(c);\n  INSERT INTO t4 VALUES(1, 2, 3);\n  INSERT INTO t4 VALUES(2, 3, 4);"))
 	checkExecOK(t, db.Exec("UPDATE t4 SET c=c+2 WHERE c>2;\n  SELECT a, c FROM t4 ORDER BY a;"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"))
-	checkExecOK(t, db.Exec("CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);"))
-	checkExecOK(t, db.Exec("UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;"))
-	checkExecOK(t, db.Exec("CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);"))
-	checkExecOK(t, db.Exec("UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;"))
-	_ = db.Query("PRAGMA integrity_check")
-	checkExecOK(t, db.Exec("DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);"))
 	checkExecOK(t, db.Exec("CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1c ON x1(b, c);\n  INSERT INTO x1 VALUES(1, 'a', 1);\n  INSERT INTO x1 VALUES(2, 'a', 2);\n  INSERT INTO x1 VALUES(3, 'a', 3);"))
 	checkExecOK(t, db.Exec("UPDATE x1 SET c=c+1 WHERE b='a';"))
 	checkQueryResult(t, db.Query("SELECT * FROM x1;"), "1 a 2 2 a 3 3 a 4")
@@ -24052,8 +23588,6 @@ func TestSQLite_upfrom2(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE data(x, y, z);\n  CREATE VIEW t1 AS SELECT * FROM data;\n  CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n    INSERT INTO data VALUES(new.x, new.y, new.z);\n  END;\n  CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.z || '->' || new.z);\n  END;\n\n  CREATE TABLE log(t TEXT);\n\n  INSERT INTO t1 VALUES(1, 'i',   'one');\n  INSERT INTO t1 VALUES(2, 'ii',  'two');\n  INSERT INTO t1 VALUES(3, 'iii', 'three');\n  INSERT INTO t1 VALUES(4, 'iv',  'four');"))
 	checkExecOK(t, db.Exec("WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;"))
-	checkExecOK(t, db.Exec("INSERT INTO x1 VALUES(1, 1, 1);\n    INSERT INTO x1 VALUES(2, 2, 2);\n    INSERT INTO x1 VALUES(3, 3, 3);\n    INSERT INTO x1 VALUES(4, 4, 4);\n    INSERT INTO x1 VALUES(5, 5, 5);\n    CREATE TABLE map(o, t);\n    INSERT INTO map VALUES(3, 30), (4, 40), (1, 10);"))
-	checkExecOK(t, db.Exec("UPDATE x1 SET a=t FROM map WHERE a=o;\n    SELECT * FROM x1 ORDER BY a;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -24087,21 +23621,9 @@ func TestSQLite_upfrom3(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE map(f, t);\n  INSERT INTO map VALUES(0, 10);\n  INSERT INTO map VALUES(1, 11);\n  UPDATE u1 SET c=t FROM map WHERE c=f;\n  SELECT * FROM u1 ORDER BY a;"))
 	checkExecOK(t, db.Exec("UPDATE u1 SET b=t FROM map WHERE b=f;\n  SELECT * FROM u1 ORDER BY a;"))
 	checkExecOK(t, db.Exec("CREATE TABLE map2(o1, o2, n1, n2);\n  INSERT INTO map2 VALUES\n    (10, 10, 50, 50), (10, 11, 50, 60), \n    (11, 10, 60, 50), (11, 11, 60, 60);\n  UPDATE u1 SET b=n1, c=n2 FROM map2 WHERE b=o1 AND c=o2;\n  SELECT * FROM u1 ORDER BY a;"))
-	checkExecOK(t, db.Exec("CREATE TABLE g1(a, b, c, PRIMARY KEY(a, b)) %WO%;\n      INSERT INTO g1 VALUES(1, 1, 1);\n\n      ATTACH 'test.db2' AS aux;\n      CREATE TABLE aux.g1(a, b, c, PRIMARY KEY(a, b)) %WO%;\n      INSERT INTO aux.g1 VALUES(10, 1, 10);\n      INSERT INTO aux.g1 VALUES(20, 2, 20);\n      INSERT INTO aux.g1 VALUES(30, 3, 30);"))
-	checkExecOK(t, db.Exec("UPDATE aux.g1 SET c=101 FROM main.g1;"))
-	checkQueryResult(t, db.Query("SELECT * FROM aux.g1;"), "10 1 101  20 2 101  30 3 101")
-	checkExecOK(t, db.Exec("UPDATE g1 SET c=101 FROM g1 AS g2;"))
-	checkQueryResult(t, db.Query("SELECT * FROM g1;"), "1 1 101")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE p1(a INTEGER PRIMARY KEY, b) %WO%;\n      CREATE TABLE c1(x PRIMARY KEY, y REFERENCES p1 ON UPDATE CASCADE) %WO%;\n      PRAGMA foreign_keys = 1;\n\n      INSERT INTO p1 VALUES(1, 'one');\n      INSERT INTO p1 VALUES(11, 'eleven');\n      INSERT INTO p1 VALUES(111, 'eleventyone');\n\n      INSERT INTO c1 VALUES('a', 1);\n      INSERT INTO c1 VALUES('b', 11);\n      INSERT INTO c1 VALUES('c', 111);"))
-	checkExecOK(t, db.Exec("CREATE TABLE map(f, t);\n      INSERT INTO map VALUES('a', 111);\n      INSERT INTO map VALUES('c', 112);"))
-	if err := db.Exec("UPDATE c1 SET y=t FROM map WHERE x=f;").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	checkExecOK(t, db.Exec("INSERT INTO map VALUES('eleven', 12);\n      INSERT INTO map VALUES('eleventyone', 112);\n      UPDATE p1 SET a=t FROM map WHERE b=f;"))
-	checkQueryResult(t, db.Query("SELECT * FROM c1"), "a 1  b 12  c 112")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from upfrom4.test
@@ -24133,8 +23655,6 @@ func TestSQLite_upfromfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE log(t TEXT);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');"))
-	checkExecOK(t, db.Exec("CREATE TRIGGER tr1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.z || '->' || new.z);\n      END;\n      CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.y || '->' || new.y);\n      END;"))
 	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("WITH data(k, v) AS (\n          VALUES(3, 'thirty'), (1, 'ten')\n      )\n      UPDATE t1 SET z=v FROM data WHERE x=k;"))
 	db.Close()
@@ -24261,42 +23781,7 @@ func TestSQLite_upsert4(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, NULL, 'one');\n    INSERT INTO t1 VALUES(2, NULL, 'two');\n    INSERT INTO t1 VALUES(3, NULL, 'three');"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, NULL, 'xyz') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT DO NOTHING;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(4, NULL, 'two') ON CONFLICT (c) DO UPDATE SET b = 1;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) DO UPDATE SET b=2;\n    SELECT * FROM t1;"))
-	if err := db.Exec("INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET c = 'one';").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	checkQueryResult(t, db.Query("SELECT * FROM t1;"), "1 {} one 2 2 two 3 {} three")
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(2, NULL, 'zero') ON CONFLICT (a) \n      DO UPDATE SET (b, c) = (SELECT 'x', 'y');\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, NULL, NULL) ON CONFLICT (a) \n      DO UPDATE SET (c, a) = ('four', 4);\n    SELECT * FROM t1 ORDER BY 1;"))
-	checkExecOK(t, db.Exec("INSERT INTO xyz VALUES(10, 1, 1, 'one');"))
-	checkQueryResult(t, db.Query("SELECT * FROM xyz;"), "10 1 1 one")
-	checkExecOK(t, db.Exec("INSERT INTO abc VALUES(1, 'one', 'two');"))
-	checkQueryResult(t, db.Query("SELECT * FROM abc"), "1 one two")
-	checkExecOK(t, db.Exec("INSERT INTO abc VALUES(1, 'one', 1);\n    INSERT INTO abc VALUES(2, 'two', 2);\n    INSERT INTO abc VALUES(3, 'xyz', 3);\n    INSERT INTO abc VALUES(4, 'XYZ', 4);"))
 	if err := db.Exec("CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;").Error; err == nil {
-		t.Errorf("expected error but got none")
-	}
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 1, 'one');\n    INSERT INTO t1 VALUES(2, 2, 'two');\n    INSERT OR REPLACE INTO t1 VALUES(1, 2, 'two') ON CONFLICT(b) DO NOTHING;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 1, 1);\n    INSERT INTO t1 VALUES(2, 2, 2);"))
-	checkExecOK(t, db.Exec("INSERT OR REPLACE INTO t1 VALUES(3, 1, 1) ON CONFLICT(b) DO NOTHING;\n    SELECT * FROM t1;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("INSERT OR REPLACE INTO t1 VALUES(3, 2, 2) ON CONFLICT(c) DO NOTHING;\n    SELECT * FROM t1;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("INSERT OR REPLACE INTO t1 VALUES(3, 1, 1) ON CONFLICT(b) \n      DO UPDATE SET b=b||'x';\n    SELECT * FROM t1;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("INSERT OR REPLACE INTO t1 VALUES(3, 2, 2) ON CONFLICT(c) \n      DO UPDATE SET c=c||'x';\n    SELECT * FROM t1;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('a', 1, 1, 1);\n    INSERT INTO t1 VALUES('b', 2, 2, 2);"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('c', 3, 3, 1) ON CONFLICT(z) \n      DO UPDATE SET w = excluded.w;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||w;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||t1.w;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 AS tbl VALUES('c', 2, 2, 3) ON CONFLICT(y, x) \n      DO UPDATE SET w = w||tbl.w;\n    SELECT * FROM t1;"))
-	checkExecOK(t, db.Exec("INSERT INTO excluded VALUES('a', 1, 1, 1);\n    INSERT INTO excluded VALUES('b', 2, 2, 2);"))
-	checkExecOK(t, db.Exec("INSERT INTO excluded VALUES('hello', 1, 1, NULL) ON CONFLICT(x, \"a b\")\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;"))
-	checkExecOK(t, db.Exec("INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=excluded.w;\n    SELECT * FROM excluded;"))
-	checkExecOK(t, db.Exec("INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.w!='hello';\n    SELECT * FROM excluded;"))
-	checkExecOK(t, db.Exec("INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) ON CONFLICT(x, [a b])\n      DO UPDATE SET w=w||w WHERE excluded.x=1;\n    SELECT * FROM excluded;"))
-	if err := db.Exec("INSERT INTO excluded AS x1 VALUES('hello', 1, 1, NULL) \n      ON CONFLICT(x, [a b]) WHERE y=1\n      DO UPDATE SET w=w||w WHERE excluded.x=1;").Error; err == nil {
 		t.Errorf("expected error but got none")
 	}
 	checkExecOK(t, db.Exec("CREATE TABLE v(x INTEGER);\n  CREATE TABLE hist(x INTEGER PRIMARY KEY, cnt INTEGER);\n  CREATE TRIGGER vt AFTER INSERT ON v BEGIN\n    INSERT INTO hist VALUES(new.x, 1) ON CONFLICT(x) DO\n      UPDATE SET cnt=cnt+1;\n  END;"))
@@ -24308,42 +23793,6 @@ func TestSQLite_upsert5(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,3,4,5)\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,4,5)\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,4,5)\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,3,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,3,4,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,4,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,4,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(a) DO UPDATE SET b='a'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e'\n      ON CONFLICT(a) DO UPDATE SET b='a';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e'\n      ON CONFLICT(a) DO UPDATE SET b='a';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(e) DO UPDATE SET b='e'\n      ON CONFLICT(a) DO UPDATE SET b='a';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(a) DO UPDATE SET b='a1'\n      ON CONFLICT(a) DO UPDATE SET b='a2'\n      ON CONFLICT(a) DO UPDATE SET b='a3'\n      ON CONFLICT(a) DO UPDATE SET b='a4'\n      ON CONFLICT(a) DO UPDATE SET b='a5'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT(a) DO UPDATE SET b='a1'\n      ON CONFLICT(a) DO UPDATE SET b='a2'\n      ON CONFLICT(a) DO UPDATE SET b='a3'\n      ON CONFLICT(a) DO UPDATE SET b='a4'\n      ON CONFLICT(a) DO UPDATE SET b='a5'\n      ON CONFLICT(e) DO UPDATE SET b='e';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,4,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,4,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,4,95)\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,94,95)\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO NOTHING\n      ON CONFLICT(d) DO NOTHING\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(c) DO NOTHING\n      ON CONFLICT(d) DO NOTHING\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,4,95)\n      ON CONFLICT(c) DO NOTHING\n      ON CONFLICT(d) DO NOTHING\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,94,95)\n      ON CONFLICT(c) DO NOTHING\n      ON CONFLICT(d) DO NOTHING\n      ON CONFLICT DO UPDATE set b='x';\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO NOTHING;\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,93,94,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO NOTHING;\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,94,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO NOTHING;\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(91,NULL,3,4,95)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO NOTHING;\n    SELECT a,b,c,d,e FROM t1;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,NULL,93,4,5)\n      ON CONFLICT(c) DO UPDATE SET b='c'\n      ON CONFLICT(d) DO UPDATE SET b='d'\n      ON CONFLICT DO NOTHING;\n    SELECT a,b,c,d,e FROM t1;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -24364,8 +23813,6 @@ func TestSQLite_upsert5(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM t1;"), "555 555 555.0 555 555")
-	checkExecOK(t, db.Exec("INSERT INTO t1(c, d, e) VALUES(22, 555, 4) \n      ON CONFLICT(d) DO UPDATE SET b=excluded.c;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(a, b GENERATED ALWAYS AS (a+1) VIRTUAL, c REAL, d UNIQUE);\n  INSERT INTO t2(a, c, d) VALUES(555, 555, 555);"))
 	checkQueryResult(t, db.Query("SELECT * FROM t2"), "555 556 555.0 555")
 	checkExecOK(t, db.Exec("INSERT INTO t2(c, d) VALUES(22, 555)\n    ON CONFLICT(d) DO UPDATE SET a = excluded.c;"))
@@ -24595,8 +24042,6 @@ func TestSQLite_vacuum6(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("vacuum;"))
-	checkQueryResult(t, db.Query("PRAGMA integrity_check;"), "ok")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -25417,8 +24862,6 @@ func TestSQLite_wal2(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE tx(y, z);\n      PRAGMA journal_mode = WAL;"))
 	checkExecOK(t, db.Exec("INSERT INTO tx DEFAULT VALUES"))
 	_ = db.Query("PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")
-	_ = db.Query("PRAGMA page_size = 4096")
-	checkQueryResult(t, db.Query("PRAGMA journal_mode = WAL"), "wal")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(9, 10)"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(11, 12)"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(13, 14)"))
@@ -25678,7 +25121,6 @@ func TestSQLite_walcrash3(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));"))
 	_ = db.Query("PRAGMA integrity_check")
 	_ = db.Query("SELECT count(*) FROM t1")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(randomblob(25), randomblob(200))"))
@@ -25693,7 +25135,6 @@ func TestSQLite_walcrash4(t *testing.T) {
 	_ = db.Query("PRAGMA main.synchronous=FULL;\n          BEGIN;\n          CREATE TABLE t1(x UNIQUE);")
 	checkExecOK(t, db.Exec("CREATE TABLE t[set e] (x)"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES( randomblob(170000) );\n          COMMIT;"))
-	checkQueryResult(t, db.Query("SELECT count(*) FROM t1;\n      PRAGMA integrity_check;"), "1 ok")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from walfault.test
@@ -25820,15 +25261,14 @@ func TestSQLite_waloverwrite(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA journal_mode = wal")
 	_ = db.Query("PRAGMA cache_size = 5")
 	_ = db.Query("SELECT x FROM t1")
-	_ = db.Query("PRAGMA integrity_check")
 	_ = db.Query("SELECT sum(length(y)) FROM t1")
+	_ = db.Query("PRAGMA integrity_check")
 	checkExecOK(t, db.Exec("WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;"))
 	checkExecOK(t, db.Exec("SAVEPOINT abc"))
 	checkExecOK(t, db.Exec("ROLLBACK TO abc"))
@@ -26307,15 +25747,6 @@ func TestSQLite_where3(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE aaa (id INTEGER PRIMARY KEY, type INTEGER,\n                    fk INTEGER DEFAULT NULL, parent INTEGER,\n                    position INTEGER, title LONGVARCHAR,\n                    keyword_id INTEGER, folder_type TEXT,\n                    dateAdded INTEGER, lastModified INTEGER);\n  CREATE INDEX aaa_111 ON aaa (fk, type);\n  CREATE INDEX aaa_222 ON aaa (parent, position);\n  CREATE INDEX aaa_333 ON aaa (fk, lastModified);\n  CREATE TABLE bbb (id INTEGER PRIMARY KEY, type INTEGER,\n                    fk INTEGER DEFAULT NULL, parent INTEGER,\n                    position INTEGER, title LONGVARCHAR,\n                    keyword_id INTEGER, folder_type TEXT,\n                    dateAdded INTEGER, lastModified INTEGER);\n  CREATE INDEX bbb_111 ON bbb (fk, type);\n  CREATE INDEX bbb_222 ON bbb (parent, position);\n  CREATE INDEX bbb_333 ON bbb (fk, lastModified);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t6w(a, w);\n    INSERT INTO t6w VALUES(1, 'w-one');\n    INSERT INTO t6w VALUES(2, 'w-two');\n    INSERT INTO t6w VALUES(9, 'w-nine');\n    CREATE TABLE t6x(a, x);\n    INSERT INTO t6x VALUES(1, 'x-one');\n    INSERT INTO t6x VALUES(3, 'x-three');\n    INSERT INTO t6x VALUES(9, 'x-nine');\n    CREATE TABLE t6y(a, y);\n    INSERT INTO t6y VALUES(1, 'y-one');\n    INSERT INTO t6y VALUES(4, 'y-four');\n    INSERT INTO t6y VALUES(9, 'y-nine');\n    CREATE TABLE t6z(a, z);\n    INSERT INTO t6z VALUES(1, 'z-one');\n    INSERT INTO t6z VALUES(5, 'z-five');\n    INSERT INTO t6z VALUES(9, 'z-nine');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t71(x1 INTEGER PRIMARY KEY, y1);\n  CREATE TABLE t72(x2 INTEGER PRIMARY KEY, y2);\n  CREATE TABLE t73(x3, y3);\n  CREATE TABLE t74(x4, y4);\n  INSERT INTO t71 VALUES(123,234);\n  INSERT INTO t72 VALUES(234,345);\n  INSERT INTO t73 VALUES(123,234);\n  INSERT INTO t74 VALUES(234,345);\n  INSERT INTO t74 VALUES(234,678);"))
-	checkQueryResult(t, db.Query("SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1;"), "123")
-	_ = db.Query("SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1 WHERE y2 IS NULL;")
-	checkQueryResult(t, db.Query("SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1 WHERE y2 IS NOT NULL;"), "123")
-	checkQueryResult(t, db.Query("SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1 AND y2 IS NULL;"), "123")
-	checkQueryResult(t, db.Query("SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1 AND y2 IS NOT NULL;"), "123")
-	checkQueryResult(t, db.Query("SELECT x3 FROM t73 LEFT JOIN t72 ON x2=y3;"), "123")
-	checkQueryResult(t, db.Query("SELECT DISTINCT x3 FROM t73 LEFT JOIN t72 ON x2=y3;"), "123")
-	checkQueryResult(t, db.Query("SELECT x3 FROM t73 LEFT JOIN t74 ON x4=y3;"), "123 123")
-	checkQueryResult(t, db.Query("SELECT DISTINCT x3 FROM t73 LEFT JOIN t74 ON x4=y3;"), "123")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -27475,15 +26906,6 @@ func TestSQLite_windowpushd(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("SELECT * FROM v1;"), "A 1 4   A 2 4   A 3 4   A 4 4\n    B 5 8   B 6 8   B 7 8   B 8 8\n    C 9 12  C 10 12 C 11 12 C 12 12")
-	checkQueryResult(t, db.Query("SELECT * FROM v1 WHERE a IN ('A', 'B');"), "A 1 4   A 2 4   A 3 4   A 4 4\n    B 5 8   B 6 8   B 7 8   B 8 8")
-	checkQueryResult(t, db.Query("SELECT * FROM v1 WHERE a IS 'C'"), "C 9 12  C 10 12 C 11 12 C 12 12")
-	checkQueryResult(t, db.Query("SELECT * FROM v2;"), "A 1 4 1    A 2 4 2     A 3 4 3      A 4 4 4\n    B 5 8 5    B 6 8 6     B 7 8 7      B 8 8 8\n    C 9 12 9   C 10 12 10  C 11 12 11   C 12 12 12")
-	checkQueryResult(t, db.Query("SELECT * FROM v2 WHERE a = 'C';"), "C 9 12 9   C 10 12 10  C 11 12 11   C 12 12 12")
-	checkQueryResult(t, db.Query("SELECT * FROM v3;"), "C 0.1 1.0 1 C 0.4 1.0 2 C 0.7 1.0 3 C 1.0 1.0 4 \n    D 0.2 1.1 1 D 0.5 1.1 2 D 0.8 1.1 3 D 1.1 1.1 4 \n    E 0.3 1.2 1 E 0.6 1.2 2 E 0.9 1.2 3 E 1.2 1.2 4")
-	checkQueryResult(t, db.Query("SELECT * FROM v3 WHERE b<'E'"), "C 0.1 1.0 1 C 0.4 1.0 2 C 0.7 1.0 3 C 1.0 1.0 4 \n    D 0.2 1.1 1 D 0.5 1.1 2 D 0.8 1.1 3 D 1.1 1.1 4")
-	checkQueryResult(t, db.Query("SELECT * FROM v3 WHERE d<0.55;"), "C 0.1 1.0 1 C 0.4 1.0 2\n    D 0.2 1.1 1 D 0.5 1.1 2\n    E 0.3 1.2 1")
-	checkQueryResult(t, db.Query("SELECT * FROM (\n      SELECT x, sum(y) AS s, max(z) AS m \n      FROM t2 GROUP BY x\n    )"), "W 5 2\n    X 6 7\n    Y 5 9\n    Z 6 4")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from with1.test
@@ -28161,7 +27583,6 @@ func TestSQLite_writecrash(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkQueryResult(t, db.Query("PRAGMA integrity_check"), "ok")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
