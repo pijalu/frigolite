@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');"
         }
       ]
     },
@@ -18,7 +17,7 @@
         {
           "type": "query",
           "sql": "SELECT xi, typeof(xi) FROM t1 ORDER BY rowid;",
-          "expect": "{1 integer 2 integer 3 integer}"
+          "expect": "1 integer 2 integer 3 integer"
         }
       ]
     },
@@ -28,7 +27,7 @@
         {
           "type": "query",
           "sql": "SELECT xr, typeof(xr) FROM t1 ORDER BY rowid;",
-          "expect": "{1.0 real 2.0 real 3.0 real}"
+          "expect": "1.0 real 2.0 real 3.0 real"
         }
       ]
     },
@@ -38,7 +37,7 @@
         {
           "type": "query",
           "sql": "SELECT xb, typeof(xb) FROM t1 ORDER BY rowid;",
-          "expect": "{1 integer 2 text 03 text}"
+          "expect": "1 integer 2 text 03 text"
         }
       ]
     },
@@ -48,7 +47,17 @@
         {
           "type": "query",
           "sql": "SELECT xn, typeof(xn) FROM t1 ORDER BY rowid;",
-          "expect": "{1 integer 2 integer 3 integer}"
+          "expect": "1 integer 2 integer 3 integer"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT xt, typeof(xt) FROM t1 ORDER BY rowid;",
+          "expect": "1 text 2 text 03 text"
         }
       ]
     },
@@ -58,7 +67,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid, xi==xt, xi==xb, xi==+xt FROM t1 ORDER BY rowid;",
-          "expect": "{1 1 1 1 2 1 1 1 3 1 1 1}"
+          "expect": "1 1 1 1 2 1 1 1 3 1 1 1"
         }
       ]
     },
@@ -68,7 +77,27 @@
         {
           "type": "query",
           "sql": "SELECT rowid, xr==xt, xr==xb, xr==+xt FROM t1 ORDER BY rowid;",
-          "expect": "{1 1 1 1 2 1 1 1 3 1 1 1}"
+          "expect": "1 1 1 1 2 1 1 1 3 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, xn==xt, xn==xb, xn==+xt FROM t1 ORDER BY rowid;",
+          "expect": "1 1 1 1 2 1 1 1 3 1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "affinity2-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, xt==+xi, xt==xi, xt==xb FROM t1 ORDER BY rowid;",
+          "expect": "1 1 1 0 2 1 1 1 3 0 1 1"
         }
       ]
     },
@@ -87,7 +116,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM ttt WHERE CAST(c0 AS NUMERIC) > c1 GROUP BY rowid;",
-          "expect": "{abc -1}"
+          "expect": "abc -1"
+        }
+      ]
+    },
+    {
+      "name": "420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ttt INDEXED BY ii WHERE CAST(c0 AS NUMERIC) > c1 GROUP BY rowid;",
+          "expect": "abc -1"
         }
       ]
     },
@@ -101,12 +140,22 @@
       ]
     },
     {
+      "name": "440",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE c='0' ORDER BY a;",
+          "expect": "2 1 0 4 1 0"
+        }
+      ]
+    },
+    {
       "name": "500",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 TEXT UNIQUE, c1);\n  INSERT INTO t0(c0) VALUES (-1);\n  SELECT quote(- x'ce'), quote(t0.c0), quote(- x'ce' >= t0.c0) FROM t0;",
-          "expect": "{0 '-1' 1}"
+          "expect": "0 '-1' 1"
         }
       ]
     },
@@ -116,7 +165,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t0 WHERE - x'ce' >= t0.c0;",
-          "expect": "{-1 {}}"
+          "expect": "-1 {}"
         }
       ]
     },
@@ -126,7 +175,7 @@
         {
           "type": "query",
           "sql": "SELECT quote(+-+x'ce'), quote(t0.c0), quote(+-+x'ce' >= t0.c0) FROM t0;",
-          "expect": "{0 '-1' 1}"
+          "expect": "0 '-1' 1"
         }
       ]
     },
@@ -136,7 +185,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t0 WHERE +-+x'ce' >= t0.c0;",
-          "expect": "{-1 {}}"
+          "expect": "-1 {}"
         }
       ]
     },
@@ -146,7 +195,7 @@
         {
           "type": "query",
           "sql": "SELECT quote(- 'ce'), quote(t0.c0), quote(- 'ce' >= t0.c0) FROM t0;",
-          "expect": "{0 '-1' 1}"
+          "expect": "0 '-1' 1"
         }
       ]
     },
@@ -156,7 +205,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t0 WHERE - 'ce' >= t0.c0;",
-          "expect": "{-1 {}}"
+          "expect": "-1 {}"
         }
       ]
     },
@@ -166,7 +215,27 @@
         {
           "type": "query",
           "sql": "SELECT quote(+-+'ce'), quote(t0.c0), quote(+-+'ce' >= t0.c0) FROM t0;",
-          "expect": "{0 '-1' 1}"
+          "expect": "0 '-1' 1"
+        }
+      ]
+    },
+    {
+      "name": "507",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE +-+'ce' >= t0.c0;",
+          "expect": "-1 {}"
+        }
+      ]
+    },
+    {
+      "name": "600",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n    CREATE TABLE t0(c0 REAL UNIQUE);\n    INSERT INTO t0(c0) VALUES (3175546974276630385);\n    SELECT 3175546974276630385 < c0 FROM t0;",
+          "expect": "1"
         }
       ]
     },
@@ -176,7 +245,7 @@
         {
           "type": "query",
           "sql": "SELECT 1 FROM t0 WHERE 3175546974276630385 < c0;",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     }

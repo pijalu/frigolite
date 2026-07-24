@@ -3,7 +3,7 @@
   "name": "collate9",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "collate9-1.1",
       "steps": [
         {
           "type": "exec",
@@ -11,47 +11,169 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE xy(x COLLATE \"reverse sort\", y COLLATE binary);\n    INSERT INTO xy VALUES('one', 'one');\n    INSERT INTO xy VALUES('two', 'two');\n    INSERT INTO xy VALUES('three', 'three');"
+        }
+      ]
+    },
+    {
+      "name": "collate9-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM xy ORDER BY x",
+          "expect": "two three one"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT x FROM xy ORDER BY x"
+        }
+      ]
+    },
+    {
+      "name": "collate9-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM xy ORDER BY y",
+          "expect": "one three two"
         },
         {
           "type": "exec",
           "sql": "SELECT y FROM xy ORDER BY y"
-        },
+        }
+      ]
+    },
+    {
+      "name": "collate9-1.5",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE INDEX xy_i ON xy(x)"
         },
         {
           "type": "exec",
+          "sql": "CREATE INDEX xy_i ON xy(x)"
+        }
+      ]
+    },
+    {
+      "name": "collate9-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, x < 'seven' FROM xy ORDER BY x",
+          "expect": "two 1 three 1 one 0"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT x, x < 'seven' FROM xy ORDER BY x"
+        }
+      ]
+    },
+    {
+      "name": "collate9-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y, y < 'seven' FROM xy ORDER BY x",
+          "expect": "two 0 three 0 one 1"
         },
         {
           "type": "exec",
           "sql": "SELECT y, y < 'seven' FROM xy ORDER BY x"
+        }
+      ]
+    },
+    {
+      "name": "collate9-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y, y COLLATE \"reverse sort\" < 'seven' FROM xy ORDER BY x",
+          "expect": "two 1 three 1 one 0"
         },
         {
           "type": "exec",
           "sql": "SELECT y, y COLLATE \"reverse sort\" < 'seven' FROM xy ORDER BY x"
+        }
+      ]
+    },
+    {
+      "name": "collate9-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM xy ORDER BY y",
+          "expect": "one three two"
         },
         {
           "type": "exec",
           "sql": "SELECT y FROM xy ORDER BY y"
+        }
+      ]
+    },
+    {
+      "name": "collate9-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\"",
+          "expect": "two three one"
         },
         {
           "type": "exec",
           "sql": "SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\""
+        }
+      ]
+    },
+    {
+      "name": "collate9-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa",
+          "expect": "two three one"
         },
         {
           "type": "exec",
           "sql": "SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa"
-        },
+        }
+      ]
+    },
+    {
+      "name": "collate9-3.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE INDEX xy_i2 ON xy(y COLLATE \"reverse sort\");"
         },
         {
           "type": "exec",
+          "sql": "CREATE INDEX xy_i2 ON xy(y COLLATE \"reverse sort\");"
+        }
+      ]
+    },
+    {
+      "name": "collate9-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "collate9-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1"
         },
         {
           "type": "exec",

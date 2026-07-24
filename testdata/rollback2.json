@@ -8,7 +8,16 @@
         {
           "type": "query",
           "sql": "SELECT int2hex(0), int2hex(100), int2hex(255)",
-          "expect": "{00 64 FF}"
+          "expect": "00 64 FF"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a<40\n  )\n  INSERT INTO t1 SELECT * FROM data;"
         }
       ]
     }

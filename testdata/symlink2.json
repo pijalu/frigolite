@@ -7,24 +7,73 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1,9999);",
-          "expect": "forcedelete link.db"
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1,9999);"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t1;",
+          "expect": "1 9999"
         },
         {
           "type": "exec",
           "sql": "SELECT x, y FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t1;",
+          "expect": "1 9999"
         },
         {
           "type": "exec",
           "sql": "SELECT x, y FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t1;",
+          "expect": "1 9999"
         },
         {
           "type": "exec",
           "sql": "SELECT x, y FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t1;",
+          "expect": "0 {1 9999}"
         },
         {
           "type": "exec",
           "sql": "SELECT x, y FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t1;",
+          "expect": "1 9999"
         },
         {
           "type": "exec",

@@ -3,6 +3,209 @@
   "name": "upfrom2",
   "tests": [
     {
+      "name": "1.%TN%.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(t TEXT);\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE) %WO%;\n    CREATE INDEX t1y ON t1(y);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');\n\n    CREATE TRIGGER tr1 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(old.z || '->' || new.z);\n    END;\n    CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(old.y || '->' || new.y);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH data(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n    )\n    UPDATE t1 SET z=v FROM data WHERE x=k;\n\n    SELECT * FROM t1;\n    SELECT * FROM log;",
+          "expect": "1 i ten   2 ii two   3 iii thirty   4 iv four\n    one->ten        i->i\n    three->thirty   iii->iii"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    CREATE TABLE t3(k, v);\n  \n    INSERT INTO t3 VALUES(5,   'v');\n    INSERT INTO t3 VALUES(12, 'xii');\n  \n    INSERT INTO t2 VALUES(2, 12);\n    INSERT INTO t2 VALUES(3, 5);\n  \n    DELETE FROM log;\n    UPDATE t1 SET y=v FROM t2, t3 WHERE t1.x=t2.a AND t3.k=t2.b;\n  \n    SELECT * FROM t1;\n    SELECT * FROM log;",
+          "expect": "1 i ten   2 xii two   3 v thirty   4 iv four\n    two->two         ii->xii\n    thirty->thirty   iii->v"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    WITH data(k, v) AS (\n      VALUES(1, 'seven'), (1, 'eight'), (2, 'eleven'), (2, 'twelve')\n    )\n    UPDATE t1 SET z=v FROM data WHERE x=k;\n  \n    SELECT * FROM t1;\n    SELECT * FROM log;",
+          "expect": "1 i eight   2 xii twelve   3 v thirty   4 iv four\n    ten->eight        i->i\n    two->twelve       xii->xii"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE TRIGGER v1tr INSTEAD OF UPDATE ON v1 BEGIN\n      UPDATE t1 SET y=new.y, z=new.z WHERE x=new.x;\n    END;\n\n    DELETE FROM log;\n    WITH data(k, v) AS (\n      VALUES(3, 'thirteen'), (3, 'fourteen'), (4, 'fifteen'), (4, 'sixteen')\n    )\n    UPDATE v1 SET z=v FROM data WHERE x=k;"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1;\n    SELECT * FROM log;",
+          "expect": "1 i eight   2 xii twelve   3 v fourteen   4 iv sixteen\n    thirty->thirteen  v->v\n    thirteen->fourteen  v->v\n    four->fifteen  iv->iv\n    fifteen->sixteen  iv->iv"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE o1(w, x, y, z UNIQUE, PRIMARY KEY(w, x)) %WO%;\n    CREATE INDEX o1y ON t1(y);\n\n    INSERT INTO o1 VALUES(0, 0, 'i', 'one');\n    INSERT INTO o1 VALUES(0, 1, 'ii', 'two');\n    INSERT INTO o1 VALUES(1, 0, 'iii', 'three');\n    INSERT INTO o1 VALUES(1, 1, 'iv', 'four');\n\n    CREATE TRIGGER tro1 BEFORE UPDATE ON o1 BEGIN\n      INSERT INTO log VALUES(old.z || '->' || new.z);\n    END;\n    CREATE TRIGGER tro2 AFTER UPDATE ON o1 BEGIN\n      INSERT INTO log VALUES(old.y || '->' || new.y);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    WITH data(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n    )\n    UPDATE o1 SET z=v FROM data WHERE (1+x+w*2)=k;\n\n    SELECT * FROM o1;\n    SELECT * FROM log;",
+          "expect": "0 0 i ten   0 1 ii two   1 0 iii thirty   1 1 iv four\n    one->ten        i->i\n    three->thirty   iii->iii"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    UPDATE o1 SET y=v FROM t2, t3 WHERE (1+o1.w*2+o1.x)=t2.a AND t3.k=t2.b;\n  \n    SELECT * FROM o1;\n    SELECT * FROM log;",
+          "expect": "0 0 i ten   0 1 xii two   1 0 v thirty   1 1 iv four\n    two->two         ii->xii\n    thirty->thirty   iii->v"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    WITH data(k, v) AS (\n      VALUES(1, 'seven'), (1, 'eight'), (2, 'eleven'), (2, 'twelve')\n    )\n    UPDATE o1 SET z=v FROM data WHERE (1+w*2+x)=k;\n  \n    SELECT * FROM o1;\n    SELECT * FROM log;",
+          "expect": "0 0 i eight   0 1 xii twelve   1 0 v thirty   1 1 iv four\n    ten->eight        i->i\n    two->twelve       xii->xii"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW w1 AS SELECT * FROM o1;\n    CREATE TRIGGER w1tr INSTEAD OF UPDATE ON w1 BEGIN\n      UPDATE o1 SET y=new.y, z=new.z WHERE w=new.w AND x=new.x;\n    END;\n\n    DELETE FROM log;\n    WITH data(k, v) AS (\n      VALUES(3, 'thirteen'), (3, 'fourteen'), (4, 'fifteen'), (4, 'sixteen')\n    )\n    UPDATE w1 SET z=v FROM data WHERE (1+w*2+x)=k;"
+        }
+      ]
+    },
+    {
+      "name": "1.%TN%.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM w1;\n    SELECT * FROM log;",
+          "expect": "0 0 i eight   0 1 xii twelve   1 0 v fourteen   1 1 iv sixteen\n    thirty->thirteen  v->v\n    thirteen->fourteen  v->v\n    four->fifteen  iv->iv\n    fifteen->sixteen  iv->iv"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b) %WO%;\n    INSERT INTO x1 VALUES\n        (1, 'one'), (2, 'two'), (3, 'three'), (4, 'four'),\n        (5, 'five'), (6, 'six'), (7, 'seven'), (8, 'eight');"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE data1(x, y);\n    INSERT INTO data1 VALUES\n    (1, 'eleven'), (1, 'twenty-one'), (2, 'twelve'), (2, 'twenty-two'),\n    (3, 'thirteen'), (3, 'twenty-three'), (4, 'fourteen'), (4, 'twenty-four');"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=y FROM data1 WHERE a=x ORDER BY a LIMIT 3;\n    SELECT * FROM x1;",
+          "expect": "1 eleven 2 twelve 3 thirteen 4 four 5 five 6 six 7 seven 8 eight"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=b||y FROM data1 WHERE a=x ORDER BY b LIMIT 3;\n    SELECT * FROM x1;",
+          "expect": "1 eleveneleven 2 twelve 3 thirteenthirteen 4 fourfourteen \n    5 five 6 six 7 seven 8 eight"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=b||b ORDER BY b;",
+          "expect": "1 {ORDER BY without LIMIT on UPDATE}"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=b||y FROM data1 WHERE a=x ORDER BY b;",
+          "expect": "1 {ORDER BY without LIMIT on UPDATE}"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE x1;\n    CREATE TABLE x1(u, v, b, PRIMARY KEY(u, v)) %WO%;\n    INSERT INTO x1 VALUES\n        (0, 1, 'one'), (1, 0, 'two'), (1, 1, 'three'), (2, 0, 'four'),\n        (2, 1, 'five'), (3, 0, 'six'), (3, 1, 'seven'), (4, 0, 'eight');"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=y FROM data1 WHERE (u*2+v)=x ORDER BY u, v LIMIT 3;\n    SELECT * FROM x1;",
+          "expect": "0 1 eleven 1 0 twelve 1 1 thirteen 2 0 four \n    2 1 five 3 0 six 3 1 seven 4 0 eight"
+        }
+      ]
+    },
+    {
+      "name": "2.%TN%.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE x1 SET b=b||y FROM data1 WHERE (u*2+v)=x ORDER BY b LIMIT 3;\n    SELECT * FROM x1;",
+          "expect": "0 1 eleveneleven 1 0 twelve 1 1 thirteenthirteen 2 0 fourfourteen \n    2 1 five  3 0 six 3 1 seven 4 0 eight"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -25,16 +228,6 @@
         {
           "type": "exec",
           "sql": "WITH input(k, v) AS (\n      VALUES(3, 'thirty'), (1, 'ten')\n  )\n  UPDATE t1 SET z=v FROM input WHERE x=k;"
-        }
-      ]
-    },
-    {
-      "name": "4.$tn.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE x1 SET a=t FROM map WHERE a=o;\n    SELECT * FROM x1 ORDER BY a;",
-          "expect": "{2 2 2   5 5 5   10 1 1  30 3 3  40 4 4}"
         }
       ]
     },
@@ -77,8 +270,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )",
-          "expect": "{}"
+          "sql": "UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1\n  )"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 1 FROM (\n      SELECT * FROM t1 UNION ALL SELECT * FROM t1\n  )"
         }
       ]
     },
@@ -87,6 +288,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET c=t1.a FROM t1 WHERE t2.b=t1.a;\n  SELECT * FROM t3;",
+          "expect": "11 11 22 22 33 33 44 44 55 55"
         }
       ]
     }

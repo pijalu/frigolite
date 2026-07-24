@@ -21,7 +21,17 @@
         {
           "type": "query",
           "sql": "SELECT d FROM t1\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;",
-          "expect": "{1 2 3 4 5 8 9}"
+          "expect": "1 2 3 4 5 8 9"
+        }
+      ]
+    },
+    {
+      "name": "in6-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;",
+          "expect": "1 {} 2 {} 3 {} 4 {} 5 {} 8 {} 9 {}"
         }
       ]
     },
@@ -39,7 +49,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b, c, d);\n  INSERT INTO t2(b,c,d) VALUES(4,5,3),(4,5,4),(4,5,8);\n  CREATE INDEX t2bcd ON t2(b, c, d);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL AND c=5 AND d IN (2,3,4);",
-          "expect": "{0 {} {} {}}"
+          "expect": "0 {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v0(v1);\n  CREATE TABLE v3(v5, v4);\n  INSERT INTO v0 VALUES(0);\n  CREATE INDEX v9 ON v3(v4, v4, v5);\n  SELECT quote(v5) FROM v0 LEFT JOIN v3 ON v4 = NULL AND v5 IN(0);",
+          "expect": "NULL"
         }
       ]
     },
@@ -57,7 +77,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a TEXT, b TEXT);\n  INSERT INTO t1 VALUES(null,10),(0,10),(10,10);\n  CREATE INDEX t1ab ON t1(a,b);\n  SELECT quote(a), quote(b), '|' FROM t1 WHERE b in (SELECT a FROM t1) AND a=0;",
-          "expect": "{'0' '10' |}"
+          "expect": "'0' '10' |"
+        }
+      ]
+    },
+    {
+      "name": "in6-3.130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x TEXT);\n  INSERT INTO t2(x) VALUES(NULL),(0),(10);\n  SELECT quote(x), quote(a), quote(b), 'x'\n    FROM t2 LEFT JOIN t1 ON a=x AND b in (null,0,10);",
+          "expect": "NULL NULL NULL x '0' '0' '10' x '10' '10' '10' x"
         }
       ]
     }

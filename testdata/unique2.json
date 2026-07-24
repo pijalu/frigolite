@@ -29,7 +29,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE err1(a,b,c,UNIQUE(rowid));",
-          "expect": "{1 {no such column: rowid}}"
+          "expect": "1 {no such column: rowid}"
+        }
+      ]
+    },
+    {
+      "name": "13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE err1(a,b,c,PRIMARY KEY(rowid));",
+          "expect": "1 {no such column: rowid}"
         }
       ]
     }

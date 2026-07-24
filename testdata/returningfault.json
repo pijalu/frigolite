@@ -7,8 +7,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1 (b);",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1 (b);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
         },
         {
           "type": "exec",

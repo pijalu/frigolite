@@ -8,14 +8,60 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x)"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master"
-        },
+        }
+      ]
+    },
+    {
+      "name": "openv2-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(123)",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "openv2-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "1 {attempt to write a readonly database}"
         }
       ]
     }

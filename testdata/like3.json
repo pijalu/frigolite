@@ -8,7 +8,17 @@
         {
           "type": "query",
           "sql": "PRAGMA encoding=UTF8;\n  CREATE TABLE t1(a,b TEXT COLLATE nocase);\n  INSERT INTO t1(a,b)\n     VALUES(1,'abc'),\n           (2,'ABX'),\n           (3,'BCD'),\n           (4,x'616263'),\n           (5,x'414258'),\n           (6,x'424344');\n  CREATE INDEX t1ba ON t1(b,a);\n\n  SELECT a, b FROM t1 WHERE b LIKE 'aB%' ORDER BY +a;",
-          "expect": "{1 abc 2 ABX 4 abc 5 ABX}"
+          "expect": "1 abc 2 ABX 4 abc 5 ABX"
+        }
+      ]
+    },
+    {
+      "name": "like3-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 WHERE +b LIKE 'aB%' ORDER BY +a;",
+          "expect": "1 abc 2 ABX 4 abc 5 ABX"
         }
       ]
     },
@@ -18,7 +28,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a, b TEXT);\n  INSERT INTO t2 SELECT a, b FROM t1;\n  CREATE INDEX t2ba ON t2(b,a);\n  SELECT a, b FROM t2 WHERE b GLOB 'ab*' ORDER BY +a;",
-          "expect": "{1 abc 4 abc}"
+          "expect": "1 abc 4 abc"
         }
       ]
     },
@@ -28,7 +38,7 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t2 WHERE +b GLOB 'ab*' ORDER BY +a;",
-          "expect": "{1 abc 4 abc}"
+          "expect": "1 abc 4 abc"
         }
       ]
     },
@@ -38,7 +48,7 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t2 WHERE b>=x'6162' AND b GLOB 'ab*'",
-          "expect": "{4 abc}"
+          "expect": "4 abc"
         }
       ]
     },
@@ -48,7 +58,7 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t2 WHERE +b>=x'6162' AND +b GLOB 'ab*'",
-          "expect": "{4 abc}"
+          "expect": "4 abc"
         }
       ]
     },
@@ -58,7 +68,17 @@
         {
           "type": "query",
           "sql": "SELECT a, b FROM t2 WHERE b GLOB 'ab*' AND b>=x'6162'",
-          "expect": "{4 abc}"
+          "expect": "4 abc"
+        }
+      ]
+    },
+    {
+      "name": "like3-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t2 WHERE +b GLOB 'ab*' AND +b>=x'6162'",
+          "expect": "4 abc"
         }
       ]
     },
@@ -68,7 +88,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(x TEXT PRIMARY KEY COLLATE nocase);\n  INSERT INTO t3(x) VALUES('aaa'),('abc'),('abd'),('abe'),('acz');\n  INSERT INTO t3(x) SELECT CAST(x AS blob) FROM t3;\n  SELECT quote(x) FROM t3 WHERE x LIKE 'ab%' ORDER BY x;",
-          "expect": "{'abc' 'abd' 'abe' X'616263' X'616264' X'616265'}"
+          "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
         }
       ]
     },
@@ -78,7 +98,7 @@
         {
           "type": "query",
           "sql": "SELECT quote(x) FROM t3 WHERE x LIKE 'ab%' ORDER BY x DESC;",
-          "expect": "{X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'}"
+          "expect": "X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'"
         }
       ]
     },
@@ -88,7 +108,7 @@
         {
           "type": "query",
           "sql": "SELECT quote(x) FROM t3 WHERE x LIKE 'ab%' ORDER BY +x DESC;",
-          "expect": "{X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'}"
+          "expect": "X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'"
         }
       ]
     },
@@ -98,7 +118,17 @@
         {
           "type": "query",
           "sql": "SELECT quote(x) FROM t3 WHERE x LIKE 'ab%' ORDER BY x ASC;",
-          "expect": "{'abc' 'abd' 'abe' X'616263' X'616264' X'616265'}"
+          "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
+        }
+      ]
+    },
+    {
+      "name": "like3-3.2ck",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(x) FROM t3 WHERE x LIKE 'ab%' ORDER BY +x ASC;",
+          "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
         }
       ]
     },
@@ -108,7 +138,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE INDEX t4x ON t4(x DESC);\n  INSERT INTO t4(x) SELECT x FROM t3;\n  SELECT quote(x) FROM t4 WHERE x LIKE 'ab%' ORDER BY x;",
-          "expect": "{'abc' 'abd' 'abe' X'616263' X'616264' X'616265'}"
+          "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
         }
       ]
     },
@@ -118,7 +148,7 @@
         {
           "type": "query",
           "sql": "SELECT quote(x) FROM t4 WHERE x LIKE 'ab%' ORDER BY x DESC;",
-          "expect": "{X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'}"
+          "expect": "X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'"
         }
       ]
     },
@@ -128,7 +158,7 @@
         {
           "type": "query",
           "sql": "SELECT quote(x) FROM t4 WHERE x LIKE 'ab%' ORDER BY +x DESC;",
-          "expect": "{X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'}"
+          "expect": "X'616265' X'616264' X'616263' 'abe' 'abd' 'abc'"
         }
       ]
     },
@@ -138,7 +168,17 @@
         {
           "type": "query",
           "sql": "SELECT quote(x) FROM t4 WHERE x LIKE 'ab%' ORDER BY x ASC;",
-          "expect": "{'abc' 'abd' 'abe' X'616263' X'616264' X'616265'}"
+          "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
+        }
+      ]
+    },
+    {
+      "name": "like3-4.2ck",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(x) FROM t4 WHERE x LIKE 'ab%' ORDER BY +x ASC;",
+          "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
         }
       ]
     },
@@ -148,7 +188,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t5a(x INT UNIQUE COLLATE nocase);\n  INSERT INTO t5a(x) VALUES('/abc'),(123),(-234);\n  SELECT x FROM t5a WHERE x LIKE '/%';",
-          "expect": "{/abc}"
+          "expect": "/abc"
         }
       ]
     },
@@ -158,7 +198,7 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t5a WHERE x LIKE '/a%';",
-          "expect": "{/abc}"
+          "expect": "/abc"
         }
       ]
     },
@@ -168,7 +208,7 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t5a WHERE x LIKE '^12%' ESCAPE '^';",
-          "expect": "{123}"
+          "expect": "123"
         }
       ]
     },
@@ -178,7 +218,7 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t5a WHERE x LIKE '^-2%' ESCAPE '^';",
-          "expect": "{-234}"
+          "expect": "-234"
         }
       ]
     },
@@ -188,7 +228,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t5b(x INT UNIQUE COLLATE binary);\n  INSERT INTO t5b(x) VALUES('/abc'),(123),(-234);\n  SELECT x FROM t5b WHERE x GLOB '/*';",
-          "expect": "{/abc}"
+          "expect": "/abc"
         }
       ]
     },
@@ -198,7 +238,37 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t5b WHERE x GLOB '/a*';",
-          "expect": "{/abc}"
+          "expect": "/abc"
+        }
+      ]
+    },
+    {
+      "name": "like3-5.300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5c (c0 REAL);\n  CREATE INDEX t5c_0 ON t5c(c0 COLLATE NOCASE);\n  INSERT INTO t5c(rowid, c0) VALUES (99,'+/');\n  SELECT * FROM t5c WHERE (c0 LIKE '+/');",
+          "expect": "+/"
+        }
+      ]
+    },
+    {
+      "name": "like3-5.400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE COLLATE NOCASE);\n  INSERT INTO t0(c0) VALUES ('./');\n  SELECT * FROM t0 WHERE t0.c0 LIKE './';",
+          "expect": "./"
+        }
+      ]
+    },
+    {
+      "name": "like3-5.410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE COLLATE NOCASE);\n  INSERT INTO t0(c0) VALUES ('.1%');\n  SELECT * FROM t0 WHERE t0.c0 LIKE '.1%';",
+          "expect": ".1%"
         }
       ]
     },
@@ -208,7 +278,17 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES(-1);\n  SELECT * FROM t0 WHERE t0.c0 GLOB '-*';",
-          "expect": "{-1}"
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "like3-5.421",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t0.c0 GLOB '-*' FROM t0;",
+          "expect": "1"
         }
       ]
     },
@@ -235,12 +315,41 @@
       ]
     },
     {
+      "name": "like3-7.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));"
+        }
+      ]
+    },
+    {
+      "name": "like3-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x307F)=='\u307f';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "like3-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM Example WHERE word GLOB '\u307f*'",
+          "expect": "\u307f"
+        }
+      ]
+    },
+    {
       "name": "like3-7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM Example WHERE word >= char(0x307F) AND word < char(0x3080);",
-          "expect": "{\u307f}"
+          "expect": "\u307f"
         }
       ]
     },

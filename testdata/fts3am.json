@@ -3,23 +3,68 @@
   "name": "fts3am",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "fts3am-1.0",
       "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
+          "expect": "2 2 4"
+        },
         {
           "type": "exec",
           "sql": "SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3am-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 1;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
+          "expect": "1 1 3"
         },
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE rowid = 1;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3am-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 2;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
+          "expect": "0 1 2"
         },
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE rowid = 2;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3am-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 3;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
+          "expect": "0 0 1"
         },
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE rowid = 3;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3am-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 4;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
+          "expect": "0 0 0"
         },
         {
           "type": "exec",

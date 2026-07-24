@@ -16,8 +16,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);",
-          "expect": "# It is better to use an index for ORDER BY than sort externally, even"
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);"
         }
       ]
     },
@@ -113,6 +112,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(\n    a,b,c,d,e, f,g,h,i,j,\n    k,l,m,n,o, p,q,r,s,t\n  );\n  CREATE INDEX i1 ON t1(k,l,m,n,o,p,q,r,s,t);"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES"
         },
         {
           "type": "exec",
@@ -121,6 +129,15 @@
         {
           "type": "exec",
           "sql": "ANALYZE;\n    CREATE INDEX i2 ON t1(a,b,c,d,e,f,g,h,i,j);"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b, c);\n    CREATE INDEX t6i1 ON t6(a, b);\n    CREATE INDEX t6i2 ON t6(c);"
         }
       ]
     }

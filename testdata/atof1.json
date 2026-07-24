@@ -16,7 +16,7 @@
         {
           "type": "query",
           "sql": "PRAGMA encoding = 'UTF16be';\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1(rowid,a) VALUES (1,x'00'),(2,3);\n  SELECT substr(a,',') is true FROM t1 ORDER BY rowid;",
-          "expect": "{0 1}"
+          "expect": "0 1"
         }
       ]
     },
@@ -26,7 +26,7 @@
         {
           "type": "query",
           "sql": "SELECT substr(a,',') is true FROM t1 ORDER BY rowid DESC;",
-          "expect": "{1 0}"
+          "expect": "1 0"
         }
       ]
     },
@@ -36,7 +36,7 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(a);\n  SELECT count(*) FROM t1 WHERE substr(a,',');",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -45,8 +45,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';",
-          "expect": "{}"
+          "sql": "WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18446744073709550000'\n    UNION ALL\n    SELECT i+1, format('1844674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '1.8446744073709[56]*';"
         }
       ]
     },
@@ -55,8 +54,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18.446744073709550000'\n    UNION ALL\n    SELECT i+1, format('18.44674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '18.446744073709*';",
-          "expect": "{}"
+          "sql": "WITH RECURSIVE bigval(i,vtxt) AS (\n    SELECT 0, '18.446744073709550000'\n    UNION ALL\n    SELECT i+1, format('18.44674407370955%04d',i+1) FROM bigval\n     WHERE i+1<=9999\n  )\n  SELECT vtxt, CAST(vtxt AS REAL) FROM bigval\n   WHERE CAST(vtxt AS REAL) NOT GLOB '18.446744073709*';"
+        }
+      ]
+    },
+    {
+      "name": "atof-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE exp(n,v1,v2) AS (\n    SELECT -200, '1.8446744073709550592e-200', '1.8446744073709551609e-200'\n    UNION ALL\n    SELECT n+1, ('1.8446744073709550592e'||n),('1.8446744073709551609e'||n)\n      FROM exp WHERE n<200\n  )\n  SELECT n, v1, v2\n    FROM exp\n   WHERE format('%.10e',CAST(v1 AS REAL)) NOT GLOB '1.8446*'\n      OR format('%.10e',CAST(v2 AS REAL)) NOT GLOB '1.8446*';"
         }
       ]
     }

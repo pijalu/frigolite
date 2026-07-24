@@ -3,11 +3,26 @@
   "name": "tkt3554",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt3544-1.2",
       "steps": [
         {
           "type": "exec",
+          "sql": "INSERT INTO test VALUES('a', 10000, 11000);\n    SELECT * FROM test;",
+          "expect": "a 10000 11000"
+        },
+        {
+          "type": "exec",
           "sql": "INSERT INTO test VALUES('a', 10000, 11000);\n    SELECT * FROM test;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3544-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES('a', 9000, 10500);",
+          "expect": "a 9000 11000"
         },
         {
           "type": "exec",
@@ -16,6 +31,16 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM test"
+        }
+      ]
+    },
+    {
+      "name": "tkt3544-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO test VALUES('a', 10000, 12000);",
+          "expect": "a 9000 12000"
         },
         {
           "type": "exec",

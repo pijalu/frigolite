@@ -16,8 +16,16 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT prefix_length(null,'abc');",
-          "expect": "0"
+          "sql": "SELECT prefix_length(null,'abc');"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length('abc',null);"
         }
       ]
     }

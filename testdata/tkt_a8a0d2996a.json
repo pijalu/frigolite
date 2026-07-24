@@ -8,7 +8,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t(x,y);\n  INSERT INTO t VALUES('1','1');\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x-0 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x*1 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -38,7 +38,17 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x/1 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x%4 AND y=='1';",
+          "expect": "text text"
         }
       ]
     },
@@ -48,7 +58,7 @@
         {
           "type": "exec",
           "sql": "UPDATE t SET x='1xyzzy';\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -58,7 +68,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x-0 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -68,7 +78,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x*1 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -78,7 +88,17 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x/1 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x%4 AND y=='1';",
+          "expect": "text text"
         }
       ]
     },
@@ -88,7 +108,7 @@
         {
           "type": "exec",
           "sql": "UPDATE t SET x='1.0';\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -98,7 +118,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x-0 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -108,7 +128,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x*1 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
         }
       ]
     },
@@ -118,7 +138,17 @@
         {
           "type": "query",
           "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x/1 AND y=='1';",
-          "expect": "{text text}"
+          "expect": "text text"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(x), typeof(y) FROM t WHERE 1=x%4 AND y=='1';",
+          "expect": "text text"
         }
       ]
     },
@@ -128,7 +158,7 @@
         {
           "type": "query",
           "sql": "SELECT 1+1.;",
-          "expect": "{2.0}"
+          "expect": "2.0"
         }
       ]
     },
@@ -138,7 +168,7 @@
         {
           "type": "query",
           "sql": "SELECT '1.23e64'/'1.0000e+62';",
-          "expect": "{123.0}"
+          "expect": "123.0"
         }
       ]
     },
@@ -148,7 +178,7 @@
         {
           "type": "query",
           "sql": "SELECT '100x'+'-2y';",
-          "expect": "{98}"
+          "expect": "98"
         }
       ]
     },
@@ -158,7 +188,7 @@
         {
           "type": "query",
           "sql": "SELECT '100x'+'4.5y';",
-          "expect": "{104.5}"
+          "expect": "104.5"
         }
       ]
     },
@@ -168,7 +198,7 @@
         {
           "type": "query",
           "sql": "SELECT '-9223372036854775807x'-'1x';",
-          "expect": "{-9223372036854775808}"
+          "expect": "-9223372036854775808"
         }
       ]
     },
@@ -178,7 +208,17 @@
         {
           "type": "query",
           "sql": "SELECT '9223372036854775806x'+'1x';",
-          "expect": "{9223372036854775807}"
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '1234x'/'10y', '1234x'/'10.y', '1234x'/'1e1y';",
+          "expect": "123 123.4 123.4"
         }
       ]
     }

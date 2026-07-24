@@ -3,39 +3,124 @@
   "name": "join2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "join2-1.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;",
+          "expect": "1 11 2 22 3 33"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;",
+          "expect": "11 111 33 333 44 444"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;",
+          "expect": "111 1111 444 4444 555 5555"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3",
+          "expect": "1 11 111 1111"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3",
+          "expect": "1 11 111 1111 3 33 333 {}"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3",
+          "expect": "1 11 111 1111"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.6-rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3",
+          "expect": "11 111 1 1111"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)",
+          "expect": "1 11 111 1111 2 22 {} {} 3 33 {} {}"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.7-rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1",
+          "expect": "1 11 111 1111 2 22 {} {} 3 33 {} {}"
         },
         {
           "type": "exec",
@@ -56,9 +141,9 @@
       "name": "2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa LEFT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));",
-          "expect": "{1 {ON clause references tables to its right}}"
+          "expect": "1 {ON clause references tables to its right}"
         }
       ]
     },
@@ -66,9 +151,19 @@
       "name": "2.1b",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM aa RIGHT JOIN cc ON (a=b) JOIN bb ON (b=coalesce(c,1));",
-          "expect": "{1 {ON clause references tables to its right}}"
+          "expect": "1 {ON clause references tables to its right}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);",
+          "expect": "0 {one one one}"
         }
       ]
     },
@@ -104,7 +199,37 @@
         {
           "type": "query",
           "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 ON (c2.k=v1) LEFT JOIN c3 ON (c3.k=v2);",
-          "expect": "{2 v3 1112 {}}"
+          "expect": "2 v3 1112 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 ON (c2.k=v1) LEFT JOIN c3 ON (c3.k=v1+1);",
+          "expect": "2 v3 1112 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT v1, v3 FROM c1 LEFT JOIN c2 LEFT JOIN c3 ON (c3.k=v1+1);",
+          "expect": "2 v3 1112 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 LEFT JOIN c3 ON (c3.k=v1+1);",
+          "expect": "2 v3 2 v3 1112 {} 1112 {}"
         }
       ]
     },
@@ -123,7 +248,37 @@
         {
           "type": "query",
           "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 ON (c2.k=v1) LEFT JOIN c3 ON (c3.k=v2);",
-          "expect": "{2 v3 1112 {}}"
+          "expect": "2 v3 1112 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 ON (c2.k=v1) LEFT JOIN c3 ON (c3.k=v1+1);",
+          "expect": "2 v3 1112 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT v1, v3 FROM c1 LEFT JOIN c2 LEFT JOIN c3 ON (c3.k=v1+1);",
+          "expect": "2 v3 1112 {}"
+        }
+      ]
+    },
+    {
+      "name": "4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v1, v3 FROM c1 LEFT JOIN c2 LEFT JOIN c3 ON (c3.k=v1+1);",
+          "expect": "2 v3 2 v3 1112 {} 1112 {}"
         }
       ]
     },
@@ -132,8 +287,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(x);\n  SELECT a.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);",
-          "expect": "{}"
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(x);\n  SELECT a.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);"
+        }
+      ]
+    },
+    {
+      "name": "4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(x) SELECT x FROM c;\n  INSERT INTO t2(x) SELECT x+9 FROM t1;\n  SELECT a.x, c.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);",
+          "expect": "1 {} 2 {} 3 {} 4 {} 5 {} 6 {} 7 {} 8 {} 9 {} 10 10"
         }
       ]
     },
@@ -164,6 +328,24 @@
       ]
     },
     {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t2(c,d);  INSERT INTO t2 VALUES(2,4),(3,6);\n  CREATE TABLE t3(x);    INSERT INTO t3 VALUES(9);\n  CREATE VIEW test AS\n    SELECT *, 'x'\n      FROM t1 LEFT JOIN (SELECT * FROM t2, t3) ON (c=b AND x=9)\n      WHERE c IS NULL;\n  SELECT * FROM test;",
+          "expect": "3 4 {} {} {} x 5 6 {} {} {} x"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "8.0",
       "steps": [
         {
@@ -177,8 +359,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t0 LEFT JOIN t1 \n  WHERE (t1.c0 BETWEEN 0 AND 0) > ('' AND t0.c0);",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "SELECT * FROM t0 LEFT JOIN t1 \n  WHERE (t1.c0 BETWEEN 0 AND 0) > ('' AND t0.c0);"
         }
       ]
     },
@@ -200,12 +381,72 @@
       ]
     },
     {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(c0), c0 FROM v0 WHERE c0>='0'",
+          "expect": "integer 0"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0, v0 WHERE v0.c0 >= '0';",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 LEFT JOIN v0 WHERE v0.c0 >= '0';",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 LEFT JOIN v0 ON v0.c0 >= '0';",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 LEFT JOIN v0 ON v0.c0 >= '0' WHERE TRUE \n  UNION SELECT 0,0 WHERE 0;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
       "name": "9.10",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1 (aaa);\n  INSERT INTO t1 VALUES(23456);\n  CREATE TABLE t2(bbb);\n  CREATE VIEW v2(ccc) AS SELECT bbb IS 1234 FROM t2;\n  SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;",
-          "expect": "{{} 1}"
+          "expect": "{} 1"
+        }
+      ]
+    },
+    {
+      "name": "9.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;",
+          "expect": "{} 1"
         }
       ]
     },
@@ -231,8 +472,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v OR FALSE)\n  ) FROM t1;",
-          "expect": "NULL"
+          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v OR FALSE)\n  ) FROM t1;"
         }
       ]
     },
@@ -241,8 +481,26 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v)\n  ) FROM t1;",
-          "expect": "NULL"
+          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v)\n  ) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v OR FALSE)\n  ) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(x TEXT, y INTEGER);\n  INSERT INTO t1(x,y) VALUES(NULL,-2),(NULL,1),('0',2);\n  CREATE TABLE t2(z INTEGER);\n  INSERT INTO t2(z) VALUES(2),(-2);\n  CREATE VIEW t3 AS SELECT z, (SELECT count(*) FROM t1) AS w FROM t2;\n  SELECT * FROM t1 LEFT JOIN t3 ON y=z;",
+          "expect": "NULL -2 -2 3 NULL 1 NULL NULL 0 2 2 3"
         }
       ]
     },
@@ -269,6 +527,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a1 INTEGER PRIMARY KEY, b1 INT);\n  CREATE TABLE t2(c2 INT, d2 INTEGER PRIMARY KEY);\n  CREATE TABLE t3(e3 INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(33,0);\n  INSERT INTO t2 VALUES(33,1),(33,2);"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a1, t2.d2\n    FROM (t1 LEFT JOIN t3 ON t3.e3=t1.b1) JOIN t2 ON t2.c2=t1.a1\n   WHERE t1.a1=33\n   ORDER BY t2.d2 DESC;",
+          "expect": "33 2 33 1"
         }
       ]
     }

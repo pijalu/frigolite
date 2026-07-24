@@ -12,6 +12,16 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "savepoint6-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum",
+          "expect": "44"
         },
         {
           "type": "exec",

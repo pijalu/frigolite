@@ -107,29 +107,70 @@ Top-priority engine fixes to reduce the most failures:
 - Various minor differences in how results are formatted
 - Many cascade from issues 1-3 above
 
-### Session 3 and 4 Progress (Completed)
-- ✅ `FindView`: Added schema prefix fallback (main.ttt → ttt)
-- ✅ `execCreateView`: Strip main/temp prefixes before storing
-- ✅ `FindTrigger`: Added schema prefix fallback
-- ✅ `FindIndex`: Added schema prefix fallback
-- ✅ `execCreateTrigger`: Strip main/temp prefixes from names
-- ✅ **ifcapable block filtering**: Skip tests inside unsupported ifcapable blocks (fts5, rtree, json1, etc.)
-- ✅ **db close + sqlite3 pattern**: Handle `db close; sqlite3 db test.db` as reset_db equivalent
-- ✅ **Orphaned vtab tracking**: Filter dependent tests after filtered CREATE VIRTUAL TABLE (tcl module)
-- ✅ **View/trigger SQL update on ALTER TABLE RENAME**: Update view SQL, trigger tbl_name/SQL, and index entries when a table is renamed
-- All committed with quality gates passing
+### Session 7 — Nested Aggregate Detection, Float Formatting, and Converter Fixes
 
-### Session 5 and 6 Progress (Completed)
-- ✅ **Skip TCL variable test names**: Skip tests whose names contain `$` (e.g., `3.$tn.2`)
-- ✅ **windowfunc ifcapable**: Add `windowfunc` to `UNSUPPORTED_IFCAPABLE` to skip entire blocks
-- ✅ **Column rename fix**: ALTER TABLE RENAME COLUMN no longer accidentally renames the table
-- ✅ **Multi-statement classification**: Converter now checks LAST statement for query detection
-- ✅ **COLLATE expression support**:
-  - Parser: `skipCollateExpr` creates BinaryOp{COLLATE} wrapper instead of discarding
-  - Executor: `collatedValue` type carries collation through expression evaluation
-  - Comparison operators use `compareValuesWithCollate` to apply collation
-  - `evalConcat` preserves collation through `||` concatenation
-- ✅ **Quality gates maintained**: All at gocyclo ≤20, gocognit ≤30
+#### Changes Made
+
+1. **Float formatting in test harness** (FIXED ~32 result mismatches)
+   - `flattenResult` now uses `formatSQLiteValue` instead of `fmt.Sprintf("%v", ...)`
+   - Whole-number floats now get `.0` suffix (e.g., `2` → `2.0`)
+   - Fixed: affinity2-120, affinity3 float comparisons, aggorderby float comparisons
+
+2. **Nested aggregate function detection** (FIXED ~6+ failures)
+   - Added `findNestedAggregate()` function that detects aggregate function calls inside other function arguments
+   - `evalAggFuncCall` now checks arguments for nested aggregates and returns "misuse of aggregate function" error
+   - Does NOT descend into subqueries (they have their own scope)
+   - Also added check in `evalHavingFuncCall`
+   - Fixed: aggnested-3.15, aggnested-10.1, aggnested-11.2, aggnested-11.3, aggerror-1.3
+
+3. **Converter: catchsql classification** (FIXED ~10+ failures)
+   - `do_catchsql_test` and `catchsql` inside `do_test` blocks now classified as "exec" type instead of "query"
+   - This allows the test harness's catchsql error handling to work properly
+   - Fixed: aggnested-3.15 error matching, aggorderby catchsql tests
+
+4. **Converter: C API pattern expansion** (FIXED ~12+ failures)
+   - Added `create_aggregate` and `connection_pointer` to `C_API_RE` pattern
+   - Fixed: aggerror.test now properly excluded (was 3 failures)
+   - Skipped files: 384 (up from 360)
+
+5. **Hand-crafted test fixes** (FIXED 3 failures)
+   - `TestSelectExpr/SELECT_-i1_FROM_t`: `float64(-10)` → `int64(-10)` (unary minus of integer yields integer)
+   - `TestSelectNoFrom/SELECT_10>_5`: `true` → `int64(1)` (comparisons return int64)
+   - `TestSelectNoFrom/SELECT_10<_5`: `false` → `int64(0)` (comparisons return int64)
+
+6. **cleanExpected function fix** 
+   - Now only strips outermost braces if the entire string is enclosed
+   - Preserves `{}` as NULL in expected results
+
+#### Remaining Failures (163 total in JSON suite)
+| File | exec | qry | mis | exp | err | Total |
+|------|------|-----|-----|-----|-----|-------|
+| affinity2 | 0 | 0 | 6 | 1 | 0 | 7 |
+| affinity3 | 0 | 0 | 10 | 0 | 0 | 10 |
+| aggnested | 0 | 0 | 12 | 3 | 0 | 15 |
+| aggorderby | 0 | 0 | 9 | 2 | 0 | 11 |
+| alias | 1 | 0 | 0 | 0 | 0 | 1 |
+| alterauth | 1 | 0 | 0 | 2 | 1 | 4 |
+| altercons2 | 0 | 0 | 10 | 6 | 0 | 16 |
+| altercons3 | 0 | 0 | 1 | 0 | 0 | 1 |
+| altercorrupt | 0 | 0 | 0 | 0 | 2 | 2 |
+| alterdropcol | 4 | 0 | 4 | 10 | 7 | 25 |
+| alterdropcol2 | 0 | 0 | 2 | 1 | 2 | 5 |
+| alterlegacy | 7 | 1 | 9 | 11 | 2 | 30 |
+| altermalloc2 | 1 | 0 | 0 | 0 | 0 | 1 |
+| altertab2 | 5 | 0 | 1 | 4 | 0 | 10 |
+| altertab3 | 9 | 0 | 5 | 6 | 5 | 25 |
+| **TOTAL** | **28** | **1** | **69** | **46** | **19** | **163** |
+
+#### Still Needed (Future Sessions)
+1. View expansion error handling (alterlegacy 3.x, 5.x — return error rows for missing tables)
+2. ALTER TABLE RENAME validation (alterlegacy 1.2 — check for broken constraint/index references)
+3. Type affinity comparison fixes (affinity2-300, affinity3)
+4. Column lookup in ALTER TABLE operations (alterdropcol, altertab2, altertab3)
+5. Virtual table module error messages (alterlegacy 2.x — echo module errors)
+6. Generated column enforcement (altercons2 10.x)
+7. LEFT JOIN NULL handling (affinity2 501/503/505/507)
+8. Stack overflow in generated Go compat tests (TestSQLite_*) — view self-reference infinite recursion
 
 ### Remaining Work Status
 - ✅ Catchsql error-checking generation (converter) — DONE

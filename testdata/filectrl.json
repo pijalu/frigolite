@@ -10,6 +10,22 @@
           "sql": "CREATE TEMP TABLE x(y);"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
     }
   ]
 }

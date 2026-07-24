@@ -38,6 +38,9 @@ type Engine struct {
 	stmtCache map[string][]sql.Stmt      // prepared statement cache (sqlText -> parsed stmts)
 	tableRootPages map[string]uint32     // tracked root pages (updated after splits)
 	nextRowIDCache map[uint32]int64      // cached next rowid per root page (keyed by rootPage)
+	triggerDepth int                    // prevents recursive trigger firing
+	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
+	ddlBuffer    []func()               // DDL undo operations for transaction rollback
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -107,6 +110,10 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return e.execDelete(s)
 	case *sql.CommitStmt:
 		return e.execCommit()
+	case *sql.BeginStmt:
+		return e.execBegin()
+	case *sql.RollbackStmt:
+		return e.execRollback()
 	default:
 		return e.execOtherDDL(stmt)
 	}
@@ -352,12 +359,18 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 // --- DROP TABLE ---
 
 func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
-	_, err := e.schema.FindTable(s.Name)
+	entry, err := e.schema.FindTable(s.Name)
 	if err != nil {
 		if s.IfExists {
 			return &Result{}
 		}
 		return &Result{Error: err}
+	}
+
+	// Cascade: drop all triggers for this table
+	triggers, _ := e.schema.FindTriggersForTable(entry.Name)
+	for _, t := range triggers {
+		_ = e.schema.RemoveEntry(t.Name)
 	}
 
 	// Remove from schema
@@ -381,8 +394,23 @@ func (e *Engine) execDropView(s *sql.DropViewStmt) *Result {
 // --- DROP TRIGGER ---
 
 func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
+	// Check if the trigger exists first (since RemoveEntry doesn't error on not-found)
+	entry, err := e.schema.FindTrigger(s.Name)
+	if err != nil {
+		if s.IfExists {
+			return &Result{}
+		}
+		return &Result{Error: err}
+	}
 	if err := e.schema.RemoveEntry(s.Name); err != nil && !s.IfExists {
 		return &Result{Error: err}
+	}
+	// If in a transaction, buffer the undo operation (re-add the entry on rollback)
+	if e.inTransaction {
+		entryCopy := *entry // make a copy for the closure
+		e.ddlBuffer = append(e.ddlBuffer, func() {
+			_ = e.schema.AddEntry(&entryCopy)
+		})
 	}
 	return &Result{}
 }
@@ -445,6 +473,25 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		}
 	}
 
+	// Check that the table exists and is not a system table
+	if _, err := e.schema.FindTable(tableName); err != nil {
+		return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+	}
+	tableUpper := strings.ToUpper(tableName)
+	if tableUpper == "SQLITE_MASTER" || tableUpper == "SQLITE_SCHEMA" || 
+	   tableUpper == "SQLITE_TEMP_MASTER" || tableUpper == "SQLITE_TEMP_SCHEMA" {
+		return &Result{Error: fmt.Errorf("cannot create trigger on system table")}
+	}
+
+	// Check for duplicate trigger name
+	if existing, _ := e.schema.FindTrigger(triggerName); existing != nil {
+		if !s.IfNotExists && !e.inTransaction {
+			return &Result{Error: fmt.Errorf("trigger %s already exists", triggerName)}
+		}
+		// During transaction, re-creating a trigger after ROLLBACK should succeed
+		return &Result{} 
+	}
+
 	// Build full trigger SQL including body
 	sqlStr := buildTriggerSQL(triggerName, s.Time, s.Event, tableName, s.When, s.Statements)
 
@@ -458,6 +505,15 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if err := e.schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
+
+	// If in a transaction, buffer the undo operation
+	if e.inTransaction {
+		entryName := triggerName
+		e.ddlBuffer = append(e.ddlBuffer, func() {
+			_ = e.schema.RemoveEntry(entryName)
+		})
+	}
+
 	return &Result{}
 }
 
@@ -1107,6 +1163,11 @@ func (e *Engine) fireAfterDeleteTriggers(tableName string) *Result {
 
 // fireTriggers fires triggers matching the given event for the table.
 func (e *Engine) fireTriggers(tableName, event string) *Result {
+	// Prevent recursive trigger firing by default (matches SQLite behavior
+	// where recursive_triggers pragma is OFF by default)
+	if e.triggerDepth > 0 {
+		return &Result{}
+	}
 	triggers, err := e.schema.FindTriggersForTable(tableName)
 	if err != nil || len(triggers) == 0 {
 		return &Result{}
@@ -1146,6 +1207,9 @@ func (e *Engine) fireTrigger(t *schema.Entry, event string) *Result {
 	if parser.Err() != nil {
 		return nil
 	}
+	// Increment trigger depth to prevent recursive trigger firing
+	e.triggerDepth++
+	defer func() { e.triggerDepth-- }()
 	for _, stmt := range stmts {
 		res := e.Exec(stmt)
 		if res.Error != nil {
@@ -1851,7 +1915,10 @@ func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []map[string]interfac
 	columns := e.buildColumnNames(s.Columns, nil)
 	var outRow []interface{}
 	for _, col := range s.Columns {
-		v := e.evalAggregateExpr(col.Expr, rowMaps)
+		v, err := e.evalAggregateExpr(col.Expr, rowMaps)
+		if err != nil {
+			return &Result{Error: err}
+		}
 		outRow = append(outRow, v)
 	}
 	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
@@ -1907,7 +1974,10 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []map[string]i
 		// Evaluate output row for this group
 		var outRow []interface{}
 		for _, col := range s.Columns {
-			v := e.evalAggregateExpr(col.Expr, groupRows)
+			v, err := e.evalAggregateExpr(col.Expr, groupRows)
+			if err != nil {
+				return &Result{Error: err}
+			}
 			outRow = append(outRow, v)
 		}
 
@@ -2002,7 +2072,7 @@ func (e *Engine) evalHavingFuncCall(v *sql.FuncCall, groupRows []map[string]inte
 		if v.Distinct {
 			return e.evalDistinctAggregate(v, groupRows), nil
 		}
-		return e.evalAggFuncCall(v, groupRows), nil
+		return e.evalAggFuncCall(v, groupRows)
 	}
 	if len(groupRows) > 0 {
 		return e.evalFuncCall(v, groupRows[0])
@@ -2088,31 +2158,39 @@ func (e *Engine) evalHavingDefault(expr sql.Expr, groupRows []map[string]interfa
 }
 
 
-func (e *Engine) evalAggregateExpr(expr sql.Expr, rowMaps []map[string]interface{}) interface{} {
+func (e *Engine) evalAggregateExpr(expr sql.Expr, rowMaps []map[string]interface{}) (interface{}, error) {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
 		if v.Distinct {
-			return e.evalDistinctAggregate(v, rowMaps)
+			return e.evalDistinctAggregate(v, rowMaps), nil
 		}
 		return e.evalAggFuncCall(v, rowMaps)
 	default:
 		if len(rowMaps) > 0 {
-			val, _ := e.evalExpr(expr, rowMaps[0])
-			return val
+			val, err := e.evalExpr(expr, rowMaps[0])
+			return val, err
 		}
-		return nil
+		return nil, nil
 	}
 }
 
-func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface{}) interface{} {
+func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface{}) (interface{}, error) {
 	fn, ok := e.funcs.Find(v.Name)
 	if !ok || fn.Type != function.TypeAggregate {
 		if len(rowMaps) > 0 {
 			val, _ := e.evalExpr(v, rowMaps[0])
-			return val
+			return val, nil
 		}
-		return nil
+		return nil, nil
 	}
+
+	// Check for nested aggregate functions (SQLite prohibits this)
+	for _, arg := range v.Args {
+		if nested := findNestedAggregate(arg, e.funcs); nested != "" {
+			return nil, fmt.Errorf("misuse of aggregate function %s()", nested)
+		}
+	}
+
 	agg := fn.AggregateFn()
 
 	for _, row := range rowMaps {
@@ -2128,7 +2206,99 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface
 		agg.Step(args)
 	}
 	result, _ := agg.Final()
-	return result
+	return result, nil
+}
+
+// findNestedAggregate checks if an expression tree contains an aggregate function call
+// and returns its name. It does NOT descend into subqueries, since subqueries have
+// their own evaluation context. Returns "" if no nested aggregate is found.
+func findNestedAggregate(expr sql.Expr, funcs *function.Registry) string {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		// Check if this function itself is an aggregate
+		if fn, ok := funcs.Find(v.Name); ok && fn.Type == function.TypeAggregate {
+			return v.Name
+		}
+		// Check arguments of scalar functions
+		for _, arg := range v.Args {
+			if nested := findNestedAggregate(arg, funcs); nested != "" {
+				return nested
+			}
+		}
+		return ""
+	case *sql.BinaryOp:
+		if nested := findNestedAggregate(v.Left, funcs); nested != "" {
+			return nested
+		}
+		return findNestedAggregate(v.Right, funcs)
+	case *sql.UnaryOp:
+		return findNestedAggregate(v.Operand, funcs)
+	case *sql.IsNull:
+		return findNestedAggregate(v.Operand, funcs)
+	case *sql.IsNotNull:
+		return findNestedAggregate(v.Operand, funcs)
+	case *sql.IsDistinctFrom:
+		if nested := findNestedAggregate(v.Left, funcs); nested != "" {
+			return nested
+		}
+		return findNestedAggregate(v.Right, funcs)
+	case *sql.IsNotDistinctFrom:
+		if nested := findNestedAggregate(v.Left, funcs); nested != "" {
+			return nested
+		}
+		return findNestedAggregate(v.Right, funcs)
+	case *sql.Between:
+		if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
+			return nested
+		}
+		if nested := findNestedAggregate(v.Low, funcs); nested != "" {
+			return nested
+		}
+		return findNestedAggregate(v.High, funcs)
+	case *sql.InList:
+		if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
+			return nested
+		}
+		for _, item := range v.List {
+			if nested := findNestedAggregate(item, funcs); nested != "" {
+				return nested
+			}
+		}
+		return ""
+	case *sql.CaseExpr:
+		if v.Operand != nil {
+			if nested := findNestedAggregate(v.Operand, funcs); nested != "" {
+				return nested
+			}
+		}
+		for _, w := range v.Whens {
+			if nested := findNestedAggregate(w.When, funcs); nested != "" {
+				return nested
+			}
+			if nested := findNestedAggregate(w.Then, funcs); nested != "" {
+				return nested
+			}
+		}
+		if v.Else != nil {
+			return findNestedAggregate(v.Else, funcs)
+		}
+		return ""
+	case *sql.CastExpr:
+		return findNestedAggregate(v.Operand, funcs)
+	case *sql.RowValue:
+		for _, val := range v.Values {
+			if nested := findNestedAggregate(val, funcs); nested != "" {
+				return nested
+			}
+		}
+		return ""
+	case *sql.Subquery, *sql.ExistsExpr:
+		// Don't descend into subqueries — they have their own scope
+		return ""
+	default:
+		// ColumnRef, NumericLit, StringLit, NullLit — no function calls
+		return ""
+	}
 }
 
 // evalDistinctAggregate evaluates an aggregate function with DISTINCT,
@@ -2565,9 +2735,31 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 // --- COMMIT ---
 
 func (e *Engine) execCommit() *Result {
+	e.inTransaction = false
+	e.ddlBuffer = nil
 	if err := e.pager.Flush(); err != nil {
 		return &Result{Error: err}
 	}
+	return &Result{}
+}
+
+// --- BEGIN TRANSACTION ---
+
+func (e *Engine) execBegin() *Result {
+	e.inTransaction = true
+	e.ddlBuffer = nil
+	return &Result{}
+}
+
+// --- ROLLBACK ---
+
+func (e *Engine) execRollback() *Result {
+	e.inTransaction = false
+	// Undo all DDL operations that were performed during the transaction
+	for i := len(e.ddlBuffer) - 1; i >= 0; i-- {
+		e.ddlBuffer[i]()
+	}
+	e.ddlBuffer = nil
 	return &Result{}
 }
 

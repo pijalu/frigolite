@@ -3,7 +3,7 @@
   "name": "selectB",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "selectB-1.1",
       "steps": [
         {
           "type": "exec",
@@ -11,11 +11,42 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n\n    INSERT INTO t1 VALUES( 2,  4,  6);\n    INSERT INTO t1 VALUES( 8, 10, 12);\n    INSERT INTO t1 VALUES(14, 16, 18);\n\n    INSERT INTO t2 VALUES(3,   6,  9);\n    INSERT INTO t2 VALUES(12, 15, 18);\n    INSERT INTO t2 VALUES(21, 24, 27);"
+        }
+      ]
+    },
+    {
+      "name": "selectB-2.1",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(a);\n        CREATE INDEX i2 ON t2(d);"
         },
         {
           "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);\n        CREATE INDEX i2 ON t2(d);"
+        }
+      ]
+    },
+    {
+      "name": "selectB-3.0",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "DROP INDEX i1;\n    DROP INDEX i2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    DROP INDEX i2;"
+        }
+      ]
+    },
+    {
+      "name": "selectB-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);\n          CREATE INDEX i2 ON t1(b);\n          CREATE INDEX i3 ON t1(c);\n          CREATE INDEX i4 ON t2(d);\n          CREATE INDEX i5 ON t2(e);\n          CREATE INDEX i6 ON t2(f);"
         },
         {
           "type": "exec",

@@ -3,8 +3,12 @@
   "name": "nulls1",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);"
+        },
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t3(a)"
@@ -33,6 +37,26 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE a=1 ORDER BY b NULLS LAST",
+          "expect": "1 1 1    1 4 4   1 {} 2   1 {} 3"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 WHERE a=1 ORDER BY b DESC NULLS FIRST",
+          "expect": "1 {} 3\n  1 {} 2     \n  1 4 4     \n  1 1 1"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -50,12 +74,52 @@
       ]
     },
     {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE first(nulls, last);\n  INSERT INTO first(last, nulls) VALUES(100,200), (300,400), (200,300);\n  SELECT * FROM first ORDER BY nulls;",
+          "expect": "200 100\n  300 200\n  400 300"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx ORDER BY b NULLS FIRST;",
+          "expect": "2 {} 2  4 {} 4  1 1 1  3 3 3  5 5 5"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM te ORDER BY b NULLS FIRST;",
+          "expect": "2 {} 2  4 {} 4  1 1 1  3 3 3  5 5 5"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tx ORDER BY b NULLS LAST;",
+          "expect": "1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4"
+        }
+      ]
+    },
+    {
       "name": "4.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM te ORDER BY b NULLS LAST;",
-          "expect": "{1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4}"
+          "expect": "1 1 1  3 3 3  5 5 5  2 {} 2  4 {} 4"
         }
       ]
     },
@@ -69,12 +133,41 @@
       ]
     },
     {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a, b NULLS LAST",
+          "expect": "1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4ab ON t4(a, b);\n  SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a, b NULLS LAST",
+          "expect": "1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a DESC, b DESC NULLS FIRST",
+          "expect": "3 {} 3   3 {} 1   3 2 12   \n  2 {} 1   2 2 12   2 1 11   \n  1 {} 1   1 2 12   1 1 11"
+        }
+      ]
+    },
+    {
       "name": "6.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;",
-          "expect": "set res1 [db eval { SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c }]"
+          "sql": "CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;"
         },
         {
           "type": "exec",
@@ -91,8 +184,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;",
-          "expect": "$res1"
+          "sql": "CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;"
         }
       ]
     },
@@ -101,8 +193,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC",
-          "expect": "$res2"
+          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC"
         }
       ]
     },
@@ -111,8 +202,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t71(a, b, c);\n  CREATE INDEX t71abc ON t71(a, b, c);\n\n  SELECT * FROM t71 WHERE a=1 AND b=2 ORDER BY c NULLS LAST;\n  SELECT * FROM t71 WHERE a=1 AND b=2 ORDER BY c DESC NULLS FIRST;\n\n  SELECT * FROM t71 ORDER BY a NULLS LAST;\n  SELECT * FROM t71 ORDER BY a DESC NULLS FIRST;",
-          "expect": "# 2019-12-18 gramfuzz1 find"
+          "sql": "CREATE TABLE t71(a, b, c);\n  CREATE INDEX t71abc ON t71(a, b, c);\n\n  SELECT * FROM t71 WHERE a=1 AND b=2 ORDER BY c NULLS LAST;\n  SELECT * FROM t71 WHERE a=1 AND b=2 ORDER BY c DESC NULLS FIRST;\n\n  SELECT * FROM t71 ORDER BY a NULLS LAST;\n  SELECT * FROM t71 ORDER BY a DESC NULLS FIRST;"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t80(a, b INTEGER, PRIMARY KEY(b NULLS LAST)) WITHOUT ROWID;",
+          "expect": "1 {unsupported use of NULLS LAST}"
         }
       ]
     },
@@ -143,6 +243,16 @@
       ]
     },
     {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c1, c2, ifnull(c3, 'NULL') FROM v0 \n  WHERE c2=10 ORDER BY c1, c3 NULLS LAST",
+          "expect": "1 10 a 1 10 b 1 10 c 1 10 d 1 10 NULL 1 10 NULL\n  2 10 a 2 10 b 2 10 c 2 10 d 2 10 NULL 2 10 NULL"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -156,7 +266,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('X');\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT c FROM t1 LEFT JOIN t2 ON d=NULL ORDER BY d, c NULLS LAST;",
-          "expect": "{{}}"
+          "expect": "{}"
         }
       ]
     },
@@ -166,7 +276,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t2(c,d) VALUES(5,'X'),(6,'Y'),(7,'Z'),(3,'A'),(4,'B');\n  SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY d, c NULLS LAST;",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -176,7 +286,7 @@
         {
           "type": "exec",
           "sql": "UPDATE t2 SET d='X';\n  UPDATE t2 SET c=NULL WHERE c=6;\n  SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY d NULLS FIRST, c NULLS FIRST;",
-          "expect": "{{} 3 4 5 7}"
+          "expect": "{} 3 4 5 7"
         }
       ]
     },
@@ -186,7 +296,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY d NULLS LAST, c NULLS LAST;",
-          "expect": "{3 4 5 7 {}}"
+          "expect": "3 4 5 7 {}"
         }
       ]
     },
@@ -196,7 +306,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY c NULLS LAST;",
-          "expect": "{3 4 5 7 {}}"
+          "expect": "3 4 5 7 {}"
         }
       ]
     },
@@ -206,7 +316,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY +d NULLS LAST, +c NULLS LAST;",
-          "expect": "{3 4 5 7 {}}"
+          "expect": "3 4 5 7 {}"
         }
       ]
     },
@@ -216,7 +326,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1(x) VALUES(NULL),('Y');\n  SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY d NULLS LAST, c NULLS LAST;",
-          "expect": "{X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |}"
+          "expect": "X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |"
+        }
+      ]
+    },
+    {
+      "name": "10.51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY +d NULLS LAST, +c NULLS LAST;",
+          "expect": "X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |"
         }
       ]
     }

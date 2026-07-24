@@ -3,6 +3,16 @@
   "name": "tkt_4ef7e3cfca",
   "tests": [
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(a);\n  CREATE TRIGGER t AFTER INSERT ON x BEGIN\n    SELECT * FROM x WHERE abc.a = 1;\n  END;\n  INSERT INTO x VALUES('assert');",
+          "expect": "1 {no such column: abc.a}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -20,6 +30,16 @@
       ]
     },
     {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM z;",
+          "expect": "15"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -33,6 +53,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE w(a);\n  CREATE TABLE x(b);\n  CREATE TABLE y(a);\n  CREATE TABLE z(a);\n\n  INSERT INTO x(b) VALUES(5);\n  INSERT INTO y(a) VALUES(10);\n\n  CREATE TRIGGER t AFTER INSERT ON w BEGIN\n    INSERT INTO z\n    SELECT (SELECT x.b + y.a FROM y) FROM x;\n  END;\n  INSERT INTO w VALUES('assert');"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM z;",
+          "expect": "15"
         }
       ]
     }

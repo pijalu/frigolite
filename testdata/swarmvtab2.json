@@ -8,7 +8,7 @@
         {
           "type": "query",
           "sql": "SELECT b FROM v1 WHERE a=3875;",
-          "expect": "{**03875**}"
+          "expect": "**03875**"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "SELECT b FROM v1 WHERE a BETWEEN 3999 AND 4000 ORDER BY a;",
-          "expect": "{**03999** **04000**}"
+          "expect": "**03999** **04000**"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "type": "query",
           "sql": "SELECT b FROM v1 WHERE a>=99998;",
-          "expect": "{**99998** **99999**}"
+          "expect": "**99998** **99999**"
         }
       ]
     }

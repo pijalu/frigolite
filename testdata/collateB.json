@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, x1 INT COLLATE NOCASE);\n  CREATE TABLE t3(x2 INT);\n  SELECT * FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, x1 INT COLLATE NOCASE);\n  CREATE TABLE t3(x2 INT);\n  SELECT * FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;"
         }
       ]
     },
@@ -18,7 +17,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1(a) VALUES(1),(2),(3);\n  INSERT INTO t2(b,x1) VALUES(11,1),(22,2),(33,3);\n  INSERT INTO t3(x2) VALUES(11),(22),(33);\n  SELECT *,'|' FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{11 11 1 1 |}"
+          "expect": "11 11 1 1 |"
         }
       ]
     },
@@ -28,7 +27,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t3, t1, t2 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{11 1 11 1 |}"
+          "expect": "11 1 11 1 |"
         }
       ]
     },
@@ -38,7 +37,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t2, t3, t1 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{11 1 11 1 |}"
+          "expect": "11 1 11 1 |"
         }
       ]
     },
@@ -48,7 +47,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t2, t1, t3 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{11 1 1 11 |}"
+          "expect": "11 1 1 11 |"
         }
       ]
     },
@@ -58,7 +57,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t1, t2, t3 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{1 11 1 11 |}"
+          "expect": "1 11 1 11 |"
         }
       ]
     },
@@ -68,7 +67,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t1, t2, t3 WHERE x2=b AND x1=a AND a=1;",
-          "expect": "{1 11 1 11 |}"
+          "expect": "1 11 1 11 |"
         }
       ]
     },
@@ -78,7 +77,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t3, t2, t1 WHERE b=x2 AND a=x1 AND 1=a;",
-          "expect": "{11 11 1 1 |}"
+          "expect": "11 11 1 1 |"
         }
       ]
     },
@@ -88,7 +87,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t3, t1, t2 WHERE b=x2 AND a=x1 AND 1=a;",
-          "expect": "{11 1 11 1 |}"
+          "expect": "11 1 11 1 |"
         }
       ]
     },
@@ -98,7 +97,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t2, t3, t1 WHERE b=x2 AND a=x1 AND 1=a;",
-          "expect": "{11 1 11 1 |}"
+          "expect": "11 1 11 1 |"
         }
       ]
     },
@@ -108,7 +107,7 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t2, t1, t3 WHERE b=x2 AND a=x1 AND 1=a;",
-          "expect": "{11 1 1 11 |}"
+          "expect": "11 1 1 11 |"
         }
       ]
     },
@@ -118,7 +117,17 @@
         {
           "type": "query",
           "sql": "SELECT *,'|' FROM t1, t2, t3 WHERE b=x2 AND a=x1 AND 1=a;",
-          "expect": "{1 11 1 11 |}"
+          "expect": "1 11 1 11 |"
+        }
+      ]
+    },
+    {
+      "name": "collateB-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *,'|' FROM t1, t2, t3 WHERE b=x2 AND a=x1 AND 1=a;",
+          "expect": "1 11 1 11 |"
         }
       ]
     },

@@ -2,7 +2,6 @@ package frigolite
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,18 +91,18 @@ func TestSQLiteSuite(t *testing.T) {
 								return
 							}
 						case "query":
-							res := db.Query(step.SQL)
-							if res.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
-								return
-							}
-							if step.Expect != "" {
-								got := flattenResult(res)
-								want := cleanExpected(step.Expect)
-								if got != want {
-									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								res := db.Query(step.SQL)
+								if res.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", res.Error, step.SQL)
+									return
 								}
-							}
+								if step.Expect != "" {
+									got := flattenResult(res)
+									want := cleanExpected(step.Expect)
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
 						}
 					}
 				})
@@ -119,7 +118,7 @@ func flattenResult(res *Result) string {
 			if val == nil {
 				parts = append(parts, "NULL")
 			} else {
-				parts = append(parts, fmt.Sprintf("%v", val))
+				parts = append(parts, formatSQLiteValue(val))
 			}
 		}
 	}
@@ -128,7 +127,29 @@ func flattenResult(res *Result) string {
 
 func cleanExpected(s string) string {
 	s = strings.TrimSpace(s)
-	s = strings.Trim(s, "{}")
+	// Only strip outermost braces if the entire string is enclosed in them
+	if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+		// Check if braces are balanced
+		depth := 0
+		fullyBraced := true
+		for i, ch := range s {
+			switch ch {
+			case '{':
+				depth++
+			case '}':
+				depth--
+				if depth == 0 && i < len(s)-1 {
+					fullyBraced = false
+				}
+			}
+			if depth < 0 {
+				break
+			}
+		}
+		if fullyBraced && depth == 0 {
+			s = s[1 : len(s)-1]
+		}
+	}
 	return strings.TrimSpace(s)
 }
 

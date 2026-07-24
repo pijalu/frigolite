@@ -8,7 +8,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(123),(456);\n  SELECT a FROM t1 ORDER BY a;",
-          "expect": "{123 456}"
+          "expect": "123 456"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "PRAGMA query_only;",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -28,7 +28,87 @@
         {
           "type": "query",
           "sql": "PRAGMA query_only=ON;\n  PRAGMA query_only;",
-          "expect": "{1}"
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(789);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=a+1;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(b);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1a ON t1(a);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 ORDER BY a;",
+          "expect": "123 456"
         }
       ]
     },
@@ -38,7 +118,7 @@
         {
           "type": "query",
           "sql": "PRAGMA query_only;",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -48,7 +128,7 @@
         {
           "type": "query",
           "sql": "PRAGMA query_only=OFF;\n  PRAGMA query_only;",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -58,7 +138,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(789);\n  SELECT a FROM t1 ORDER BY a;",
-          "expect": "{123 456 789}"
+          "expect": "123 456 789"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=a+1;\n  SELECT a FROM t1 ORDER BY a;",
+          "expect": "124 457 790"
         }
       ]
     }

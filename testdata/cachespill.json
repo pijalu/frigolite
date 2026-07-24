@@ -16,8 +16,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK",
-          "expect": "finish_test"
+          "sql": "ROLLBACK"
         }
       ]
     }

@@ -8,7 +8,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1;",
-          "expect": "{123}"
+          "expect": "123"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO sqlite_stat1(a)\n  VALUES('We hold these truths to be self-evident...');\n  SELECT * FROM sqlite_stat1;",
-          "expect": "{{We hold these truths to be self-evident...}}"
+          "expect": "{We hold these truths to be self-evident...}"
         }
       ]
     },
@@ -28,7 +28,17 @@
         {
           "type": "exec",
           "sql": "ANALYZE;",
-          "expect": "{1 {database disk image is malformed}}"
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
         }
       ]
     },
@@ -37,6 +47,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "Ebed-malech"
         }
       ]
     },

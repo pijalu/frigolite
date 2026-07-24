@@ -3,19 +3,54 @@
   "name": "tkt2450",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt2450-1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";"
+        }
+      ]
+    },
+    {
+      "name": "tkt2450-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM \"t a\";",
+          "expect": "1"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM \"t a\";"
+        }
+      ]
+    },
+    {
+      "name": "tkt2450-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \"t a\".* FROM \"t a\";",
+          "expect": "1"
         },
         {
           "type": "exec",
           "sql": "SELECT \"t a\".* FROM \"t a\";"
+        }
+      ]
+    },
+    {
+      "name": "tkt2450-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM \"t a\", t1;",
+          "expect": "1 2"
         },
         {
           "type": "exec",

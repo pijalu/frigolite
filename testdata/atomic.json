@@ -24,8 +24,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;",
-          "expect": "finish_test"
+          "sql": "COMMIT;"
         }
       ]
     }

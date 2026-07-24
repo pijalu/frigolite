@@ -35,7 +35,7 @@
         {
           "type": "query",
           "sql": "SELECT c=='Abc' FROM t1",
-          "expect": "{1     1}"
+          "expect": "1     1"
         }
       ]
     },
@@ -45,7 +45,7 @@
         {
           "type": "query",
           "sql": "SELECT b=='2' FROM t1",
-          "expect": "{1     0}"
+          "expect": "1     0"
         }
       ]
     },
@@ -89,7 +89,7 @@
         {
           "type": "query",
           "sql": "SELECT b, b=count(*), '1,2'                   FROM t1 GROUP BY b;",
-          "expect": "{1 0 1,2 2 1 1,2}"
+          "expect": "1 0 1,2 2 1 1,2"
         }
       ]
     },
@@ -136,6 +136,15 @@
       ]
     },
     {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -149,6 +158,26 @@
         {
           "type": "exec",
           "sql": "CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min( max((SELECT x FROM v1)) ) OVER()",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT(\n      SELECT x UNION \n      SELECT sum( avg((SELECT x FROM v1)) ) OVER()\n  )\n  FROM v1;",
+          "expect": "0.0 0.0"
         }
       ]
     },

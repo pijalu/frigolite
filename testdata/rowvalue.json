@@ -35,7 +35,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1);",
-          "expect": "{i}"
+          "expect": "i"
         }
       ]
     },
@@ -45,7 +45,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc' COLLATE nocase, 1);",
-          "expect": "{i}"
+          "expect": "i"
         }
       ]
     },
@@ -55,7 +55,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE a = (SELECT 'abc' COLLATE nocase) AND b = (SELECT 1);",
-          "expect": "{i}"
+          "expect": "i"
         }
       ]
     },
@@ -65,7 +65,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE +a = (SELECT 'abc' COLLATE nocase) AND b = (SELECT 1);",
-          "expect": "{i}"
+          "expect": "i"
         }
       ]
     },
@@ -75,7 +75,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE a = (SELECT 'abc') COLLATE nocase AND b = (SELECT 1);",
-          "expect": "{i ii}"
+          "expect": "i ii"
         }
       ]
     },
@@ -83,9 +83,9 @@
       "name": "6.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT c FROM hh WHERE (a, b) = (SELECT 'abc', 1) COLLATE nocase;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -93,9 +93,9 @@
       "name": "6.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT c FROM hh WHERE (a, b) = 1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -105,7 +105,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE (a COLLATE nocase, b) = (SELECT 'def', 2);",
-          "expect": "{iii iv}"
+          "expect": "iii iv"
         }
       ]
     },
@@ -115,7 +115,17 @@
         {
           "type": "query",
           "sql": "SELECT c FROM hh WHERE (a COLLATE nocase, b) IS NOT (SELECT 'def', 2);",
-          "expect": "{i ii v vi}"
+          "expect": "i ii v vi"
+        }
+      ]
+    },
+    {
+      "name": "6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM hh WHERE (b, a) = (SELECT 2, 'def');",
+          "expect": "iii"
         }
       ]
     },
@@ -170,7 +180,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t11(a);\n  SELECT * FROM t11 WHERE (a,a)<=1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -178,9 +188,9 @@
       "name": "11.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t11 WHERE (a,a)<1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -188,9 +198,9 @@
       "name": "11.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t11 WHERE (a,a)>=1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -198,9 +208,9 @@
       "name": "11.4",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t11 WHERE (a,a)>1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -208,9 +218,9 @@
       "name": "11.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t11 WHERE (a,a)==1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -218,9 +228,9 @@
       "name": "11.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t11 WHERE (a,a)<>1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -228,9 +238,19 @@
       "name": "11.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t11 WHERE (a,a) IS 1;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
+        }
+      ]
+    },
+    {
+      "name": "11.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t11 WHERE (a,a) IS NOT 1;",
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -240,7 +260,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT,b INT); INSERT INTO t1 VALUES(1,2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INT,y INT); INSERT INTO t2 VALUES(3,4);\n  SELECT *,'x' FROM t1 LEFT JOIN t2 ON (a,b)=(x,y);",
-          "expect": "{1 2 {} {} x}"
+          "expect": "1 2 {} {} x"
         }
       ]
     },
@@ -250,7 +270,7 @@
         {
           "type": "query",
           "sql": "SELECT t1.*, t2.* FROM t2 RIGHT JOIN t1 ON (a,b)=(x,y);",
-          "expect": "{1 2 - -}"
+          "expect": "1 2 - -"
         }
       ]
     },
@@ -260,7 +280,7 @@
         {
           "type": "query",
           "sql": "SELECT t1.*, t2.* FROM t1 FULL JOIN t2 ON (a,b)=(x,y)\n   ORDER BY coalesce(a,x);",
-          "expect": "{\n  1 2 - -\n  - - 3 4\n}"
+          "expect": "1 2 - -\n  - - 3 4"
         }
       ]
     },
@@ -269,8 +289,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);",
-          "expect": "do_execsql_test 14.1 \"SELECT 1 WHERE (2,2) BETWEEN (1,1) AND (3,3)\" 1"
+          "sql": "CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);"
+        }
+      ]
+    },
+    {
+      "name": "14.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t12 WHERE (1,x) BETWEEN (1,1) AND (3,3)",
+          "expect": "1 1"
         }
       ]
     },
@@ -289,7 +318,7 @@
         {
           "type": "exec",
           "sql": "DETACH (SELECT * FROM (SELECT 1,2))<3;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -299,7 +328,7 @@
         {
           "type": "exec",
           "sql": "UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;",
-          "expect": "{1 {row value misused}}"
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -309,7 +338,7 @@
         {
           "type": "exec",
           "sql": "UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));",
-          "expect": "{1 {sub-select returns 2 columns - expected 1}}"
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
         }
       ]
     },
@@ -319,7 +348,17 @@
         {
           "type": "exec",
           "sql": "DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));",
-          "expect": "{1 {sub-select returns 2 columns - expected 1}}"
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "15.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(a,b) VALUES(1,(SELECT * FROM (SELECT 1,2))<3);",
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -329,7 +368,47 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t16a(a,b,c);\n  INSERT INTO t16a VALUES(1,2,3);\n  CREATE TABLE t16b(x);\n  INSERT INTO t16b(x) VALUES(1);\n  CREATE TRIGGER t16r AFTER UPDATE ON t16b BEGIN\n     UPDATE t16a SET (a,b,c)=(SELECT new.x,new.x+1,new.x+2);\n  END;\n  UPDATE t16b SET x=7;\n  SELECT * FROM t16a;",
-          "expect": "{7 8 9}"
+          "expect": "7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t16b SET x=97;\n  SELECT * FROM t16a;",
+          "expect": "97 98 99"
+        }
+      ]
+    },
+    {
+      "name": "16.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t16c(a, b, c, d, e);\n  INSERT INTO t16c VALUES(1, 'a', 'b', 'c', 'd');\n  CREATE TRIGGER t16c1 AFTER INSERT ON t16c BEGIN\n    UPDATE t16c SET (c, d) = (SELECT 'A', 'B'), (e, b) = (SELECT 'C', 'D')\n      WHERE a = new.a-1;\n  END;\n\n  SELECT * FROM t16c;",
+          "expect": "1 a b c d"
+        }
+      ]
+    },
+    {
+      "name": "16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t16c VALUES(2, 'w', 'x', 'y', 'z');\n  SELECT * FROM t16c;",
+          "expect": "1 D A B C \n  2 w x y z"
+        }
+      ]
+    },
+    {
+      "name": "16.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t16c1;\n  PRAGMA recursive_triggers = 1;\n  INSERT INTO t16c VALUES(3, 'i', 'ii', 'iii', 'iv');\n  CREATE TRIGGER t16c1 AFTER UPDATE ON t16c WHEN new.a>1 BEGIN\n    UPDATE t16c SET (e, d) = (\n      SELECT b, c FROM t16c WHERE a = new.a-1\n    ), (c, b) = (\n      SELECT d, e FROM t16c WHERE a = new.a-1\n    ) WHERE a = new.a-1;\n  END;\n\n  UPDATE t16c SET a=a WHERE a=3;\n  SELECT * FROM t16c;",
+          "expect": "1 C B A D\n  2 z y x w\n  3 i ii iii iv"
         }
       ]
     },
@@ -339,6 +418,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE b1(a, b);\n  CREATE TABLE b2(x);"
+        }
+      ]
+    },
+    {
+      "name": "17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b2 CROSS JOIN b1 \n  WHERE b2.x=b1.a AND (b1.a, 2) \n  IN (VALUES(1, 2));"
         }
       ]
     },
@@ -357,7 +445,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM b3 WHERE (SELECT b3.a, b3.b) IN ( SELECT a, b FROM b5 )",
-          "expect": "{1 1 1 2}"
+          "expect": "1 1 1 2"
         }
       ]
     },
@@ -367,7 +455,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM b3 WHERE (VALUES(b3.a, b3.b)) IN ( SELECT a, b FROM b5 );",
-          "expect": "{1 1 1 2}"
+          "expect": "1 1 1 2"
         }
       ]
     },
@@ -377,7 +465,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM b3 WHERE (b3.a, b3.b) IN ( SELECT a, b FROM b5 );",
-          "expect": "{1 1 1 2}"
+          "expect": "1 1 1 2"
         }
       ]
     },
@@ -387,7 +475,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (SELECT b3.a, b3.b) IN ( SELECT a, b FROM b5 );",
-          "expect": "{1 1 1 1 2 1}"
+          "expect": "1 1 1 1 2 1"
         }
       ]
     },
@@ -397,7 +485,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (VALUES(b3.a, b3.b)) IN ( SELECT a, b FROM b5 );",
-          "expect": "{1 1 1 1 2 1}"
+          "expect": "1 1 1 1 2 1"
+        }
+      ]
+    },
+    {
+      "name": "18.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (b3.a, b3.b) IN ( SELECT a, b FROM b5 );",
+          "expect": "1 1 1 1 2 1"
         }
       ]
     },
@@ -407,7 +505,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1(a,b) VALUES(1,11),(2,22),(3,33),(4,44);\n  SELECT * FROM t1 WHERE (a,b)>(0,0) ORDER BY a;",
-          "expect": "{1 11 2 22 3 33 4 44}"
+          "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
@@ -417,7 +515,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>=(0,0) ORDER BY a;",
-          "expect": "{1 11 2 22 3 33 4 44}"
+          "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
@@ -427,7 +525,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<(5,0) ORDER BY a DESC;",
-          "expect": "{4 44 3 33 2 22 1 11}"
+          "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
@@ -437,7 +535,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<=(5,0) ORDER BY a DESC;",
-          "expect": "{4 44 3 33 2 22 1 11}"
+          "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
@@ -447,7 +545,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>(3,0) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -457,7 +555,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,0) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -467,7 +565,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<(3,0) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -477,7 +575,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,0) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -487,7 +585,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>(3,32) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -497,7 +595,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>(3,33) ORDER BY a;",
-          "expect": "{4 44}"
+          "expect": "4 44"
         }
       ]
     },
@@ -507,7 +605,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,33) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -517,7 +615,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)>=(3,34) ORDER BY a;",
-          "expect": "{4 44}"
+          "expect": "4 44"
         }
       ]
     },
@@ -527,7 +625,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<(3,34) ORDER BY a DESC;",
-          "expect": "{3 33 2 22 1 11}"
+          "expect": "3 33 2 22 1 11"
         }
       ]
     },
@@ -537,7 +635,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<(3,33) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -547,7 +645,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,33) ORDER BY a DESC;",
-          "expect": "{3 33 2 22 1 11}"
+          "expect": "3 33 2 22 1 11"
         }
       ]
     },
@@ -557,7 +655,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b)<=(3,32) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -567,7 +665,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (0,0)<(a,b) ORDER BY a;",
-          "expect": "{1 11 2 22 3 33 4 44}"
+          "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
@@ -577,7 +675,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (0,0)<=(a,b) ORDER BY a;",
-          "expect": "{1 11 2 22 3 33 4 44}"
+          "expect": "1 11 2 22 3 33 4 44"
         }
       ]
     },
@@ -587,7 +685,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (5,0)>(a,b) ORDER BY a DESC;",
-          "expect": "{4 44 3 33 2 22 1 11}"
+          "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
@@ -597,7 +695,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (5,0)>=(a,b) ORDER BY a DESC;",
-          "expect": "{4 44 3 33 2 22 1 11}"
+          "expect": "4 44 3 33 2 22 1 11"
         }
       ]
     },
@@ -607,7 +705,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,0)<(a,b) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -617,7 +715,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,0)<=(a,b) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -627,7 +725,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,0)>(a,b) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -637,7 +735,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,0)>=(a,b) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -647,7 +745,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,32)<(a,b) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -657,7 +755,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,33)<(a,b) ORDER BY a;",
-          "expect": "{4 44}"
+          "expect": "4 44"
         }
       ]
     },
@@ -667,7 +765,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,33)<=(a,b) ORDER BY a;",
-          "expect": "{3 33 4 44}"
+          "expect": "3 33 4 44"
         }
       ]
     },
@@ -677,7 +775,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,34)<=(a,b) ORDER BY a;",
-          "expect": "{4 44}"
+          "expect": "4 44"
         }
       ]
     },
@@ -687,7 +785,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,34)>(a,b) ORDER BY a DESC;",
-          "expect": "{3 33 2 22 1 11}"
+          "expect": "3 33 2 22 1 11"
         }
       ]
     },
@@ -697,7 +795,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,33)>(a,b) ORDER BY a DESC;",
-          "expect": "{2 22 1 11}"
+          "expect": "2 22 1 11"
         }
       ]
     },
@@ -707,7 +805,47 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (3,33)>=(a,b) ORDER BY a DESC;",
-          "expect": "{3 33 2 22 1 11}"
+          "expect": "3 33 2 22 1 11"
+        }
+      ]
+    },
+    {
+      "name": "19.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (3,32)>=(a,b) ORDER BY a DESC;",
+          "expect": "2 22 1 11"
+        }
+      ]
+    },
+    {
+      "name": "20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 WHERE (2,(2,0)) IS (2,(2,0));",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "21.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,PRIMARY KEY(b,b));\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT * FROM t1 WHERE (a,b) IN (VALUES(1,2));",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "22.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT 3,4 UNION SELECT 5,6 ORDER BY 1) IN (SELECT 3,4);\n  SELECT (SELECT 3,4 UNION SELECT 5,6 ORDER BY 1) IN (SELECT 5,6);\n  SELECT (SELECT 5,6 UNION SELECT 3,4 ORDER BY 1) IN (SELECT 3,4);\n  SELECT (SELECT 5,6 UNION SELECT 3,4 ORDER BY 1) IN (SELECT 5,6);\n  SELECT (SELECT 3,4 UNION SELECT 5,6 ORDER BY 1 DESC) IN (SELECT 3,4);\n  SELECT (SELECT 3,4 UNION SELECT 5,6 ORDER BY 1 DESC) IN (SELECT 5,6);\n  SELECT (SELECT 5,6 UNION SELECT 3,4 ORDER BY 1 DESC) IN (SELECT 3,4);\n  SELECT (SELECT 5,6 UNION SELECT 3,4 ORDER BY 1 DESC) IN (SELECT 5,6);",
+          "expect": "1 0 1 0 0 1 0 1"
         }
       ]
     },
@@ -717,7 +855,27 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa COLLATE NOCASE, bb);\n  INSERT INTO t0 VALUES('a', 'A');\n  SELECT (+bb,1) >= (aa, 1), (aa,1)<=(+bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (+bb,1) >= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) <= (+bb,1);",
-          "expect": "{0 1 3}"
+          "expect": "0 1 3"
+        }
+      ]
+    },
+    {
+      "name": "23.110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT +bb,1) >= (aa, 1), (aa,1)<=(SELECT +bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (SELECT +bb,1) >= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) <= (SELECT +bb,1);",
+          "expect": "0 1 3"
+        }
+      ]
+    },
+    {
+      "name": "24.100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 TEXT PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES ('');\n  SELECT (t0.c0, TRUE) > (CAST(0 AS REAL), FALSE) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, TRUE) > (CAST('' AS REAL), FALSE);",
+          "expect": "1 2"
         }
       ]
     },
@@ -727,7 +885,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES('a');\n  SELECT (t0.c0, 0) < ('B' COLLATE NOCASE, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, 0) < ('B' COLLATE NOCASE, 0);",
-          "expect": "{1 2}"
+          "expect": "1 2"
         }
       ]
     },
@@ -737,7 +895,7 @@
         {
           "type": "query",
           "sql": "SELECT ('B' COLLATE NOCASE, 0)> (t0.c0, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B' COLLATE NOCASE, 0)> (t0.c0, 0);",
-          "expect": "{1 2}"
+          "expect": "1 2"
         }
       ]
     },
@@ -747,7 +905,25 @@
         {
           "type": "query",
           "sql": "SELECT ('B', 0)> (t0.c0 COLLATE nocase, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE ('B', 0)> (t0.c0 COLLATE nocase, 0);",
-          "expect": "{1 2}"
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "25.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (t0.c0 COLLATE nocase, 0) < ('B', 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0 COLLATE nocase, 0) < ('B', 0);",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },
@@ -757,7 +933,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1);\n  INSERT INTO t1(c1) VALUES (0);\n  SELECT (c0, x'') != (NULL, 0) FROM t1 LEFT JOIN t0;",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -767,7 +943,7 @@
         {
           "type": "query",
           "sql": "SELECT 2 FROM t1 LEFT JOIN t0 ON (c0, x'') != (NULL, 0);",
-          "expect": "{2}"
+          "expect": "2"
         }
       ]
     },
@@ -777,7 +953,7 @@
         {
           "type": "query",
           "sql": "SELECT 21 FROM t0 RIGHT JOIN t1 ON (c0, x'') != (NULL, 0);",
-          "expect": "{21}"
+          "expect": "21"
         }
       ]
     },
@@ -787,7 +963,17 @@
         {
           "type": "query",
           "sql": "SELECT 3 FROM t1 LEFT JOIN t0 WHERE (c0, x'') != (NULL, 0);",
-          "expect": "{3}"
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "26.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 31 FROM t0 RIGHT JOIN t1 WHERE (c0, x'') != (NULL, 0);",
+          "expect": "31"
         }
       ]
     },
@@ -804,6 +990,26 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "28.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  CREATE TRIGGER trigger0 BEFORE DELETE ON t0 BEGIN\n   SELECT (SELECT c0,c1  FROM t0)  FROM t0;\n  END ;\n  DELETE FROM t0;",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (SELECT 1 WHERE ((SELECT 1 WHERE (2,(2,0)) IS (2,(20))),(2,0)) IS (2,(20))) WHERE (2,(2,0)) IS (2 IN(SELECT 1 WHERE (2,(2,2,0)) IS (2,(20))),(20));",
+          "expect": "1 {row value misused}"
         }
       ]
     },
@@ -825,6 +1031,25 @@
       ]
     },
     {
+      "name": "30.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET (a,b)=(\n    SELECT max( t1.x ) OVER( PARTITION BY sum( (SELECT t1.y) ) ), 2\n  )\n  FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "30.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1000 2"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -837,8 +1062,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;",
-          "expect": "# 2022-01-21 https://sqlite.org/forum/forumpost/ab95010d410a0a55"
+          "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;"
         }
       ]
     },
@@ -855,8 +1079,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');",
-          "expect": "{}"
+          "sql": "CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');"
         }
       ]
     },
@@ -865,8 +1088,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM b RIGHT JOIN a ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');",
-          "expect": "{}"
+          "sql": "SELECT * FROM b RIGHT JOIN a ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');"
         }
       ]
     },
@@ -875,8 +1097,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b,c,d);\n  INSERT INTO t2 VALUES(NULL,123,456);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b,c,d);\n  INSERT INTO t2 VALUES(NULL,123,456);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);"
+        }
+      ]
+    },
+    {
+      "name": "31.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 RIGHT JOIN t1 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);"
         }
       ]
     },
@@ -885,6 +1115,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "32.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY);\n  INSERT INTO t1(a,b,c) VALUES(500,654,456);\n  INSERT INTO t1(a,b,c) VALUES(501,655,456);\n  INSERT INTO t1(a,b,c) VALUES(502,654,122);\n  INSERT INTO t1(a,b,c) VALUES(503,654,221);\n  INSERT INTO t1(a,b,c) VALUES(601,654,122);\n  INSERT INTO t2(d) VALUES(456);\n  INSERT INTO t2(d) VALUES(122);\n  SELECT a FROM (\n    SELECT t1.a FROM t2, t1 \n    WHERE (987, t1.b) = ( SELECT 987, 654 ) AND t2.d=t1.c\n  ) AS t3\n  WHERE a=1234 OR a<=567;",
+          "expect": "500 502"
         }
       ]
     },
@@ -901,8 +1141,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a, b) VALUES (0, 1),(15,-7),(3,100);\n  ANALYZE;"
         }
       ]
     },
@@ -912,7 +1151,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (0,5) AND (99,-2);",
-          "expect": "{0 1}"
+          "expect": "0 1"
         }
       ]
     },
@@ -922,7 +1161,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (-8,5) AND (0,-2);",
-          "expect": "{15 -7}"
+          "expect": "15 -7"
         }
       ]
     },
@@ -932,7 +1171,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,4);",
-          "expect": "{3 100}"
+          "expect": "3 100"
         }
       ]
     },
@@ -941,8 +1180,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,2);",
-          "expect": "{}"
+          "sql": "SELECT * FROM t1 WHERE (b,a) BETWEEN (3,5) AND (100,2);"
         }
       ]
     },
@@ -952,7 +1190,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (-2,99) AND (1,0);",
-          "expect": "{0 1}"
+          "expect": "0 1"
         }
       ]
     },
@@ -962,7 +1200,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (14,99) AND (16,0);",
-          "expect": "{15 -7}"
+          "expect": "15 -7"
+        }
+      ]
+    },
+    {
+      "name": "33.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a,b) BETWEEN (2,99) AND (4,0);",
+          "expect": "3 100"
         }
       ]
     },
@@ -980,7 +1228,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE items (\n    Id INTEGER  /* rowid alias */,\n    Item INTEGER  /* any type */,\n    Test TEXT  /* TEXT or BLOB */,\n    Filler,  /* any type */\n    PRIMARY KEY(Id),\n    UNIQUE(Item, Id)\n  );\n  INSERT INTO items (Id, Item)\n    VALUES (1, 2), (2, 2), (3, 3), (4, 5);\n  UPDATE items SET test='ok'\n    WHERE (Id, Item) IN (SELECT Id, Item FROM items);\n  SELECT Id, Item, test FROM items ORDER BY id;",
-          "expect": "{1 2 ok 2 2 ok 3 3 ok 4 5 ok}"
+          "expect": "1 2 ok 2 2 ok 3 3 ok 4 5 ok"
         }
       ]
     },
@@ -990,7 +1238,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX idx ON t1(b,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
-          "expect": "{1 22 NULL NULL}"
+          "expect": "1 22 NULL NULL"
         }
       ]
     },
@@ -1000,7 +1248,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX idx ON t1(b,a,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
-          "expect": "{1 22 NULL NULL}"
+          "expect": "1 22 NULL NULL"
         }
       ]
     },
@@ -1009,8 +1257,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1 TEXT, c2 INTEGER, PRIMARY KEY(c1, c2));\n  INSERT INTO t1(c1, c2) VALUES ('a', 1);\n  SELECT ('a', 1) IN (SELECT c1, c2 from t1);",
-          "expect": "1"
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1 TEXT, c2 INTEGER, PRIMARY KEY(c1, c2));\n  INSERT INTO t1(c1, c2) VALUES ('a', 1);\n  SELECT ('a', 1) IN (SELECT c1, c2 from t1);"
+        }
+      ]
+    },
+    {
+      "name": "35.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (1, 'a') IN (SELECT c2, c1 from t1);"
         }
       ]
     },
@@ -1019,8 +1275,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  SELECT (1,2,3,max(x)) IN () FROM t1;",
-          "expect": "0"
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  SELECT (1,2,3,max(x)) IN () FROM t1;"
         }
       ]
     },
@@ -1029,8 +1284,16 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT (1,2,max(x),3) IN () FROM t1;",
-          "expect": "0"
+          "sql": "SELECT (1,2,max(x),3) IN () FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "36.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (max(x),1,23) IN () FROM t1;"
         }
       ]
     }

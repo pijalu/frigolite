@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMP TABLE swarm(id, tbl, minval, maxval);",
-          "expect": "# Set up 100 databases with filenames \"remote_test.dbN\", where N is between"
+          "sql": "CREATE TEMP TABLE swarm(id, tbl, minval, maxval);"
         },
         {
           "type": "exec",

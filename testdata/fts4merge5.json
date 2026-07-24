@@ -21,11 +21,12 @@
       ]
     },
     {
-      "name": "1.4.$tn.1",
+      "name": "1.5",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO x1(x1) VALUES('integrity-check');"
+          "sql": "INSERT INTO x1(x1) VALUES('maxpendinAB64');",
+          "expect": "1 {SQL logic error}"
         }
       ]
     }

@@ -15,8 +15,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(b);",
-          "expect": "db close"
+          "sql": "CREATE INDEX i1 ON t1(b);"
         },
         {
           "type": "exec",

@@ -3,16 +3,6 @@
   "name": "altercons2",
   "tests": [
     {
-      "name": "1.$tn.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT sql FROM sqlite_schema WHERE name='t1'",
-          "expect": "[list $final]"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -35,7 +25,17 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE x1 ADD CONSTRAINT ccc CHECK (a!='a')",
-          "expect": "{1 {not authorized}}"
+          "expect": "1 {not authorized}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='x1'",
+          "expect": "{CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c)}"
         }
       ]
     },
@@ -45,7 +45,17 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE x1 ALTER c SET NOT NULL",
-          "expect": "{1 {not authorized}}"
+          "expect": "1 {not authorized}"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema WHERE name='x1'",
+          "expect": "{CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c)}"
         }
       ]
     },
@@ -71,8 +81,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t1 ALTER x SET NOT NULL;",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "ALTER TABLE t1 ALTER x SET NOT NULL;"
         }
       ]
     },
@@ -108,7 +117,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{\n  {CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c))}"
+          "expect": "{CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c))}"
         }
       ]
     },
@@ -126,7 +135,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE abc(a, b, c, CONSTRAINT two CHECK (b!=c), d)",
-          "expect": "{1 {near \"d\": syntax error}}"
+          "expect": "1 {near \"d\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE def(CONSTRAINT abc CHECK( b!=c ), a, b, c);",
+          "expect": "1 {near \"CONSTRAINT\": syntax error}"
         }
       ]
     },
@@ -162,7 +181,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{\n  {CREATE TABLE abc(a, b COLLATE nocase CHECK (a!=b), c DEFAULT 'abc')}"
+          "expect": "{CREATE TABLE abc(a, b COLLATE nocase CHECK (a!=b), c DEFAULT 'abc')}"
         }
       ]
     },
@@ -198,7 +217,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{\n  {CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)}"
+          "expect": "{CREATE TABLE abc(a, b, c, FOREIGN KEY(a) REFERENCES abc)}"
         }
       ]
     },
@@ -225,7 +244,17 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE abc DROP CONSTRAINT one",
-          "expect": "{0 {}}"
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_schema",
+          "expect": "{CREATE TABLE abc(a, b, c)}"
         }
       ]
     },
@@ -247,10 +276,30 @@
       ]
     },
     {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE abc ALTER b DROP NOT NULL;\n  SELECT sql FROM sqlite_schema;",
+          "expect": "{CREATE TABLE abc(a, b AS (a+1))}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b GENERATED ALWAYS AS (a+1));\n  INSERT INTO abc VALUES(1), (2);\n  SELECT * FROM abc;",
+          "expect": "1 2   2 3"
         }
       ]
     },
@@ -269,7 +318,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO abc VALUES(NULL);",
-          "expect": "{1 {NOT NULL constraint failed: abc.b}}"
+          "expect": "1 {NOT NULL constraint failed: abc.b}"
         }
       ]
     },
@@ -287,8 +336,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(NULL);",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "INSERT INTO abc VALUES(NULL);"
         }
       ]
     },
@@ -333,7 +381,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema;",
-          "expect": "{\n  {CREATE TABLE t1(a, b, c, CONSTRAINT c1 CHECK(a=b), CONSTRAINT c2 CHECK(a=b))}"
+          "expect": "{CREATE TABLE t1(a, b, c, CONSTRAINT c1 CHECK(a=b), CONSTRAINT c2 CHECK(a=b))}"
         }
       ]
     },
@@ -342,8 +390,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a, b);",
-          "expect": "do_execsql_test 11.2.2 {ALTER TABLE t2 ALTER b SET NOT NULL --new cons}"
+          "sql": "CREATE TABLE t2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "11.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ALTER b SET NOT NULL --new cons"
         }
       ]
     },
@@ -353,7 +409,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name='t2';",
-          "expect": "{\n  {CREATE TABLE t2(a, b NOT NULL)}"
+          "expect": "{CREATE TABLE t2(a, b NOT NULL)}"
         }
       ]
     },
@@ -363,7 +419,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t2 ALTER b DROP NOT NULL;\n  SELECT sql FROM sqlite_schema WHERE name='t2';",
-          "expect": "{\n  {CREATE TABLE t2(a, b)}"
+          "expect": "{CREATE TABLE t2(a, b)}"
         }
       ]
     },
@@ -372,8 +428,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ALTER TABLE t2 ALTER b SET NOT NULL --new cons\n;",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "ALTER TABLE t2 ALTER b SET NOT NULL --new cons\n;"
         }
       ]
     },
@@ -409,7 +464,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{\n  {CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}"
+          "expect": "{CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}"
         }
       ]
     },
@@ -437,7 +492,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{\n  {CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}"
+          "expect": "{CREATE TABLE \"Test\" ( \n      \"IsActive\" INTEGER)}"
         }
       ]
     },

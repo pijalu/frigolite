@@ -1463,6 +1463,7 @@ func (p *Parser) parseTriggerIfNotExists(s *CreateTriggerStmt) {
 			return
 		}
 		p.expectKeyword("EXISTS")
+		s.IfNotExists = true
 	}
 }
 

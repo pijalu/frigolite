@@ -8,10 +8,30 @@
         {
           "type": "exec",
           "sql": "SELECT length(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "walpersist-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
         },
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "walpersist-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
         },
         {
           "type": "exec",

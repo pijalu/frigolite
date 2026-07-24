@@ -1,0 +1,14 @@
+{
+  "file": "fts-9fd058691.test",
+  "name": "fts_9fd058691",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

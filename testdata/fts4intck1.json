@@ -3,10 +3,76 @@
   "name": "fts4intck1",
   "tests": [
     {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(t2);",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(t2);",
+          "expect": "{unable to validate the inverted index for FTS4 table main.t2: SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(t2);",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(t2);",
+          "expect": "{malformed inverted index for FTS4 table main.t2}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
         }
       ]
     }

@@ -8,7 +8,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT DISTINCT a, b, c FROM t1 WHERE a=0;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT a, c, b FROM t1 WHERE a=0;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT a, c, b FROM t1 WHERE a='xyz' COLLATE nocase;",
-          "expect": "{/B-TREE/}"
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -38,7 +38,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT a COLLATE nocase, c, b FROM t1 WHERE a='xyz';",
-          "expect": "{/B-TREE/}"
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -48,7 +48,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT a COLLATE nocase, c, b FROM t1 WHERE a='xyz' COLLATE nocase;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -58,7 +58,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT b, a, c FROM t1 WHERE a=0;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -68,7 +68,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT b, c, a FROM t1 WHERE a=0;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -78,7 +78,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT c, a, b FROM t1 WHERE a=0;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -88,7 +88,27 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT c, b, a FROM t1 WHERE a=0;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT DISTINCT c, b, a FROM t1 WHERE +a=0;",
+          "expect": "/B-TREE/"
+        }
+      ]
+    },
+    {
+      "name": "2.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE likelihood(a=0, 0.03) ORDER BY a, b, c;",
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -98,7 +118,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE +a=0 ORDER BY a, b, c;",
-          "expect": "{/B-TREE/}"
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -108,7 +128,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a=0 ORDER BY b, a, c;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -118,7 +138,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a=0 ORDER BY b, c, a;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -128,7 +148,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a=0 ORDER BY a, c, b;",
-          "expect": "{/B-TREE/}"
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -138,7 +158,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a=0 ORDER BY c, a, b;",
-          "expect": "{/B-TREE/}"
+          "expect": "/B-TREE/"
+        }
+      ]
+    },
+    {
+      "name": "2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t1 WHERE a=0 ORDER BY c, b, a;",
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -148,7 +178,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c, d, e, f);\n  CREATE INDEX t3bcde ON t3(b, c, d, e);\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t3 WHERE b=2 AND c=3 ORDER BY d DESC, e DESC, b, c, a DESC;",
-          "expect": "{~/B-TREE/}"
+          "expect": "~/B-TREE/"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t3;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c, d, e, f) WITHOUT rowid;\n  CREATE INDEX t3bcde ON t3(b, c, d, e);\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t3 WHERE b=2 AND c=3 ORDER BY d DESC, e DESC, b, c, a DESC;",
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -167,7 +207,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t4 ORDER BY b COLLATE binary",
-          "expect": "{ABC aBC abc}"
+          "expect": "ABC aBC abc"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE b='abc' ORDER BY b COLLATE binary",
+          "expect": "ABC aBC abc"
         }
       ]
     },
@@ -186,7 +236,7 @@
         {
           "type": "query",
           "sql": "explain query plan\n  SELECT typeID, key, value FROM Records \n  WHERE typeID = 2 AND key = 'x' \n  ORDER BY key, value;",
-          "expect": "{~/TEMP B-TREE/}"
+          "expect": "~/TEMP B-TREE/"
         }
       ]
     },
@@ -196,7 +246,17 @@
         {
           "type": "query",
           "sql": "explain query plan\n  SELECT typeID, key, value FROM Records \n  WHERE typeID = 2 AND (key = 'x' COLLATE binary)\n  ORDER BY key, value;",
-          "expect": "{~/TEMP B-TREE/}"
+          "expect": "~/TEMP B-TREE/"
+        }
+      ]
+    },
+    {
+      "name": "4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "explain query plan\n  SELECT typeID, key, value FROM Records \n  WHERE typeID = 2 \n  ORDER BY key, value;",
+          "expect": "~/TEMP B-TREE/"
         }
       ]
     },
@@ -205,8 +265,34 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);",
-          "expect": "db close"
+          "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t5 WHERE b='def' ORDER BY b;",
+          "expect": "1 {no such collation sequence: hello}"
+        }
+      ]
+    },
+    {
+      "name": "4.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a);\n  DROP TABLE t2;\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, c INT);\n  SELECT DISTINCT *\n    FROM t1 LEFT JOIN t2 ON b=c AND b=(SELECT a FROM t1)\n   WHERE c>10;"
         }
       ]
     }

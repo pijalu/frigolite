@@ -3,7 +3,7 @@
   "name": "vtabdrop",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.1",
       "steps": [
         {
           "type": "exec",
@@ -11,7 +11,29 @@
         },
         {
           "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1;\n    SELECT * FROM t1;\n    SELECT * FROM rt;",
+          "expect": "rt rt_node rt_parent rt_rowid t1 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },
@@ -21,7 +43,16 @@
         {
           "type": "query",
           "sql": "SELECT name FROM sqlite_master ORDER BY 1;",
-          "expect": "{rt rt_node rt_parent rt_rowid t1}"
+          "expect": "rt rt_node rt_parent rt_rowid t1"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(3, 4);"
         },
         {
           "type": "exec",
@@ -34,12 +65,39 @@
       ]
     },
     {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1;",
+          "expect": "ft ft_config ft_content ft_data ft_docsize ft_idx t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name FROM sqlite_master ORDER BY 1;",
-          "expect": "{ft ft_config ft_content ft_data ft_docsize ft_idx t1}"
+          "expect": "ft ft_config ft_content ft_data ft_docsize ft_idx t1"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES(3, 4);"
         },
         {
           "type": "exec",
@@ -52,12 +110,30 @@
       ]
     },
     {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY 1;",
+          "expect": "ft ft_content ft_segdir ft_segments sqlite_autoindex_ft_segdir_1 t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT name FROM sqlite_master ORDER BY 1;",
-          "expect": "{ft ft_content ft_segdir ft_segments sqlite_autoindex_ft_segdir_1 t1}"
+          "expect": "ft ft_content ft_segdir ft_segments sqlite_autoindex_ft_segdir_1 t1"
         }
       ]
     }

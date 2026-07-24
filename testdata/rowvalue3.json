@@ -21,16 +21,6 @@
       ]
     },
     {
-      "name": "2.$tn.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)",
-          "expect": "{d e f}"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
@@ -45,6 +35,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);",
+          "expect": "aaa 0"
         }
       ]
     }

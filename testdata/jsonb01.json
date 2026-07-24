@@ -3,12 +3,32 @@
   "name": "jsonb01",
   "tests": [
     {
+      "name": "jsonb01-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x'8ce6ffffffff171333' -> '$';",
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
       "name": "jsonb01-3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT json(x'6B37616263162d');",
-          "expect": "{1 {malformed JSON}}"
+          "expect": "1 {malformed JSON}"
+        }
+      ]
+    },
+    {
+      "name": "jsonb01-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json(strdup(x'6B37616263162d'));",
+          "expect": "1 {malformed JSON}"
         }
       ]
     }

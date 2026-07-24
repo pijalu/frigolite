@@ -1,0 +1,16 @@
+{
+  "file": "bestindexB.test",
+  "name": "bestindexB",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3"
+        }
+      ]
+    }
+  ]
+}

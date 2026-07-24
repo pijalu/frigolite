@@ -15,9 +15,19 @@
       "name": "aggorderby-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT b, group_concat(a ORDER BY max(d)) FROM t1 GROUP BY b;",
-          "expect": "{1 {misuse of aggregate function max()}}"
+          "expect": "1 {misuse of aggregate function max()}"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT abs(a ORDER BY max(d)) FROM t1;",
+          "expect": "1 {ORDER BY may not be used with non-aggregate abs()}"
         }
       ]
     },
@@ -27,7 +37,7 @@
         {
           "type": "query",
           "sql": "SELECT group_concat(a ORDER BY a) FROM t1 WHERE b=1;",
-          "expect": "{0,1,2,3,4,5,6,7,8,9}"
+          "expect": "0,1,2,3,4,5,6,7,8,9"
         }
       ]
     },
@@ -37,7 +47,7 @@
         {
           "type": "query",
           "sql": "SELECT group_concat(a ORDER BY c) FROM t1 WHERE b=1;",
-          "expect": "{0,7,4,1,8,5,2,9,6,3}"
+          "expect": "0,7,4,1,8,5,2,9,6,3"
         }
       ]
     },
@@ -47,7 +57,7 @@
         {
           "type": "query",
           "sql": "SELECT group_concat(a ORDER BY b, d) FROM t1;",
-          "expect": "{3,6,9,2,5,8,1,4,7,0,0,7,4,1,8,5,2,9,6,3}"
+          "expect": "3,6,9,2,5,8,1,4,7,0,0,7,4,1,8,5,2,9,6,3"
         }
       ]
     },
@@ -57,7 +67,17 @@
         {
           "type": "query",
           "sql": "SELECT string_agg(a, ',' ORDER BY b DESC, d) FROM t1;",
-          "expect": "{0,7,4,1,8,5,2,9,6,3,3,6,9,2,5,8,1,4,7,0}"
+          "expect": "0,7,4,1,8,5,2,9,6,3,3,6,9,2,5,8,1,4,7,0"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, group_concat(a ORDER BY d) FROM t1 GROUP BY b ORDER BY b;",
+          "expect": "1 3,6,9,2,5,8,1,4,7,0 2 0,7,4,1,8,5,2,9,6,3"
         }
       ]
     },
@@ -67,7 +87,17 @@
         {
           "type": "query",
           "sql": "SELECT group_concat(DISTINCT a ORDER BY a) FROM t1;",
-          "expect": "{0,1,2,3,4,5,6,7,8,9}"
+          "expect": "0,1,2,3,4,5,6,7,8,9"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(DISTINCT a ORDER BY c) FROM t1;",
+          "expect": "0,7,4,1,8,5,2,9,6,3"
         }
       ]
     },
@@ -76,8 +106,17 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(ORDER BY a) FROM t1;",
-          "expect": "20"
+          "sql": "SELECT count(ORDER BY a) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c, max(a ORDER BY a) FROM t1;",
+          "expect": "7 9"
         }
       ]
     },
@@ -87,7 +126,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a TEXT);  INSERT INTO t1 VALUES('aaa'),('bbb');\n  CREATE TABLE t3(d TEXT);  INSERT INTO t3 VALUES('/'),('-');\n  SELECT (SELECT string_agg(a,d) FROM t3) FROM t1;",
-          "expect": "{aaa-aaa bbb-bbb}"
+          "expect": "aaa-aaa bbb-bbb"
         }
       ]
     },
@@ -97,7 +136,7 @@
         {
           "type": "query",
           "sql": "SELECT (SELECT group_concat(a,d ORDER BY d) FROM t3) FROM t1;",
-          "expect": "{aaa/aaa bbb/bbb}"
+          "expect": "aaa/aaa bbb/bbb"
         }
       ]
     },
@@ -107,7 +146,17 @@
         {
           "type": "query",
           "sql": "SELECT (SELECT string_agg(a,d ORDER BY d DESC) FROM t3) FROM t1;",
-          "expect": "{aaa-aaa bbb-bbb}"
+          "expect": "aaa-aaa bbb-bbb"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT string_agg(a,'#' ORDER BY d) FROM t3) FROM t1;",
+          "expect": "aaa#aaa bbb#bbb"
         }
       ]
     },
@@ -117,7 +166,17 @@
         {
           "type": "exec",
           "sql": "WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;",
-          "expect": "{abc,ABC,DEF,xyz,XYZ ABC,DEF,XYZ,abc,xyz}"
+          "expect": "abc,ABC,DEF,xyz,XYZ ABC,DEF,XYZ,abc,xyz"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;",
+          "expect": "1,2,3,4 2,4,1,3"
         }
       ]
     },
@@ -127,7 +186,7 @@
         {
           "type": "exec",
           "sql": "WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;",
-          "expect": "{c,b,a}"
+          "expect": "c,b,a"
         }
       ]
     },
@@ -137,7 +196,16 @@
         {
           "type": "exec",
           "sql": "WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;",
-          "expect": "{c,b,a}"
+          "expect": "c,b,a"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x,y) AS (VALUES(1,1),(2,2),(3,3),(3,4),(3,5),(3,6))\n  SELECT sum(DISTINCT x ORDER BY y) FROM c;"
         }
       ]
     },
@@ -154,8 +222,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);",
-          "expect": "for {set i 0} {$i < 70000} {incr i} { lappend lExpr x }"
+          "sql": "CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);"
         }
       ]
     }

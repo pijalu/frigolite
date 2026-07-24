@@ -3,12 +3,180 @@
   "name": "schema4",
   "tests": [
     {
+      "name": "schema4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(x, a, b);\n  CREATE TABLE tbl(a, b);\n\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);"
+        }
+      ]
+    },
+    {
+      "name": "schema4-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n    INSERT INTO log VALUES('after insert', new.a, new.b);\n  END;\n  CREATE TRIGGER v1 AFTER UPDATE ON tbl BEGIN\n    INSERT INTO log VALUES('after update', new.a, new.b);\n  END;\n  CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n    INSERT INTO log VALUES('after delete', old.a, old.b);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "schema4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n\n  SELECT x, a, b FROM log;",
+          "expect": "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+        }
+      ]
+    },
+    {
+      "name": "schema4-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n\n  DROP INDEX i1;\n  DROP TABLE t1;\n  DROP VIEW v1;\n\n  INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n\n  SELECT x, a, b FROM log;",
+          "expect": "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "schema4-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n  INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n  SELECT x, a, b FROM log;",
+          "expect": "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+        }
+      ]
+    },
+    {
+      "name": "schema4-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);"
+        }
+      ]
+    },
+    {
       "name": "schema4-1.8",
       "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM log;\n    DROP TABLE t1;\n    INSERT INTO tbl VALUES(1, 2);\n    UPDATE tbl SET b=a+b, a=a+1;\n    DELETE FROM tbl;\n    SELECT x, a, b FROM log;",
-          "expect": "{{after insert} 1 2 {after update} 2 3 {after delete} 2 3}"
+          "expect": "{after insert} 1 2 {after update} 2 3 {after delete} 2 3"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(x, a, b);\n    CREATE TABLE tbl(a, b);\n  \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER t1 AFTER INSERT ON tbl BEGIN\n      INSERT INTO log VALUES('after insert', new.a, new.b);\n    END;\n    CREATE TRIGGER i1 AFTER DELETE ON tbl BEGIN\n      INSERT INTO log VALUES('after delete', old.a, old.b);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tbl VALUES('a', 'b');\n    DELETE FROM tbl;\n    SELECT * FROM log;",
+          "expect": "{after insert} a b {after delete} a b"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    INSERT INTO tbl VALUES('c', 'd');\n    DELETE FROM tbl;\n    SELECT * FROM log;",
+          "expect": "{after insert} c d {after delete} c d"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TRIGGER x1 AFTER UPDATE ON tbl BEGIN\n      INSERT INTO log VALUES('after update', new.a, new.b);\n    END;\n\n    CREATE TEMP TABLE x1(x);\n    INSERT INTO x1 VALUES(123);"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select sql from temp.sqlite_master WHERE type='table';",
+          "expect": "{CREATE TABLE x1(x)}"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE tbl RENAME TO tbl2"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select sql from sqlite_temp_master WHERE type='table';",
+          "expect": "{CREATE TABLE x1(x)}"
+        }
+      ]
+    },
+    {
+      "name": "schema4-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    INSERT INTO tbl2 VALUES('e', 'f');\n    UPDATE tbl2 SET a='g', b='h';\n    DELETE FROM tbl2;\n    SELECT * FROM log;",
+          "expect": "{after insert} e f {after update} g h {after delete} g h"
         }
       ]
     },
@@ -18,7 +186,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO x1 VALUES(456);\n    SELECT * FROM x1",
-          "expect": "{123 456}"
+          "expect": "123 456"
         }
       ]
     }

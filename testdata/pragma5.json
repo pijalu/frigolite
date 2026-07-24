@@ -3,12 +3,42 @@
   "name": "pragma5",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(pragma_function_list)",
+          "expect": "0 name {} 0 {} 0 \n  1 builtin {} 0 {} 0\n  2 type {} 0 {} 0\n  3 enc {} 0 {} 0\n  4 narg {} 0 {} 0\n  5 flags {} 0 {} 0"
+        }
+      ]
+    },
+    {
       "name": "1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name='upper' AND builtin",
-          "expect": "{upper 1}"
+          "expect": "upper 1"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT name, builtin\n    FROM pragma_function_list WHERE name LIKE 'exter%';",
+          "expect": "external 0"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(pragma_module_list)",
+          "expect": "0 name {} 0 {} 0"
         }
       ]
     },
@@ -18,7 +48,27 @@
         {
           "type": "query",
           "sql": "SELECT * FROM pragma_module_list WHERE name='fts5'",
-          "expect": "{fts5}"
+          "expect": "fts5"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(pragma_pragma_list)",
+          "expect": "0 name {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_pragma_list WHERE name='pragma_list'",
+          "expect": "pragma_list"
         }
       ]
     }

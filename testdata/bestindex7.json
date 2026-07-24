@@ -3,12 +3,22 @@
   "name": "bestindex7",
   "tests": [
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from vt1",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
       "name": "1.2",
       "steps": [
         {
           "type": "query",
           "sql": "select * from vt1 WHERE a=0",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -17,8 +27,17 @@
       "steps": [
         {
           "type": "query",
-          "sql": "select * from vt1 WHERE a=1",
-          "expect": "{}"
+          "sql": "select * from vt1 WHERE a=1"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from vt1 WHERE a=1 OR a=0",
+          "expect": "0"
         }
       ]
     },
@@ -27,8 +46,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET x=NULL WHERE x=2;",
-          "expect": "do_execsql_test 1.6 { select * from vt1 } {0 {}}"
+          "sql": "UPDATE t1 SET x=NULL WHERE x=2;"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from vt1",
+          "expect": "0 {}"
         }
       ]
     },
@@ -38,7 +66,7 @@
         {
           "type": "query",
           "sql": "select * from vt1 WHERE a=0",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -47,8 +75,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "select * from vt1 WHERE a=1",
-          "expect": "{}"
+          "sql": "select * from vt1 WHERE a=1"
         }
       ]
     },
@@ -58,7 +85,7 @@
         {
           "type": "query",
           "sql": "select * from vt1 WHERE a=1 OR a=0",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -67,8 +94,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "select * from vt1 WHERE a IN (2)",
-          "expect": "{}"
+          "sql": "select * from vt1 WHERE a IN (2)"
         }
       ]
     },
@@ -78,7 +104,7 @@
         {
           "type": "query",
           "sql": "select * from vt1 WHERE a IN (0,1,2,3)",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -88,7 +114,16 @@
         {
           "type": "query",
           "sql": "select * from vt1 WHERE a IN (0, NULL)",
-          "expect": "{0}"
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from vt1 WHERE a IN (NULL)"
         }
       ]
     }

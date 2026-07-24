@@ -8,6 +8,16 @@
         {
           "type": "exec",
           "sql": "SELECT count(*), md5sum(x) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "savepoint4-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;",
+          "expect": "1024"
         },
         {
           "type": "exec",
@@ -16,6 +26,16 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE random()%10==0;\n      INSERT INTO t1 SELECT randstr(10,10)||x FROM t1 WHERE random()%9==0;"
+        }
+      ]
+    },
+    {
+      "name": "savepoint4-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size=10;\n    DROP TABLE IF EXISTS t1;\n    BEGIN;\n    CREATE TABLE t1(x TEXT);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;",
+          "expect": "256"
         },
         {
           "type": "exec",

@@ -3,12 +3,18 @@
   "name": "writecrash",
   "tests": [
     {
-      "name": "1.$tn.3",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA integrity_check",
-          "expect": "{ok}"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

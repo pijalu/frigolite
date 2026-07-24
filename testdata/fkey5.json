@@ -32,6 +32,16 @@
         {
           "type": "exec",
           "sql": "PRAGMA main.foreign_key_check(c2);"
+        }
+      ]
+    },
+    {
+      "name": "fkey5-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.foreign_key_check(c2);",
+          "expect": "1 {no such table: temp.c2}"
         },
         {
           "type": "exec",
@@ -44,6 +54,16 @@
         {
           "type": "exec",
           "sql": "PRAGMA foreign_key_check(c1);"
+        }
+      ]
+    },
+    {
+      "name": "fkey5-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_key_list(c5);",
+          "expect": "0 0 p1 x {} {NO ACTION} {NO ACTION} NONE"
         },
         {
           "type": "exec",
@@ -180,8 +200,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE k1(x REFERENCES s1);\n  PRAGMA foreign_key_check(k1);",
-          "expect": "{}"
+          "sql": "CREATE TABLE k1(x REFERENCES s1);\n  PRAGMA foreign_key_check(k1);"
         }
       ]
     },
@@ -190,8 +209,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO k1 VALUES(NULL);\n  PRAGMA foreign_key_check(k1);",
-          "expect": "{}"
+          "sql": "INSERT INTO k1 VALUES(NULL);\n  PRAGMA foreign_key_check(k1);"
+        }
+      ]
+    },
+    {
+      "name": "9.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO k1 VALUES(1);\n  PRAGMA foreign_key_check(k1);",
+          "expect": "k1 2 s1 0"
         }
       ]
     },
@@ -200,8 +228,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE k2(x, y, FOREIGN KEY(x, y) REFERENCES s1(a, b));\n  PRAGMA foreign_key_check(k2);",
-          "expect": "{}"
+          "sql": "CREATE TABLE k2(x, y, FOREIGN KEY(x, y) REFERENCES s1(a, b));\n  PRAGMA foreign_key_check(k2);"
         }
       ]
     },
@@ -210,8 +237,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO k2 VALUES(NULL, 'five');\n  PRAGMA foreign_key_check(k2);",
-          "expect": "{}"
+          "sql": "INSERT INTO k2 VALUES(NULL, 'five');\n  PRAGMA foreign_key_check(k2);"
         }
       ]
     },
@@ -220,8 +246,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO k2 VALUES('one', NULL);\n  PRAGMA foreign_key_check(k2);",
-          "expect": "{}"
+          "sql": "INSERT INTO k2 VALUES('one', NULL);\n  PRAGMA foreign_key_check(k2);"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO k2 VALUES('six', 'seven');\n  PRAGMA foreign_key_check(k2);",
+          "expect": "k2 3 s1 0"
         }
       ]
     },
@@ -247,8 +282,17 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA foreign_key_check;",
-          "expect": "# EVIDENCE-OF: R-00471-55166 The second column is the rowid of the row"
+          "sql": "PRAGMA foreign_key_check;"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c30 VALUES(45, 45);\n  PRAGMA foreign_key_check;",
+          "expect": "c30 {} p30 0"
         }
       ]
     },
@@ -270,6 +314,16 @@
       ]
     },
     {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check;",
+          "expect": "1 {foreign key mismatch - \"c11\" referencing \"tt\"}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -283,7 +337,37 @@
         {
           "type": "exec",
           "sql": "ATTACH ':memory:' as aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n  CREATE TABLE main.t2(x TEXT PRIMARY KEY, y INT);\n  INSERT INTO main.t2 VALUES('abc',11),('def',22),('xyz',99);\n  INSERT INTO aux.t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n  PRAGMA foreign_key_check=t1;",
-          "expect": "{t1 5 t2 0 t1 7 t2 0 t1 9 t2 0}"
+          "expect": "t1 5 t2 0 t1 7 t2 0 t1 9 t2 0"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t2(x TEXT PRIMARY KEY, y INT);\n  INSERT INTO aux.t2 VALUES('abc',11),('def',22),('xyz',99);\n  PRAGMA foreign_key_check=t1;",
+          "expect": "t1 9 t2 0"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, 'x' FROM pragma_foreign_key_check('t1');",
+          "expect": "t1 9 t2 0 x"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *, 'x' FROM pragma_foreign_key_check('t1','main');",
+          "expect": "1 {no such table: main.t1}"
         }
       ]
     },
@@ -293,7 +377,26 @@
         {
           "type": "query",
           "sql": "SELECT *, 'x' FROM pragma_foreign_key_check('t1','aux');",
-          "expect": "{t1 9 t2 0 x}"
+          "expect": "t1 9 t2 0 x"
+        }
+      ]
+    },
+    {
+      "name": "13.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=OFF;\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT REFERENCES t2);\n      CREATE TABLE t2(x TEXT PRIMARY KEY, y INT);\n      CREATE TABLE t3(w TEXT, z INT REFERENCES t1);\n      INSERT INTO t2 VALUES('abc',11),('def',22),('xyz',99);\n      INSERT INTO t1 VALUES(5,'abc'),(7,'xyz'),(9,'oops');\n      INSERT INTO t3 VALUES(11,7),(22,19);"
+        }
+      ]
+    },
+    {
+      "name": "13.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x.*, '|'\n      FROM sqlite_schema, pragma_foreign_key_check(name) AS x\n      WHERE type='table'\n      ORDER BY x.\"table\";",
+          "expect": "t1 9 t2 0 | t3 2 t1 0 |"
         }
       ]
     },
@@ -303,7 +406,7 @@
         {
           "type": "query",
           "sql": "SELECT *, '|'\n      FROM pragma_foreign_key_check AS x\n      ORDER BY x.\"table\";",
-          "expect": "{t1 9 t2 0 | t3 2 t1 0 |}"
+          "expect": "t1 9 t2 0 | t3 2 t1 0 |"
         }
       ]
     }

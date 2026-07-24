@@ -75,8 +75,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n  DELETE FROM p1 WHERE one = 'a';",
-          "expect": "reset_db"
+          "sql": "CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n  DELETE FROM p1 WHERE one = 'a';"
         }
       ]
     },
@@ -93,8 +92,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN TRANSACTION;\n  CREATE TABLE tbl(a PRIMARY KEY, b, c);\n  CREATE TABLE log(a, b, c);\n  INSERT INTO \"tbl\" VALUES(1,2,3);\n  CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN \n    INSERT INTO log VALUES(1, 2,3);\n  END;\n  COMMIT;\n  DELETE FROM tbl WHERE a=1;",
-          "expect": "reset_db"
+          "sql": "BEGIN TRANSACTION;\n  CREATE TABLE tbl(a PRIMARY KEY, b, c);\n  CREATE TABLE log(a, b, c);\n  INSERT INTO \"tbl\" VALUES(1,2,3);\n  CREATE TRIGGER the_trigger BEFORE DELETE ON tbl BEGIN \n    INSERT INTO log VALUES(1, 2,3);\n  END;\n  COMMIT;\n  DELETE FROM tbl WHERE a=1;"
         }
       ]
     },
@@ -111,8 +109,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );",
-          "expect": "{}"
+          "sql": "PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );"
         }
       ]
     },
@@ -122,7 +119,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t2 VALUES(1, 2);\n  SELECT * FROM t2;",
-          "expect": "{1 2}"
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2;"
         }
       ]
     }

@@ -16,10 +16,39 @@
         {
           "type": "exec",
           "sql": "BEGIN; \n      UPDATE test1 SET %s; \n      SELECT %s FROM test1; \n      ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "icu-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT upper(char(0xfb04,0xfb04,0xfb04,0xfb04));",
+          "expect": "FFLFFLFFLFFL"
+        }
+      ]
+    },
+    {
+      "name": "icu-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE fruit(name);\n    INSERT INTO fruit VALUES('plum');\n    INSERT INTO fruit VALUES('cherry');\n    INSERT INTO fruit VALUES('apricot');\n    INSERT INTO fruit VALUES('peach');\n    INSERT INTO fruit VALUES('chokecherry');\n    INSERT INTO fruit VALUES('yamot');"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE fruit(name);\n    INSERT INTO fruit VALUES('plum');\n    INSERT INTO fruit VALUES('cherry');\n    INSERT INTO fruit VALUES('apricot');\n    INSERT INTO fruit VALUES('peach');\n    INSERT INTO fruit VALUES('chokecherry');\n    INSERT INTO fruit VALUES('yamot');"
+        }
+      ]
+    },
+    {
+      "name": "icu-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT icu_load_collation('en_US', 'AmericanEnglish');\n    SELECT icu_load_collation('lt_LT', 'Lithuanian');",
+          "expect": "apricot cherry chokecherry peach plum yamot"
         },
         {
           "type": "exec",
@@ -28,10 +57,80 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM fruit ORDER BY name COLLATE AmericanEnglish ASC;"
+        }
+      ]
+    },
+    {
+      "name": "icu-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;",
+          "expect": "apricot cherry chokecherry yamot peach plum"
         },
         {
           "type": "exec",
           "sql": "SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT regexp('a[abc]c.*', 'abc')",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT regexp('a[abc]c.*')",
+          "expect": "1 {wrong number of arguments to function regexp()}"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT regexp('a[abc]c.*', 'abc', 'c')",
+          "expect": "1 {wrong number of arguments to function regexp()}"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' REGEXP 'a[abc]c.*'",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' REGEXP",
+          "expect": "1 {incomplete input}"
+        }
+      ]
+    },
+    {
+      "name": "icu-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' REGEXP, 1",
+          "expect": "1 {near \",\": syntax error}"
         }
       ]
     },
@@ -41,7 +140,17 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x TEXT);\n  INSERT INTO t1 VALUES\n    (1,'abcde'),\n    (2,'abc_'),\n    (3,'abc__'),\n    (4,'abc%'),\n    (5,'abc%%');\n  SELECT id FROM t1 WHERE x LIKE 'abc%%' ESCAPE '%';",
-          "expect": "{4}"
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "icu-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM t1 WHERE x LIKE 'abc__' ESCAPE '_';",
+          "expect": "2"
         }
       ]
     },
@@ -57,9 +166,9 @@
       "name": "icu-7.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT icu_load_collation('en_US','error','xyzzy');",
-          "expect": "{1 {unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL}}"
+          "expect": "1 {unknown collation strength \"xyzzy\" - should be one of: PRIMARY SECONDARY TERTIARY DEFAULT QUARTERNARY IDENTICAL}"
         }
       ]
     },
@@ -69,7 +178,17 @@
         {
           "type": "query",
           "sql": "SELECT icu_load_collation('en_US','prim','PRIMARY'),\n         icu_load_collation('en_US','dflt','DEFAULT');",
-          "expect": "{{} {}}"
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "icu-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT char(0x100)=='a', char(0x100)=='a' COLLATE dflt, char(0x100)=='a' COLLATE prim;",
+          "expect": "0 0 1"
         }
       ]
     },
@@ -87,6 +206,24 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x TEXT);\n  INSERT INTO t1 VALUES('abcdefg');\n  INSERT INTO t1 VALUES('1234567');"
+        }
+      ]
+    },
+    {
+      "name": "icu-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x LIKE CAST(x'C0A5' AS TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "icu-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x LIKE CAST(x'C19F' AS TEXT) || 'bcdefg';"
         }
       ]
     }

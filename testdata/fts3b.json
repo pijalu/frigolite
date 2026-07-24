@@ -24,46 +24,162 @@
         {
           "type": "exec",
           "sql": "VACUUM"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE rowid = 1;",
+          "expect": "{this is a test}"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t3 WHERE rowid = 1;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "fts3b-3.3",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t3 VALUES ('another test');"
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t3 VALUES ('another test');"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.1",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT rowid FROM t4 WHERE rowid <> docid;"
         },
         {
           "type": "exec",
+          "sql": "SELECT rowid FROM t4 WHERE rowid <> docid;"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE rowid = 1;",
+          "expect": "{this is a test}"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t4 WHERE rowid = 1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM t4 WHERE rowid = 1;",
+          "expect": "1 {this is a test}"
         },
         {
           "type": "exec",
           "sql": "SELECT docid, * FROM t4 WHERE rowid = 1;"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid, * FROM t4 WHERE docid = 1;",
+          "expect": "1 {this is a test}"
         },
         {
           "type": "exec",
           "sql": "SELECT docid, * FROM t4 WHERE docid = 1;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.5",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t4 VALUES ('another test');"
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t4 VALUES ('another test');"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 (docid, c) VALUES (10, 'yet another test');\n    SELECT * FROM t4 WHERE docid = 10;",
+          "expect": "{yet another test}"
+        },
+        {
+          "type": "exec",
           "sql": "INSERT INTO t4 (docid, c) VALUES (10, 'yet another test');\n    SELECT * FROM t4 WHERE docid = 10;"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 (docid, c) VALUES (12, 'still testing');\n    SELECT * FROM t4 WHERE docid = 12;",
+          "expect": "{still testing}"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t4 (docid, c) VALUES (12, 'still testing');\n    SELECT * FROM t4 WHERE docid = 12;"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 (rowid, docid, c) VALUES (14, 15, 'bad test');\n    SELECT * FROM t4 WHERE docid = 14;",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE rowid = 14;",
+          "expect": "{still testing}"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t4 WHERE rowid = 14;"
+        }
+      ]
+    },
+    {
+      "name": "fts3b-4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE rowid = 12;"
         },
         {
           "type": "exec",

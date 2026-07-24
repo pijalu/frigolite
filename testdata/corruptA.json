@@ -3,11 +3,56 @@
   "name": "corruptA",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "corruptA-1.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "corruptA-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "corruptA-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "corruptA-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {file is not a database}"
+        }
+      ]
+    },
+    {
+      "name": "corruptA-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {file is not a database}"
         }
       ]
     }

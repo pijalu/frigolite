@@ -3,11 +3,24 @@
   "name": "in2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "in2-1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE a(i INTEGER PRIMARY KEY, a);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a(i INTEGER PRIMARY KEY, a);"
+        }
+      ]
+    },
+    {
+      "name": "in2-2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a VALUES($::ii, $::ii)"
         },
         {
           "type": "exec",

@@ -15,9 +15,9 @@
       "name": "errofst1-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t2;",
-          "expect": "{1 {no such column: sts.aa}}"
+          "expect": "1 {no such column: sts.aa}"
         }
       ]
     }

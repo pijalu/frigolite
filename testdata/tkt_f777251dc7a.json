@@ -3,7 +3,7 @@
   "name": "tkt_f777251dc7a",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt-f7772-1.1",
       "steps": [
         {
           "type": "exec",
@@ -11,15 +11,57 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT OR ROLLBACK INTO t1 VALUES(1)"
+          "sql": "CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);\n     CREATE TEMP TABLE t3(w, z);"
         },
+        {
+          "type": "exec",
+          "sql": "INSERT OR ROLLBACK INTO t1 VALUES(1)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7772-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;\n    CREATE TABLE xyzzy(abc);\n    SELECT x, force_rollback(), EXISTS(SELECT 1 FROM t3 WHERE w=x) FROM t2;",
+          "expect": "1 {abort due to ROLLBACK}"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7772-2.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n     DROP TABLE IF EXISTS t2;\n     DROP TABLE IF EXISTS t3;\n\n     CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);"
         },
         {
           "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n     DROP TABLE IF EXISTS t2;\n     DROP TABLE IF EXISTS t3;\n\n     CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7772-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE;\n    CREATE TEMP TABLE t3(w, z);",
+          "expect": "1 {abort due to ROLLBACK}"
+        },
+        {
+          "type": "exec",
           "sql": "BEGIN IMMEDIATE;\n    CREATE TEMP TABLE t3(w, z);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7772-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    DROP TABLE IF EXISTS t3;\n\n    CREATE TEMP TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n  \n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);"
         },
         {
           "type": "exec",
@@ -28,10 +70,30 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t3 VALUES('hello')"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7772-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1",
+          "expect": "{} {} {} {}"
         },
         {
           "type": "exec",
           "sql": "SELECT ins() AS x FROM t2 UNION ALL SELECT ins() AS x FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "tkt-f7772-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3",
+          "expect": "hello hello hello hello"
         },
         {
           "type": "exec",

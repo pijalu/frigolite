@@ -3,19 +3,72 @@
   "name": "fkey3",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "fkey3-1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;",
+          "expect": "1 100 1 101 2 100 2 101"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=100;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.4",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t2;"
         },
         {
           "type": "exec",
+          "sql": "DROP TABLE t2;"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.5",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);",
+          "expect": "1 100 1 101 2 100 2 101"
         },
         {
           "type": "exec",
@@ -32,8 +85,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(a, b, c, d, \n    UNIQUE(a, b),\n    FOREIGN KEY(c, d) REFERENCES t3(a, b)\n  );\n  INSERT INTO t3 VALUES(1, 2, 1, 2);",
-          "expect": "{}"
+          "sql": "CREATE TABLE t3(a, b, c, d, \n    UNIQUE(a, b),\n    FOREIGN KEY(c, d) REFERENCES t3(a, b)\n  );\n  INSERT INTO t3 VALUES(1, 2, 1, 2);"
         }
       ]
     },
@@ -43,7 +95,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t3 VALUES(NULL, 2, 5, 2);",
-          "expect": "{1 {FOREIGN KEY constraint failed}}"
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(NULL, 3, 5, 2);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
@@ -57,12 +119,31 @@
       ]
     },
     {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(NULL, 1);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
       "name": "3.3.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b REFERENCES t5(a));\n  INSERT INTO t5 VALUES(NULL, 1);",
-          "expect": "{}"
+          "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b REFERENCES t5(a));\n  INSERT INTO t5 VALUES(NULL, 1);"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES(NULL, 3);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
@@ -71,8 +152,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,\n    FOREIGN KEY(c, d) REFERENCES t6(a, b)\n  );\n  CREATE UNIQUE INDEX t6i ON t6(b, a);",
-          "expect": "do_execsql_test 3.4.2  { INSERT INTO t6 VALUES(NULL, 'a', 1, 'a'); } {}"
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b, c, d,\n    FOREIGN KEY(c, d) REFERENCES t6(a, b)\n  );\n  CREATE UNIQUE INDEX t6i ON t6(b, a);"
+        }
+      ]
+    },
+    {
+      "name": "3.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(NULL, 'a', 1, 'a');"
         }
       ]
     },
@@ -81,8 +170,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t6 VALUES(2, 'a', 2, 'a');",
-          "expect": "{}"
+          "sql": "INSERT INTO t6 VALUES(2, 'a', 2, 'a');"
         }
       ]
     },
@@ -91,8 +179,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t6 VALUES(NULL, 'a', 1, 'a');",
-          "expect": "{}"
+          "sql": "INSERT INTO t6 VALUES(NULL, 'a', 1, 'a');"
         }
       ]
     },
@@ -101,8 +188,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t6 VALUES(5, 'a', 2, 'a');",
-          "expect": "{}"
+          "sql": "INSERT INTO t6 VALUES(5, 'a', 2, 'a');"
+        }
+      ]
+    },
+    {
+      "name": "3.4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(NULL, 'a', 65, 'a');",
+          "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
@@ -129,8 +225,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t7(a, b, c, d INTEGER PRIMARY KEY,\n    FOREIGN KEY(c, d) REFERENCES t7(a, b)\n  );\n  CREATE UNIQUE INDEX t7i ON t7(a, b);",
-          "expect": "do_execsql_test 3.5.2  { INSERT INTO t7 VALUES('x', 1, 'x', NULL) } {}"
+          "sql": "CREATE TABLE t7(a, b, c, d INTEGER PRIMARY KEY,\n    FOREIGN KEY(c, d) REFERENCES t7(a, b)\n  );\n  CREATE UNIQUE INDEX t7i ON t7(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "3.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES('x', 1, 'x', NULL)"
         }
       ]
     },
@@ -139,8 +243,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t7 VALUES('x', 2, 'x', 2)",
-          "expect": "{}"
+          "sql": "INSERT INTO t7 VALUES('x', 2, 'x', 2)"
         }
       ]
     },
@@ -150,7 +253,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t7 VALUES('x', 450, 'x', NULL);",
-          "expect": "{1 {FOREIGN KEY constraint failed}}"
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t7 VALUES('x', 450, 'x', 451);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
@@ -169,7 +282,7 @@
         {
           "type": "exec",
           "sql": "UPDATE t8 SET d = 2;",
-          "expect": "{1 {FOREIGN KEY constraint failed}}"
+          "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     },
@@ -188,6 +301,16 @@
         {
           "type": "exec",
           "sql": "UPDATE t8 SET e = 2;"
+        }
+      ]
+    },
+    {
+      "name": "3.6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE TestTable (\n    id INTEGER PRIMARY KEY,\n    name text,\n    source_id integer not null,\n    parent_id integer,\n\n    foreign key(source_id, parent_id) references TestTable(source_id, id)\n  );\n  CREATE UNIQUE INDEX testindex on TestTable(source_id, id);\n  PRAGMA foreign_keys=1;\n  INSERT INTO TestTable VALUES (1, 'parent', 1, null);\n  INSERT INTO TestTable VALUES (2, 'child', 1, 1);\n  UPDATE TestTable SET parent_id=1000 where id=2;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
         }
       ]
     }

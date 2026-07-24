@@ -41,8 +41,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);",
-          "expect": "do_faultsim_test 10 -faults oom* -prep {"
+          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);"
         }
       ]
     },
@@ -55,8 +54,12 @@
       ]
     },
     {
-      "name": "setup_6",
+      "name": "11.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t0 WHERE \n      (0, t0.c0) IN (SELECT DENSE_RANK() OVER(), LAG(0) OVER() FROM t0);"
@@ -76,8 +79,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(a, b, c);"
         }
       ]
     },
@@ -86,6 +88,15 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');"
         }
       ]
     }

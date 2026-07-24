@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);",
-          "expect": "{}"
+          "sql": "CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);"
         }
       ]
     },
@@ -17,8 +16,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);",
-          "expect": "# Without ANALYZE, a skip-scan is not used"
+          "sql": "INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);"
         }
       ]
     },
@@ -28,7 +26,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM people WHERE height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-1.3eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;",
+          "expect": "~/*INDEX people_idx1 */"
         }
       ]
     },
@@ -38,7 +46,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM people WHERE height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-1.5eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;",
+          "expect": "/*INDEX people_idx1 */"
         }
       ]
     },
@@ -48,7 +66,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM people\n   WHERE role IN (SELECT DISTINCT role FROM people)\n     AND height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM people WHERE role='teacher' AND height>=180\n  UNION ALL\n  SELECT name FROM people WHERE role='student' AND height>=180\n  ORDER BY 1;",
+          "expect": "David Jack Patrick Quiana Xavier"
         }
       ]
     },
@@ -58,7 +86,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO people VALUES('Angie','student',166);\n  INSERT INTO people VALUES('Brad','student',176);\n  INSERT INTO people VALUES('Claire','student',168);\n  INSERT INTO people VALUES('Donald','student',162);\n  INSERT INTO people VALUES('Elaine','student',177);\n  INSERT INTO people VALUES('Frazier','student',159);\n  INSERT INTO people VALUES('Grace','student',179);\n  INSERT INTO people VALUES('Horace','student',166);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';",
-          "expect": "{{34 17 2}}"
+          "expect": "{34 17 2}"
         }
       ]
     },
@@ -68,7 +96,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM people WHERE height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-1.9eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;",
+          "expect": "~/*INDEX people_idx1 */"
         }
       ]
     },
@@ -78,7 +116,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO people VALUES('Ingrad','student',155);\n  INSERT INTO people VALUES('Jacob','student',179);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';",
-          "expect": "{{36 18 2}}"
+          "expect": "{36 18 2}"
         }
       ]
     },
@@ -88,7 +126,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM people WHERE height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-1.11eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT name FROM people WHERE height>=180 ORDER BY +name;",
+          "expect": "/*INDEX people_idx1 */"
         }
       ]
     },
@@ -98,7 +146,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE peoplew(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  ) WITHOUT ROWID;\n  CREATE INDEX peoplew_idx1 ON peoplew(role, height);\n  INSERT INTO peoplew(name,role,height)\n     SELECT name, role, height FROM  people;\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
         }
       ]
     },
@@ -108,7 +156,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM peoplew\n   WHERE role IN (SELECT DISTINCT role FROM peoplew)\n     AND height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM peoplew WHERE role='teacher' AND height>=180\n  UNION ALL\n  SELECT name FROM peoplew WHERE role='student' AND height>=180\n  ORDER BY 1;",
+          "expect": "David Jack Patrick Quiana Xavier"
         }
       ]
     },
@@ -117,8 +175,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ANALYZE;",
-          "expect": "db cache flush"
+          "sql": "ANALYZE;"
         }
       ]
     },
@@ -128,7 +185,17 @@
         {
           "type": "query",
           "sql": "SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;",
-          "expect": "{David Jack Patrick Quiana Xavier}"
+          "expect": "David Jack Patrick Quiana Xavier"
+        }
+      ]
+    },
+    {
+      "name": "skipscan2-2.5eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;",
+          "expect": "/*INDEX peoplew_idx1 */"
         }
       ]
     },

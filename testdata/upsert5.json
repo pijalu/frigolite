@@ -33,7 +33,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 NOT INDEXED;",
-          "expect": "{11 33}"
+          "expect": "11 33"
         }
       ]
     },
@@ -43,7 +43,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 INDEXED BY t1bb;",
-          "expect": "{11 33}"
+          "expect": "11 33"
         }
       ]
     },
@@ -53,7 +53,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 NOT INDEXED ORDER BY +aa;",
-          "expect": "{10 21 32 11 44 55 12 23 34}"
+          "expect": "10 21 32 11 44 55 12 23 34"
         }
       ]
     },
@@ -63,7 +63,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 INDEXED BY t1bb ORDER BY +aa;",
-          "expect": "{10 21 32 11 44 55 12 23 34}"
+          "expect": "10 21 32 11 44 55 12 23 34"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INDEXED BY t1cc ORDER BY +aa;",
+          "expect": "10 21 32 11 44 55 12 23 34"
         }
       ]
     },
@@ -76,21 +86,31 @@
       ]
     },
     {
-      "name": "4.$tn.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1;",
-          "expect": "{555 22.0 555.0 555 555}"
-        }
-      ]
-    },
-    {
       "name": "4.3.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a, b GENERATED ALWAYS AS (a+1) VIRTUAL, c REAL, d UNIQUE);\n  INSERT INTO t2(a, c, d) VALUES(555, 555, 555);"
+        }
+      ]
+    },
+    {
+      "name": "4.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "555 556 555.0 555"
+        }
+      ]
+    },
+    {
+      "name": "4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "22.0 23.0 555.0 555"
         }
       ]
     }

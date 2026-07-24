@@ -12,12 +12,62 @@
       ]
     },
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE (\n      ( (0 IS NOT FALSE) OR NOT (0 IS FALSE OR (t0.c0 = 1)) ) IS 0\n  )",
+          "expect": "val"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n      ( (0 IS NOT FALSE) OR NOT (0 IS FALSE OR (t0.c0 = 1)) ) IS 0\n  FROM t0",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n      ( (0 IS NOT FALSE) OR NOT (0 IS 0 OR (t0.c0 = 1)) ) IS 0\n  FROM t0",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( (0 IS NOT FALSE) OR NOT (0 IS FALSE OR (t0.c0 = 1)) ) FROM t0",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "1.4.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT (0 IS NOT FALSE) FROM t0",
-          "expect": "{0}"
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NOT (0 IS FALSE OR (t0.c0 = 1)) FROM t0",
+          "expect": "0"
         }
       ]
     }

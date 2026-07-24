@@ -1,0 +1,36 @@
+{
+  "file": "zipfile2.test",
+  "name": "zipfile2",
+  "tests": [
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE temp.zip SET name='test1' WHERE name='test2'",
+          "expect": "1 {duplicate name: \"test1\"}"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;",
+          "expect": "test2"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(name) FROM t1;",
+          "expect": "60000"
+        }
+      ]
+    }
+  ]
+}

@@ -3,11 +3,109 @@
   "name": "fts3tok1",
   "tests": [
     {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t3 WHERE input = '1x2x3x'",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t1 WHERE input = '1x2x3x'",
+          "expect": "1x2x3x"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t3 WHERE input = '1''2x3x'",
+          "expect": "1'2 3"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t3 WHERE input = ''"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT token FROM t3 WHERE input = NULL"
+        }
+      ]
+    },
+    {
+      "name": "1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE input = 123",
+          "expect": "123 123 0 3 0"
+        }
+      ]
+    },
+    {
+      "name": "1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE input = 'a b c' AND token = 'b';",
+          "expect": "{a b c} b 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE token = 'b' AND input = 'a b c';",
+          "expect": "{a b c} b 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE input < 'b' AND input = 'a b c';",
+          "expect": "{a b c} a 0 1 0 \n  {a b c} b 2 3 1 \n  {a b c} c 4 5 2"
+        }
+      ]
+    },
+    {
       "name": "1.13.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE c1(x);\n  INSERT INTO c1(x) VALUES('a b c');\n  INSERT INTO c1(x) VALUES('d e f');"
+        }
+      ]
+    },
+    {
+      "name": "1.13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c1, t1 WHERE input = x AND c1.rowid=t1.rowid;",
+          "expect": "{a b c} {a b c} a 0 1 0 \n  {d e f} {d e f} e 2 3 1"
         }
       ]
     }

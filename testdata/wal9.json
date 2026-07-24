@@ -3,8 +3,12 @@
   "name": "wal9",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.7",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"
+        },
         {
           "type": "exec",
           "sql": "BEGIN;\n      INSERT INTO t VALUES('hello');\n    ROLLBACK;"

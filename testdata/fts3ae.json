@@ -3,8 +3,13 @@
   "name": "fts3ae",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "fts3ae-1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(*) FROM t1",
+          "expect": "14"
+        },
         {
           "type": "exec",
           "sql": "SELECT COUNT(*) FROM t1"

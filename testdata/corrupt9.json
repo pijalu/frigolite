@@ -3,8 +3,13 @@
   "name": "corrupt9",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "corrupt9-1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=NONE;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n    CREATE INDEX i1 ON t1(x);\n    CREATE INDEX i2 ON t2(b,a);\n    DROP INDEX i2;",
+          "expect": "1"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum=NONE;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n    CREATE INDEX i1 ON t1(x);\n    CREATE INDEX i2 ON t2(b,a);\n    DROP INDEX i2;"
@@ -12,14 +17,44 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "corrupt9-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(b,a);\n    REINDEX;",
+          "expect": "1 {database disk image is malformed}"
         },
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "corrupt9-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(b,a);\n    REINDEX;",
+          "expect": "1 {database disk image is malformed}"
         },
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "corrupt9-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t2(b,a);\n    REINDEX;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     }

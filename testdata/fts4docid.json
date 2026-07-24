@@ -8,7 +8,7 @@
         {
           "type": "query",
           "sql": "SELECT docid FROM t1 WHERE docid = 5",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "SELECT docid FROM t1 WHERE docid = '5'",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "type": "query",
           "sql": "SELECT docid FROM t1 WHERE docid = +5",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -38,7 +38,7 @@
         {
           "type": "query",
           "sql": "SELECT docid FROM t1 WHERE docid = +'5'",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -48,7 +48,17 @@
         {
           "type": "query",
           "sql": "SELECT docid FROM t1 WHERE docid < 5",
-          "expect": "{0 1 2 3 4}"
+          "expect": "0 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE docid < '5'",
+          "expect": "0 1 2 3 4"
         }
       ]
     },
@@ -58,7 +68,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE rowid = 5",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -68,7 +78,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE rowid = '5'",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -78,7 +88,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE rowid = +5",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -88,7 +98,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE rowid = +'5'",
-          "expect": "{5}"
+          "expect": "5"
         }
       ]
     },
@@ -98,7 +108,17 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE rowid < 5",
-          "expect": "{0 1 2 3 4}"
+          "expect": "0 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t1 WHERE rowid < '5'",
+          "expect": "0 1 2 3 4"
         }
       ]
     }

@@ -25,6 +25,36 @@
           "type": "reset_db"
         }
       ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t VALUES(\n      'mike november oscar papa quebec romeo \n      sierra tango uniform victor whiskey xray yankee'\n  );\n  INSERT INTO t VALUES(\n      'charlie delta echo foxtrot golf hotel india \n      juliet kilo lima mike november oscar papa'\n  );\n  INSERT INTO t(t) VALUES('merge=16,4');\n  SELECT blockid FROM t_segments ORDER BY blockid;",
+          "expect": "2147483647 2147483648 2147483649 2147483775"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
     }
   ]
 }

@@ -8,14 +8,42 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "progress-1.0",
+      "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT * FROM t1"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "progress-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "progress-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT a+10 FROM t1 WHERE a < 6"
         },
         {
           "type": "exec",
@@ -28,14 +56,42 @@
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "progress-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11)",
+          "expect": "1 {cannot commit - no transaction is active}"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(11)"
+        }
+      ]
+    },
+    {
+      "name": "progress-1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1"
         },
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "progress-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;"
         },
         {
           "type": "exec",
@@ -48,6 +104,16 @@
         {
           "type": "exec",
           "sql": "SELECT sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "progress-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);",
+          "expect": "1 2 3 interrupted 4 5 6 interrupted 7 8 9 interrupted"
         },
         {
           "type": "exec",

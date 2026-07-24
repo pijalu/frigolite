@@ -58,8 +58,12 @@
       ]
     },
     {
-      "name": "setup_5",
+      "name": "4.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM rr;\n\n  CREATE TRIGGER vv1 INSTEAD OF INSERT ON vv BEGIN\n    SELECT 1, 2, 3;\n  END;\n  CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n    INSERT INTO vv VALUES(new.a, new.b);\n  END;"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
@@ -79,8 +83,12 @@
       ]
     },
     {
-      "name": "setup_7",
+      "name": "5.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM (\n    WITH abc(d, e) AS (SELECT * FROM rr)\n    SELECT * FROM abc\n  );"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"

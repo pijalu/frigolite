@@ -3,8 +3,12 @@
   "name": "swarmvtabfault",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;"
+        },
         {
           "type": "exec",
           "sql": "SELECT a FROM xyz"

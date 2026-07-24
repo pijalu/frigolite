@@ -1,0 +1,16 @@
+{
+  "file": "fts3integrity.test",
+  "name": "fts3integrity",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    }
+  ]
+}

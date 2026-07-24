@@ -3,19 +3,50 @@
   "name": "tkt3918",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt3918.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(i, x);"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(i, x);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "tkt3918.3",
+      "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE i = 2;\n    DELETE FROM t1 WHERE i = 1;\n    DELETE FROM t1 WHERE i = 3;"
         },
         {
           "type": "exec",
+          "sql": "DELETE FROM t1 WHERE i = 2;\n    DELETE FROM t1 WHERE i = 1;\n    DELETE FROM t1 WHERE i = 3;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3918.4",
+      "steps": [
+        {
+          "type": "query",
           "sql": "PRAGMA incremental_vacuum = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum = 1"
+        }
+      ]
+    },
+    {
+      "name": "tkt3918.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b)"
         },
         {
           "type": "exec",

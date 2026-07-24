@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;"
         }
       ]
     },
@@ -18,7 +17,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t1 WHERE a=123;",
-          "expect": "{x123y}"
+          "expect": "x123y"
         }
       ]
     },
@@ -28,7 +27,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t1 WHERE b=1123;",
-          "expect": "{x123y}"
+          "expect": "x123y"
         }
       ]
     },
@@ -38,7 +37,17 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t1 ORDER BY a DESC LIMIT 5;",
-          "expect": "{x1000y x999y x998y x997y x996y}"
+          "expect": "x1000y x999y x998y x997y x996y"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t1 ORDER BY b LIMIT 5;",
+          "expect": "x1y x2y x3y x4y x5y"
         }
       ]
     },
@@ -48,7 +57,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b UNIQUE,\n    c UNIQUE,\n    PRIMARY KEY(b)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{4 1}"
+          "expect": "4 1"
         }
       ]
     },
@@ -58,7 +67,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+          "expect": "/SEARCH t1 USING PRIMARY KEY .b>../"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA index_list(t1);",
+          "expect": "/sqlite_autoindex_t1_2 1 pk/"
         }
       ]
     },
@@ -68,7 +87,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b PRIMARY KEY,\n    c UNIQUE,\n    UNIQUE(b)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{4 1}"
+          "expect": "4 1"
         }
       ]
     },
@@ -78,7 +97,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+          "expect": "/SEARCH t1 USING PRIMARY KEY .b>../"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA index_list(t1);",
+          "expect": "/sqlite_autoindex_t1_2 1 pk/"
         }
       ]
     },
@@ -88,7 +117,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b UNIQUE PRIMARY KEY,\n    c UNIQUE\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{4 1}"
+          "expect": "4 1"
         }
       ]
     },
@@ -98,7 +127,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+          "expect": "/SEARCH t1 USING PRIMARY KEY .b>../"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA index_list(t1);",
+          "expect": "/sqlite_autoindex_t1_2 1 pk/"
         }
       ]
     },
@@ -108,7 +147,7 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,\n    UNIQUE(b,c),\n    PRIMARY KEY(b,c)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{4 1}"
+          "expect": "4 1"
         }
       ]
     },
@@ -118,7 +157,27 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
-          "expect": "{/SEARCH t1 USING PRIMARY KEY .b>../}"
+          "expect": "/SEARCH t1 USING PRIMARY KEY .b>../"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA index_list(t1);",
+          "expect": "/sqlite_autoindex_t1_1 1 pk/"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid6-600",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a,b,c,PRIMARY KEY(a,rowid,b))WITHOUT ROWID;",
+          "expect": "1 {no such column: rowid}"
         }
       ]
     }

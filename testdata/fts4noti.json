@@ -12,6 +12,16 @@
       ]
     },
     {
+      "name": "1.x",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "cc"
+        }
+      ]
+    },
+    {
       "name": "2.x",
       "steps": [
         {
@@ -25,8 +35,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t2",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "DROP TABLE t2"
         }
       ]
     },
@@ -35,8 +44,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t2",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "DROP TABLE t2"
         }
       ]
     },
@@ -45,8 +53,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t2",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "DROP TABLE t2"
         }
       ]
     }

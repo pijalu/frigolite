@@ -28,12 +28,22 @@
       ]
     },
     {
+      "name": "3.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info = tcl",
+          "expect": "0 a {} 0 {} 0 1 b {} 0 {} 0"
+        }
+      ]
+    },
+    {
       "name": "3.1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT rowid, * FROM tcl",
-          "expect": "{123 A B}"
+          "expect": "123 A B"
         }
       ]
     },
@@ -42,8 +52,15 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE x1(x);",
-          "expect": "db close"
+          "sql": "CREATE TABLE x1(x);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },
@@ -52,8 +69,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM x1",
-          "expect": "# Modify the schema on disk"
+          "sql": "SELECT * FROM x1"
         }
       ]
     }

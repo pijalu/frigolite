@@ -16,8 +16,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(x, y);",
-          "expect": "set idxscan {SCAN t1 USING COVERING INDEX i1}"
+          "sql": "CREATE INDEX i1 ON t1(x, y);"
         }
       ]
     }

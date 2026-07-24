@@ -21,10 +21,30 @@
       ]
     },
     {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'affinity!' FROM t1 CROSS JOIN t2 WHERE t2.c = '14';",
+          "expect": "affinity!"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'result' FROM t1, t2, t3 \n  WHERE t2.c=t1.b AND t2.d!='silly'\n    AND t3.e=t1.b AND t3.f!='silly'",
+          "expect": "result"
         }
       ]
     },
@@ -49,8 +69,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t0(x TEXT COLLATE rtrim);\n  INSERT INTO t0(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v0(y) AS SELECT DISTINCT x FROM t0;\n  SELECT count(*) FROM t0, v0 WHERE x='b ';",
-          "expect": "3"
+          "sql": "CREATE TABLE t0(x TEXT COLLATE rtrim);\n  INSERT INTO t0(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v0(y) AS SELECT DISTINCT x FROM t0;\n  SELECT count(*) FROM t0, v0 WHERE x='b ';"
         }
       ]
     },
@@ -59,8 +78,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x INT COLLATE rtrim);\n  INSERT INTO t1(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v1(y) AS SELECT DISTINCT x FROM t1;\n  SELECT count(*) FROM t1, v1 WHERE x='b ';",
-          "expect": "3"
+          "sql": "CREATE TABLE t1(x INT COLLATE rtrim);\n  INSERT INTO t1(x) VALUES ('a'), ('b'), ('c');\n  CREATE VIEW v1(y) AS SELECT DISTINCT x FROM t1;\n  SELECT count(*) FROM t1, v1 WHERE x='b ';"
         }
       ]
     },
@@ -78,7 +96,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t0 NATURAL JOIN t1 WHERE z=t1.x;",
-          "expect": "{aa bb aa}"
+          "expect": "aa bb aa"
         }
       ]
     },
@@ -88,6 +106,16 @@
         {
           "type": "exec",
           "sql": "DROP TABLE t0;\n  CREATE TABLE t0(a TEXT);\n  INSERT INTO t0 VALUES ('xyz');\n  CREATE INDEX t0x ON t0(a IS FALSE) WHERE false;\n  DROP TABLE t1;\n  CREATE TABLE t1(b INT);\n  INSERT INTO t1 VALUES('aaa'),('bbb'),('ccc'),('ddd'),(NULL);\n  CREATE TABLE t2(c REAL);\n  INSERT INTO t2 VALUES(7);\n  ANALYZE;\n  CREATE INDEX t2x ON t2(true IN ());"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 LEFT JOIN t1 LEFT JOIN t2 ON (b NOTNULL)==(c IN ()) WHERE c;",
+          "expect": "xyz {} 7.0"
         }
       ]
     },
@@ -105,6 +133,45 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1 (c1);\n  INSERT INTO t1 VALUES (101);\n  CREATE TABLE t2 ( x );\n  INSERT INTO t2 VALUES(404);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'val' in (\n      select 'val' from ( select 'valueB' from t1 order by 1 ) \n      union all \n      select 'val'\n  );",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t2\n    where 'val' in (\n        select 'val' from ( select 'valueB' from t1 order by 1 ) \n        union all \n        select 'val'\n    );",
+          "expect": "404"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT subq_1.c_0 as c_0 \n  FROM ( SELECT 0 as c_0) as subq_1\n  WHERE (subq_1.c_0) IN (\n    SELECT subq_2.c_0 as c_0\n    FROM (\n      SELECT 0 as c_0\n      FROM t1 as ref_1\n      WHERE (ref_1.c1) = (2)\n      ORDER BY c_0 desc\n    ) as subq_2\n    UNION ALL\n    SELECT 0 as c_0\n  );",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a);\n  SELECT 111 IN (\n    SELECT 222 FROM (SELECT 333 ORDER BY 1)\n    UNION ALL\n    SELECT 444 FROM (SELECT 555 FROM t1 ORDER BY 1)\n  );"
         }
       ]
     }

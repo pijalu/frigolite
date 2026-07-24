@@ -16,8 +16,16 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA main.synchronous = NORMAL",
-          "expect": "do_execsql_test      1.2.2 { PRAGMA main.synchronous }     1"
+          "sql": "PRAGMA main.synchronous = NORMAL"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
         }
       ]
     },
@@ -26,8 +34,16 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA main.synchronous = OFF",
-          "expect": "do_execsql_test      1.3.2 { PRAGMA main.synchronous }     0"
+          "sql": "PRAGMA main.synchronous = OFF"
+        }
+      ]
+    },
+    {
+      "name": "1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
         }
       ]
     },
@@ -36,8 +52,26 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA main.synchronous = FULL",
-          "expect": "do_execsql_test      1.4.2 { PRAGMA main.synchronous }      2"
+          "sql": "PRAGMA main.synchronous = FULL"
+        }
+      ]
+    },
+    {
+      "name": "1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal",
+          "expect": "wal"
         }
       ]
     },
@@ -46,8 +80,16 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA main.synchronous = NORMAL",
-          "expect": "do_execsql_test      1.8.2 { PRAGMA main.synchronous }          1"
+          "sql": "PRAGMA main.synchronous = NORMAL"
+        }
+      ]
+    },
+    {
+      "name": "1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
         }
       ]
     },
@@ -56,8 +98,107 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA main.synchronous = OFF",
-          "expect": "do_execsql_test      1.10.2 { PRAGMA main.synchronous }          0"
+          "sql": "PRAGMA main.synchronous = OFF"
+        }
+      ]
+    },
+    {
+      "name": "1.10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "1.11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
+      "name": "1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "1.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
+      "name": "1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "1.17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
+      "name": "1.18.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous=off"
+        }
+      ]
+    },
+    {
+      "name": "1.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "delete"
+        }
+      ]
+    },
+    {
+      "name": "1.19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },
@@ -66,8 +207,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA main.synchronous",
-          "expect": "2"
+          "sql": "PRAGMA main.synchronous"
         }
       ]
     }

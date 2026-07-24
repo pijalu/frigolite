@@ -1,0 +1,16 @@
+{
+  "file": "memjournal2.test",
+  "name": "memjournal2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);",
+          "expect": "memory"
+        }
+      ]
+    }
+  ]
+}

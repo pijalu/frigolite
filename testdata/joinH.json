@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "SELECT DISTINCT a FROM t1 FULL JOIN t2 ON true WHERE (b ISNULL);",
-          "expect": "{NULL}"
+          "expect": "NULL"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 FULL JOIN t2 ON true;",
-          "expect": "{NULL}"
+          "expect": "NULL"
         }
       ]
     },
@@ -37,7 +37,17 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 FULL JOIN t2 ON true WHERE (b ISNULL);",
-          "expect": "{NULL}"
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT a FROM t1 FULL JOIN t2 ON true;",
+          "expect": "NULL"
         }
       ]
     },
@@ -59,6 +69,26 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value!' FROM r3 FULL JOIN r4 ON (y=x);",
+          "expect": "value!"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'value!' FROM r3 FULL JOIN r4 ON (y=x) WHERE +y=55;",
+          "expect": "value!"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -72,6 +102,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c0);\n  CREATE TABLE t2 (c0 , c1 , c2 , UNIQUE (c0), UNIQUE (c2 DESC));\n  INSERT INTO t2 VALUES ('x', 'y', 'z');\n  ANALYZE;\n  CREATE VIEW v0(c0) AS SELECT FALSE;"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t0 LEFT OUTER JOIN t1 ON v0.c0 INNER JOIN v0 INNER JOIN t2 ON (t2.c2 NOT NULL);",
+          "expect": "1 {ON clause references tables to its right}"
         }
       ]
     },
@@ -93,11 +133,31 @@
       ]
     },
     {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (d IS NULL) FROM t1 RIGHT JOIN t2 ON (j=33);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "4.3",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1( (d IS NULL), d );"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (d IS NULL) FROM t1 RIGHT JOIN t2 ON (j=33);",
+          "expect": "1"
         }
       ]
     },
@@ -119,6 +179,55 @@
       ]
     },
     {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (0) RIGHT OUTER JOIN t3;",
+          "expect": "{} {} t3val"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 INNER JOIN t2 ON (0) FULL OUTER JOIN t3;",
+          "expect": "{} {} t3val"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 LEFT JOIN t2 ON (0);",
+          "expect": "t3val {}"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 RIGHT JOIN t1 INNER JOIN t2 ON (0) RIGHT JOIN t3",
+          "expect": "{} {} {} t3val"
+        }
+      ]
+    },
+    {
+      "name": "5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 RIGHT JOIN t1 INNER JOIN t2 ON (0)"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -132,7 +241,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t1 VALUES(3);\n  SELECT CASE WHEN t2.b THEN 0 ELSE 1 END FROM t1 LEFT JOIN t2 ON true;",
-          "expect": "{1}"
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true WHERE CASE WHEN t2.b THEN 0 ELSE 1 END;",
+          "expect": "3 NULL"
         }
       ]
     },
@@ -157,8 +276,28 @@
       "name": "7.1",
       "steps": [
         {
+          "type": "query",
+          "sql": "SELECT t2.rowid FROM t1 JOIN (t2 JOIN t3);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
           "type": "exec",
           "sql": "UPDATE t1 SET b = t2.rowid FROM t2, t3;"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "a 1"
         }
       ]
     },
@@ -176,6 +315,35 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE x2(c, d);\n  CREATE TABLE x3(rowid, _rowid_);\n\n  CREATE TABLE x4(rowid, _rowid_, oid);\n\n  INSERT INTO x1 VALUES(1000, 'thousand');\n  INSERT INTO x2 VALUES('c', 'd');\n  INSERT INTO x3(oid, rowid, _rowid_) VALUES(43, 'hello', 'world');\n  INSERT INTO x4(oid, rowid, _rowid_) VALUES('forty three', 'hello', 'world');"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x3.oid FROM x1 JOIN (x2 JOIN x3 ON c='c')"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x3.rowid FROM x1 JOIN (x2 JOIN x3 ON c='c')",
+          "expect": "hello"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x4.oid FROM x1 JOIN (x2 JOIN x4 ON c='c')",
+          "expect": "{forty three}"
         }
       ]
     },
@@ -200,9 +368,9 @@
       "name": "9.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid FROM wo1, x1, x2;",
-          "expect": "{1 {ambiguous column name: rowid}}"
+          "expect": "1 {ambiguous column name: rowid}"
         }
       ]
     },
@@ -210,9 +378,9 @@
       "name": "9.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid FROM wo1, (x1, x2);",
-          "expect": "{1 {ambiguous column name: rowid}}"
+          "expect": "1 {ambiguous column name: rowid}"
         }
       ]
     },
@@ -220,9 +388,29 @@
       "name": "9.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid FROM wo1 JOIN (x1 JOIN x2);",
-          "expect": "{1 {ambiguous column name: rowid}}"
+          "expect": "1 {ambiguous column name: rowid}"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM wo1, x1, x2;",
+          "expect": "1 {ambiguous column name: a}"
+        }
+      ]
+    },
+    {
+      "name": "9.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(rowid, a) VALUES(101, 'A');\n  INSERT INTO x2(rowid, b) VALUES(55, 'B');\n  SELECT * FROM x1 NATURAL JOIN x2;",
+          "expect": "A B"
         }
       ]
     },
@@ -239,9 +427,9 @@
       "name": "9.8",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT rowid FROM x1 JOIN (x2 JOIN wo2);",
-          "expect": "{0 myrowid}"
+          "expect": "0 myrowid"
         }
       ]
     },
@@ -249,9 +437,9 @@
       "name": "9.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT _rowid_ FROM wo1 JOIN (wo3 JOIN x3)",
-          "expect": "{0 99}"
+          "expect": "0 99"
         }
       ]
     },
@@ -259,9 +447,19 @@
       "name": "9.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT oid FROM wo1 JOIN (wo3 JOIN x3)",
-          "expect": "{0 99}"
+          "expect": "0 99"
+        }
+      ]
+    },
+    {
+      "name": "9.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT oid FROM wo2 JOIN (wo3 JOIN x3)",
+          "expect": "0 99"
         }
       ]
     },
@@ -283,11 +481,50 @@
       ]
     },
     {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(*) FROM rt0 LEFT JOIN rt3 JOIN v6 ON ((CASE v6.c0 WHEN rt0.c4 THEN rt3.c3 END) NOT BETWEEN (rt0.c4) AND (NULL)) WHERE (rt0.c1); -- 2",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(*) FROM rt0 LEFT JOIN rt3 RIGHT OUTER JOIN v6 ON ((CASE v6.c0 WHEN rt0.c4 THEN rt3.c3 END) NOT BETWEEN (rt0.c4) AND (NULL)) WHERE (rt0.c1); -- 2",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "11.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t3 VALUES(3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 RIGHT JOIN t3 ON (t2.c=10)",
+          "expect": "{} {} {} {} 3 3"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 RIGHT JOIN t3 ON (t2.c=10) WHERE t1.a=1"
         }
       ]
     },
@@ -322,8 +559,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true RIGHT JOIN t3 ON d2=e3 WHERE c2 BETWEEN NULL AND a1;",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true RIGHT JOIN t3 ON d2=e3 WHERE c2 BETWEEN NULL AND a1;"
         }
       ]
     },
@@ -341,7 +577,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INT AS (b), b INT);\n  INSERT INTO t1(b) VALUES(123);\n  CREATE TABLE t2(a INT, c INT);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;",
-          "expect": "{123}"
+          "expect": "123"
         }
       ]
     },
@@ -351,7 +587,7 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX t1a ON t1(a);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;",
-          "expect": "{123}"
+          "expect": "123"
         }
       ]
     },
@@ -361,7 +597,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(a INT, b INT);\n  CREATE UNIQUE INDEX t3x ON t3(a, a+b);\n  INSERT INTO t3(a,b) VALUES(1,2),(4,8),(16,32),(4,80),(1,-300);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t4(x,y) SELECT a, b FROM t3;\n  INSERT INTO t4(x,y) VALUES(99,99);\n  SELECT a1.a, sum( a1.a+a1.b ) FROM t3 AS a1 RIGHT JOIN t4 ON a=x\n   GROUP BY a1.a ORDER BY 1;",
-          "expect": "{NULL NULL 1 -592 4 192 16 48}"
+          "expect": "NULL NULL 1 -592 4 192 16 48"
+        }
+      ]
+    },
+    {
+      "name": "13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum( a1.a+a1.b ) FROM t3 AS a1 RIGHT JOIN t3 ON true\n   GROUP BY a1.a ORDER BY 1;",
+          "expect": "-1480 240 480"
         }
       ]
     },
@@ -383,6 +629,86 @@
       ]
     },
     {
+      "name": "14.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 NATURAL LEFT JOIN t2 NATURAL JOIN t3;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 NATURAL LEFT JOIN t2 NATURAL JOIN t3 FULL JOIN t4 ON true;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "14.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (t1 NATURAL LEFT JOIN t2 NATURAL JOIN t3) FULL JOIN t4 ON true;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "14.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * \n  FROM (t1 NATURAL LEFT JOIN t2 NATURAL JOIN t3) AS qq FULL JOIN t4 ON true;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "14.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 NATURAL LEFT JOIN t2 NATURAL JOIN t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "14.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 NATURAL LEFT JOIN t2 NATURAL JOIN t1 FULL JOIN t4 ON true;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "14.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (t3 NATURAL LEFT JOIN t2 NATURAL JOIN t1) FULL JOIN t4 ON true;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "14.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * \n  FROM (t3 NATURAL LEFT JOIN t2 NATURAL JOIN t1) AS qq FULL JOIN t4 ON true;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -396,7 +722,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n  CREATE TABLE t2(c0);\n  INSERT INTO t0 VALUES ('1.0');\n  INSERT INTO t2(c0) VALUES (9);\n  SELECT t0.c0,t2.c0 FROM (SELECT CAST(t0.c0 as REAL) AS c0 FROM t0) as subquery NATURAL LEFT JOIN t1  NATURAL JOIN t0  RIGHT JOIN t2 ON 1;",
-          "expect": "{1.0 9}"
+          "expect": "1.0 9"
         }
       ]
     },
@@ -418,12 +744,32 @@
       ]
     },
     {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 LEFT JOIN t0_b",
+          "expect": "1 {}"
+        }
+      ]
+    },
+    {
       "name": "16.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM (t0_a RIGHT JOIN (              t2 LEFT JOIN t0_b))",
-          "expect": "{{} 1 {}}"
+          "expect": "{} 1 {}"
+        }
+      ]
+    },
+    {
+      "name": "16.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (t0_a RIGHT JOIN (SELECT * FROM t2 LEFT JOIN t0_b))",
+          "expect": "{} 1 {}"
         }
       ]
     },
@@ -450,6 +796,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t0 (c0 INT);\n  CREATE TABLE t1 (c0 INT);\n  CREATE TABLE t2 (c0 INT);\n\n  INSERT INTO t1(c0) VALUES (NULL);\n  INSERT INTO t2 VALUES (1);\n\n  CREATE VIEW v0(c0) AS SELECT 1 AS col_0 FROM t0;"
+        }
+      ]
+    },
+    {
+      "name": "16.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (t0 NATURAL RIGHT JOIN (t0 FULL JOIN (v0 NATURAL FULL JOIN t2) ON TRUE)) NATURAL FULL JOIN t1;",
+          "expect": "1 {ambiguous column name: c0}"
         }
       ]
     }

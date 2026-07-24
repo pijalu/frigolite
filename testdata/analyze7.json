@@ -3,11 +3,26 @@
   "name": "analyze7",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "analyze7-1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;",
+          "expect": "/*SEARCH t1 USING INDEX t1b (b=?)*/"
+        },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
         },
         {
           "type": "exec",
@@ -16,14 +31,44 @@
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;",
+          "expect": "/*SEARCH t1 USING INDEX t1b (b=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123",
+          "expect": "/*SEARCH t1 USING INDEX t1a (a=?)*/"
         },
         {
           "type": "exec",
@@ -32,34 +77,114 @@
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;",
+          "expect": "/*SEARCH t1 USING INDEX t1b (b=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123",
+          "expect": "/*SEARCH t1 USING INDEX t1a (a=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123",
+          "expect": "/*SEARCH t1 USING INDEX t1b (b=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123",
+          "expect": "/*SEARCH t1 USING INDEX t1a (a=?)*/"
         },
         {
           "type": "exec",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123"
+        }
+      ]
+    },
+    {
+      "name": "analyze7-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND d=123 AND b=123",
+          "expect": "/*SEARCH t1 USING INDEX t1cd (c=? AND d=?)*/"
         },
         {
           "type": "exec",

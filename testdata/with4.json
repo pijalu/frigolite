@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);",
-          "expect": "{}"
+          "sql": "ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);"
         }
       ]
     },
@@ -18,7 +17,7 @@
         {
           "type": "exec",
           "sql": "CREATE VIEW v1 AS SELECT * FROM t1, aux.t2;",
-          "expect": "{1 {view v1 cannot reference objects in database aux}}"
+          "expect": "1 {view v1 cannot reference objects in database aux}"
         }
       ]
     },
@@ -28,7 +27,17 @@
         {
           "type": "exec",
           "sql": "CREATE VIEW v2 AS WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;",
-          "expect": "{1 {view v2 cannot reference objects in database aux}}"
+          "expect": "1 {view v2 cannot reference objects in database aux}"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2 AS WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;",
+          "expect": "1 {parameters are not allowed in views}"
         }
       ]
     },
@@ -38,7 +47,17 @@
         {
           "type": "exec",
           "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n  END;",
-          "expect": "{1 {trigger r1 cannot reference objects in database aux}}"
+          "expect": "1 {trigger r1 cannot reference objects in database aux}"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT 5,?2) SELECT * FROM t1, v;\n  END;",
+          "expect": "1 {trigger cannot use variables}"
         }
       ]
     }

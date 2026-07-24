@@ -44,6 +44,16 @@
       ]
     },
     {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1_terms;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -56,8 +66,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t(x) VALUES('alpha');",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "INSERT INTO t(x) VALUES('alpha');"
         }
       ]
     },

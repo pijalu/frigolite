@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');"
         }
       ]
     },
@@ -18,7 +17,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1(x,y) VALUES('now','two');",
-          "expect": "{1 {non-deterministic use of date() in a CHECK constraint}}"
+          "expect": "1 {non-deterministic use of date() in a CHECK constraint}"
         }
       ]
     },
@@ -28,7 +27,27 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1;",
-          "expect": "{2017-07-20 one}"
+          "expect": "2017-07-20 one"
+        }
+      ]
+    },
+    {
+      "name": "date2-130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(x,y) VALUES('2017-08-01','two');",
+          "expect": "1 {CHECK constraint failed: date(x) BETWEEN '2017-07-01' AND '2017-07-31'}"
+        }
+      ]
+    },
+    {
+      "name": "date2-140",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x, y, z AS (date()));\n  INSERT INTO t1(x,y) VALUES(1,2);",
+          "expect": "1 {non-deterministic use of date() in a generated column}"
         }
       ]
     },
@@ -47,7 +66,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t2(x,y) VALUES(3, 'now');",
-          "expect": "{1 {non-deterministic use of date() in an index}}"
+          "expect": "1 {non-deterministic use of date() in an index}"
+        }
+      ]
+    },
+    {
+      "name": "date2-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x, y FROM t2 ORDER BY x;",
+          "expect": "1 2017-07-20 2 xyzzy"
         }
       ]
     },
@@ -66,7 +95,7 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX t3b1 ON t3(datetime(b));",
-          "expect": "{1 {non-deterministic use of datetime() in an index}}"
+          "expect": "1 {non-deterministic use of datetime() in an index}"
         }
       ]
     },
@@ -76,7 +105,7 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX t3b1 ON t3(datetime(b)) WHERE typeof(b)='real';",
-          "expect": "{0 {}}"
+          "expect": "0 {}"
         }
       ]
     },
@@ -86,7 +115,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t3\n   WHERE typeof(b)='real'\n     AND datetime(b) BETWEEN '2017-07-04' AND '2017-07-08';",
-          "expect": "{/USING INDEX t3b/}"
+          "expect": "/USING INDEX t3b/"
+        }
+      ]
+    },
+    {
+      "name": "date2-331",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t3\n   WHERE typeof(b)='real'\n     AND datetime(b) BETWEEN '2017-07-04' AND '2017-07-08'\n  ORDER BY a;",
+          "expect": "3 4 5 6"
         }
       ]
     },
@@ -105,7 +144,7 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';",
-          "expect": "{1 {non-deterministic use of date() in an index}}"
+          "expect": "1 {non-deterministic use of date() in an index}"
         }
       ]
     },
@@ -115,6 +154,16 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t4 WHERE a=500;\n  CREATE INDEX t4b1 ON t4(b)\n    WHERE date(b) BETWEEN '2017-06-01' AND '2017-08-31';"
+        }
+      ]
+    },
+    {
+      "name": "date2-430",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4(a,b) VALUES(9999,'now');",
+          "expect": "1 {non-deterministic use of date() in an index}"
         }
       ]
     },
@@ -133,7 +182,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t5(y,m) VALUES('2017-07-20','localtime');",
-          "expect": "{1 {non-deterministic use of datetime() in an index}}"
+          "expect": "1 {non-deterministic use of datetime() in an index}"
+        }
+      ]
+    },
+    {
+      "name": "date2-520",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5(y,m) VALUES('2017-07-20','utc');",
+          "expect": "1 {non-deterministic use of datetime() in an index}"
         }
       ]
     },
@@ -143,7 +202,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t600(a REAL CHECK( a<julianday('now') ));\n  INSERT INTO t600(a) VALUES(1.0);",
-          "expect": "{1 {non-deterministic use of julianday() in a CHECK constraint}}"
+          "expect": "1 {non-deterministic use of julianday() in a CHECK constraint}"
         }
       ]
     },
@@ -153,7 +212,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t601(a REAL, b TEXT, CHECK( a<julianday(b) ));\n  INSERT INTO t601(a,b) VALUES(1.0, '1970-01-01');",
-          "expect": "{0 {}}"
+          "expect": "0 {}"
         }
       ]
     },
@@ -163,7 +222,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t601(a,b) VALUES(1e100, '1970-01-01');",
-          "expect": "{1 {CHECK constraint failed: a<julianday(b)}}"
+          "expect": "1 {CHECK constraint failed: a<julianday(b)}"
         }
       ]
     },
@@ -173,7 +232,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t601(a,b) VALUES(10, 'now');",
-          "expect": "{1 {non-deterministic use of julianday() in a CHECK constraint}}"
+          "expect": "1 {non-deterministic use of julianday() in a CHECK constraint}"
+        }
+      ]
+    },
+    {
+      "name": "date2-604",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t600(a) VALUES(julianday('now')+10);",
+          "expect": "1 {non-deterministic use of julianday() in a CHECK constraint}"
         }
       ]
     },
@@ -183,7 +252,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t610(a,b);\n  CREATE INDEX t610x1 ON t610(julianday('now')+b);\n  INSERT INTO t610(a,b) VALUES(123,456);",
-          "expect": "{1 {non-deterministic use of julianday() in an index}}"
+          "expect": "1 {non-deterministic use of julianday() in an index}"
         }
       ]
     },
@@ -193,7 +262,27 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t611(a,b);\n  CREATE INDEX t611x1 ON t611(julianday(a)+b);\n  INSERT INTO t611(a,b) VALUES('1970-01-01',10.0);",
-          "expect": "{0 {}}"
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "date2-612",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t611(a,b) VALUES('now',10.0);",
+          "expect": "1 {non-deterministic use of julianday() in an index}"
+        }
+      ]
+    },
+    {
+      "name": "date3-620",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t620(a, b AS (a+julianday('now')));\n  INSERT INTO t620 VALUES(10);",
+          "expect": "1 {non-deterministic use of julianday() in a generated column}"
         }
       ]
     }

@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;",
-          "expect": "# Load the contents of $file from disk and return it encoded as a hex"
+          "sql": "PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;"
         }
       ]
     },
@@ -17,8 +16,71 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT sqlite_offset(d) FROM t1 ORDER BY rowid LIMIT 1;",
-          "expect": "$offset"
+          "sql": "SELECT sqlite_offset(d) FROM t1 ORDER BY rowid LIMIT 1;"
+        }
+      ]
+    },
+    {
+      "name": "func6-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offrec(sqlite_offset(d), a, b, c, d) FROM t1 ORDER BY rowid"
+        }
+      ]
+    },
+    {
+      "name": "func6-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, typeof(sqlite_offset(+a)) FROM t1\n   ORDER BY rowid LIMIT 2;",
+          "expect": "abc001 null abc002 null"
+        }
+      ]
+    },
+    {
+      "name": "func6-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offrec(sqlite_offset(a), a, rowid) FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "func6-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offrec(sqlite_offset(d), a, b, c, d) FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "func6-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offrec(sqlite_offset(a), a, rowid),\n         offrec(sqlite_offset(d), a, b, c, d)\n  FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "func6-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offrec(sqlite_offset(b), b, c, rowid),\n         offrec(sqlite_offset(c), b, c, rowid),\n         offrec(sqlite_offset(d), a, b, c, d)\n  FROM t1\n  ORDER BY b"
+        }
+      ]
+    },
+    {
+      "name": "func6-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offrec( sqlite_offset(y), x, y ) FROM t2 ORDER BY x"
         }
       ]
     },
@@ -27,6 +89,15 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "func6-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INT, b INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX x3 ON t2(b);\n  CREATE TABLE t1(a INT PRIMARY KEY, b TEXT);\n  SELECT * FROM t1 WHERE a IN (SELECT sqlite_offset(b) FROM t2);"
         }
       ]
     }

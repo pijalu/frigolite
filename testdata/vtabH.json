@@ -9,6 +9,16 @@
           "type": "reset_db"
         }
       ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'",
+          "expect": "test.db ."
+        }
+      ]
     }
   ]
 }

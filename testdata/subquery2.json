@@ -3,8 +3,13 @@
   "name": "subquery2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "subquery2-1.1",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n    INSERT INTO t2 VALUES(7,49);\n    CREATE TABLE t3(e,f);\n    INSERT INTO t3 VALUES(1,1);\n    INSERT INTO t3 VALUES(3,27);\n    INSERT INTO t3 VALUES(5,125);\n    INSERT INTO t3 VALUES(7,343);\n    COMMIT;",
+          "expect": "1 3 5 7"
+        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n    INSERT INTO t2 VALUES(7,49);\n    CREATE TABLE t3(e,f);\n    INSERT INTO t3 VALUES(1,1);\n    INSERT INTO t3 VALUES(3,27);\n    INSERT INTO t3 VALUES(5,125);\n    INSERT INTO t3 VALUES(7,343);\n    COMMIT;"
@@ -12,22 +17,72 @@
         {
           "type": "exec",
           "sql": "SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        }
+      ]
+    },
+    {
+      "name": "subquery2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));",
+          "expect": "1 3 5 7"
         },
         {
           "type": "exec",
           "sql": "CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        }
+      ]
+    },
+    {
+      "name": "subquery2-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));",
+          "expect": "1"
         },
         {
           "type": "exec",
           "sql": "SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        }
+      ]
+    },
+    {
+      "name": "subquery2-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));",
+          "expect": "1"
         },
         {
           "type": "exec",
           "sql": "SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));"
+        }
+      ]
+    },
+    {
+      "name": "subquery2-1.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))",
+          "expect": "1 3 5 7"
         },
         {
           "type": "exec",
           "sql": "SELECT a FROM t1\n     WHERE +b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))"
+        }
+      ]
+    },
+    {
+      "name": "subquery2-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1\n     WHERE b=(SELECT x+1 FROM \n                 (SELECT DISTINCT f/d AS x FROM t2 JOIN t3 ON d*a=f))",
+          "expect": "1 3 5 7"
         },
         {
           "type": "exec",
@@ -45,12 +100,22 @@
       ]
     },
     {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * \n  FROM (SELECT * FROM t4 ORDER BY a LIMIT -1 OFFSET 1) \n  LIMIT (SELECT a FROM t5)",
+          "expect": "2 3   3 6   4 10"
+        }
+      ]
+    },
+    {
       "name": "3.0",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (id INTEGER PRIMARY KEY, data TEXT);\n  INSERT INTO t1(id,data) VALUES(9,'nine-a');\n  INSERT INTO t1(id,data) VALUES(10,'ten-a');\n  INSERT INTO t1(id,data) VALUES(11,'eleven-a');\n  CREATE TABLE t2 (id INTEGER PRIMARY KEY, data TEXT);\n  INSERT INTO t2(id,data) VALUES(9,'nine-b');\n  INSERT INTO t2(id,data) VALUES(10,'ten-b');\n  INSERT INTO t2(id,data) VALUES(11,'eleven-b');\n  \n  SELECT id FROM (\n    SELECT id,data FROM (\n       SELECT * FROM t1 UNION ALL SELECT * FROM t2\n    )\n    WHERE id=10 ORDER BY data\n  );",
-          "expect": "{10 10}"
+          "expect": "10 10"
         }
       ]
     },
@@ -60,7 +125,17 @@
         {
           "type": "query",
           "sql": "SELECT data FROM (\n     SELECT 'dummy', data FROM (\n       SELECT data FROM t1 UNION ALL SELECT data FROM t1\n     ) ORDER BY data\n  );",
-          "expect": "{eleven-a eleven-a nine-a nine-a ten-a ten-a}"
+          "expect": "eleven-a eleven-a nine-a nine-a ten-a ten-a"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t3(id INTEGER, data TEXT);\n  CREATE TABLE t4(id INTEGER, data TEXT);\n  INSERT INTO t3 VALUES(4, 'a'),(2,'c');\n  INSERT INTO t4 VALUES(3, 'b'),(1,'d');\n\n  SELECT data, id FROM (\n    SELECT id, data FROM (\n       SELECT * FROM t3 UNION ALL SELECT * FROM t4\n    ) ORDER BY data\n  );",
+          "expect": "a 4 b 3 c 2 d 1"
         }
       ]
     },
@@ -91,6 +166,16 @@
       ]
     },
     {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( SELECT y FROM t2 WHERE x = y ORDER BY y, z) FROM t1;",
+          "expect": "ALFKI ANATR"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -117,6 +202,56 @@
       ]
     },
     {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n      SELECT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n      SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n      SELECT DISTINCT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n      SELECT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT DISTINCT x, x FROM t1 LIMIT 1 OFFSET 5)==(1234, 1234)",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -134,11 +269,41 @@
       ]
     },
     {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT DISTINCT 'string' FROM t1 ORDER BY x LIMIT 1 OFFSET 5\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
       "name": "7.2",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (\n    SELECT DISTINCT x FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 0);",
+          "expect": "1234"
         }
       ]
     }

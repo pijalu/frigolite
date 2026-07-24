@@ -7,8 +7,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tx1 (\n    est,\n    cid,\n    sid,\t\n    fid,\n    aid,\n    edate,\n    rstat,\n    ftype,\n    cx,\n    fyear,\n    fp,\n    acode,\n    a1,\n    curx,\n    tdate,\n    gstat,\n    trgtpx,\n    effdate,\n    adate,\n    ytime,\n    mstat\n  );\n  CREATE INDEX ix0 on tx1(a1,curx,aid,cid,sid,ftype,fp,fyear DESC,edate DESC,fid);\n  CREATE INDEX ix1 on tx1(a1,curx,aid,ftype,fp,fyear DESC,fid,edate DESC,cid,sid);\n  CREATE INDEX ix2 on tx1(a1,curx,cid,sid,ftype,fp,fyear DESC,edate DESC,aid,fid);\n  CREATE INDEX ix3 on tx1(a1,curx,fid,ftype,fp,fyear DESC,cid,sid,aid,edate DESC);\n  CREATE INDEX ix4 on tx1(a1,curx,ftype,cid,sid,aid,edate DESC,fid,fp,fyear DESC);\n  CREATE INDEX ix5 on tx1(a1,curx,ftype,aid,fid,cid,sid,edate DESC,fp,fyear DESC);\n  CREATE INDEX ix6 on tx1(ftype,fp,fyear DESC,cid,sid,edate DESC,a1,fid,aid,curx,est,rstat,cx,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix7 on tx1(cid,a1,curx,sid,ftype,est,fid,aid,edate,rstat,cx,fyear,fp,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix8 on tx1(cid,sid,edate DESC,aid,est);\n  CREATE INDEX ix9 on tx1(aid,edate DESC,a1,curx);",
-          "expect": "{}"
+          "sql": "CREATE TABLE tx1 (\n    est,\n    cid,\n    sid,\t\n    fid,\n    aid,\n    edate,\n    rstat,\n    ftype,\n    cx,\n    fyear,\n    fp,\n    acode,\n    a1,\n    curx,\n    tdate,\n    gstat,\n    trgtpx,\n    effdate,\n    adate,\n    ytime,\n    mstat\n  );\n  CREATE INDEX ix0 on tx1(a1,curx,aid,cid,sid,ftype,fp,fyear DESC,edate DESC,fid);\n  CREATE INDEX ix1 on tx1(a1,curx,aid,ftype,fp,fyear DESC,fid,edate DESC,cid,sid);\n  CREATE INDEX ix2 on tx1(a1,curx,cid,sid,ftype,fp,fyear DESC,edate DESC,aid,fid);\n  CREATE INDEX ix3 on tx1(a1,curx,fid,ftype,fp,fyear DESC,cid,sid,aid,edate DESC);\n  CREATE INDEX ix4 on tx1(a1,curx,ftype,cid,sid,aid,edate DESC,fid,fp,fyear DESC);\n  CREATE INDEX ix5 on tx1(a1,curx,ftype,aid,fid,cid,sid,edate DESC,fp,fyear DESC);\n  CREATE INDEX ix6 on tx1(ftype,fp,fyear DESC,cid,sid,edate DESC,a1,fid,aid,curx,est,rstat,cx,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix7 on tx1(cid,a1,curx,sid,ftype,est,fid,aid,edate,rstat,cx,fyear,fp,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix8 on tx1(cid,sid,edate DESC,aid,est);\n  CREATE INDEX ix9 on tx1(aid,edate DESC,a1,curx);"
+        }
+      ]
+    },
+    {
+      "name": "whereJ-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT aid, sid, MAX(edate) edate\n    FROM tx1\n   WHERE cid = 115790\n     AND sid = 9100\n     AND edate <= 20140430 AND edate >= 20120429\n   GROUP BY aid;",
+          "expect": "/B-TREE/"
         }
       ]
     },
@@ -18,7 +27,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE tab(\n    id INTEGER PRIMARY KEY,\n    minChild INTEGER REFERENCES t1,\n    maxChild INTEGER REFERENCES t1,\n    x INTEGER\n  );\n  EXPLAIN QUERY PLAN\n  SELECT t4.x\n    FROM tab AS t0, tab AS t1, tab AS t2, tab AS t3, tab AS t4\n   WHERE t0.id=0\n     AND t1.id BETWEEN t0.minChild AND t0.maxChild\n     AND t2.id BETWEEN t1.minChild AND t1.maxChild\n     AND t3.id BETWEEN t2.minChild AND t2.maxChild\n     AND t4.id BETWEEN t3.minChild AND t3.maxChild\n  ORDER BY t4.x;",
-          "expect": "{~/SCAN/}"
+          "expect": "~/SCAN/"
+        }
+      ]
+    },
+    {
+      "name": "whereJ-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT t4.x\n    FROM tab AS t0a, tab AS t0b,\n         tab AS t1a, tab AS t1b,\n         tab AS t2a, tab AS t2b,\n         tab AS t3a, tab AS t3b,\n         tab AS t4\n   WHERE 1\n     AND t0a.id=1\n     AND t1a.id BETWEEN t0a.minChild AND t0a.maxChild\n     AND t2a.id BETWEEN t1a.minChild AND t1a.maxChild\n     AND t3a.id BETWEEN t2a.minChild AND t2a.maxChild\n     AND t0b.id=2\n     AND t1b.id BETWEEN t0b.minChild AND t0b.maxChild\n     AND t2b.id BETWEEN t1b.minChild AND t1b.maxChild\n     AND t3b.id BETWEEN t2b.minChild AND t2b.maxChild\n     AND t4.id BETWEEN t3a.minChild AND t3b.maxChild\n  ORDER BY t4.x;",
+          "expect": "~/SCAN/"
         }
       ]
     },
@@ -32,12 +51,48 @@
       ]
     },
     {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, count(*) FROM t1 GROUP BY a HAVING a < 8;",
+          "expect": "0 100 1 1 2 100 3 1 4 100 5 1 6 100 7 1"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx_ab ON t1(a, b);\n  CREATE INDEX idx_c ON t1(c);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);",
-          "expect": "{}"
+          "sql": "CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT\n     px.name,\n     px.description\n  FROM\n     le,\n     cx,\n     px\n  WHERE\n     cx.code = '2990'\n     AND cx.type=2\n     AND px.cx_id = cx.cx_id\n     AND px.px_tid = 0\n     AND px.le_id = le.le_id;",
+          "expect": "/.*SCAN cx.*SEARCH px.*SEARCH le.*/"
         }
       ]
     }

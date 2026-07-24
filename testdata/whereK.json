@@ -8,7 +8,17 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<99)\n    INSERT INTO t1(a,b,c) SELECT x, x/10, x%10 FROM c;\n  CREATE INDEX t1bc ON t1(b,c);\n  SELECT a FROM t1 WHERE b>9 OR b=9 ORDER BY +a;",
-          "expect": "{90 91 92 93 94 95 96 97 98 99}"
+          "expect": "90 91 92 93 94 95 96 97 98 99"
+        }
+      ]
+    },
+    {
+      "name": "1.1eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>9 OR b=9 ORDER BY +a;",
+          "expect": "/SEARCH t1 USING INDEX t1bc/"
         }
       ]
     },
@@ -18,7 +28,17 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE b>8 OR (b=8 AND c>7) ORDER BY +a;",
-          "expect": "{88 89 90 91 92 93 94 95 96 97 98 99}"
+          "expect": "88 89 90 91 92 93 94 95 96 97 98 99"
+        }
+      ]
+    },
+    {
+      "name": "1.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>8 OR (b=8 AND c>7) ORDER BY +a;",
+          "expect": "/SEARCH t1 USING INDEX t1bc/"
         }
       ]
     },
@@ -28,7 +48,17 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE (b=8 AND c>7) OR b>8 ORDER BY +a;",
-          "expect": "{88 89 90 91 92 93 94 95 96 97 98 99}"
+          "expect": "88 89 90 91 92 93 94 95 96 97 98 99"
+        }
+      ]
+    },
+    {
+      "name": "1.3eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE (b=8 AND c>7) OR b>8 ORDER BY +a;",
+          "expect": "/SEARCH t1 USING INDEX t1bc/"
         }
       ]
     },
@@ -38,7 +68,17 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE (b=8 AND c>7) OR 8<b ORDER BY +a;",
-          "expect": "{88 89 90 91 92 93 94 95 96 97 98 99}"
+          "expect": "88 89 90 91 92 93 94 95 96 97 98 99"
+        }
+      ]
+    },
+    {
+      "name": "1.4eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE (b=8 AND c>7) OR 8<b ORDER BY +a;",
+          "expect": "/SEARCH t1 USING INDEX t1bc/"
         }
       ]
     },
@@ -48,7 +88,27 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE (b=8 AND c>7) OR (b>8 AND c NOT IN (4,5,6))\n   ORDER BY +a;",
-          "expect": "{88 89 90 91 92 93 97 98 99}"
+          "expect": "88 89 90 91 92 93 97 98 99"
+        }
+      ]
+    },
+    {
+      "name": "1.5eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE (b=8 AND c>7) OR (b>8 AND c NOT IN (4,5,6))\n   ORDER BY +a;",
+          "expect": "/SEARCH t1 USING INDEX t1bc/"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t0(x COLLATE NOCASE);\n  CREATE INDEX t0x ON t0(x);\n  CREATE TABLE t1(y);\n  INSERT INTO t0 VALUES('a');\n  INSERT INTO t1 VALUES('AB');\n  SELECT count(*) FROM t0, t1 WHERE (y BETWEEN 1 AND x) OR (x>=y AND x);\n  SELECT count(*) FROM t0, t1 WHERE (x>=y AND x) OR (y BETWEEN 1 AND x);",
+          "expect": "1 1"
         }
       ]
     }

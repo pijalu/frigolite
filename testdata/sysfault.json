@@ -16,6 +16,15 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "2.setup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);"
         },
         {
           "type": "exec",

@@ -11,6 +11,36 @@
       ]
     },
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cell_size_check = off;\n  DROP INDEX t1x1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT sum(s+length(b)) FROM t1 WHERE a IN (110,10,150) AND q IS NULL;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -28,6 +58,16 @@
       ]
     },
     {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,c FROM t1 ORDER BY a;",
+          "expect": "1 {out of memory}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -40,8 +80,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, d INTEGER PRIMARY KEY);\n  CREATE TABLE t2(a, b, c, d INTEGER PRIMARY KEY);\n\n  INSERT INTO t1(a, b, c, d) VALUES (1, 2, 3, 100), (4, 5, 6, 101);\n  INSERT INTO t2(a, b, c, d) VALUES (1, 100, 3, 1000), (4, 101, 6, 1001);\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t2a ON t2(a, b, c);\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX t2a ON t2(a)' WHERE name='t2a';",
-          "expect": "db close"
+          "sql": "CREATE TABLE t1(a, b, c, d INTEGER PRIMARY KEY);\n  CREATE TABLE t2(a, b, c, d INTEGER PRIMARY KEY);\n\n  INSERT INTO t1(a, b, c, d) VALUES (1, 2, 3, 100), (4, 5, 6, 101);\n  INSERT INTO t2(a, b, c, d) VALUES (1, 100, 3, 1000), (4, 101, 6, 1001);\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t2a ON t2(a, b, c);\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX t2a ON t2(a)' WHERE name='t2a';"
         }
       ]
     },
@@ -54,10 +93,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "3.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT * FROM t2;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -70,10 +111,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "4.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;"
         }
       ]
     },
@@ -82,6 +124,69 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1x2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1(b) VALUES(1);\n    INSERT INTO t1(b) VALUES(2);\n  COMMIT;",
+          "expect": "1 {malformed database schema (t1b) - invalid rootpage}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;",
+          "expect": "1 {malformed database schema (t1x1) - invalid rootpage}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;"
         }
       ]
     },
@@ -99,7 +204,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1(b,c) VALUES(5,6);",
-          "expect": "{1 {database disk image is malformed}}"
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -112,10 +217,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "10.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  SELECT * FROM t1 WHERE a<='2019-05-09' ORDER BY a DESC;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -128,10 +235,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "11.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -140,6 +249,52 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT CAST((SELECT b FROM t1 WHERE 16=c) AS int) FROM t1 WHERE 16=c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x-2019 FROM c WHERE x<2)\n    INSERT INTO t1(b,c) SELECT last_insert_rowid(), x FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -149,7 +304,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO alkjalkjdfiiiwuer987lkjwer82mx97sf98788s9789s;",
-          "expect": "{1 {database disk image is malformed}}"
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -165,9 +320,19 @@
       "name": "15.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;",
-          "expect": "{1 {database disk image is malformed}}"
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "/in database main/"
         }
       ]
     },
@@ -184,8 +349,25 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(w, x, y, z, UNIQUE(w, x), UNIQUE(y, z));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n\n  CREATE TABLE t1idx(x, y, i INTEGER, PRIMARY KEY(x)) WITHOUT ROWID;\n  INSERT INTO t1idx VALUES(10, NULL, 5);\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name='t1idx'\n  ) WHERE type = 'index';",
-          "expect": "extra_schema_checks 0"
+          "sql": "CREATE TABLE t1(w, x, y, z, UNIQUE(w, x), UNIQUE(y, z));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n\n  CREATE TABLE t1idx(x, y, i INTEGER, PRIMARY KEY(x)) WITHOUT ROWID;\n  INSERT INTO t1idx VALUES(10, NULL, 5);\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name='t1idx'\n  ) WHERE type = 'index';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = ON;\n  INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -215,6 +397,16 @@
       ]
     },
     {
+      "name": "19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -227,8 +419,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c INTEGER, d TEXT);\n  CREATE INDEX i1 ON t1((NULL));\n  INSERT INTO t1 VALUES(1, NULL, 1, 'text value');\n  PRAGMA writable_schema = on;\n  UPDATE sqlite_schema SET \n      sql = 'CREATE INDEX i1 ON t1(b, c, d)', \n      tbl_name = 't1', \n      type='index' \n  WHERE name='i1';",
-          "expect": "db close"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c INTEGER, d TEXT);\n  CREATE INDEX i1 ON t1((NULL));\n  INSERT INTO t1 VALUES(1, NULL, 1, 'text value');\n  PRAGMA writable_schema = on;\n  UPDATE sqlite_schema SET \n      sql = 'CREATE INDEX i1 ON t1(b, c, d)', \n      tbl_name = 't1', \n      type='index' \n  WHERE name='i1';"
         }
       ]
     },
@@ -237,6 +428,34 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "19.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b GLOB b AND b GLOB '0^x]\u24056\u241axz]';",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     }

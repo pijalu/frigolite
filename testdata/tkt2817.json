@@ -3,7 +3,7 @@
   "name": "tkt2817",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt2817-1.0",
       "steps": [
         {
           "type": "exec",
@@ -11,15 +11,62 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TEMP TABLE tbl(a, b, c);\n    -- INSERT INTO tbl VALUES(1, 'abc', 'def');\n    -- INSERT INTO tbl VALUES(2, 'ghi', 'jkl');"
+        }
+      ]
+    },
+    {
+      "name": "tkt2817-1.1",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "CREATE TABLE main.tbl(a, b, c); \n    CREATE INDEX main.tbli ON tbl(a, b, c);\n    INSERT INTO main.tbl SELECT a, b, c FROM temp.tbl;"
         },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.tbl(a, b, c); \n    CREATE INDEX main.tbli ON tbl(a, b, c);\n    INSERT INTO main.tbl SELECT a, b, c FROM temp.tbl;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "tkt2817-2.0",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TEMP TABLE tmp(a, b, c);\n    INSERT INTO tmp VALUES(1, 'abc', 'def');\n    INSERT INTO tmp VALUES(2, 'ghi', 'jkl');"
         },
         {
           "type": "exec",
+          "sql": "CREATE TEMP TABLE tmp(a, b, c);\n    INSERT INTO tmp VALUES(1, 'abc', 'def');\n    INSERT INTO tmp VALUES(2, 'ghi', 'jkl');"
+        }
+      ]
+    },
+    {
+      "name": "tkt2817-2.1",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "CREATE TABLE main.tbl(a, b, c); \n    CREATE INDEX main.tbli ON tbl(a, b, c);\n    INSERT INTO main.tbl SELECT a, b, c FROM temp.tmp;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.tbl(a, b, c); \n    CREATE INDEX main.tbli ON tbl(a, b, c);\n    INSERT INTO main.tbl SELECT a, b, c FROM temp.tmp;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

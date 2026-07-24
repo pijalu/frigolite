@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "SELECT next_char('re','vocab','w');",
-          "expect": "{a}"
+          "expect": "a"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "type": "query",
           "sql": "SELECT next_char('re','(SELECT w AS x FROM vocab)','x');",
-          "expect": "{a}"
+          "expect": "a"
         }
       ]
     },
@@ -37,7 +37,7 @@
         {
           "type": "query",
           "sql": "SELECT next_char('r','vocab','w');",
-          "expect": "{ae}"
+          "expect": "ae"
         }
       ]
     },
@@ -47,7 +47,17 @@
         {
           "type": "query",
           "sql": "SELECT next_char('','vocab','w');",
-          "expect": "{r}"
+          "expect": "r"
+        }
+      ]
+    },
+    {
+      "name": "1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT next_char('','xyzzy','a')",
+          "expect": "1 {no such table: xyzzy}"
         }
       ]
     },
@@ -57,7 +67,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');",
-          "expect": "{cDeF}"
+          "expect": "cDeF"
         }
       ]
     },
@@ -67,7 +77,7 @@
         {
           "type": "query",
           "sql": "SELECT next_char('ab','vocab2','w',null,null);",
-          "expect": "{c}"
+          "expect": "c"
         }
       ]
     },
@@ -77,7 +87,17 @@
         {
           "type": "query",
           "sql": "SELECT next_char('AB','vocab2','w',null,'NOCASE');",
-          "expect": "{cDeF}"
+          "expect": "cDeF"
+        }
+      ]
+    },
+    {
+      "name": "1.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT next_char('ab','vocab2','w',null,'binary');",
+          "expect": "c"
         }
       ]
     },
@@ -87,7 +107,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid FROM t1 WHERE word='rabbit';",
-          "expect": "{2}"
+          "expect": "2"
         }
       ]
     },
@@ -97,7 +117,17 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';",
-          "expect": "{2000}"
+          "expect": "2000"
+        }
+      ]
+    },
+    {
+      "name": "1.33",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(rowid, word) VALUES(3000,'garden');",
+          "expect": "1 {constraint failed}"
         }
       ]
     },
@@ -125,7 +155,7 @@
         {
           "type": "query",
           "sql": "SELECT word FROM t3 WHERE rowid = 10;",
-          "expect": "{keener}"
+          "expect": "keener"
         }
       ]
     },
@@ -135,7 +165,7 @@
         {
           "type": "query",
           "sql": "SELECT word, distance FROM t3 WHERE rowid = 10;",
-          "expect": "{keener {}}"
+          "expect": "keener {}"
         }
       ]
     },
@@ -145,7 +175,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;",
-          "expect": "{\n  1 Archilles   2 Apollo   3 Atrides\n}"
+          "expect": "1 Archilles   2 Apollo   3 Atrides"
         }
       ]
     },
@@ -155,7 +185,7 @@
         {
           "type": "exec",
           "sql": "INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');",
-          "expect": "{1 {constraint failed}}"
+          "expect": "1 {constraint failed}"
         }
       ]
     },
@@ -165,7 +195,7 @@
         {
           "type": "exec",
           "sql": "INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');",
-          "expect": "{1 {constraint failed}}"
+          "expect": "1 {constraint failed}"
         }
       ]
     },
@@ -175,7 +205,17 @@
         {
           "type": "exec",
           "sql": "INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');",
-          "expect": "{1 {constraint failed}}"
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "7.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;",
+          "expect": "1 Archilles   2 Apollo   3 Atrides"
         }
       ]
     },
@@ -185,7 +225,7 @@
         {
           "type": "exec",
           "sql": "UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;",
-          "expect": "{2 Apollo 3 Archilles}"
+          "expect": "2 Apollo 3 Archilles"
         }
       ]
     },
@@ -195,7 +235,7 @@
         {
           "type": "exec",
           "sql": "UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;",
-          "expect": "{1 {constraint failed}}"
+          "expect": "1 {constraint failed}"
         }
       ]
     },
@@ -205,7 +245,7 @@
         {
           "type": "exec",
           "sql": "UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;",
-          "expect": "{1 {constraint failed}}"
+          "expect": "1 {constraint failed}"
         }
       ]
     },
@@ -215,7 +255,17 @@
         {
           "type": "exec",
           "sql": "UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;",
-          "expect": "{1 {constraint failed}}"
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "7.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;",
+          "expect": "2 Apollo  3 Archilles"
         }
       ]
     },
@@ -224,8 +274,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');",
-          "expect": "db_save_and_close"
+          "sql": "DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;",
+          "expect": "1"
         }
       ]
     }

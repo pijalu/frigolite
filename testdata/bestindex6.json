@@ -1,0 +1,35 @@
+{
+  "file": "bestindex6.test",
+  "name": "bestindex6",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t2 left join t1 on t1.id=t2.ctx where t1.value is null;",
+          "expect": "2 2 evil {} {}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from vt2 left join vt1 on vt1.id=vt2.ctx where vt1.value is null;",
+          "expect": "2 2 evil {} {}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from t2 left join vt1 on vt1.id=t2.ctx where vt1.value = 3"
+        }
+      ]
+    }
+  ]
+}

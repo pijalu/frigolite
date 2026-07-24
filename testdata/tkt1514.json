@@ -1,0 +1,16 @@
+{
+  "file": "tkt1514.test",
+  "name": "tkt1514",
+  "tests": [
+    {
+      "name": "tkt1514-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    SELECT a FROM t1 WHERE max(b)<10 GROUP BY a;",
+          "expect": "1 {misuse of aggregate: max()}"
+        }
+      ]
+    }
+  ]
+}

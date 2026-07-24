@@ -1,0 +1,46 @@
+{
+  "file": "upsert2.test",
+  "name": "upsert2",
+  "tests": [
+    {
+      "name": "upsert2-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM record;",
+          "expect": "before-insert 1,2,0"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 1"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM record;\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM record;",
+          "expect": "before-insert 1,2,0"
+        }
+      ]
+    },
+    {
+      "name": "upsert2-421",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2 1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "file": "fts3corrupt5.test",
+  "name": "fts3corrupt5",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(root) FROM ft_segdir;",
+          "expect": "X'00036F6E6509010201010201020200'"
+        }
+      ]
+    }
+  ]
+}

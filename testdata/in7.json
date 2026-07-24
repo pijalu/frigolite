@@ -33,6 +33,16 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a IN (1,2,3) ORDER BY b ASC NULLS LAST;",
+          "expect": "one three {}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -50,12 +60,52 @@
       ]
     },
     {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v2",
+          "expect": "4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v2\n  UNION ALL\n  SELECT * FROM v1",
+          "expect": "4 5 6\n  1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
       "name": "3.5",
       "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (a int UNIQUE);\n  CREATE TABLE t2 (b int UNIQUE);\n  INSERT INTO t1 VALUES (1);\n  INSERT INTO t2 VALUES (1), (2);\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 1);",
-          "expect": "{1 1}"
+          "expect": "1 1"
         }
       ]
     },
@@ -65,7 +115,7 @@
         {
           "type": "query",
           "sql": "SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 1));",
-          "expect": "{1 1}"
+          "expect": "1 1"
         }
       ]
     },
@@ -75,7 +125,17 @@
         {
           "type": "query",
           "sql": "SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 2);",
-          "expect": "{1 2}"
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 2));",
+          "expect": "1 2"
         }
       ]
     },
@@ -84,6 +144,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;",
+          "expect": "X'3333'"
         }
       ]
     }

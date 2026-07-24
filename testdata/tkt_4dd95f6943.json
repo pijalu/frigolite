@@ -12,16 +12,6 @@
       ]
     },
     {
-      "name": "1.$tn1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT x FROM t1 WHERE x IN(2, 4, 5) ORDER BY x DESC;",
-          "expect": "{5 4 2}"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {

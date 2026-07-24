@@ -3,7 +3,15 @@
   "name": "mallocH",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_1",
       "steps": [
         {
           "type": "exec",

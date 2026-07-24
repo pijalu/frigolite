@@ -1,0 +1,25 @@
+{
+  "file": "bestindexG.test",
+  "name": "bestindexG",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE probe(id);\n  CREATE TABLE pr(id, k);\n  CREATE TABLE sl(id, dk);\n\n  INSERT INTO probe VALUES(3), (44);\n\n  INSERT INTO pr VALUES(3, 3);\n  INSERT INTO sl VALUES(3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "with v as (\n      select sl.id as id\n      from tt\n      left join pr on pr.k = tt.k\n      join sl on sl.dk = tt.id\n  )\n  select count(*) from probe join v on v.id = probe.id;",
+          "expect": "2"
+        }
+      ]
+    }
+  ]
+}

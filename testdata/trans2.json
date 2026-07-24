@@ -3,8 +3,12 @@
   "name": "trans2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "trans2-1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );"

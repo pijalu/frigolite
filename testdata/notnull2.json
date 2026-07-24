@@ -33,8 +33,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM (SELECT a, b FROM t1) LEFT JOIN t3 ON a IS NULL;",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "SELECT * FROM (SELECT a, b FROM t1) LEFT JOIN t3 ON a IS NULL;"
         }
       ]
     },
@@ -56,6 +55,16 @@
       ]
     },
     {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t0 WHERE ((c0 NOT NULL) AND 1) OR (c0 == NULL);",
+          "expect": "0"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -69,7 +78,17 @@
         {
           "type": "query",
           "sql": "SELECT *, '/'\n  FROM (\n      SELECT NULL val FROM (SELECT 1)\n      UNION ALL\n      SELECT 'missing' FROM (SELECT 1)\n  ) a\n  LEFT JOIN (SELECT 1)\n      ON a.val IS NULL;",
-          "expect": "{{} 1 / missing {} /}"
+          "expect": "{} 1 / missing {} /"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1);\n  CREATE TABLE t2(b INT);\n  SELECT * FROM (SELECT 3 AS c FROM t1) AS t3 LEFT JOIN t2 ON c IS NULL;",
+          "expect": "3 {}"
         }
       ]
     },
@@ -78,6 +97,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT NOT NULL);\n  SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;",
+          "expect": "1 0 0"
         }
       ]
     }

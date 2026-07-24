@@ -17,6 +17,35 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE T1(a, b);\n  INSERT INTO t1(rowid, a ,b) VALUES(5, 'v', 'five');\n  INSERT INTO t1(rowid, a, b) VALUES(10, 'x', 'ten');"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, cell, field, quote(value) FROM sqlite_dbdata WHERE pgno=2;",
+          "expect": "2 0 -1 5 \n  2 0  0 'v' \n  2 0  1 'five' \n  2 1 -1 10 \n  2 1  0 'x' \n  2 1  1 'ten'"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, cell, field, quote(value) FROM sqlite_dbdata;",
+          "expect": "1 0 -1 1 \n  1 0 0 'table' \n  1 0 1 'T1' \n  1 0 2 'T1' \n  1 0 3 2 \n  1 0 4 {'CREATE TABLE T1(a, b)'}\n  2 0 -1 5 \n  2 0  0 'v' \n  2 0  1 'five' \n  2 1 -1 10 \n  2 1  0 'x' \n  2 1  1 'ten'"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;"
         },
         {
           "type": "exec",
@@ -33,11 +62,41 @@
       ]
     },
     {
-      "name": "setup_3",
+      "name": "setup_6",
       "steps": [
         {
           "type": "exec",
           "sql": "SELECT load_extension('../dbdata')"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_dbptr WHERE pgno=2;",
+          "expect": "2 25   2 6   2 7   2 9   2 11   2 13   2 15   2 17   2 19   2 21"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_dbptr WHERE pgno=3;",
+          "expect": "3 24   3 23"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_dbptr",
+          "expect": "2 25   2 6   2 7   2 9   2 11   2 13   2 15   2 17   2 19   2 21\n  3 24   3 23"
         }
       ]
     }

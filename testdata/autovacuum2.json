@@ -7,8 +7,27 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;",
-          "expect": "{}"
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "autovacuum2-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n  PRAGMA freelist_count;",
+          "expect": "0"
         }
       ]
     }

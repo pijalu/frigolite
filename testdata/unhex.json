@@ -3,12 +3,42 @@
   "name": "unhex",
   "tests": [
     {
-      "name": "3.0",
+      "name": "2.0",
       "steps": [
         {
           "type": "query",
+          "sql": "SELECT typeof( unhex('') ), length( unhex('') );",
+          "expect": "blob 0"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "SELECT unhex();",
-          "expect": "{1 {wrong number of arguments to function unhex()}}"
+          "expect": "1 {wrong number of arguments to function unhex()}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT unhex('ABCD', '1234', '');",
+          "expect": "1 {wrong number of arguments to function unhex()}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( unhex(' ', ' -') ), length( unhex('-', ' -') );",
+          "expect": "blob 0"
         }
       ]
     },
@@ -18,7 +48,7 @@
         {
           "type": "query",
           "sql": "SELECT typeof(unhex(NULL))",
-          "expect": "{null}"
+          "expect": "null"
         }
       ]
     },
@@ -28,7 +58,17 @@
         {
           "type": "query",
           "sql": "SELECT typeof(unhex(NULL, ' '))",
-          "expect": "{null}"
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "6.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(unhex('1234', NULL))",
+          "expect": "null"
         }
       ]
     }

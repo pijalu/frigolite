@@ -8,6 +8,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;"
+        }
+      ]
+    },
+    {
+      "name": "analyze6-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;",
+          "expect": "/*SEARCH t201 USING INDEX t201z (z=?)*/"
         },
         {
           "type": "exec",

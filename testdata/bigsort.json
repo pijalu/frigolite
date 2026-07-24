@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);",
-          "expect": "finish_test"
+          "sql": "PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);"
         }
       ]
     }

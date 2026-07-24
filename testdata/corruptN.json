@@ -11,10 +11,91 @@
       ]
     },
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n    INSERT INTO t1(y) VALUES('abc');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n    INSERT INTO x1 VALUES(1, 1, 2);\n    INSERT INTO x1 VALUES(2, 2, 3);\n    INSERT INTO x1 VALUES(3, 3, 4);\n    INSERT INTO x1 VALUES(4, 5, 6);\n    PRAGMA writable_schema = 1;\n\n    UPDATE sqlite_schema SET rootpage = (\n      SELECT rootpage FROM sqlite_schema WHERE name = 'sqlite_autoindex_x1_2'\n    ) WHERE name = 'sqlite_autoindex_x1_1';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = strreplace(sql, 't1', 'json_each') \n      WHERE type='index';"
         }
       ]
     },
@@ -31,8 +112,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA writable_schema = 1;\n      SELECT * FROM t1",
-          "expect": "}"
+          "sql": "PRAGMA writable_schema = 1;\n      SELECT * FROM t1"
         }
       ]
     },
@@ -53,10 +133,50 @@
       ]
     },
     {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- Run an UPDATE on t1 that will hit a child of page 136. Have the trigger\n  -- clear page 136 and its children. Assert fails.\n  UPDATE t1 SET x='hello world' WHERE rowid=1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info = p1;",
+          "expect": "0 x {} 0 {} 1"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM p1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     }

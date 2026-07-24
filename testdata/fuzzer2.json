@@ -7,12 +7,30 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);",
-          "expect": "puts \"This test is slow - perhaps around 7 seconds on an average pc\""
+          "sql": "DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);"
         },
         {
           "type": "exec",
           "sql": "UPDATE x1_rules SET cost = 20 WHERE cost<20 AND cFrom!='xx'"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x1_rules WHERE cTo!=cFrom;"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cTo FROM x1_rules WHERE cFrom='xx' \n  ORDER BY cost asc, rowid asc LIMIT 9;",
+          "expect": "hw hx hy hz ia ib ic id ie"
         }
       ]
     }

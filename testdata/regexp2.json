@@ -3,12 +3,51 @@
   "name": "regexp2",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE x1(x, y, z);\n  CREATE TABLE x2(x, y, z);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO x1 VALUES(\n        new.a REGEXP 'abc',\n        new.b REGEXP 'abc',\n        new.c REGEXP 'abc'\n    );\n  END;\n\n  CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO x2 VALUES(\n        new.a REGEXP 'def',\n        new.b REGEXP 'def',\n        new.c REGEXP 'def'\n    );\n  END;\n\n  INSERT INTO t1 VALUES('abc', 'def', 'abc');\n  SELECT * FROM t1;",
+          "expect": "abc def abc"
+        }
+      ]
+    },
+    {
       "name": "1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM x1",
-          "expect": "{1 0 1}"
+          "expect": "1 0 1"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2",
+          "expect": "0 1 0"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n  CREATE TABLE t3(c, d);\n  CREATE TABLE t4(e, f);\n\n  CREATE TRIGGER t2_tr1 AFTER UPDATE ON t2 BEGIN\n    UPDATE t3 SET d = new.b WHERE c = old.a;\n  END;\n\n  CREATE TRIGGER t3_tr1 AFTER UPDATE ON t3 BEGIN\n    UPDATE t4 SET f = new.d WHERE e = old.c AND new.d REGEXP 'a.*';\n  END;\n\n  CREATE TRIGGER t4_tr1 AFTER UPDATE ON t4 BEGIN\n    SELECT CASE WHEN new.f REGEXP '.*y.*' THEN error() ELSE 1 END;\n  END;\n\n  INSERT INTO t2 VALUES(1, 'a_x_1');\n  INSERT INTO t2 VALUES(2, 'a_y_1');\n\n  INSERT INTO t3 VALUES(1, 'b1');\n  INSERT INTO t3 VALUES(2, 'b2');\n\n  INSERT INTO t4 VALUES(1, 'b1');\n  INSERT INTO t4 VALUES(2, 'b2');"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET a=a+1 WHERE b REGEXP 'a.*' AND b REGEXP '.*1';",
+          "expect": "1 {SQL error!}"
         }
       ]
     },
@@ -17,8 +56,27 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t2 SET b = 'a_abc_1';",
-          "expect": "{}"
+          "sql": "UPDATE t2 SET b = 'a_abc_1';"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;\n  SELECT * FROM t3;\n  SELECT * FROM t4;",
+          "expect": "1 a_abc_1 2 a_abc_1 1 a_abc_1 2 a_abc_1 1 a_abc_1 2 a_abc_1"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a);\n  CREATE TABLE t6(x);\n\n  CREATE TRIGGER t5tr AFTER DELETE ON t5 BEGIN\n    DELETE FROM t6 WHERE t6.x REGEXP old.a;\n  END;\n\n  INSERT INTO t5 VALUES ('^a.*'), ('^b.*'), ('^c.*');\n  INSERT INTO t6 VALUES ('eab'), ('abc'), ('bcd'), ('cde'), ('dea');\n\n  DELETE FROM t5;\n  SELECT * FROM t6;",
+          "expect": "eab dea"
         }
       ]
     },
@@ -28,7 +86,7 @@
         {
           "type": "query",
           "sql": "SELECT 'abc' REGEXP '\\W'",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -38,7 +96,7 @@
         {
           "type": "query",
           "sql": "SELECT 'a c' REGEXP '\\W'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -48,7 +106,7 @@
         {
           "type": "query",
           "sql": "SELECT '   ' REGEXP '\\W'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -58,7 +116,7 @@
         {
           "type": "query",
           "sql": "SELECT 'abc' REGEXP '\\w'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -68,7 +126,7 @@
         {
           "type": "query",
           "sql": "SELECT 'a c' REGEXP '\\w'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -78,7 +136,7 @@
         {
           "type": "query",
           "sql": "SELECT '   ' REGEXP '\\w'",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -88,7 +146,7 @@
         {
           "type": "query",
           "sql": "SELECT 'abc' REGEXP '\\D'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -98,7 +156,7 @@
         {
           "type": "query",
           "sql": "SELECT 'abc' REGEXP '[^a-z]'",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -108,7 +166,7 @@
         {
           "type": "query",
           "sql": "SELECT 'a c' REGEXP '[^a-z]'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -118,7 +176,7 @@
         {
           "type": "query",
           "sql": "SELECT '   ' REGEXP '[^a-z]'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -128,7 +186,7 @@
         {
           "type": "query",
           "sql": "SELECT 'abc' REGEXP '[a-z]'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -138,7 +196,7 @@
         {
           "type": "query",
           "sql": "SELECT 'a c' REGEXP '[a-z]'",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -148,7 +206,7 @@
         {
           "type": "query",
           "sql": "SELECT '   ' REGEXP '[a-z]'",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     }

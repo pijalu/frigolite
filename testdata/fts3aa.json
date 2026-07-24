@@ -3,7 +3,7 @@
   "name": "fts3aa",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "fts3aa-5.1",
       "steps": [
         {
           "type": "exec",
@@ -11,15 +11,57 @@
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t1(content) VALUES(NULL)"
+        }
+      ]
+    },
+    {
+      "name": "fts3aa-6.0",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "INSERT INTO t1(rowid, content) VALUES(0, 'four five')"
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t1(rowid, content) VALUES(0, 'four five')"
+        }
+      ]
+    },
+    {
+      "name": "fts3aa-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT content FROM t1 WHERE rowid = 0",
+          "expect": "{four five}"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT content FROM t1 WHERE rowid = 0"
+        }
+      ]
+    },
+    {
+      "name": "fts3aa-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(rowid, content) VALUES(-1, 'three four')"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t1(rowid, content) VALUES(-1, 'three four')"
+        }
+      ]
+    },
+    {
+      "name": "fts3aa-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT content FROM t1 WHERE rowid = -1",
+          "expect": "{three four}"
         },
         {
           "type": "exec",
@@ -33,6 +75,16 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM z1;",
+          "expect": "1 {SQL logic error}"
         }
       ]
     }

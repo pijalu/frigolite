@@ -17,7 +17,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO zz(name, mode, mtime, sz, rawdata, method) \n  VALUES('f.txt', '-rw-r--r--', 1000000000, 5, 'abcde', 0);",
-          "expect": "{1 {rawdata must be NULL}}"
+          "expect": "1 {rawdata must be NULL}"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO zz(name, mtime, sz, data, method) \n  VALUES('g.txt', 1000000002, 5, '12345', 0);",
-          "expect": "{1 {sz must be NULL}}"
+          "expect": "1 {sz must be NULL}"
         }
       ]
     },
@@ -37,7 +37,17 @@
         {
           "type": "exec",
           "sql": "INSERT INTO zz(name, mtime, rawdata, method) \n  VALUES('g.txt', 1000000002, '12345', 0);",
-          "expect": "{1 {rawdata must be NULL}}"
+          "expect": "1 {rawdata must be NULL}"
+        }
+      ]
+    },
+    {
+      "name": "1.1.0.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO zz(name, data, method) \n  VALUES('g.txt', '12345', 7);",
+          "expect": "1 {unknown compression method: 7}"
         }
       ]
     },
@@ -74,7 +84,7 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    INSERT INTO zz(name, mode, mtime, data, method)\n    VALUES('i.txt', '-rw-r--r--', 1000000006, 'zxcvb', 0);\n    SELECT name FROM zz;\n  COMMIT;",
-          "expect": "{f.txt g.txt h.txt i.txt}"
+          "expect": "f.txt g.txt h.txt i.txt"
         }
       ]
     },
@@ -84,7 +94,27 @@
         {
           "type": "query",
           "sql": "SELECT name FROM zz;",
-          "expect": "{f.txt g.txt h.txt i.txt}"
+          "expect": "f.txt g.txt h.txt i.txt"
+        }
+      ]
+    },
+    {
+      "name": "1.5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT data FROM zz WHERE name='i.txt';",
+          "expect": "zxcvb"
+        }
+      ]
+    },
+    {
+      "name": "1.6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM zz WHERE name='g.txt';\n  SELECT name FROM zz;",
+          "expect": "f.txt h.txt i.txt"
         }
       ]
     },
@@ -94,7 +124,17 @@
         {
           "type": "exec",
           "sql": "UPDATE zz SET data=NULL WHERE name='i.txt'",
-          "expect": "{1 {zipfile: mode does not match data}}"
+          "expect": "1 {zipfile: mode does not match data}"
+        }
+      ]
+    },
+    {
+      "name": "1.6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a.name, a.data \n  FROM zz AS a, zz AS b \n  WHERE a.name=+b.name AND +a.mode=b.mode",
+          "expect": "blue.txt/ {}\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}"
         }
       ]
     },
@@ -104,7 +144,16 @@
         {
           "type": "query",
           "sql": "SELECT name, data FROM zz WHERE name LIKE '%txt'",
-          "expect": "{\n  h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}"
+          "expect": "h.txt aaaaaaaaaabbbbbbbbbb\n  i.txt {}"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM zz;\n  SELECT * FROM zz;"
         }
       ]
     },
@@ -113,6 +162,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO zzz(name, data) VALUES('dirname2', NULL);\n  INSERT INTO zzz(name, data) VALUES('dirname2/file1.txt', 'abcdefghijklmnop');\n  SELECT name, mode, data FROM zzz;",
+          "expect": "dirname/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop"
         }
       ]
     },
@@ -122,7 +181,17 @@
         {
           "type": "exec",
           "sql": "UPDATE zzz SET name = 'dirname3' WHERE name = 'dirname/';",
-          "expect": "{0 {}}"
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, mode, data FROM zzz;",
+          "expect": "dirname3/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop"
         }
       ]
     },
@@ -135,8 +204,13 @@
       ]
     },
     {
-      "name": "setup_14",
+      "name": "3.2",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM x1",
+          "expect": "1 {no such column: rowid}"
+        },
         {
           "type": "exec",
           "sql": "SELECT name, strftime('%s', mtime, 'unixepoch', 'localtime') \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name"
@@ -148,9 +222,32 @@
         {
           "type": "exec",
           "sql": "SELECT name, mtime \n      FROM fsdir('test_unzip') WHERE name!='test_unzip'\n      ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "8.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, data FROM zz",
+          "expect": "a.txt 1 c.txt 1"
         },
         {
           "type": "exec",
+          "sql": "SELECT name, data FROM zz"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, data FROM zz"
+        }
+      ]
+    },
+    {
+      "name": "8.0.3",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT name, data FROM zz"
         },
         {
@@ -160,10 +257,16 @@
         {
           "type": "exec",
           "sql": "SELECT name, data FROM zz"
-        },
+        }
+      ]
+    },
+    {
+      "name": "8.1.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT name, data FROM zz"
+          "sql": "INSERT INTO nogood(name, data) VALUES('abc', 'def');",
+          "expect": "1 {zipfile: failed to open file test_unzip for writing}"
         }
       ]
     },
@@ -173,7 +276,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO nogood(name, data) VALUES('abc', 'def');",
-          "expect": "{1 {zipfile: failed to open file test_unzip for writing}}"
+          "expect": "1 {zipfile: failed to open file test_unzip for writing}"
         }
       ]
     },
@@ -182,8 +285,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;",
-          "expect": "forcedelete test.zip"
+          "sql": "COMMIT;"
         }
       ]
     },
@@ -193,7 +295,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO z(name,data) VALUES('a0','one'),('a0','two');",
-          "expect": "{1 {duplicate name: \"a0\"}}"
+          "expect": "1 {duplicate name: \"a0\"}"
         }
       ]
     },
@@ -203,7 +305,7 @@
         {
           "type": "query",
           "sql": "SELECT name, data FROM z;",
-          "expect": "{a0 one}"
+          "expect": "a0 one"
         }
       ]
     },
@@ -212,8 +314,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "REPLACE INTO z(name,data) VALUES('a0','three'),('a0','four');",
-          "expect": "{}"
+          "sql": "REPLACE INTO z(name,data) VALUES('a0','three'),('a0','four');"
         }
       ]
     },
@@ -223,7 +324,7 @@
         {
           "type": "query",
           "sql": "SELECT name, data FROM z;",
-          "expect": "{a0 four}"
+          "expect": "a0 four"
         }
       ]
     },
@@ -232,8 +333,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT OR IGNORE INTO z(name,data) VALUES('a0','five'),('a0','six');",
-          "expect": "{}"
+          "sql": "INSERT OR IGNORE INTO z(name,data) VALUES('a0','five'),('a0','six');"
+        }
+      ]
+    },
+    {
+      "name": "10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, data FROM z;",
+          "expect": "a0 four"
         }
       ]
     },
@@ -242,8 +352,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM z;",
-          "expect": "{}"
+          "sql": "DELETE FROM z;"
         }
       ]
     },
@@ -252,8 +361,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT name, data FROM z;",
-          "expect": "{}"
+          "sql": "SELECT name, data FROM z;"
         }
       ]
     },
@@ -263,7 +371,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO z (name,data) VALUES ('b0','one');\n  SELECT name, data FROM z;",
-          "expect": "{b0 one}"
+          "expect": "b0 one"
         }
       ]
     },
@@ -273,7 +381,7 @@
         {
           "type": "exec",
           "sql": "UPDATE z SET name = 'b1' WHERE name = 'b0';\n  SELECT name, data FROM z;",
-          "expect": "{b1 one}"
+          "expect": "b1 one"
         }
       ]
     },
@@ -283,7 +391,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO z (name,data) VALUES ('b0','one');\n  SELECT name, data FROM z ORDER BY name;",
-          "expect": "{b0 one b1 one}"
+          "expect": "b0 one b1 one"
         }
       ]
     },
@@ -293,7 +401,7 @@
         {
           "type": "exec",
           "sql": "UPDATE z SET name = 'b1' WHERE name = 'b0';",
-          "expect": "{1 {duplicate name: \"b1\"}}"
+          "expect": "1 {duplicate name: \"b1\"}"
         }
       ]
     },
@@ -303,7 +411,7 @@
         {
           "type": "exec",
           "sql": "UPDATE z SET data = 'two' WHERE name = 'b0';\n  SELECT name, data FROM z ORDER BY name;",
-          "expect": "{b0 two b1 one}"
+          "expect": "b0 two b1 one"
         }
       ]
     },
@@ -313,7 +421,7 @@
         {
           "type": "exec",
           "sql": "UPDATE z SET name = 'b1';",
-          "expect": "{1 {duplicate name: \"b1\"}}"
+          "expect": "1 {duplicate name: \"b1\"}"
         }
       ]
     },
@@ -323,7 +431,7 @@
         {
           "type": "exec",
           "sql": "UPDATE z SET name = 'b2';",
-          "expect": "{1 {duplicate name: \"b2\"}}"
+          "expect": "1 {duplicate name: \"b2\"}"
         }
       ]
     },
@@ -333,7 +441,46 @@
         {
           "type": "exec",
           "sql": "UPDATE z SET name = name;\n  SELECT name, data FROM z ORDER BY name;",
-          "expect": "{b0 two b2 one}"
+          "expect": "b0 two b2 one"
+        }
+      ]
+    },
+    {
+      "name": "11.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE z SET name = name || 'suffix';\n  SELECT name, data FROM z ORDER BY name;",
+          "expect": "b0suffix two b2suffix one"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM fsdir('subdir') ORDER BY 1;",
+          "expect": "subdir subdir/x1.txt subdir/x2.txt"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE d AS SELECT 'subdir' d;\n    CREATE TABLE x AS SELECT 1 x;"
+        }
+      ]
+    },
+    {
+      "name": "12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM d JOIN x JOIN fsdir(d) ORDER BY 1;",
+          "expect": "subdir subdir/x1.txt subdir/x2.txt"
         }
       ]
     },
@@ -343,7 +490,15 @@
         {
           "type": "query",
           "sql": "SELECT name FROM d JOIN x JOIN fsdir('.', d) ORDER BY 1;",
-          "expect": "{. ./x1.txt ./x2.txt}"
+          "expect": ". ./x1.txt ./x2.txt"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },

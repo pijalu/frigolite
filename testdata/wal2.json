@@ -3,23 +3,12 @@
   "name": "wal2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "wal2-1.0",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(a), sum(a) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(a), sum(a) FROM t1"
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
+          "expect": "4 10"
         },
         {
           "type": "exec",
@@ -28,6 +17,52 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(a), sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
+          "expect": "4 10"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT count(a), sum(a) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10"
         },
         {
           "type": "exec",
@@ -44,26 +79,105 @@
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);",
+          "expect": "1"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);"
+        }
+      ]
+    },
+    {
+      "name": "wal2-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10"
         },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(a), sum(a) FROM t1",
+          "expect": "4 10"
         },
         {
           "type": "exec",
           "sql": "SELECT count(a), sum(a) FROM t1"
-        },
+        }
+      ]
+    },
+    {
+      "name": "wal2-4.2",
+      "steps": [
         {
           "type": "exec",
+          "sql": "SELECT * FROM data",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM data",
+          "expect": "0 {{need xShmOpen to see this}}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-5.1",
+      "steps": [
+        {
+          "type": "query",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);"
         },
         {
           "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "Pragma Journal_Mode = Wal;",
+          "expect": "wal"
+        },
+        {
+          "type": "exec",
           "sql": "Pragma Journal_Mode = Wal;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_status",
+          "expect": "main unlocked temp closed"
         },
         {
           "type": "exec",
@@ -72,30 +186,113 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    PRAGMA lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n    PRAGMA lock_status;",
+          "expect": "1 2 main shared temp closed"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1;\n    PRAGMA lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    PRAGMA lock_status;",
+          "expect": "main shared temp closed"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 4);\n    PRAGMA lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    Pragma loCK_STATus;",
+          "expect": "main exclusive temp closed"
         },
         {
           "type": "exec",
           "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    Pragma loCK_STATus;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "exclusive"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_17",
+      "steps": [
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n    pragma lock_status;",
+          "expect": "1 2 main shared temp closed"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1;\n    pragma lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);\n    pragma lock_status;",
+          "expect": "main exclusive temp closed"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 4);\n    pragma lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE; COMMIT;\n    pragma lock_status;",
+          "expect": "main shared temp closed"
         },
         {
           "type": "exec",
@@ -104,34 +301,111 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1;\n    pragma lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n    pragma lock_status;",
+          "expect": "1 2 3 4 5 6 main shared temp closed"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n    pragma lock_status;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = DELETE",
+          "expect": "0"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = DELETE"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_status",
+          "expect": "main exclusive temp closed"
         },
         {
           "type": "exec",
           "sql": "PRAGMA lock_status"
-        },
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.4",
+      "steps": [
         {
           "type": "exec",
           "sql": "BEGIN;\n      INSERT INTO t1 VALUES('Groucho');"
         },
         {
           "type": "exec",
-          "sql": "PRAGMA lock_status"
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES('Groucho');"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_status",
+          "expect": "main exclusive temp closed"
         },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.6",
+      "steps": [
         {
           "type": "exec",
           "sql": "COMMIT"
         },
         {
           "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_status",
+          "expect": "main exclusive temp closed"
+        },
+        {
+          "type": "exec",
           "sql": "PRAGMA lock_status"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master"
         },
         {
           "type": "exec",
@@ -144,10 +418,49 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES('VII', 'VIII')"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('IX', 'X')"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO t2 VALUES('IX', 'X')"
+        }
+      ]
+    },
+    {
+      "name": "wal2-6.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {I II III IV V VI VII VIII IX X}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-7.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);",
+          "expect": "4096"
         },
         {
           "type": "exec",
@@ -160,10 +473,30 @@
         {
           "type": "exec",
           "sql": "SELECT rootpage>=8192 FROM sqlite_master WHERE tbl_name = 't2';"
+        }
+      ]
+    },
+    {
+      "name": "wal2-8.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "goodbye"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "wal2-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');",
+          "expect": "Barton Deakin Watson"
         },
         {
           "type": "exec",
@@ -180,22 +513,112 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM x"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "wal2-10.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-11.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);\n    SELECT * FROM t1;",
+          "expect": "wal 1 2 3 4 5 6 7 8 9"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "wal2-11.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master",
+          "expect": "t1"
         },
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "wal2-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10, 11, 12)",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "wal2-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(y, z);\n      PRAGMA journal_mode = WAL;",
+          "expect": "0 0"
         },
         {
           "type": "exec",

@@ -16,7 +16,17 @@
         {
           "type": "query",
           "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);",
-          "expect": "{wal}"
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3"
         }
       ]
     },
@@ -25,8 +35,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(4, 5, 6);",
-          "expect": "set ::xshmlock [list]"
+          "sql": "INSERT INTO t1 VALUES(4, 5, 6);"
         }
       ]
     },
@@ -45,7 +54,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1",
-          "expect": "{1 2 3 4 5 6 7 8 9}"
+          "expect": "1 2 3 4 5 6 7 8 9"
         }
       ]
     },
@@ -55,6 +64,14 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(10, 11, 12);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },
@@ -84,6 +101,54 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, 8);",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, 8);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "2.5",
       "steps": [
         {
@@ -101,6 +166,26 @@
       ]
     },
     {
+      "name": "2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 14);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12 13 14"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -109,8 +194,13 @@
       ]
     },
     {
-      "name": "setup_10",
+      "name": "3.0",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');",
+          "expect": "wal"
+        },
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(5, 'five');"
@@ -118,6 +208,16 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, 'seven');",
+          "expect": "0 {}"
         },
         {
           "type": "exec",
@@ -126,6 +226,26 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 'ten');",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 one 3 three 5 five 7 seven 9 nine"
         },
         {
           "type": "exec",
@@ -134,6 +254,16 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 'thirteen');",
+          "expect": "0 {}"
         }
       ]
     }

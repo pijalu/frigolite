@@ -1,0 +1,51 @@
+{
+  "file": "tkt-5e10420e8d.test",
+  "name": "tkt_5e10420e8d",
+  "tests": [
+    {
+      "name": "tkt-5e10420e8d.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);"
+        }
+      ]
+    },
+    {
+      "name": "tkt-5e10420e8d.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(248)"
+        }
+      ]
+    },
+    {
+      "name": "tkt-5e10420e8d.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA incremental_vacuum(1)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "tkt-5e10420e8d.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    }
+  ]
+}

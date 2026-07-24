@@ -1,0 +1,36 @@
+{
+  "file": "fts4rename.test",
+  "name": "fts4rename",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1_content RENAME c0a TO docid;",
+          "expect": "1 {error in table t1_content after rename: duplicate column name: docid}"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET Col0 = 1 ;",
+          "expect": "1 {no such column: Col0}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n  DROP TABLE t1;",
+          "expect": "0 {}"
+        }
+      ]
+    }
+  ]
+}

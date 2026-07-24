@@ -3,8 +3,12 @@
   "name": "securedel2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA secure_delete = 1"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA secure_delete = 1"
@@ -25,7 +29,7 @@
         {
           "type": "query",
           "sql": "PRAGMA secure_delete = 0",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -44,7 +48,7 @@
         {
           "type": "query",
           "sql": "PRAGMA secure_delete = 1",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -62,8 +66,24 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE rowid>850",
-          "expect": "{}"
+          "sql": "DELETE FROM t1 WHERE rowid>850"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;"
         },
         {
           "type": "exec",

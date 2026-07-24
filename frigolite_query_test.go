@@ -246,7 +246,7 @@ func TestSelectExpr(t *testing.T) {
 		{"SELECT i1 - i2 FROM t", int64(-10)},
 		{"SELECT i1 * i2 FROM t", int64(200)},
 		{"SELECT i2 / i1 FROM t", int64(2)},
-		{"SELECT -i1 FROM t", float64(-10)},
+		{"SELECT -i1 FROM t", int64(-10)},
 		{"SELECT (i1 + i2) * 2 FROM t", int64(60)},
 	}
 	for _, tt := range tests {
@@ -596,8 +596,8 @@ func TestSelectNoFrom(t *testing.T) {
 		{"SELECT 1 + 2", int64(3)},
 		{"SELECT 3 * 4", int64(12)},
 		{"SELECT 'hello'", "hello"},
-		{"SELECT 10 > 5", true},
-		{"SELECT 10 < 5", false},
+		{"SELECT 10 > 5", int64(1)},
+		{"SELECT 10 < 5", int64(0)},
 	}
 	for _, tt := range tests {
 		t.Run(tt.sql, func(t *testing.T) {

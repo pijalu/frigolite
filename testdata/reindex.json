@@ -3,7 +3,7 @@
   "name": "reindex",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "reindex-1.1",
       "steps": [
         {
           "type": "exec",
@@ -11,27 +11,101 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    CREATE INDEX i1 ON t1(a);\n    REINDEX;"
+        }
+      ]
+    },
+    {
+      "name": "reindex-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;",
+          "expect": "bcd abc BCDE ABCD"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "reindex-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 ORDER BY b;",
+          "expect": "BCDE bcd ABCD abc"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 ORDER BY b;"
+        }
+      ]
+    },
+    {
+      "name": "reindex-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t2 ORDER BY c;",
+          "expect": "abc ABCD bcd BCDE"
         },
         {
           "type": "exec",
           "sql": "SELECT c FROM t2 ORDER BY c;"
+        }
+      ]
+    },
+    {
+      "name": "reindex-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d FROM t2 ORDER BY d;",
+          "expect": "ABCD BCDE abc bcd"
         },
         {
           "type": "exec",
           "sql": "SELECT d FROM t2 ORDER BY d;"
+        }
+      ]
+    },
+    {
+      "name": "reindex-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t2 ORDER BY a;",
+          "expect": "bcd abc BCDE ABCD"
         },
         {
           "type": "exec",
           "sql": "SELECT a FROM t2 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "reindex-2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0"
         },
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "reindex-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX;",
+          "expect": "1 {no such collation sequence: c2}"
         }
       ]
     }

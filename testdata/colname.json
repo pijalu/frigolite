@@ -28,7 +28,20 @@
         {
           "type": "exec",
           "sql": "SELECT x.* FROM sqlite_master X LIMIT 1;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);"
@@ -40,7 +53,20 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE \"t3893\"(\"x\");\n    INSERT INTO t3893 VALUES(123);\n    SELECT \"y\".\"x\" FROM (SELECT \"x\" FROM \"t3893\") AS \"y\";"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_4",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;"
@@ -70,7 +96,27 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2 AS SELECT BBb FROM (SELECT aaa AS Bbb FROM t1);\n    SELECT name FROM pragma_table_info('t2');",
-          "expect": "{Bbb}"
+          "expect": "Bbb"
+        }
+      ]
+    },
+    {
+      "name": "colname-9.330",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- added 2019-08-10 to invalidate\n  DROP TABLE IF EXISTS t1;      -- a couple assert()s that were\n  CREATE TABLE t1(a);           -- added by ticket 3b44500725\n  INSERT INTO t1 VALUES(17),(2),(99),(-3),(7);\n  SELECT (SELECT avg(a) UNION SELECT min(a) OVER()) FROM t1;",
+          "expect": "17"
+        }
+      ]
+    },
+    {
+      "name": "colname-9.400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT #0;",
+          "expect": "1 {near \"#0\": syntax error}"
         }
       ]
     },
@@ -80,7 +126,17 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\"with space\" TEXT);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2 AS SELECT \"with space\" FROM t1;\n  PRAGMA table_info(t2);",
-          "expect": "{0 {with space} TEXT 0 {} 0}"
+          "expect": "0 {with space} TEXT 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "colname-10.110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS SELECT \"with space\" FROM t1 GROUP BY 1;\n  PRAGMA table_info(t3);",
+          "expect": "0 {with space} TEXT 0 {} 0"
         }
       ]
     }

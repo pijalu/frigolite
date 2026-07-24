@@ -16,8 +16,26 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1x;\n  INSERT INTO t1x VALUES('a', 'b', 'c');",
-          "expect": "do_execsql_test 2.0.1 { SELECT * FROM t1 } {a b c}"
+          "sql": "DELETE FROM t1x;\n  INSERT INTO t1x VALUES('a', 'b', 'c');"
+        }
+      ]
+    },
+    {
+      "name": "2.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "a b c"
+        }
+      ]
+    },
+    {
+      "name": "2.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE (a, b) != ('a', 'b');"
         }
       ]
     },
@@ -26,8 +44,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1x;\n  INSERT INTO t1x VALUES(7, 8, 9);",
-          "expect": "do_execsql_test 2.1.1 { SELECT * FROM t1 } {7 8 9.0}"
+          "sql": "DELETE FROM t1x;\n  INSERT INTO t1x VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "7 8 9.0"
         }
       ]
     },
@@ -36,8 +63,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE (a, b) != (7, '8')",
-          "expect": "{}"
+          "sql": "SELECT * FROM t1 WHERE (a, b) != (7, '8')"
         }
       ]
     },
@@ -64,8 +90,16 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(a INTEGER, b TEXT);\n  INSERT INTO t3 VALUES(45, 46);",
-          "expect": "do_execsql_test 2.2.2 { SELECT * FROM t3 WHERE (a, b) != (45, 46); }"
+          "sql": "CREATE TABLE t3(a INTEGER, b TEXT);\n  INSERT INTO t3 VALUES(45, 46);"
+        }
+      ]
+    },
+    {
+      "name": "2.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE (a, b) != (45, 46);"
         }
       ]
     },
@@ -74,8 +108,37 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t3 WHERE (a, b) != ('45', '46');",
-          "expect": "do_execsql_test 2.2.4 { SELECT * FROM t3 WHERE (a, b) == (45, 46); } {45 46}"
+          "sql": "SELECT * FROM t3 WHERE (a, b) != ('45', '46');"
+        }
+      ]
+    },
+    {
+      "name": "2.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE (a, b) == (45, 46);",
+          "expect": "45 46"
+        }
+      ]
+    },
+    {
+      "name": "2.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE (a, b) == ('45', '46');",
+          "expect": "45 46"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM t4 WHERE x=245;",
+          "expect": "1 245"
         }
       ]
     },
@@ -85,7 +148,7 @@
         {
           "type": "query",
           "sql": "SELECT rowid, * FROM t4 WHERE x='245';",
-          "expect": "{1 245}"
+          "expect": "1 245"
         }
       ]
     },
@@ -94,8 +157,25 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT rowid, * FROM t4 WHERE x!=245;",
-          "expect": "{}"
+          "sql": "SELECT rowid, * FROM t4 WHERE x!=245;"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM t4 WHERE x!='245';"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM t4 WHERE rowid!=1 OR x!='245';"
         }
       ]
     }

@@ -3,11 +3,24 @@
   "name": "ovfl",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(length(c2)) FROM t1;"
         }
       ]
     }

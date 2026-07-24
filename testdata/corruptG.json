@@ -10,6 +10,46 @@
           "sql": "PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);"
         }
       ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 WHERE a>'abc';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t1 ORDER BY a;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE a='abc' and b='xyz123456789XYZ';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
     }
   ]
 }

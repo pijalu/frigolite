@@ -3,27 +3,382 @@
   "name": "main",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "main-3.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * from T1 where x!!5",
+          "expect": "1 {unrecognized token: \"!\"}"
+        },
         {
           "type": "exec",
           "sql": "SELECT * from T1 where x!!5"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * from T1 where ^x",
+          "expect": "1 {unrecognized token: \"^\"}"
         },
         {
           "type": "exec",
           "sql": "SELECT * from T1 where ^x"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 'abc",
+          "expect": "1 {unrecognized token: \"'abc\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select \"abc",
+          "expect": "1 {unrecognized token: \"\"abc\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select [abc",
+          "expect": "1 {unrecognized token: \"[abc\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select x'4869",
+          "expect": "1 {unrecognized token: \"x'4869\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select x'4869'",
+          "expect": "0 Hi"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select x'48695'",
+          "expect": "1 {unrecognized token: \"x'48695'\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select x'486x'",
+          "expect": "1 {unrecognized token: \"x'486x'\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select $::xyz",
+          "expect": "0 123"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select $(abc)",
+          "expect": "1 {unrecognized token: \"$\"}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e+4 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e+04 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e+004 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e4 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e04 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e004 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E+4 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E+04 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E+004 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E4 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E04 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E004 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e-4 * 1e8 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14E-04 * 1E08 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.24",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select cast(3.14e-004 * 01.0E+8 AS integer)",
+          "expect": "0 31400"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 123/*abc",
+          "expect": "0 123"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 123/***abc",
+          "expect": "0 123"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.27",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 123/*/*2",
+          "expect": "0 123"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.28",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 123/**/*2",
+          "expect": "0 246"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.29",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 123/",
+          "expect": "1 {incomplete input}"
+        }
+      ]
+    },
+    {
+      "name": "main-3.2.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select 123--5",
+          "expect": "0 123"
+        }
+      ]
+    },
+    {
+      "name": "main-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table T1(X REAL);  /* C-style comments allowed */\n    insert into T1 values(0.5);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5e-002);\n    insert into T1 values(5e-002);\n    insert into T1 values(-5.0e-2);\n    insert into T1 values(-5.1e-2);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5E+02);\n    insert into T1 values(5E+02);\n    insert into T1 values(5.0E+03);\n    select x*10 from T1 order by x*5;",
+          "expect": "-0.51 -0.5 0.05 0.5 5.0 500.0 500.0 500.0 5000.0 50000.0"
         },
         {
           "type": "exec",
           "sql": "create table T1(X REAL);  /* C-style comments allowed */\n    insert into T1 values(0.5);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5e-002);\n    insert into T1 values(5e-002);\n    insert into T1 values(-5.0e-2);\n    insert into T1 values(-5.1e-2);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5E+02);\n    insert into T1 values(5E+02);\n    insert into T1 values(5.0E+03);\n    select x*10 from T1 order by x*5;"
+        }
+      ]
+    },
+    {
+      "name": "main-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create bogus",
+          "expect": "1 {near \"bogus\": syntax error}"
         },
         {
           "type": "exec",
           "sql": "create bogus"
+        }
+      ]
+    },
+    {
+      "name": "main-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create",
+          "expect": "1 {incomplete input}"
         },
         {
           "type": "exec",
           "sql": "create"
+        }
+      ]
+    },
+    {
+      "name": "main-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc' + #9",
+          "expect": "1 {near \"#9\": syntax error}"
         }
       ]
     }

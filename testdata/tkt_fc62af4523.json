@@ -8,10 +8,30 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc62af4523.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = DELETE",
+          "expect": "delete"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = DELETE"
+        }
+      ]
+    },
+    {
+      "name": "tkt-fc62af4523.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;\n    SELECT count(*) FROM t1;",
+          "expect": "ok 64"
         },
         {
           "type": "exec",

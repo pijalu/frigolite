@@ -3,12 +3,42 @@
   "name": "pager4",
   "tests": [
     {
+      "name": "pager4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(673,'stone','philips');\n  SELECT * FROM t1;",
+          "expect": "673 stone philips"
+        }
+      ]
+    },
+    {
       "name": "pager4-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1;",
-          "expect": "{0 {673 stone philips}}"
+          "expect": "0 {673 stone philips}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=537;",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=948;",
+          "expect": "1 {attempt to write a readonly database}"
         }
       ]
     },
@@ -16,9 +46,19 @@
       "name": "pager4-1.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1;",
-          "expect": "{0 {673 stone philips}}"
+          "expect": "0 {673 stone philips}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=537;\n  SELECT * FROM t1;",
+          "expect": "0 {537 stone philips}"
         }
       ]
     },
@@ -26,9 +66,19 @@
       "name": "pager4-1.7",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode=OFF;\n  UPDATE t1 SET a=107;\n  SELECT * FROM t1;",
-          "expect": "{0 {off 107 stone philips}}"
+          "expect": "0 {off 107 stone philips}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=MEMORY;\n  UPDATE t1 SET b='magpie';\n  SELECT * FROM t1;",
+          "expect": "0 {memory 107 magpie philips}"
         }
       ]
     },
@@ -36,9 +86,9 @@
       "name": "pager4-1.9",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode=DELETE;\n  UPDATE t1 SET c='jaguar';",
-          "expect": "{1 {attempt to write a readonly database}}"
+          "expect": "1 {attempt to write a readonly database}"
         }
       ]
     },
@@ -46,9 +96,19 @@
       "name": "pager4-1.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode=TRUNCATE;\n  UPDATE t1 SET c='jaguar';",
-          "expect": "{1 {attempt to write a readonly database}}"
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "pager4-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=PERSIST;\n  UPDATE t1 SET c='jaguar';",
+          "expect": "1 {attempt to write a readonly database}"
         }
       ]
     }

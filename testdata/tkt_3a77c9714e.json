@@ -12,11 +12,41 @@
       ]
     },
     {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1_title, t2_title\n  FROM t1 LEFT JOIN t2\n  WHERE\n    t2_id = (SELECT t3_id FROM\n     ( SELECT t3_id FROM t3 WHERE t3_title=t1_title LIMIT 500 )\n  )",
+          "expect": "ABCDEF ABCDEF"
+        }
+      ]
+    },
+    {
       "name": "2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE [Beginnings] (\n    [Id] INTEGER PRIMARY KEY AUTOINCREMENT,[Title] TEXT, [EndingId] INTEGER\n  );\n  CREATE TABLE [Endings] (Id INT,Title TEXT,EndingId INT);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (1, 'FACTOR', 18);\n  INSERT INTO Beginnings (Id, Title, EndingId) VALUES (2, 'SWIMM', 18);\n  INSERT INTO Endings (Id, Title, EndingId) VALUES (1, 'ING', 18);"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT\n    SrcWord, Beginnings.Title\n    FROM \n      (SELECT 'FACTORING' AS SrcWord UNION SELECT 'SWIMMING' AS SrcWord )\n    LEFT JOIN \n      Beginnings\n    WHERE Beginnings.Id= (\n      SELECT BeginningId FROM (\n        SELECT SrcWord, B.Id as BeginningId, B.Title || E.Title As Connected\n        FROM Beginnings B LEFT JOIN Endings E ON B.EndingId=E.EndingId\n        WHERE Connected=SrcWord LIMIT 1\n      )\n    )",
+          "expect": "FACTORING FACTOR SWIMMING SWIMM"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(i INT PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(NULL,'one','i');\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  SELECT (SELECT 1\n            FROM (SELECT 1 FROM t1 WHERE a=1 OR b='i')\n           WHERE a='o'\n              OR b IN (SELECT a=('b' IN (SELECT 'a'))))\n    FROM t1;",
+          "expect": "{}"
         }
       ]
     }

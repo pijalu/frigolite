@@ -98,7 +98,17 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    DELETE FROM pp2;\n    DROP TABLE pp1;\n    DROP TABLE cc1;\n  COMMIT;",
-          "expect": "{1 {FOREIGN KEY constraint failed}}"
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE cc2;\n  COMMIT;",
+          "expect": "0 {}"
         }
       ]
     }

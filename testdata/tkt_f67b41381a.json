@@ -3,8 +3,13 @@
   "name": "tkt_f67b41381a",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 2;\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;",
+          "expect": "1 2"
+        },
         {
           "type": "exec",
           "sql": "DROP TABLE t1; DROP TABLE t2"

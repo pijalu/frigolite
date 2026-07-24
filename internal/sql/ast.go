@@ -217,6 +217,7 @@ type CreateTriggerStmt struct {
 	Time       string // BEFORE, AFTER, INSTEAD OF
 	When       Expr   // WHEN clause (optional)
 	Statements []Stmt
+	IfNotExists bool
 }
 
 func (s *CreateTriggerStmt) stmt() {}

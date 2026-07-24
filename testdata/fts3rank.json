@@ -3,12 +3,32 @@
   "name": "fts3rank",
   "tests": [
     {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY rank(matchinfo(t1), 1.0, 1.0) DESC, rowid",
+          "expect": "1 {invalid matchinfo blob passed to function rank()}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY rank(x'0000000000000000') DESC, rowid",
+          "expect": "0 {{one two} one {one two} three {one two} two}"
+        }
+      ]
+    },
+    {
       "name": "1.5le",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1 ORDER BY rank(x'0100000001000000') DESC, rowid",
-          "expect": "{1 {invalid matchinfo blob passed to function rank()}}"
+          "expect": "1 {invalid matchinfo blob passed to function rank()}"
         }
       ]
     },
@@ -16,9 +36,9 @@
       "name": "1.5be",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM t1 ORDER BY rank(x'0000000100000001') DESC, rowid",
-          "expect": "{1 {invalid matchinfo blob passed to function rank()}}"
+          "expect": "1 {invalid matchinfo blob passed to function rank()}"
         }
       ]
     }

@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "PRAGMA automatic_index=ON;\n  SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "type": "query",
           "sql": "PRAGMA automatic_index=ON;\n  SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1rj;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -37,7 +37,7 @@
         {
           "type": "query",
           "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -47,7 +47,7 @@
         {
           "type": "query",
           "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rj;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -57,7 +57,7 @@
         {
           "type": "query",
           "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rjrj;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -67,7 +67,7 @@
         {
           "type": "query",
           "sql": "PRAGMA automatic_index=OFF;\n  SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -77,7 +77,7 @@
         {
           "type": "query",
           "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v1rj;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -87,7 +87,7 @@
         {
           "type": "query",
           "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },
@@ -97,7 +97,17 @@
         {
           "type": "query",
           "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rj;",
-          "expect": "{1 0.12 real 2 0.1201 real}"
+          "expect": "1 0.12 real 2 0.1201 real"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-142",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, (apr / 100), typeof(apr) apr_type  FROM v2rjrj;",
+          "expect": "1 0.12 real 2 0.1201 real"
         }
       ]
     },

@@ -1,0 +1,14 @@
+{
+  "file": "mallocG.test",
+  "name": "mallocG",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ]
+}

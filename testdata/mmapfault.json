@@ -3,8 +3,12 @@
   "name": "mmapfault",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1-pre",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;"

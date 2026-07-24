@@ -8,7 +8,7 @@
         {
           "type": "query",
           "sql": "SELECT test_getsubtype('hello');",
-          "expect": "{0}"
+          "expect": "0"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "SELECT test_getsubtype(test_setsubtype('hello',123));",
-          "expect": "{123}"
+          "expect": "123"
         }
       ]
     },
@@ -28,7 +28,17 @@
         {
           "type": "query",
           "sql": "SELECT typeof(test_setsubtype('hello',123));",
-          "expect": "{text}"
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_setsubtype('hello',123);",
+          "expect": "hello"
         }
       ]
     },
@@ -55,7 +65,17 @@
         {
           "type": "exec",
           "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
-          "expect": "{0}"
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "subtype1-231",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t4(a) AS NOT MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
+          "expect": "0"
         }
       ]
     },

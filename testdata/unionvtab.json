@@ -12,6 +12,66 @@
       ]
     },
     {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(uuu);",
+          "expect": "0 a INTEGER 0 {} 0 \n  1 b TEXT 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uuu WHERE rowid = 3;\n  SELECT * FROM uuu WHERE rowid = 11;",
+          "expect": "3 three 11 eleven"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uuu WHERE rowid IN (12, 10, 2);",
+          "expect": "2 two 10 ten 12 twelve"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uuu WHERE rowid BETWEEN 3 AND 11;",
+          "expect": "3 three 10 ten 11 eleven"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uuu WHERE rowid BETWEEN 11 AND 15;",
+          "expect": "11 eleven 12 twelve"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uuu WHERE rowid BETWEEN -46 AND 1500;",
+          "expect": "1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two"
+        }
+      ]
+    },
+    {
       "name": "2.3.0",
       "steps": [
         {
@@ -43,7 +103,27 @@
         {
           "type": "query",
           "sql": "SELECT * FROM uu WHERE rowid = 10;",
-          "expect": "{10 {1.10}}"
+          "expect": "10 {1.10}"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM uu WHERE rowid = 25;",
+          "expect": "25 {1.25}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid <= 24",
+          "expect": "24"
         }
       ]
     },
@@ -53,7 +133,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 25",
-          "expect": "{100}"
+          "expect": "100"
         }
       ]
     },
@@ -63,7 +143,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 26",
-          "expect": "{126}"
+          "expect": "126"
         }
       ]
     },
@@ -73,7 +153,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 73",
-          "expect": "{173}"
+          "expect": "173"
         }
       ]
     },
@@ -83,7 +163,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 74",
-          "expect": "{200}"
+          "expect": "200"
         }
       ]
     },
@@ -93,7 +173,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 75",
-          "expect": "{275}"
+          "expect": "275"
         }
       ]
     },
@@ -103,7 +183,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 99",
-          "expect": "{299}"
+          "expect": "299"
         }
       ]
     },
@@ -113,7 +193,17 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid <= 100",
-          "expect": "{300}"
+          "expect": "300"
+        }
+      ]
+    },
+    {
+      "name": "3.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid <= 101",
+          "expect": "300"
         }
       ]
     },
@@ -123,7 +213,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 25",
-          "expect": "{24}"
+          "expect": "24"
         }
       ]
     },
@@ -133,7 +223,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 26",
-          "expect": "{100}"
+          "expect": "100"
         }
       ]
     },
@@ -143,7 +233,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 27",
-          "expect": "{126}"
+          "expect": "126"
         }
       ]
     },
@@ -153,7 +243,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 73",
-          "expect": "{172}"
+          "expect": "172"
         }
       ]
     },
@@ -163,7 +253,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 74",
-          "expect": "{173}"
+          "expect": "173"
         }
       ]
     },
@@ -173,7 +263,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 75",
-          "expect": "{200}"
+          "expect": "200"
         }
       ]
     },
@@ -183,7 +273,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 76",
-          "expect": "{275}"
+          "expect": "275"
         }
       ]
     },
@@ -193,7 +283,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 99",
-          "expect": "{298}"
+          "expect": "298"
         }
       ]
     },
@@ -203,7 +293,17 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid < 100",
-          "expect": "{299}"
+          "expect": "299"
+        }
+      ]
+    },
+    {
+      "name": "3.5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid < 101",
+          "expect": "300"
         }
       ]
     },
@@ -213,7 +313,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 24",
-          "expect": "{276}"
+          "expect": "276"
         }
       ]
     },
@@ -223,7 +323,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 25",
-          "expect": "{200}"
+          "expect": "200"
         }
       ]
     },
@@ -233,7 +333,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 26",
-          "expect": "{174}"
+          "expect": "174"
         }
       ]
     },
@@ -243,7 +343,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 27",
-          "expect": "{173}"
+          "expect": "173"
         }
       ]
     },
@@ -253,7 +353,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 73",
-          "expect": "{127}"
+          "expect": "127"
         }
       ]
     },
@@ -263,7 +363,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 74",
-          "expect": "{100}"
+          "expect": "100"
         }
       ]
     },
@@ -273,7 +373,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 75",
-          "expect": "{25}"
+          "expect": "25"
         }
       ]
     },
@@ -283,7 +383,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 76",
-          "expect": "{24}"
+          "expect": "24"
         }
       ]
     },
@@ -293,7 +393,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 99",
-          "expect": "{1}"
+          "expect": "1"
         }
       ]
     },
@@ -303,7 +403,17 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid > 100",
-          "expect": "{0}"
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "3.6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid > 101",
+          "expect": "0"
         }
       ]
     },
@@ -313,7 +423,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 24",
-          "expect": "{277}"
+          "expect": "277"
         }
       ]
     },
@@ -323,7 +433,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 25",
-          "expect": "{276}"
+          "expect": "276"
         }
       ]
     },
@@ -333,7 +443,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 26",
-          "expect": "{200}"
+          "expect": "200"
         }
       ]
     },
@@ -343,7 +453,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 27",
-          "expect": "{174}"
+          "expect": "174"
         }
       ]
     },
@@ -353,7 +463,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 73",
-          "expect": "{128}"
+          "expect": "128"
         }
       ]
     },
@@ -363,7 +473,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 74",
-          "expect": "{127}"
+          "expect": "127"
         }
       ]
     },
@@ -373,7 +483,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 75",
-          "expect": "{100}"
+          "expect": "100"
         }
       ]
     },
@@ -383,7 +493,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 76",
-          "expect": "{25}"
+          "expect": "25"
         }
       ]
     },
@@ -393,7 +503,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 99",
-          "expect": "{2}"
+          "expect": "2"
         }
       ]
     },
@@ -403,7 +513,17 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE rowid >= 100",
-          "expect": "{1}"
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "3.7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE rowid >= 101",
+          "expect": "0"
         }
       ]
     },
@@ -413,7 +533,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 25",
-          "expect": "{24}"
+          "expect": "24"
         }
       ]
     },
@@ -423,7 +543,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 26",
-          "expect": "{100}"
+          "expect": "100"
         }
       ]
     },
@@ -433,7 +553,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 27",
-          "expect": "{126}"
+          "expect": "126"
         }
       ]
     },
@@ -443,7 +563,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 73",
-          "expect": "{172}"
+          "expect": "172"
         }
       ]
     },
@@ -453,7 +573,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 74",
-          "expect": "{173}"
+          "expect": "173"
         }
       ]
     },
@@ -463,7 +583,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 75",
-          "expect": "{200}"
+          "expect": "200"
         }
       ]
     },
@@ -473,7 +593,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 76",
-          "expect": "{275}"
+          "expect": "275"
         }
       ]
     },
@@ -483,7 +603,7 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 99",
-          "expect": "{298}"
+          "expect": "298"
         }
       ]
     },
@@ -493,7 +613,27 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM uu WHERE a < 100",
-          "expect": "{299}"
+          "expect": "299"
+        }
+      ]
+    },
+    {
+      "name": "3.10.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM uu WHERE a < 101",
+          "expect": "300"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl;",
+          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
         }
       ]
     },
@@ -503,7 +643,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sl WHERE rowid>-9223372036854775808",
-          "expect": "{\n  -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n}"
+          "expect": "-9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
         }
       ]
     },
@@ -513,7 +653,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sl WHERE rowid>=-9223372036854775808",
-          "expect": "{\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n}"
+          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
         }
       ]
     },
@@ -523,7 +663,16 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sl WHERE rowid<=-9223372036854775808",
-          "expect": "{\n  -9223372036854775808 one\n}"
+          "expect": "-9223372036854775808 one"
+        }
+      ]
+    },
+    {
+      "name": "4.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid<-9223372036854775808"
         }
       ]
     },
@@ -533,7 +682,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sl WHERE rowid<9223372036854775807",
-          "expect": "{\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five\n}"
+          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five"
         }
       ]
     },
@@ -543,7 +692,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sl WHERE rowid<=9223372036854775807",
-          "expect": "{\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n}"
+          "expect": "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
         }
       ]
     },
@@ -553,7 +702,56 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sl WHERE rowid>=9223372036854775807",
-          "expect": "{\n  9223372036854775807 six\n}"
+          "expect": "9223372036854775807 six"
+        }
+      ]
+    },
+    {
+      "name": "4.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sl WHERE rowid>9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT one FROM cc WHERE one>='seven'",
+          "expect": "zero two three six seven"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid>5",
+          "expect": "six seven eight nine"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cc.one FROM c4, cc WHERE cc.rowid>c4.rowid",
+          "expect": "five six seven eight nine"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM cc WHERE two LIKE '6'",
+          "expect": "six 6"
         }
       ]
     },

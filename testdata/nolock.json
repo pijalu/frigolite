@@ -28,7 +28,20 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b);\n     INSERT INTO t1 VALUES('hello','world');\n     CREATE TABLE t2(x,y);\n     INSERT INTO t2 VALUES(12345,67890);\n     SELECT * FROM t1, t2;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"

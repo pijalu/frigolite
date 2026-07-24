@@ -32,8 +32,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);",
-          "expect": "faultsim_save_and_close"
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);"
         },
         {
           "type": "exec",

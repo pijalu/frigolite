@@ -3,8 +3,13 @@
   "name": "sidedelete",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "sidedelete-1.1",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);",
+          "expect": "512"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);"
@@ -16,10 +21,29 @@
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM sequence"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;",
+          "expect": "0 0"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;"
+        }
+      ]
+    },
+    {
+      "name": "sidedelete-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;"
         },
         {
           "type": "exec",

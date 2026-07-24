@@ -12,12 +12,11 @@
       ]
     },
     {
-      "name": "1.6.$omit.3",
+      "name": "2.1",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT rowid FROM t1 WHERE c = 'three' OR c LIKE 'o%'",
-          "expect": "{1 6 3 4}"
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x TEXT COLLATE nocase, y TEXT);\n    CREATE INDEX t2x ON t2(x COLLATE nocase);\n    CREATE INDEX t2y ON t2(y);"
         }
       ]
     }

@@ -25,8 +25,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1;",
-          "expect": "# And now test that nothing bad happens if a master journal contains a"
+          "sql": "SELECT * FROM t1;"
         }
       ]
     },
@@ -35,8 +34,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1;",
-          "expect": "#-------------------------------------------------------------------------"
+          "sql": "SELECT * FROM t1;"
         }
       ]
     },
@@ -45,8 +43,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);",
-          "expect": "# Two real files."
+          "sql": "ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);"
         }
       ]
     },
@@ -72,8 +69,17 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(100, 200);",
-          "expect": "db_save"
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(100, 200);"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT type, name, tbl_name, sql FROM sqlite_schema",
+          "expect": "table t1 t1 {CREATE TABLE t1(x, y)}"
         }
       ]
     },

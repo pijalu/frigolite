@@ -3,12 +3,20 @@
   "name": "e_insert",
   "tests": [
     {
+      "name": "e_insert-0.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);"
+        }
+      ]
+    },
+    {
       "name": "e_insert-2.3.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO a1 VALUES('x', 'y');",
-          "expect": "{}"
+          "sql": "INSERT INTO a1 VALUES('x', 'y');"
         }
       ]
     },
@@ -17,8 +25,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');",
-          "expect": "{}"
+          "sql": "INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');"
         }
       ]
     },
@@ -27,8 +34,26 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;",
-          "expect": "$err"
+          "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "e_insert-5.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;",
+          "expect": "1 {near \"DEFAULT\": syntax error}"
         }
       ]
     }

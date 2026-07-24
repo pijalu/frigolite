@@ -8,10 +8,33 @@
         {
           "type": "exec",
           "sql": "INSERT INTO aux.t1 SELECT * FROM main.t1"
-        },
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_2",
+      "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';"
+        }
+      ]
+    },
+    {
+      "name": "speed3-0.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);",
+          "expect": "t1"
         },
         {
           "type": "exec",
@@ -20,6 +43,16 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master ORDER BY 1;"
+        }
+      ]
+    },
+    {
+      "name": "speed3-0.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);",
+          "expect": "t1"
         },
         {
           "type": "exec",
@@ -28,10 +61,29 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM aux.sqlite_master ORDER BY 1;"
+        }
+      ]
+    },
+    {
+      "name": "speed3-0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;"
         },
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;"
+        }
+      ]
+    },
+    {
+      "name": "speed3-0.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;",
+          "expect": "2 0"
         },
         {
           "type": "exec",

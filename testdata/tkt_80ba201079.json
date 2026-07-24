@@ -49,12 +49,52 @@
       ]
     },
     {
+      "name": "302",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE\n    (a='A' AND d='E') OR\n    (b='B' AND c IN ('C', 'D', 'E'))",
+          "expect": "A B C D E"
+        }
+      ]
+    },
+    {
+      "name": "303",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE\n    (a='A' AND d='E') OR\n    (b='B' AND c IN (SELECT c FROM t1))",
+          "expect": "A B C D E"
+        }
+      ]
+    },
+    {
       "name": "304",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE\n      (a='A' AND d='E') OR\n      (b='B' AND c IN (SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'))",
-          "expect": "{A B C D E}"
+          "expect": "A B C D E"
+        }
+      ]
+    },
+    {
+      "name": "305",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE\n    (b='B' AND c IN ('C', 'D', 'E')) OR\n    (a='A' AND d='E')",
+          "expect": "A B C D E"
+        }
+      ]
+    },
+    {
+      "name": "306",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, t2 WHERE\n    (b='B' AND c IN (SELECT c FROM t1)) OR\n    (a='A' AND d='E')",
+          "expect": "A B C D E"
         }
       ]
     },
@@ -64,7 +104,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE\n      (b='B' AND c IN (SELECT 'B' UNION SELECT 'C' UNION SELECT 'D')) OR\n      (a='A' AND d='E')",
-          "expect": "{A B C D E}"
+          "expect": "A B C D E"
         }
       ]
     }

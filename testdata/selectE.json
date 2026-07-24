@@ -30,6 +30,16 @@
           "sql": "SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary"
         }
       ]
+    },
+    {
+      "name": "selectE-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 EXCEPT SELECT 2 ORDER BY 1 COLLATE nocase EXCEPT SELECT 3;",
+          "expect": "1 {ORDER BY clause should come after EXCEPT not before}"
+        }
+      ]
     }
   ]
 }

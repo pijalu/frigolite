@@ -3,10 +3,60 @@
   "name": "fts3fuzz001",
   "tests": [
     {
+      "name": "fts3fuzz001-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on; -- disable schema corruption detection\n    INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts3fuzz001-121",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
         }
       ]
     },
@@ -16,6 +66,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO x1(x1) VALUES('merge=10,2')"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
         }
       ]
     }

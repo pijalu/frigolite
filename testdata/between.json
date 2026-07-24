@@ -3,8 +3,12 @@
   "name": "between",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "between-1.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
+        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
@@ -54,6 +58,26 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "between-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 1 AND 3);",
+          "expect": "4 4 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "between-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 5 AND 7);",
+          "expect": "4 4 {} {}"
         }
       ]
     }

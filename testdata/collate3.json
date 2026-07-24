@@ -3,7 +3,7 @@
   "name": "collate3",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "collate3-1.0",
       "steps": [
         {
           "type": "exec",
@@ -11,7 +11,61 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE collate3t1(c1 UNIQUE);"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY 1 collate garbage;",
+          "expect": "1 {no such collation sequence: garbage}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT c1 COLLATE garbage FROM collate3t1;",
+          "expect": "1 {no such collation sequence: garbage}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t2(c1 collate garbage);",
+          "expect": "1 {no such collation sequence: garbage}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate3i1 ON collate3t1(c1 COLLATE garbage);",
+          "expect": "1 {no such collation sequence: garbage}"
+        },
+        {
+          "type": "exec",
           "sql": "DROP TABLE collate3t1;"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');",
+          "expect": "abc1 Abc2 aBc3"
         },
         {
           "type": "exec",
@@ -20,6 +74,34 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)",
+          "expect": "abc1 Abc2 aBc3"
         },
         {
           "type": "exec",
@@ -28,50 +110,769 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1 ORDER BY a"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;",
+          "expect": "abc1 Abc2 aBc3"
         },
         {
           "type": "exec",
           "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a COLLATE caseless",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REINDEX",
+          "expect": "1 {no such collation sequence: caseless}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0 ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0 ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-1.8",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE t1"
         },
         {
           "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.0",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
         },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY c1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 WHERE c1 = 'xxx';",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t2(c1 COLLATE string_compare);",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM collate3t1 GROUP BY c1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     SELECT * FROM collate3t1 GROUP BY c1;\n#",
+          "expect": "1 {GROUP BY may only be used on aggregate queries}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 GROUP BY c1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT c1 FROM collate3t1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c1 FROM collate3t1 UNION SELECT c1 FROM collate3t1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c1 FROM collate3t1 EXCEPT SELECT c1 FROM collate3t1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c1 FROM collate3t1 INTERSECT SELECT c1 FROM collate3t1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 10 UNION ALL SELECT 20 ORDER BY 1 COLLATE string_compare;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE string_compare;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 10 EXCEPT SELECT 20 ORDER BY 1 COLLATE string_compare;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 10 UNION SELECT 20 ORDER BY 1 COLLATE string_compare;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-2.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT c1 FROM collate3t1 UNION ALL SELECT c1 FROM collate3t1 ORDER BY 1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.0",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
         },
         {
           "type": "exec",
+          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_52",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "select * from collate3t1"
-        },
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO collate3t1 VALUES('xxx', 0);",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE collate3t1 SET c1 = 'xxx';",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE collate3t1 SET c2 = 'xxx';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM collate3t1 WHERE 1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1;",
+          "expect": "0 {xxx xxx}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM collate3t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY 1 COLLATE string_compare;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY c1;",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 WHERE c1 = 'xxx';",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t2(c1 COLLATE string_compare);",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate3t1_i2 ON collate3t1(c1);",
+          "expect": "1 {no such collation sequence: string_compare}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-3.15",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;"
         },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.6",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;",
+          "expect": "1 {no such collation sequence: user_defined}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;",
+          "expect": "0 {hello {}}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.8.3",
+      "steps": [
+        {
+          "type": "exec",
           "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;",
+          "expect": "2 {} 12 {} 101 {}"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3v1;",
+          "expect": "1 {no such collation sequence: user_defined}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM collate3v1;",
+          "expect": "0 {2 {} 12 {} 101 {}}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-4.12",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;"
         },
         {
           "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a);\n    INSERT INTO collate3t1 VALUES(10);\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;",
+          "expect": "1 {no such collation sequence: unk}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;",
+          "expect": "0 10"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;",
+          "expect": "0 10"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;",
+          "expect": "0 10"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);",
+          "expect": "1 {no such collation sequence: unk}"
+        },
+        {
+          "type": "exec",
           "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM collate3t1 ORDER BY 1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "collate3-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
         },
         {
           "type": "exec",

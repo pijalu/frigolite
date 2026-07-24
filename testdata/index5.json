@@ -3,8 +3,13 @@
   "name": "index5",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.1",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = 0;",
+          "expect": "1024"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 0;"
@@ -20,6 +25,15 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(x);\n    DROP INDEX I1;\n    PRAGMA main.page_size;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x)"
         },
         {
           "type": "exec",

@@ -3,12 +3,91 @@
   "name": "fuzz4",
   "tests": [
     {
+      "name": "fuzz4-100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table0 (Col0  NOT NULL DEFAULT (CURRENT_TIME IS 1 > 1));\n  INSERT OR REPLACE INTO Table0 DEFAULT VALUES ;\n  SELECT * FROM Table0;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table1(\n    Col0 TEXT DEFAULT (CASE WHEN 1 IS 3530822107858468864 \n                            THEN 1 ELSE quote(1) IS 3530822107858468864 END)\n  );\n  INSERT INTO Table1 DEFAULT VALUES;\n  SELECT * FROM Table1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table2a(\n     Col0  NOT NULL   DEFAULT (CURRENT_TIME IS 1  IS NOT 1  > 1)\n  );\n  INSERT OR REPLACE INTO Table2a DEFAULT VALUES;\n  SELECT * FROM Table2a;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table2b (Col0  NOT NULL  DEFAULT (CURRENT_TIME  IS NOT FALSE)) ;\n  INSERT OR REPLACE INTO Table2b DEFAULT VALUES ;\n  SELECT * FROM Table2b;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table3 (Col0 DEFAULT (CURRENT_TIMESTAMP BETWEEN 1 AND 1));\n  INSERT INTO Table3 DEFAULT VALUES;\n  SELECT * FROM Table3;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table4 (Col0 DEFAULT (1 BETWEEN CURRENT_TIMESTAMP AND 1));\n  INSERT INTO Table4 DEFAULT VALUES;\n  SELECT * FROM Table4;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table5 (Col0 DEFAULT (1 BETWEEN 1 AND CURRENT_TIMESTAMP));\n  INSERT INTO Table5 DEFAULT VALUES;\n  SELECT * FROM Table5;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "fuzz4-600",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TEMPORARY TABLE Table6(\n    Col0 DEFAULT (CASE x'5d' WHEN 1 THEN\n        CASE CURRENT_TIMESTAMP WHEN 1 THEN 1 ELSE 1 END\n        ELSE CASE WHEN 1 THEN FALSE END  END )\n  );\n  INSERT INTO temp.Table6 DEFAULT VALUES ;\n  SELECT * FROM Table6;",
-          "expect": "{0}"
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fuzz4-610",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH TableX AS (SELECT DISTINCT * ORDER BY 1  , 1 COLLATE RTRIM)\n      DELETE FROM Table6  WHERE Col0 || +8388608  ;\n  SELECT * FROM Table6;"
         }
       ]
     }

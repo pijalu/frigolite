@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);",
-          "expect": "{}"
+          "sql": "CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);"
         }
       ]
     }

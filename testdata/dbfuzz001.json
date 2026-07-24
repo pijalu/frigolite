@@ -15,9 +15,38 @@
       "name": "dbfuzz001-101b",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA writable_schema=on; \n    PRAGMA integrity_check;",
-          "expect": "{1 {database disk image is malformed}}"
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "dbfuzz001-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE x IS NOT NULL AND +rowid=6;"
+        }
+      ]
+    },
+    {
+      "name": "dbfuzz001-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT * FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "dbfuzz001-320",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -27,7 +56,7 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t3 WHERE x IN (SELECT x FROM t4);",
-          "expect": "{1 {database disk image is malformed}}"
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -54,6 +83,16 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "dbfuzz001-440",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);",
+          "expect": "memory"
         }
       ]
     }

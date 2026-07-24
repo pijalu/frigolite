@@ -8,7 +8,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d>b AND x=y;",
-          "expect": "{/AUTO/}"
+          "expect": "/AUTO/"
         }
       ]
     },
@@ -18,7 +18,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d<b AND x=y;",
-          "expect": "{/AUTO/}"
+          "expect": "/AUTO/"
         }
       ]
     },
@@ -28,7 +28,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d IS NULL AND x=y;",
-          "expect": "{/AUTO/}"
+          "expect": "/AUTO/"
+        }
+      ]
+    },
+    {
+      "name": "autoindex3-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d IN (5,b) AND x=y;",
+          "expect": "/AUTO/"
         }
       ]
     },

@@ -36,8 +36,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;",
-          "expect": "# This test case no longer works, as it is no longer possible to use"
+          "sql": "CREATE TABLE x1(z, b);\n  CREATE TRIGGER BEFORE INSERT ON x1 BEGIN\n    DELETE FROM sqlite_dbpage WHERE pgno=100;\n    UPDATE sqlite_dbpage SET data=null WHERE pgno=100;\n  END;"
         }
       ]
     },
@@ -54,9 +53,9 @@
       "name": "3.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA trusted_schema = 1;\n  INSERT INTO x1 DEFAULT VALUES;",
-          "expect": "{1 {unsafe use of virtual table \"sqlite_dbpage\"}}"
+          "expect": "1 {unsafe use of virtual table \"sqlite_dbpage\"}"
         },
         {
           "type": "exec",

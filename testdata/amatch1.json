@@ -20,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMP TABLE vtemp(w TEXT UNIQUE);\n      INSERT OR IGNORE INTO vtemp SELECT term FROM t1aux;",
-          "expect": "{}} 1]\""
+          "sql": "CREATE TEMP TABLE vtemp(w TEXT UNIQUE);\n      INSERT OR IGNORE INTO vtemp SELECT term FROM t1aux;"
         }
       ]
     },

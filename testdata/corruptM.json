@@ -8,7 +8,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(111,222,333);\n  CREATE INDEX i1 ON t1(b);\n  CREATE VIEW v2 AS SELECT 15,22;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT 5; END;\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 t1 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
         }
       ]
     },
@@ -18,7 +18,17 @@
         {
           "type": "query",
           "sql": "PRAGMA writable_schema=on;\n  UPDATE sqlite_master SET tbl_name=NULL WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 {} | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 {} | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-102",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;",
+          "expect": "1 {malformed database schema (t1)}"
         }
       ]
     },
@@ -28,7 +38,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET tbl_name='tx' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 tx | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 tx | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-111",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;",
+          "expect": "1 {malformed database schema (t1)}"
         }
       ]
     },
@@ -38,7 +58,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET tbl_name='t1', type='tabl' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{tabl t1 t1 | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "tabl t1 t1 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-113",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;",
+          "expect": "1 {malformed database schema (t1)}"
         }
       ]
     },
@@ -48,7 +78,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET tbl_name='t9',type='table',name='t9'WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t9 t9 | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t9 t9 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-114",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;",
+          "expect": "1 {malformed database schema (t9)}"
         }
       ]
     },
@@ -58,7 +98,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET name='t1',tbl_name='T1' WHERE name='t9';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 T1 | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 T1 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-121",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "0 {ok 111 222 333 15 22}"
         }
       ]
     },
@@ -68,7 +118,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='view' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{view t1 T1 | index i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "view t1 T1 | index i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-131",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (t1)}"
         }
       ]
     },
@@ -78,7 +138,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='table', tbl_name='t1' WHERE name='t1';\n  UPDATE sqlite_master SET tbl_name='tx' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | index i1 tx | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 t1 | index i1 tx | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-141",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (i1)}"
         }
       ]
     },
@@ -88,7 +158,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='table', tbl_name='t1' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | table i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 t1 | table i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-151",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (i1)}"
         }
       ]
     },
@@ -98,7 +178,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='view', tbl_name='t1' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | view i1 t1 | view v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 t1 | view i1 t1 | view v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-161",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (i1)}"
         }
       ]
     },
@@ -108,7 +198,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='index', tbl_name='t1' WHERE name='i1';\n  UPDATE sqlite_master SET type='table', tbl_name='v2' WHERE name='v2';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | index i1 t1 | table v2 v2 | trigger r1 t1 |}"
+          "expect": "table t1 t1 | index i1 t1 | table v2 v2 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-171",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (v2)}"
         }
       ]
     },
@@ -118,7 +218,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='view',name='v3',tbl_name='v3' WHERE name='v2';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | index i1 t1 | view v3 v3 | trigger r1 t1 |}"
+          "expect": "table t1 t1 | index i1 t1 | view v3 v3 | trigger r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-181",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (v3)}"
         }
       ]
     },
@@ -128,7 +238,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='view',name='v2',tbl_name='v2' WHERE name='v3';\n  UPDATE sqlite_master SET type='view' WHERE name='r1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | index i1 t1 | view v2 v2 | view r1 t1 |}"
+          "expect": "table t1 t1 | index i1 t1 | view v2 v2 | view r1 t1 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-191",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (r1)}"
         }
       ]
     },
@@ -138,7 +258,17 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET type='trigger',tbl_name='v2' WHERE name='r1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;",
-          "expect": "{table t1 t1 | index i1 t1 | view v2 v2 | trigger r1 v2 |}"
+          "expect": "table t1 t1 | index i1 t1 | view v2 v2 | trigger r1 v2 |"
+        }
+      ]
+    },
+    {
+      "name": "corruptM-193",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    SELECT * FROM t1, v2;",
+          "expect": "1 {malformed database schema (r1)}"
         }
       ]
     }

@@ -3,12 +3,52 @@
   "name": "closure01",
   "tests": [
     {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id, depth, root, tablename, idcolumn, parentcolumn FROM cx\n   WHERE root=16384\n     AND depth=1\n   ORDER BY id;",
+          "expect": "32768 1 {} t1 x y 32769 1 {} t1 x y"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), depth FROM cx WHERE root=1 AND depth<=5\n   GROUP BY depth ORDER BY 1;",
+          "expect": "1 0 2 1 4 2 8 3 16 4 32 5"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), depth FROM cx WHERE root=1 AND depth=5\n   GROUP BY depth ORDER BY 1;",
+          "expect": "32 5"
+        }
+      ]
+    },
+    {
+      "name": "1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), depth FROM cx WHERE root=1 AND depth BETWEEN 3 AND 5\n   GROUP BY depth ORDER BY 1;",
+          "expect": "8 3 16 4 32 5"
+        }
+      ]
+    },
+    {
       "name": "2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*), min(id), max(id) FROM c2 WHERE root=1;",
-          "expect": "{31 1 31}"
+          "expect": "31 1 31"
         }
       ]
     },
@@ -18,7 +58,7 @@
         {
           "type": "query",
           "sql": "SELECT id FROM c2 WHERE root=10;",
-          "expect": "{10 20 21}"
+          "expect": "10 20 21"
         }
       ]
     },
@@ -28,7 +68,7 @@
         {
           "type": "query",
           "sql": "SELECT id FROM c2 WHERE root=12;",
-          "expect": "{12 24 25}"
+          "expect": "12 24 25"
         }
       ]
     },
@@ -38,7 +78,77 @@
         {
           "type": "query",
           "sql": "SELECT id FROM c2 WHERE root IN (10,12) ORDER BY id;",
-          "expect": "{10 12 20 21 24 25}"
+          "expect": "10 12 20 21 24 25"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM c2 WHERE root IN (10,12) ORDER BY +id;",
+          "expect": "10 12 20 21 24 25"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM cx\n   WHERE root=20\n     AND tablename='t2'\n     AND idcolumn='y'\n     AND parentcolumn='x';",
+          "expect": "1 2 5 10 20"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT id FROM c2\n   WHERE root IN (SELECT id FROM c2up\n                   WHERE root=20 AND depth<=2)\n   ORDER BY id;",
+          "expect": "5 10 11 20 21 22 23"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM c2\n   WHERE root=(SELECT id FROM c2up\n               WHERE root=20 AND depth=2)\n     AND depth=2\n  EXCEPT\n  SELECT id FROM c2\n   WHERE root=(SELECT id FROM c2up\n               WHERE root=20 AND depth=1)\n     AND depth<=1\n   ORDER BY id;",
+          "expect": "22 23"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t3'\n       AND idcolumn='y'\n       AND parentcolumn='x';",
+          "expect": "1 {no such table: t3}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='xyz'\n       AND parentcolumn='x';",
+          "expect": "1 {no such column: t2.xyz}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='x'\n       AND parentcolumn='pqr';",
+          "expect": "1 {no such column: t2.pqr}"
         }
       ]
     },
@@ -47,8 +157,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t4, vt4 WHERE t4.id = vt4.root AND vt4.id=4 AND vt4.depth=2;",
-          "expect": "# Bug 2026-06-26T10:06:27Z"
+          "sql": "SELECT * FROM t4, vt4 WHERE t4.id = vt4.root AND vt4.id=4 AND vt4.depth=2;"
         }
       ]
     },
@@ -66,6 +175,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c WHERE root=1;",
+          "expect": "1 0 2 1"
         }
       ]
     }

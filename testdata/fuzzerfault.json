@@ -3,11 +3,24 @@
   "name": "fuzzerfault",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1-pre1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"
+        }
+      ]
+    },
+    {
+      "name": "3-pre1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );"
         },
         {
           "type": "exec",

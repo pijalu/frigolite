@@ -12,12 +12,42 @@
       ]
     },
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=5)",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x)",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
       "name": "1.3.1",
       "steps": [
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x)",
-          "expect": "{~/SUBQUERY/}"
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE b=x)",
+          "expect": "~/SUBQUERY/"
         }
       ]
     },
@@ -27,7 +57,27 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE x=1 AND EXISTS (SELECT 1 FROM x1 WHERE a=x)",
-          "expect": "{~/SUBQUERY/}"
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x) AND y=2",
+          "expect": "~/SUBQUERY/"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM x2 WHERE EXISTS (SELECT 1 FROM x1 WHERE a=x)",
+          "expect": "3"
         }
       ]
     },
@@ -41,12 +91,32 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;\n  SELECT count(*) FROM t2;",
+          "expect": "1000 100"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1, t2 WHERE a=c;",
+          "expect": "100"
+        }
+      ]
+    },
+    {
       "name": "2.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a)",
-          "expect": "{100}"
+          "expect": "100"
         }
       ]
     },
@@ -65,6 +135,26 @@
         {
           "type": "exec",
           "sql": "ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "2.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c=a);",
+          "expect": "100"
+        }
+      ]
+    },
+    {
+      "name": "2.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT count(*) FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE t2.rowid=a);",
+          "expect": "~/SUBQUERY/"
         }
       ]
     },
@@ -130,6 +220,16 @@
       ]
     },
     {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE c COLLATE f = a)",
+          "expect": "1 {no such collation sequence: f}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -143,7 +243,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y UNIQUE);\n\n  INSERT INTO t1 VALUES(1), (2);\n  INSERT INTO t2 VALUES(1), (3);\n\n  SELECT * FROM t1 one LEFT JOIN t1 two ON (one.x=two.x AND EXISTS (\n    SELECT 1 FROM t2 WHERE y=one.x\n  ));",
-          "expect": "{\n  1 1\n  2 {}"
+          "expect": "1 1\n  2 {}"
         }
       ]
     },
@@ -156,10 +256,28 @@
       ]
     },
     {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0 (c0 INT);  INSERT INTO t0(c0) VALUES (1);\n  CREATE TABLE t1(c0 INT);   INSERT INTO t1(c0) VALUES (2);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t0 LIMIT 0);"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(xx);\n  INSERT INTO t1 VALUES('big string value');"
         }
       ]
     },
@@ -178,6 +296,36 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(yy);\n  INSERT INTO t3 VALUES(200);"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT EXISTS (\n    SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii )\n  )",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1234 WHERE EXISTS (\n    SELECT 1 FROM t2 WHERE EXISTS ( SELECT 1 FROM t3 WHERE yy==t2.ii )\n  )",
+          "expect": "1234"
         }
       ]
     },
@@ -221,8 +369,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT \n    EXISTS( SELECT 1 FROM t1 ) aaa\n  WHERE (\n    SELECT 1 FROM x1 WHERE aaa AND aaa\n  );",
-          "expect": "# https://sqlite.org/forum/forumpost/2026-01-03T14:05:48z"
+          "sql": "SELECT \n    EXISTS( SELECT 1 FROM t1 ) aaa\n  WHERE (\n    SELECT 1 FROM x1 WHERE aaa AND aaa\n  );"
         }
       ]
     },
@@ -232,6 +379,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE parent (id TEXT PRIMARY KEY);\n  CREATE TABLE child_a (id TEXT);\n  CREATE TABLE child_b (id TEXT);\n  INSERT INTO parent VALUES ('p1');\n  INSERT INTO child_a VALUES ('p1');"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*), parent.id FROM parent\n   WHERE EXISTS (\n      SELECT 1 FROM child_a WHERE child_a.id = parent.id\n      UNION\n      SELECT 1 FROM child_b WHERE child_b.id = parent.id\n   )\n   GROUP BY id;",
+          "expect": "1 p1"
         }
       ]
     },
@@ -253,6 +410,25 @@
       ]
     },
     {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)",
+          "expect": "1 0\n  2 0"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2\n    WHERE EXISTS (SELECT 1 FROM t3 WHERE t3.amount > t2.data)\n  LIMIT 2 OFFSET 3"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -266,6 +442,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(b,c);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(p,q);\n\n  INSERT INTO t1 VALUES(7,10);\n  INSERT INTO t2 VALUES(1,1), (4,7);\n  INSERT INTO t3 VALUES(4,7);\n\n  PRAGMA automatic_index = 0;"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE EXISTS (\n      SELECT 1 FROM t2\n      WHERE EXISTS (\n        SELECT 1 FROM t3 WHERE t3.p=t2.x AND t3.q=t1.b\n      )\n  )",
+          "expect": "7 10"
         }
       ]
     },
@@ -287,11 +473,30 @@
       ]
     },
     {
+      "name": "14.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t b\n    WHERE (b.parent IS NULL OR b.parent = 99)\n    AND 5 <= +b.n"
+        }
+      ]
+    },
+    {
       "name": "14.2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(20, 20);\n\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2c ON t2(c);\n  CREATE INDEX t2d ON t2(d);\n\n  INSERT INTO t2 VALUES(20, -1);\n  INSERT INTO t2 VALUES(20,  0);"
+        }
+      ]
+    },
+    {
+      "name": "14.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE EXISTS (\n    SELECT 1 FROM t2 WHERE (c=a OR d=a) AND (d+1)>0\n  )",
+          "expect": "20 20"
         }
       ]
     }

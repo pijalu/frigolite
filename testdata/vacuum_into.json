@@ -3,8 +3,13 @@
   "name": "vacuum_into",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "vacuum-into-610",
       "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size;",
+          "expect": "4096"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size;\n      PRAGMA integrity_check;"

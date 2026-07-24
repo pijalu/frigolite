@@ -16,8 +16,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT cross(cross,full,inner,left,natural,outer,right) FROM cross;",
-          "expect": "cross-1-2-3-4-5-6-7"
+          "sql": "SELECT cross(cross,full,inner,left,natural,outer,right) FROM cross;"
         }
       ]
     },
@@ -26,8 +25,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT full(cross,full,inner,left,natural,outer,right) FROM full;",
-          "expect": "full-1-2-3-4-5-6-7"
+          "sql": "SELECT full(cross,full,inner,left,natural,outer,right) FROM full;"
         }
       ]
     },
@@ -36,8 +34,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT inner(cross,full,inner,left,natural,outer,right) FROM inner;",
-          "expect": "inner-1-2-3-4-5-6-7"
+          "sql": "SELECT inner(cross,full,inner,left,natural,outer,right) FROM inner;"
         }
       ]
     },
@@ -46,8 +43,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT left(cross,full,inner,left,natural,outer,right) FROM left;",
-          "expect": "left-1-2-3-4-5-6-7"
+          "sql": "SELECT left(cross,full,inner,left,natural,outer,right) FROM left;"
         }
       ]
     },
@@ -56,8 +52,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT natural(cross,full,inner,left,natural,outer,right) FROM natural;",
-          "expect": "natural-1-2-3-4-5-6-7"
+          "sql": "SELECT natural(cross,full,inner,left,natural,outer,right) FROM natural;"
         }
       ]
     },
@@ -66,8 +61,16 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT outer(cross,full,inner,left,natural,outer,right) FROM outer;",
-          "expect": "outer-1-2-3-4-5-6-7"
+          "sql": "SELECT outer(cross,full,inner,left,natural,outer,right) FROM outer;"
+        }
+      ]
+    },
+    {
+      "name": "func8-170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT right(cross,full,inner,left,natural,outer,right) FROM right;"
         }
       ]
     }

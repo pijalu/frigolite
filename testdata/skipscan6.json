@@ -1,0 +1,36 @@
+{
+  "file": "skipscan6.test",
+  "name": "skipscan6",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT COUNT(*)\n    FROM t1\n   WHERE bb=21\n     AND aa=1\n     AND dd BETWEEN 1413833728 and 1413837331;",
+          "expect": "/INDEX ix .aa=. AND bb=../"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT COUNT(*)\n    FROM t1\n   WHERE bb=21\n     AND aa=1\n     AND dd BETWEEN 1413833728 and 1413837331;",
+          "expect": "/INDEX good .bb=. AND aa=. AND dd>. AND dd<../"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b, c, d);\n  CREATE INDEX t3_ba ON t3(b, a, c);\n  CREATE INDEX t3_a ON t3(a);\n\n  WITH d(a, b) AS (\n    SELECT 1, 1 \n    UNION ALL\n    SELECT a+1, (a+1) % 5 FROM d WHERE a<100\n  )\n  INSERT INTO t3 SELECT a, b, 'c', 'd' FROM d;\n\n  CREATE TABLE t2(a, b, c, d);\n  CREATE INDEX t2_a ON t2(a);\n  CREATE INDEX t2_ba ON t2(b, a, c);\n  INSERT INTO t2 SELECT * FROM t3;\n\n  ANALYZE;\n  SELECT * FROM sqlite_stat1 ORDER BY +idx;",
+          "expect": "t2 t2_a    {100 1} \n  t2 t2_ba   {100 20 1 1}\n  t3 t3_a    {100 1} \n  t3 t3_ba   {100 20 1 1}"
+        }
+      ]
+    }
+  ]
+}

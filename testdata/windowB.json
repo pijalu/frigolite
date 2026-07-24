@@ -3,6 +3,15 @@
   "name": "windowB",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(NULL, 1);\n  INSERT INTO t1 VALUES(NULL, 2);\n  INSERT INTO t1 VALUES(NULL, 3);"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -16,6 +25,25 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "3.5a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE testjson SET j = replace(j,char(125),',\"e\":9'||char(125));\n    SELECT j FROM testjson;",
+          "expect": "{{\"a\":1,\"e\":9}}\n    {{\"b\":2,\"e\":9}}\n    {{\"c\":3,\"e\":9}}\n    {{\"d\":4,\"e\":9}}"
+        }
+      ]
+    },
+    {
+      "name": "3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INT, k TEXT, v INT);\n    INSERT INTO t1 VALUES\n      (1, 'a', 1),\n      (2, 'b', 2),\n      (3, 'c', 3),\n      (4, 'd', 4),\n      (5, 'f', 5),\n      (6, 'g', 6),\n      (7, 'h', 7);"
         }
       ]
     },

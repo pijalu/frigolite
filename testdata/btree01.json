@@ -1,0 +1,24 @@
+{
+  "file": "btree01.test",
+  "name": "btree01",
+  "tests": [
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "btree01-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT y, c FROM t1 RIGHT JOIN t2 ON y=a ORDER BY x;",
+          "expect": "198 99 187 {} 100 50"
+        }
+      ]
+    }
+  ]
+}

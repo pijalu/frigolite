@@ -1,0 +1,16 @@
+{
+  "file": "literal.test",
+  "name": "literal",
+  "tests": [
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 ORDER BY 2_3;",
+          "expect": "1 {1st ORDER BY term out of range - should be between 1 and 1}"
+        }
+      ]
+    }
+  ]
+}

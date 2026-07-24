@@ -237,7 +237,7 @@ func (m *Manager) FindTable(name string) (*Entry, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("schema: table not found: %s", name)
+	return nil, fmt.Errorf("no such table: %s", name)
 }
 
 // FindView returns the schema entry for a view.
@@ -303,7 +303,7 @@ func (m *Manager) FindTrigger(name string) (*Entry, error) {
 			}
 		}
 	}
-	return nil, fmt.Errorf("schema: trigger not found: %s", name)
+	return nil, fmt.Errorf("no such trigger: %s", name)
 }
 
 // FindTriggersForTable returns all triggers for a given table.
@@ -384,7 +384,7 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 		}
 	}
 	if oldEntry == nil {
-		return fmt.Errorf("schema: table not found: %s", oldName)
+		return fmt.Errorf("no such table: %s", oldName)
 	}
 
 	// Rebuild SQL with new table name

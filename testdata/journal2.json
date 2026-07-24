@@ -3,31 +3,94 @@
   "name": "journal2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "journal2-1.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)",
+          "expect": "xOpen test.db-journal xClose test.db-journal xDelete test.db-journal"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE t1(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);",
+          "expect": "xOpen test.db-journal"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.3",
+      "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 4)"
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4)"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "1 {disk I/O error}"
         },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = delete"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = truncate"
         },
         {
           "type": "exec",
@@ -36,26 +99,115 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(5, 6)"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64",
+          "expect": "0"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 {disk I/O error}"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2;\n    PRAGMA integrity_check;",
+          "expect": "64 ok"
         },
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t2;\n    PRAGMA integrity_check;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.17",
+      "steps": [
         {
           "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "journal2-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "journal2-2.1",
+      "steps": [
+        {
+          "type": "query",
           "sql": "PRAGMA journal_mode = persist"
         },
         {
           "type": "exec",
+          "sql": "PRAGMA journal_mode = persist"
+        }
+      ]
+    },
+    {
+      "name": "journal2-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);",
+          "expect": "xOpen test.db-journal"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);"
+        }
+      ]
+    },
+    {
+      "name": "journal2-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = WAL",
+          "expect": "xClose test.db-journal xDelete test.db-journal"
         },
         {
           "type": "exec",

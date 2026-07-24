@@ -8,7 +8,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d DEFAULT true);\n  INSERT INTO t1 DEFAULT VALUES;\n  SELECT * FROM t1;",
-          "expect": "{1 {} {} 1}"
+          "expect": "1 {} {} 1"
         },
         {
           "type": "exec",

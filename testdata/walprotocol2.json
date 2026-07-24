@@ -3,12 +3,22 @@
   "name": "walprotocol2",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
       "name": "2.0",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM x;",
-          "expect": "{z}"
+          "expect": "z"
         }
       ]
     },
@@ -18,7 +28,7 @@
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE;",
-          "expect": "{1 {database is locked}}"
+          "expect": "1 {database is locked}"
         }
       ]
     },
@@ -28,7 +38,17 @@
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE;",
-          "expect": "{0 {}}"
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x;\n  COMMIT;",
+          "expect": "z y x"
         }
       ]
     }

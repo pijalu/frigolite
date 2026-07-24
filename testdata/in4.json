@@ -3,7 +3,7 @@
   "name": "in4",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "in4-1.1",
       "steps": [
         {
           "type": "exec",
@@ -11,63 +11,221 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "in4-1.2",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM t1 WHERE a IN ('aaa', 'bbb', 'ccc');"
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a IN ('aaa', 'bbb', 'ccc');"
+        }
+      ]
+    },
+    {
+      "name": "in4-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('aaa', 1);\n    INSERT INTO t1 VALUES('ddd', 2);\n    INSERT INTO t1 VALUES('ccc', 3);\n    INSERT INTO t1 VALUES('eee', 4);\n    SELECT b FROM t1 WHERE a IN ('aaa', 'bbb', 'ccc');",
+          "expect": "1 3"
+        },
+        {
+          "type": "exec",
           "sql": "INSERT INTO t1 VALUES('aaa', 1);\n    INSERT INTO t1 VALUES('ddd', 2);\n    INSERT INTO t1 VALUES('ccc', 3);\n    INSERT INTO t1 VALUES('eee', 4);\n    SELECT b FROM t1 WHERE a IN ('aaa', 'bbb', 'ccc');"
+        }
+      ]
+    },
+    {
+      "name": "in4-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE rowid IN (1, 3);",
+          "expect": "aaa ccc"
         },
         {
           "type": "exec",
           "sql": "SELECT a FROM t1 WHERE rowid IN (1, 3);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "in4-1.5",
+      "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT a FROM t1 WHERE rowid IN ();"
         },
         {
           "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE a IN ('ddd');"
+          "sql": "SELECT a FROM t1 WHERE rowid IN ();"
+        }
+      ]
+    },
+    {
+      "name": "in4-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE a IN ('ddd');",
+          "expect": "ddd"
         },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE a IN ('ddd');"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t2 VALUES(-1, '-one');\n    INSERT INTO t2 VALUES(0, 'zero');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(3, 'three');"
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t2 VALUES(-1, '-one');\n    INSERT INTO t2 VALUES(0, 'zero');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(3, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN (0, 2)",
+          "expect": "zero two"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN (0, 2)"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN (2, 0)",
+          "expect": "zero two"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN (2, 0)"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN (2, -1)",
+          "expect": "-one two"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN (2, -1)"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN (NULL, 3)",
+          "expect": "three"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN (NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN (1.0, 2.1)",
+          "expect": "one"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN (1.0, 2.1)"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN ('1', '2')",
+          "expect": "one two"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN ('1', '2')"
+        }
+      ]
+    },
+    {
+      "name": "in4-2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t2 WHERE a IN ('', '0.0.0', '2')",
+          "expect": "two"
         },
         {
           "type": "exec",
           "sql": "SELECT b FROM t2 WHERE a IN ('', '0.0.0', '2')"
-        },
+        }
+      ]
+    },
+    {
+      "name": "in4-3.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(x, id);\n    CREATE TABLE t2(x, id);\n    INSERT INTO t1 VALUES(NULL, NULL);\n    INSERT INTO t1 VALUES(0, NULL);\n    INSERT INTO t1 VALUES(1, 3);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 5);\n    INSERT INTO t1 VALUES(4, 6);\n    INSERT INTO t2 VALUES(0, NULL);\n    INSERT INTO t2 VALUES(4, 1);\n    INSERT INTO t2 VALUES(NULL, 1);\n    INSERT INTO t2 VALUES(NULL, NULL);"
         },
         {
           "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(x, id);\n    CREATE TABLE t2(x, id);\n    INSERT INTO t1 VALUES(NULL, NULL);\n    INSERT INTO t1 VALUES(0, NULL);\n    INSERT INTO t1 VALUES(1, 3);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 5);\n    INSERT INTO t1 VALUES(4, 6);\n    INSERT INTO t2 VALUES(0, NULL);\n    INSERT INTO t2 VALUES(4, 1);\n    INSERT INTO t2 VALUES(NULL, 1);\n    INSERT INTO t2 VALUES(NULL, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.2",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT x FROM t1 WHERE id IN () AND x IN (SELECT x FROM t2 WHERE id=1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE id IN () AND x IN (SELECT x FROM t2 WHERE id=1)"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y, z);\n    CREATE INDEX t3i1 ON t3(x, y);\n    INSERT INTO t3 VALUES(1, 1, 1);\n    INSERT INTO t3 VALUES(10, 10, 10);"
         },
         {
           "type": "exec",
@@ -76,38 +234,122 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t3 WHERE x IN ()"
-        },
+        }
+      ]
+    },
+    {
+      "name": "in4-3.4",
+      "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT * FROM t3 WHERE x = 10 AND y IN ()"
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x = 10 AND y IN ()"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.5",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM t3 WHERE x IN () AND y = 10"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x IN () OR x = 10"
+          "sql": "SELECT * FROM t3 WHERE x IN () AND y = 10"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE x IN () OR x = 10",
+          "expect": "10 10 10"
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x IN () OR x = 10"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.7",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM t3 WHERE y IN ()"
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE y IN ()"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.8",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT x IN() AS a FROM t3 WHERE a"
         },
         {
           "type": "exec",
-          "sql": "SELECT x IN() AS a FROM t3 WHERE NOT a"
+          "sql": "SELECT x IN() AS a FROM t3 WHERE a"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x IN() AS a FROM t3 WHERE NOT a",
+          "expect": "0 0"
         },
         {
           "type": "exec",
+          "sql": "SELECT x IN() AS a FROM t3 WHERE NOT a"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.10",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM t3 WHERE oid IN ()"
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE oid IN ()"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE x IN (1, 2) OR y IN ()",
+          "expect": "1 1 1"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t3 WHERE x IN (1, 2) OR y IN ()"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE x IN (1, 2) AND y IN ()"
         },
         {
           "type": "exec",
@@ -121,7 +363,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x=10 AND y IN (10);",
-          "expect": "{10 10 10}"
+          "expect": "10 10 10"
         }
       ]
     },
@@ -131,7 +373,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x IN (10) AND y=10;",
-          "expect": "{10 10 10}"
+          "expect": "10 10 10"
         }
       ]
     },
@@ -141,7 +383,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x IN (10) AND y IN (10);",
-          "expect": "{10 10 10}"
+          "expect": "10 10 10"
         }
       ]
     },
@@ -151,7 +393,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x=1 AND y NOT IN (10);",
-          "expect": "{1 1 1}"
+          "expect": "1 1 1"
         }
       ]
     },
@@ -161,7 +403,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x  NOT IN (10) AND y=1;",
-          "expect": "{1 1 1}"
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE x NOT IN (10) AND y NOT IN (10);",
+          "expect": "1 1 1"
         }
       ]
     },
@@ -171,7 +423,7 @@
         {
           "type": "exec",
           "sql": "DROP INDEX t3i1;\n  CREATE UNIQUE INDEX t3xy ON t3(x,y);\n\n  SELECT *, '|' FROM t3 A, t3 B\n   WHERE A.x=10 AND A.y IN (10)\n     AND B.x=1 AND B.y IN (1);",
-          "expect": "{10 10 10 1 1 1 |}"
+          "expect": "10 10 10 1 1 1 |"
         }
       ]
     },
@@ -181,7 +433,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT *, '|' FROM t3 A, t3 B\n   WHERE A.x=10 AND A.y IN (10)\n     AND B.x=1 AND B.y IN (1);",
-          "expect": "{~/B-TREE/}  ;# No separate sorting pass"
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -191,7 +443,17 @@
         {
           "type": "query",
           "sql": "SELECT *, '|' FROM t3 A, t3 B\n   WHERE A.x IN (10) AND A.y=10\n     AND B.x IN (1) AND B.y=1;",
-          "expect": "{10 10 10 1 1 1 |}"
+          "expect": "10 10 10 1 1 1 |"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT *, '|' FROM t3 A, t3 B\n   WHERE A.x IN (10) AND A.y=10\n     AND B.x IN (1) AND B.y=1;",
+          "expect": "~/B-TREE/"
         }
       ]
     },
@@ -201,7 +463,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x IN (10,11);",
-          "expect": "{10 10 10}"
+          "expect": "10 10 10"
         }
       ]
     },
@@ -211,7 +473,17 @@
         {
           "type": "query",
           "sql": "EXPLAIN\n  SELECT * FROM t3 WHERE x IN (10,11);",
-          "expect": "{/OpenEphemeral/}"
+          "expect": "/OpenEphemeral/"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.43",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE x IN (10);",
+          "expect": "10 10 10"
         }
       ]
     },
@@ -221,7 +493,7 @@
         {
           "type": "exec",
           "sql": "#  EXPLAIN\n#  SELECT * FROM t3 WHERE x IN (10);\n#",
-          "expect": "{~/OpenEphemeral/}"
+          "expect": "~/OpenEphemeral/"
         }
       ]
     },
@@ -231,7 +503,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x NOT IN (10,11,99999);",
-          "expect": "{1 1 1}"
+          "expect": "1 1 1"
         }
       ]
     },
@@ -241,7 +513,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN\n  SELECT * FROM t3 WHERE x NOT IN (10,11,99999);",
-          "expect": "{/OpenEphemeral/}"
+          "expect": "/OpenEphemeral/"
         }
       ]
     },
@@ -251,7 +523,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x NOT IN (10);",
-          "expect": "{1 1 1}"
+          "expect": "1 1 1"
+        }
+      ]
+    },
+    {
+      "name": "in4-3.48",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN\n  SELECT * FROM t3 WHERE x NOT IN (10);",
+          "expect": "~/OpenEphemeral/"
         }
       ]
     },
@@ -261,7 +543,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4a(a TEXT, b TEXT COLLATE nocase, c);\n  INSERT INTO t4a VALUES('ABC','abc',1);\n  INSERT INTO t4a VALUES('def','xyz',2);\n  INSERT INTO t4a VALUES('ghi','ghi',3);\n  SELECT c FROM t4a WHERE a=b ORDER BY c;",
-          "expect": "{3}"
+          "expect": "3"
         }
       ]
     },
@@ -271,7 +553,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4a WHERE b=a ORDER BY c;",
-          "expect": "{1 3}"
+          "expect": "1 3"
         }
       ]
     },
@@ -281,7 +563,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4a WHERE (a||'')=b ORDER BY c;",
-          "expect": "{1 3}"
+          "expect": "1 3"
         }
       ]
     },
@@ -291,7 +573,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4a WHERE (a||'')=(b||'') ORDER BY c;",
-          "expect": "{3}"
+          "expect": "3"
         }
       ]
     },
@@ -301,7 +583,17 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4a WHERE a IN (b) ORDER BY c;",
-          "expect": "{3}"
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "in4-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t4a WHERE (a||'') IN (b) ORDER BY c;",
+          "expect": "3"
         }
       ]
     },
@@ -311,7 +603,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4b(a TEXT, b NUMERIC, c);\n  INSERT INTO t4b VALUES('1.0',1,4);\n  SELECT c FROM t4b WHERE a=b;",
-          "expect": "{4}"
+          "expect": "4"
         }
       ]
     },
@@ -321,7 +613,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4b WHERE b=a;",
-          "expect": "{4}"
+          "expect": "4"
         }
       ]
     },
@@ -331,7 +623,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4b WHERE +a=b;",
-          "expect": "{4}"
+          "expect": "4"
         }
       ]
     },
@@ -340,8 +632,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT c FROM t4b WHERE a=+b;",
-          "expect": "{}"
+          "sql": "SELECT c FROM t4b WHERE a=+b;"
         }
       ]
     },
@@ -350,8 +641,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT c FROM t4b WHERE +b=a;",
-          "expect": "{}"
+          "sql": "SELECT c FROM t4b WHERE +b=a;"
         }
       ]
     },
@@ -361,7 +651,7 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4b WHERE b=+a;",
-          "expect": "{4}"
+          "expect": "4"
         }
       ]
     },
@@ -370,8 +660,7 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT c FROM t4b WHERE a IN (b);",
-          "expect": "{}"
+          "sql": "SELECT c FROM t4b WHERE a IN (b);"
         }
       ]
     },
@@ -381,7 +670,16 @@
         {
           "type": "query",
           "sql": "SELECT c FROM t4b WHERE b IN (a);",
-          "expect": "{4}"
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "in4-4.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t4b WHERE +b IN (a);"
         }
       ]
     },
@@ -391,7 +689,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t6a(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t6a VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t6b(c INTEGER PRIMARY KEY, d);\n  INSERT INTO t6b VALUES(4,44),(5,55),(6,66);\n\n  SELECT * FROM t6a, t6b WHERE a=3 AND b IN (c);",
-          "expect": "{3 4 4 44}"
+          "expect": "3 4 4 44"
         }
       ]
     },
@@ -401,7 +699,7 @@
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t6a, t6b WHERE a=3 AND b IN (c);",
-          "expect": "{~/SCAN t6a/}"
+          "expect": "~/SCAN t6a/"
         }
       ]
     },
@@ -411,7 +709,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t6a, t6b WHERE a=3 AND c IN (b);",
-          "expect": "{3 4 4 44}"
+          "expect": "3 4 4 44"
+        }
+      ]
+    },
+    {
+      "name": "in4-6.2-eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT * FROM t6a, t6b WHERE a=3 AND c IN (b);",
+          "expect": "~/SCAN/"
         }
       ]
     },
@@ -433,12 +741,22 @@
       ]
     },
     {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2 LEFT JOIN t1 ON c = d AND b IN (10,10,10);",
+          "expect": "{} 1 {} {} {}"
+        }
+      ]
+    },
+    {
       "name": "7.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t2 LEFT JOIN t1 ON c IN (d) AND b IN (10,10,10);",
-          "expect": "{{} 1 {} {} {}}"
+          "expect": "{} 1 {} {} {}"
         }
       ]
     },
@@ -447,6 +765,44 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.x FROM t2 CROSS JOIN t1 WHERE t2.z = t1.y;",
+          "expect": "222 111"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.x FROM t2 CROSS JOIN t1 WHERE t2.z = t1.y AND +t1.x IN (111, 222);",
+          "expect": "222 111"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.x FROM t2 CROSS JOIN t1 WHERE t2.z = t1.y AND t1.x IN (111, 222);",
+          "expect": "222 111"
         }
       ]
     },
@@ -480,7 +836,17 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1\n   WHERE b IN (345, (SELECT 1 FROM t1 \n                      WHERE b IN (coalesce(1,random()))\n                        AND c GLOB 'abc*xyz'))\n     AND c BETWEEN 'abc' AND 'xyz';",
-          "expect": "{xyz 1 abcdefxyz 99}"
+          "expect": "xyz 1 abcdefxyz 99"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN SELECT * FROM t1\n   WHERE b IN (345, (SELECT 1 FROM t1 \n                      WHERE b IN (coalesce(1,random()))\n                        AND c GLOB 'abc*xyz'))\n     AND c BETWEEN 'abc' AND 'xyz';",
+          "expect": "/ SeekScan /"
         }
       ]
     },
@@ -489,6 +855,16 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1\n   WHERE (b = 1137 AND c IN (97, 98))\n      OR (b = 1119 AND c IN (1115, 1023));",
+          "expect": "56 1119 1115"
         }
       ]
     },

@@ -3,7 +3,7 @@
   "name": "tkt3201",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt3201-1",
       "steps": [
         {
           "type": "exec",
@@ -11,7 +11,31 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"
+        }
+      ]
+    },
+    {
+      "name": "tkt3201-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT l.a, r.a FROM t1 AS l, t1 AS r WHERE l.a < r.a;",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT l.a, r.a FROM t1 AS l, t1 AS r WHERE l.a < r.a;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3201-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t2 VALUES(2, 'two');",
+          "expect": "1 2"
         },
         {
           "type": "exec",
@@ -20,6 +44,16 @@
         {
           "type": "exec",
           "sql": "SELECT l.a, r.a FROM t1 AS l, t2 AS r WHERE l.a < r.a;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3201-4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2;",
+          "expect": "1 2"
         },
         {
           "type": "exec",
@@ -28,6 +62,16 @@
         {
           "type": "exec",
           "sql": "SELECT l.a, r.a FROM t1 AS l, t2 AS r WHERE l.a < r.a;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3201-5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2;",
+          "expect": "1 one 2 two"
         },
         {
           "type": "exec",
@@ -36,6 +80,16 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a, t1.b, t2.a, t2.b FROM t1, t2;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3201-6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(c INTEGER PRIMARY KEY, d TEXT);\n    INSERT INTO t3 VALUES(2, 'two');",
+          "expect": "1 one 2 two"
         },
         {
           "type": "exec",
@@ -44,6 +98,16 @@
         {
           "type": "exec",
           "sql": "SELECT a, b, c, d FROM t1, t3"
+        }
+      ]
+    },
+    {
+      "name": "tkt3201-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d FROM t1, t3 WHERE a < c",
+          "expect": "1 one 2 two"
         },
         {
           "type": "exec",

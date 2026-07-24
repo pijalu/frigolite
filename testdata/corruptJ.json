@@ -1,0 +1,26 @@
+{
+  "file": "corruptJ.test",
+  "name": "corruptJ",
+  "tests": [
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA secure_delete=ON; DROP TABLE t1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    }
+  ]
+}

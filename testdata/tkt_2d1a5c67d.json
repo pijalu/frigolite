@@ -20,6 +20,14 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "3.1",
       "steps": [
         {
@@ -34,14 +42,44 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    INSERT INTO t4 VALUES('xyz');"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t4 WHERE a = 'xyz'"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4 WHERE a = 'xyz'",
+          "expect": "xyz"
         },
         {
           "type": "exec",

@@ -12,10 +12,30 @@
         {
           "type": "exec",
           "sql": "SELECT level, count(*) FROM x1_segdir GROUP BY level"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;",
+          "expect": "2 1"
         },
         {
           "type": "exec",
           "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;",
+          "expect": "2 1"
         },
         {
           "type": "exec",

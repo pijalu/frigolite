@@ -3,6 +3,36 @@
   "name": "fuzzer1",
   "tests": [
     {
+      "name": "fuzzer1-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f1 VALUES(1)",
+          "expect": "1 {table f1 may not be modified}"
+        }
+      ]
+    },
+    {
+      "name": "fuzzer1-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM f1",
+          "expect": "1 {table f1 may not be modified}"
+        }
+      ]
+    },
+    {
+      "name": "fuzzer1-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE f1 SET rowid=rowid+10000",
+          "expect": "1 {table f1 may not be modified}"
+        }
+      ]
+    },
+    {
       "name": "5.3.1",
       "steps": [
         {

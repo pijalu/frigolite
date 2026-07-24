@@ -3,11 +3,35 @@
   "name": "busy",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "busy-1.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "busy-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "busy-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE",
+          "expect": "0 1 2 3"
         },
         {
           "type": "exec",
@@ -24,8 +48,23 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "3.1",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE",
+          "expect": "1 {database is locked}"
+        },
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE"
@@ -33,10 +72,50 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA optimize",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;",
+          "expect": "6"
         },
         {
           "type": "exec",
           "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA optimize",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "6"
         },
         {
           "type": "exec",
@@ -49,10 +128,30 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA optimize",
+          "expect": "1 {database is locked}"
         },
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA optimize",
+          "expect": "0 {}"
         }
       ]
     }

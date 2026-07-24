@@ -3,8 +3,12 @@
   "name": "shellA",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "shellA-1.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'[31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(x);\n    INSERT INTO t2(x) VALUES\n      ('one'), ('two'), ('three'), ('four'), ('five'),\n      ('six'), ('seven'), ('eight'), ('nine'), ('ten'),\n      ('eleven'), ('twelve'), ('thirteen'), ('fourteen');"
