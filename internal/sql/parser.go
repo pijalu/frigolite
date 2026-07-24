@@ -553,6 +553,8 @@ func (p *Parser) parseSelectColumns() []SelectColumn {
 			p.next()
 		} else {
 			expr := p.parseExpr()
+			// Handle COLLATE after complete expression (e.g., expr COLLATE nocase)
+			expr = p.skipCollateExpr(expr)
 			col := SelectColumn{Expr: expr}
 			if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
 				p.next()
@@ -2571,6 +2573,8 @@ func (p *Parser) parseOrExpr() Expr {
 		right := p.parseAndExpr()
 		left = &BinaryOp{Left: left, Right: right, Operator: op}
 	}
+	// Handle COLLATE after complete expression (e.g., expr COLLATE nocase)
+	left = p.skipCollateExpr(left)
 	return left
 }
 
@@ -3456,10 +3460,12 @@ func (p *Parser) skipUntilFrameEnd() {
 
 // skipCollateExpr handles COLLATE and other post-expression suffixes.
 func (p *Parser) skipCollateExpr(left Expr) Expr {
-	if p.cur.Type == TokenKeyword && p.cur.Value == "COLLATE" {
+	if p.cur.Type == TokenKeyword && strings.ToUpper(p.cur.Value) == "COLLATE" {
 		p.next()
 		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-			p.next() // skip collation name
+			collation := p.cur.Value
+			p.next()
+			return &BinaryOp{Operator: "COLLATE", Left: left, Right: &StringLit{Value: collation}}
 		}
 	}
 	return left

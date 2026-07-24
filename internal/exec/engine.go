@@ -2865,20 +2865,63 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row map[string]interface{}) (inte
 	return evalBinaryOpValues(v.Operator, left, right)
 }
 
+// collatedValue wraps a value with a collation name for COLLATE support.
+type collatedValue struct {
+	value     interface{}
+	collation string
+}
+
+// extractValue extracts the raw value and collation from a potentially collated value.
+func extractValue(v interface{}) (interface{}, string) {
+	if cv, ok := v.(*collatedValue); ok {
+		return cv.value, cv.collation
+	}
+	return v, ""
+}
+
+// compareValuesWithCollate compares two values using the collation from either side.
+func compareValuesWithCollate(left, right interface{}) int {
+	lv, lc := extractValue(left)
+	rv, rc := extractValue(right)
+	// Use the first non-empty collation found
+	collation := lc
+	if collation == "" {
+		collation = rc
+	}
+	return util.CompareValuesCollate(lv, rv, collation)
+}
+
+// extractCollatedValues extracts raw values from collatedValue wrappers
+// for operators that don't need collation propagation.
+// Comparison operators keep the collatedValue for compareValuesWithCollate.
+// || keeps collatedValue for evalConcat to propagate collation.
+func extractCollatedValues(op string, left, right interface{}) (interface{}, interface{}) {
+	if op == "=" || op == "<>" || op == "!=" || op == "<" || op == ">" || op == "<=" || op == ">=" || op == "||" {
+		return left, right
+	}
+	l, _ := extractValue(left)
+	r, _ := extractValue(right)
+	return l, r
+}
+
 func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error) {
+	// Extract collation-wrapped values for non-comparison operators.
+	// Comparison operators use compareValuesWithCollate which handles this internally.
+	// For || (concatenation), we preserve collation through evalConcat.
+	left, right = extractCollatedValues(op, left, right)
 	switch op {
 	case "=":
-		return boolToInt(util.CompareValues(left, right) == 0), nil
+		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
 	case "<>", "!=":
-		return boolToInt(util.CompareValues(left, right) != 0), nil
+		return boolToInt(compareValuesWithCollate(left, right) != 0), nil
 	case "<":
-		return boolToInt(util.CompareValues(left, right) < 0), nil
+		return boolToInt(compareValuesWithCollate(left, right) < 0), nil
 	case ">":
-		return boolToInt(util.CompareValues(left, right) > 0), nil
+		return boolToInt(compareValuesWithCollate(left, right) > 0), nil
 	case "<=":
-		return boolToInt(util.CompareValues(left, right) <= 0), nil
+		return boolToInt(compareValuesWithCollate(left, right) <= 0), nil
 	case ">=":
-		return boolToInt(util.CompareValues(left, right) >= 0), nil
+		return boolToInt(compareValuesWithCollate(left, right) >= 0), nil
 	case "LIKE":
 		return boolToInt(likeValues(left, right)), nil
 	case "GLOB":
@@ -2900,6 +2943,14 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 	case "->", "->>":
 		// JSON extract operators — not supported, return NULL
 		return nil, nil
+	case "COLLATE":
+		// COLLATE operator — returns the left value but marks it with
+		// the collation name. Comparison operators check for this
+		// marker and apply the correct collation.
+		if rightStr, ok := right.(string); ok {
+			return &collatedValue{value: left, collation: rightStr}, nil
+		}
+		return left, nil
 	default:
 		return evalArithmeticOp(op, left, right)
 	}
@@ -2972,10 +3023,27 @@ func evalAdd(left, right interface{}) (interface{}, error) {
 }
 
 func evalConcat(left, right interface{}) (interface{}, error) {
-	if left == nil || right == nil {
+	// Extract collation info from any collatedValue operands
+	lv, lc := extractValue(left)
+	rv, rc := extractValue(right)
+	collation := lc
+	if collation == "" {
+		collation = rc
+	}
+
+	if lv == nil || rv == nil {
 		return nil, nil
 	}
-	return concatValues(left, right)
+	result, err := concatValues(lv, rv)
+	if err != nil {
+		return nil, err
+	}
+	// If either operand had a collation, wrap the result so comparison
+	// operators can apply the collation correctly.
+	if collation != "" {
+		return &collatedValue{value: result, collation: collation}, nil
+	}
+	return result, nil
 }
 
 func kleeneAnd(left, right interface{}) interface{} {
