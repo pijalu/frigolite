@@ -8,10 +8,11 @@ OUTPUT_DIR = "/Users/muaddib/dev/frigolite"
 C_API_RE = re.compile(r'sqlite3_(prepare|step|column|finalize|exec\b|limit|db_config|config|enable_shared|initialize|shutdown|malloc|free|realloc|memory_used|memory_highwater|randomness|sleep|strglob|stricmp|strnicmp|strlike|create_function|create_collation|create_module|overload|declare_vtab|table_column_metadata|db_filename|db_readonly|db_handle|next_stmt|commit_hook|rollback_hook|update_hook|preupdate|wal_hook|auto_extension|cancel_auto_extension|reset_auto_extension|set_authorizer|trace|progress_handler|file_control|test_control|keyword_|compileoption|db_cacheflush|snapshot|unlock_notify|log|vtab|db_config|txn_state|changes|total_changes|errcode|errstr|threadsafe|serialize|deserialize|hard_heap|soft_heap|release_memory|db_release_memory|db_status|status)')
 
 # Unsupported SQL features - tests containing these will be excluded
+# NOTE: Only features that the engine truly cannot handle should be here.
+# Features that work as no-ops (ATTACH, SAVEPOINT, etc.) are NOT filtered.
 UNSUPPORTED = re.compile(
-    r'\b(WINDOW\s|OVER\s|FILTER\s*\(|WAL\s|ATTACH\s|DETACH\s|VACUUM\s|'
-    r'SAVEPOINT\s|RELEASE\s|ROLLBACK\s+TO\s|REINDEX\s|ANALYZE\s|'
-    r'CREATE\s+VIRTUAL\s+TABLE\s|fts\d+\s*\(|rtree\s*\(|'
+    r'\b(WINDOW\s|OVER\s|'
+    r'fts\d+\s*\(|rtree\s*\(|'
     r'WITHOUT\s+ROWID\s|\$\d+\b|zeroblob\s*\(|zipfile|'
     r'writecrash|'
     r'PRAGMA\s+(wal_|journal_mode=WAL|page_count|cache_flush|locking_mode|'
@@ -85,6 +86,14 @@ def go_escape(s):
             result.append(ch)
     return ''.join(result)
 
+def tcl_variable_substitute(sql):
+    """Substitute known TCL variables with their SQL equivalents."""
+    # $::temp (tempdb available → TEMP)
+    sql = re.sub(r'\$::temp\b', 'TEMP', sql)
+    # ${::temp} (brace form)
+    sql = re.sub(r'\$\{::temp\}', 'TEMP', sql)
+    return sql
+
 def extract_sql_pairs(content):
     """Extract (sql, expected) pairs from TCL test content in file order.
     For do_execsql_test and do_catchsql_test, expected is the result after SQL.
@@ -105,6 +114,26 @@ def extract_sql_pairs(content):
         pairs.append((sql, expected, m.group(1), m.start()))
     
     for m in re.finditer(r'execsql\s*\{([^}]*)\}', content):
+        sql = m.group(1).strip()
+        if sql:
+            pairs.append((sql, None, "execsql", m.start()))
+      
+    # Match execsql [subst -nocommands { SQL }] patterns
+    for m in re.finditer(r'execsql\s*\[subst -nocommands\s*\{([^}]*)\}\]', content):
+        sql = m.group(1).strip()
+        if sql:
+            sql = tcl_variable_substitute(sql)
+            pairs.append((sql, None, "execsql", m.start()))
+    
+    # Match execsql [subst { SQL }] patterns (full substitution)
+    for m in re.finditer(r'execsql\s*\[subst\s+\{([^}]*)\}\]', content):
+        sql = m.group(1).strip()
+        if sql:
+            sql = tcl_variable_substitute(sql)
+            pairs.append((sql, None, "execsql", m.start()))
+    
+    # Match execsql { ... } inside ifcapable blocks
+    for m in re.finditer(r'ifcapable\s+\w+\s*\{[^}]*execsql\s*\{([^}]*)\}[^}]*\}', content):
         sql = m.group(1).strip()
         if sql:
             pairs.append((sql, None, "execsql", m.start()))

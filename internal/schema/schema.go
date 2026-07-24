@@ -160,78 +160,83 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 
 // FindTable returns the schema entry for a table.
 func (m *Manager) FindTable(name string) (*Entry, error) {
-	// Strip schema prefix if present (e.g. "aux.t1" -> "t1")
-	searchName := name
+	// If the name has a schema prefix (e.g. "aux.t4"), try the full name first
+	// to support tables in attached databases, then fall back to the short name.
+	searchNames := []string{name}
 	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
-		searchName = name[dotIdx+1:]
-	}
-	
-	// sqlite_schema is always on page 1 (bootstrap)
-	if strings.ToUpper(searchName) == "SQLITE_SCHEMA" || strings.ToUpper(searchName) == "SQLITE_MASTER" {
-		return &Entry{
-			Type:     TypeTable,
-			Name:     name,
-			TblName:  name,
-			RootPage: 1,
-			SQL:      fmt.Sprintf("CREATE TABLE %s (type TEXT,name TEXT,tbl_name TEXT,rootpage INTEGER,sql TEXT)", name),
-		}, nil
+		shortName := name[dotIdx+1:]
+		searchNames = []string{name, shortName}
 	}
 
-	// sqlite_temp_master is an alias for sqlite_master (temporary tables)
-	if strings.ToUpper(searchName) == "SQLITE_TEMP_MASTER" || strings.ToUpper(searchName) == "SQLITE_TEMP_SCHEMA" {
-		return &Entry{
-			Type:     TypeTable,
-			Name:     name,
-			TblName:  name,
-			RootPage: 1,
-			SQL:      fmt.Sprintf("CREATE TABLE %s (type TEXT,name TEXT,tbl_name TEXT,rootpage INTEGER,sql TEXT)", name),
-		}, nil
-	}
+	// Check each search name in order (full name first, then short name)
+	for _, searchName := range searchNames {
+		searchUpper := strings.ToUpper(searchName)
 
-	// Internal system tables used by SQLite (ANALYZE, AUTOINCREMENT)
-	// Return entries with schema root page so engine can handle them.
-	upper := strings.ToUpper(searchName)
-	if upper == "SQLITE_STAT1" || upper == "SQLITE_STAT4" {
-		return &Entry{
-			Type:     TypeTable,
-			Name:     name,
-			TblName:  name,
-			RootPage: 1,
-			SQL:      fmt.Sprintf("CREATE TABLE %s (tbl TEXT,idx TEXT,stat TEXT)", name),
-		}, nil
-	}
-	if upper == "SQLITE_SEQUENCE" {
-		return &Entry{
-			Type:     TypeTable,
-			Name:     name,
-			TblName:  name,
-			RootPage: 1,
-			SQL:      fmt.Sprintf("CREATE TABLE %s (name TEXT,seq INTEGER)", name),
-		}, nil
-	}
+		// sqlite_schema is always on page 1 (bootstrap)
+		if searchUpper == "SQLITE_SCHEMA" || searchUpper == "SQLITE_MASTER" {
+			return &Entry{
+				Type:     TypeTable,
+				Name:     name,
+				TblName:  name,
+				RootPage: 1,
+				SQL:      fmt.Sprintf("CREATE TABLE %s (type TEXT,name TEXT,tbl_name TEXT,rootpage INTEGER,sql TEXT)", name),
+			}, nil
+		}
 
-	// Pragma table-valued functions like pragma_table_info('t2') or pragma_integrity_check()
-	// These provide table-like access to PRAGMA results. Return stub entries so queries
-	// don't error, even though actual PRAGMA execution is not implemented here.
-	if strings.HasPrefix(upper, "PRAGMA_") {
-		return &Entry{
-			Type:     TypeTable,
-			Name:     name,
-			TblName:  name,
-			RootPage: 1,
-			SQL:      fmt.Sprintf("CREATE TABLE %s (name TEXT)", name),
-		}, nil
-	}
+		// sqlite_temp_master is an alias for sqlite_master
+		if searchUpper == "SQLITE_TEMP_MASTER" || searchUpper == "SQLITE_TEMP_SCHEMA" {
+			return &Entry{
+				Type:     TypeTable,
+				Name:     name,
+				TblName:  name,
+				RootPage: 1,
+				SQL:      fmt.Sprintf("CREATE TABLE %s (type TEXT,name TEXT,tbl_name TEXT,rootpage INTEGER,sql TEXT)", name),
+			}, nil
+		}
 
-	entries, err := m.GetEntries(TypeTable)
-	if err != nil {
-		return nil, err
-	}
-	for _, e := range entries {
-		if strings.ToUpper(e.Name) == upper || strings.ToUpper(e.TblName) == upper {
-			return e, nil
+		// Internal system tables
+		if searchUpper == "SQLITE_STAT1" || searchUpper == "SQLITE_STAT4" {
+			return &Entry{
+				Type:     TypeTable,
+				Name:     name,
+				TblName:  name,
+				RootPage: 1,
+				SQL:      fmt.Sprintf("CREATE TABLE %s (tbl TEXT,idx TEXT,stat TEXT)", name),
+			}, nil
+		}
+		if searchUpper == "SQLITE_SEQUENCE" {
+			return &Entry{
+				Type:     TypeTable,
+				Name:     name,
+				TblName:  name,
+				RootPage: 1,
+				SQL:      fmt.Sprintf("CREATE TABLE %s (name TEXT,seq INTEGER)", name),
+			}, nil
+		}
+
+		// Pragma table-valued functions
+		if strings.HasPrefix(searchUpper, "PRAGMA_") {
+			return &Entry{
+				Type:     TypeTable,
+				Name:     name,
+				TblName:  name,
+				RootPage: 1,
+				SQL:      fmt.Sprintf("CREATE TABLE %s (name TEXT)", name),
+			}, nil
+		}
+
+		// Search in B-tree
+		entries, err := m.GetEntries(TypeTable)
+		if err != nil {
+			continue
+		}
+		for _, e := range entries {
+			if strings.ToUpper(e.Name) == searchUpper || strings.ToUpper(e.TblName) == searchUpper {
+				return e, nil
+			}
 		}
 	}
+
 	return nil, fmt.Errorf("schema: table not found: %s", name)
 }
 
@@ -298,6 +303,13 @@ func (m *Manager) FindIndex(name string) (*Entry, error) {
 
 // RenameEntry renames a schema entry (used by ALTER TABLE RENAME TO).
 func (m *Manager) RenameEntry(oldName, newName string) error {
+	// Try the full name first, then the short name (schema prefix stripped)
+	searchNames := []string{oldName}
+	if dotIdx := strings.Index(oldName, "."); dotIdx >= 0 {
+		shortName := oldName[dotIdx+1:]
+		searchNames = []string{oldName, shortName}
+	}
+
 	entries, err := m.GetEntries("")
 	if err != nil {
 		return err
@@ -305,10 +317,15 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 
 	// Find the old entry
 	var oldEntry *Entry
-	oldUpper := strings.ToUpper(oldName)
-	for _, e := range entries {
-		if strings.ToUpper(e.Name) == oldUpper {
-			oldEntry = e
+	for _, searchName := range searchNames {
+		oldUpper := strings.ToUpper(searchName)
+		for _, e := range entries {
+			if strings.ToUpper(e.Name) == oldUpper {
+				oldEntry = e
+				break
+			}
+		}
+		if oldEntry != nil {
 			break
 		}
 	}
@@ -338,6 +355,12 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 
 // RemoveEntry removes a schema entry by name.
 func (m *Manager) RemoveEntry(name string) error {
+	// Strip schema prefix if present (e.g. "aux.t4" -> "t4")
+	searchName := name
+	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {
+		searchName = name[dotIdx+1:]
+	}
+	
 	tree := btree.NewBTree(m.pager, 1, true)
 	_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
@@ -345,7 +368,7 @@ func (m *Manager) RemoveEntry(name string) error {
 			return false
 		}
 		if len(rec.Values) >= 2 {
-			return strings.EqualFold(toString(rec.Values[1]), name)
+			return strings.EqualFold(toString(rec.Values[1]), searchName)
 		}
 		return false
 	})

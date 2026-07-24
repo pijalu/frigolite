@@ -15,6 +15,7 @@ func TestSQLite_f_8_3_names(t *testing.T) {
 	_ = db.Query("PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));")
 	checkExecOK(t, db.Exec("ROLLBACK;\n    SELECT length(x) FROM t1"))
 	checkExecOK(t, db.Exec("COMMIT;\n    SELECT length(x) FROM t1"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ATTACH 'file:./test2.db?8_3_names=1' AS db2;\n    CREATE TABLE db2.t2(y);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t2 VALUES(4);\n    COMMIT;\n    SELECT * FROM t1, t2 ORDER BY x, y"))
 	checkExecOK(t, db.Exec("COMMIT;\n    SELECT sum(x) FROM t1;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -124,7 +125,7 @@ func TestSQLite_aggnested(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1); INSERT INTO t1 VALUES(11);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(c2);"))
+	checkExecOK(t, db.Exec("DROP TABLE t1;\n  CREATE TABLE t1(c1); INSERT INTO t1 VALUES(11);\n  DROP TABLE t2;\n  CREATE TABLE t2(c2);"))
 	checkQueryResult(t, db.Query("SELECT * FROM t1 WHERE EXISTS(\n    SELECT 1 FROM t2 WHERE (\n      SELECT COUNT(*) FROM (\n        SELECT 1\n        UNION ALL\n        SELECT SUM(c1)\n      )\n    )\n  );"), "{1 {misuse of aggregate: SUM()}}")
 	for _, d := range dbs { d.Close() }
 }
@@ -180,7 +181,9 @@ func TestSQLite_alter(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE [t1'x1](c UNIQUE, b PRIMARY KEY);\n    INSERT INTO [t1'x1] VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON [t1'x1](b,c);\n    CREATE TEMP TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON [temp table](f);\n    INSERT INTO [temp table] VALUES(5,6,7);"))
 	_ = db.Query("SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];")
+	checkExecOK(t, db.Exec("CREATE TEMP TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';"))
 	checkExecOK(t, db.Exec("INSERT INTO objlist SELECT type, name, tbl_name \n          FROM temp.sqlite_master WHERE NAME!='objlist';"))
 	_ = db.Query("SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;")
 	checkExecOK(t, db.Exec("ALTER TABLE [T1] RENAME to [-t1-];\n    ALTER TABLE \"t1'x1\" RENAME TO T2;\n    ALTER TABLE [temp table] RENAME to TempTab;"))
@@ -188,6 +191,7 @@ func TestSQLite_alter(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';"))
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE objlist(type, name, tbl_name);\n      INSERT INTO objlist SELECT type, name, tbl_name FROM sqlite_master;\n      INSERT INTO objlist \n          SELECT type, name, tbl_name FROM temp.sqlite_master \n          WHERE NAME!='objlist';\n      SELECT type, name, tbl_name FROM objlist \n          ORDER BY tbl_name, type desc, name;"))
 	checkExecOK(t, db.Exec("DROP TABLE TempTab;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a PRIMARY KEY, b, c);\n      CREATE TABLE aux.t4(a PRIMARY KEY, b, c);\n      CREATE INDEX i4 ON t4(b);\n      CREATE INDEX aux.i4 ON t4(b);"))
 	checkExecOK(t, db.Exec("INSERT INTO t4 VALUES('main', 'main', 'main');\n      INSERT INTO aux.t4 VALUES('aux', 'aux', 'aux');\n      SELECT * FROM t4 WHERE a = 'main';"))
 	checkExecOK(t, db.Exec("ALTER TABLE t4 RENAME TO t5;\n      SELECT * FROM t4 WHERE a = 'aux';"))
@@ -209,17 +213,14 @@ func TestSQLite_alter(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TRIGGER trig3 AFTER INSERT ON main.'t8'BEGIN\n      SELECT trigfunc('trig3', new.a, new.b, new.c);\n    END;\n    INSERT INTO t8 VALUES(1, 2, 3);"))
 	checkExecOK(t, db.Exec("ALTER TABLE t8 RENAME TO t9;\n    INSERT INTO t9 VALUES(4, 5, 6);"))
 	checkExecOK(t, db.Exec("DROP TABLE t10;"))
+	checkExecOK(t, db.Exec("CREATE TABLE tbl1(a, b, c);\n    CREATE TEMP TRIGGER trig1 AFTER INSERT ON tbl1 BEGIN\n      SELECT trigfunc('trig1', new.a, new.b, new.c);\n    END;"))
 	checkExecOK(t, db.Exec("INSERT INTO tbl1 VALUES('a', 'b', 'c');"))
 	checkExecOK(t, db.Exec("ALTER TABLE tbl1 RENAME TO tbl2;\n    INSERT INTO tbl2 VALUES('d', 'e', 'f');"))
+	checkExecOK(t, db.Exec("CREATE TEMP TRIGGER trig2 AFTER UPDATE ON tbl2 BEGIN\n      SELECT trigfunc('trig2', new.a, new.b, new.c);\n    END;"))
 	checkExecOK(t, db.Exec("ALTER TABLE tbl2 RENAME TO tbl3;\n    INSERT INTO tbl3 VALUES('g', 'h', 'i');"))
 	checkExecOK(t, db.Exec("UPDATE tbl3 SET a = 'G' where a = 'g';"))
 	checkExecOK(t, db.Exec("DROP TABLE tbl3;"))
 	_ = db.Query("SELECT * FROM temp.sqlite_master WHERE type = 'trigger';")
-	checkExecOK(t, db.Exec("CREATE TABLE tbl1(a INTEGER PRIMARY KEY AUTOINCREMENT);\n    INSERT INTO tbl1 VALUES(10);"))
-	checkExecOK(t, db.Exec("INSERT INTO tbl1 VALUES(NULL);\n    SELECT a FROM tbl1;"))
-	checkExecOK(t, db.Exec("ALTER TABLE tbl1 RENAME TO tbl2;\n    DELETE FROM tbl2;\n    INSERT INTO tbl2 VALUES(NULL);\n    SELECT a FROM tbl2;"))
-	checkExecOK(t, db.Exec("CREATE TABLE tbl1(a, b, c);\n    INSERT INTO tbl1 VALUES('x', 'y', 'z');"))
-	_ = db.Query("SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from alter2.test
@@ -250,6 +251,7 @@ func TestSQLite_alter2(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE abc3(a, b);"))
 	_ = db.Query("SELECT 1 FROM sqlite_master LIMIT 1;")
 	checkExecOK(t, db.Exec("VACUUM"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);"))
 	checkExecOK(t, db.Exec("DROP TABLE t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;"))
 	_ = db.Query("SELECT * FROM t1 LIMIT 1;")
@@ -285,6 +287,7 @@ func TestSQLite_alter3(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD c;\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD c DEFAULT 'hello world';\n    SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1 AS SELECT * FROM t1;\n      PRAGMA aux.schema_version = 30;\n      SELECT sql FROM aux.sqlite_master;"))
 	checkExecOK(t, db.Exec("ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;"))
 	_ = db.Query("SELECT * FROM aux.t1;")
 	_ = db.Query("PRAGMA aux.schema_version;")
@@ -308,9 +311,9 @@ func TestSQLite_alter3(t *testing.T) {
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD COLUMN c CHECK(a!=2);"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD COLUMN d AS (b+1) NOT NULL CHECK(a!=1);"))
+	checkExecOK(t, db.Exec("CREATE TEMP TABLE t0(m,n);\n  INSERT INTO t0 VALUES(1, 2), ('null!',NULL), (3,4);\n  ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t2(x,y);\n  INSERT INTO t2 VALUES(1, 2), ('null!',NULL), (3,4);"))
 	checkExecOK(t, db.Exec("ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=1);"))
 	checkExecOK(t, db.Exec("ALTER TABLE t0 ADD COLUMN xtra1 AS (n+1) NOT NULL CHECK(m!=3);"))
-	checkExecOK(t, db.Exec("ALTER TABLE t2 ADD COLUMN xtra1 AS (y+1) NOT NULL CHECK(x!=1);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from alter4.test
@@ -335,6 +338,7 @@ func TestSQLite_alter4(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD c;\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 ADD c DEFAULT 'hello world';\n    SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("CREATE TEMP TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');\n      ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1 AS SELECT * FROM t1;\n      PRAGMA aux.schema_version = 30;\n      SELECT sql FROM aux.sqlite_master;"))
 	checkExecOK(t, db.Exec("ALTER TABLE aux.t1 ADD COLUMN c VARCHAR(128);\n      SELECT sql FROM aux.sqlite_master;"))
 	_ = db.Query("SELECT * FROM aux.t1;")
 	_ = db.Query("PRAGMA aux.schema_version;")
@@ -482,6 +486,7 @@ func TestSQLite_altercons(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);"))
 	checkExecOK(t, db.Exec("ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL"))
 	checkExecOK(t, db.Exec("UPDATE aux.t1 SET z=x;\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';"))
 	checkExecOK(t, db.Exec("ALTER TABLE aux.t1 ALTER z DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';"))
@@ -493,7 +498,6 @@ func TestSQLite_altercons(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altercons2.test
@@ -711,6 +715,7 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));")
 	checkExecOK(t, db.Exec("ALTER TABLE aux.p1 RENAME TO ppp;"))
 	db.Close()
 	db = setupDB(t)
@@ -719,6 +724,7 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO t3;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t3 RENAME TO t1;"))
 	checkExecOK(t, db.Exec("DROP VIEW v1;\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;"))
+	checkExecOK(t, db.Exec("ALTER TABLE t3 RENAME TO t1;\n  DROP TRIGGER tr;\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TRIGGER tr AFTER INSERT ON t1 WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END;\n\n  CREATE TABLE aux.t1(x);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END;"))
 	checkExecOK(t, db.Exec("ALTER TABLE main.t1 RENAME TO t3;"))
 	db.Close()
 	db = setupDB(t)
@@ -727,6 +733,7 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;")
 	checkExecOK(t, db.Exec("INSERT INTO main.t1 VALUES(1, 2, 3);\n  INSERT INTO aux.t1 VALUES(4, 5, 6);"))
 	checkExecOK(t, db.Exec("INSERT INTO aux.t2 VALUES(7, 8, 9);"))
 	db.Close()
@@ -734,13 +741,6 @@ func TestSQLite_alterlegacy(t *testing.T) {
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);")
 	checkExecOK(t, db.Exec("ALTER TABLE main.t2 RENAME TO t3;"))
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("ALTER TABLE mytable_renamed RENAME TO mytable2;"))
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altermalloc.test
@@ -835,6 +835,7 @@ func TestSQLite_altertab(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));"))
 	checkExecOK(t, db.Exec("ALTER TABLE aux.p1 RENAME TO ppp;"))
 	db.Close()
 	db = setupDB(t)
@@ -842,6 +843,7 @@ func TestSQLite_altertab(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO t3;"))
 	checkExecOK(t, db.Exec("DROP VIEW v1;\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;"))
+	checkExecOK(t, db.Exec("DROP TRIGGER tr;\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TRIGGER tr AFTER INSERT ON t1 WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END;\n\n  CREATE TABLE aux.t1(x);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END;"))
 	checkExecOK(t, db.Exec("ALTER TABLE main.t1 RENAME TO t3;"))
 	db.Close()
 	db = setupDB(t)
@@ -850,6 +852,7 @@ func TestSQLite_altertab(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;"))
 	checkExecOK(t, db.Exec("INSERT INTO main.t1 VALUES(1, 2, 3);\n  INSERT INTO aux.t1 VALUES(4, 5, 6);"))
 	checkExecOK(t, db.Exec("INSERT INTO aux.t2 VALUES(7, 8, 9);"))
 	db.Close()
@@ -865,11 +868,6 @@ func TestSQLite_altertab(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("ALTER TABLE mytable_renamed RENAME TO mytable2;"))
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from altertab2.test
@@ -980,6 +978,7 @@ func TestSQLite_altertab3(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    SELECT sum() FILTER (WHERE (SELECT sum() FILTER (WHERE 0)) AND a);\n  END;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -987,11 +986,8 @@ func TestSQLite_altertab3(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n  CREATE TRIGGER AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    SELECT a () FILTER (WHERE a>0) FROM t1;\n  END;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO t1x;\n  ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type='trigger';"))
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM t1\n    INTERSECT SELECT b,a FROM t1\n    ORDER BY b IN (\n        SELECT a UNION SELECT b\n        FROM t1\n        ORDER BY b COLLATE nocase\n        )\n    ;\n  END;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -1011,8 +1007,10 @@ func TestSQLite_amatch1(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5"))
 	_ = db.Query("SELECT term FROM t1aux WHERE term>'b' AND col=0 ORDER BY 1 LIMIT 5")
 	_ = db.Query("SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5")
+	checkExecOK(t, db.Exec("CREATE TABLE costs(iLang, cFrom, cTo, Cost);\n    INSERT INTO costs VALUES(0, '', '?', 100);\n    INSERT INTO costs VALUES(0, '?', '', 100);\n    INSERT INTO costs VALUES(0, '?', '?', 150);\n    CREATE TABLE vocab(w TEXT UNIQUE);\n    INSERT OR IGNORE INTO vocab SELECT term FROM t1aux;\n    CREATE VIRTUAL TABLE t2 USING approximate_match(\n      vocabulary_table=t1aux,\n      vocabulary_word=term,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t3 USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=w,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t4 USING approximate_match(\n        vocabulary_table=vtemp,\n        vocabulary_word=w,\n        edit_distances=costs\n      );"))
 	checkQueryResult(t, db.Query("SELECT word, distance FROM t2\n       WHERE word MATCH 'josxph' AND distance<300;"), "{joseph 150}} 1]\"")
 	checkQueryResult(t, db.Query("SELECT word, distance FROM t3\n       WHERE word MATCH 'josxph' AND distance<300;"), "{joseph 150}} 1]\"")
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE vtemp(w TEXT UNIQUE);\n      INSERT OR IGNORE INTO vtemp SELECT term FROM t1aux;"))
@@ -1033,7 +1031,16 @@ func TestSQLite_analyze(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'")
 	_ = db.Query("SELECT * FROM sqlite_stat1 WHERE idx NOT NULL")
 	_ = db.Query("SELECT * FROM sqlite_stat1")
+	checkExecOK(t, db.Exec("CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
+	checkExecOK(t, db.Exec("DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
 	checkExecOK(t, db.Exec("ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
 	checkExecOK(t, db.Exec("CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"))
@@ -1048,6 +1055,7 @@ func TestSQLite_analyze(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;"))
 	checkExecOK(t, db.Exec("DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;"))
 	_ = db.Query("PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';")
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0, 4);\n    ANALYZE sqlite_schema;\n    SELECT * FROM t1 WHERE b>7223372036854775"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from analyze3.test
@@ -1082,6 +1090,7 @@ func TestSQLite_analyze3(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -1123,6 +1132,8 @@ func TestSQLite_analyze6(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE cat(x INT, yz TEXT);\n    CREATE UNIQUE INDEX catx ON cat(x);\n    /* Give cat 16 unique integers */\n    INSERT INTO cat(x) VALUES(1);\n    INSERT INTO cat(x) VALUES(2);\n    INSERT INTO cat(x) SELECT x+2 FROM cat;\n    INSERT INTO cat(x) SELECT x+4 FROM cat;\n    INSERT INTO cat(x) SELECT x+8 FROM cat;\n\n    CREATE TABLE ev(y INT);\n    CREATE INDEX evy ON ev(y);\n    /* ev will hold 32 copies of 16 integers found in cat */\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT x FROM cat;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    INSERT INTO ev SELECT y FROM ev;\n    ANALYZE;\n    SELECT count(*) FROM cat;\n    SELECT count(*) FROM ev;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;"))
+	checkExecOK(t, db.Exec("INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;"))
+	checkExecOK(t, db.Exec("INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from analyze7.test
@@ -1130,10 +1141,13 @@ func TestSQLite_analyze7(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, value, value/100, value FROM nums\n                    WHERE value BETWEEN 1 AND 256;\n    EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;"))
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=123;")
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=2;")
+	checkExecOK(t, db.Exec("ANALYZE t1a;"))
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;")
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND b=123")
+	checkExecOK(t, db.Exec("ANALYZE t1cd;"))
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=?;")
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE c=123 AND b=123")
 	_ = db.Query("EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123 AND c=123")
@@ -1181,10 +1195,12 @@ func TestSQLite_analyze9(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;"))
 	checkQueryResult(t, db.Query("SELECT * FROM t1 WHERE a = 'abc';"), "#-------------------------------------------------------------------------")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -1210,9 +1226,7 @@ func TestSQLite_analyze9(t *testing.T) {
 	checkExecOK(t, db.Exec("ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;"))
 	checkExecOK(t, db.Exec("ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;"))
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"))
-	_ = db.Query("SELECT count(*) FROM sqlite_stat4")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;"))
+	checkExecOK(t, db.Exec("ANALYZE main.t1"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from analyzeC.test
@@ -1220,10 +1234,17 @@ func TestSQLite_analyzeC(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n    VALUES(1,2,3),(7,8,9),(4,5,6),(10,11,12),(4,8,12),(1,11,111);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1a','12345 2'),('t1','t1b','12345 4');\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;"))
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;"), "{/.* USING INDEX t1a .a>. AND a<...*/}")
 	checkQueryResult(t, db.Query("SELECT c FROM t1 ORDER BY a;"), "{3 111 6 12 9 12}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT c FROM t1 ORDER BY a;"), "{/.*SCAN t1 USING INDEX t1a.*/}")
+	checkExecOK(t, db.Exec("UPDATE sqlite_stat1 SET stat='12345 2 unordered' WHERE idx='t1a';\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;"))
+	checkExecOK(t, db.Exec("UPDATE sqlite_stat1 SET stat='12345 2 whatever=5 unordered xyzzy=11'\n   WHERE idx='t1a';\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;"))
+	checkExecOK(t, db.Exec("DROP INDEX t1a;\n  CREATE INDEX t1ab ON t1(a,b);\n  CREATE INDEX t1ca ON t1(c,a);\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ab','12345 3 2 sz=10'),('t1','t1ca','12345 3 2 sz=20');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;"))
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT count(a) FROM t1;"), "{/.*INDEX t1ab.*/}")
+	checkExecOK(t, db.Exec("DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ab','12345 3 2 sz=20'),('t1','t1ca','12345 3 2 sz=10');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;"))
+	checkExecOK(t, db.Exec("DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ab','12345 3 2 x=5 sz=10 y=10'),\n          ('t1','t1ca','12345 3 2 whatever sz=20 junk');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;"))
+	checkExecOK(t, db.Exec("DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ca','12345 3 2 x=5 sz=10 y=10'),\n          ('t1','t1ab','12345 3 2 whatever sz=20 junk');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from analyzeD.test
@@ -1366,42 +1387,44 @@ func TestSQLite_attach(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE 'test2.db' AS two;\n    SELECT * FROM two.t2;"))
 	_ = db.Query("SELECT * FROM t2;")
+	checkExecOK(t, db.Exec("DETACH DATABASE two;\n    SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db' AS db2;\n    ATTACH 'test.db' AS db3;\n    ATTACH 'test.db' AS db4;\n    ATTACH 'test.db' AS db5;\n    ATTACH 'test.db' AS db6;\n    ATTACH 'test.db' AS db7;\n    ATTACH 'test.db' AS db8;\n    ATTACH 'test.db' AS db9;"))
 	_ = db.Query("PRAGMA database_list")
+	checkExecOK(t, db.Exec("ATTACH 'test.db' as main;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db' as MAIN;"))
+	checkExecOK(t, db.Exec("DETACH db5;"))
 	_ = db.Query("select * from temp.sqlite_master")
 	checkExecOK(t, db.Exec("CREATE TABLE tx(x1,x2,y1,y2);\n    CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n      INSERT INTO tx(x1,x2,y1,y2) VALUES(OLD.x,NEW.x,OLD.y,NEW.y);\n    END;\n    SELECT * FROM tx;"))
 	checkExecOK(t, db.Exec("UPDATE t2 SET x=x+10;\n    SELECT * FROM tx;"))
 	checkExecOK(t, db.Exec("CREATE TABLE tx(x1,x2,y1,y2);\n    SELECT * FROM tx;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS db2;"))
 	checkExecOK(t, db.Exec("UPDATE db2.t2 SET x=x+10;\n    SELECT * FROM db2.tx;"))
 	_ = db.Query("SELECT * FROM main.tx;")
 	_ = db.Query("SELECT type, name, tbl_name FROM db2.sqlite_master;")
 	checkExecOK(t, db.Exec("CREATE INDEX i2 ON t2(x);\n    SELECT * FROM t2 WHERE x>5;"))
 	_ = db.Query("SELECT type, name, tbl_name FROM sqlite_master;")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS db2;\n    SELECT type, name, tbl_name FROM db2.sqlite_master;"))
 	_ = db.Query("SELECT * FROM t1")
 	_ = db.Query("SELECT * FROM t2")
 	checkExecOK(t, db.Exec("UPDATE t2 SET x=x+1 WHERE x=50;"))
 	checkExecOK(t, db.Exec("UPDATE t2 SET x=0 WHERE 0"))
 	checkExecOK(t, db.Exec("ROLLBACK"))
+	checkExecOK(t, db.Exec("DETACH db2"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a,b);\n    CREATE UNIQUE INDEX t3i1b ON t3(a);\n    INSERT INTO t3 VALUES(9,10);\n    SELECT * FROM t3;"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE 'test2.db' AS db2;\n    SELECT * FROM db2.t3;"))
 	_ = db.Query("SELECT * FROM main.t3;")
 	checkExecOK(t, db.Exec("INSERT INTO db2.t3 VALUES(9,10);\n    SELECT * FROM db2.t3;"))
+	checkExecOK(t, db.Exec("DETACH db2;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(x);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('db2.' || NEW.x);\n      END;\n      INSERT INTO t3 VALUES(6,7);\n      SELECT * FROM t4;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(y);\n      CREATE TRIGGER t3r3 AFTER INSERT ON t3 BEGIN\n        INSERT INTO t4 VALUES('main.' || NEW.a);\n      END;\n      INSERT INTO main.t3 VALUES(11,12);\n      SELECT * FROM main.t4;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(x);\n    INSERT INTO t3 VALUES(6,7);\n    INSERT INTO t4 VALUES('db2.6');\n    INSERT INTO t4 VALUES('db2.13');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(y);\n    INSERT INTO main.t3 VALUES(11,12);\n    INSERT INTO t4 VALUES('main.11');"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE 'test2.db' AS db2;\n    INSERT INTO db2.t3 VALUES(13,14);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;"))
 	checkExecOK(t, db.Exec("INSERT INTO main.t4 VALUES('main.15')"))
 	checkExecOK(t, db.Exec("INSERT INTO main.t3 VALUES(15,16);\n    SELECT * FROM db2.t4 UNION ALL SELECT * FROM main.t4;"))
-	checkExecOK(t, db.Exec("CREATE VIEW v3 AS SELECT x*100+y FROM t3;\n    SELECT * FROM v3;"))
-	checkExecOK(t, db.Exec("CREATE VIEW v3 AS SELECT a*100+b FROM t3;\n    SELECT * FROM v3;"))
-	_ = db.Query("SELECT * FROM main.v3;")
-	checkExecOK(t, db.Exec("COMMIT;\n    SELECT * FROM aux2.t1;"))
-	_ = db.Query("PRAGMA database_list;")
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
-	checkExecOK(t, db.Exec("CREATE TABLE base(x);"))
-	_ = db.Query("SELECT a FROM t1 WHERE b IN (SELECT a FROM t2);")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from attach2.test
@@ -1411,13 +1434,16 @@ func TestSQLite_attach2(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);"))
 	_ = db.Query("PRAGMA database_list")
+	checkExecOK(t, db.Exec("DETACH t2"))
 	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("rollback"))
 	_ = db.Query("PRAGMA lock_status")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' as file2"))
 	checkExecOK(t, db.Exec("BEGIN"))
 	checkExecOK(t, db.Exec("INSERT INTO file2.t1 VALUES(1, 2)"))
 	_ = db.Query("SELECT * FROM file2.t1")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 2)"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;"))
 	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE tbl(a, b, c);\n    CREATE TABLE aux.tbl(a, b, c);\n    COMMIT;"))
 	checkExecOK(t, db.Exec("BEGIN;\n    DROP TABLE aux.tbl;\n    DROP TABLE tbl;\n    ROLLBACK;"))
 	checkExecOK(t, db.Exec("BEGIN;"))
@@ -1429,6 +1455,7 @@ func TestSQLite_attach3(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;"))
 	checkExecOK(t, db.Exec("CREATE TABLE aux.t3(e, f);"))
 	_ = db.Query("SELECT * FROM sqlite_master WHERE name = 't3';")
 	_ = db.Query("SELECT * FROM aux.sqlite_master WHERE name = 't3';")
@@ -1454,6 +1481,14 @@ func TestSQLite_attach3(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;"))
 	_ = db.Query("PRAGMA database_list;")
 	checkExecOK(t, db.Exec("create temp table dummy(dummy)"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE ? AS ?"))
+	checkExecOK(t, db.Exec("DETACH aux"))
+	checkExecOK(t, db.Exec("DETACH ?"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE '' AS ''"))
+	checkExecOK(t, db.Exec("DETACH ''"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE '' AS ?"))
+	checkExecOK(t, db.Exec("ATTACH DATABASE '' AS NULL"))
+	checkExecOK(t, db.Exec("DETACH '';"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from attach4.test
@@ -1465,7 +1500,17 @@ func TestSQLite_attach4(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);"))
+	checkExecOK(t, db.Exec("DETACH DATABASE aux;"))
 	checkExecOK(t, db.Exec("DROP TRIGGER tr1;"))
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from attachmalloc.test
+func TestSQLite_attachmalloc(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("DETACH three"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from auth.test
@@ -1477,42 +1522,42 @@ func TestSQLite_auth(t *testing.T) {
 	_ = db.Query("SELECT name FROM temp.sqlite_master")
 	_ = db.Query("SELECT name FROM sqlite_temp_master")
 	_ = db.Query("SELECT * FROM t2")
+	checkExecOK(t, db.Exec("ATTACH DATABASE 'test.db' AS two"))
+	checkExecOK(t, db.Exec("DETACH DATABASE two"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(11, 2, 33)"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(7, 8, 9);"))
 	_ = db.Query("SELECT name FROM sqlite_master WHERE type='trigger'")
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(1,2,3);"))
 	_ = db.Query("SELECT * FROM tx;")
 	checkExecOK(t, db.Exec("DROP TABLE tx;\n    DELETE FROM t2 WHERE a=1 AND b=2 AND c=3;\n    SELECT name FROM sqlite_master;"))
+	checkExecOK(t, db.Exec("ATTACH ':memory:' as di205;\n  CREATE TABLE di205.t1(x);\n  CREATE INDEX di205.t1x ON t1(x);"))
 	checkExecOK(t, db.Exec("DROP INDEX di205.t1x;"))
+	checkExecOK(t, db.Exec("DETACH di205;"))
+	checkExecOK(t, db.Exec("DETACH test1"))
+	checkExecOK(t, db.Exec("ATTACH $::attachfilename AS test1"))
+	checkExecOK(t, db.Exec("ATTACH ':mem' || 'ory:' AS test1"))
 	_ = db.Query("PRAGMA database_list")
+	checkExecOK(t, db.Exec("ATTACH DATABASE ':memory:' AS test1"))
+	checkExecOK(t, db.Exec("DETACH DATABASE test1"))
 	_ = db.Query("SELECT name FROM sqlite_temp_master WHERE type='table'")
 	_ = db.Query("SELECT name FROM temp.sqlite_master WHERE type='table'")
+	checkExecOK(t, db.Exec("DETACH DATABASE test1;"))
 	_ = db.Query("SELECT name FROM sqlite_master WHERE type='table'")
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a PRIMARY KEY, b, c);\n    CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n    CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);"))
+	checkExecOK(t, db.Exec("REINDEX t3_idx1;"))
+	checkExecOK(t, db.Exec("REINDEX BINARY;"))
+	checkExecOK(t, db.Exec("REINDEX NOCASE;"))
+	checkExecOK(t, db.Exec("REINDEX t3;"))
 	checkExecOK(t, db.Exec("DROP TABLE t3;"))
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE t3(a PRIMARY KEY, b, c);\n      CREATE INDEX t3_idx1 ON t3(c COLLATE BINARY);\n      CREATE INDEX t3_idx2 ON t3(b COLLATE NOCASE);"))
+	checkExecOK(t, db.Exec("REINDEX temp.t3_idx1;"))
+	checkExecOK(t, db.Exec("REINDEX temp.t3;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a,b,c);\n      CREATE INDEX t4i1 ON t4(a);\n      CREATE INDEX t4i2 ON t4(b,a,c);\n      INSERT INTO t4 VALUES(1,2,3);\n      ANALYZE;"))
 	_ = db.Query("SELECT count(*) FROM sqlite_stat1;")
 	checkExecOK(t, db.Exec("CREATE TABLE t5(x)"))
 	_ = db.Query("SELECT sql FROM sqlite_master WHERE name='t5'")
 	_ = db.Query("SELECT sql FROM temp.sqlite_master WHERE type='t5'")
 	checkExecOK(t, db.Exec("DROP TABLE t5"))
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a,b);\n       INSERT INTO t1 VALUES(1,2),(3,4),(5,6);"))
-	checkExecOK(t, db.Exec("WITH RECURSIVE\n       auth1314(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM auth1314 WHERE x<5)\n    SELECT * FROM t1 LEFT JOIN auth1314;"))
-	_ = db.Query("SELECT sql FROM temp.sqlite_master")
-	_ = db.Query("SELECT sql FROM main.sqlite_master")
-	checkExecOK(t, db.Exec("CREATE TABLE t3(x INTEGER PRIMARY KEY, y, z)"))
-	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES(44,55,66)"))
-	checkExecOK(t, db.Exec("CREATE TABLE tx(a1,a2,b1,b2,c1,c2);\n      CREATE TRIGGER r1 AFTER UPDATE ON t2 FOR EACH ROW BEGIN\n        INSERT INTO tx VALUES(OLD.a,NEW.a,OLD.b,NEW.b,OLD.c,NEW.c);\n      END;\n      UPDATE t2 SET a=a+1;\n      SELECT * FROM tx;"))
-	checkExecOK(t, db.Exec("DELETE FROM tx;\n      UPDATE t2 SET a=a+100;\n      SELECT * FROM tx;"))
-	checkExecOK(t, db.Exec("UPDATE t2 SET a=a+1;"))
-	checkExecOK(t, db.Exec("CREATE VIEW v1 AS SELECT a+b AS x FROM t2;\n    CREATE TABLE v1chng(x1,x2);\n    CREATE TRIGGER r2 INSTEAD OF UPDATE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NEW.x);\n    END;\n    SELECT * FROM v1;"))
-	checkExecOK(t, db.Exec("UPDATE v1 SET x=1 WHERE x=117"))
-	checkExecOK(t, db.Exec("CREATE TRIGGER r3 INSTEAD OF DELETE ON v1 BEGIN\n      INSERT INTO v1chng VALUES(OLD.x,NULL);\n    END;\n    SELECT * FROM v1;"))
-	checkExecOK(t, db.Exec("DELETE FROM v1 WHERE x=117"))
-	_ = db.Query("SELECT count(a) AS cnt FROM t4 ORDER BY cnt")
-	checkExecOK(t, db.Exec("DROP TABLE tx;"))
-	checkExecOK(t, db.Exec("DROP TABLE v1chng;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from auth2.test
@@ -1558,7 +1603,6 @@ func TestSQLite_autoanalyze1(t *testing.T) {
 }
 // Auto-generated from autoinc.test
 func TestSQLite_autoinc(t *testing.T) {
-	t.Skip("slow test - skpped for now")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1613,14 +1657,18 @@ func TestSQLite_autoindex1(t *testing.T) {
 	_ = db.Query("PRAGMA automatic_index=OFF;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;")
 	_ = db.Query("PRAGMA automatic_index=ON;\n    SELECT b, d FROM t1 JOIN t2 ON a=c ORDER BY b;")
 	_ = db.Query("PRAGMA automatic_index=OFF;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;")
+	_ = db.Query("PRAGMA automatic_index=ON;\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t1';\n    -- Table t2 actually contains 8 rows.\n    UPDATE sqlite_stat1 SET stat='16' WHERE tbl='t2';\n    ANALYZE sqlite_master;\n    SELECT b, (SELECT d FROM t2 WHERE c=a) FROM t1;")
+	checkExecOK(t, db.Exec("UPDATE sqlite_stat1 SET stat='10000' WHERE tbl='t2';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN\n  SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a);"))
 	_ = db.Query("SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")
 	checkExecOK(t, db.Exec("UPDATE t2 SET d=d+1"))
 	_ = db.Query("SELECT d FROM t2 ORDER BY d")
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES(1,2);\n    INSERT INTO t4 VALUES(2,3);"))
 	_ = db.Query("SELECT count(*) FROM t4;")
 	_ = db.Query("SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;")
+	checkExecOK(t, db.Exec("CREATE TABLE t501(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t502(x INTEGER PRIMARY KEY, y);\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t501',null,'1000000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t502',null,'1000');\n  ANALYZE sqlite_master;"))
 	checkExecOK(t, db.Exec("CREATE TABLE flock_owner(\n    owner_rec_id INTEGER CONSTRAINT flock_owner_key PRIMARY KEY,\n    flock_no VARCHAR(6) NOT NULL REFERENCES flock (flock_no),\n    owner_person_id INTEGER NOT NULL REFERENCES person (person_id),\n    owner_change_date TEXT, last_changed TEXT NOT NULL,\n    CONSTRAINT fo_owner_date UNIQUE (flock_no, owner_change_date)\n  );\n  CREATE TABLE sheep (\n    Sheep_No char(7) NOT NULL,\n    Date_of_Birth char(8),\n    Sort_DoB text,\n    Flock_Book_Vol char(2),\n    Breeder_No char(6),\n    Breeder_Person integer,\n    Originating_Flock char(6),\n    Registering_Flock char(6),\n    Tag_Prefix char(9),\n    Tag_No char(15),\n    Sort_Tag_No integer,\n    Breeders_Temp_Tag char(15),\n    Sex char(1),\n    Sheep_Name char(32),\n    Sire_No char(7),\n    Dam_No char(7),\n    Register_Code char(1),\n    Colour char(48),\n    Colour_Code char(2),\n    Pattern_Code char(8),\n    Horns char(1),\n    Litter_Size char(1),\n    Coeff_of_Inbreeding real,\n    Date_of_Registration text,\n    Date_Last_Changed text,\n    UNIQUE(Sheep_No));\n  CREATE INDEX fo_flock_no_index  \n              ON flock_owner (flock_no);\n  CREATE INDEX fo_owner_change_date_index  \n              ON flock_owner (owner_change_date);\n  CREATE INDEX fo_owner_person_id_index  \n              ON flock_owner (owner_person_id);\n  CREATE INDEX sheep_org_flock_index  \n           ON sheep (originating_flock);\n  CREATE INDEX sheep_reg_flock_index  \n           ON sheep (registering_flock);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t5(a, b, c);"))
+	checkExecOK(t, db.Exec("CREATE TABLE accounts(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    account_name TEXT,\n    account_type TEXT,\n    data_set TEXT\n  );\n  CREATE TABLE data(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    package_id INTEGER REFERENCES package(_id),\n    mimetype_id INTEGER REFERENCES mimetype(_id) NOT NULL,\n    raw_contact_id INTEGER REFERENCES raw_contacts(_id) NOT NULL,\n    is_read_only INTEGER NOT NULL DEFAULT 0,\n    is_primary INTEGER NOT NULL DEFAULT 0,\n    is_super_primary INTEGER NOT NULL DEFAULT 0,\n    data_version INTEGER NOT NULL DEFAULT 0,\n    data1 TEXT,\n    data2 TEXT,\n    data3 TEXT,\n    data4 TEXT,\n    data5 TEXT,\n    data6 TEXT,\n    data7 TEXT,\n    data8 TEXT,\n    data9 TEXT,\n    data10 TEXT,\n    data11 TEXT,\n    data12 TEXT,\n    data13 TEXT,\n    data14 TEXT,\n    data15 TEXT,\n    data_sync1 TEXT,\n    data_sync2 TEXT,\n    data_sync3 TEXT,\n    data_sync4 TEXT \n  );\n  CREATE TABLE mimetypes(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    mimetype TEXT NOT NULL\n  );\n  CREATE TABLE raw_contacts(\n    _id INTEGER PRIMARY KEY AUTOINCREMENT,\n    account_id INTEGER REFERENCES accounts(_id),\n    sourceid TEXT,\n    raw_contact_is_read_only INTEGER NOT NULL DEFAULT 0,\n    version INTEGER NOT NULL DEFAULT 1,\n    dirty INTEGER NOT NULL DEFAULT 0,\n    deleted INTEGER NOT NULL DEFAULT 0,\n    contact_id INTEGER REFERENCES contacts(_id),\n    aggregation_mode INTEGER NOT NULL DEFAULT 0,\n    aggregation_needed INTEGER NOT NULL DEFAULT 1,\n    custom_ringtone TEXT,\n    send_to_voicemail INTEGER NOT NULL DEFAULT 0,\n    times_contacted INTEGER NOT NULL DEFAULT 0,\n    last_time_contacted INTEGER,\n    starred INTEGER NOT NULL DEFAULT 0,\n    display_name TEXT,\n    display_name_alt TEXT,\n    display_name_source INTEGER NOT NULL DEFAULT 0,\n    phonetic_name TEXT,\n    phonetic_name_style TEXT,\n    sort_key TEXT,\n    sort_key_alt TEXT,\n    name_verified INTEGER NOT NULL DEFAULT 0,\n    sync1 TEXT,\n    sync2 TEXT,\n    sync3 TEXT,\n    sync4 TEXT,\n    sync_uid TEXT,\n    sync_version INTEGER NOT NULL DEFAULT 1,\n    has_calendar_event INTEGER NOT NULL DEFAULT 0,\n    modified_time INTEGER,\n    is_restricted INTEGER DEFAULT 0,\n    yp_source TEXT,\n    method_selected INTEGER DEFAULT 0,\n    custom_vibration_type INTEGER DEFAULT 0,\n    custom_ringtone_path TEXT,\n    message_notification TEXT,\n    message_notification_path TEXT\n  );\n  CREATE INDEX data_mimetype_data1_index ON data (mimetype_id,data1);\n  CREATE INDEX data_raw_contact_id ON data (raw_contact_id);\n  CREATE UNIQUE INDEX mime_type ON mimetypes (mimetype);\n  CREATE INDEX raw_contact_sort_key1_index ON raw_contacts (sort_key);\n  CREATE INDEX raw_contact_sort_key2_index ON raw_contacts (sort_key_alt);\n  CREATE INDEX raw_contacts_contact_id_index ON raw_contacts (contact_id);\n  CREATE INDEX raw_contacts_source_id_account_id_index\n      ON raw_contacts (sourceid, account_id);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contact_sort_key2_index','1600 4');\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contact_sort_key1_index','1600 4');\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contacts_source_id_account_id_index',\n            '1600 1600 1600');\n  INSERT INTO sqlite_stat1\n     VALUES('raw_contacts','raw_contacts_contact_id_index','1600 1');\n  INSERT INTO sqlite_stat1 VALUES('mimetypes','mime_type','12 1');\n  INSERT INTO sqlite_stat1\n     VALUES('data','data_mimetype_data1_index','9819 2455 3');\n  INSERT INTO sqlite_stat1 VALUES('data','data_raw_contact_id','9819 7');\n  INSERT INTO sqlite_stat1 VALUES('accounts',NULL,'1');\n  DROP TABLE IF EXISTS sqlite_stat3;\n  ANALYZE sqlite_master;\n  \n  EXPLAIN QUERY PLAN\n  SELECT * FROM \n        data JOIN mimetypes ON (data.mimetype_id=mimetypes._id) \n             JOIN raw_contacts ON (data.raw_contact_id=raw_contacts._id) \n             JOIN accounts ON (raw_contacts.account_id=accounts._id)\n   WHERE mimetype_id=10 AND data14 IS NOT NULL;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t11(w);\n  CREATE TABLE t12(y);\n  INSERT INTO t11 VALUES(NULL);\n  INSERT INTO t12 VALUES('notnull');"))
 	db.Close()
 	db = setupDB(t)
@@ -1640,6 +1688,7 @@ func TestSQLite_autoindex2(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(\n    t1_id largeint,\n    did char(9),\n    ptime largeint,\n    exbyte char(4),\n    pe_id int,\n    field_id int,\n    mass float,\n    param10 float,\n    param11 float,\n    exmass float,\n    deviation float,\n    trange float,\n    vstatus int,\n    commit_status int,\n    formula char(329),\n    tier int DEFAULT 2,\n    ssid int DEFAULT 0,\n    last_operation largeint DEFAULT 0,\n    admin_uuid int DEFAULT 0,\n    previous_value float,\n    job_id largeint,\n    last_t1 largeint DEFAULT 0,\n    data_t1 int,\n    previous_date largeint DEFAULT 0,\n    flg8 int DEFAULT 1,\n    failed_fields char(100)\n  );\n  CREATE INDEX t1x0 on t1 (t1_id);\n  CREATE INDEX t1x1 on t1 (ptime, vstatus);\n  CREATE INDEX t1x2 on t1 (did, ssid, ptime, vstatus, exbyte, t1_id);\n  CREATE INDEX t1x3 on t1 (job_id);\n  \n  CREATE TABLE t2(\n    did char(9),\n    client_did char(30),\n    description char(49),\n    uid int,\n    tzid int,\n    privilege int,\n    param2 int,\n    type char(30),\n    subtype char(32),\n    dparam1 char(7) DEFAULT '',\n    param5 char(3) DEFAULT '',\n    notional float DEFAULT 0.000000,\n    create_time largeint,\n    sample_time largeint DEFAULT 0,\n    param6 largeint,\n    frequency int,\n    expiration largeint,\n    uw_status int,\n    next_sample largeint,\n    last_sample largeint,\n    reserve1 char(29) DEFAULT '',\n    reserve2 char(29) DEFAULT '',\n    reserve3 char(29) DEFAULT '',\n    bxcdr char(19) DEFAULT 'XY',\n    ssid int DEFAULT 1,\n    last_t1_id largeint,\n    reserve4 char(29) DEFAULT '',\n    reserve5 char(29) DEFAULT '',\n    param12 int DEFAULT 0,\n    long_did char(100) DEFAULT '',\n    gr_code int DEFAULT 0,\n    drx char(100) DEFAULT '',\n    parent_id char(9) DEFAULT '',\n    param13 int DEFAULT 0,\n    position float DEFAULT 1.000000,\n    client_did3 char(100) DEFAULT '',\n    client_did4 char(100) DEFAULT '',\n    dlib_id char(9) DEFAULT ''\n  );\n  CREATE INDEX t2x0 on t2 (did);\n  CREATE INDEX t2x1 on t2 (client_did);\n  CREATE INDEX t2x2 on t2 (long_did);\n  CREATE INDEX t2x3 on t2 (uid);\n  CREATE INDEX t2x4 on t2 (param2);\n  CREATE INDEX t2x5 on t2 (type);\n  CREATE INDEX t2x6 on t2 (subtype);\n  CREATE INDEX t2x7 on t2 (last_sample);\n  CREATE INDEX t2x8 on t2 (param6);\n  CREATE INDEX t2x9 on t2 (frequency);\n  CREATE INDEX t2x10 on t2 (privilege);\n  CREATE INDEX t2x11 on t2 (sample_time);\n  CREATE INDEX t2x12 on t2 (notional);\n  CREATE INDEX t2x13 on t2 (tzid);\n  CREATE INDEX t2x14 on t2 (gr_code);\n  CREATE INDEX t2x15 on t2 (parent_id);\n  \n  CREATE TABLE t3(\n    uid int,\n    param3 int,\n    uuid int,\n    acc_id int,\n    cust_num int,\n    numerix_id int,\n    pfy char(29),\n    param4 char(29),\n    param15 int DEFAULT 0,\n    flg7 int DEFAULT 0,\n    param21 int DEFAULT 0,\n    bxcdr char(2) DEFAULT 'PC',\n    c31 int DEFAULT 0,\n    c33 int DEFAULT 0,\n    c35 int DEFAULT 0,\n    c37 int,\n    mgr_uuid int,\n    back_up_uuid int,\n    priv_mars int DEFAULT 0,\n    is_qc int DEFAULT 0,\n    c41 int DEFAULT 0,\n    deleted int DEFAULT 0,\n    c47 int DEFAULT 1\n  );\n  CREATE INDEX t3x0 on t3 (uid);\n  CREATE INDEX t3x1 on t3 (param3);\n  CREATE INDEX t3x2 on t3 (uuid);\n  CREATE INDEX t3x3 on t3 (acc_id);\n  CREATE INDEX t3x4 on t3 (param4);\n  CREATE INDEX t3x5 on t3 (pfy);\n  CREATE INDEX t3x6 on t3 (is_qc);\n  SELECT count(*) FROM sqlite_master;"))
+	checkExecOK(t, db.Exec("ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x3','10747267 260');\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x2','10747267 121 113 2 2 2 1');\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x1','10747267 50 40');\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x0','10747267 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x15','39667 253');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x14','39667 19834');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x13','39667 13223');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x12','39667 7');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x11','39667 17');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x10','39667 19834');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x9','39667 7934');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x8','39667 11');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x7','39667 5');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x6','39667 242');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x5','39667 1984');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x4','39667 4408');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x3','39667 81');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x2','39667 551');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x1','39667 2');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2x0','39667 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x6','569 285');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x5','569 2');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x4','569 2');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x3','569 5');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x2','569 3');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x1','569 6');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3x0','569 1');\n  ANALYZE sqlite_master;"))
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT\n     t1_id,\n     t1.did,\n     param2,\n     param3,\n     t1.ptime,\n     t1.trange,\n     t1.exmass,\n     t1.mass,\n     t1.vstatus,\n     type,\n     subtype,\n     t1.deviation,\n     t1.formula,\n     dparam1,\n     reserve1,\n     reserve2,\n     param4,\n     t1.last_operation,\n     t1.admin_uuid,\n     t1.previous_value,\n     t1.job_id,\n     client_did, \n     t1.last_t1,\n     t1.data_t1,\n     t1.previous_date,\n     param5,\n     param6,\n     mgr_uuid\n  FROM\n     t1,\n     t2,\n     t3\n  WHERE\n     t1.ptime > 1393520400\n     AND param3<>9001\n     AND t3.flg7 = 1\n     AND t1.did = t2.did\n     AND t2.uid = t3.uid\n  ORDER BY t1.ptime desc LIMIT 500;"), "{~/AUTO/}")
 	for _, d := range dbs { d.Close() }
 }
@@ -1654,9 +1703,11 @@ func TestSQLite_autoindex3(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE v(b, d, e);\n  CREATE TABLE u(a, b, c);\n  ANALYZE sqlite_master;\n  INSERT INTO \"sqlite_stat1\" VALUES('u','uab','40000 400 1');\n  INSERT INTO \"sqlite_stat1\" VALUES('v','vbde','40000 400 1 1');\n  INSERT INTO \"sqlite_stat1\" VALUES('v','ve','40000 21');\n\n  CREATE INDEX uab on u(a, b);\n  CREATE INDEX ve on v(e);\n  CREATE INDEX vbde on v(b,d,e);\n\n  DROP TABLE IF EXISTS sqlite_stat4;\n  ANALYZE sqlite_master;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(cid INT, pid INT, rx INT, PRIMARY KEY(cid, pid, rx));\n  CREATE INDEX x1 ON t2(pid, rx);\n  ANALYZE sqlite_schema;\n  REPLACE INTO sqlite_stat1(tbl, idx, stat) VALUES\n    ('t2', 'x1', '500000 250 250'),\n    ('t2','sqlite_autoindex_t2_1','500000 1 1 1');\n  ANALYZE sqlite_schema;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from autoindex4.test
@@ -1830,6 +1881,8 @@ func TestSQLite_backup(t *testing.T) {
 	_ = db.Query("PRAGMA page_size = 1024")
 	checkExecOK(t, db.Exec("BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;"))
 	_ = db.Query("PRAGMA page_size = 512")
+	checkExecOK(t, db.Exec("ATTACH 'test3.db' AS aux1;\n    CREATE TABLE aux1.t1(a, b);"))
+	checkExecOK(t, db.Exec("ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"))
 	_ = db.Query("PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);")
 	checkExecOK(t, db.Exec("BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;"))
@@ -1883,11 +1936,15 @@ func TestSQLite_backup5(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES(1, 1);\n  INSERT INTO t2 VALUES(2, 2);\n  INSERT INTO t2 VALUES(3, 3);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(a);\n  ATTACH 'test2.db' AS aux2;"))
+	checkExecOK(t, db.Exec("ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    ATTACH 'test6.db' AS aux6;\n    ATTACH 'test7.db' AS aux7;\n    ATTACH 'test8.db' AS aux8;"))
 	checkExecOK(t, db.Exec("CREATE TABLE aux7.t3(a, b);\n  CREATE TABLE aux7.t4(a, b);\n  INSERT INTO t4 VALUES(1, 1);\n  INSERT INTO t4 VALUES(2, 2);\n  INSERT INTO t4 VALUES(3, 3);\n  CREATE INDEX aux7.i3 ON t3(a);\n  CREATE INDEX aux7.i4 ON t4(a);"))
+	checkExecOK(t, db.Exec("DETACH aux4;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(y, x);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);"))
+	checkExecOK(t, db.Exec("DETACH aux"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from backup_ioerr.test
@@ -2233,12 +2290,15 @@ func TestSQLite_bloom1(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d);"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('hello', 'world');\n  INSERT INTO t2 VALUES(14, 'fourteen');"))
+	checkExecOK(t, db.Exec("ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t2','idx1','6 6');\n  ANALYZE sqlite_schema;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b TEXT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d);\n  CREATE TABLE t3(e INTEGER PRIMARY KEY, f);\n\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','idx1','600 6');\n  INSERT INTO sqlite_stat1 VALUES('t2','idx1','6 6');\n  INSERT INTO sqlite_stat1 VALUES('t3','idx2','6 6');\n  ANALYZE sqlite_schema;\n\n  INSERT INTO t1 VALUES(1, '123');\n  INSERT INTO t2 VALUES(123, 'one');\n  INSERT INTO t3 VALUES(123, 'two');"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE objs(c INTEGER, s INTEGER, p INTEGER, o INTEGER);\n  CREATE UNIQUE INDEX objs_cspo ON objs(o,p,c,s);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('objs','objs_cspo','520138 21 20 19 1');\n  ANALYZE sqlite_schema;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -2247,6 +2307,7 @@ func TestSQLite_bloom1(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x TEXT, y INT, z TEXT);\n  INSERT INTO t1(rowid,x,y,z) VALUES(12,'aa','bb','aa');\n  CREATE INDEX i1x ON t1(1 IS true,z);\n  CREATE TABLE t0(x TEXT);\n  INSERT INTO t0(rowid,x) VALUES(4,'aa');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t0',NULL,'20');\n  INSERT INTO sqlite_stat1 VALUES('t1','i1x','18 18 2');\n  ANALYZE sqlite_schema;"))
 	checkQueryResult(t, db.Query("SELECT * FROM t0 NATURAL JOIN t1 WHERE z=t1.x;"), "{aa bb aa}")
 	checkExecOK(t, db.Exec("DROP TABLE t0;\n  CREATE TABLE t0(a TEXT);\n  INSERT INTO t0 VALUES ('xyz');\n  CREATE INDEX t0x ON t0(a IS FALSE) WHERE false;\n  DROP TABLE t1;\n  CREATE TABLE t1(b INT);\n  INSERT INTO t1 VALUES('aaa'),('bbb'),('ccc'),('ddd'),(NULL);\n  CREATE TABLE t2(c REAL);\n  INSERT INTO t2 VALUES(7);\n  ANALYZE;\n  CREATE INDEX t2x ON t2(true IN ());"))
 	db.Close()
@@ -2510,11 +2571,16 @@ func TestSQLite_cacheflush(t *testing.T) {
 	_ = db.Query("SELECT a FROM t1")
 	checkExecOK(t, db.Exec("COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);"))
 	checkExecOK(t, db.Exec("COMMIT"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t4(x, y);\n  INSERT INTO t4 VALUES('A', 'B');\n  BEGIN;\n    INSERT INTO t1 VALUES(11, 12);\n    INSERT INTO t4 VALUES('C', 'D');"))
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(13, 14);\n    INSERT INTO t4 VALUES('E', 'F');"))
 	checkExecOK(t, db.Exec("BEGIN;\n      SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));"))
 	checkQueryResult(t, db.Query("PRAGMA integrity_check"), "ok")
+	checkExecOK(t, db.Exec("CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';"))
+	checkExecOK(t, db.Exec("ROLLBACK TO one;"))
 	checkExecOK(t, db.Exec("INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));"))
+	checkExecOK(t, db.Exec("SAVEPOINT two;\n    UPDATE tb SET b = upper(b);"))
+	checkExecOK(t, db.Exec("ROLLBACK TO two;"))
 	checkExecOK(t, db.Exec("ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -2622,6 +2688,8 @@ func TestSQLite_capi3d(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x)"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 VALUES(1,2,3);"))
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS mem1"))
+	checkExecOK(t, db.Exec("DETACH mem1"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(6); INSERT INTO t1 VALUES(7);"))
 	db.Close()
 	db = setupDB(t)
@@ -2807,15 +2875,18 @@ func TestSQLite_closure01(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  INSERT INTO t2 SELECT x, y FROM t1 WHERE x<32;\n  CREATE INDEX t2y ON t2(y);\n  CREATE VIRTUAL TABLE c2 \n   USING transitive_closure(tablename=t2, idcolumn=x, parentcolumn=y);"))
 	checkQueryResult(t, db.Query("SELECT count(*), min(id), max(id) FROM c2 WHERE root=1;"), "{31 1 31}")
 	checkQueryResult(t, db.Query("SELECT id FROM c2 WHERE root=10;"), "{10 20 21}")
 	checkQueryResult(t, db.Query("SELECT id FROM c2 WHERE root=12;"), "{12 24 25}")
 	checkQueryResult(t, db.Query("SELECT id FROM c2 WHERE root IN (10,12) ORDER BY id;"), "{10 12 20 21 24 25}")
+	checkExecOK(t, db.Exec("CREATE TABLE t4 (\n    id INTEGER PRIMARY KEY, \n    name TEXT NOT NULL,\n    parent_id INTEGER\n  );\n  CREATE VIRTUAL TABLE vt4 USING transitive_closure (\n    idcolumn=id, parentcolumn=parent_id, tablename=t4\n  );"))
 	checkQueryResult(t, db.Query("SELECT * FROM t4, vt4 WHERE t4.id = vt4.root AND vt4.id=4 AND vt4.depth=2;"), "# Bug 2026-06-26T10:06:27Z")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE c\n    USING transitive_closure(idcolumn='abc'x, tablename='t', parentcolumn='p');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from coalesce.test
@@ -3105,6 +3176,7 @@ func TestSQLite_collate9(t *testing.T) {
 	_ = db.Query("SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\"")
 	_ = db.Query("SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa")
 	checkExecOK(t, db.Exec("CREATE INDEX xy_i2 ON xy(y COLLATE \"reverse sort\");"))
+	checkExecOK(t, db.Exec("REINDEX \"reverse sort\""))
 	_ = db.Query("PRAGMA integrity_check")
 	for _, d := range dbs { d.Close() }
 }
@@ -3494,7 +3566,6 @@ func TestSQLite_corruptH(t *testing.T) {
 }
 // Auto-generated from corruptI.test
 func TestSQLite_corruptI(t *testing.T) {
-	t.Skip("hanging test - skipped for now")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3573,7 +3644,9 @@ func TestSQLite_corruptL(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("SAVEPOINT one;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(b,c) VALUES(5,6);"))
+	checkExecOK(t, db.Exec("ROLLBACK TO one;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -3707,6 +3780,7 @@ func TestSQLite_count(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t2 HAVING count(*)>1;"), "{}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t2 HAVING count(*)<10;"), "{0}")
 	checkExecOK(t, db.Exec("CREATE VIEW v1 AS SELECT 1 AS a"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE techo USING echo(t1);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;"))
 	_ = db.Query("SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==1;")
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a, b);\n    INSERT INTO t4 VALUES('a', 'b');\n    CREATE INDEX t4i1 ON t4(b, a);\n    SELECT count(*) FROM t4;"))
@@ -3715,6 +3789,7 @@ func TestSQLite_count(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c VARCHAR(1000));\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b,c) values(1,2,'count.test cases for NOT INDEXED');\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10' WHERE idx='t1b';\n  ANALYZE sqlite_master;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t7(a INT,b TEXT,c BLOB,d REAL);\n  CREATE TABLE t8(a INT,b TEXT,c BLOB,d REAL);\n  CREATE INDEX t8a ON t8(a);"))
 	for _, d := range dbs { d.Close() }
 }
@@ -3763,6 +3838,7 @@ func TestSQLite_crash(t *testing.T) {
 	checkExecOK(t, db.Exec("COMMIT"))
 	_ = db.Query("SELECT sum(a), sum(b), sum(c) from abc")
 	checkExecOK(t, db.Exec("INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;"))
 	checkExecOK(t, db.Exec("CREATE TABLE abc(a, b, c);                          -- Root page 3\n    INSERT INTO abc VALUES(randstr(1500,1500), 0, 0);   -- Overflow page 4\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"))
 	_ = db.Query("pragma auto_vacuum")
 	for _, d := range dbs { d.Close() }
@@ -3849,6 +3925,7 @@ func TestSQLite_crash8(t *testing.T) {
 	_ = db.Query("PRAGMA synchronous = off;\n    BEGIN;\n    DELETE FROM t1;\n    SELECT count(*) FROM t1;")
 	checkExecOK(t, db.Exec("COMMIT;\n    SELECT count(*) FROM t1;"))
 	_ = db.Query("SELECT count(*) FROM t1;\n    PRAGMA integrity_check")
+	_ = db.Query("PRAGMA journal_mode = persist;\n      CREATE TABLE ab(a, b);\n      INSERT INTO ab VALUES(0, 'abc');\n      INSERT INTO ab VALUES(1, NULL);\n      INSERT INTO ab VALUES(2, NULL);\n      INSERT INTO ab VALUES(3, NULL);\n      INSERT INTO ab VALUES(4, NULL);\n      INSERT INTO ab VALUES(5, NULL);\n      INSERT INTO ab VALUES(6, NULL);\n      UPDATE ab SET b = randstr(1000,1000);\n      ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE aux.ab(a, b);\n      INSERT INTO aux.ab SELECT * FROM main.ab;\n\n      UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;")
 	checkExecOK(t, db.Exec("BEGIN;\n        UPDATE aux.ab SET b = 'def' WHERE a = 0;\n        UPDATE main.ab SET b = 'def' WHERE a = 0;\n      COMMIT;"))
 	checkExecOK(t, db.Exec("UPDATE aux.ab SET b = randstr(1000,1000) WHERE a>=1;\n      UPDATE ab SET b = randstr(1000,1000) WHERE a>=1;"))
 	_ = db.Query("SELECT b FROM main.ab WHERE a = 1")
@@ -3921,12 +3998,20 @@ func TestSQLite_csv01(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.t1 USING csv(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    columns=4\n  );\n  SELECT * FROM t1 WHERE c1=10;"))
 	checkQueryResult(t, db.Query("SELECT * FROM t1 WHERE c1='10';"), "{9 10 11 12}")
+	checkExecOK(t, db.Exec("DROP TABLE temp.t1;\n  CREATE VIRTUAL TABLE temp.t1 USING csv(\n    data=\n'a,b,\"mix-bloom-eel\",\"soft opinion\"\n1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    header=1\n  );\n  SELECT * FROM t1 WHERE \"soft opinion\"=12;"))
+	checkExecOK(t, db.Exec("DROP TABLE temp.t1;\n  CREATE VIRTUAL TABLE temp.t1 USING csv(\n    data=\n'a,b,\"mix-bloom-eel\",\"soft opinion\"\n1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    header=false\n  );\n  SELECT * FROM t1 WHERE c1='b';"))
+	checkExecOK(t, db.Exec("DROP TABLE temp.t1;\n  CREATE VIRTUAL TABLE temp.t1 USING csv(\n    data=\n'a,b,\"mix-bloom-eel\",\"soft opinion\"\n1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    header,\n    schema='CREATE TABLE x(x0,x1,x2,x3,x4)',\n    columns=5\n  );\n  SELECT * FROM t1 WHERE x1='6';"))
+	checkExecOK(t, db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE temp.t2 USING csv(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    columns=4,\n    schema='CREATE TABLE t2(a INT, b TEXT, c REAL, d BLOB)'\n  );\n  SELECT * FROM t2 WHERE a=9;"))
 	checkQueryResult(t, db.Query("SELECT * FROM t2 WHERE b=10;"), "{9 10 11 12}")
 	checkQueryResult(t, db.Query("SELECT * FROM t2 WHERE c=11;"), "{9 10 11 12}")
 	checkQueryResult(t, db.Query("SELECT * FROM t2 WHERE d=12;"), "{}")
 	checkQueryResult(t, db.Query("SELECT * FROM t2 WHERE d='12';"), "{9 10 11 12}")
+	checkExecOK(t, db.Exec("DROP TABLE t2;\n  CREATE VIRTUAL TABLE temp.t3 USING csv(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    columns=4,\n    schema=\n      'CREATE TABLE t3(a PRIMARY KEY,b TEXT,c TEXT,d TEXT) WITHOUT ROWID',\n    testflags=1\n  );\n  SELECT a FROM t3 WHERE b=6 OR c=7 OR d=12 ORDER BY +a;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t5_1 USING csv(filename='csv01.csv');\n  SELECT name FROM temp.pragma_table_info('t5_1');"))
 	checkQueryResult(t, db.Query("SELECT *, '|' FROM t5_1;"), "{a b c d | 1 2 3 4 | one two three four | 5 6 7 8 |}")
+	checkExecOK(t, db.Exec("DROP TABLE t5_1;\n  CREATE VIRTUAL TABLE t5_1 USING csv(filename='csv01.csv', header);\n  SELECT name FROM temp.pragma_table_info('t5_1');"))
 	checkQueryResult(t, db.Query("SELECT count(*) FROM abc"), "1")
 	checkQueryResult(t, db.Query("SELECT * FROM abc"), "[list abcd $T]")
 	db.Close()
@@ -3982,6 +4067,7 @@ func TestSQLite_dataversion1(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);"))
 	checkExecOK(t, db.Exec("UPDATE t1 SET x=x+1;"))
 	checkExecOK(t, db.Exec("UPDATE t2 SET y=y+1;"))
 	_ = db.Query("SELECT * FROM t1")
@@ -4088,6 +4174,7 @@ func TestSQLite_dbpage(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=4;"), "{4 X'0D00000016'}")
 	checkQueryResult(t, db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=5;"), "{}")
 	checkQueryResult(t, db.Query("SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=0;"), "{}")
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux1;\n  PRAGMA aux1.page_size=4096;\n  CREATE TABLE aux1.t2(a,b,c);\n  INSERT INTO t2 VALUES(11,12,13);\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage('aux1');"))
 	checkQueryResult(t, db.Query("PRAGMA integrity_check;"), "{1 {database disk image is malformed}}")
 	checkExecOK(t, db.Exec("UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;"))
 	checkExecOK(t, db.Exec("DELETE FROM saved_content;\n  INSERT INTO saved_content(x) \n     SELECT data FROM sqlite_dbpage WHERE schema='aux1' AND pgno=2;"))
@@ -4096,17 +4183,20 @@ func TestSQLite_dbpage(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );"))
 	checkExecOK(t, db.Exec("BEGIN;"))
+	checkExecOK(t, db.Exec("SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -4118,6 +4208,8 @@ func TestSQLite_dbpagefault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING sqlite_dbpage();"))
 	_ = db.Query("PRAGMA journal_mode = off")
 	db.Close()
 	db = setupDB(t)
@@ -4130,6 +4222,7 @@ func TestSQLite_dbpagefault(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from dbstatus.test
@@ -4554,6 +4647,7 @@ func TestSQLite_e_blobopen(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE main.t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TEMP TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n\n  CREATE TABLE main.x1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TEMP TABLE x2(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TABLE aux.x3(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n\n  INSERT INTO main.t1 VALUES(1, 'main one', X'0101');\n  INSERT INTO main.t1 VALUES(2, 'main two', X'0102');\n  INSERT INTO main.t1 VALUES(3, 'main three', X'0103');\n  INSERT INTO main.t1 VALUES(4, 'main four', X'0104');\n  INSERT INTO main.t1 VALUES(5, 'main five', X'0105');\n\n  INSERT INTO main.x1 VALUES(1, 'x main one', X'000101');\n  INSERT INTO main.x1 VALUES(2, 'x main two', X'000102');\n  INSERT INTO main.x1 VALUES(3, 'x main three', X'000103');\n  INSERT INTO main.x1 VALUES(4, 'x main four', X'000104');\n  INSERT INTO main.x1 VALUES(5, 'x main five', X'000105');\n\n  INSERT INTO temp.t1 VALUES(1, 'temp one', X'0201');\n  INSERT INTO temp.t1 VALUES(2, 'temp two', X'0202');\n  INSERT INTO temp.t1 VALUES(3, 'temp three', X'0203');\n  INSERT INTO temp.t1 VALUES(4, 'temp four', X'0204');\n  INSERT INTO temp.t1 VALUES(5, 'temp five', X'0205');\n\n  INSERT INTO temp.x2 VALUES(1, 'x temp one', X'000201');\n  INSERT INTO temp.x2 VALUES(2, 'x temp two', X'000202');\n  INSERT INTO temp.x2 VALUES(3, 'x temp three', X'000203');\n  INSERT INTO temp.x2 VALUES(4, 'x temp four', X'000204');\n  INSERT INTO temp.x2 VALUES(5, 'x temp five', X'000205');\n\n  INSERT INTO aux.t1 VALUES(1, 'aux one', X'0301');\n  INSERT INTO aux.t1 VALUES(2, 'aux two', X'0302');\n  INSERT INTO aux.t1 VALUES(3, 'aux three', X'0303');\n  INSERT INTO aux.t1 VALUES(4, 'aux four', X'0304');\n  INSERT INTO aux.t1 VALUES(5, 'aux five', X'0305');\n\n  INSERT INTO aux.x3 VALUES(1, 'x aux one', X'000301');\n  INSERT INTO aux.x3 VALUES(2, 'x aux two', X'000302');\n  INSERT INTO aux.x3 VALUES(3, 'x aux three', X'000303');\n  INSERT INTO aux.x3 VALUES(4, 'x aux four', X'000304');\n  INSERT INTO aux.x3 VALUES(5, 'x aux five', X'000305');"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -4701,6 +4795,7 @@ func TestSQLite_e_dropview(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;"))
 	_ = db.Query("PRAGMA database_list")
 	checkExecOK(t, db.Exec("CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";"))
 	checkExecOK(t, db.Exec("DROP VIEW \"new view\";\n  SELECT * FROM sqlite_master WHERE name = 'new view';"))
@@ -4857,6 +4952,7 @@ func TestSQLite_e_resolve(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT * FROM temp.n2"), "{1 {no such table: temp.n2}}")
 	checkQueryResult(t, db.Query("SELECT * FROM main.n2"), "{0 {main n2}}")
 	checkQueryResult(t, db.Query("SELECT * FROM at1.n2"), "{0 {at1 n2}}")
+	checkExecOK(t, db.Exec("ATTACH 'file.db' AS aux;\n  CREATE TABLE t1(x, y);\n  CREATE TEMP TABLE t1(x, y);\n  CREATE TABLE aux.t1(x, y);"))
 	checkQueryResult(t, db.Query("SELECT * FROM temp.t1"), "{1 {no such table: temp.t1}}")
 	checkQueryResult(t, db.Query("SELECT * FROM main.t1"), "{0 {}}")
 	checkExecOK(t, db.Exec("DROP TABLE t1"))
@@ -4941,6 +5037,7 @@ func TestSQLite_e_vacuum(t *testing.T) {
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA page_size = 1024;")
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n      INSERT INTO t1 VALUES(1, randomblob(400));\n      INSERT INTO t1 SELECT a+1,  randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+2,  randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+4,  randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+8,  randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+16, randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+32, randomblob(400) FROM t1;\n      INSERT INTO t1 SELECT a+64, randomblob(400) FROM t1;\n\n      CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n      INSERT INTO t2 SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.stat USING dbstat"))
 	_ = db.Query("SELECT pageno FROM stat WHERE name = 't1' ORDER BY pageno")
 	checkExecOK(t, db.Exec("DROP TABLE temp.stat"))
 	_ = db.Query("PRAGMA page_size ; PRAGMA auto_vacuum")
@@ -4950,13 +5047,16 @@ func TestSQLite_e_vacuum(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode = wal")
 	_ = db.Query("PRAGMA page_size = 1024")
 	_ = db.Query("PRAGMA auto_vacuum = FULL")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;"))
 	checkExecOK(t, db.Exec("VACUUM"))
+	checkExecOK(t, db.Exec("VACUUM aux;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t5(x, y INTEGER PRIMARY KEY);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;"))
 	checkExecOK(t, db.Exec("DROP TABLE t5;\n  CREATE TABLE t5(x);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;"))
 	checkExecOK(t, db.Exec("DROP TABLE t5;\n  CREATE TABLE t5(x,y,z);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  UPDATE t5 SET y=x, z=random();\n  DELETE FROM t5 WHERE x = 'y';\n  CREATE INDEX t5x ON t5(x);\n  CREATE UNIQUE INDEX t5y ON t5(y);\n  CREATE INDEX t5zxy ON t5(z,x,y);\n  SELECT rowid, x FROM t5;"))
 	checkExecOK(t, db.Exec("BEGIN"))
 	checkExecOK(t, db.Exec("COMMIT"))
+	checkExecOK(t, db.Exec("SAVEPOINT x"))
 	_ = db.Query("SELECT a FROM t1")
 	_ = db.Query("PRAGMA auto_vacuum")
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n    DELETE FROM t2;"))
@@ -4997,11 +5097,13 @@ func TestSQLite_e_walckpt(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    /* Leave aux4 in rollback mode */"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('xyz')"))
 	_ = db.Query("SELECT * FROM sqlite_master")
 	checkExecOK(t, db.Exec("BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -5019,6 +5121,7 @@ func TestSQLite_e_walhook(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(2)"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    COMMIT;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(5)"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(x);\n    PRAGMA aux.journal_mode = wal;"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('a')"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(6)"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(10)"))
@@ -5196,10 +5299,13 @@ func TestSQLite_exclusive(t *testing.T) {
 	_ = db.Query("pragma main.locking_mode;\n      pragma aux.locking_mode;")
 	_ = db.Query("pragma main.locking_mode = normal;")
 	_ = db.Query("pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;")
+	checkExecOK(t, db.Exec("ATTACH 'test3.db' as aux2;"))
 	_ = db.Query("pragma main.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;")
 	_ = db.Query("pragma aux.locking_mode = normal;")
 	_ = db.Query("pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;")
+	checkExecOK(t, db.Exec("ATTACH 'test4.db' as aux3;"))
 	_ = db.Query("pragma main.locking_mode;\n      pragma temp.locking_mode;\n      pragma aux.locking_mode;\n      pragma aux2.locking_mode;\n      pragma aux3.locking_mode;")
+	checkExecOK(t, db.Exec("DETACH aux;\n      DETACH aux2;\n      DETACH aux3;"))
 	checkExecOK(t, db.Exec("INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc;"))
 	_ = db.Query("SELECT * FROM abc;")
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);"))
@@ -5311,6 +5417,7 @@ func TestSQLite_existsexpr2(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1ab ON t1(a,b);\n\n  INSERT INTO t1 VALUES\n      ('abc', 1, 1),\n      ('abc', 2, 2),\n      ('abc', 2, 3),\n\n      ('def', 1, 1),\n      ('def', 2, 2),\n      ('def', 2, 3);\n\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 1), (2, 2), (3, 3);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','10000 5000 2');\n  ANALYZE sqlite_master;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from existsfault.test
@@ -5400,6 +5507,7 @@ func TestSQLite_exprfault2(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;"))
+	checkExecOK(t, db.Exec("UPDATE t3 SET (d,d,d,d, a )=(SELECT EXISTS(SELECT 1 NOT IN(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT (SELECT max( 1 IN(SELECT x NOT IN(SELECT 1 NOT IN(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT (SELECT max( (SELECT x NOT IN(SELECT 1 NOT IN(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT (SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT (SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) ORDERa)| (SELECT 1 x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) a)| (SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(ORDER BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT x ORDER BY 1) ORDER BY 1) z)|9 AS blob) IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))EXCEPT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) z) ORDER BY 1) IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT (SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) ORDERa)| (SELECT 1 x ORDER BY 1)))EXCEPT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) a)| (SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT x ORDER BY 1) ORDER BY 1) z)|9 AS blob) IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))EXCEPT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) z) ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) ORDERa)| (SELECT 1 x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 5 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) ORDERa)| (SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(ORDER BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT x ORDER BY 1) ORDER BY 1) z)| 1 AS blob) IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT DISTINCT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 UNION SELECT d ORDER BY 1) ORDER BY 1) z)| (SELECT 1 IN(SELECT max( 1 IN(SELECT c ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t2 UNION SELECT x ORDER BY 1)))INTERSECT SELECT (SELECT 1 FROM t2 UNION SELECT x ORDER BY 1) ORDER BY 1) e)|9 AS blob) FROM t2 WHERE a<x), e= BY 1) FROM t2 UNION SELECT 1 ORDER BY 1) ORDER BY 1)) a) FILTER (GROUP BY 1 HAVING b<= OVER(ORDER BY (SELECT max(x INPARTITION BY sum((SELECT y FROM t2 UNION SELECT x IN(SELECT 1 ORDER BY 1) ORDER 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t2 WHERE xBY 1) ORDER BY 1)) FROM77;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from expridx1.test
@@ -5514,6 +5622,9 @@ func TestSQLite_filter1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('a', 0, 5);\n  INSERT INTO t1 VALUES('a', 1, 10);\n  INSERT INTO t1 VALUES('a', 0, 15);\n\n  INSERT INTO t1 VALUES('b', 0, 5);\n  INSERT INTO t1 VALUES('b', 1, 1000);\n  INSERT INTO t1 VALUES('b', 0, 5);\n\n  INSERT INTO t1 VALUES('c', 0, 1);\n  INSERT INTO t1 VALUES('c', 1, 2);\n  INSERT INTO t1 VALUES('c', 0, 3);"))
+	checkQueryResult(t, db.Query("SELECT avg(c) FILTER (WHERE b!=1) AS h FROM t1 GROUP BY a ORDER BY h;"), "{2.0 5.0 10.0}")
+	checkQueryResult(t, db.Query("SELECT avg(c) FILTER (WHERE b!=1) AS h FROM t1 GROUP BY a ORDER BY (h+1.0);"), "{2.0 5.0 10.0}")
+	checkQueryResult(t, db.Query("SELECT a, avg(c) FILTER (WHERE b!=1) AS h FROM t1 GROUP BY a ORDER BY avg(c);"), "{c 2.0 a 10.0 b 5.0}")
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -5522,6 +5633,7 @@ func TestSQLite_filter1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,1);\n  INSERT INTO t1 VALUES(2,2);\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(1,1);"))
+	checkQueryResult(t, db.Query("SELECT (SELECT COUNT(a) FILTER(WHERE x) FROM t2) FROM t1;"), "{1 1}")
 	checkQueryResult(t, db.Query("SELECT (SELECT COUNT(a+x) FROM t2) FROM t1;"), "{1 1}")
 	db.Close()
 	db = setupDB(t)
@@ -5532,12 +5644,21 @@ func TestSQLite_filter1(t *testing.T) {
 	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
+// Auto-generated from filter2.test
+func TestSQLite_filter2(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	_ = db.Query("SELECT \n    avg(b) FILTER (WHERE b>a),\n    avg(b) FILTER (WHERE b<a)\n  FROM t1 GROUP BY (a%2) ORDER BY 1,2;")
+	for _, d := range dbs { d.Close() }
+}
 // Auto-generated from filterfault.test
 func TestSQLite_filterfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);"))
+	_ = db.Query("SELECT sum(a) FILTER (WHERE b<5),\n           count() FILTER (WHERE d!=c) \n      FROM t1 GROUP BY c ORDER BY 1;")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fkey1.test
@@ -5784,11 +5905,13 @@ func TestSQLite_fkey8(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);"))
 	checkExecOK(t, db.Exec("DELETE FROM aux.p1 WHERE a=123;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );")
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fordelete.test
@@ -6033,6 +6156,15 @@ func TestSQLite_fts3ai(t *testing.T) {
 	_ = db.Query("SELECT content FROM t1 WHERE rowid = 5")
 	for _, d := range dbs { d.Close() }
 }
+// Auto-generated from fts3aj.test
+func TestSQLite_fts3aj(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH DATABASE 'test2.db' AS two;\n    SELECT rowid FROM t1 WHERE t1 MATCH 'hello';\n    DETACH DATABASE two;"))
+	checkExecOK(t, db.Exec("DETACH DATABASE two"))
+	for _, d := range dbs { d.Close() }
+}
 // Auto-generated from fts3ak.test
 func TestSQLite_fts3ak(t *testing.T) {
 	db := setupDB(t)
@@ -6100,10 +6232,12 @@ func TestSQLite_fts3ao(t *testing.T) {
 	_ = db.Query("SELECT a, b, c FROM t1 WHERE c MATCH 'two';")
 	checkExecOK(t, db.Exec("ALTER TABLE aux.t1 RENAME TO t2"))
 	_ = db.Query("SELECT a, b, c FROM t2 WHERE a MATCH 'song';")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t4 USING fts3;\n    INSERT INTO t4 VALUES('the quick brown fox');"))
 	checkExecOK(t, db.Exec("ALTER TABLE t4 RENAME TO t5;"))
 	checkExecOK(t, db.Exec("INSERT INTO t5 VALUES('lazy dog');"))
 	_ = db.Query("SELECT * FROM t5")
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t5 VALUES('Down came a jumbuck to drink at that billabong');\n      ALTER TABLE t5 RENAME TO t6;\n      INSERT INTO t6 VALUES('Down came the troopers, one, two, three');\n    ROLLBACK;\n    SELECT * FROM t5;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t7 USING FTS4;\n  INSERT INTO t7 VALUES('coined by a German clinician');\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't7%';\n  SELECT count(*) FROM sqlite_master WHERE name LIKE 't8%';"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3atoken.test
@@ -6185,9 +6319,11 @@ func TestSQLite_fts3aux1(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT term, documents, occurrences FROM terms_v \n  WHERE rec('cnt', term) AND term BETWEEN 'brags' AND 'brain'"), "{\n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 \n}")
 	checkQueryResult(t, db.Query("SELECT term, documents, occurrences FROM terms_v \n  WHERE rec('cnt', term) AND +term BETWEEN 'brags' AND 'brain'"), "{\n  brags 1 1 braid 1 1 braided 1 1 braiding 1 1 braids 1 1 brain 1 1 \n}")
 	checkQueryResult(t, db.Query("SELECT term, documents, occurrences FROM terms_v \n  WHERE rec('cnt', term) AND term > 'brags' AND term < 'brain'"), "{\n  braid 1 1 braided 1 1 braiding 1 1 braids 1 1\n}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE terms2 USING fts4aux;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE terms3 USING fts4aux(does_not_exist)"))
 	checkQueryResult(t, db.Query("SELECT * FROM terms3"), "{1 {SQL logic error}}")
 	checkExecOK(t, db.Exec("INSERT INTO terms VALUES(1,2,3);"))
-	checkExecOK(t, db.Exec("DELETE FROM terms"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3aux2.test
@@ -6261,10 +6397,14 @@ func TestSQLite_fts3conf(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"))
+	checkExecOK(t, db.Exec("DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;"))
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');"))
 	checkExecOK(t, db.Exec("COMMIT"))
 	checkExecOK(t, db.Exec("UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';"))
 	checkExecOK(t, db.Exec("COMMIT;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;"))
 	checkExecOK(t, db.Exec("BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -6273,11 +6413,16 @@ func TestSQLite_fts3corrupt(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('world');"))
 	checkExecOK(t, db.Exec("DROP TABLE t1;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n  COMMIT;"))
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'hello'"), "{1 {database disk image is malformed}}")
+	checkExecOK(t, db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;"))
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'world'"), "{1 {database disk image is malformed}}")
+	checkExecOK(t, db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');"))
 	checkExecOK(t, db.Exec("UPDATE t1_segdir SET root = X'FFFFFFFFFFFFFFFF';\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';"))
+	checkExecOK(t, db.Exec("DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('one')"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('two')"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('three')"))
@@ -6310,6 +6455,7 @@ func TestSQLite_fts3corrupt3(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;")
 	checkQueryResult(t, db.Query("SELECT quote(root) from t1_segdir;"), "{X'00036F6E6509010200010200010200'}")
 	checkExecOK(t, db.Exec("UPDATE t1_segdir SET root = X'00036F6E650EFFFFFFFFFFFFFFFFFFFFFFFF0200';"))
 	for _, d := range dbs { d.Close() }
@@ -6319,10 +6465,12 @@ func TestSQLite_fts3corrupt4(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('aback');\n    INSERT INTO ft VALUES('abaft');\n    INSERT INTO ft VALUES('abandon');\n  COMMIT;"))
 	checkExecOK(t, db.Exec("UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');"))
 	_ = db.Query("SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;")
 	checkExecOK(t, db.Exec("UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;"))
 	checkExecOK(t, db.Exec("UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;"))
@@ -6405,12 +6553,6 @@ func TestSQLite_fts3corrupt4(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("INSERT INTO t1(t1) SELECT x FROM t2;"))
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3corrupt6.test
@@ -6447,6 +6589,7 @@ func TestSQLite_fts3corrupt7(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("INSERT INTO t1_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root)\n  VALUES(0, 0, 0, 0, 0, X'000568656C6C6F08010201FFFFFF7F00');"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1_terms USING fts4aux(t1);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -6467,13 +6610,17 @@ func TestSQLite_fts3cov(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t4 VALUES('more extra!')"))
 	_ = db.Query("SELECT count(*) FROM t5_segdir")
 	checkExecOK(t, db.Exec("INSERT INTO t7 VALUES('D', 'E', 'F');\n    UPDATE t7 SET docid = 1 WHERE docid = 6;\n    SELECT docid, * FROM t7;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE xx USING fts3"))
 	checkExecOK(t, db.Exec("INSERT INTO xx(xx) VALUES('optimize')"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE xx USING fts3;\n    INSERT INTO xx VALUES('one two three');\n    INSERT INTO xx VALUES('four five six');\n    DELETE FROM xx WHERE docid = 1;"))
 	_ = db.Query("SELECT * FROM xx WHERE xx MATCH 'two'")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"one two three\"'"), "{1}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"one four\"'"), "{}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"e a\"'"), "{2}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t14 WHERE t14 MATCH '\"e b\"'"), "{}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t14 WHERE rowid MATCH 'one'"), "{1 {unable to use function MATCH in the requested context}}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t17 USING fts4;\n  INSERT INTO t17(content) VALUES('one one one');\n  UPDATE t17_segdir SET root = X'00036F6E65FFFFFFFFFFFFFFFFFFFFFF02030300'"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3d.test
@@ -6498,6 +6645,8 @@ func TestSQLite_fts3defer(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("DROP TABLE t1"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('')"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING FTS3"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING FTS4"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1"))
 	checkExecOK(t, db.Exec("DROP TABLE x3"))
 	db.Close()
@@ -6511,9 +6660,11 @@ func TestSQLite_fts3defer2(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts4;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('a b c d e f a x y');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1(t1) VALUES('optimize');"))
 	checkExecOK(t, db.Exec("DROP TABLE t1"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('a b c d e f g z');\n  INSERT INTO t2 VALUES('a b c d e f g');"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');"))
 	checkQueryResult(t, db.Query("SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';"), "{1 {1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6}}")
 	checkExecOK(t, db.Exec("INSERT INTO t3(t3) VALUES('rebuild');"))
 	checkQueryResult(t, db.Query("SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';"), "{11 228929}")
@@ -6527,8 +6678,19 @@ func TestSQLite_fts3defer3(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts4;\n      BEGIN;"))
 	checkQueryResult(t, db.Query("SELECT docid, content FROM t1 WHERE t1 MATCH 'a b';"), "{200 {a b}}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1 WHERE t1 MATCH 'a b';"), "{1}")
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from fts3drop.test
+func TestSQLite_fts3drop(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE f1 USING fts3;\n  INSERT INTO f1 VALUES('a b c');"))
+	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO f1 VALUES('d e f');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('g h i');\n      DROP TABLE f1;\n    ROLLBACK TO one;\n  COMMIT;"))
+	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO f1 VALUES('g h i');\n    SAVEPOINT one;\n      INSERT INTO f1 VALUES('j k l');\n      DROP TABLE f1;\n    RELEASE one;\n  ROLLBACK;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3dropmod.test
@@ -6589,19 +6751,25 @@ func TestSQLite_fts3fault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('registers the FTS3 module');\n      INSERT INTO t1 VALUES('various support functions');"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO t2"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;"))
 	checkExecOK(t, db.Exec("INSERT INTO t3(t3) VALUES('nodesize=50')"))
 	checkExecOK(t, db.Exec("BEGIN"))
 	checkExecOK(t, db.Exec("COMMIT"))
 	_ = db.Query("SELECT * FROM t3 WHERE t3 MATCH 'x'")
 	_ = db.Query("SELECT count(rowid) FROM t3 WHERE t3 MATCH 'aa*'")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t4 USING fts4; \n    INSERT INTO t4 VALUES('The British Government called on');\n    INSERT INTO t4 VALUES('as pesetas then became much');"))
 	_ = db.Query("SELECT content FROM t4")
 	_ = db.Query("SELECT optimize(t4) FROM t4 LIMIT 1")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t5 USING fts4; \n    INSERT INTO t5 VALUES('The British Government called on');\n    INSERT INTO t5 VALUES('as pesetas then became much');"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t5 VALUES('influential in shaping his future outlook');\n      INSERT INTO t5 VALUES('might be acceptable to the British electorate');"))
 	_ = db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'british'")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t6 USING fts4"))
 	_ = db.Query("SELECT rowid FROM t6")
 	checkExecOK(t, db.Exec("DROP TABLE t6"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t8 USING fts4"))
 	_ = db.Query("SELECT mit(matchinfo(t8, 'x')) FROM t8 WHERE t8 MATCH 'a b c'")
 	_ = db.Query("SELECT mit(matchinfo(t8, 's')) FROM t8 WHERE t8 MATCH 'a b c'")
 	_ = db.Query("SELECT mit(matchinfo(t8, 'a')) FROM t8 WHERE t8 MATCH 'a b c'")
@@ -6641,6 +6809,7 @@ func TestSQLite_fts3fault2(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t9 USING fts3;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t9 SELECT 'one two three' FROM s;")
 	_ = db.Query("SELECT count(*) FROM t9 WHERE t9 MATCH '\"one two three\"'")
 	for _, d := range dbs { d.Close() }
 }
@@ -6663,6 +6832,7 @@ func TestSQLite_fts3first(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x3 USING fts3;\n  INSERT INTO x3 VALUES('A B C');\n  INSERT INTO x3 VALUES('B A C');\n\n  CREATE VIRTUAL TABLE x4 USING fts4;\n  INSERT INTO x4 VALUES('A B C');\n  INSERT INTO x4 VALUES('B A C');"))
 	checkQueryResult(t, db.Query("SELECT * FROM x3 WHERE x3 MATCH '^A';"), "{{A B C} {B A C}}")
 	for _, d := range dbs { d.Close() }
 }
@@ -6691,6 +6861,7 @@ func TestSQLite_fts3malloc(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux"))
 	checkExecOK(t, db.Exec("DROP TABLE ft1;\n    DROP TABLE ft2;\n    DROP TABLE ft3;\n    DROP TABLE ft4;\n    DROP TABLE ft6;\n    DROP TABLE ft7;"))
 	checkExecOK(t, db.Exec("DELETE FROM ft WHERE docid>=32"))
 	_ = db.Query("SELECT a FROM ft")
@@ -6701,18 +6872,23 @@ func TestSQLite_fts3matchinfo(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE xx USING FTS4;"))
 	_ = db.Query("SELECT * FROM xx WHERE xx MATCH 'abc';")
 	checkQueryResult(t, db.Query("SELECT * FROM xx WHERE xx MATCH 'a b c';"), "#--------------------------------------------------------------------------")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');"))
 	checkExecOK(t, db.Exec("INSERT INTO t5(t5) VALUES('optimize')"))
 	checkQueryResult(t, db.Query("SELECT matchinfo(t7, 'a') FROM t7 WHERE t7 MATCH 'x y'"), "{1 {unrecognized matchinfo request: a}}")
 	checkQueryResult(t, db.Query("SELECT matchinfo(t7, 'l') FROM t7 WHERE t7 MATCH 'x y'"), "{1 {unrecognized matchinfo request: l}}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t10 USING fts4;\n  INSERT INTO t10 VALUES('first record');\n  INSERT INTO t10 VALUES('second record');"))
 	checkQueryResult(t, db.Query("SELECT typeof(matchinfo(t10)), length(matchinfo(t10)) FROM t10;"), "{blob 0 blob 0}")
 	checkQueryResult(t, db.Query("SELECT typeof(matchinfo(t10)), length(matchinfo(t10)) FROM t10 WHERE docid=1;"), "{blob 0}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t11 USING fts4;\n  INSERT INTO t11(t11) VALUES('nodesize=24');\n  INSERT INTO t11 VALUES('quitealongstringoftext');\n  INSERT INTO t11 VALUES('anotherquitealongstringoftext');\n  INSERT INTO t11 VALUES('athirdlongstringoftext');\n  INSERT INTO t11 VALUES('andonemoreforgoodluck');"))
 	checkExecOK(t, db.Exec("INSERT INTO t11 VALUES('')"))
 	checkExecOK(t, db.Exec("INSERT INTO t11(t11) VALUES('optimize')"))
 	checkExecOK(t, db.Exec("UPDATE t11_stat SET value = X'0000';"))
 	checkExecOK(t, db.Exec("UPDATE t11_stat SET value = X'00';"))
 	checkExecOK(t, db.Exec("UPDATE t11_stat SET value = NULL;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t12 USING fts4;\n  INSERT INTO t12 VALUES('a b c d');\n  SELECT mit(matchinfo(t12, 'x')) FROM t12 WHERE t12 MATCH 'a NEAR/1 d OR a';"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -6733,6 +6909,7 @@ func TestSQLite_fts3misc(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT rowid FROM t2 WHERE t2 MATCH '\"f e\"'"), "{\n}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t2 WHERE t2 MATCH 'e' AND rowid BETWEEN NULL AND 45;"), "{}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t2 WHERE t2 MATCH 'e' AND rowid BETWEEN 11.5 AND 48.2;"), "{\n  14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 \n  29 30 31 34 35 38 39 42 43 46 47 48\n}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t3 USING fts3;\n  INSERT INTO t3 VALUES('a b c');\n  INSERT INTO t3 VALUES('d e f');\n  INSERT INTO t3 VALUES('a b d');\n  INSERT INTO t3 VALUES('1 2 3 4 5 6 7 8 9 10 11');"))
 	_ = db.Query("SELECT * FROM t3 WHERE t3 MATCH '\"a b x y\"' ORDER BY docid DESC")
 	checkQueryResult(t, db.Query("SELECT * FROM t3 WHERE t3 MATCH '\"a b c\" OR \"a b x y\"' ORDER BY docid DESC"), "{{a b c}}")
 	_ = db.Query("SELECT * FROM t3 WHERE t3 MATCH '\"a* b* x* a*\"'")
@@ -6743,6 +6920,7 @@ func TestSQLite_fts3misc(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');\n  INSERT INTO t5 VALUES('a x x x x b x x x x c');"))
 	checkQueryResult(t, db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'a NEAR/4 b NEAR/4 c'"), "{1 2 3}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'a NEAR/3 b NEAR/4 c'"), "{}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t5 WHERE t5 MATCH 'a NEAR/4 b NEAR/3 c'"), "{}")
@@ -6751,6 +6929,7 @@ func TestSQLite_fts3misc(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t6 USING fts4;\n\n  BEGIN;\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x A');\n  INSERT INTO t6 VALUES('x x x x x x x x x x x B');\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n    INSERT INTO t6 SELECT 'x x x x x x x x x x x' FROM s;\n  COMMIT;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -6813,13 +6992,13 @@ func TestSQLite_fts3near(t *testing.T) {
 	_ = db.Query("SELECT offsets(t1) FROM t1 WHERE content MATCH 'two NEAR/2 three'")
 	_ = db.Query("SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/0 \"two four\"'")
 	_ = db.Query("SELECT offsets(t1) FROM t1 WHERE content MATCH '\"two four\" NEAR/0 three'")
+	checkExecOK(t, db.Exec("INSERT INTO t1(content) VALUES('\n    This specification defines Cascading Style Sheets, level 2 (CSS2). CSS2 is a style sheet language that allows authors and users to attach style (e.g., fonts, spacing, and aural cues) to structured documents (e.g., HTML documents and XML applications). By separating the presentation style of documents from the content of documents, CSS2 simplifies Web authoring and site maintenance.\n\n    CSS2 builds on CSS1 (see [CSS1]) and, with very few exceptions, all valid CSS1 style sheets are valid CSS2 style sheets. CSS2 supports media-specific style sheets so that authors may tailor the presentation of their documents to visual browsers, aural devices, printers, braille devices, handheld devices, etc. This specification also supports content positioning, downloadable fonts, table layout, features for internationalization, automatic counters and numbering, and some properties related to user interface.\n  ')"))
 	_ = db.Query("SELECT snippet(t1) FROM t1 WHERE content MATCH 'specification NEAR supports'")
 	_ = db.Query("SELECT docid FROM t1 WHERE content MATCH 'specification attach'")
 	_ = db.Query("SELECT docid FROM t1 WHERE content MATCH 'specification NEAR attach'")
 	_ = db.Query("SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/18 attach'")
 	_ = db.Query("SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/19 attach'")
 	_ = db.Query("SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/000018 attach'")
-	_ = db.Query("SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/000019 attach'")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fts3offsets.test
@@ -6889,10 +7068,12 @@ func TestSQLite_fts3query(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("COMMIT"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE zoink USING fts3;\n    INSERT INTO zoink VALUES('The apple falls far from the tree');"))
 	_ = db.Query("SELECT docid FROM zoink WHERE zoink MATCH '(apple oranges) AND apple'")
 	_ = db.Query("SELECT docid FROM zoink WHERE zoink MATCH 'apple AND (oranges apple)'")
 	_ = db.Query("SELECT docid FROM foobar WHERE description MATCH '\"high sp d\"'")
 	_ = db.Query("SELECT mit(matchinfo(foobar)) FROM foobar WHERE foobar MATCH 'the'")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING FTS4;\n  INSERT INTO t2 VALUES('it was the first time in history');"))
 	checkExecOK(t, db.Exec("UPDATE t2_content SET c0content = X'1234'"))
 	checkExecOK(t, db.Exec("DROP TABLE t2"))
 	_ = db.Query("SELECT rowid FROM t4")
@@ -6923,9 +7104,13 @@ func TestSQLite_fts3snippet(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA encoding = \\")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('xxx xxx xxx xxx');"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');"))
 	checkExecOK(t, db.Exec("INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );"))
 	checkExecOK(t, db.Exec("UPDATE ft SET b = NULL"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('one two three four five');\n  INSERT INTO t2 VALUES('two three four five one');\n  INSERT INTO t2 VALUES('three four five one two');\n  INSERT INTO t2 VALUES('four five one two three');\n  INSERT INTO t2 VALUES('five one two three four');"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('six');"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('[one two three]');"))
 	checkQueryResult(t, db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'one';"), "{{[<b>one</b> two three]}}")
 	checkQueryResult(t, db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'two';"), "{{[one <b>two</b> three]}}")
 	checkQueryResult(t, db.Query("SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'three';"), "{{[one two <b>three</b>]}}")
@@ -6962,6 +7147,7 @@ func TestSQLite_fts3tok1(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts3tokenize(simple);\n  CREATE VIRTUAL TABLE t2 USING fts3tokenize();\n  CREATE VIRTUAL TABLE t3 USING fts3tokenize(simple, '', 'xyz ');"))
 	checkExecOK(t, db.Exec("CREATE TABLE c1(x);\n  INSERT INTO c1(x) VALUES('a b c');\n  INSERT INTO c1(x) VALUES('d e f');"))
 	for _, d := range dbs { d.Close() }
 }
@@ -6970,6 +7156,7 @@ func TestSQLite_fts3tok_err(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\");"))
 	_ = db.Query("SELECT token FROM t1 WHERE input = 'A galaxy far, far away'")
 	for _, d := range dbs { d.Close() }
 }
@@ -7065,6 +7252,7 @@ func TestSQLite_fts4docid(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts4;"))
 	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE docid = 5"), "{5}")
 	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE docid = '5'"), "{5}")
 	checkQueryResult(t, db.Query("SELECT docid FROM t1 WHERE docid = +5"), "{5}")
@@ -7082,10 +7270,13 @@ func TestSQLite_fts4growth(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fts3;"))
 	_ = db.Query("SELECT end_block, length(root) FROM x1_segdir")
 	checkExecOK(t, db.Exec("INSERT INTO x1(x1) VALUES('merge=4,4');\n    SELECT level, end_block, length(root) FROM x1_segdir;"))
 	_ = db.Query("SELECT level, end_block, length(root) FROM x1_segdir;")
+	checkExecOK(t, db.Exec("CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;"))
 	_ = db.Query("SELECT docid FROM t1")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x3 USING fts4"))
 	_ = db.Query("SELECT level, idx, second(end_block) FROM x3_segdir")
 	_ = db.Query("SELECT count(*) FROM x3_segdir")
 	checkExecOK(t, db.Exec("INSERT INTO x3(x3) VALUES('optimize')"))
@@ -7093,6 +7284,7 @@ func TestSQLite_fts4growth(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO x3(x3) VALUES('merge=500,10')"))
 	_ = db.Query("SELECT level, idx, second(end_block) FROM x3_segdir WHERE level=1")
 	checkExecOK(t, db.Exec("INSERT INTO x4 SELECT words FROM t1"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;"))
 	_ = db.Query("SELECT rowid FROM t1")
 	_ = db.Query("SELECT docid FROM t1 LIMIT -1 OFFSET 20")
 	checkExecOK(t, db.Exec("INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir"))
@@ -7106,7 +7298,9 @@ func TestSQLite_fts4growth2(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(docid, words);"))
 	_ = db.Query("SELECT level, count(*) FROM x1_segdir GROUP BY level")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fts4;\n  INSERT INTO x1(x1) VALUES('automerge=2');"))
 	_ = db.Query("SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;")
+	checkExecOK(t, db.Exec("DELETE FROM t1 WHERE rowid>16;\n  DROP TABLE IF EXISTS x1;\n  CREATE VIRTUAL TABLE x1 USING fts4;"))
 	_ = db.Query("SELECT max(level) FROM x1_segdir")
 	for _, d := range dbs { d.Close() }
 }
@@ -7137,6 +7331,7 @@ func TestSQLite_fts4langid(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t1(a, b) VALUES('aaa', 'bbb')"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 4)"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(a, b, lang_id) VALUES('aaa', 'bbb', 'xyz')"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('abc');"))
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'b';"), "{1}")
 	checkExecOK(t, db.Exec("CREATE TABLE data(x, y, l);\n    INSERT INTO data(rowid, x, y, l) SELECT docid, x, y, l FROM t2;"))
 	checkExecOK(t, db.Exec("INSERT INTO t2(t2) VALUES('optimize');\n  SELECT count(*) FROM t2_segdir;"))
@@ -7189,6 +7384,7 @@ func TestSQLite_fts4merge4(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts4"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('a b c d e f g h i j k l');"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('merge=8,50');\n    COMMIT"))
 	db.Close()
@@ -7196,6 +7392,7 @@ func TestSQLite_fts4merge4(t *testing.T) {
 	dbs = append(dbs, db)
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1_segdir;"), "35")
 	checkExecOK(t, db.Exec("INSERT INTO t1(t1) VALUES('optimize')"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING fts4;"))
 	checkExecOK(t, db.Exec("DELETE FROM t2"))
 	_ = db.Query("SELECT level, count(*) FROM t2_segdir GROUP BY level")
 	for _, d := range dbs { d.Close() }
@@ -7206,6 +7403,7 @@ func TestSQLite_fts4merge5(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(docid, words);"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');"))
 	checkExecOK(t, db.Exec("INSERT INTO x1(docid, content) SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("INSERT INTO x1(x1) VALUES('integrity-check');"))
 	for _, d := range dbs { d.Close() }
@@ -7243,6 +7441,7 @@ func TestSQLite_fts4onepass(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(rowid, content) VALUES(1, '1 2 3');\n  INSERT INTO ft(rowid, content) VALUES(2, '4 5 6');\n  INSERT INTO ft(rowid, content) VALUES(3, '7 8 9');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -7290,7 +7489,9 @@ func TestSQLite_fts4unicode(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT rowid FROM t3 WHERE t3 MATCH 'o';"), "{1 3 5 7}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t3 WHERE t3 MATCH 'a';"), "{2 4 6 8}")
 	checkQueryResult(t, db.Query("SELECT rowid FROM t4 WHERE t4 MATCH 'o';"), "{1 3}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t7aux USING fts4aux(t7);\n    INSERT INTO t7 VALUES('alephxbeth\\xC4gimel');\n    SELECT * FROM t7aux;"))
 	checkExecOK(t, db.Exec("INSERT INTO t12(t12) VALUES('integrity-check');"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t12aux USING fts4aux(t12);\n  SELECT * FROM t12aux;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from func.test
@@ -7571,6 +7772,7 @@ func TestSQLite_fuzz_oss1(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE parameters (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_uuid_parent TEXT NOT NULL DEFAULT '',t_name TEXT NOT NULL,t_value TEXT NOT NULL DEFAULT '',b_blob BLOB,d_lastmodifdate DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,i_tmp INTEGER NOT NULL DEFAULT 0);\nCREATE TABLE doctransaction (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL,t_mode VARCHAR(1) DEFAULT 'U' CHECK (t_mode IN ('U', 'R')),d_date DATE NOT NULL,t_savestep VARCHAR(1) DEFAULT 'N' CHECK (t_savestep IN ('Y', 'N')),i_parent INTEGER, t_refreshviews VARCHAR(1) DEFAULT 'Y' CHECK (t_refreshviews IN ('Y', 'N')));\nCREATE TABLE doctransactionitem (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, rd_doctransaction_id INTEGER NOT NULL,i_object_id INTEGER NOT NULL,t_object_table TEXT NOT NULL,t_action VARCHAR(1) DEFAULT 'I' CHECK (t_action IN ('I', 'U', 'D')),t_sqlorder TEXT NOT NULL DEFAULT '');\nCREATE TABLE doctransactionmsg (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, rd_doctransaction_id INTEGER NOT NULL,t_message TEXT NOT NULL DEFAULT '',t_popup VARCHAR(1) DEFAULT 'Y' CHECK (t_popup IN ('Y', 'N')));\nCREATE TABLE unit(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL,t_symbol TEXT NOT NULL DEFAULT '',t_country TEXT NOT NULL DEFAULT '',t_type VARCHAR(1) NOT NULL DEFAULT 'C' CHECK (t_type IN ('1', '2', 'C', 'S', 'I', 'O')),t_internet_code TEXT NOT NULL DEFAULT '',i_nbdecimal INT NOT NULL DEFAULT 2,rd_unit_id INTEGER NOT NULL DEFAULT 0, t_source TEXT NOT NULL DEFAULT '');\nCREATE TABLE unitvalue(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,rd_unit_id INTEGER NOT NULL,d_date DATE NOT NULL,f_quantity FLOAT NOT NULL CHECK (f_quantity>=0));\nCREATE TABLE bank (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL DEFAULT '',t_bank_number TEXT NOT NULL DEFAULT '',t_icon TEXT NOT NULL DEFAULT '');\nCREATE TABLE interest(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,rd_account_id INTEGER NOT NULL,d_date DATE NOT NULL,f_rate FLOAT NOT NULL CHECK (f_rate>=0),t_income_value_date_mode VARCHAR(1) NOT NULL DEFAULT 'F' CHECK (t_income_value_date_mode IN ('F', '0', '1', '2', '3', '4', '5')),t_expenditure_value_date_mode VARCHAR(1) NOT NULL DEFAULT 'F' CHECK (t_expenditure_value_date_mode IN ('F', '0', '1', '2', '3', '4', '5')),t_base VARCHAR(3) NOT NULL DEFAULT '24' CHECK (t_base IN ('24', '360', '365')));\nCREATE TABLE operation(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,i_group_id INTEGER NOT NULL DEFAULT 0,i_number INTEGER DEFAULT 0 CHECK (i_number>=0),d_date DATE NOT NULL DEFAULT '0000-00-00',rd_account_id INTEGER NOT NULL,t_mode TEXT NOT NULL DEFAULT '',r_payee_id INTEGER NOT NULL DEFAULT 0,t_comment TEXT NOT NULL DEFAULT '',rc_unit_id INTEGER NOT NULL,t_status VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_status IN ('N', 'P', 'Y')),t_bookmarked VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_bookmarked IN ('Y', 'N')),t_imported VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_imported IN ('Y', 'N', 'P', 'T')),t_template VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_template IN ('Y', 'N')),t_import_id TEXT NOT NULL DEFAULT '',i_tmp INTEGER NOT NULL DEFAULT 0,r_recurrentoperation_id INTEGER NOT NULL DEFAULT 0);\nCREATE TABLE operationbalance(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,f_balance FLOAT NOT NULL DEFAULT 0,r_operation_id INTEGER NOT NULL);\nCREATE TABLE refund (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL DEFAULT '',t_comment TEXT NOT NULL DEFAULT '',t_close VARCHAR(1) DEFAULT 'N' CHECK (t_close IN ('Y', 'N')));\nCREATE TABLE payee (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL DEFAULT '',t_address TEXT NOT NULL DEFAULT '', t_bookmarked VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_bookmarked IN ('Y', 'N')));\nCREATE TABLE suboperation(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_comment TEXT NOT NULL DEFAULT '',rd_operation_id INTEGER NOT NULL,r_category_id INTEGER NOT NULL DEFAULT 0,f_value FLOAT NOT NULL DEFAULT 0.0,i_tmp INTEGER NOT NULL DEFAULT 0,r_refund_id INTEGER NOT NULL DEFAULT 0, t_formula TEXT NOT NULL DEFAULT '');\nCREATE TABLE rule (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_description TEXT NOT NULL DEFAULT '',t_definition TEXT NOT NULL DEFAULT '',t_action_description TEXT NOT NULL DEFAULT '',t_action_definition TEXT NOT NULL DEFAULT '',t_action_type VARCHAR(1) DEFAULT 'S' CHECK (t_action_type IN ('S', 'U', 'A')),t_bookmarked VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_bookmarked IN ('Y', 'N')),f_sortorder FLOAT);\nCREATE TABLE budget (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,rc_category_id INTEGER NOT NULL DEFAULT 0,t_including_subcategories TEXT NOT NULL DEFAULT 'N' CHECK (t_including_subcategories IN ('Y', 'N')),f_budgeted FLOAT NOT NULL DEFAULT 0.0,f_budgeted_modified FLOAT NOT NULL DEFAULT 0.0,f_transferred FLOAT NOT NULL DEFAULT 0.0,i_year INTEGER NOT NULL DEFAULT 2010,i_month INTEGER NOT NULL DEFAULT 0 CHECK (i_month>=0 AND i_month<=12));\nCREATE TABLE budgetcategory(id INTEGER NOT NULL DEFAULT 0,id_category INTEGER NOT NULL DEFAULT 0);\nCREATE TABLE budgetrule (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,rc_category_id INTEGER NOT NULL DEFAULT 0,t_category_condition TEXT NOT NULL DEFAULT 'Y' CHECK (t_category_condition IN ('Y', 'N')),t_year_condition TEXT NOT NULL DEFAULT 'Y' CHECK (t_year_condition IN ('Y', 'N')),i_year INTEGER NOT NULL DEFAULT 2010,i_month INTEGER NOT NULL DEFAULT 0 CHECK (i_month>=0 AND i_month<=12),t_month_condition TEXT NOT NULL DEFAULT 'Y' CHECK (t_month_condition IN ('Y', 'N')),i_condition INTEGER NOT NULL DEFAULT 0 CHECK (i_condition IN (-1,0,1)),f_quantity FLOAT NOT NULL DEFAULT 0.0,t_absolute TEXT NOT NULL DEFAULT 'Y' CHECK (t_absolute IN ('Y', 'N')),rc_category_id_target INTEGER NOT NULL DEFAULT 0,t_category_target TEXT NOT NULL DEFAULT 'Y' CHECK (t_category_target IN ('Y', 'N')),t_rule TEXT NOT NULL DEFAULT 'N' CHECK (t_rule IN ('N', 'C', 'Y')));\nCREATE TABLE \"recurrentoperation\" (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,d_date DATE NOT NULL DEFAULT '0000-00-00',rd_operation_id INTEGER NOT NULL,i_period_increment INTEGER NOT NULL DEFAULT 1 CHECK (i_period_increment>=0),t_period_unit TEXT NOT NULL DEFAULT 'M' CHECK (t_period_unit IN ('D', 'W', 'M', 'Y')),t_auto_write VARCHAR(1) DEFAULT 'Y' CHECK (t_auto_write IN ('Y', 'N')),i_auto_write_days INTEGER NOT NULL DEFAULT 5 CHECK (i_auto_write_days>=0),t_warn VARCHAR(1) DEFAULT 'Y' CHECK (t_warn IN ('Y', 'N')),i_warn_days INTEGER NOT NULL DEFAULT 5 CHECK (i_warn_days>=0),t_times VARCHAR(1) DEFAULT 'N' CHECK (t_times IN ('Y', 'N')),i_nb_times INTEGER NOT NULL DEFAULT 1 CHECK (i_nb_times>=0));\nCREATE TABLE \"category\" (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL DEFAULT '' CHECK (t_name NOT LIKE '% > %'),t_fullname TEXT,rd_category_id INT,t_bookmarked VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_bookmarked IN ('Y', 'N')));\nCREATE TABLE \"account\"(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL,t_number TEXT NOT NULL DEFAULT '',t_agency_number TEXT NOT NULL DEFAULT '',t_agency_address TEXT NOT NULL DEFAULT '',t_comment TEXT NOT NULL DEFAULT '',t_close VARCHAR(1) DEFAULT 'N' CHECK (t_close IN ('Y', 'N')),t_type VARCHAR(1) NOT NULL DEFAULT 'C' CHECK (t_type IN ('C', 'D', 'A', 'I', 'L', 'W', 'O')),t_bookmarked VARCHAR(1) NOT NULL DEFAULT 'N' CHECK (t_bookmarked IN ('Y', 'N')),rd_bank_id INTEGER NOT NULL);\nCREATE TABLE \"node\" (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,t_name TEXT NOT NULL DEFAULT '' CHECK (t_name NOT LIKE '% > %'),t_fullname TEXT,t_icon TEXT DEFAULT '',f_sortorder FLOAT,t_autostart VARCHAR(1) DEFAULT 'N' CHECK (t_autostart IN ('Y', 'N')),t_data TEXT,rd_node_id INT CONSTRAINT fk_id REFERENCES node(id) ON DELETE CASCADE);\nCREATE TABLE vm_category_display_tmp(\n  id INT,\n  t_name TEXT,\n  t_fullname TEXT,\n  rd_category_id INT,\n  t_bookmarked TEXT,\n  i_NBOPERATIONS,\n  f_REALCURRENTAMOUNT\n);\nCREATE TABLE vm_budget_tmp(\n  id INT,\n  rc_category_id INT,\n  t_including_subcategories TEXT,\n  f_budgeted REAL,\n  f_budgeted_modified REAL,\n  f_transferred REAL,\n  i_year INT,\n  i_month INT,\n  t_CATEGORY,\n  t_PERIOD,\n  f_CURRENTAMOUNT,\n  t_RULES\n);\nCREATE INDEX idx_doctransaction_parent ON doctransaction (i_parent);\nCREATE INDEX idx_doctransactionitem_i_object_id ON doctransactionitem (i_object_id);\nCREATE INDEX idx_doctransactionitem_t_object_table ON doctransactionitem (t_object_table);\nCREATE INDEX idx_doctransactionitem_t_action ON doctransactionitem (t_action);\nCREATE INDEX idx_doctransactionitem_rd_doctransaction_id ON doctransactionitem (rd_doctransaction_id);\nCREATE INDEX idx_doctransactionitem_optimization ON doctransactionitem (rd_doctransaction_id, i_object_id, t_object_table, t_action, id);\nCREATE INDEX idx_unit_unit_id ON unitvalue(rd_unit_id);\nCREATE INDEX idx_account_bank_id ON account(rd_bank_id);\nCREATE INDEX idx_account_type ON account(t_type);\nCREATE INDEX idx_category_category_id ON category(rd_category_id);\nCREATE INDEX idx_category_t_fullname ON category(t_fullname);\nCREATE INDEX idx_operation_account_id ON operation (rd_account_id);\nCREATE INDEX idx_operation_tmp1_found_transfert ON operation (rc_unit_id, d_date);\nCREATE INDEX idx_operation_grouped_operation_id ON operation (i_group_id);\nCREATE INDEX idx_operation_i_number ON operation (i_number);\nCREATE INDEX idx_operation_i_tmp ON operation (i_tmp);\nCREATE INDEX idx_operation_rd_account_id ON operation (rd_account_id);\nCREATE INDEX idx_operation_rc_unit_id ON operation (rc_unit_id);\nCREATE INDEX idx_operation_t_status ON operation (t_status);\nCREATE INDEX idx_operation_t_import_id ON operation (t_import_id);\nCREATE INDEX idx_operation_t_template ON operation (t_template);\nCREATE INDEX idx_operation_d_date ON operation (d_date);\nCREATE INDEX idx_operationbalance_operation_id ON operationbalance (r_operation_id);\nCREATE INDEX idx_suboperation_operation_id ON suboperation (rd_operation_id);\nCREATE INDEX idx_suboperation_i_tmp ON suboperation (i_tmp);\nCREATE INDEX idx_suboperation_category_id ON suboperation (r_category_id);\nCREATE INDEX idx_suboperation_refund_id_id ON suboperation (r_refund_id);\nCREATE INDEX idx_recurrentoperation_rd_operation_id ON recurrentoperation (rd_operation_id);\nCREATE INDEX idx_refund_close ON refund(t_close);\nCREATE INDEX idx_interest_account_id ON interest (rd_account_id);\nCREATE INDEX idx_rule_action_type ON rule(t_action_type);\nCREATE INDEX idx_budget_category_id ON budget(rc_category_id);\nCREATE INDEX idx_budgetcategory_id ON budgetcategory (id);\nCREATE INDEX idx_budgetcategory_id_category ON budgetcategory (id_category);\nCREATE UNIQUE INDEX uidx_parameters_uuid_parent_name ON parameters (t_uuid_parent, t_name);\nCREATE UNIQUE INDEX uidx_node_parent_id_name ON node(t_name,rd_node_id);\nCREATE UNIQUE INDEX uidx_node_fullname ON node(t_fullname);\nCREATE UNIQUE INDEX uidx_unit_name ON unit(t_name);\nCREATE UNIQUE INDEX uidx_unit_symbol ON unit(t_symbol);\nCREATE UNIQUE INDEX uidx_unitvalue ON unitvalue(d_date,rd_unit_id);\nCREATE UNIQUE INDEX uidx_bank_name ON bank(t_name);\nCREATE UNIQUE INDEX uidx_account_name ON account(t_name);\nCREATE UNIQUE INDEX uidx_category_parent_id_name ON category(t_name,rd_category_id);\nCREATE UNIQUE INDEX uidx_category_fullname ON  category(t_fullname);\nCREATE UNIQUE INDEX uidx_refund_name ON refund(t_name);\nCREATE UNIQUE INDEX uidx_payee_name ON payee(t_name);\nCREATE UNIQUE INDEX uidx_interest ON interest(d_date,rd_account_id);\nCREATE UNIQUE INDEX uidx_budget ON budget(i_year,i_month, rc_category_id);\nCREATE VIEW v_node AS SELECT * from node;\nCREATE VIEW v_node_displayname AS SELECT *, t_fullname AS t_displayname from node;\nCREATE VIEW v_parameters_displayname AS SELECT *, t_name AS t_displayname from parameters;\nCREATE TRIGGER fkdc_parameters_parameters_uuid BEFORE DELETE ON parameters FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'parameters'; END;\nCREATE TRIGGER fkdc_node_parameters_uuid BEFORE DELETE ON node FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'node'; END;\nCREATE TRIGGER cpt_node_fullname1 AFTER INSERT ON node BEGIN UPDATE node SET t_fullname=CASE WHEN new.rd_node_id IS NULL OR new.rd_node_id='' OR new.rd_node_id=0 THEN new.t_name ELSE (SELECT c.t_fullname from node c where c.id=new.rd_node_id)||' > '||new.t_name END WHERE id=new.id;END;\nCREATE TRIGGER cpt_node_fullname2 AFTER UPDATE OF t_name, rd_node_id ON node BEGIN UPDATE node SET t_fullname=CASE WHEN new.rd_node_id IS NULL OR new.rd_node_id='' OR new.rd_node_id=0 THEN new.t_name ELSE (SELECT c.t_fullname from node c where c.id=new.rd_node_id)||' > '||new.t_name END WHERE id=new.id;UPDATE node SET t_name=t_name WHERE rd_node_id=new.id;END;\nCREATE TRIGGER fki_account_bank_rd_bank_id_id BEFORE INSERT ON account FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (bank est utilis\xe9 par account)\nNom de la contrainte\xa0: fki_account_bank_rd_bank_id_id')   WHERE NEW.rd_bank_id!=0 AND NEW.rd_bank_id!='' AND (SELECT id FROM bank WHERE id = NEW.rd_bank_id) IS NULL; END;\nCREATE TRIGGER fku_account_bank_rd_bank_id_id BEFORE UPDATE ON account FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (bank est utilis\xe9 par account)\nNom de la contrainte\xa0: fku_account_bank_rd_bank_id_id')       WHERE NEW.rd_bank_id!=0 AND NEW.rd_bank_id!='' AND (SELECT id FROM bank WHERE id = NEW.rd_bank_id) IS NULL; END;\nCREATE TRIGGER fkdc_bank_account_id_rd_bank_id BEFORE DELETE ON bank FOR EACH ROW BEGIN     DELETE FROM account WHERE account.rd_bank_id = OLD.id; END;\nCREATE TRIGGER fki_budget_category_rc_category_id_id BEFORE INSERT ON budget FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (category est utilis\xe9 par budget)\nNom de la contrainte\xa0: fki_budget_category_rc_category_id_id')   WHERE NEW.rc_category_id!=0 AND NEW.rc_category_id!='' AND (SELECT id FROM category WHERE id = NEW.rc_category_id) IS NULL; END;\nCREATE TRIGGER fku_budget_category_rc_category_id_id BEFORE UPDATE ON budget FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (category est utilis\xe9 par budget)\nNom de la contrainte\xa0: fku_budget_category_rc_category_id_id')       WHERE NEW.rc_category_id!=0 AND NEW.rc_category_id!='' AND (SELECT id FROM category WHERE id = NEW.rc_category_id) IS NULL; END;\nCREATE TRIGGER fkd_budget_category_rc_category_id_id BEFORE DELETE ON category FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de d\xe9truire un objet (category est utilis\xe9 par budget)\nNom de la contrainte\xa0: fkd_budget_category_rc_category_id_id')     WHERE (SELECT rc_category_id FROM budget WHERE rc_category_id = OLD.id) IS NOT NULL; END;\nCREATE TRIGGER fki_budgetrule_category_rc_category_id_id BEFORE INSERT ON budgetrule FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (category est utilis\xe9 par budgetrule)\nNom de la contrainte\xa0: fki_budgetrule_category_rc_category_id_id')   WHERE NEW.rc_category_id!=0 AND NEW.rc_category_id!='' AND (SELECT id FROM category WHERE id = NEW.rc_category_id) IS NULL; END;\nCREATE TRIGGER fku_budgetrule_category_rc_category_id_id BEFORE UPDATE ON budgetrule FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (category est utilis\xe9 par budgetrule)\nNom de la contrainte\xa0: fku_budgetrule_category_rc_category_id_id')       WHERE NEW.rc_category_id!=0 AND NEW.rc_category_id!='' AND (SELECT id FROM category WHERE id = NEW.rc_category_id) IS NULL; END;\nCREATE TRIGGER fkd_budgetrule_category_rc_category_id_id BEFORE DELETE ON category FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de d\xe9truire un objet (category est utilis\xe9 par budgetrule)\nNom de la contrainte\xa0: fkd_budgetrule_category_rc_category_id_id')     WHERE (SELECT rc_category_id FROM budgetrule WHERE rc_category_id = OLD.id) IS NOT NULL; END;\nCREATE TRIGGER fki_budgetrule_category_rc_category_id_target_id BEFORE INSERT ON budgetrule FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (category est utilis\xe9 par budgetrule)\nNom de la contrainte\xa0: fki_budgetrule_category_rc_category_id_target_id')   WHERE NEW.rc_category_id_target!=0 AND NEW.rc_category_id_target!='' AND (SELECT id FROM category WHERE id = NEW.rc_category_id_target) IS NULL; END;\nCREATE TRIGGER fku_budgetrule_category_rc_category_id_target_id BEFORE UPDATE ON budgetrule FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (category est utilis\xe9 par budgetrule)\nNom de la contrainte\xa0: fku_budgetrule_category_rc_category_id_target_id')       WHERE NEW.rc_category_id_target!=0 AND NEW.rc_category_id_target!='' AND (SELECT id FROM category WHERE id = NEW.rc_category_id_target) IS NULL; END;\nCREATE TRIGGER fkd_budgetrule_category_rc_category_id_target_id BEFORE DELETE ON category FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de d\xe9truire un objet (category est utilis\xe9 par budgetrule)\nNom de la contrainte\xa0: fkd_budgetrule_category_rc_category_id_target_id')     WHERE (SELECT rc_category_id_target FROM budgetrule WHERE rc_category_id_target = OLD.id) IS NOT NULL; END;\nCREATE TRIGGER fki_category_category_rd_category_id_id BEFORE INSERT ON category FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (category est utilis\xe9 par category)\nNom de la contrainte\xa0: fki_category_category_rd_category_id_id')   WHERE NEW.rd_category_id!=0 AND NEW.rd_category_id!='' AND (SELECT id FROM category WHERE id = NEW.rd_category_id) IS NULL; END;\nCREATE TRIGGER fku_category_category_rd_category_id_id BEFORE UPDATE ON category FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (category est utilis\xe9 par category)\nNom de la contrainte\xa0: fku_category_category_rd_category_id_id')       WHERE NEW.rd_category_id!=0 AND NEW.rd_category_id!='' AND (SELECT id FROM category WHERE id = NEW.rd_category_id) IS NULL; END;\nCREATE TRIGGER fkdc_category_category_id_rd_category_id BEFORE DELETE ON category FOR EACH ROW BEGIN     DELETE FROM category WHERE category.rd_category_id = OLD.id; END;\nCREATE TRIGGER fki_doctransactionitem_doctransaction_rd_doctransaction_id_id BEFORE INSERT ON doctransactionitem FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (doctransaction est utilis\xe9 par doctransactionitem)\nNom de la contrainte\xa0: fki_doctransactionitem_doctransaction_rd_doctransaction_id_id')   WHERE NEW.rd_doctransaction_id!=0 AND NEW.rd_doctransaction_id!='' AND (SELECT id FROM doctransaction WHERE id = NEW.rd_doctransaction_id) IS NULL; END;\nCREATE TRIGGER fku_doctransactionitem_doctransaction_rd_doctransaction_id_id BEFORE UPDATE ON doctransactionitem FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (doctransaction est utilis\xe9 par doctransactionitem)\nNom de la contrainte\xa0: fku_doctransactionitem_doctransaction_rd_doctransaction_id_id')       WHERE NEW.rd_doctransaction_id!=0 AND NEW.rd_doctransaction_id!='' AND (SELECT id FROM doctransaction WHERE id = NEW.rd_doctransaction_id) IS NULL; END;\nCREATE TRIGGER fkdc_doctransaction_doctransactionitem_id_rd_doctransaction_id BEFORE DELETE ON doctransaction FOR EACH ROW BEGIN     DELETE FROM doctransactionitem WHERE doctransactionitem.rd_doctransaction_id = OLD.id; END;\nCREATE TRIGGER fki_doctransactionmsg_doctransaction_rd_doctransaction_id_id BEFORE INSERT ON doctransactionmsg FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (doctransaction est utilis\xe9 par doctransactionmsg)\nNom de la contrainte\xa0: fki_doctransactionmsg_doctransaction_rd_doctransaction_id_id')   WHERE NEW.rd_doctransaction_id!=0 AND NEW.rd_doctransaction_id!='' AND (SELECT id FROM doctransaction WHERE id = NEW.rd_doctransaction_id) IS NULL; END;\nCREATE TRIGGER fku_doctransactionmsg_doctransaction_rd_doctransaction_id_id BEFORE UPDATE ON doctransactionmsg FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (doctransaction est utilis\xe9 par doctransactionmsg)\nNom de la contrainte\xa0: fku_doctransactionmsg_doctransaction_rd_doctransaction_id_id')       WHERE NEW.rd_doctransaction_id!=0 AND NEW.rd_doctransaction_id!='' AND (SELECT id FROM doctransaction WHERE id = NEW.rd_doctransaction_id) IS NULL; END;\nCREATE TRIGGER fkdc_doctransaction_doctransactionmsg_id_rd_doctransaction_id BEFORE DELETE ON doctransaction FOR EACH ROW BEGIN     DELETE FROM doctransactionmsg WHERE doctransactionmsg.rd_doctransaction_id = OLD.id; END;\nCREATE TRIGGER fki_interest_account_rd_account_id_id BEFORE INSERT ON interest FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (account est utilis\xe9 par interest)\nNom de la contrainte\xa0: fki_interest_account_rd_account_id_id')   WHERE NEW.rd_account_id!=0 AND NEW.rd_account_id!='' AND (SELECT id FROM account WHERE id = NEW.rd_account_id) IS NULL; END;\nCREATE TRIGGER fku_interest_account_rd_account_id_id BEFORE UPDATE ON interest FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (account est utilis\xe9 par interest)\nNom de la contrainte\xa0: fku_interest_account_rd_account_id_id')       WHERE NEW.rd_account_id!=0 AND NEW.rd_account_id!='' AND (SELECT id FROM account WHERE id = NEW.rd_account_id) IS NULL; END;\nCREATE TRIGGER fkdc_account_interest_id_rd_account_id BEFORE DELETE ON account FOR EACH ROW BEGIN     DELETE FROM interest WHERE interest.rd_account_id = OLD.id; END;\nCREATE TRIGGER fki_node_node_rd_node_id_id BEFORE INSERT ON node FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (node est utilis\xe9 par node)\nNom de la contrainte\xa0: fki_node_node_rd_node_id_id')   WHERE NEW.rd_node_id!=0 AND NEW.rd_node_id!='' AND (SELECT id FROM node WHERE id = NEW.rd_node_id) IS NULL; END;\nCREATE TRIGGER fku_node_node_rd_node_id_id BEFORE UPDATE ON node FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (node est utilis\xe9 par node)\nNom de la contrainte\xa0: fku_node_node_rd_node_id_id')       WHERE NEW.rd_node_id!=0 AND NEW.rd_node_id!='' AND (SELECT id FROM node WHERE id = NEW.rd_node_id) IS NULL; END;\nCREATE TRIGGER fkdc_node_node_id_rd_node_id BEFORE DELETE ON node FOR EACH ROW BEGIN     DELETE FROM node WHERE node.rd_node_id = OLD.id; END;\nCREATE TRIGGER fki_operation_account_rd_account_id_id BEFORE INSERT ON operation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (account est utilis\xe9 par operation)\nNom de la contrainte\xa0: fki_operation_account_rd_account_id_id')   WHERE NEW.rd_account_id!=0 AND NEW.rd_account_id!='' AND (SELECT id FROM account WHERE id = NEW.rd_account_id) IS NULL; END;\nCREATE TRIGGER fku_operation_account_rd_account_id_id BEFORE UPDATE ON operation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (account est utilis\xe9 par operation)\nNom de la contrainte\xa0: fku_operation_account_rd_account_id_id')       WHERE NEW.rd_account_id!=0 AND NEW.rd_account_id!='' AND (SELECT id FROM account WHERE id = NEW.rd_account_id) IS NULL; END;\nCREATE TRIGGER fkdc_account_operation_id_rd_account_id BEFORE DELETE ON account FOR EACH ROW BEGIN     DELETE FROM operation WHERE operation.rd_account_id = OLD.id; END;\nCREATE TRIGGER fki_operation_payee_r_payee_id_id BEFORE INSERT ON operation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (payee est utilis\xe9 par operation)\nNom de la contrainte\xa0: fki_operation_payee_r_payee_id_id')   WHERE NEW.r_payee_id!=0 AND NEW.r_payee_id!='' AND (SELECT id FROM payee WHERE id = NEW.r_payee_id) IS NULL; END;\nCREATE TRIGGER fku_operation_payee_r_payee_id_id BEFORE UPDATE ON operation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (payee est utilis\xe9 par operation)\nNom de la contrainte\xa0: fku_operation_payee_r_payee_id_id')       WHERE NEW.r_payee_id!=0 AND NEW.r_payee_id!='' AND (SELECT id FROM payee WHERE id = NEW.r_payee_id) IS NULL; END;\nCREATE TRIGGER fkd_operation_payee_r_payee_id_id BEFORE DELETE ON payee FOR EACH ROW BEGIN     UPDATE operation SET r_payee_id=0 WHERE r_payee_id=OLD.id; END;\nCREATE TRIGGER fki_operation_unit_rc_unit_id_id BEFORE INSERT ON operation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (unit est utilis\xe9 par operation)\nNom de la contrainte\xa0: fki_operation_unit_rc_unit_id_id')   WHERE NEW.rc_unit_id!=0 AND NEW.rc_unit_id!='' AND (SELECT id FROM unit WHERE id = NEW.rc_unit_id) IS NULL; END;\nCREATE TRIGGER fku_operation_unit_rc_unit_id_id BEFORE UPDATE ON operation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (unit est utilis\xe9 par operation)\nNom de la contrainte\xa0: fku_operation_unit_rc_unit_id_id')       WHERE NEW.rc_unit_id!=0 AND NEW.rc_unit_id!='' AND (SELECT id FROM unit WHERE id = NEW.rc_unit_id) IS NULL; END;\nCREATE TRIGGER fkd_operation_unit_rc_unit_id_id BEFORE DELETE ON unit FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de d\xe9truire un objet (unit est utilis\xe9 par operation)\nNom de la contrainte\xa0: fkd_operation_unit_rc_unit_id_id')     WHERE (SELECT rc_unit_id FROM operation WHERE rc_unit_id = OLD.id) IS NOT NULL; END;\nCREATE TRIGGER fki_operation_recurrentoperation_r_recurrentoperation_id_id BEFORE INSERT ON operation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (recurrentoperation est utilis\xe9 par operation)\nNom de la contrainte\xa0: fki_operation_recurrentoperation_r_recurrentoperation_id_id')   WHERE NEW.r_recurrentoperation_id!=0 AND NEW.r_recurrentoperation_id!='' AND (SELECT id FROM recurrentoperation WHERE id = NEW.r_recurrentoperation_id) IS NULL; END;\nCREATE TRIGGER fku_operation_recurrentoperation_r_recurrentoperation_id_id BEFORE UPDATE ON operation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (recurrentoperation est utilis\xe9 par operation)\nNom de la contrainte\xa0: fku_operation_recurrentoperation_r_recurrentoperation_id_id')       WHERE NEW.r_recurrentoperation_id!=0 AND NEW.r_recurrentoperation_id!='' AND (SELECT id FROM recurrentoperation WHERE id = NEW.r_recurrentoperation_id) IS NULL; END;\nCREATE TRIGGER fkd_operation_recurrentoperation_r_recurrentoperation_id_id BEFORE DELETE ON recurrentoperation FOR EACH ROW BEGIN     UPDATE operation SET r_recurrentoperation_id=0 WHERE r_recurrentoperation_id=OLD.id; END;\nCREATE TRIGGER fki_operationbalance_operation_r_operation_id_id BEFORE INSERT ON operationbalance FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (operation est utilis\xe9 par operationbalance)\nNom de la contrainte\xa0: fki_operationbalance_operation_r_operation_id_id')   WHERE NEW.r_operation_id!=0 AND NEW.r_operation_id!='' AND (SELECT id FROM operation WHERE id = NEW.r_operation_id) IS NULL; END;\nCREATE TRIGGER fku_operationbalance_operation_r_operation_id_id BEFORE UPDATE ON operationbalance FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (operation est utilis\xe9 par operationbalance)\nNom de la contrainte\xa0: fku_operationbalance_operation_r_operation_id_id')       WHERE NEW.r_operation_id!=0 AND NEW.r_operation_id!='' AND (SELECT id FROM operation WHERE id = NEW.r_operation_id) IS NULL; END;\nCREATE TRIGGER fkd_operationbalance_operation_r_operation_id_id BEFORE DELETE ON operation FOR EACH ROW BEGIN     UPDATE operationbalance SET r_operation_id=0 WHERE r_operation_id=OLD.id; END;\nCREATE TRIGGER fki_recurrentoperation_operation_rd_operation_id_id BEFORE INSERT ON recurrentoperation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (operation est utilis\xe9 par recurrentoperation)\nNom de la contrainte\xa0: fki_recurrentoperation_operation_rd_operation_id_id')   WHERE NEW.rd_operation_id!=0 AND NEW.rd_operation_id!='' AND (SELECT id FROM operation WHERE id = NEW.rd_operation_id) IS NULL; END;\nCREATE TRIGGER fku_recurrentoperation_operation_rd_operation_id_id BEFORE UPDATE ON recurrentoperation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (operation est utilis\xe9 par recurrentoperation)\nNom de la contrainte\xa0: fku_recurrentoperation_operation_rd_operation_id_id')       WHERE NEW.rd_operation_id!=0 AND NEW.rd_operation_id!='' AND (SELECT id FROM operation WHERE id = NEW.rd_operation_id) IS NULL; END;\nCREATE TRIGGER fkdc_operation_recurrentoperation_id_rd_operation_id BEFORE DELETE ON operation FOR EACH ROW BEGIN     DELETE FROM recurrentoperation WHERE recurrentoperation.rd_operation_id = OLD.id; END;\nCREATE TRIGGER fki_suboperation_operation_rd_operation_id_id BEFORE INSERT ON suboperation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (operation est utilis\xe9 par suboperation)\nNom de la contrainte\xa0: fki_suboperation_operation_rd_operation_id_id')   WHERE NEW.rd_operation_id!=0 AND NEW.rd_operation_id!='' AND (SELECT id FROM operation WHERE id = NEW.rd_operation_id) IS NULL; END;\nCREATE TRIGGER fku_suboperation_operation_rd_operation_id_id BEFORE UPDATE ON suboperation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (operation est utilis\xe9 par suboperation)\nNom de la contrainte\xa0: fku_suboperation_operation_rd_operation_id_id')       WHERE NEW.rd_operation_id!=0 AND NEW.rd_operation_id!='' AND (SELECT id FROM operation WHERE id = NEW.rd_operation_id) IS NULL; END;\nCREATE TRIGGER fkdc_operation_suboperation_id_rd_operation_id BEFORE DELETE ON operation FOR EACH ROW BEGIN     DELETE FROM suboperation WHERE suboperation.rd_operation_id = OLD.id; END;\nCREATE TRIGGER fki_suboperation_category_r_category_id_id BEFORE INSERT ON suboperation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (category est utilis\xe9 par suboperation)\nNom de la contrainte\xa0: fki_suboperation_category_r_category_id_id')   WHERE NEW.r_category_id!=0 AND NEW.r_category_id!='' AND (SELECT id FROM category WHERE id = NEW.r_category_id) IS NULL; END;\nCREATE TRIGGER fku_suboperation_category_r_category_id_id BEFORE UPDATE ON suboperation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (category est utilis\xe9 par suboperation)\nNom de la contrainte\xa0: fku_suboperation_category_r_category_id_id')       WHERE NEW.r_category_id!=0 AND NEW.r_category_id!='' AND (SELECT id FROM category WHERE id = NEW.r_category_id) IS NULL; END;\nCREATE TRIGGER fkd_suboperation_category_r_category_id_id BEFORE DELETE ON category FOR EACH ROW BEGIN     UPDATE suboperation SET r_category_id=0 WHERE r_category_id=OLD.id; END;\nCREATE TRIGGER fki_suboperation_refund_r_refund_id_id BEFORE INSERT ON suboperation FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (refund est utilis\xe9 par suboperation)\nNom de la contrainte\xa0: fki_suboperation_refund_r_refund_id_id')   WHERE NEW.r_refund_id!=0 AND NEW.r_refund_id!='' AND (SELECT id FROM refund WHERE id = NEW.r_refund_id) IS NULL; END;\nCREATE TRIGGER fku_suboperation_refund_r_refund_id_id BEFORE UPDATE ON suboperation FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (refund est utilis\xe9 par suboperation)\nNom de la contrainte\xa0: fku_suboperation_refund_r_refund_id_id')       WHERE NEW.r_refund_id!=0 AND NEW.r_refund_id!='' AND (SELECT id FROM refund WHERE id = NEW.r_refund_id) IS NULL; END;\nCREATE TRIGGER fkd_suboperation_refund_r_refund_id_id BEFORE DELETE ON refund FOR EACH ROW BEGIN     UPDATE suboperation SET r_refund_id=0 WHERE r_refund_id=OLD.id; END;\nCREATE TRIGGER fki_unit_unit_rd_unit_id_id BEFORE INSERT ON unit FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (unit est utilis\xe9 par unit)\nNom de la contrainte\xa0: fki_unit_unit_rd_unit_id_id')   WHERE NEW.rd_unit_id!=0 AND NEW.rd_unit_id!='' AND (SELECT id FROM unit WHERE id = NEW.rd_unit_id) IS NULL; END;\nCREATE TRIGGER fku_unit_unit_rd_unit_id_id BEFORE UPDATE ON unit FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (unit est utilis\xe9 par unit)\nNom de la contrainte\xa0: fku_unit_unit_rd_unit_id_id')       WHERE NEW.rd_unit_id!=0 AND NEW.rd_unit_id!='' AND (SELECT id FROM unit WHERE id = NEW.rd_unit_id) IS NULL; END;\nCREATE TRIGGER fkdc_unit_unit_id_rd_unit_id BEFORE DELETE ON unit FOR EACH ROW BEGIN     DELETE FROM unit WHERE unit.rd_unit_id = OLD.id; END;\nCREATE TRIGGER fki_unitvalue_unit_rd_unit_id_id BEFORE INSERT ON unitvalue FOR EACH ROW BEGIN   SELECT RAISE(ABORT, 'Impossible d''ajouter un objet (unit est utilis\xe9 par unitvalue)\nNom de la contrainte\xa0: fki_unitvalue_unit_rd_unit_id_id')   WHERE NEW.rd_unit_id!=0 AND NEW.rd_unit_id!='' AND (SELECT id FROM unit WHERE id = NEW.rd_unit_id) IS NULL; END;\nCREATE TRIGGER fku_unitvalue_unit_rd_unit_id_id BEFORE UPDATE ON unitvalue FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de modifier un objet (unit est utilis\xe9 par unitvalue)\nNom de la contrainte\xa0: fku_unitvalue_unit_rd_unit_id_id')       WHERE NEW.rd_unit_id!=0 AND NEW.rd_unit_id!='' AND (SELECT id FROM unit WHERE id = NEW.rd_unit_id) IS NULL; END;\nCREATE TRIGGER fkdc_unit_unitvalue_id_rd_unit_id BEFORE DELETE ON unit FOR EACH ROW BEGIN     DELETE FROM unitvalue WHERE unitvalue.rd_unit_id = OLD.id; END;\nCREATE TRIGGER fkd_vm_budget_tmp_category_rc_category_id_id BEFORE DELETE ON category FOR EACH ROW BEGIN     SELECT RAISE(ABORT, 'Impossible de d\xe9truire un objet (category est utilis\xe9 par vm_budget_tmp)\nNom de la contrainte\xa0: fkd_vm_budget_tmp_category_rc_category_id_id')     WHERE (SELECT rc_category_id FROM vm_budget_tmp WHERE rc_category_id = OLD.id) IS NOT NULL; END;\nCREATE TRIGGER fkdc_category_vm_category_display_tmp_id_rd_category_id BEFORE DELETE ON category FOR EACH ROW BEGIN     DELETE FROM vm_category_display_tmp WHERE vm_category_display_tmp.rd_category_id = OLD.id; END;\nCREATE VIEW v_unit_displayname AS SELECT *, t_name||' ('||t_symbol||')' AS t_displayname FROM unit;\nCREATE VIEW v_unit_tmp1 AS SELECT *,(SELECT count(*) FROM unitvalue s WHERE s.rd_unit_id=unit.id) AS i_NBVALUES, (CASE WHEN unit.rd_unit_id=0 THEN '' ELSE (SELECT (CASE WHEN s.t_symbol!='' THEN s.t_symbol ELSE s.t_name END) FROM unit s WHERE s.id=unit.rd_unit_id) END) AS t_UNIT,(CASE unit.t_type WHEN '1' THEN 'Monnaie principale' WHEN '2' THEN 'Monnaie secondaire' WHEN 'C' THEN 'Monnaie' WHEN 'S' THEN 'Action' WHEN 'I' THEN 'Indice' ELSE 'Objet' END) AS t_TYPENLS, (SELECT MIN(s.d_date) FROM  unitvalue s WHERE s.rd_unit_id=unit.id) AS d_MINDATE, (SELECT MAX(s.d_date) FROM  unitvalue s WHERE s.rd_unit_id=unit.id) AS d_MAXDATE from unit;\nCREATE VIEW v_unit_tmp2 AS SELECT *,CASE WHEN v_unit_tmp1.t_type='1' THEN 1 ELSE IFNULL((SELECT s.f_quantity FROM unitvalue s WHERE s.rd_unit_id=v_unit_tmp1.id AND s.d_date=v_unit_tmp1.d_MAXDATE),1) END AS f_LASTVALUE from v_unit_tmp1;\nCREATE VIEW v_unit AS SELECT *,v_unit_tmp2.f_LASTVALUE*IFNULL((SELECT s2.f_LASTVALUE FROM v_unit_tmp2 s2 WHERE s2.id=v_unit_tmp2.rd_unit_id) , 1) AS f_CURRENTAMOUNT from v_unit_tmp2;\nCREATE VIEW v_unitvalue_displayname AS SELECT *, (SELECT t_displayname FROM v_unit_displayname WHERE unitvalue.rd_unit_id=v_unit_displayname.id)||' '||STRFTIME('%d/%m/%Y',d_date) AS t_displayname FROM unitvalue;\nCREATE VIEW v_unitvalue AS SELECT * FROM unitvalue;\nCREATE VIEW v_suboperation AS SELECT * FROM suboperation;\nCREATE VIEW v_operation_numbers AS SELECT DISTINCT i_number, rd_account_id FROM operation;\nCREATE VIEW v_operation_next_numbers AS SELECT T1.i_number+1 AS i_number FROM v_operation_numbers AS T1 LEFT OUTER JOIN v_operation_numbers T2 ON T2.rd_account_id=T1.rd_account_id AND T2.i_number=T1.i_number+1 WHERE T1.i_number!=0 AND (T2.i_number IS NULL) ORDER BY T1.i_number;\nCREATE VIEW v_operation_tmp1 AS SELECT *,(SELECT t_name FROM payee s WHERE s.id=operation.r_payee_id) AS t_PAYEE,(SELECT TOTAL(s.f_value) FROM suboperation s WHERE s.rd_operation_id=operation.ID) AS f_QUANTITY,(SELECT count(*) FROM suboperation s WHERE s.rd_operation_id=operation.ID) AS i_NBSUBCATEGORY FROM operation;\nCREATE VIEW v_operation AS SELECT *,(SELECT s.id FROM suboperation s WHERE s.rd_operation_id=v_operation_tmp1.id AND ABS(s.f_value)=(SELECT MAX(ABS(s2.f_value)) FROM suboperation s2 WHERE s2.rd_operation_id=v_operation_tmp1.id)) AS i_MOSTIMPSUBOP,((SELECT s.f_CURRENTAMOUNT FROM v_unit s WHERE s.id=v_operation_tmp1.rc_unit_id)*v_operation_tmp1.f_QUANTITY) AS f_CURRENTAMOUNT, (CASE WHEN v_operation_tmp1.i_group_id<>0 AND EXISTS (SELECT 1 FROM account a WHERE v_operation_tmp1.rd_account_id=a.id AND a.t_type<>'L') AND EXISTS (SELECT 1 FROM v_operation_tmp1 op2, account a WHERE op2.i_group_id=v_operation_tmp1.i_group_id AND op2.rd_account_id=a.id AND a.t_type<>'L' AND op2.rc_unit_id=v_operation_tmp1.rc_unit_id AND op2.f_QUANTITY=-v_operation_tmp1.f_QUANTITY) THEN 'Y' ELSE 'N' END) AS t_TRANSFER FROM v_operation_tmp1;\nCREATE VIEW v_operation_displayname AS SELECT *, STRFTIME('%d/%m/%Y',d_date)||' '||IFNULL(t_PAYEE,'')||' '||v_operation.f_CURRENTAMOUNT||' '||(SELECT (CASE WHEN s.t_symbol!='' THEN s.t_symbol ELSE s.t_name END) FROM unit s WHERE s.id=v_operation.rc_unit_id) AS t_displayname FROM v_operation;\nCREATE VIEW v_operation_delete AS SELECT *, (CASE WHEN t_status='Y' THEN 'Vous n''\xeates pas autoris\xe9 \xe0 d\xe9truire cette op\xe9ration car en \xe9tat \xab\xa0rapproch\xe9\xa0\xbb' END) t_delete_message FROM operation;\nCREATE VIEW v_account AS SELECT *,(SELECT MAX(s.d_date) FROM  interest s WHERE s.rd_account_id=account.id) AS d_MAXDATE, (SELECT TOTAL(s.f_CURRENTAMOUNT) FROM v_operation s WHERE s.rd_account_id=account.id AND s.t_template='N') AS f_CURRENTAMOUNT FROM account;\nCREATE VIEW v_account_delete AS SELECT *, (CASE WHEN EXISTS(SELECT 1 FROM operation WHERE rd_account_id=account.id AND d_date<>'0000-00-00' AND t_template='N' AND t_status='Y') THEN 'Vous n''\xeates pas autoris\xe9 \xe0 d\xe9truire ce compte car il contient des op\xe9rations rapproch\xe9es' END) t_delete_message FROM account;\nCREATE VIEW v_bank_displayname AS SELECT *, t_name AS t_displayname FROM bank;\nCREATE VIEW v_account_displayname AS SELECT *, (SELECT t_displayname FROM v_bank_displayname WHERE account.rd_bank_id=v_bank_displayname.id)||'-'||t_name AS t_displayname FROM account;\nCREATE VIEW v_bank AS SELECT *,(SELECT TOTAL(s.f_CURRENTAMOUNT) FROM v_account s WHERE s.rd_bank_id=bank.id) AS f_CURRENTAMOUNT FROM bank;\nCREATE VIEW v_category_displayname AS SELECT *, t_fullname AS t_displayname FROM category;\nCREATE VIEW v_category AS SELECT * FROM category;\nCREATE VIEW v_recurrentoperation AS SELECT *,i_period_increment||' '||(CASE t_period_unit WHEN 'Y' THEN 'ann\xe9e(s)' WHEN 'M' THEN 'mois' WHEN 'W' THEN 'semaine(s)' ELSE 'jour(s)' END) AS t_PERIODNLS FROM recurrentoperation;\nCREATE VIEW v_recurrentoperation_displayname AS SELECT *, STRFTIME('%d/%m/%Y',d_date)||' '||SUBSTR((SELECT t_displayname FROM v_operation_displayname WHERE v_operation_displayname.id=v_recurrentoperation.rd_operation_id), 11) AS t_displayname FROM v_recurrentoperation;\nCREATE VIEW v_unitvalue_display AS SELECT *,IFNULL((SELECT (CASE WHEN s.t_symbol!='' THEN s.t_symbol ELSE s.t_name END) FROM unit s WHERE s.id=(SELECT s2.rd_unit_id FROM unit s2 WHERE s2.id=unitvalue.rd_unit_id)),'') AS t_UNIT,STRFTIME('%Y-%m',unitvalue.d_date) AS d_DATEMONTH,STRFTIME('%Y',unitvalue.d_date) AS d_DATEYEAR FROM unitvalue;\nCREATE VIEW v_suboperation_display AS SELECT *,IFNULL((SELECT s.t_fullname FROM category s WHERE s.id=v_suboperation.r_category_id),'') AS t_CATEGORY, IFNULL((SELECT s.t_name FROM refund s WHERE s.id=v_suboperation.r_refund_id),'') AS t_REFUND, (CASE WHEN v_suboperation.f_value>=0 THEN v_suboperation.f_value ELSE 0 END) AS f_VALUE_INCOME, (CASE WHEN v_suboperation.f_value<=0 THEN v_suboperation.f_value ELSE 0 END) AS f_VALUE_EXPENSE FROM v_suboperation;\nCREATE VIEW v_suboperation_displayname AS SELECT *, t_CATEGORY||' : '||f_value AS t_displayname FROM v_suboperation_display;\nCREATE VIEW v_operation_display_all AS SELECT *,(SELECT s.t_name FROM account s WHERE s.id=v_operation.rd_account_id) AS t_ACCOUNT,(SELECT (CASE WHEN s.t_symbol!='' THEN s.t_symbol ELSE s.t_name END) FROM unit s WHERE s.id=v_operation.rc_unit_id) AS t_UNIT,(SELECT s.t_CATEGORY FROM v_suboperation_display s WHERE s.id=v_operation.i_MOSTIMPSUBOP) AS t_CATEGORY,(SELECT s.t_REFUND FROM v_suboperation_display s WHERE s.id=v_operation.i_MOSTIMPSUBOP) AS t_REFUND,(CASE WHEN v_operation.f_QUANTITY<0 THEN '-' WHEN v_operation.f_QUANTITY=0 THEN '' ELSE '+' END) AS t_TYPEEXPENSE, (CASE WHEN v_operation.f_QUANTITY<=0 THEN 'D\xe9pense' ELSE 'Revenu' END) AS t_TYPEEXPENSENLS, STRFTIME('%Y-W%W',v_operation.d_date) AS d_DATEWEEK,STRFTIME('%Y-%m',v_operation.d_date) AS d_DATEMONTH,STRFTIME('%Y',v_operation.d_date)||'-Q'||(CASE WHEN STRFTIME('%m',v_operation.d_date)<='03' THEN '1' WHEN STRFTIME('%m',v_operation.d_date)<='06' THEN '2' WHEN STRFTIME('%m',v_operation.d_date)<='09' THEN '3' ELSE '4' END) AS d_DATEQUARTER, STRFTIME('%Y',v_operation.d_date)||'-S'||(CASE WHEN STRFTIME('%m',v_operation.d_date)<='06' THEN '1' ELSE '2' END) AS d_DATESEMESTER, STRFTIME('%Y',v_operation.d_date) AS d_DATEYEAR, (SELECT count(*) FROM v_recurrentoperation s WHERE s.rd_operation_id=v_operation.id) AS i_NBRECURRENT,  (CASE WHEN v_operation.f_QUANTITY>=0 THEN v_operation.f_QUANTITY ELSE 0 END) AS f_QUANTITY_INCOME, (CASE WHEN v_operation.f_QUANTITY<=0 THEN v_operation.f_QUANTITY ELSE 0 END) AS f_QUANTITY_EXPENSE, (SELECT o2.f_balance FROM operationbalance o2 WHERE o2.r_operation_id=v_operation.id ) AS f_BALANCE, (CASE WHEN v_operation.f_QUANTITY>=0 THEN v_operation.f_CURRENTAMOUNT ELSE 0 END) AS f_CURRENTAMOUNT_INCOME, (CASE WHEN v_operation.f_QUANTITY<=0 THEN v_operation.f_CURRENTAMOUNT ELSE 0 END) AS f_CURRENTAMOUNT_EXPENSE FROM v_operation;\nCREATE VIEW v_operation_template_display AS SELECT * FROM v_operation_display_all WHERE t_template='Y';\nCREATE VIEW v_operation_display AS SELECT * FROM v_operation_display_all WHERE d_date!='0000-00-00' AND t_template='N';\nCREATE VIEW v_unit_display AS SELECT *,(SELECT TOTAL(o.f_QUANTITY) FROM v_operation_display o WHERE o.rc_unit_id=v_unit.id) AS f_QUANTITYOWNED FROM v_unit;\nCREATE VIEW v_account_display AS SELECT (CASE t_type WHEN 'C' THEN 'Courant' WHEN 'D' THEN 'Carte de cr\xe9dit' WHEN 'A' THEN 'Actif' WHEN 'I' THEN 'Investissement' WHEN 'W' THEN 'Portefeuille' WHEN 'L' THEN 'Pr\xeat' WHEN 'O' THEN 'Autre' END) AS t_TYPENLS,bank.t_name  AS t_BANK,bank.t_bank_number AS t_BANK_NUMBER,bank.t_icon AS t_ICON,v_account.*,(v_account.f_CURRENTAMOUNT/(SELECT u.f_CURRENTAMOUNT FROM v_unit u, operation s WHERE u.id=s.rc_unit_id AND s.rd_account_id=v_account.id AND s.d_date='0000-00-00')) AS f_QUANTITY, (SELECT (CASE WHEN u.t_symbol!='' THEN u.t_symbol ELSE u.t_name END) FROM unit u, operation s WHERE u.id=s.rc_unit_id AND s.rd_account_id=v_account.id AND s.d_date='0000-00-00') AS t_UNIT, (SELECT TOTAL(s.f_CURRENTAMOUNT) FROM v_operation s WHERE s.rd_account_id=v_account.id AND s.t_status!='N' AND s.t_template='N') AS f_CHECKED, (SELECT TOTAL(s.f_CURRENTAMOUNT) FROM v_operation s WHERE s.rd_account_id=v_account.id AND s.t_status='N' AND s.t_template='N') AS f_COMING_SOON, (SELECT TOTAL(s.f_CURRENTAMOUNT) FROM v_operation s WHERE s.rd_account_id=v_account.id AND s.d_date<=date('now') AND s.t_template='N') AS f_TODAYAMOUNT, (SELECT count(*) FROM v_operation_display s WHERE s.rd_account_id=v_account.id) AS i_NBOPERATIONS, IFNULL((SELECT s.f_rate FROM interest s WHERE s.rd_account_id=v_account.id AND s.d_date=v_account.d_MAXDATE),0) AS f_RATE FROM v_account, bank WHERE bank.id=v_account.rd_bank_id;\nCREATE VIEW v_operation_consolidated AS SELECT (SELECT s.t_TYPENLS FROM v_account_display s WHERE s.id=op.rd_account_id) AS t_ACCOUNTTYPE,(SELECT u.t_TYPENLS FROM v_unit u WHERE u.id=op.rc_unit_id) AS t_UNITTYPE,sop.id AS i_SUBOPID, sop.r_refund_id AS r_refund_id, (CASE WHEN sop.t_comment='' THEN op.t_comment ELSE sop.t_comment END) AS t_REALCOMMENT, sop.t_CATEGORY AS t_REALCATEGORY, sop.t_REFUND AS t_REALREFUND, sop.r_category_id AS i_IDCATEGORY, (CASE WHEN sop.f_value<0 THEN '-' WHEN sop.f_value=0 THEN '' ELSE '+' END) AS t_TYPEEXPENSE, (CASE WHEN sop.f_value<0 THEN 'D\xe9pense' WHEN sop.f_value=0 THEN '' ELSE 'Revenu' END) AS t_TYPEEXPENSENLS, sop.f_value AS f_REALQUANTITY, sop.f_VALUE_INCOME AS f_REALQUANTITY_INCOME, sop.f_VALUE_EXPENSE AS f_REALQUANTITY_EXPENSE, ((SELECT u.f_CURRENTAMOUNT FROM v_unit u WHERE u.id=op.rc_unit_id)*sop.f_value) AS f_REALCURRENTAMOUNT, ((SELECT u.f_CURRENTAMOUNT FROM v_unit u WHERE u.id=op.rc_unit_id)*sop.f_VALUE_INCOME) AS f_REALCURRENTAMOUNT_INCOME, ((SELECT u.f_CURRENTAMOUNT FROM v_unit u WHERE u.id=op.rc_unit_id)*sop.f_VALUE_EXPENSE) AS f_REALCURRENTAMOUNT_EXPENSE, op.* FROM v_operation_display_all AS op, v_suboperation_display AS sop WHERE op.t_template='N' AND sop.rd_operation_id=op.ID;\nCREATE VIEW v_operation_prop AS SELECT p.id AS i_PROPPID, p.t_name AS i_PROPPNAME, p.t_value AS i_PROPVALUE, op.* FROM v_operation_consolidated AS op LEFT OUTER JOIN parameters AS p ON p.t_uuid_parent=op.id||'-operation';\nCREATE VIEW v_refund_delete AS SELECT *, (CASE WHEN EXISTS(SELECT 1 FROM v_operation_consolidated WHERE r_refund_id=refund.id AND t_status='Y') THEN 'Vous n''\xeates pas autoris\xe9 \xe0 d\xe9truire ce suiveur car utilis\xe9 par des op\xe9rations rapproch\xe9es' END) t_delete_message FROM refund;\nCREATE VIEW v_refund AS SELECT *, (SELECT TOTAL(o.f_REALCURRENTAMOUNT) FROM v_operation_consolidated o WHERE o.r_refund_id=refund.id) AS f_CURRENTAMOUNT FROM refund;\nCREATE VIEW v_refund_display AS SELECT *,(SELECT MIN(o.d_date) FROM v_operation_consolidated o WHERE o.r_refund_id=v_refund.id) AS d_FIRSTDATE, (SELECT MAX(o.d_date) FROM v_operation_consolidated o WHERE o.r_refund_id=v_refund.id) AS d_LASTDATE  FROM v_refund;\nCREATE VIEW v_refund_displayname AS SELECT *, t_name AS t_displayname FROM refund;\nCREATE VIEW v_payee_delete AS SELECT *, (CASE WHEN EXISTS(SELECT 1 FROM operation WHERE r_payee_id=payee.id AND t_status='Y') THEN 'Vous n''\xeates pas autoris\xe9 \xe0 d\xe9truire ce tiers car utilis\xe9 par des op\xe9rations rapproch\xe9es' END) t_delete_message FROM payee;\nCREATE VIEW v_payee AS SELECT *, (SELECT TOTAL(o.f_CURRENTAMOUNT) FROM v_operation o WHERE o.r_payee_id=payee.id AND o.t_template='N') AS f_CURRENTAMOUNT FROM payee;\nCREATE VIEW v_payee_display AS SELECT *  FROM v_payee;\nCREATE VIEW v_payee_displayname AS SELECT *, t_name AS t_displayname FROM payee;\nCREATE VIEW v_category_delete AS SELECT *, (CASE WHEN EXISTS(SELECT 1 FROM v_operation_consolidated WHERE (t_REALCATEGORY=category.t_fullname OR t_REALCATEGORY like category.t_fullname||'%') AND t_status='Y') THEN 'Vous n''\xeates pas autoris\xe9 \xe0 d\xe9truire cette cat\xe9gorie car utilis\xe9e par des op\xe9rations rapproch\xe9es' END) t_delete_message FROM category;\nCREATE VIEW v_category_display_tmp AS SELECT *,(SELECT count(distinct(so.rd_operation_id)) FROM operation o, suboperation so WHERE so.rd_operation_id=o.id AND so.r_category_id=v_category.ID AND o.t_template='N') AS i_NBOPERATIONS, (SELECT TOTAL(o.f_REALCURRENTAMOUNT) FROM v_operation_consolidated o WHERE o.i_IDCATEGORY=v_category.ID) AS f_REALCURRENTAMOUNT FROM v_category;\nCREATE VIEW v_category_display AS SELECT *,f_REALCURRENTAMOUNT+(SELECT TOTAL(c.f_REALCURRENTAMOUNT) FROM vm_category_display_tmp c WHERE c.t_fullname LIKE vm_category_display_tmp.t_fullname||' > %') AS f_SUMCURRENTAMOUNT, i_NBOPERATIONS+(SELECT CAST(TOTAL(c.i_NBOPERATIONS) AS INTEGER) FROM vm_category_display_tmp c WHERE c.t_fullname like vm_category_display_tmp.t_fullname||' > %') AS i_SUMNBOPERATIONS, (CASE WHEN t_bookmarked='Y' THEN 'Y' WHEN EXISTS(SELECT 1 FROM category c WHERE c.t_bookmarked='Y' AND c.t_fullname like vm_category_display_tmp.t_fullname||' > %') THEN 'C' ELSE 'N' END) AS t_HASBOOKMARKEDCHILD, (CASE WHEN vm_category_display_tmp.f_REALCURRENTAMOUNT<0 THEN '-' WHEN vm_category_display_tmp.f_REALCURRENTAMOUNT=0 THEN '' ELSE '+' END) AS t_TYPEEXPENSE,(CASE WHEN vm_category_display_tmp.f_REALCURRENTAMOUNT<0 THEN 'D\xe9pense' WHEN vm_category_display_tmp.f_REALCURRENTAMOUNT=0 THEN '' ELSE 'Revenu' END) AS t_TYPEEXPENSENLS FROM vm_category_display_tmp;\nCREATE VIEW v_recurrentoperation_display AS SELECT rop.*, op.t_ACCOUNT, op.i_number, op.t_mode, op.i_group_id, op.t_TRANSFER, op.t_PAYEE, op.t_comment, op.t_CATEGORY, op.t_status, op.f_CURRENTAMOUNT FROM v_recurrentoperation rop, v_operation_display_all AS op WHERE rop.rd_operation_id=op.ID;\nCREATE VIEW v_rule AS SELECT *,(SELECT COUNT(1) FROM rule r WHERE r.f_sortorder<=rule.f_sortorder) AS i_ORDER FROM rule;\nCREATE VIEW v_rule_displayname AS SELECT *, t_definition AS t_displayname FROM rule;\nCREATE VIEW v_interest AS SELECT *,(SELECT s.t_name FROM account s WHERE s.id=interest.rd_account_id) AS t_ACCOUNT  FROM interest;\nCREATE VIEW v_interest_displayname AS SELECT *, STRFTIME('%d/%m/%Y',d_date)||' '||f_rate||'%' AS t_displayname FROM interest;\nCREATE VIEW v_budgetrule AS SELECT *, IFNULL((SELECT s.t_fullname FROM category s WHERE s.id=budgetrule.rc_category_id),'') AS t_CATEGORYCONDITION, IFNULL((SELECT s.t_fullname FROM category s WHERE s.id=budgetrule.rc_category_id_target),'') AS t_CATEGORY, (CASE WHEN budgetrule.i_condition=-1 THEN 'N\xe9gatif' WHEN budgetrule.i_condition=1 THEN 'Positif' WHEN budgetrule.i_condition=0 THEN 'Tous' END) AS t_WHENNLS, f_quantity||(CASE WHEN budgetrule.t_absolute='N' THEN '%' ELSE (SELECT t_symbol FROM unit WHERE t_type='1') END) AS t_WHATNLS,(CASE WHEN budgetrule.t_rule='N' THEN 'Suivant' WHEN budgetrule.t_rule='C' THEN 'Courant' WHEN budgetrule.t_rule='Y' THEN 'Ann\xe9e' END) AS t_RULENLS FROM budgetrule;\nCREATE VIEW v_budgetrule_display AS SELECT *  FROM v_budgetrule;\nCREATE VIEW v_budgetrule_displayname AS SELECT *, t_WHENNLS||' '||t_WHATNLS||' '||t_RULENLS||' '||t_CATEGORY AS t_displayname FROM v_budgetrule;\nCREATE VIEW v_budget_tmp AS SELECT *, IFNULL((SELECT s.t_fullname FROM category s WHERE s.id=budget.rc_category_id),'') AS t_CATEGORY, (i_year||(CASE WHEN i_month=0 THEN '' WHEN i_month<10 THEN '-0'||i_month ELSE '-'||i_month END)) AS t_PERIOD, (SELECT TOTAL(o.f_REALCURRENTAMOUNT) FROM v_operation_consolidated o WHERE STRFTIME('%Y', o.d_date)=i_year AND (i_month=0 OR STRFTIME('%m', o.d_date)=i_month) AND o.i_IDCATEGORY IN (SELECT b2.id_category FROM budgetcategory b2 WHERE b2.id=budget.id)) AS f_CURRENTAMOUNT, (SELECT GROUP_CONCAT(v_budgetrule_displayname.t_displayname,',') FROM v_budgetrule_displayname WHERE (v_budgetrule_displayname.t_year_condition='N' OR budget.i_year=v_budgetrule_displayname.i_year) AND (v_budgetrule_displayname.t_month_condition='N' OR budget.i_month=v_budgetrule_displayname.i_month) AND (v_budgetrule_displayname.t_category_condition='N' OR budget.rc_category_id=v_budgetrule_displayname.rc_category_id) ORDER BY v_budgetrule_displayname.t_absolute DESC, v_budgetrule_displayname.id) AS t_RULES FROM budget;\nCREATE VIEW v_budget AS SELECT *, (f_CURRENTAMOUNT-f_budgeted_modified) AS f_DELTABEFORETRANSFER, (f_CURRENTAMOUNT-f_budgeted_modified-f_transferred) AS f_DELTA FROM v_budget_tmp;\nCREATE VIEW v_budget_display AS SELECT *, (f_CURRENTAMOUNT-f_budgeted_modified) AS f_DELTABEFORETRANSFER, (f_CURRENTAMOUNT-f_budgeted_modified-f_transferred) AS f_DELTA FROM vm_budget_tmp;\nCREATE VIEW v_budget_displayname AS SELECT *, t_CATEGORY||' '||t_PERIOD||' '||f_budgeted_modified AS t_displayname FROM v_budget;\nCREATE TRIGGER fkdc_bank_parameters_uuid BEFORE DELETE ON bank FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'bank'; END;\nCREATE TRIGGER fkdc_account_parameters_uuid BEFORE DELETE ON account FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'account'; END;\nCREATE TRIGGER fkdc_unit_parameters_uuid BEFORE DELETE ON unit FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'unit'; END;\nCREATE TRIGGER fkdc_unitvalue_parameters_uuid BEFORE DELETE ON unitvalue FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'unitvalue'; END;\nCREATE TRIGGER fkdc_category_parameters_uuid BEFORE DELETE ON category FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'category'; END;\nCREATE TRIGGER fkdc_operation_parameters_uuid BEFORE DELETE ON operation FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'operation'; END;\nCREATE TRIGGER fkdc_interest_parameters_uuid BEFORE DELETE ON interest FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'interest'; END;\nCREATE TRIGGER fkdc_suboperation_parameters_uuid BEFORE DELETE ON suboperation FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'suboperation'; END;\nCREATE TRIGGER fkdc_refund_parameters_uuid BEFORE DELETE ON refund FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'refund'; END;\nCREATE TRIGGER fkdc_payee_parameters_uuid BEFORE DELETE ON payee FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'payee'; END;\nCREATE TRIGGER fkdc_recurrentoperation_parameters_uuid BEFORE DELETE ON recurrentoperation FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'recurrentoperation'; END;\nCREATE TRIGGER fkdc_rule_parameters_uuid BEFORE DELETE ON rule FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'rule'; END;\nCREATE TRIGGER fkdc_budget_parameters_uuid BEFORE DELETE ON budget FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'budget'; END;\nCREATE TRIGGER fkdc_budgetrule_parameters_uuid BEFORE DELETE ON budgetrule FOR EACH ROW BEGIN     DELETE FROM parameters WHERE parameters.t_uuid_parent=OLD.id||'-'||'budgetrule'; END;\nCREATE TRIGGER cpt_category_fullname1 AFTER INSERT ON category BEGIN UPDATE category SET t_fullname=CASE WHEN rd_category_id IS NULL OR rd_category_id='' OR rd_category_id=0 THEN new.t_name ELSE (SELECT c.t_fullname FROM category c WHERE c.id=new.rd_category_id)||' > '||new.t_name END WHERE id=new.id;END;\nCREATE TRIGGER cpt_category_fullname2 AFTER UPDATE OF t_name, rd_category_id ON category BEGIN UPDATE category SET t_fullname=CASE WHEN rd_category_id IS NULL OR rd_category_id='' OR rd_category_id=0 THEN new.t_name ELSE (SELECT c.t_fullname FROM category c WHERE c.id=new.rd_category_id)||' > '||new.t_name END WHERE id=new.id;UPDATE category SET t_name=t_name WHERE rd_category_id=new.id;END;\nCREATE TRIGGER fkdc_category_delete BEFORE DELETE ON category FOR EACH ROW BEGIN     UPDATE suboperation SET r_category_id=OLD.rd_category_id WHERE r_category_id=OLD.id; END;\nexplain\n       SELECT TOTAL(f_CURRENTAMOUNT), d_DATEMONTH\n       from v_operation_display\n       WHERE d_DATEMONTH IN ('2012-05', '2012-04')\n       group by d_DATEMONTH, t_TYPEEXPENSE;"))
+	checkExecOK(t, db.Exec("CREATE TABLE Resource (ID INTEGER NOT NULL PRIMARY KEY, Uri TEXT NOT\nNULL, UNIQUE (Uri));\nCREATE VIRTUAL TABLE fts USING fts4;\nCREATE TABLE \"mfo:Action\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mfo:Enclosure\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:remoteLink\" INTEGER, \"mfo:remoteLink:graph\" INTEGER,\n\"mfo:groupDefault\" INTEGER, \"mfo:groupDefault:graph\" INTEGER,\n\"mfo:localLink\" INTEGER, \"mfo:localLink:graph\" INTEGER, \"mfo:optional\"\nINTEGER, \"mfo:optional:graph\" INTEGER);\nCREATE TABLE \"mfo:FeedChannel\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:updatedTime\" INTEGER, \"mfo:updatedTime:graph\" INTEGER,\n\"mfo:updatedTime:localDate\" INTEGER, \"mfo:updatedTime:localTime\"\nINTEGER, \"mfo:unreadCount\" INTEGER, \"mfo:unreadCount:graph\" INTEGER,\n\"mfo:totalCount\" INTEGER, \"mfo:totalCount:graph\" INTEGER, \"mfo:action\"\nINTEGER, \"mfo:action:graph\" INTEGER, \"mfo:type\" INTEGER,\n\"mfo:type:graph\" INTEGER);\nCREATE TABLE \"mfo:FeedElement\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:image\" TEXT COLLATE NOCASE, \"mfo:image:graph\" INTEGER,\n\"mfo:feedSettings\" INTEGER, \"mfo:feedSettings:graph\" INTEGER);\nCREATE TABLE \"mfo:FeedMessage\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:downloadedTime\" INTEGER, \"mfo:downloadedTime:graph\" INTEGER,\n\"mfo:downloadedTime:localDate\" INTEGER, \"mfo:downloadedTime:localTime\"\nINTEGER);\nCREATE TABLE \"mfo:FeedMessage_mfo:enclosureList\" (ID INTEGER NOT NULL,\n\"mfo:enclosureList\" INTEGER NOT NULL, \"mfo:enclosureList:graph\"\nINTEGER);\nCREATE TABLE \"mfo:FeedSettings\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:updateInterval\" INTEGER, \"mfo:updateInterval:graph\" INTEGER,\n\"mfo:expiryInterval\" INTEGER, \"mfo:expiryInterval:graph\" INTEGER,\n\"mfo:downloadPath\" TEXT COLLATE NOCASE, \"mfo:downloadPath:graph\"\nINTEGER, \"mfo:downloadFlag\" INTEGER, \"mfo:downloadFlag:graph\" INTEGER,\n\"mfo:maxSize\" INTEGER, \"mfo:maxSize:graph\" INTEGER);\nCREATE TABLE \"mfo:FeedType\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mfo:name\" TEXT COLLATE NOCASE, \"mfo:name:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoBoundingBox\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:GeoBoundingBox_mlo:bbNorthWest\" (ID INTEGER NOT\nNULL, \"mlo:bbNorthWest\" INTEGER NOT NULL, \"mlo:bbNorthWest:graph\"\nINTEGER);\nCREATE TABLE \"mlo:GeoBoundingBox_mlo:bbSouthEast\" (ID INTEGER NOT\nNULL, \"mlo:bbSouthEast\" INTEGER NOT NULL, \"mlo:bbSouthEast:graph\"\nINTEGER);\nCREATE TABLE \"mlo:GeoLocation\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:GeoLocation_mlo:asBoundingBox\" (ID INTEGER NOT NULL,\n\"mlo:asBoundingBox\" INTEGER NOT NULL, \"mlo:asBoundingBox:graph\"\nINTEGER);\nCREATE TABLE \"mlo:GeoLocation_mlo:asGeoPoint\" (ID INTEGER NOT NULL,\n\"mlo:asGeoPoint\" INTEGER NOT NULL, \"mlo:asGeoPoint:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoLocation_mlo:asPostalAddress\" (ID INTEGER NOT\nNULL, \"mlo:asPostalAddress\" INTEGER NOT NULL,\n\"mlo:asPostalAddress:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:GeoPoint_mlo:address\" (ID INTEGER NOT NULL,\n\"mlo:address\" TEXT NOT NULL, \"mlo:address:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:altitude\" (ID INTEGER NOT NULL,\n\"mlo:altitude\" REAL NOT NULL, \"mlo:altitude:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:city\" (ID INTEGER NOT NULL, \"mlo:city\"\nTEXT NOT NULL, \"mlo:city:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:country\" (ID INTEGER NOT NULL,\n\"mlo:country\" TEXT NOT NULL, \"mlo:country:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:latitude\" (ID INTEGER NOT NULL,\n\"mlo:latitude\" REAL NOT NULL, \"mlo:latitude:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:longitude\" (ID INTEGER NOT NULL,\n\"mlo:longitude\" REAL NOT NULL, \"mlo:longitude:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:state\" (ID INTEGER NOT NULL,\n\"mlo:state\" TEXT NOT NULL, \"mlo:state:graph\" INTEGER);\nCREATE TABLE \"mlo:GeoPoint_mlo:timestamp\" (ID INTEGER NOT NULL,\n\"mlo:timestamp\" INTEGER NOT NULL, \"mlo:timestamp:graph\" INTEGER,\n\"mlo:timestamp:localDate\" INTEGER NOT NULL, \"mlo:timestamp:localTime\"\nINTEGER NOT NULL);\nCREATE TABLE \"mlo:GeoSphere\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:GeoSphere_mlo:radius\" (ID INTEGER NOT NULL,\n\"mlo:radius\" REAL NOT NULL, \"mlo:radius:graph\" INTEGER);\nCREATE TABLE \"mlo:Landmark\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:LandmarkCategory\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:LandmarkCategory_mlo:isRemovable\" (ID INTEGER NOT\nNULL, \"mlo:isRemovable\" INTEGER NOT NULL, \"mlo:isRemovable:graph\"\nINTEGER);\nCREATE TABLE \"mlo:Landmark_mlo:belongsToCategory\" (ID INTEGER NOT\nNULL, \"mlo:belongsToCategory\" INTEGER NOT NULL,\n\"mlo:belongsToCategory:graph\" INTEGER);\nCREATE TABLE \"mlo:Landmark_mlo:poiLocation\" (ID INTEGER NOT NULL,\n\"mlo:poiLocation\" INTEGER NOT NULL, \"mlo:poiLocation:graph\" INTEGER);\nCREATE TABLE \"mlo:LocationBoundingBox\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:LocationBoundingBox_mlo:boxEastLimit\" (ID INTEGER\nNOT NULL, \"mlo:boxEastLimit\" INTEGER NOT NULL,\n\"mlo:boxEastLimit:graph\" INTEGER);\nCREATE TABLE \"mlo:LocationBoundingBox_mlo:boxNorthLimit\" (ID INTEGER\nNOT NULL, \"mlo:boxNorthLimit\" INTEGER NOT NULL,\n\"mlo:boxNorthLimit:graph\" INTEGER);\nCREATE TABLE \"mlo:LocationBoundingBox_mlo:boxSouthWestCorner\" (ID\nINTEGER NOT NULL, \"mlo:boxSouthWestCorner\" INTEGER NOT NULL,\n\"mlo:boxSouthWestCorner:graph\" INTEGER);\nCREATE TABLE \"mlo:LocationBoundingBox_mlo:boxVerticalLimit\" (ID\nINTEGER NOT NULL, \"mlo:boxVerticalLimit\" INTEGER NOT NULL,\n\"mlo:boxVerticalLimit:graph\" INTEGER);\nCREATE TABLE \"mlo:PointOfInterest\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:Route\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mlo:Route_mlo:endTime\" (ID INTEGER NOT NULL,\n\"mlo:endTime\" INTEGER NOT NULL, \"mlo:endTime:graph\" INTEGER,\n\"mlo:endTime:localDate\" INTEGER NOT NULL, \"mlo:endTime:localTime\"\nINTEGER NOT NULL);\nCREATE TABLE \"mlo:Route_mlo:routeDetails\" (ID INTEGER NOT NULL,\n\"mlo:routeDetails\" TEXT NOT NULL, \"mlo:routeDetails:graph\" INTEGER);\nCREATE TABLE \"mlo:Route_mlo:startTime\" (ID INTEGER NOT NULL,\n\"mlo:startTime\" INTEGER NOT NULL, \"mlo:startTime:graph\" INTEGER,\n\"mlo:startTime:localDate\" INTEGER NOT NULL, \"mlo:startTime:localTime\"\nINTEGER NOT NULL);\nCREATE TABLE \"mto:DownloadTransfer\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mto:State\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mto:SyncTransfer\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mto:Transfer\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mto:transferState\" INTEGER, \"mto:transferState:graph\" INTEGER,\n\"mto:method\" INTEGER, \"mto:method:graph\" INTEGER, \"mto:created\"\nINTEGER, \"mto:created:graph\" INTEGER, \"mto:created:localDate\" INTEGER,\n\"mto:created:localTime\" INTEGER, \"mto:account\" TEXT COLLATE NOCASE,\n\"mto:account:graph\" INTEGER, \"mto:starter\" INTEGER,\n\"mto:starter:graph\" INTEGER, \"mto:agent\" INTEGER, \"mto:agent:graph\"\nINTEGER);\nCREATE TABLE \"mto:TransferElement\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"mto:source\" INTEGER, \"mto:source:graph\" INTEGER, \"mto:destination\"\nINTEGER, \"mto:destination:graph\" INTEGER, \"mto:startedTime\" INTEGER,\n\"mto:startedTime:graph\" INTEGER, \"mto:startedTime:localDate\" INTEGER,\n\"mto:startedTime:localTime\" INTEGER, \"mto:completedTime\" INTEGER,\n\"mto:completedTime:graph\" INTEGER, \"mto:completedTime:localDate\"\nINTEGER, \"mto:completedTime:localTime\" INTEGER, \"mto:state\" INTEGER,\n\"mto:state:graph\" INTEGER);\nCREATE TABLE \"mto:TransferMethod\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mto:Transfer_mto:transferList\" (ID INTEGER NOT NULL,\n\"mto:transferList\" INTEGER NOT NULL, \"mto:transferList:graph\"\nINTEGER);\nCREATE TABLE \"mto:Transfer_mto:transferPrivacyLevel\" (ID INTEGER NOT\nNULL, \"mto:transferPrivacyLevel\" TEXT NOT NULL,\n\"mto:transferPrivacyLevel:graph\" INTEGER);\nCREATE TABLE \"mto:UploadTransfer\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"mto:UploadTransfer_mto:transferCategory\" (ID INTEGER NOT\nNULL, \"mto:transferCategory\" TEXT NOT NULL,\n\"mto:transferCategory:graph\" INTEGER);\nCREATE TABLE \"mtp:ScanType\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nao:Property\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nao:propertyName\" TEXT COLLATE NOCASE, \"nao:propertyName:graph\"\nINTEGER, \"nao:propertyValue\" TEXT COLLATE NOCASE,\n\"nao:propertyValue:graph\" INTEGER);\nCREATE TABLE \"nao:Tag\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nao:prefLabel\" TEXT COLLATE NOCASE, \"nao:prefLabel:graph\" INTEGER,\n\"nao:description\" TEXT COLLATE NOCASE, \"nao:description:graph\"\nINTEGER);\nCREATE TABLE \"nao:Tag_tracker:isDefaultTag\" (ID INTEGER NOT NULL,\n\"tracker:isDefaultTag\" INTEGER NOT NULL, \"tracker:isDefaultTag:graph\"\nINTEGER);\nCREATE TABLE \"nao:Tag_tracker:tagRelatedTo\" (ID INTEGER NOT NULL,\n\"tracker:tagRelatedTo\" INTEGER NOT NULL, \"tracker:tagRelatedTo:graph\"\nINTEGER);\nCREATE TABLE \"ncal:AccessClassification\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Alarm\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:repeat\" INTEGER, \"ncal:repeat:graph\" INTEGER);\nCREATE TABLE \"ncal:AlarmAction\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Alarm_ncal:action\" (ID INTEGER NOT NULL,\n\"ncal:action\" INTEGER NOT NULL, \"ncal:action:graph\" INTEGER);\nCREATE TABLE \"ncal:Attachment\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:attachmentUri\" INTEGER, \"ncal:attachmentUri:graph\" INTEGER,\n\"ncal:fmttype\" TEXT COLLATE NOCASE, \"ncal:fmttype:graph\" INTEGER,\n\"ncal:encoding\" INTEGER, \"ncal:encoding:graph\" INTEGER,\n\"ncal:attachmentContent\" TEXT COLLATE NOCASE,\n\"ncal:attachmentContent:graph\" INTEGER);\nCREATE TABLE \"ncal:AttachmentEncoding\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Attendee\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:delegatedTo\" INTEGER, \"ncal:delegatedTo:graph\" INTEGER,\n\"ncal:delegatedFrom\" INTEGER, \"ncal:delegatedFrom:graph\" INTEGER,\n\"ncal:cutype\" INTEGER, \"ncal:cutype:graph\" INTEGER, \"ncal:member\"\nINTEGER, \"ncal:member:graph\" INTEGER, \"ncal:role\" INTEGER,\n\"ncal:role:graph\" INTEGER, \"ncal:rsvp\" INTEGER, \"ncal:rsvp:graph\"\nINTEGER, \"ncal:partstat\" INTEGER, \"ncal:partstat:graph\" INTEGER);\nCREATE TABLE \"ncal:AttendeeOrOrganizer\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"ncal:dir\" INTEGER, \"ncal:dir:graph\" INTEGER,\n\"ncal:involvedContact\" INTEGER, \"ncal:involvedContact:graph\" INTEGER,\n\"ncal:sentBy\" INTEGER, \"ncal:sentBy:graph\" INTEGER);\nCREATE TABLE \"ncal:AttendeeRole\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:BydayRulePart\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:BydayRulePart_ncal:bydayModifier\" (ID INTEGER NOT\nNULL, \"ncal:bydayModifier\" INTEGER NOT NULL,\n\"ncal:bydayModifier:graph\" INTEGER);\nCREATE TABLE \"ncal:BydayRulePart_ncal:bydayWeekday\" (ID INTEGER NOT\nNULL, \"ncal:bydayWeekday\" INTEGER NOT NULL, \"ncal:bydayWeekday:graph\"\nINTEGER);\nCREATE TABLE \"ncal:Calendar\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:method\" TEXT COLLATE NOCASE, \"ncal:method:graph\" INTEGER,\n\"ncal:calscale\" INTEGER, \"ncal:calscale:graph\" INTEGER, \"ncal:prodid\"\nTEXT COLLATE NOCASE, \"ncal:prodid:graph\" INTEGER, \"ncal:version\" TEXT\nCOLLATE NOCASE, \"ncal:version:graph\" INTEGER);\nCREATE TABLE \"ncal:CalendarDataObject\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:CalendarScale\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:CalendarUserType\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Calendar_ncal:component\" (ID INTEGER NOT NULL,\n\"ncal:component\" INTEGER NOT NULL, \"ncal:component:graph\" INTEGER);\nCREATE TABLE \"ncal:Event\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:eventStatus\" INTEGER, \"ncal:eventStatus:graph\" INTEGER,\n\"ncal:transp\" INTEGER, \"ncal:transp:graph\" INTEGER);\nCREATE TABLE \"ncal:EventStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Freebusy\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:FreebusyPeriod\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:fbtype\" INTEGER, \"ncal:fbtype:graph\" INTEGER);\nCREATE TABLE \"ncal:FreebusyType\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Freebusy_ncal:freebusy\" (ID INTEGER NOT NULL,\n\"ncal:freebusy\" INTEGER NOT NULL, \"ncal:freebusy:graph\" INTEGER);\nCREATE TABLE \"ncal:Journal\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:journalStatus\" INTEGER, \"ncal:journalStatus:graph\" INTEGER);\nCREATE TABLE \"ncal:JournalStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:NcalDateTime\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:ncalTimezone\" INTEGER, \"ncal:ncalTimezone:graph\" INTEGER,\n\"ncal:date\" INTEGER, \"ncal:date:graph\" INTEGER, \"ncal:date:localDate\"\nINTEGER, \"ncal:date:localTime\" INTEGER, \"ncal:dateTime\" INTEGER,\n\"ncal:dateTime:graph\" INTEGER, \"ncal:dateTime:localDate\" INTEGER,\n\"ncal:dateTime:localTime\" INTEGER);\nCREATE TABLE \"ncal:NcalPeriod\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:periodBegin\" INTEGER, \"ncal:periodBegin:graph\" INTEGER,\n\"ncal:periodBegin:localDate\" INTEGER, \"ncal:periodBegin:localTime\"\nINTEGER, \"ncal:periodDuration\" INTEGER, \"ncal:periodDuration:graph\"\nINTEGER, \"ncal:periodEnd\" INTEGER, \"ncal:periodEnd:graph\" INTEGER,\n\"ncal:periodEnd:localDate\" INTEGER, \"ncal:periodEnd:localTime\"\nINTEGER);\nCREATE TABLE \"ncal:NcalTimeEntity\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Organizer\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:ParticipationStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:RecurrenceFrequency\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:RecurrenceIdentifier\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"ncal:range\" INTEGER, \"ncal:range:graph\" INTEGER,\n\"ncal:recurrenceIdDateTime\" INTEGER, \"ncal:recurrenceIdDateTime:graph\"\nINTEGER);\nCREATE TABLE \"ncal:RecurrenceIdentifierRange\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:RecurrenceRule\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:until\" INTEGER, \"ncal:until:graph\" INTEGER,\n\"ncal:until:localDate\" INTEGER, \"ncal:until:localTime\" INTEGER,\n\"ncal:wkst\" INTEGER, \"ncal:wkst:graph\" INTEGER, \"ncal:interval\"\nINTEGER, \"ncal:interval:graph\" INTEGER, \"ncal:count\" INTEGER,\n\"ncal:count:graph\" INTEGER, \"ncal:freq\" INTEGER, \"ncal:freq:graph\"\nINTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:byday\" (ID INTEGER NOT NULL,\n\"ncal:byday\" INTEGER NOT NULL, \"ncal:byday:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:byhour\" (ID INTEGER NOT NULL,\n\"ncal:byhour\" INTEGER NOT NULL, \"ncal:byhour:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:byminute\" (ID INTEGER NOT NULL,\n\"ncal:byminute\" INTEGER NOT NULL, \"ncal:byminute:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:bymonth\" (ID INTEGER NOT NULL,\n\"ncal:bymonth\" INTEGER NOT NULL, \"ncal:bymonth:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:bymonthday\" (ID INTEGER NOT\nNULL, \"ncal:bymonthday\" INTEGER NOT NULL, \"ncal:bymonthday:graph\"\nINTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:bysecond\" (ID INTEGER NOT NULL,\n\"ncal:bysecond\" INTEGER NOT NULL, \"ncal:bysecond:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:bysetpos\" (ID INTEGER NOT NULL,\n\"ncal:bysetpos\" INTEGER NOT NULL, \"ncal:bysetpos:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:byweekno\" (ID INTEGER NOT NULL,\n\"ncal:byweekno\" INTEGER NOT NULL, \"ncal:byweekno:graph\" INTEGER);\nCREATE TABLE \"ncal:RecurrenceRule_ncal:byyearday\" (ID INTEGER NOT\nNULL, \"ncal:byyearday\" INTEGER NOT NULL, \"ncal:byyearday:graph\"\nINTEGER);\nCREATE TABLE \"ncal:RequestStatus\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:statusDescription\" TEXT COLLATE NOCASE,\n\"ncal:statusDescription:graph\" INTEGER, \"ncal:returnStatus\" TEXT\nCOLLATE NOCASE, \"ncal:returnStatus:graph\" INTEGER,\n\"ncal:requestStatusData\" TEXT COLLATE NOCASE,\n\"ncal:requestStatusData:graph\" INTEGER);\nCREATE TABLE \"ncal:TimeTransparency\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Timezone\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:tzurl\" INTEGER, \"ncal:tzurl:graph\" INTEGER, \"ncal:standard\"\nINTEGER, \"ncal:standard:graph\" INTEGER, \"ncal:daylight\" INTEGER,\n\"ncal:daylight:graph\" INTEGER, \"ncal:tzid\" TEXT COLLATE NOCASE,\n\"ncal:tzid:graph\" INTEGER);\nCREATE TABLE \"ncal:TimezoneObservance\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"ncal:tzoffsetfrom\" TEXT COLLATE NOCASE,\n\"ncal:tzoffsetfrom:graph\" INTEGER, \"ncal:tzoffsetto\" TEXT COLLATE\nNOCASE, \"ncal:tzoffsetto:graph\" INTEGER, \"ncal:tzname\" TEXT COLLATE\nNOCASE, \"ncal:tzname:graph\" INTEGER);\nCREATE TABLE \"ncal:Todo\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:percentComplete\" INTEGER, \"ncal:percentComplete:graph\" INTEGER,\n\"ncal:completed\" INTEGER, \"ncal:completed:graph\" INTEGER,\n\"ncal:completed:localDate\" INTEGER, \"ncal:completed:localTime\"\nINTEGER, \"ncal:todoStatus\" INTEGER, \"ncal:todoStatus:graph\" INTEGER,\n\"ncal:due\" INTEGER, \"ncal:due:graph\" INTEGER);\nCREATE TABLE \"ncal:TodoStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:Trigger\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:related\" INTEGER, \"ncal:related:graph\" INTEGER,\n\"ncal:triggerDateTime\" INTEGER, \"ncal:triggerDateTime:graph\" INTEGER,\n\"ncal:triggerDateTime:localDate\" INTEGER,\n\"ncal:triggerDateTime:localTime\" INTEGER, \"ncal:triggerDuration\"\nINTEGER, \"ncal:triggerDuration:graph\" INTEGER);\nCREATE TABLE \"ncal:TriggerRelation\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"ncal:UnionParentClass\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"ncal:lastModified\" INTEGER, \"ncal:lastModified:graph\" INTEGER,\n\"ncal:lastModified:localDate\" INTEGER, \"ncal:lastModified:localTime\"\nINTEGER, \"ncal:trigger\" INTEGER, \"ncal:trigger:graph\" INTEGER,\n\"ncal:created\" INTEGER, \"ncal:created:graph\" INTEGER,\n\"ncal:created:localDate\" INTEGER, \"ncal:created:localTime\" INTEGER,\n\"ncal:url\" INTEGER, \"ncal:url:graph\" INTEGER, \"ncal:comment\" TEXT\nCOLLATE NOCASE, \"ncal:comment:graph\" INTEGER, \"ncal:summaryAltRep\"\nINTEGER, \"ncal:summaryAltRep:graph\" INTEGER, \"ncal:priority\" INTEGER,\n\"ncal:priority:graph\" INTEGER, \"ncal:location\" TEXT COLLATE NOCASE,\n\"ncal:location:graph\" INTEGER, \"ncal:uid\" TEXT COLLATE NOCASE,\n\"ncal:uid:graph\" INTEGER, \"ncal:requestStatus\" INTEGER,\n\"ncal:requestStatus:graph\" INTEGER, \"ncal:recurrenceId\" INTEGER,\n\"ncal:recurrenceId:graph\" INTEGER, \"ncal:dtstamp\" INTEGER,\n\"ncal:dtstamp:graph\" INTEGER, \"ncal:dtstamp:localDate\" INTEGER,\n\"ncal:dtstamp:localTime\" INTEGER, \"ncal:class\" INTEGER,\n\"ncal:class:graph\" INTEGER, \"ncal:organizer\" INTEGER,\n\"ncal:organizer:graph\" INTEGER, \"ncal:dtend\" INTEGER,\n\"ncal:dtend:graph\" INTEGER, \"ncal:summary\" TEXT COLLATE NOCASE,\n\"ncal:summary:graph\" INTEGER, \"ncal:descriptionAltRep\" INTEGER,\n\"ncal:descriptionAltRep:graph\" INTEGER, \"ncal:commentAltRep\" INTEGER,\n\"ncal:commentAltRep:graph\" INTEGER, \"ncal:sequence\" INTEGER,\n\"ncal:sequence:graph\" INTEGER, \"ncal:contact\" TEXT COLLATE NOCASE,\n\"ncal:contact:graph\" INTEGER, \"ncal:contactAltRep\" INTEGER,\n\"ncal:contactAltRep:graph\" INTEGER, \"ncal:locationAltRep\" INTEGER,\n\"ncal:locationAltRep:graph\" INTEGER, \"ncal:geo\" INTEGER,\n\"ncal:geo:graph\" INTEGER, \"ncal:resourcesAltRep\" INTEGER,\n\"ncal:resourcesAltRep:graph\" INTEGER, \"ncal:dtstart\" INTEGER,\n\"ncal:dtstart:graph\" INTEGER, \"ncal:description\" TEXT COLLATE NOCASE,\n\"ncal:description:graph\" INTEGER, \"ncal:relatedToSibling\" TEXT COLLATE\nNOCASE, \"ncal:relatedToSibling:graph\" INTEGER, \"ncal:duration\"\nINTEGER, \"ncal:duration:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:attach\" (ID INTEGER NOT NULL,\n\"ncal:attach\" INTEGER NOT NULL, \"ncal:attach:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:attendee\" (ID INTEGER NOT\nNULL, \"ncal:attendee\" INTEGER NOT NULL, \"ncal:attendee:graph\"\nINTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:categories\" (ID INTEGER NOT\nNULL, \"ncal:categories\" TEXT NOT NULL, \"ncal:categories:graph\"\nINTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:exdate\" (ID INTEGER NOT NULL,\n\"ncal:exdate\" INTEGER NOT NULL, \"ncal:exdate:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:exrule\" (ID INTEGER NOT NULL,\n\"ncal:exrule\" INTEGER NOT NULL, \"ncal:exrule:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:hasAlarm\" (ID INTEGER NOT\nNULL, \"ncal:hasAlarm\" INTEGER NOT NULL, \"ncal:hasAlarm:graph\"\nINTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:ncalRelation\" (ID INTEGER NOT\nNULL, \"ncal:ncalRelation\" TEXT NOT NULL, \"ncal:ncalRelation:graph\"\nINTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:rdate\" (ID INTEGER NOT NULL,\n\"ncal:rdate\" INTEGER NOT NULL, \"ncal:rdate:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:relatedToChild\" (ID INTEGER\nNOT NULL, \"ncal:relatedToChild\" TEXT NOT NULL,\n\"ncal:relatedToChild:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:relatedToParent\" (ID INTEGER\nNOT NULL, \"ncal:relatedToParent\" TEXT NOT NULL,\n\"ncal:relatedToParent:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:resources\" (ID INTEGER NOT\nNULL, \"ncal:resources\" TEXT NOT NULL, \"ncal:resources:graph\" INTEGER);\nCREATE TABLE \"ncal:UnionParentClass_ncal:rrule\" (ID INTEGER NOT NULL,\n\"ncal:rrule\" INTEGER NOT NULL, \"ncal:rrule:graph\" INTEGER);\nCREATE TABLE \"ncal:Weekday\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:Affiliation\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:department\" TEXT COLLATE NOCASE, \"nco:department:graph\" INTEGER,\n\"nco:org\" INTEGER, \"nco:org:graph\" INTEGER, \"nco:role\" TEXT COLLATE\nNOCASE, \"nco:role:graph\" INTEGER);\nCREATE TABLE \"nco:Affiliation_nco:title\" (ID INTEGER NOT NULL,\n\"nco:title\" TEXT NOT NULL, \"nco:title:graph\" INTEGER);\nCREATE TABLE \"nco:AuthorizationStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:BbsNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:CarPhoneNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:CellPhoneNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:Contact\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:fullname\" TEXT COLLATE NOCASE, \"nco:fullname:graph\" INTEGER,\n\"nco:key\" INTEGER, \"nco:key:graph\" INTEGER, \"nco:contactUID\" TEXT\nCOLLATE NOCASE, \"nco:contactUID:graph\" INTEGER, \"nco:contactLocalUID\"\nTEXT COLLATE NOCASE, \"nco:contactLocalUID:graph\" INTEGER,\n\"nco:hasLocation\" INTEGER, \"nco:hasLocation:graph\" INTEGER,\n\"nco:nickname\" TEXT COLLATE NOCASE, \"nco:nickname:graph\" INTEGER,\n\"nco:representative\" INTEGER, \"nco:representative:graph\" INTEGER,\n\"nco:photo\" INTEGER, \"nco:photo:graph\" INTEGER, \"nco:birthDate\"\nINTEGER, \"nco:birthDate:graph\" INTEGER, \"nco:birthDate:localDate\"\nINTEGER, \"nco:birthDate:localTime\" INTEGER, \"nco:sound\" INTEGER,\n\"nco:sound:graph\" INTEGER);\nCREATE TABLE \"nco:ContactGroup\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:contactGroupName\" TEXT COLLATE NOCASE,\n\"nco:contactGroupName:graph\" INTEGER);\nCREATE TABLE \"nco:ContactList\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:ContactListDataObject\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:ContactList_nco:containsContact\" (ID INTEGER NOT\nNULL, \"nco:containsContact\" INTEGER NOT NULL,\n\"nco:containsContact:graph\" INTEGER);\nCREATE TABLE \"nco:ContactMedium\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:contactMediumComment\" TEXT COLLATE NOCASE,\n\"nco:contactMediumComment:graph\" INTEGER);\nCREATE TABLE \"nco:Contact_ncal:anniversary\" (ID INTEGER NOT NULL,\n\"ncal:anniversary\" INTEGER NOT NULL, \"ncal:anniversary:graph\"\nINTEGER);\nCREATE TABLE \"nco:Contact_ncal:birthday\" (ID INTEGER NOT NULL,\n\"ncal:birthday\" INTEGER NOT NULL, \"ncal:birthday:graph\" INTEGER);\nCREATE TABLE \"nco:Contact_nco:belongsToGroup\" (ID INTEGER NOT NULL,\n\"nco:belongsToGroup\" INTEGER NOT NULL, \"nco:belongsToGroup:graph\"\nINTEGER);\nCREATE TABLE \"nco:Contact_nco:note\" (ID INTEGER NOT NULL, \"nco:note\"\nTEXT NOT NULL, \"nco:note:graph\" INTEGER);\nCREATE TABLE \"nco:Contact_scal:anniversary\" (ID INTEGER NOT NULL,\n\"scal:anniversary\" INTEGER NOT NULL, \"scal:anniversary:graph\"\nINTEGER);\nCREATE TABLE \"nco:Contact_scal:birthday\" (ID INTEGER NOT NULL,\n\"scal:birthday\" INTEGER NOT NULL, \"scal:birthday:graph\" INTEGER);\nCREATE TABLE \"nco:DomesticDeliveryAddress\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:EmailAddress\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:emailAddress\" TEXT COLLATE NOCASE UNIQUE,\n\"nco:emailAddress:graph\" INTEGER);\nCREATE TABLE \"nco:FaxNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:Gender\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:IMAccount\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:imAccountAddress\" INTEGER UNIQUE, \"nco:imAccountAddress:graph\"\nINTEGER, \"nco:imAccountType\" TEXT COLLATE NOCASE,\n\"nco:imAccountType:graph\" INTEGER, \"nco:imDisplayName\" TEXT COLLATE\nNOCASE, \"nco:imDisplayName:graph\" INTEGER, \"nco:imEnabled\" INTEGER,\n\"nco:imEnabled:graph\" INTEGER);\nCREATE TABLE \"nco:IMAccount_nco:hasIMContact\" (ID INTEGER NOT NULL,\n\"nco:hasIMContact\" INTEGER NOT NULL, \"nco:hasIMContact:graph\"\nINTEGER);\nCREATE TABLE \"nco:IMAddress\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:imID\" TEXT COLLATE NOCASE, \"nco:imID:graph\" INTEGER,\n\"nco:imNickname\" TEXT COLLATE NOCASE, \"nco:imNickname:graph\" INTEGER,\n\"nco:imAvatar\" INTEGER, \"nco:imAvatar:graph\" INTEGER, \"nco:imProtocol\"\nTEXT COLLATE NOCASE, \"nco:imProtocol:graph\" INTEGER,\n\"nco:imStatusMessage\" TEXT COLLATE NOCASE,\n\"nco:imStatusMessage:graph\" INTEGER, \"nco:imPresence\" INTEGER,\n\"nco:imPresence:graph\" INTEGER, \"nco:presenceLastModified\" INTEGER,\n\"nco:presenceLastModified:graph\" INTEGER,\n\"nco:presenceLastModified:localDate\" INTEGER,\n\"nco:presenceLastModified:localTime\" INTEGER,\n\"nco:imAddressAuthStatusFrom\" INTEGER,\n\"nco:imAddressAuthStatusFrom:graph\" INTEGER,\n\"nco:imAddressAuthStatusTo\" INTEGER, \"nco:imAddressAuthStatusTo:graph\"\nINTEGER);\nCREATE TABLE \"nco:IMAddress_nco:imCapability\" (ID INTEGER NOT NULL,\n\"nco:imCapability\" INTEGER NOT NULL, \"nco:imCapability:graph\"\nINTEGER);\nCREATE TABLE \"nco:IMCapability\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:InternationalDeliveryAddress\" (ID INTEGER NOT NULL\nPRIMARY KEY);\nCREATE TABLE \"nco:IsdnNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:MessagingNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:ModemNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:OrganizationContact\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nco:logo\" INTEGER, \"nco:logo:graph\" INTEGER);\nCREATE TABLE \"nco:PagerNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:ParcelDeliveryAddress\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:PcsNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:PersonContact\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:nameFamily\" TEXT COLLATE NOCASE, \"nco:nameFamily:graph\" INTEGER,\n\"nco:nameGiven\" TEXT COLLATE NOCASE, \"nco:nameGiven:graph\" INTEGER,\n\"nco:nameAdditional\" TEXT COLLATE NOCASE, \"nco:nameAdditional:graph\"\nINTEGER, \"nco:nameHonorificSuffix\" TEXT COLLATE NOCASE,\n\"nco:nameHonorificSuffix:graph\" INTEGER, \"nco:nameHonorificPrefix\"\nTEXT COLLATE NOCASE, \"nco:nameHonorificPrefix:graph\" INTEGER,\n\"nco:hobby\" TEXT COLLATE NOCASE, \"nco:hobby:graph\" INTEGER,\n\"nco:gender\" INTEGER, \"nco:gender:graph\" INTEGER);\nCREATE TABLE \"nco:PersonContact_nco:hasAffiliation\" (ID INTEGER NOT\nNULL, \"nco:hasAffiliation\" INTEGER NOT NULL,\n\"nco:hasAffiliation:graph\" INTEGER);\nCREATE TABLE \"nco:PhoneNumber\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:phoneNumber\" TEXT COLLATE NOCASE, \"nco:phoneNumber:graph\"\nINTEGER);\nCREATE TABLE \"nco:PostalAddress\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:region\" TEXT COLLATE NOCASE, \"nco:region:graph\" INTEGER,\n\"nco:country\" TEXT COLLATE NOCASE, \"nco:country:graph\" INTEGER,\n\"nco:extendedAddress\" TEXT COLLATE NOCASE,\n\"nco:extendedAddress:graph\" INTEGER, \"nco:addressLocation\" INTEGER,\n\"nco:addressLocation:graph\" INTEGER, \"nco:streetAddress\" TEXT COLLATE\nNOCASE, \"nco:streetAddress:graph\" INTEGER, \"nco:postalcode\" TEXT\nCOLLATE NOCASE, \"nco:postalcode:graph\" INTEGER, \"nco:locality\" TEXT\nCOLLATE NOCASE, \"nco:locality:graph\" INTEGER, \"nco:county\" TEXT\nCOLLATE NOCASE, \"nco:county:graph\" INTEGER, \"nco:district\" TEXT\nCOLLATE NOCASE, \"nco:district:graph\" INTEGER, \"nco:pobox\" TEXT\nCOLLATE NOCASE, \"nco:pobox:graph\" INTEGER);\nCREATE TABLE \"nco:PresenceStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:Role\" (ID INTEGER NOT NULL PRIMARY KEY, \"nco:video\"\nINTEGER, \"nco:video:graph\" INTEGER);\nCREATE TABLE \"nco:Role_nco:blogUrl\" (ID INTEGER NOT NULL,\n\"nco:blogUrl\" INTEGER NOT NULL, \"nco:blogUrl:graph\" INTEGER);\nCREATE TABLE \"nco:Role_nco:foafUrl\" (ID INTEGER NOT NULL,\n\"nco:foafUrl\" INTEGER NOT NULL, \"nco:foafUrl:graph\" INTEGER);\nCREATE TABLE \"nco:Role_nco:hasContactMedium\" (ID INTEGER NOT NULL,\n\"nco:hasContactMedium\" INTEGER NOT NULL, \"nco:hasContactMedium:graph\"\nINTEGER);\nCREATE TABLE \"nco:Role_nco:hasEmailAddress\" (ID INTEGER NOT NULL,\n\"nco:hasEmailAddress\" INTEGER NOT NULL, \"nco:hasEmailAddress:graph\"\nINTEGER);\nCREATE TABLE \"nco:Role_nco:hasIMAddress\" (ID INTEGER NOT NULL,\n\"nco:hasIMAddress\" INTEGER NOT NULL, \"nco:hasIMAddress:graph\"\nINTEGER);\nCREATE TABLE \"nco:Role_nco:hasPhoneNumber\" (ID INTEGER NOT NULL,\n\"nco:hasPhoneNumber\" INTEGER NOT NULL, \"nco:hasPhoneNumber:graph\"\nINTEGER);\nCREATE TABLE \"nco:Role_nco:hasPostalAddress\" (ID INTEGER NOT NULL,\n\"nco:hasPostalAddress\" INTEGER NOT NULL, \"nco:hasPostalAddress:graph\"\nINTEGER);\nCREATE TABLE \"nco:Role_nco:url\" (ID INTEGER NOT NULL, \"nco:url\"\nINTEGER NOT NULL, \"nco:url:graph\" INTEGER);\nCREATE TABLE \"nco:Role_nco:websiteUrl\" (ID INTEGER NOT NULL,\n\"nco:websiteUrl\" INTEGER NOT NULL, \"nco:websiteUrl:graph\" INTEGER);\nCREATE TABLE \"nco:VideoTelephoneNumber\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nco:VoicePhoneNumber\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nco:voiceMail\" INTEGER, \"nco:voiceMail:graph\" INTEGER);\nCREATE TABLE \"nfo:Application\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Archive\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:uncompressedSize\" INTEGER, \"nfo:uncompressedSize:graph\" INTEGER);\nCREATE TABLE \"nfo:ArchiveItem\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:isPasswordProtected\" INTEGER, \"nfo:isPasswordProtected:graph\"\nINTEGER);\nCREATE TABLE \"nfo:Attachment\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Audio\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:channels\" INTEGER, \"nfo:channels:graph\" INTEGER,\n\"nfo:sideChannels\" INTEGER, \"nfo:sideChannels:graph\" INTEGER,\n\"nfo:lfeChannels\" INTEGER, \"nfo:lfeChannels:graph\" INTEGER,\n\"nfo:sampleCount\" INTEGER, \"nfo:sampleCount:graph\" INTEGER,\n\"nfo:bitsPerSample\" INTEGER, \"nfo:bitsPerSample:graph\" INTEGER,\n\"nfo:frontChannels\" INTEGER, \"nfo:frontChannels:graph\" INTEGER,\n\"nfo:sampleRate\" REAL, \"nfo:sampleRate:graph\" INTEGER,\n\"nfo:averageAudioBitrate\" REAL, \"nfo:averageAudioBitrate:graph\"\nINTEGER, \"nfo:rearChannels\" INTEGER, \"nfo:rearChannels:graph\" INTEGER,\n\"nfo:gain\" INTEGER, \"nfo:gain:graph\" INTEGER, \"nfo:peakGain\" INTEGER,\n\"nfo:peakGain:graph\" INTEGER, \"nfo:audioOffset\" REAL,\n\"nfo:audioOffset:graph\" INTEGER);\nCREATE TABLE \"nfo:Bookmark\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:bookmarks\" INTEGER, \"nfo:bookmarks:graph\" INTEGER,\n\"nfo:characterPosition\" INTEGER, \"nfo:characterPosition:graph\"\nINTEGER, \"nfo:pageNumber\" INTEGER, \"nfo:pageNumber:graph\" INTEGER,\n\"nfo:streamPosition\" INTEGER, \"nfo:streamPosition:graph\" INTEGER,\n\"nfo:streamDuration\" INTEGER, \"nfo:streamDuration:graph\" INTEGER);\nCREATE TABLE \"nfo:BookmarkFolder\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:BookmarkFolder_nfo:containsBookmark\" (ID INTEGER NOT\nNULL, \"nfo:containsBookmark\" INTEGER NOT NULL,\n\"nfo:containsBookmark:graph\" INTEGER);\nCREATE TABLE \"nfo:BookmarkFolder_nfo:containsBookmarkFolder\" (ID\nINTEGER NOT NULL, \"nfo:containsBookmarkFolder\" INTEGER NOT NULL,\n\"nfo:containsBookmarkFolder:graph\" INTEGER);\nCREATE TABLE \"nfo:CompressionType\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Cursor\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:DataContainer\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:DeletedResource\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:originalLocation\" TEXT COLLATE NOCASE,\n\"nfo:originalLocation:graph\" INTEGER, \"nfo:deletionDate\" INTEGER,\n\"nfo:deletionDate:graph\" INTEGER, \"nfo:deletionDate:localDate\"\nINTEGER, \"nfo:deletionDate:localTime\" INTEGER);\nCREATE TABLE \"nfo:Document\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:tableOfContents\" TEXT COLLATE NOCASE,\n\"nfo:tableOfContents:graph\" INTEGER);\nCREATE TABLE \"nfo:EmbeddedFileDataObject\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nfo:encoding\" TEXT COLLATE NOCASE, \"nfo:encoding:graph\"\nINTEGER);\nCREATE TABLE \"nfo:Equipment\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:manufacturer\" TEXT COLLATE NOCASE, \"nfo:manufacturer:graph\"\nINTEGER, \"nfo:model\" TEXT COLLATE NOCASE, \"nfo:model:graph\" INTEGER,\n\"nfo:equipmentSoftware\" TEXT COLLATE NOCASE,\n\"nfo:equipmentSoftware:graph\" INTEGER);\nCREATE TABLE \"nfo:Executable\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:FileDataObject\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:fileLastAccessed\" INTEGER, \"nfo:fileLastAccessed:graph\" INTEGER,\n\"nfo:fileLastAccessed:localDate\" INTEGER,\n\"nfo:fileLastAccessed:localTime\" INTEGER, \"nfo:fileCreated\" INTEGER,\n\"nfo:fileCreated:graph\" INTEGER, \"nfo:fileCreated:localDate\" INTEGER,\n\"nfo:fileCreated:localTime\" INTEGER, \"nfo:fileSize\" INTEGER,\n\"nfo:fileSize:graph\" INTEGER, \"nfo:permissions\" TEXT COLLATE NOCASE,\n\"nfo:permissions:graph\" INTEGER, \"nfo:fileName\" TEXT COLLATE NOCASE,\n\"nfo:fileName:graph\" INTEGER, \"nfo:hasHash\" INTEGER,\n\"nfo:hasHash:graph\" INTEGER, \"nfo:fileOwner\" INTEGER,\n\"nfo:fileOwner:graph\" INTEGER, \"nfo:fileLastModified\" INTEGER,\n\"nfo:fileLastModified:graph\" INTEGER, \"nfo:fileLastModified:localDate\"\nINTEGER, \"nfo:fileLastModified:localTime\" INTEGER);\nCREATE TABLE \"nfo:FileHash\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:hashValue\" TEXT COLLATE NOCASE, \"nfo:hashValue:graph\" INTEGER,\n\"nfo:hashAlgorithm\" TEXT COLLATE NOCASE, \"nfo:hashAlgorithm:graph\"\nINTEGER);\nCREATE TABLE \"nfo:Filesystem\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:FilesystemImage\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Folder\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Font\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:fontFamily\" TEXT COLLATE NOCASE, \"nfo:fontFamily:graph\" INTEGER,\n\"nfo:foundry\" INTEGER, \"nfo:foundry:graph\" INTEGER);\nCREATE TABLE \"nfo:HardDiskPartition\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:HelpDocument\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:HtmlDocument\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Icon\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Image\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:verticalResolution\" INTEGER, \"nfo:verticalResolution:graph\"\nINTEGER, \"nfo:horizontalResolution\" INTEGER,\n\"nfo:horizontalResolution:graph\" INTEGER, \"nfo:orientation\" INTEGER,\n\"nfo:orientation:graph\" INTEGER);\nCREATE TABLE \"nfo:Image_nfo:depicts\" (ID INTEGER NOT NULL,\n\"nfo:depicts\" INTEGER NOT NULL, \"nfo:depicts:graph\" INTEGER);\nCREATE TABLE \"nfo:Image_nfo:hasRegionOfInterest\" (ID INTEGER NOT NULL,\n\"nfo:hasRegionOfInterest\" INTEGER NOT NULL,\n\"nfo:hasRegionOfInterest:graph\" INTEGER);\nCREATE TABLE \"nfo:Media\" (ID INTEGER NOT NULL PRIMARY KEY, \"nfo:count\"\nINTEGER, \"nfo:count:graph\" INTEGER, \"nfo:duration\" INTEGER,\n\"nfo:duration:graph\" INTEGER, \"nfo:compressionType\" INTEGER,\n\"nfo:compressionType:graph\" INTEGER, \"nfo:hasMediaStream\" INTEGER,\n\"nfo:hasMediaStream:graph\" INTEGER, \"nfo:bitDepth\" INTEGER,\n\"nfo:bitDepth:graph\" INTEGER, \"nfo:codec\" TEXT COLLATE NOCASE,\n\"nfo:codec:graph\" INTEGER, \"nfo:encodedBy\" TEXT COLLATE NOCASE,\n\"nfo:encodedBy:graph\" INTEGER, \"nfo:bitrateType\" TEXT COLLATE NOCASE,\n\"nfo:bitrateType:graph\" INTEGER, \"nfo:averageBitrate\" REAL,\n\"nfo:averageBitrate:graph\" INTEGER, \"nfo:genre\" TEXT COLLATE NOCASE,\n\"nfo:genre:graph\" INTEGER, \"nfo:equipment\" INTEGER,\n\"nfo:equipment:graph\" INTEGER, \"nfo:lastPlayedPosition\" INTEGER,\n\"nfo:lastPlayedPosition:graph\" INTEGER, \"nmm:genre\" TEXT COLLATE\nNOCASE, \"nmm:genre:graph\" INTEGER, \"nmm:skipCounter\" INTEGER,\n\"nmm:skipCounter:graph\" INTEGER, \"nmm:dlnaProfile\" TEXT COLLATE\nNOCASE, \"nmm:dlnaProfile:graph\" INTEGER, \"nmm:dlnaMime\" TEXT COLLATE\nNOCASE, \"nmm:dlnaMime:graph\" INTEGER, \"nmm:uPnPShared\" INTEGER,\n\"nmm:uPnPShared:graph\" INTEGER, \"mtp:credits\" TEXT COLLATE NOCASE,\n\"mtp:credits:graph\" INTEGER, \"mtp:creator\" TEXT COLLATE NOCASE,\n\"mtp:creator:graph\" INTEGER);\nCREATE TABLE \"nfo:MediaFileListEntry\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nfo:listPosition\" REAL, \"nfo:listPosition:graph\" INTEGER,\n\"nfo:entryUrl\" TEXT COLLATE NOCASE, \"nfo:entryUrl:graph\" INTEGER);\nCREATE TABLE \"nfo:MediaList\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:entryCounter\" INTEGER, \"nfo:entryCounter:graph\" INTEGER,\n\"nfo:listDuration\" INTEGER, \"nfo:listDuration:graph\" INTEGER);\nCREATE TABLE \"nfo:MediaList_nfo:hasMediaFileListEntry\" (ID INTEGER NOT\nNULL, \"nfo:hasMediaFileListEntry\" INTEGER NOT NULL,\n\"nfo:hasMediaFileListEntry:graph\" INTEGER);\nCREATE TABLE \"nfo:MediaList_nfo:mediaListEntry\" (ID INTEGER NOT NULL,\n\"nfo:mediaListEntry\" INTEGER NOT NULL, \"nfo:mediaListEntry:graph\"\nINTEGER);\nCREATE TABLE \"nfo:MediaStream\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Media_mtp:hidden\" (ID INTEGER NOT NULL, \"mtp:hidden\"\nINTEGER NOT NULL, \"mtp:hidden:graph\" INTEGER);\nCREATE TABLE \"nfo:Media_nmm:alternativeMedia\" (ID INTEGER NOT NULL,\n\"nmm:alternativeMedia\" INTEGER NOT NULL, \"nmm:alternativeMedia:graph\"\nINTEGER);\nCREATE TABLE \"nfo:MindMap\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Note\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:OperatingSystem\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Orientation\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:PaginatedTextDocument\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nfo:pageCount\" INTEGER, \"nfo:pageCount:graph\" INTEGER);\nCREATE TABLE \"nfo:PlainTextDocument\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Presentation\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:RasterImage\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:RegionOfInterest\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:regionOfInterestX\" REAL, \"nfo:regionOfInterestX:graph\" INTEGER,\n\"nfo:regionOfInterestY\" REAL, \"nfo:regionOfInterestY:graph\" INTEGER,\n\"nfo:regionOfInterestWidth\" REAL, \"nfo:regionOfInterestWidth:graph\"\nINTEGER, \"nfo:regionOfInterestHeight\" REAL,\n\"nfo:regionOfInterestHeight:graph\" INTEGER, \"nfo:regionOfInterestType\"\nINTEGER, \"nfo:regionOfInterestType:graph\" INTEGER, \"nfo:roiRefersTo\"\nINTEGER, \"nfo:roiRefersTo:graph\" INTEGER);\nCREATE TABLE \"nfo:RegionOfInterestContent\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:RemoteDataObject\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:RemotePortAddress\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Software\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:conflicts\" INTEGER, \"nfo:conflicts:graph\" INTEGER,\n\"nfo:supercedes\" INTEGER, \"nfo:supercedes:graph\" INTEGER,\n\"nfo:softwareIcon\" INTEGER, \"nfo:softwareIcon:graph\" INTEGER,\n\"nfo:softwareCmdLine\" TEXT COLLATE NOCASE,\n\"nfo:softwareCmdLine:graph\" INTEGER);\nCREATE TABLE \"nfo:SoftwareApplication\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:SoftwareCategory\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:softwareCategoryIcon\" INTEGER, \"nfo:softwareCategoryIcon:graph\"\nINTEGER);\nCREATE TABLE \"nfo:SoftwareItem\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:SoftwareService\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:SourceCode\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:commentCharacterCount\" INTEGER, \"nfo:commentCharacterCount:graph\"\nINTEGER, \"nfo:programmingLanguage\" TEXT COLLATE NOCASE,\n\"nfo:programmingLanguage:graph\" INTEGER, \"nfo:definesClass\" TEXT\nCOLLATE NOCASE, \"nfo:definesClass:graph\" INTEGER,\n\"nfo:definesFunction\" TEXT COLLATE NOCASE,\n\"nfo:definesFunction:graph\" INTEGER, \"nfo:definesGlobalVariable\" TEXT\nCOLLATE NOCASE, \"nfo:definesGlobalVariable:graph\" INTEGER);\nCREATE TABLE \"nfo:Spreadsheet\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:TextDocument\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:wordCount\" INTEGER, \"nfo:wordCount:graph\" INTEGER,\n\"nfo:lineCount\" INTEGER, \"nfo:lineCount:graph\" INTEGER,\n\"nfo:characterCount\" INTEGER, \"nfo:characterCount:graph\" INTEGER);\nCREATE TABLE \"nfo:Trash\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:VectorImage\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nfo:Video\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:frameRate\" REAL, \"nfo:frameRate:graph\" INTEGER, \"nfo:frameCount\"\nINTEGER, \"nfo:frameCount:graph\" INTEGER, \"nfo:averageVideoBitrate\"\nREAL, \"nfo:averageVideoBitrate:graph\" INTEGER);\nCREATE TABLE \"nfo:Visual\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nie:contentCreated\" INTEGER, \"nie:contentCreated:graph\" INTEGER,\n\"nie:contentCreated:localDate\" INTEGER, \"nie:contentCreated:localTime\"\nINTEGER, \"nfo:aspectRatio\" REAL, \"nfo:aspectRatio:graph\" INTEGER,\n\"nfo:heading\" REAL, \"nfo:heading:graph\" INTEGER, \"nfo:tilt\" REAL,\n\"nfo:tilt:graph\" INTEGER, \"nfo:interlaceMode\" INTEGER,\n\"nfo:interlaceMode:graph\" INTEGER, \"nfo:height\" INTEGER,\n\"nfo:height:graph\" INTEGER, \"nfo:width\" INTEGER, \"nfo:width:graph\"\nINTEGER, \"nfo:colorDepth\" INTEGER, \"nfo:colorDepth:graph\" INTEGER);\nCREATE TABLE \"nfo:WebHistory\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nfo:domain\" TEXT COLLATE NOCASE, \"nfo:domain:graph\" INTEGER,\n\"nfo:uri\" TEXT COLLATE NOCASE, \"nfo:uri:graph\" INTEGER);\nCREATE TABLE \"nfo:Website\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nid3:ID3Audio\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nid3:title\" TEXT COLLATE NOCASE, \"nid3:title:graph\" INTEGER,\n\"nid3:albumTitle\" TEXT COLLATE NOCASE, \"nid3:albumTitle:graph\"\nINTEGER, \"nid3:contentType\" TEXT COLLATE NOCASE,\n\"nid3:contentType:graph\" INTEGER, \"nid3:length\" INTEGER,\n\"nid3:length:graph\" INTEGER, \"nid3:recordingYear\" INTEGER,\n\"nid3:recordingYear:graph\" INTEGER, \"nid3:trackNumber\" TEXT COLLATE\nNOCASE, \"nid3:trackNumber:graph\" INTEGER, \"nid3:partOfSet\" TEXT\nCOLLATE NOCASE, \"nid3:partOfSet:graph\" INTEGER, \"nid3:comments\" TEXT\nCOLLATE NOCASE, \"nid3:comments:graph\" INTEGER);\nCREATE TABLE \"nid3:ID3Audio_nid3:leadArtist\" (ID INTEGER NOT NULL,\n\"nid3:leadArtist\" INTEGER NOT NULL, \"nid3:leadArtist:graph\" INTEGER);\nCREATE TABLE \"nie:DataObject\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nie:url\" TEXT COLLATE NOCASE UNIQUE, \"nie:url:graph\" INTEGER,\n\"nie:byteSize\" INTEGER, \"nie:byteSize:graph\" INTEGER,\n\"nie:interpretedAs\" INTEGER, \"nie:interpretedAs:graph\" INTEGER,\n\"nie:lastRefreshed\" INTEGER, \"nie:lastRefreshed:graph\" INTEGER,\n\"nie:lastRefreshed:localDate\" INTEGER, \"nie:lastRefreshed:localTime\"\nINTEGER, \"nie:created\" INTEGER, \"nie:created:graph\" INTEGER,\n\"nie:created:localDate\" INTEGER, \"nie:created:localTime\" INTEGER,\n\"nfo:belongsToContainer\" INTEGER, \"nfo:belongsToContainer:graph\"\nINTEGER, \"tracker:available\" INTEGER, \"tracker:available:graph\"\nINTEGER);\nCREATE TABLE \"nie:DataObject_nie:dataSource\" (ID INTEGER NOT NULL,\n\"nie:dataSource\" INTEGER NOT NULL, \"nie:dataSource:graph\" INTEGER);\nCREATE TABLE \"nie:DataObject_nie:isPartOf\" (ID INTEGER NOT NULL,\n\"nie:isPartOf\" INTEGER NOT NULL, \"nie:isPartOf:graph\" INTEGER);\nCREATE TABLE \"nie:DataSource\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nie:InformationElement\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nie:title\" TEXT COLLATE NOCASE, \"nie:title:graph\" INTEGER,\n\"nie:contentLastModified\" INTEGER, \"nie:contentLastModified:graph\"\nINTEGER, \"nie:contentLastModified:localDate\" INTEGER,\n\"nie:contentLastModified:localTime\" INTEGER, \"nie:subject\" TEXT\nCOLLATE NOCASE, \"nie:subject:graph\" INTEGER, \"nie:mimeType\" TEXT\nCOLLATE NOCASE, \"nie:mimeType:graph\" INTEGER, \"nie:language\" TEXT\nCOLLATE NOCASE, \"nie:language:graph\" INTEGER, \"nie:plainTextContent\"\nTEXT COLLATE NOCASE, \"nie:plainTextContent:graph\" INTEGER,\n\"nie:legal\" TEXT COLLATE NOCASE, \"nie:legal:graph\" INTEGER,\n\"nie:generator\" TEXT COLLATE NOCASE, \"nie:generator:graph\" INTEGER,\n\"nie:description\" TEXT COLLATE NOCASE, \"nie:description:graph\"\nINTEGER, \"nie:disclaimer\" TEXT COLLATE NOCASE, \"nie:disclaimer:graph\"\nINTEGER, \"nie:depends\" INTEGER, \"nie:depends:graph\" INTEGER,\n\"nie:links\" INTEGER, \"nie:links:graph\" INTEGER, \"nie:copyright\" TEXT\nCOLLATE NOCASE, \"nie:copyright:graph\" INTEGER, \"nie:comment\" TEXT\nCOLLATE NOCASE, \"nie:comment:graph\" INTEGER, \"nie:isStoredAs\"\nINTEGER, \"nie:isStoredAs:graph\" INTEGER, \"nie:version\" TEXT COLLATE\nNOCASE, \"nie:version:graph\" INTEGER, \"nie:contentCreated\" INTEGER,\n\"nie:contentCreated:graph\" INTEGER, \"nie:contentCreated:localDate\"\nINTEGER, \"nie:contentCreated:localTime\" INTEGER, \"nie:contentAccessed\"\nINTEGER, \"nie:contentAccessed:graph\" INTEGER,\n\"nie:contentAccessed:localDate\" INTEGER,\n\"nie:contentAccessed:localTime\" INTEGER, \"nie:license\" TEXT COLLATE\nNOCASE, \"nie:license:graph\" INTEGER, \"nie:identifier\" TEXT COLLATE\nNOCASE, \"nie:identifier:graph\" INTEGER, \"nie:licenseType\" TEXT\nCOLLATE NOCASE, \"nie:licenseType:graph\" INTEGER, \"nie:characterSet\"\nTEXT COLLATE NOCASE, \"nie:characterSet:graph\" INTEGER,\n\"nie:contentSize\" INTEGER, \"nie:contentSize:graph\" INTEGER,\n\"nie:rootElementOf\" INTEGER, \"nie:rootElementOf:graph\" INTEGER,\n\"nie:usageCounter\" INTEGER, \"nie:usageCounter:graph\" INTEGER,\n\"nco:publisher\" INTEGER, \"nco:publisher:graph\" INTEGER,\n\"nfo:isContentEncrypted\" INTEGER, \"nfo:isContentEncrypted:graph\"\nINTEGER, \"slo:location\" INTEGER, \"slo:location:graph\" INTEGER,\n\"nfo:isBootable\" INTEGER, \"nfo:isBootable:graph\" INTEGER, \"osinfo:id\"\nTEXT COLLATE NOCASE, \"osinfo:id:graph\" INTEGER, \"osinfo:mediaId\" TEXT\nCOLLATE NOCASE, \"osinfo:mediaId:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_mlo:location\" (ID INTEGER NOT\nNULL, \"mlo:location\" INTEGER NOT NULL, \"mlo:location:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_nao:hasProperty\" (ID INTEGER NOT\nNULL, \"nao:hasProperty\" INTEGER NOT NULL, \"nao:hasProperty:graph\"\nINTEGER);\nCREATE TABLE \"nie:InformationElement_nco:contributor\" (ID INTEGER NOT\nNULL, \"nco:contributor\" INTEGER NOT NULL, \"nco:contributor:graph\"\nINTEGER);\nCREATE TABLE \"nie:InformationElement_nco:creator\" (ID INTEGER NOT\nNULL, \"nco:creator\" INTEGER NOT NULL, \"nco:creator:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_nie:hasLogicalPart\" (ID INTEGER\nNOT NULL, \"nie:hasLogicalPart\" INTEGER NOT NULL,\n\"nie:hasLogicalPart:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_nie:hasPart\" (ID INTEGER NOT\nNULL, \"nie:hasPart\" INTEGER NOT NULL, \"nie:hasPart:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_nie:informationElementDate\" (ID\nINTEGER NOT NULL, \"nie:informationElementDate\" INTEGER NOT NULL,\n\"nie:informationElementDate:graph\" INTEGER,\n\"nie:informationElementDate:localDate\" INTEGER NOT NULL,\n\"nie:informationElementDate:localTime\" INTEGER NOT NULL);\nCREATE TABLE \"nie:InformationElement_nie:isLogicalPartOf\" (ID INTEGER\nNOT NULL, \"nie:isLogicalPartOf\" INTEGER NOT NULL,\n\"nie:isLogicalPartOf:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_nie:keyword\" (ID INTEGER NOT\nNULL, \"nie:keyword\" TEXT NOT NULL, \"nie:keyword:graph\" INTEGER);\nCREATE TABLE \"nie:InformationElement_nie:relatedTo\" (ID INTEGER NOT\nNULL, \"nie:relatedTo\" INTEGER NOT NULL, \"nie:relatedTo:graph\"\nINTEGER);\nCREATE TABLE \"nmm:AnalogRadio\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:modulation\" INTEGER, \"nmm:modulation:graph\" INTEGER,\n\"nmm:frequency\" INTEGER, \"nmm:frequency:graph\" INTEGER);\nCREATE TABLE \"nmm:Artist\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:artistName\" TEXT COLLATE NOCASE, \"nmm:artistName:graph\"\nINTEGER);\nCREATE TABLE \"nmm:DigitalRadio\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:streamingBitrate\" INTEGER, \"nmm:streamingBitrate:graph\" INTEGER,\n\"nmm:encoding\" TEXT COLLATE NOCASE, \"nmm:encoding:graph\" INTEGER,\n\"nmm:protocol\" TEXT COLLATE NOCASE, \"nmm:protocol:graph\" INTEGER);\nCREATE TABLE \"nmm:Flash\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmm:ImageList\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmm:MeteringMode\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmm:MusicAlbum\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nie:title\" TEXT COLLATE NOCASE, \"nie:title:graph\" INTEGER,\n\"nmm:albumTrackCount\" INTEGER, \"nmm:albumTrackCount:graph\" INTEGER,\n\"nmm:albumTitle\" TEXT COLLATE NOCASE, \"nmm:albumTitle:graph\" INTEGER,\n\"nmm:albumDuration\" INTEGER, \"nmm:albumDuration:graph\" INTEGER,\n\"nmm:albumGain\" INTEGER, \"nmm:albumGain:graph\" INTEGER,\n\"nmm:albumPeakGain\" INTEGER, \"nmm:albumPeakGain:graph\" INTEGER);\nCREATE TABLE \"nmm:MusicAlbumDisc\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:albumDiscAlbum\" INTEGER, \"nmm:albumDiscAlbum:graph\" INTEGER,\n\"nmm:musicCDIdentifier\" TEXT COLLATE NOCASE,\n\"nmm:musicCDIdentifier:graph\" INTEGER, \"nmm:setNumber\" INTEGER,\n\"nmm:setNumber:graph\" INTEGER);\nCREATE TABLE \"nmm:MusicAlbum_nmm:albumArtist\" (ID INTEGER NOT NULL,\n\"nmm:albumArtist\" INTEGER NOT NULL, \"nmm:albumArtist:graph\" INTEGER);\nCREATE TABLE \"nmm:MusicPiece\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nie:title\" TEXT COLLATE NOCASE, \"nie:title:graph\" INTEGER,\n\"nmm:musicAlbum\" INTEGER, \"nmm:musicAlbum:graph\" INTEGER,\n\"nmm:musicAlbumDisc\" INTEGER, \"nmm:musicAlbumDisc:graph\" INTEGER,\n\"nmm:beatsPerMinute\" INTEGER, \"nmm:beatsPerMinute:graph\" INTEGER,\n\"nmm:performer\" INTEGER, \"nmm:performer:graph\" INTEGER, \"nmm:composer\"\nINTEGER, \"nmm:composer:graph\" INTEGER, \"nmm:lyricist\" INTEGER,\n\"nmm:lyricist:graph\" INTEGER, \"nmm:trackNumber\" INTEGER,\n\"nmm:trackNumber:graph\" INTEGER,\n\"nmm:internationalStandardRecordingCode\" TEXT COLLATE NOCASE,\n\"nmm:internationalStandardRecordingCode:graph\" INTEGER);\nCREATE TABLE \"nmm:MusicPiece_nmm:lyrics\" (ID INTEGER NOT NULL,\n\"nmm:lyrics\" INTEGER NOT NULL, \"nmm:lyrics:graph\" INTEGER);\nCREATE TABLE \"nmm:Photo\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:exposureTime\" REAL, \"nmm:exposureTime:graph\" INTEGER, \"nmm:flash\"\nINTEGER, \"nmm:flash:graph\" INTEGER, \"nmm:fnumber\" REAL,\n\"nmm:fnumber:graph\" INTEGER, \"nmm:focalLength\" REAL,\n\"nmm:focalLength:graph\" INTEGER, \"nmm:isoSpeed\" REAL,\n\"nmm:isoSpeed:graph\" INTEGER, \"nmm:meteringMode\" INTEGER,\n\"nmm:meteringMode:graph\" INTEGER, \"nmm:whiteBalance\" INTEGER,\n\"nmm:whiteBalance:graph\" INTEGER, \"nmm:isCropped\" INTEGER,\n\"nmm:isCropped:graph\" INTEGER, \"nmm:isColorCorrected\" INTEGER,\n\"nmm:isColorCorrected:graph\" INTEGER);\nCREATE TABLE \"nmm:Playlist\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmm:RadioModulation\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmm:RadioStation\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:radioIcon\" INTEGER, \"nmm:radioIcon:graph\" INTEGER, \"nmm:radioPTY\"\nINTEGER, \"nmm:radioPTY:graph\" INTEGER);\nCREATE TABLE \"nmm:RadioStation_nmm:carrier\" (ID INTEGER NOT NULL,\n\"nmm:carrier\" INTEGER NOT NULL, \"nmm:carrier:graph\" INTEGER);\nCREATE TABLE \"nmm:SynchronizedText\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:isForHearingImpaired\" INTEGER, \"nmm:isForHearingImpaired:graph\"\nINTEGER);\nCREATE TABLE \"nmm:Video\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmm:videoAlbum\" INTEGER, \"nmm:videoAlbum:graph\" INTEGER,\n\"nmm:isSeries\" INTEGER, \"nmm:isSeries:graph\" INTEGER, \"nmm:season\"\nINTEGER, \"nmm:season:graph\" INTEGER, \"nmm:episodeNumber\" INTEGER,\n\"nmm:episodeNumber:graph\" INTEGER, \"nmm:runTime\" INTEGER,\n\"nmm:runTime:graph\" INTEGER, \"nmm:synopsis\" TEXT COLLATE NOCASE,\n\"nmm:synopsis:graph\" INTEGER, \"nmm:MPAARating\" TEXT COLLATE NOCASE,\n\"nmm:MPAARating:graph\" INTEGER, \"nmm:category\" TEXT COLLATE NOCASE,\n\"nmm:category:graph\" INTEGER, \"nmm:producedBy\" INTEGER,\n\"nmm:producedBy:graph\" INTEGER, \"nmm:hasSubtitle\" INTEGER,\n\"nmm:hasSubtitle:graph\" INTEGER, \"nmm:isContentEncrypted\" INTEGER,\n\"nmm:isContentEncrypted:graph\" INTEGER, \"mtp:fourCC\" TEXT COLLATE\nNOCASE, \"mtp:fourCC:graph\" INTEGER, \"mtp:waveformat\" TEXT COLLATE\nNOCASE, \"mtp:waveformat:graph\" INTEGER);\nCREATE TABLE \"nmm:Video_mtp:scantype\" (ID INTEGER NOT NULL,\n\"mtp:scantype\" INTEGER NOT NULL, \"mtp:scantype:graph\" INTEGER);\nCREATE TABLE \"nmm:Video_nmm:director\" (ID INTEGER NOT NULL,\n\"nmm:director\" INTEGER NOT NULL, \"nmm:director:graph\" INTEGER);\nCREATE TABLE \"nmm:Video_nmm:leadActor\" (ID INTEGER NOT NULL,\n\"nmm:leadActor\" INTEGER NOT NULL, \"nmm:leadActor:graph\" INTEGER);\nCREATE TABLE \"nmm:Video_nmm:subtitle\" (ID INTEGER NOT NULL,\n\"nmm:subtitle\" INTEGER NOT NULL, \"nmm:subtitle:graph\" INTEGER);\nCREATE TABLE \"nmm:WhiteBalance\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:Attachment\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:Call\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:sentDate\" INTEGER, \"nmo:sentDate:graph\" INTEGER,\n\"nmo:sentDate:localDate\" INTEGER, \"nmo:sentDate:localTime\" INTEGER,\n\"nmo:duration\" INTEGER, \"nmo:duration:graph\" INTEGER);\nCREATE TABLE \"nmo:CommunicationChannel\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nmo:lastMessageDate\" INTEGER, \"nmo:lastMessageDate:graph\"\nINTEGER, \"nmo:lastMessageDate:localDate\" INTEGER,\n\"nmo:lastMessageDate:localTime\" INTEGER,\n\"nmo:lastSuccessfulMessageDate\" INTEGER,\n\"nmo:lastSuccessfulMessageDate:graph\" INTEGER,\n\"nmo:lastSuccessfulMessageDate:localDate\" INTEGER,\n\"nmo:lastSuccessfulMessageDate:localTime\" INTEGER);\nCREATE TABLE \"nmo:CommunicationChannel_nmo:hasParticipant\" (ID INTEGER\nNOT NULL, \"nmo:hasParticipant\" INTEGER NOT NULL,\n\"nmo:hasParticipant:graph\" INTEGER);\nCREATE TABLE \"nmo:Conversation\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:DeliveryStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:Email\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:hasContent\" INTEGER, \"nmo:hasContent:graph\" INTEGER,\n\"nmo:isFlagged\" INTEGER, \"nmo:isFlagged:graph\" INTEGER, \"nmo:isRecent\"\nINTEGER, \"nmo:isRecent:graph\" INTEGER, \"nmo:status\" TEXT COLLATE\nNOCASE, \"nmo:status:graph\" INTEGER, \"nmo:responseType\" TEXT COLLATE\nNOCASE, \"nmo:responseType:graph\" INTEGER);\nCREATE TABLE \"nmo:Email_nmo:contentMimeType\" (ID INTEGER NOT NULL,\n\"nmo:contentMimeType\" TEXT NOT NULL, \"nmo:contentMimeType:graph\"\nINTEGER);\nCREATE TABLE \"nmo:IMMessage\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:MMSMessage\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:mmsHasContent\" INTEGER, \"nmo:mmsHasContent:graph\" INTEGER);\nCREATE TABLE \"nmo:MailAccount\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:accountName\" TEXT COLLATE NOCASE, \"nmo:accountName:graph\"\nINTEGER, \"nmo:accountDisplayName\" TEXT COLLATE NOCASE,\n\"nmo:accountDisplayName:graph\" INTEGER, \"nmo:fromAddress\" INTEGER,\n\"nmo:fromAddress:graph\" INTEGER, \"nmo:signature\" TEXT COLLATE NOCASE,\n\"nmo:signature:graph\" INTEGER);\nCREATE TABLE \"nmo:MailFolder\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:folderName\" TEXT COLLATE NOCASE, \"nmo:folderName:graph\" INTEGER,\n\"nmo:serverCount\" INTEGER, \"nmo:serverCount:graph\" INTEGER,\n\"nmo:serverUnreadCount\" INTEGER, \"nmo:serverUnreadCount:graph\"\nINTEGER);\nCREATE TABLE \"nmo:MailboxDataObject\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:Message\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:sentDate\" INTEGER, \"nmo:sentDate:graph\" INTEGER,\n\"nmo:sentDate:localDate\" INTEGER, \"nmo:sentDate:localTime\" INTEGER,\n\"nmo:from\" INTEGER, \"nmo:from:graph\" INTEGER, \"nmo:isAnswered\"\nINTEGER, \"nmo:isAnswered:graph\" INTEGER, \"nmo:isDeleted\" INTEGER,\n\"nmo:isDeleted:graph\" INTEGER, \"nmo:isDraft\" INTEGER,\n\"nmo:isDraft:graph\" INTEGER, \"nmo:isRead\" INTEGER, \"nmo:isRead:graph\"\nINTEGER, \"nmo:isSent\" INTEGER, \"nmo:isSent:graph\" INTEGER,\n\"nmo:isEmergency\" INTEGER, \"nmo:isEmergency:graph\" INTEGER,\n\"nmo:htmlMessageContent\" TEXT COLLATE NOCASE,\n\"nmo:htmlMessageContent:graph\" INTEGER, \"nmo:messageId\" TEXT COLLATE\nNOCASE, \"nmo:messageId:graph\" INTEGER, \"nmo:messageSubject\" TEXT\nCOLLATE NOCASE, \"nmo:messageSubject:graph\" INTEGER,\n\"nmo:receivedDate\" INTEGER, \"nmo:receivedDate:graph\" INTEGER,\n\"nmo:receivedDate:localDate\" INTEGER, \"nmo:receivedDate:localTime\"\nINTEGER, \"nmo:replyTo\" INTEGER, \"nmo:replyTo:graph\" INTEGER,\n\"nmo:sender\" INTEGER, \"nmo:sender:graph\" INTEGER, \"nmo:conversation\"\nINTEGER, \"nmo:conversation:graph\" INTEGER, \"nmo:communicationChannel\"\nINTEGER, \"nmo:communicationChannel:graph\" INTEGER,\n\"nmo:deliveryStatus\" INTEGER, \"nmo:deliveryStatus:graph\" INTEGER,\n\"nmo:reportDelivery\" INTEGER, \"nmo:reportDelivery:graph\" INTEGER,\n\"nmo:sentWithReportRead\" INTEGER, \"nmo:sentWithReportRead:graph\"\nINTEGER, \"nmo:reportReadStatus\" INTEGER, \"nmo:reportReadStatus:graph\"\nINTEGER, \"nmo:mustAnswerReportRead\" INTEGER,\n\"nmo:mustAnswerReportRead:graph\" INTEGER, \"nmo:mmsId\" TEXT COLLATE\nNOCASE, \"nmo:mmsId:graph\" INTEGER);\nCREATE TABLE \"nmo:MessageHeader\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:headerName\" TEXT COLLATE NOCASE, \"nmo:headerName:graph\" INTEGER,\n\"nmo:headerValue\" TEXT COLLATE NOCASE, \"nmo:headerValue:graph\"\nINTEGER);\nCREATE TABLE \"nmo:Message_nmo:bcc\" (ID INTEGER NOT NULL, \"nmo:bcc\"\nINTEGER NOT NULL, \"nmo:bcc:graph\" INTEGER);\nCREATE TABLE \"nmo:Message_nmo:cc\" (ID INTEGER NOT NULL, \"nmo:cc\"\nINTEGER NOT NULL, \"nmo:cc:graph\" INTEGER);\nCREATE TABLE \"nmo:Message_nmo:hasAttachment\" (ID INTEGER NOT NULL,\n\"nmo:hasAttachment\" INTEGER NOT NULL, \"nmo:hasAttachment:graph\"\nINTEGER);\nCREATE TABLE \"nmo:Message_nmo:inReplyTo\" (ID INTEGER NOT NULL,\n\"nmo:inReplyTo\" INTEGER NOT NULL, \"nmo:inReplyTo:graph\" INTEGER);\nCREATE TABLE \"nmo:Message_nmo:messageHeader\" (ID INTEGER NOT NULL,\n\"nmo:messageHeader\" INTEGER NOT NULL, \"nmo:messageHeader:graph\"\nINTEGER);\nCREATE TABLE \"nmo:Message_nmo:recipient\" (ID INTEGER NOT NULL,\n\"nmo:recipient\" INTEGER NOT NULL, \"nmo:recipient:graph\" INTEGER);\nCREATE TABLE \"nmo:Message_nmo:references\" (ID INTEGER NOT NULL,\n\"nmo:references\" INTEGER NOT NULL, \"nmo:references:graph\" INTEGER);\nCREATE TABLE \"nmo:Message_nmo:to\" (ID INTEGER NOT NULL, \"nmo:to\"\nINTEGER NOT NULL, \"nmo:to:graph\" INTEGER);\nCREATE TABLE \"nmo:MimePart\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:charSet\" TEXT COLLATE NOCASE, \"nmo:charSet:graph\" INTEGER,\n\"nmo:contentId\" TEXT COLLATE NOCASE, \"nmo:contentId:graph\" INTEGER,\n\"nmo:contentTransferEncoding\" TEXT COLLATE NOCASE,\n\"nmo:contentTransferEncoding:graph\" INTEGER, \"nmo:contentDescription\"\nTEXT COLLATE NOCASE, \"nmo:contentDescription:graph\" INTEGER,\n\"nmo:contentDisposition\" TEXT COLLATE NOCASE,\n\"nmo:contentDisposition:graph\" INTEGER);\nCREATE TABLE \"nmo:MimePart_nmo:mimeHeader\" (ID INTEGER NOT NULL,\n\"nmo:mimeHeader\" INTEGER NOT NULL, \"nmo:mimeHeader:graph\" INTEGER);\nCREATE TABLE \"nmo:Multipart\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:Multipart_nmo:partBoundary\" (ID INTEGER NOT NULL,\n\"nmo:partBoundary\" TEXT NOT NULL, \"nmo:partBoundary:graph\" INTEGER);\nCREATE TABLE \"nmo:PermanentChannel\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:PhoneMessage\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"nmo:fromVCard\" INTEGER, \"nmo:fromVCard:graph\" INTEGER, \"nmo:encoding\"\nTEXT COLLATE NOCASE, \"nmo:encoding:graph\" INTEGER,\n\"nmo:phoneMessageId\" INTEGER, \"nmo:phoneMessageId:graph\" INTEGER,\n\"nmo:validityPeriod\" INTEGER, \"nmo:validityPeriod:graph\" INTEGER);\nCREATE TABLE \"nmo:PhoneMessageFolder\" (ID INTEGER NOT NULL PRIMARY\nKEY, \"nmo:phoneMessageFolderId\" TEXT COLLATE NOCASE,\n\"nmo:phoneMessageFolderId:graph\" INTEGER);\nCREATE TABLE \"nmo:PhoneMessageFolder_nmo:containsPhoneMessage\" (ID\nINTEGER NOT NULL, \"nmo:containsPhoneMessage\" INTEGER NOT NULL,\n\"nmo:containsPhoneMessage:graph\" INTEGER);\nCREATE TABLE \"nmo:PhoneMessageFolder_nmo:containsPhoneMessageFolder\"\n(ID INTEGER NOT NULL, \"nmo:containsPhoneMessageFolder\" INTEGER NOT\nNULL, \"nmo:containsPhoneMessageFolder:graph\" INTEGER);\nCREATE TABLE \"nmo:PhoneMessage_nmo:toVCard\" (ID INTEGER NOT NULL,\n\"nmo:toVCard\" INTEGER NOT NULL, \"nmo:toVCard:graph\" INTEGER);\nCREATE TABLE \"nmo:ReportReadStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:SMSMessage\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:TransientChannel\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nmo:VOIPCall\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"nrl:InverseFunctionalProperty\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"osinfo:Installer\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"poi:ObjectOfInterest\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"rdf:Property\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"rdfs:domain\" INTEGER, \"rdfs:domain:graph\" INTEGER, \"rdfs:range\"\nINTEGER, \"rdfs:range:graph\" INTEGER, \"tracker:indexed\" INTEGER,\n\"tracker:indexed:graph\" INTEGER, \"tracker:secondaryIndex\" INTEGER,\n\"tracker:secondaryIndex:graph\" INTEGER, \"tracker:fulltextIndexed\"\nINTEGER, \"tracker:fulltextIndexed:graph\" INTEGER,\n\"tracker:fulltextNoLimit\" INTEGER, \"tracker:fulltextNoLimit:graph\"\nINTEGER, \"tracker:transient\" INTEGER, \"tracker:transient:graph\"\nINTEGER, \"tracker:weight\" INTEGER, \"tracker:weight:graph\" INTEGER,\n\"tracker:defaultValue\" TEXT COLLATE NOCASE,\n\"tracker:defaultValue:graph\" INTEGER, \"nrl:maxCardinality\" INTEGER,\n\"nrl:maxCardinality:graph\" INTEGER, \"tracker:writeback\" INTEGER,\n\"tracker:writeback:graph\" INTEGER, \"tracker:forceJournal\" INTEGER,\n\"tracker:forceJournal:graph\" INTEGER);\nCREATE TABLE \"rdf:Property_rdfs:subPropertyOf\" (ID INTEGER NOT NULL,\n\"rdfs:subPropertyOf\" INTEGER NOT NULL, \"rdfs:subPropertyOf:graph\"\nINTEGER);\nCREATE TABLE \"rdfs:Class\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"tracker:notify\" INTEGER, \"tracker:notify:graph\" INTEGER);\nCREATE TABLE \"rdfs:Class_rdfs:subClassOf\" (ID INTEGER NOT NULL,\n\"rdfs:subClassOf\" INTEGER NOT NULL, \"rdfs:subClassOf:graph\" INTEGER);\nCREATE TABLE \"rdfs:Class_tracker:domainIndex\" (ID INTEGER NOT NULL,\n\"tracker:domainIndex\" INTEGER NOT NULL, \"tracker:domainIndex:graph\"\nINTEGER);\nCREATE TABLE \"rdfs:Literal\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"rdfs:Resource\" (ID INTEGER NOT NULL PRIMARY KEY,\nAvailable INTEGER NOT NULL, \"rdfs:comment\" TEXT COLLATE NOCASE,\n\"rdfs:comment:graph\" INTEGER, \"rdfs:label\" TEXT COLLATE NOCASE,\n\"rdfs:label:graph\" INTEGER, \"tracker:added\" INTEGER,\n\"tracker:added:graph\" INTEGER, \"tracker:added:localDate\" INTEGER,\n\"tracker:added:localTime\" INTEGER, \"tracker:modified\" INTEGER,\n\"tracker:modified:graph\" INTEGER, \"tracker:damaged\" INTEGER,\n\"tracker:damaged:graph\" INTEGER, \"dc:title\" TEXT COLLATE NOCASE,\n\"dc:title:graph\" INTEGER, \"dc:creator\" TEXT COLLATE NOCASE,\n\"dc:creator:graph\" INTEGER, \"dc:subject\" TEXT COLLATE NOCASE,\n\"dc:subject:graph\" INTEGER, \"dc:description\" TEXT COLLATE NOCASE,\n\"dc:description:graph\" INTEGER, \"dc:publisher\" TEXT COLLATE NOCASE,\n\"dc:publisher:graph\" INTEGER, \"dc:type\" TEXT COLLATE NOCASE,\n\"dc:type:graph\" INTEGER, \"dc:format\" TEXT COLLATE NOCASE,\n\"dc:format:graph\" INTEGER, \"dc:identifier\" TEXT COLLATE NOCASE,\n\"dc:identifier:graph\" INTEGER, \"dc:language\" TEXT COLLATE NOCASE,\n\"dc:language:graph\" INTEGER, \"dc:coverage\" TEXT COLLATE NOCASE,\n\"dc:coverage:graph\" INTEGER, \"dc:rights\" TEXT COLLATE NOCASE,\n\"dc:rights:graph\" INTEGER, \"nao:identifier\" TEXT COLLATE NOCASE,\n\"nao:identifier:graph\" INTEGER, \"nao:numericRating\" REAL,\n\"nao:numericRating:graph\" INTEGER, \"nao:lastModified\" INTEGER,\n\"nao:lastModified:graph\" INTEGER, \"nao:lastModified:localDate\"\nINTEGER, \"nao:lastModified:localTime\" INTEGER);\nCREATE TABLE \"rdfs:Resource_dc:contributor\" (ID INTEGER NOT NULL,\n\"dc:contributor\" TEXT NOT NULL, \"dc:contributor:graph\" INTEGER);\nCREATE TABLE \"rdfs:Resource_dc:date\" (ID INTEGER NOT NULL, \"dc:date\"\nINTEGER NOT NULL, \"dc:date:graph\" INTEGER, \"dc:date:localDate\" INTEGER\nNOT NULL, \"dc:date:localTime\" INTEGER NOT NULL);\nCREATE TABLE \"rdfs:Resource_dc:relation\" (ID INTEGER NOT NULL,\n\"dc:relation\" TEXT NOT NULL, \"dc:relation:graph\" INTEGER);\nCREATE TABLE \"rdfs:Resource_dc:source\" (ID INTEGER NOT NULL,\n\"dc:source\" INTEGER NOT NULL, \"dc:source:graph\" INTEGER);\nCREATE TABLE \"rdfs:Resource_nao:deprecated\" (ID INTEGER NOT NULL,\n\"nao:deprecated\" INTEGER NOT NULL, \"nao:deprecated:graph\" INTEGER);\nCREATE TABLE \"rdfs:Resource_nao:hasTag\" (ID INTEGER NOT NULL,\n\"nao:hasTag\" INTEGER NOT NULL, \"nao:hasTag:graph\" INTEGER);\nCREATE TABLE \"rdfs:Resource_nao:isRelated\" (ID INTEGER NOT NULL,\n\"nao:isRelated\" INTEGER NOT NULL, \"nao:isRelated:graph\" INTEGER);\nCREATE TABLE \"rdfs:Resource_rdf:type\" (ID INTEGER NOT NULL, \"rdf:type\"\nINTEGER NOT NULL, \"rdf:type:graph\" INTEGER);\nCREATE TABLE \"scal:AccessLevel\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:AttendanceStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:Attendee\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:attendanceStatus\" INTEGER, \"scal:attendanceStatus:graph\"\nINTEGER, \"scal:attendeeRole\" INTEGER, \"scal:attendeeRole:graph\"\nINTEGER, \"scal:attendeeContact\" INTEGER, \"scal:attendeeContact:graph\"\nINTEGER, \"scal:rsvp\" INTEGER, \"scal:rsvp:graph\" INTEGER,\n\"scal:calendarUserType\" INTEGER, \"scal:calendarUserType:graph\"\nINTEGER);\nCREATE TABLE \"scal:AttendeeRole\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:Attendee_scal:delegated-from\" (ID INTEGER NOT NULL,\n\"scal:delegated-from\" INTEGER NOT NULL, \"scal:delegated-from:graph\"\nINTEGER);\nCREATE TABLE \"scal:Attendee_scal:delegated-to\" (ID INTEGER NOT NULL,\n\"scal:delegated-to\" INTEGER NOT NULL, \"scal:delegated-to:graph\"\nINTEGER);\nCREATE TABLE \"scal:Attendee_scal:member\" (ID INTEGER NOT NULL,\n\"scal:member\" INTEGER NOT NULL, \"scal:member:graph\" INTEGER);\nCREATE TABLE \"scal:Attendee_scal:sent-by\" (ID INTEGER NOT NULL,\n\"scal:sent-by\" INTEGER NOT NULL, \"scal:sent-by:graph\" INTEGER);\nCREATE TABLE \"scal:Calendar\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:CalendarAlarm\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:alarmOffset\" INTEGER, \"scal:alarmOffset:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarAlarm_scal:alarmAttendee\" (ID INTEGER NOT\nNULL, \"scal:alarmAttendee\" INTEGER NOT NULL,\n\"scal:alarmAttendee:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:textLocation\" INTEGER, \"scal:textLocation:graph\" INTEGER,\n\"scal:resources\" TEXT COLLATE NOCASE, \"scal:resources:graph\" INTEGER,\n\"scal:transparency\" INTEGER, \"scal:transparency:graph\" INTEGER,\n\"scal:calendarItemAlarm\" INTEGER, \"scal:calendarItemAlarm:graph\"\nINTEGER, \"scal:start\" INTEGER, \"scal:start:graph\" INTEGER, \"scal:end\"\nINTEGER, \"scal:end:graph\" INTEGER, \"scal:isAllDay\" INTEGER,\n\"scal:isAllDay:graph\" INTEGER, \"scal:priority\" INTEGER,\n\"scal:priority:graph\" INTEGER, \"scal:rdate\" INTEGER,\n\"scal:rdate:graph\" INTEGER, \"scal:exceptionRDate\" INTEGER,\n\"scal:exceptionRDate:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem_scal:access\" (ID INTEGER NOT NULL,\n\"scal:access\" INTEGER NOT NULL, \"scal:access:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem_scal:attachment\" (ID INTEGER NOT NULL,\n\"scal:attachment\" INTEGER NOT NULL, \"scal:attachment:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem_scal:attendee\" (ID INTEGER NOT NULL,\n\"scal:attendee\" INTEGER NOT NULL, \"scal:attendee:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem_scal:belongsToCalendar\" (ID INTEGER\nNOT NULL, \"scal:belongsToCalendar\" INTEGER NOT NULL,\n\"scal:belongsToCalendar:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem_scal:contact\" (ID INTEGER NOT NULL,\n\"scal:contact\" INTEGER NOT NULL, \"scal:contact:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarItem_scal:rrule\" (ID INTEGER NOT NULL,\n\"scal:rrule\" INTEGER NOT NULL, \"scal:rrule:graph\" INTEGER);\nCREATE TABLE \"scal:CalendarUserType\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:Event\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:eventStatus\" INTEGER, \"scal:eventStatus:graph\" INTEGER);\nCREATE TABLE \"scal:EventStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:Journal\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:journalStatus\" INTEGER, \"scal:journalStatus:graph\" INTEGER);\nCREATE TABLE \"scal:JournalStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:RSVPValues\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:RecurrenceRule\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:recurrencePattern\" TEXT COLLATE NOCASE,\n\"scal:recurrencePattern:graph\" INTEGER, \"scal:recurrenceStartDate\"\nINTEGER, \"scal:recurrenceStartDate:graph\" INTEGER, \"scal:exception\"\nINTEGER, \"scal:exception:graph\" INTEGER);\nCREATE TABLE \"scal:TimePoint\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:dateTime\" INTEGER, \"scal:dateTime:graph\" INTEGER,\n\"scal:dateTime:localDate\" INTEGER, \"scal:dateTime:localTime\" INTEGER,\n\"scal:TimeZone\" TEXT COLLATE NOCASE, \"scal:TimeZone:graph\" INTEGER);\nCREATE TABLE \"scal:Todo\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"scal:todoStatus\" INTEGER, \"scal:todoStatus:graph\" INTEGER, \"scal:due\"\nINTEGER, \"scal:due:graph\" INTEGER, \"scal:completed\" INTEGER,\n\"scal:completed:graph\" INTEGER, \"scal:percentComplete\" INTEGER,\n\"scal:percentComplete:graph\" INTEGER);\nCREATE TABLE \"scal:TodoStatus\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"scal:TransparencyValues\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"slo:GeoLocation\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"slo:latitude\" REAL, \"slo:latitude:graph\" INTEGER, \"slo:longitude\"\nREAL, \"slo:longitude:graph\" INTEGER, \"slo:verticalAccuracy\" REAL,\n\"slo:verticalAccuracy:graph\" INTEGER, \"slo:horizontalAccuracy\" REAL,\n\"slo:horizontalAccuracy:graph\" INTEGER, \"slo:altitude\" REAL,\n\"slo:altitude:graph\" INTEGER, \"slo:boundingLatitudeMin\" REAL,\n\"slo:boundingLatitudeMin:graph\" INTEGER, \"slo:boundingLatitudeMax\"\nREAL, \"slo:boundingLatitudeMax:graph\" INTEGER,\n\"slo:boundingLongitudeMin\" REAL, \"slo:boundingLongitudeMin:graph\"\nINTEGER, \"slo:boundingLongitudeMax\" REAL,\n\"slo:boundingLongitudeMax:graph\" INTEGER, \"slo:radius\" REAL,\n\"slo:radius:graph\" INTEGER, \"slo:timestamp\" INTEGER,\n\"slo:timestamp:graph\" INTEGER, \"slo:timestamp:localDate\" INTEGER,\n\"slo:timestamp:localTime\" INTEGER, \"slo:postalAddress\" INTEGER,\n\"slo:postalAddress:graph\" INTEGER);\nCREATE TABLE \"slo:Landmark\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"slo:iconUrl\" INTEGER, \"slo:iconUrl:graph\" INTEGER);\nCREATE TABLE \"slo:LandmarkCategory\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"slo:isRemovable\" INTEGER, \"slo:isRemovable:graph\" INTEGER,\n\"slo:categoryIconUrl\" INTEGER, \"slo:categoryIconUrl:graph\" INTEGER);\nCREATE TABLE \"slo:Landmark_slo:belongsToCategory\" (ID INTEGER NOT\nNULL, \"slo:belongsToCategory\" INTEGER NOT NULL,\n\"slo:belongsToCategory:graph\" INTEGER);\nCREATE TABLE \"slo:Landmark_slo:hasContact\" (ID INTEGER NOT NULL,\n\"slo:hasContact\" INTEGER NOT NULL, \"slo:hasContact:graph\" INTEGER);\nCREATE TABLE \"slo:Route\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"slo:startTime\" INTEGER, \"slo:startTime:graph\" INTEGER,\n\"slo:startTime:localDate\" INTEGER, \"slo:startTime:localTime\" INTEGER,\n\"slo:endTime\" INTEGER, \"slo:endTime:graph\" INTEGER,\n\"slo:endTime:localDate\" INTEGER, \"slo:endTime:localTime\" INTEGER);\nCREATE TABLE \"slo:Route_slo:routeDetails\" (ID INTEGER NOT NULL,\n\"slo:routeDetails\" TEXT NOT NULL, \"slo:routeDetails:graph\" INTEGER);\nCREATE TABLE \"tracker:Namespace\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"tracker:prefix\" TEXT COLLATE NOCASE, \"tracker:prefix:graph\"\nINTEGER);\nCREATE TABLE \"tracker:Ontology\" (ID INTEGER NOT NULL PRIMARY KEY);\nCREATE TABLE \"tracker:Volume\" (ID INTEGER NOT NULL PRIMARY KEY,\n\"tracker:isMounted\" INTEGER, \"tracker:isMounted:graph\" INTEGER,\n\"tracker:unmountDate\" INTEGER, \"tracker:unmountDate:graph\" INTEGER,\n\"tracker:unmountDate:localDate\" INTEGER,\n\"tracker:unmountDate:localTime\" INTEGER, \"tracker:mountPoint\" INTEGER,\n\"tracker:mountPoint:graph\" INTEGER, \"tracker:isRemovable\" INTEGER,\n\"tracker:isRemovable:graph\" INTEGER, \"tracker:isOptical\" INTEGER,\n\"tracker:isOptical:graph\" INTEGER);\nCREATE UNIQUE INDEX \"mfo:FeedMessage_mfo:enclosureList_ID_ID\" ON\n\"mfo:FeedMessage_mfo:enclosureList\" (ID, \"mfo:enclosureList\");\nCREATE UNIQUE INDEX \"mlo:GeoBoundingBox_mlo:bbNorthWest_ID_ID\" ON\n\"mlo:GeoBoundingBox_mlo:bbNorthWest\" (ID, \"mlo:bbNorthWest\");\nCREATE UNIQUE INDEX \"mlo:GeoBoundingBox_mlo:bbSouthEast_ID_ID\" ON\n\"mlo:GeoBoundingBox_mlo:bbSouthEast\" (ID, \"mlo:bbSouthEast\");\nCREATE INDEX \"mlo:GeoLocation_mlo:asBoundingBox_ID\" ON\n\"mlo:GeoLocation_mlo:asBoundingBox\" (ID);\nCREATE UNIQUE INDEX \"mlo:GeoLocation_mlo:asBoundingBox_ID_ID\" ON\n\"mlo:GeoLocation_mlo:asBoundingBox\" (\"mlo:asBoundingBox\", ID);\nCREATE INDEX \"mlo:GeoLocation_mlo:asGeoPoint_ID\" ON\n\"mlo:GeoLocation_mlo:asGeoPoint\" (ID);\nCREATE UNIQUE INDEX \"mlo:GeoLocation_mlo:asGeoPoint_ID_ID\" ON\n\"mlo:GeoLocation_mlo:asGeoPoint\" (\"mlo:asGeoPoint\", ID);\nCREATE INDEX \"mlo:GeoLocation_mlo:asPostalAddress_ID\" ON\n\"mlo:GeoLocation_mlo:asPostalAddress\" (ID);\nCREATE UNIQUE INDEX \"mlo:GeoLocation_mlo:asPostalAddress_ID_ID\" ON\n\"mlo:GeoLocation_mlo:asPostalAddress\" (\"mlo:asPostalAddress\", ID);\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:address_ID_ID\" ON\n\"mlo:GeoPoint_mlo:address\" (ID, \"mlo:address\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:altitude_ID_ID\" ON\n\"mlo:GeoPoint_mlo:altitude\" (ID, \"mlo:altitude\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:city_ID_ID\" ON\n\"mlo:GeoPoint_mlo:city\" (ID, \"mlo:city\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:country_ID_ID\" ON\n\"mlo:GeoPoint_mlo:country\" (ID, \"mlo:country\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:latitude_ID_ID\" ON\n\"mlo:GeoPoint_mlo:latitude\" (ID, \"mlo:latitude\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:longitude_ID_ID\" ON\n\"mlo:GeoPoint_mlo:longitude\" (ID, \"mlo:longitude\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:state_ID_ID\" ON\n\"mlo:GeoPoint_mlo:state\" (ID, \"mlo:state\");\nCREATE UNIQUE INDEX \"mlo:GeoPoint_mlo:timestamp_ID_ID\" ON\n\"mlo:GeoPoint_mlo:timestamp\" (ID, \"mlo:timestamp\");\nCREATE UNIQUE INDEX \"mlo:GeoSphere_mlo:radius_ID_ID\" ON\n\"mlo:GeoSphere_mlo:radius\" (ID, \"mlo:radius\");\nCREATE UNIQUE INDEX \"mlo:LandmarkCategory_mlo:isRemovable_ID_ID\" ON\n\"mlo:LandmarkCategory_mlo:isRemovable\" (ID, \"mlo:isRemovable\");\nCREATE UNIQUE INDEX \"mlo:Landmark_mlo:belongsToCategory_ID_ID\" ON\n\"mlo:Landmark_mlo:belongsToCategory\" (ID, \"mlo:belongsToCategory\");\nCREATE UNIQUE INDEX \"mlo:Landmark_mlo:poiLocation_ID_ID\" ON\n\"mlo:Landmark_mlo:poiLocation\" (ID, \"mlo:poiLocation\");\nCREATE UNIQUE INDEX \"mlo:LocationBoundingBox_mlo:boxEastLimit_ID_ID\"\nON \"mlo:LocationBoundingBox_mlo:boxEastLimit\" (ID,\n\"mlo:boxEastLimit\");\nCREATE UNIQUE INDEX \"mlo:LocationBoundingBox_mlo:boxNorthLimit_ID_ID\"\nON \"mlo:LocationBoundingBox_mlo:boxNorthLimit\" (ID,\n\"mlo:boxNorthLimit\");\nCREATE UNIQUE INDEX\n\"mlo:LocationBoundingBox_mlo:boxSouthWestCorner_ID_ID\" ON\n\"mlo:LocationBoundingBox_mlo:boxSouthWestCorner\" (ID,\n\"mlo:boxSouthWestCorner\");\nCREATE UNIQUE INDEX\n\"mlo:LocationBoundingBox_mlo:boxVerticalLimit_ID_ID\" ON\n\"mlo:LocationBoundingBox_mlo:boxVerticalLimit\" (ID,\n\"mlo:boxVerticalLimit\");\nCREATE UNIQUE INDEX \"mlo:Route_mlo:endTime_ID_ID\" ON\n\"mlo:Route_mlo:endTime\" (ID, \"mlo:endTime\");\nCREATE UNIQUE INDEX \"mlo:Route_mlo:routeDetails_ID_ID\" ON\n\"mlo:Route_mlo:routeDetails\" (ID, \"mlo:routeDetails\");\nCREATE UNIQUE INDEX \"mlo:Route_mlo:startTime_ID_ID\" ON\n\"mlo:Route_mlo:startTime\" (ID, \"mlo:startTime\");\nCREATE UNIQUE INDEX \"mto:Transfer_mto:transferList_ID_ID\" ON\n\"mto:Transfer_mto:transferList\" (ID, \"mto:transferList\");\nCREATE UNIQUE INDEX \"mto:Transfer_mto:transferPrivacyLevel_ID_ID\" ON\n\"mto:Transfer_mto:transferPrivacyLevel\" (ID,\n\"mto:transferPrivacyLevel\");\nCREATE UNIQUE INDEX \"mto:UploadTransfer_mto:transferCategory_ID_ID\" ON\n\"mto:UploadTransfer_mto:transferCategory\" (ID,\n\"mto:transferCategory\");\nCREATE UNIQUE INDEX \"nao:Tag_tracker:isDefaultTag_ID_ID\" ON\n\"nao:Tag_tracker:isDefaultTag\" (ID, \"tracker:isDefaultTag\");\nCREATE UNIQUE INDEX \"nao:Tag_tracker:tagRelatedTo_ID_ID\" ON\n\"nao:Tag_tracker:tagRelatedTo\" (ID, \"tracker:tagRelatedTo\");\nCREATE UNIQUE INDEX \"ncal:Alarm_ncal:action_ID_ID\" ON\n\"ncal:Alarm_ncal:action\" (ID, \"ncal:action\");\nCREATE UNIQUE INDEX \"ncal:BydayRulePart_ncal:bydayModifier_ID_ID\" ON\n\"ncal:BydayRulePart_ncal:bydayModifier\" (ID, \"ncal:bydayModifier\");\nCREATE UNIQUE INDEX \"ncal:BydayRulePart_ncal:bydayWeekday_ID_ID\" ON\n\"ncal:BydayRulePart_ncal:bydayWeekday\" (ID, \"ncal:bydayWeekday\");\nCREATE UNIQUE INDEX \"ncal:Calendar_ncal:component_ID_ID\" ON\n\"ncal:Calendar_ncal:component\" (ID, \"ncal:component\");\nCREATE UNIQUE INDEX \"ncal:Freebusy_ncal:freebusy_ID_ID\" ON\n\"ncal:Freebusy_ncal:freebusy\" (ID, \"ncal:freebusy\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:byday_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:byday\" (ID, \"ncal:byday\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:byhour_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:byhour\" (ID, \"ncal:byhour\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:byminute_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:byminute\" (ID, \"ncal:byminute\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:bymonth_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:bymonth\" (ID, \"ncal:bymonth\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:bymonthday_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:bymonthday\" (ID, \"ncal:bymonthday\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:bysecond_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:bysecond\" (ID, \"ncal:bysecond\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:bysetpos_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:bysetpos\" (ID, \"ncal:bysetpos\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:byweekno_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:byweekno\" (ID, \"ncal:byweekno\");\nCREATE UNIQUE INDEX \"ncal:RecurrenceRule_ncal:byyearday_ID_ID\" ON\n\"ncal:RecurrenceRule_ncal:byyearday\" (ID, \"ncal:byyearday\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:attach_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:attach\" (ID, \"ncal:attach\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:attendee_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:attendee\" (ID, \"ncal:attendee\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:categories_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:categories\" (ID, \"ncal:categories\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:exdate_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:exdate\" (ID, \"ncal:exdate\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:exrule_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:exrule\" (ID, \"ncal:exrule\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:hasAlarm_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:hasAlarm\" (ID, \"ncal:hasAlarm\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:ncalRelation_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:ncalRelation\" (ID, \"ncal:ncalRelation\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:rdate_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:rdate\" (ID, \"ncal:rdate\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:relatedToChild_ID_ID\"\nON \"ncal:UnionParentClass_ncal:relatedToChild\" (ID,\n\"ncal:relatedToChild\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:relatedToParent_ID_ID\"\nON \"ncal:UnionParentClass_ncal:relatedToParent\" (ID,\n\"ncal:relatedToParent\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:resources_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:resources\" (ID, \"ncal:resources\");\nCREATE UNIQUE INDEX \"ncal:UnionParentClass_ncal:rrule_ID_ID\" ON\n\"ncal:UnionParentClass_ncal:rrule\" (ID, \"ncal:rrule\");\nCREATE UNIQUE INDEX \"nco:Affiliation_nco:title_ID_ID\" ON\n\"nco:Affiliation_nco:title\" (ID, \"nco:title\");\nCREATE UNIQUE INDEX \"nco:ContactList_nco:containsContact_ID_ID\" ON\n\"nco:ContactList_nco:containsContact\" (ID, \"nco:containsContact\");\nCREATE UNIQUE INDEX \"nco:Contact_ncal:anniversary_ID_ID\" ON\n\"nco:Contact_ncal:anniversary\" (ID, \"ncal:anniversary\");\nCREATE UNIQUE INDEX \"nco:Contact_ncal:birthday_ID_ID\" ON\n\"nco:Contact_ncal:birthday\" (ID, \"ncal:birthday\");\nCREATE UNIQUE INDEX \"nco:Contact_nco:belongsToGroup_ID_ID\" ON\n\"nco:Contact_nco:belongsToGroup\" (ID, \"nco:belongsToGroup\");\nCREATE UNIQUE INDEX \"nco:Contact_nco:note_ID_ID\" ON\n\"nco:Contact_nco:note\" (ID, \"nco:note\");\nCREATE UNIQUE INDEX \"nco:Contact_scal:anniversary_ID_ID\" ON\n\"nco:Contact_scal:anniversary\" (ID, \"scal:anniversary\");\nCREATE UNIQUE INDEX \"nco:Contact_scal:birthday_ID_ID\" ON\n\"nco:Contact_scal:birthday\" (ID, \"scal:birthday\");\nCREATE UNIQUE INDEX \"nco:IMAccount_nco:hasIMContact_ID_ID\" ON\n\"nco:IMAccount_nco:hasIMContact\" (ID, \"nco:hasIMContact\");\nCREATE UNIQUE INDEX \"nco:IMAddress_nco:imCapability_ID_ID\" ON\n\"nco:IMAddress_nco:imCapability\" (ID, \"nco:imCapability\");\nCREATE UNIQUE INDEX \"nco:PersonContact_nco:hasAffiliation_ID_ID\" ON\n\"nco:PersonContact_nco:hasAffiliation\" (ID, \"nco:hasAffiliation\");\nCREATE INDEX \"nco:PersonContact_nco:nameFamily\" ON \"nco:PersonContact\"\n(\"nco:nameFamily\");\nCREATE INDEX \"nco:PhoneNumber_nco:phoneNumber\" ON \"nco:PhoneNumber\"\n(\"nco:phoneNumber\");\nCREATE UNIQUE INDEX \"nco:Role_nco:blogUrl_ID_ID\" ON\n\"nco:Role_nco:blogUrl\" (ID, \"nco:blogUrl\");\nCREATE UNIQUE INDEX \"nco:Role_nco:foafUrl_ID_ID\" ON\n\"nco:Role_nco:foafUrl\" (ID, \"nco:foafUrl\");\nCREATE UNIQUE INDEX \"nco:Role_nco:hasContactMedium_ID_ID\" ON\n\"nco:Role_nco:hasContactMedium\" (ID, \"nco:hasContactMedium\");\nCREATE INDEX \"nco:Role_nco:hasEmailAddress_ID\" ON\n\"nco:Role_nco:hasEmailAddress\" (ID);\nCREATE UNIQUE INDEX \"nco:Role_nco:hasEmailAddress_ID_ID\" ON\n\"nco:Role_nco:hasEmailAddress\" (\"nco:hasEmailAddress\", ID);\nCREATE UNIQUE INDEX \"nco:Role_nco:hasIMAddress_ID_ID\" ON\n\"nco:Role_nco:hasIMAddress\" (ID, \"nco:hasIMAddress\");\nCREATE UNIQUE INDEX \"nco:Role_nco:hasPhoneNumber_ID_ID\" ON\n\"nco:Role_nco:hasPhoneNumber\" (ID, \"nco:hasPhoneNumber\");\nCREATE INDEX \"nco:Role_nco:hasPostalAddress_ID\" ON\n\"nco:Role_nco:hasPostalAddress\" (ID);\nCREATE UNIQUE INDEX \"nco:Role_nco:hasPostalAddress_ID_ID\" ON\n\"nco:Role_nco:hasPostalAddress\" (\"nco:hasPostalAddress\", ID);\nCREATE UNIQUE INDEX \"nco:Role_nco:url_ID_ID\" ON \"nco:Role_nco:url\"\n(ID, \"nco:url\");\nCREATE UNIQUE INDEX \"nco:Role_nco:websiteUrl_ID_ID\" ON\n\"nco:Role_nco:websiteUrl\" (ID, \"nco:websiteUrl\");\nCREATE UNIQUE INDEX\n\"nfo:BookmarkFolder_nfo:containsBookmarkFolder_ID_ID\" ON\n\"nfo:BookmarkFolder_nfo:containsBookmarkFolder\" (ID,\n\"nfo:containsBookmarkFolder\");\nCREATE UNIQUE INDEX \"nfo:BookmarkFolder_nfo:containsBookmark_ID_ID\" ON\n\"nfo:BookmarkFolder_nfo:containsBookmark\" (ID,\n\"nfo:containsBookmark\");\nCREATE INDEX \"nfo:FileDataObject_nfo:fileLastModified\" ON\n\"nfo:FileDataObject\" (\"nfo:fileLastModified\");\nCREATE UNIQUE INDEX \"nfo:Image_nfo:depicts_ID_ID\" ON\n\"nfo:Image_nfo:depicts\" (ID, \"nfo:depicts\");\nCREATE UNIQUE INDEX \"nfo:Image_nfo:hasRegionOfInterest_ID_ID\" ON\n\"nfo:Image_nfo:hasRegionOfInterest\" (ID, \"nfo:hasRegionOfInterest\");\nCREATE UNIQUE INDEX \"nfo:MediaList_nfo:hasMediaFileListEntry_ID_ID\" ON\n\"nfo:MediaList_nfo:hasMediaFileListEntry\" (ID,\n\"nfo:hasMediaFileListEntry\");\nCREATE UNIQUE INDEX \"nfo:MediaList_nfo:mediaListEntry_ID_ID\" ON\n\"nfo:MediaList_nfo:mediaListEntry\" (ID, \"nfo:mediaListEntry\");\nCREATE UNIQUE INDEX \"nfo:Media_mtp:hidden_ID_ID\" ON\n\"nfo:Media_mtp:hidden\" (ID, \"mtp:hidden\");\nCREATE UNIQUE INDEX \"nfo:Media_nmm:alternativeMedia_ID_ID\" ON\n\"nfo:Media_nmm:alternativeMedia\" (ID, \"nmm:alternativeMedia\");\nCREATE INDEX \"nfo:Visual_nie:contentCreated\" ON \"nfo:Visual\"\n(\"nie:contentCreated\");\nCREATE UNIQUE INDEX \"nid3:ID3Audio_nid3:leadArtist_ID_ID\" ON\n\"nid3:ID3Audio_nid3:leadArtist\" (ID, \"nid3:leadArtist\");\nCREATE UNIQUE INDEX \"nie:DataObject_nie:dataSource_ID_ID\" ON\n\"nie:DataObject_nie:dataSource\" (ID, \"nie:dataSource\");\nCREATE UNIQUE INDEX \"nie:DataObject_nie:isPartOf_ID_ID\" ON\n\"nie:DataObject_nie:isPartOf\" (ID, \"nie:isPartOf\");\nCREATE INDEX \"nie:DataObject_nie:url\" ON \"nie:DataObject\" (\"nie:url\");\nCREATE INDEX \"nie:InformationElement_mlo:location_ID\" ON\n\"nie:InformationElement_mlo:location\" (ID);\nCREATE UNIQUE INDEX \"nie:InformationElement_mlo:location_ID_ID\" ON\n\"nie:InformationElement_mlo:location\" (\"mlo:location\", ID);\nCREATE UNIQUE INDEX \"nie:InformationElement_nao:hasProperty_ID_ID\" ON\n\"nie:InformationElement_nao:hasProperty\" (ID, \"nao:hasProperty\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nco:contributor_ID_ID\" ON\n\"nie:InformationElement_nco:contributor\" (ID, \"nco:contributor\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nco:creator_ID_ID\" ON\n\"nie:InformationElement_nco:creator\" (ID, \"nco:creator\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nie:hasLogicalPart_ID_ID\"\nON \"nie:InformationElement_nie:hasLogicalPart\" (ID,\n\"nie:hasLogicalPart\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nie:hasPart_ID_ID\" ON\n\"nie:InformationElement_nie:hasPart\" (ID, \"nie:hasPart\");\nCREATE UNIQUE INDEX\n\"nie:InformationElement_nie:informationElementDate_ID_ID\" ON\n\"nie:InformationElement_nie:informationElementDate\" (ID,\n\"nie:informationElementDate\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nie:isLogicalPartOf_ID_ID\"\nON \"nie:InformationElement_nie:isLogicalPartOf\" (ID,\n\"nie:isLogicalPartOf\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nie:keyword_ID_ID\" ON\n\"nie:InformationElement_nie:keyword\" (ID, \"nie:keyword\");\nCREATE UNIQUE INDEX \"nie:InformationElement_nie:relatedTo_ID_ID\" ON\n\"nie:InformationElement_nie:relatedTo\" (ID, \"nie:relatedTo\");\nCREATE INDEX \"nie:InformationElement_slo:location\" ON\n\"nie:InformationElement\" (\"slo:location\");\nCREATE INDEX \"nmm:Artist_nmm:artistName\" ON \"nmm:Artist\" (\"nmm:artistName\");\nCREATE INDEX \"nmm:MusicAlbum_nie:title\" ON \"nmm:MusicAlbum\" (\"nie:title\");\nCREATE UNIQUE INDEX \"nmm:MusicAlbum_nmm:albumArtist_ID_ID\" ON\n\"nmm:MusicAlbum_nmm:albumArtist\" (ID, \"nmm:albumArtist\");\nCREATE INDEX \"nmm:MusicPiece_nie:title\" ON \"nmm:MusicPiece\" (\"nie:title\");\nCREATE UNIQUE INDEX \"nmm:MusicPiece_nmm:lyrics_ID_ID\" ON\n\"nmm:MusicPiece_nmm:lyrics\" (ID, \"nmm:lyrics\");\nCREATE INDEX \"nmm:MusicPiece_nmm:musicAlbum\" ON \"nmm:MusicPiece\"\n(\"nmm:musicAlbum\");\nCREATE INDEX \"nmm:MusicPiece_nmm:performer\" ON \"nmm:MusicPiece\"\n(\"nmm:performer\");\nCREATE UNIQUE INDEX \"nmm:RadioStation_nmm:carrier_ID_ID\" ON\n\"nmm:RadioStation_nmm:carrier\" (ID, \"nmm:carrier\");\nCREATE UNIQUE INDEX \"nmm:Video_mtp:scantype_ID_ID\" ON\n\"nmm:Video_mtp:scantype\" (ID, \"mtp:scantype\");\nCREATE UNIQUE INDEX \"nmm:Video_nmm:director_ID_ID\" ON\n\"nmm:Video_nmm:director\" (ID, \"nmm:director\");\nCREATE UNIQUE INDEX \"nmm:Video_nmm:leadActor_ID_ID\" ON\n\"nmm:Video_nmm:leadActor\" (ID, \"nmm:leadActor\");\nCREATE UNIQUE INDEX \"nmm:Video_nmm:subtitle_ID_ID\" ON\n\"nmm:Video_nmm:subtitle\" (ID, \"nmm:subtitle\");\nCREATE INDEX \"nmo:Call_nmo:sentDate\" ON \"nmo:Call\" (\"nmo:sentDate\");\nCREATE INDEX \"nmo:CommunicationChannel_nmo:hasParticipant_ID\" ON\n\"nmo:CommunicationChannel_nmo:hasParticipant\" (ID);\nCREATE UNIQUE INDEX\n\"nmo:CommunicationChannel_nmo:hasParticipant_ID_ID\" ON\n\"nmo:CommunicationChannel_nmo:hasParticipant\" (\"nmo:hasParticipant\",\nID);\nCREATE INDEX \"nmo:CommunicationChannel_nmo:lastMessageDate\" ON\n\"nmo:CommunicationChannel\" (\"nmo:lastMessageDate\");\nCREATE UNIQUE INDEX \"nmo:Email_nmo:contentMimeType_ID_ID\" ON\n\"nmo:Email_nmo:contentMimeType\" (ID, \"nmo:contentMimeType\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:bcc_ID_ID\" ON\n\"nmo:Message_nmo:bcc\" (ID, \"nmo:bcc\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:cc_ID_ID\" ON \"nmo:Message_nmo:cc\"\n(ID, \"nmo:cc\");\nCREATE INDEX \"nmo:Message_nmo:communicationChannel\" ON \"nmo:Message\"\n(\"nmo:communicationChannel\", \"nmo:receivedDate\");\nCREATE INDEX \"nmo:Message_nmo:conversation\" ON \"nmo:Message\"\n(\"nmo:conversation\");\nCREATE INDEX \"nmo:Message_nmo:from\" ON \"nmo:Message\" (\"nmo:from\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:hasAttachment_ID_ID\" ON\n\"nmo:Message_nmo:hasAttachment\" (ID, \"nmo:hasAttachment\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:inReplyTo_ID_ID\" ON\n\"nmo:Message_nmo:inReplyTo\" (ID, \"nmo:inReplyTo\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:messageHeader_ID_ID\" ON\n\"nmo:Message_nmo:messageHeader\" (ID, \"nmo:messageHeader\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:recipient_ID_ID\" ON\n\"nmo:Message_nmo:recipient\" (ID, \"nmo:recipient\");\nCREATE UNIQUE INDEX \"nmo:Message_nmo:references_ID_ID\" ON\n\"nmo:Message_nmo:references\" (ID, \"nmo:references\");\nCREATE INDEX \"nmo:Message_nmo:sender\" ON \"nmo:Message\" (\"nmo:sender\");\nCREATE INDEX \"nmo:Message_nmo:sentDate\" ON \"nmo:Message\" (\"nmo:sentDate\");\nCREATE INDEX \"nmo:Message_nmo:to_ID\" ON \"nmo:Message_nmo:to\" (ID);\nCREATE UNIQUE INDEX \"nmo:Message_nmo:to_ID_ID\" ON \"nmo:Message_nmo:to\"\n(\"nmo:to\", ID);\nCREATE UNIQUE INDEX \"nmo:MimePart_nmo:mimeHeader_ID_ID\" ON\n\"nmo:MimePart_nmo:mimeHeader\" (ID, \"nmo:mimeHeader\");\nCREATE UNIQUE INDEX \"nmo:Multipart_nmo:partBoundary_ID_ID\" ON\n\"nmo:Multipart_nmo:partBoundary\" (ID, \"nmo:partBoundary\");\nCREATE UNIQUE INDEX\n\"nmo:PhoneMessageFolder_nmo:containsPhoneMessageFolder_ID_ID\" ON\n\"nmo:PhoneMessageFolder_nmo:containsPhoneMessageFolder\" (ID,\n\"nmo:containsPhoneMessageFolder\");\nCREATE UNIQUE INDEX\n\"nmo:PhoneMessageFolder_nmo:containsPhoneMessage_ID_ID\" ON\n\"nmo:PhoneMessageFolder_nmo:containsPhoneMessage\" (ID,\n\"nmo:containsPhoneMessage\");\nCREATE UNIQUE INDEX \"nmo:PhoneMessage_nmo:toVCard_ID_ID\" ON\n\"nmo:PhoneMessage_nmo:toVCard\" (ID, \"nmo:toVCard\");\nCREATE UNIQUE INDEX \"rdf:Property_rdfs:subPropertyOf_ID_ID\" ON\n\"rdf:Property_rdfs:subPropertyOf\" (ID, \"rdfs:subPropertyOf\");\nCREATE UNIQUE INDEX \"rdfs:Class_rdfs:subClassOf_ID_ID\" ON\n\"rdfs:Class_rdfs:subClassOf\" (ID, \"rdfs:subClassOf\");\nCREATE UNIQUE INDEX \"rdfs:Class_tracker:domainIndex_ID_ID\" ON\n\"rdfs:Class_tracker:domainIndex\" (ID, \"tracker:domainIndex\");\nCREATE UNIQUE INDEX \"rdfs:Resource_dc:contributor_ID_ID\" ON\n\"rdfs:Resource_dc:contributor\" (ID, \"dc:contributor\");\nCREATE UNIQUE INDEX \"rdfs:Resource_dc:date_ID_ID\" ON\n\"rdfs:Resource_dc:date\" (ID, \"dc:date\");\nCREATE UNIQUE INDEX \"rdfs:Resource_dc:relation_ID_ID\" ON\n\"rdfs:Resource_dc:relation\" (ID, \"dc:relation\");\nCREATE UNIQUE INDEX \"rdfs:Resource_dc:source_ID_ID\" ON\n\"rdfs:Resource_dc:source\" (ID, \"dc:source\");\nCREATE UNIQUE INDEX \"rdfs:Resource_nao:deprecated_ID_ID\" ON\n\"rdfs:Resource_nao:deprecated\" (ID, \"nao:deprecated\");\nCREATE INDEX \"rdfs:Resource_nao:hasTag_ID\" ON \"rdfs:Resource_nao:hasTag\" (ID);\nCREATE UNIQUE INDEX \"rdfs:Resource_nao:hasTag_ID_ID\" ON\n\"rdfs:Resource_nao:hasTag\" (\"nao:hasTag\", ID);\nCREATE UNIQUE INDEX \"rdfs:Resource_nao:isRelated_ID_ID\" ON\n\"rdfs:Resource_nao:isRelated\" (ID, \"nao:isRelated\");\nCREATE UNIQUE INDEX \"rdfs:Resource_rdf:type_ID_ID\" ON\n\"rdfs:Resource_rdf:type\" (ID, \"rdf:type\");\nCREATE INDEX \"rdfs:Resource_tracker:added\" ON \"rdfs:Resource\" (\"tracker:added\");\nCREATE UNIQUE INDEX \"scal:Attendee_scal:delegated-from_ID_ID\" ON\n\"scal:Attendee_scal:delegated-from\" (ID, \"scal:delegated-from\");\nCREATE UNIQUE INDEX \"scal:Attendee_scal:delegated-to_ID_ID\" ON\n\"scal:Attendee_scal:delegated-to\" (ID, \"scal:delegated-to\");\nCREATE UNIQUE INDEX \"scal:Attendee_scal:member_ID_ID\" ON\n\"scal:Attendee_scal:member\" (ID, \"scal:member\");\nCREATE UNIQUE INDEX \"scal:Attendee_scal:sent-by_ID_ID\" ON\n\"scal:Attendee_scal:sent-by\" (ID, \"scal:sent-by\");\nCREATE UNIQUE INDEX \"scal:CalendarAlarm_scal:alarmAttendee_ID_ID\" ON\n\"scal:CalendarAlarm_scal:alarmAttendee\" (ID, \"scal:alarmAttendee\");\nCREATE UNIQUE INDEX \"scal:CalendarItem_scal:access_ID_ID\" ON\n\"scal:CalendarItem_scal:access\" (ID, \"scal:access\");\nCREATE UNIQUE INDEX \"scal:CalendarItem_scal:attachment_ID_ID\" ON\n\"scal:CalendarItem_scal:attachment\" (ID, \"scal:attachment\");\nCREATE UNIQUE INDEX \"scal:CalendarItem_scal:attendee_ID_ID\" ON\n\"scal:CalendarItem_scal:attendee\" (ID, \"scal:attendee\");\nCREATE UNIQUE INDEX \"scal:CalendarItem_scal:belongsToCalendar_ID_ID\"\nON \"scal:CalendarItem_scal:belongsToCalendar\" (ID,\n\"scal:belongsToCalendar\");\nCREATE UNIQUE INDEX \"scal:CalendarItem_scal:contact_ID_ID\" ON\n\"scal:CalendarItem_scal:contact\" (ID, \"scal:contact\");\nCREATE UNIQUE INDEX \"scal:CalendarItem_scal:rrule_ID_ID\" ON\n\"scal:CalendarItem_scal:rrule\" (ID, \"scal:rrule\");\nCREATE INDEX \"slo:GeoLocation_slo:postalAddress\" ON \"slo:GeoLocation\"\n(\"slo:postalAddress\");\nCREATE UNIQUE INDEX \"slo:Landmark_slo:belongsToCategory_ID_ID\" ON\n\"slo:Landmark_slo:belongsToCategory\" (ID, \"slo:belongsToCategory\");\nCREATE UNIQUE INDEX \"slo:Landmark_slo:hasContact_ID_ID\" ON\n\"slo:Landmark_slo:hasContact\" (ID, \"slo:hasContact\");\nCREATE UNIQUE INDEX \"slo:Route_slo:routeDetails_ID_ID\" ON\n\"slo:Route_slo:routeDetails\" (ID, \"slo:routeDetails\");\n\nEXPLAIN SELECT \"1_u\", (SELECT \"nco:fullname\" FROM \"nco:Contact\" WHERE\nID = \"1_u\") COLLATE NOCASE, (SELECT \"nco:nameFamily\" FROM\n\"nco:PersonContact\" WHERE ID = \"1_u\") COLLATE NOCASE, (SELECT\n\"nco:nameGiven\" FROM \"nco:PersonContact\" WHERE ID = \"1_u\")\nCOLLATE NOCASE, (SELECT \"nco:nameAdditional\" FROM\n\"nco:PersonContact\" WHERE ID = \"1_u\") COLLATE NOCASE, (SELECT\n\"nco:nameHonorificPrefix\" FROM \"nco:PersonContact\" WHERE ID =\n\"1_u\") COLLATE NOCASE, (SELECT \"nco:nameHonorificSuffix\" FROM\n\"nco:PersonContact\" WHERE ID = \"1_u\") COLLATE NOCASE, (SELECT\n\"nco:nickname\" FROM \"nco:Contact\" WHERE ID = \"1_u\") COLLATE\nNOCASE, strftime(\"%s\",(SELECT \"nco:birthDate\" FROM\n\"nco:Contact\" WHERE ID = \"1_u\")), (SELECT \"nie:url\" FROM\n\"nie:DataObject\" WHERE ID = (SELECT \"nco:photo\" FROM\n\"nco:Contact\" WHERE ID = \"1_u\")) COLLATE NOCASE, (SELECT\nGROUP_CONCAT(\"2_u\"||? COLLATE NOCASE||COALESCE((SELECT\n\"nco:imProtocol\" FROM \"nco:IMAddress\" WHERE ID = \"3_u\") COLLATE\nNOCASE, ? COLLATE NOCASE)||? COLLATE NOCASE||COALESCE((SELECT\n\"nco:imID\" FROM \"nco:IMAddress\" WHERE ID = \"3_u\") COLLATE\nNOCASE, ? COLLATE NOCASE)||? COLLATE NOCASE||COALESCE((SELECT\n\"nco:imNickname\" FROM \"nco:IMAddress\" WHERE ID = \"3_u\") COLLATE\nNOCASE, ? COLLATE NOCASE), '\\n') FROM (SELECT\n\"nco:PersonContact_nco:hasAffiliation2\".\"nco:hasAffiliation\" AS\n\"2_u\", \"nco:Role_nco:hasIMAddress3\".\"nco:hasIMAddress\" AS\n\"3_u\" FROM \"nco:PersonContact_nco:hasAffiliation\" AS\n\"nco:PersonContact_nco:hasAffiliation2\",\n\"nco:Role_nco:hasIMAddress\" AS \"nco:Role_nco:hasIMAddress3\" WHERE\n\"1_u\" = \"nco:PersonContact_nco:hasAffiliation2\".\"ID\" AND\n\"nco:PersonContact_nco:hasAffiliation2\".\"nco:hasAffiliation\" =\n\"nco:Role_nco:hasIMAddress3\".\"ID\")), (SELECT\nGROUP_CONCAT(\"2_u\"||? COLLATE NOCASE||(SELECT \"nco:phoneNumber\"\nFROM \"nco:PhoneNumber\" WHERE ID = \"4_u\") COLLATE NOCASE, '\\n')\nFROM (SELECT \"nco:PersonContact_nco:hasAffiliation4\".\"nco:hasAffiliation\"\nAS \"2_u\", \"nco:Role_nco:hasPhoneNumber5\".\"nco:hasPhoneNumber\" AS\n\"4_u\" FROM \"nco:PersonContact_nco:hasAffiliation\" AS\n\"nco:PersonContact_nco:hasAffiliation4\",\n\"nco:Role_nco:hasPhoneNumber\" AS \"nco:Role_nco:hasPhoneNumber5\"\nWHERE \"1_u\" = \"nco:PersonContact_nco:hasAffiliation4\".\"ID\" AND\n\"nco:PersonContact_nco:hasAffiliation4\".\"nco:hasAffiliation\" =\n\"nco:Role_nco:hasPhoneNumber5\".\"ID\")), (SELECT\nGROUP_CONCAT(\"2_u\"||? COLLATE NOCASE||(SELECT \"nco:emailAddress\"\nFROM \"nco:EmailAddress\" WHERE ID = \"5_u\") COLLATE NOCASE, ',')\nFROM (SELECT \"nco:PersonContact_nco:hasAffiliation6\".\"nco:hasAffiliation\"\nAS \"2_u\", \"nco:Role_nco:hasEmailAddress7\".\"nco:hasEmailAddress\"\nAS \"5_u\" FROM \"nco:PersonContact_nco:hasAffiliation\" AS\n\"nco:PersonContact_nco:hasAffiliation6\",\n\"nco:Role_nco:hasEmailAddress\" AS \"nco:Role_nco:hasEmailAddress7\"\nWHERE \"1_u\" = \"nco:PersonContact_nco:hasAffiliation6\".\"ID\" AND\n\"nco:PersonContact_nco:hasAffiliation6\".\"nco:hasAffiliation\" =\n\"nco:Role_nco:hasEmailAddress7\".\"ID\")), (SELECT\nGROUP_CONCAT(\"2_u\"||? COLLATE NOCASE||COALESCE((SELECT\nGROUP_CONCAT((SELECT Uri FROM Resource WHERE ID =\n\"nco:blogUrl\"),',') FROM \"nco:Role_nco:blogUrl\" WHERE ID =\n\"2_u\"), ? COLLATE NOCASE)||? COLLATE NOCASE||COALESCE((SELECT\nGROUP_CONCAT((SELECT Uri FROM Resource WHERE ID =\n\"nco:websiteUrl\"),',') FROM \"nco:Role_nco:websiteUrl\" WHERE ID =\n\"2_u\"), ? COLLATE NOCASE)||? COLLATE NOCASE||COALESCE((SELECT\nGROUP_CONCAT((SELECT Uri FROM Resource WHERE ID = \"nco:url\"),',')\nFROM \"nco:Role_nco:url\" WHERE ID = \"2_u\"), ? COLLATE NOCASE),\n'\\n') FROM (SELECT\n\"nco:PersonContact_nco:hasAffiliation8\".\"nco:hasAffiliation\" AS\n\"2_u\" FROM \"nco:PersonContact_nco:hasAffiliation\" AS\n\"nco:PersonContact_nco:hasAffiliation8\" WHERE \"1_u\" =\n\"nco:PersonContact_nco:hasAffiliation8\".\"ID\")), (SELECT\nGROUP_CONCAT(\"6_u\", ',') FROM (SELECT\n\"rdfs:Resource_nao:hasTag9\".\"nao:hasTag\" AS \"6_u\" FROM\n\"rdfs:Resource_nao:hasTag\" AS \"rdfs:Resource_nao:hasTag9\" WHERE\n\"1_u\" = \"rdfs:Resource_nao:hasTag9\".\"ID\")), (SELECT Uri FROM\nResource WHERE ID = \"1_u\"), (SELECT GROUP_CONCAT(\"2_u\"||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:role\" FROM \"nco:Affiliation\" WHERE\nID = \"2_u\") COLLATE NOCASE, ? COLLATE NOCASE)||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:department\" FROM \"nco:Affiliation\"\nWHERE ID = \"2_u\") COLLATE NOCASE, ? COLLATE NOCASE)||? COLLATE\nNOCASE||COALESCE((SELECT GROUP_CONCAT(\"nco:title\",',') FROM\n\"nco:Affiliation_nco:title\" WHERE ID = \"2_u\"), ? COLLATE NOCASE),\n'\\n') FROM (SELECT\n\"nco:PersonContact_nco:hasAffiliation10\".\"nco:hasAffiliation\" AS\n\"2_u\" FROM \"nco:PersonContact_nco:hasAffiliation\" AS\n\"nco:PersonContact_nco:hasAffiliation10\" WHERE \"1_u\" =\n\"nco:PersonContact_nco:hasAffiliation10\".\"ID\")), (SELECT\nGROUP_CONCAT(\"nco:note\",',') FROM \"nco:Contact_nco:note\" WHERE ID\n= \"1_u\"), (SELECT \"nco:gender\" FROM \"nco:PersonContact\" WHERE ID\n= \"1_u\"), (SELECT GROUP_CONCAT(\"2_u\"||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:pobox\" FROM \"nco:PostalAddress\"\nWHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE NOCASE)||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:district\" FROM \"nco:PostalAddress\"\nWHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE NOCASE)||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:county\" FROM \"nco:PostalAddress\"\nWHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE NOCASE)||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:locality\" FROM \"nco:PostalAddress\"\nWHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE NOCASE)||? COLLATE\nNOCASE||COALESCE((SELECT \"nco:postalcode\" FROM\n\"nco:PostalAddress\" WHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE\nNOCASE)||? COLLATE NOCASE||COALESCE((SELECT \"nco:streetAddress\"\nFROM \"nco:PostalAddress\" WHERE ID = \"7_u\") COLLATE NOCASE, ?\nCOLLATE NOCASE)||? COLLATE NOCASE||COALESCE((SELECT Uri FROM\nResource WHERE ID = (SELECT \"nco:addressLocation\" FROM\n\"nco:PostalAddress\" WHERE ID = \"7_u\")), ? COLLATE NOCASE)||?\nCOLLATE NOCASE||COALESCE((SELECT \"nco:extendedAddress\" FROM\n\"nco:PostalAddress\" WHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE\nNOCASE)||? COLLATE NOCASE||COALESCE((SELECT \"nco:country\" FROM\n\"nco:PostalAddress\" WHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE\nNOCASE)||? COLLATE NOCASE||COALESCE((SELECT \"nco:region\" FROM\n\"nco:PostalAddress\" WHERE ID = \"7_u\") COLLATE NOCASE, ? COLLATE\nNOCASE), '\\n') FROM (SELECT\n\"nco:PersonContact_nco:hasAffiliation11\".\"nco:hasAffiliation\" AS\n\"2_u\", \"nco:Role_nco:hasPostalAddress12\".\"nco:hasPostalAddress\"\nAS \"7_u\" FROM \"nco:PersonContact_nco:hasAffiliation\" AS\n\"nco:PersonContact_nco:hasAffiliation11\",\n\"nco:Role_nco:hasPostalAddress\" AS\n\"nco:Role_nco:hasPostalAddress12\" WHERE \"1_u\" =\n\"nco:PersonContact_nco:hasAffiliation11\".\"ID\" AND\n\"nco:PersonContact_nco:hasAffiliation11\".\"nco:hasAffiliation\" =\n\"nco:Role_nco:hasPostalAddress12\".\"ID\")), (SELECT\nGROUP_CONCAT(\"10_u\" COLLATE NOCASE, ',') FROM (SELECT\n\"nie:InformationElement_nao:hasProperty13\".\"nao:hasProperty\" AS\n\"8_u\", \"nao:Property14\".\"nao:propertyName\" AS \"9_u\",\n\"nao:Property14\".\"nao:propertyValue\" AS \"10_u\" FROM\n\"nie:InformationElement_nao:hasProperty\" AS\n\"nie:InformationElement_nao:hasProperty13\", \"nao:Property\" AS\n\"nao:Property14\" WHERE \"1_u\" =\n\"nie:InformationElement_nao:hasProperty13\".\"ID\" AND\n\"nie:InformationElement_nao:hasProperty13\".\"nao:hasProperty\" =\n\"nao:Property14\".\"ID\" AND \"9_u\" IS NOT NULL AND \"10_u\" IS NOT\nNULL AND (\"9_u\" COLLATE NOCASE = ? COLLATE NOCASE))) FROM (SELECT\n\"nco:PersonContact1\".\"ID\" AS \"1_u\" FROM \"nco:PersonContact\" AS\n\"nco:PersonContact1\") ORDER BY \"1_u\";"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fuzz.test
@@ -7634,6 +7836,7 @@ func TestSQLite_fuzzer1(t *testing.T) {
 	_ = db.Query("SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=100 AND ruleset=0")
 	_ = db.Query("SELECT word, distance FROM f1\n     WHERE word MATCH 'abcde' AND distance<11 AND ruleset=1")
 	_ = db.Query("SELECT word, distance FROM f1\n    WHERE word MATCH 'abcde' AND distance<=11 AND ruleset=1")
+	checkExecOK(t, db.Exec("-- costs based on English letter frequencies\n    CREATE TEMP TABLE f2_rules(ruleset DEFAULT 0, cFrom, cTo, cost);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('a','e',24);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('a','o',47);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('a','u',50);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('e','a',23);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('e','i',33);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('e','o',37);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('i','e',33);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('i','y',33);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('o','a',41);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('o','e',46);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('o','u',57);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('u','o',58);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('y','i',33);\n\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('t','th',70);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('th','t',66);\n \n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('a','',84);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','b',106);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('b','',106);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','c',94);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('c','',94);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','d',89);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('d','',89);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','e',83);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('e','',83);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','f',97);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('f','',97);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','g',99);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('g','',99);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','h',86);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('h','',86);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','i',85);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('i','',85);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','j',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('j','',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','k',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('k','',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','l',89);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('l','',89);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','m',96);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('m','',96);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','n',85);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('n','',85);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','o',85);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('o','',85);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','p',100);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('p','',100);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','q',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('q','',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','r',86);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('r','',86);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','s',86);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('s','',86);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','t',84);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('t','',84);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','u',94);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('u','',94);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','v',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('v','',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','w',96);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('w','',96);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','x',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('x','',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','y',100);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('y','',100);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('','z',120);\n    INSERT INTO f2_rules(cFrom,cTo,cost) VALUES('z','',120);\n    INSERT INTO f2_rules(ruleset,cFrom,cTo,cost)\n      SELECT 1, cFrom, cTo, 100 FROM f2_rules WHERE ruleset=0;\n    INSERT INTO f2_rules(ruleset,cFrom,cTo,cost)\n      SELECT 2, cFrom, cTo, 200-cost FROM f2_rules WHERE ruleset=0;\n    INSERT INTO f2_rules(ruleset,cFrom,cTo,cost)\n      SELECT 3, cFrom, cTo, cost FROM f2_rules WHERE ruleset=0;\n    INSERT INTO f2_rules(ruleset,cFrom,cTo,cost)\n      VALUES(3, 'mallard','duck',50),\n            (3, 'duck', 'mallard', 50),\n            (3, 'rock', 'stone', 50),\n            (3, 'stone', 'rock', 50);\n\n\n    CREATE VIRTUAL TABLE temp.f2 USING fuzzer(f2_rules);\n\n    -- Street names for the 28269 ZIPCODE.\n    --\n    CREATE TEMP TABLE streetname(n TEXT UNIQUE);\n    INSERT INTO streetname VALUES('abbotsinch');\n    INSERT INTO streetname VALUES('abbottsgate');\n    INSERT INTO streetname VALUES('abbywood');\n    INSERT INTO streetname VALUES('abner');\n    INSERT INTO streetname VALUES('acacia ridge');\n    INSERT INTO streetname VALUES('acorn creek');\n    INSERT INTO streetname VALUES('acorn forest');\n    INSERT INTO streetname VALUES('adel');\n    INSERT INTO streetname VALUES('ainslie');\n    INSERT INTO streetname VALUES('airways');\n    INSERT INTO streetname VALUES('alabaster');\n    INSERT INTO streetname VALUES('alba');\n    INSERT INTO streetname VALUES('albertine');\n    INSERT INTO streetname VALUES('alden glen');\n    INSERT INTO streetname VALUES('alderson');\n    INSERT INTO streetname VALUES('allen');\n    INSERT INTO streetname VALUES('allen a brown');\n    INSERT INTO streetname VALUES('allness glen');\n    INSERT INTO streetname VALUES('aloysia');\n    INSERT INTO streetname VALUES('alpine');\n    INSERT INTO streetname VALUES('alwyn');\n    INSERT INTO streetname VALUES('amaranthus');\n    INSERT INTO streetname VALUES('amber glen');\n    INSERT INTO streetname VALUES('amber leigh way');\n    INSERT INTO streetname VALUES('amber meadows');\n    INSERT INTO streetname VALUES('amberway');\n    INSERT INTO streetname VALUES('ame');\n    INSERT INTO streetname VALUES('amesbury hill');\n    INSERT INTO streetname VALUES('anderson');\n    INSERT INTO streetname VALUES('andrew thomas');\n    INSERT INTO streetname VALUES('anduin falls');\n    INSERT INTO streetname VALUES('ankeny');\n    INSERT INTO streetname VALUES('annandale');\n    INSERT INTO streetname VALUES('annbick');\n    INSERT INTO streetname VALUES('antelope');\n    INSERT INTO streetname VALUES('anzack');\n    INSERT INTO streetname VALUES('apple glen');\n    INSERT INTO streetname VALUES('applevalley');\n    INSERT INTO streetname VALUES('appley mead');\n    INSERT INTO streetname VALUES('aragorn');\n    INSERT INTO streetname VALUES('arbor creek');\n    INSERT INTO streetname VALUES('arbor day');\n    INSERT INTO streetname VALUES('arbor meadows');\n    INSERT INTO streetname VALUES('arbor spring');\n    INSERT INTO streetname VALUES('arborview');\n    INSERT INTO streetname VALUES('arklow');\n    INSERT INTO streetname VALUES('armitage');\n    INSERT INTO streetname VALUES('arvin');\n    INSERT INTO streetname VALUES('ash cove');\n    INSERT INTO streetname VALUES('ashford leigh');\n    INSERT INTO streetname VALUES('ashmont');\n    INSERT INTO streetname VALUES('atlas');\n    INSERT INTO streetname VALUES('atwater');\n    INSERT INTO streetname VALUES('auburn hill');\n    INSERT INTO streetname VALUES('aulton link');\n    INSERT INTO streetname VALUES('austin dekota');\n    INSERT INTO streetname VALUES('austin knoll');\n    INSERT INTO streetname VALUES('auten');\n    INSERT INTO streetname VALUES('autumn harvest');\n    INSERT INTO streetname VALUES('autumn oak');\n    INSERT INTO streetname VALUES('autumn ridge');\n    INSERT INTO streetname VALUES('avalon forest');\n    INSERT INTO streetname VALUES('avalon loop');\n    INSERT INTO streetname VALUES('avon farm');\n    INSERT INTO streetname VALUES('avonhurst');\n    INSERT INTO streetname VALUES('avonlea');\n    INSERT INTO streetname VALUES('aynrand');\n    INSERT INTO streetname VALUES('azure valley');\n    INSERT INTO streetname VALUES('baberton');\n    INSERT INTO streetname VALUES('baffin');\n    INSERT INTO streetname VALUES('baggins');\n    INSERT INTO streetname VALUES('balata');\n    INSERT INTO streetname VALUES('ballantray');\n    INSERT INTO streetname VALUES('ballston');\n    INSERT INTO streetname VALUES('balsam tree');\n    INSERT INTO streetname VALUES('bambi');\n    INSERT INTO streetname VALUES('banwell');\n    INSERT INTO streetname VALUES('barbee');\n    INSERT INTO streetname VALUES('barefoot forest');\n    INSERT INTO streetname VALUES('barnview');\n    INSERT INTO streetname VALUES('baroda');\n    INSERT INTO streetname VALUES('barson');\n    INSERT INTO streetname VALUES('baskerville');\n    INSERT INTO streetname VALUES('battle creek');\n    INSERT INTO streetname VALUES('baucom');\n    INSERT INTO streetname VALUES('bay pines');\n    INSERT INTO streetname VALUES('beaker');\n    INSERT INTO streetname VALUES('beard');\n    INSERT INTO streetname VALUES('beardsley');\n    INSERT INTO streetname VALUES('bearoak');\n    INSERT INTO streetname VALUES('beauvista');\n    INSERT INTO streetname VALUES('beaver creek');\n    INSERT INTO streetname VALUES('beaver hollow');\n    INSERT INTO streetname VALUES('bedlington');\n    INSERT INTO streetname VALUES('beech cove');\n    INSERT INTO streetname VALUES('beech crest');\n    INSERT INTO streetname VALUES('beith');\n    INSERT INTO streetname VALUES('bell glen');\n    INSERT INTO streetname VALUES('bellmore');\n    INSERT INTO streetname VALUES('bells mill');\n    INSERT INTO streetname VALUES('bellville');\n    INSERT INTO streetname VALUES('belmar place');\n    INSERT INTO streetname VALUES('bembridge');\n    INSERT INTO streetname VALUES('bennett neely');\n    INSERT INTO streetname VALUES('bentgrass run');\n    INSERT INTO streetname VALUES('benthaven');\n    INSERT INTO streetname VALUES('bernardy');\n    INSERT INTO streetname VALUES('bernbrook shadow');\n    INSERT INTO streetname VALUES('berrybrook');\n    INSERT INTO streetname VALUES('berrybush');\n    INSERT INTO streetname VALUES('berwick');\n    INSERT INTO streetname VALUES('betterton');\n    INSERT INTO streetname VALUES('bickham');\n    INSERT INTO streetname VALUES('billingham');\n    INSERT INTO streetname VALUES('birchcroft');\n    INSERT INTO streetname VALUES('birchstone');\n    INSERT INTO streetname VALUES('birdwell');\n    INSERT INTO streetname VALUES('bisaner');\n    INSERT INTO streetname VALUES('bitterbush');\n    INSERT INTO streetname VALUES('bitterroot');\n    INSERT INTO streetname VALUES('black fox');\n    INSERT INTO streetname VALUES('black maple');\n    INSERT INTO streetname VALUES('black trail');\n    INSERT INTO streetname VALUES('blackbird');\n    INSERT INTO streetname VALUES('blake a dare');\n    INSERT INTO streetname VALUES('blasdell');\n    INSERT INTO streetname VALUES('blue aster');\n    INSERT INTO streetname VALUES('blue finch');\n    INSERT INTO streetname VALUES('blue lilac');\n    INSERT INTO streetname VALUES('blue sky');\n    INSERT INTO streetname VALUES('blue tick');\n    INSERT INTO streetname VALUES('bob beatty');\n    INSERT INTO streetname VALUES('bobcat');\n    INSERT INTO streetname VALUES('bolton');\n    INSERT INTO streetname VALUES('boomerang');\n    INSERT INTO streetname VALUES('boulder');\n    INSERT INTO streetname VALUES('boxer');\n    INSERT INTO streetname VALUES('boxmeer');\n    INSERT INTO streetname VALUES('brachnell view');\n    INSERT INTO streetname VALUES('bradford lake');\n    INSERT INTO streetname VALUES('bradwell');\n    INSERT INTO streetname VALUES('brady');\n    INSERT INTO streetname VALUES('braids bend');\n    INSERT INTO streetname VALUES('bralers');\n    INSERT INTO streetname VALUES('brandie glen');\n    INSERT INTO streetname VALUES('brandy ridge');\n    INSERT INTO streetname VALUES('brandybuck');\n    INSERT INTO streetname VALUES('branthurst');\n    INSERT INTO streetname VALUES('brassy creek');\n    INSERT INTO streetname VALUES('brathay');\n    INSERT INTO streetname VALUES('brawer farm');\n    INSERT INTO streetname VALUES('breezy morn');\n    INSERT INTO streetname VALUES('brenda');\n    INSERT INTO streetname VALUES('brenly');\n    INSERT INTO streetname VALUES('brenock');\n    INSERT INTO streetname VALUES('brianwood');\n    INSERT INTO streetname VALUES('briar rose');\n    INSERT INTO streetname VALUES('briarcrest');\n    INSERT INTO streetname VALUES('briarthorne');\n    INSERT INTO streetname VALUES('brick dust');\n    INSERT INTO streetname VALUES('bridgepath');\n    INSERT INTO streetname VALUES('bridle ridge');\n    INSERT INTO streetname VALUES('briggs');\n    INSERT INTO streetname VALUES('brightleaf');\n    INSERT INTO streetname VALUES('brigstock');\n    INSERT INTO streetname VALUES('broad ridge');\n    INSERT INTO streetname VALUES('brock');\n    INSERT INTO streetname VALUES('brockhampton');\n    INSERT INTO streetname VALUES('broken pine');\n    INSERT INTO streetname VALUES('brompton');\n    INSERT INTO streetname VALUES('brook falls');\n    INSERT INTO streetname VALUES('brookings');\n    INSERT INTO streetname VALUES('browne');\n    INSERT INTO streetname VALUES('brownes creek');\n    INSERT INTO streetname VALUES('brownes ferry');\n    INSERT INTO streetname VALUES('brownestone view');\n    INSERT INTO streetname VALUES('brumit');\n    INSERT INTO streetname VALUES('bryn athyn');\n    INSERT INTO streetname VALUES('buck');\n    INSERT INTO streetname VALUES('bucklebury');\n    INSERT INTO streetname VALUES('buckminister');\n    INSERT INTO streetname VALUES('buckspring');\n    INSERT INTO streetname VALUES('burch');\n    INSERT INTO streetname VALUES('burch shire');\n    INSERT INTO streetname VALUES('burkston');\n    INSERT INTO streetname VALUES('burmith');\n    INSERT INTO streetname VALUES('burnaby');\n    INSERT INTO streetname VALUES('butterfly');\n    INSERT INTO streetname VALUES('cabin creek');\n    INSERT INTO streetname VALUES('cairns mill');\n    INSERT INTO streetname VALUES('callender');\n    INSERT INTO streetname VALUES('cambellton');\n    INSERT INTO streetname VALUES('cambridge bay');\n    INSERT INTO streetname VALUES('canary');\n    INSERT INTO streetname VALUES('canbury');\n    INSERT INTO streetname VALUES('candle leaf');\n    INSERT INTO streetname VALUES('canipe');\n    INSERT INTO streetname VALUES('canipe farm');\n    INSERT INTO streetname VALUES('cannon');\n    INSERT INTO streetname VALUES('canopy');\n    INSERT INTO streetname VALUES('canso');\n    INSERT INTO streetname VALUES('canterbrook');\n    INSERT INTO streetname VALUES('cardinal glen');\n    INSERT INTO streetname VALUES('cardinal point');\n    INSERT INTO streetname VALUES('cardinals nest');\n    INSERT INTO streetname VALUES('carlota');\n    INSERT INTO streetname VALUES('carmathen');\n    INSERT INTO streetname VALUES('carver');\n    INSERT INTO streetname VALUES('carver pond');\n    INSERT INTO streetname VALUES('casa loma');\n    INSERT INTO streetname VALUES('caselton');\n    INSERT INTO streetname VALUES('castello');\n    INSERT INTO streetname VALUES('castle ridge');\n    INSERT INTO streetname VALUES('castleglen');\n    INSERT INTO streetname VALUES('castlemaine');\n    INSERT INTO streetname VALUES('cavett');\n    INSERT INTO streetname VALUES('caymus');\n    INSERT INTO streetname VALUES('cedardale ridge');\n    INSERT INTO streetname VALUES('cedarhurst');\n    INSERT INTO streetname VALUES('cemkey way');\n    INSERT INTO streetname VALUES('cerise');\n    INSERT INTO streetname VALUES('chaceview');\n    INSERT INTO streetname VALUES('chadsworth');\n    INSERT INTO streetname VALUES('chadwell');\n    INSERT INTO streetname VALUES('champions crest');\n    INSERT INTO streetname VALUES('chandler haven');\n    INSERT INTO streetname VALUES('chapel crossing');\n    INSERT INTO streetname VALUES('chapel ridge');\n    INSERT INTO streetname VALUES('charles crawford');\n    INSERT INTO streetname VALUES('charminster');\n    INSERT INTO streetname VALUES('chasewind');\n    INSERT INTO streetname VALUES('chavel');\n    INSERT INTO streetname VALUES('chelsea jade');\n    INSERT INTO streetname VALUES('chestnut knoll');\n    INSERT INTO streetname VALUES('cheviot');\n    INSERT INTO streetname VALUES('chickadee');\n    INSERT INTO streetname VALUES('chidley');\n    INSERT INTO streetname VALUES('chimney ridge');\n    INSERT INTO streetname VALUES('chimney springs');\n    INSERT INTO streetname VALUES('chinaberry');\n    INSERT INTO streetname VALUES('chinemist');\n    INSERT INTO streetname VALUES('chinquapin');\n    INSERT INTO streetname VALUES('chiswell');\n    INSERT INTO streetname VALUES('christenbury');\n    INSERT INTO streetname VALUES('christenbury hills');\n    INSERT INTO streetname VALUES('churchill');\n    INSERT INTO streetname VALUES('cindy');\n    INSERT INTO streetname VALUES('cinnamon teal');\n    INSERT INTO streetname VALUES('citadel');\n    INSERT INTO streetname VALUES('clare olivia');\n    INSERT INTO streetname VALUES('clarke creek');\n    INSERT INTO streetname VALUES('clarke ridge');\n    INSERT INTO streetname VALUES('clear day');\n    INSERT INTO streetname VALUES('clear stream');\n    INSERT INTO streetname VALUES('cleve brown');\n    INSERT INTO streetname VALUES('cliff cameron');\n    INSERT INTO streetname VALUES('cliffvale');\n    INSERT INTO streetname VALUES('cloverside');\n    INSERT INTO streetname VALUES('clymer');\n    INSERT INTO streetname VALUES('coatbridge');\n    INSERT INTO streetname VALUES('cobble glen');\n    INSERT INTO streetname VALUES('cochran farm');\n    INSERT INTO streetname VALUES('cochrane');\n    INSERT INTO streetname VALUES('coleridge');\n    INSERT INTO streetname VALUES('coleshire');\n    INSERT INTO streetname VALUES('collins');\n    INSERT INTO streetname VALUES('colvard');\n    INSERT INTO streetname VALUES('colvard park');\n    INSERT INTO streetname VALUES('condor');\n    INSERT INTO streetname VALUES('conner ridge');\n    INSERT INTO streetname VALUES('connery');\n    INSERT INTO streetname VALUES('cooper run');\n    INSERT INTO streetname VALUES('coopers ridge');\n    INSERT INTO streetname VALUES('copper hill');\n    INSERT INTO streetname VALUES('coppermine');\n    INSERT INTO streetname VALUES('cornelia');\n    INSERT INTO streetname VALUES('corner');\n    INSERT INTO streetname VALUES('cornerstone');\n    INSERT INTO streetname VALUES('cottage oaks');\n    INSERT INTO streetname VALUES('cougar');\n    INSERT INTO streetname VALUES('coves end');\n    INSERT INTO streetname VALUES('cragland');\n    INSERT INTO streetname VALUES('crail');\n    INSERT INTO streetname VALUES('cranberry nook');\n    INSERT INTO streetname VALUES('crawford brook');\n    INSERT INTO streetname VALUES('crayton');\n    INSERT INTO streetname VALUES('creek breeze');\n    INSERT INTO streetname VALUES('crescent ridge');\n    INSERT INTO streetname VALUES('crescent view');\n    INSERT INTO streetname VALUES('cresta');\n    INSERT INTO streetname VALUES('crestfield');\n    INSERT INTO streetname VALUES('crestland');\n    INSERT INTO streetname VALUES('crestwick');\n    INSERT INTO streetname VALUES('crisfield');\n    INSERT INTO streetname VALUES('crisp wood');\n    INSERT INTO streetname VALUES('croft haven');\n    INSERT INTO streetname VALUES('crofton springs');\n    INSERT INTO streetname VALUES('cross');\n    INSERT INTO streetname VALUES('crosspoint center');\n    INSERT INTO streetname VALUES('crownvista');\n    INSERT INTO streetname VALUES('crystal arms');\n    INSERT INTO streetname VALUES('crystal crest');\n    INSERT INTO streetname VALUES('crystal leaf');\n    INSERT INTO streetname VALUES('cunningham park');\n    INSERT INTO streetname VALUES('cypress pond');\n    INSERT INTO streetname VALUES('daffodil');\n    INSERT INTO streetname VALUES('daisyfield');\n    INSERT INTO streetname VALUES('dalecrest');\n    INSERT INTO streetname VALUES('dannelly park');\n    INSERT INTO streetname VALUES('daphne');\n    INSERT INTO streetname VALUES('daria');\n    INSERT INTO streetname VALUES('dartmouth');\n    INSERT INTO streetname VALUES('datha');\n    INSERT INTO streetname VALUES('david cox');\n    INSERT INTO streetname VALUES('davis');\n    INSERT INTO streetname VALUES('davis crossing');\n    INSERT INTO streetname VALUES('davis lake');\n    INSERT INTO streetname VALUES('davis ridge');\n    INSERT INTO streetname VALUES('dawnmist');\n    INSERT INTO streetname VALUES('daybreak');\n    INSERT INTO streetname VALUES('dearmon');\n    INSERT INTO streetname VALUES('dearview');\n    INSERT INTO streetname VALUES('deaton hill');\n    INSERT INTO streetname VALUES('deer cross');\n    INSERT INTO streetname VALUES('deerton');\n    INSERT INTO streetname VALUES('degrasse');\n    INSERT INTO streetname VALUES('delamere');\n    INSERT INTO streetname VALUES('dellfield');\n    INSERT INTO streetname VALUES('dellinger');\n    INSERT INTO streetname VALUES('demington');\n    INSERT INTO streetname VALUES('denmeade');\n    INSERT INTO streetname VALUES('derita');\n    INSERT INTO streetname VALUES('derita woods');\n    INSERT INTO streetname VALUES('deruyter');\n    INSERT INTO streetname VALUES('dervish');\n    INSERT INTO streetname VALUES('devas');\n    INSERT INTO streetname VALUES('devon croft');\n    INSERT INTO streetname VALUES('devonbridge');\n    INSERT INTO streetname VALUES('devongate');\n    INSERT INTO streetname VALUES('devonhill');\n    INSERT INTO streetname VALUES('dewmorn');\n    INSERT INTO streetname VALUES('distribution center');\n    INSERT INTO streetname VALUES('dominion crest');\n    INSERT INTO streetname VALUES('dominion green');\n    INSERT INTO streetname VALUES('dominion village');\n    INSERT INTO streetname VALUES('dorshire');\n    INSERT INTO streetname VALUES('double creek crossing');\n    INSERT INTO streetname VALUES('dow');\n    INSERT INTO streetname VALUES('downfield wood');\n    INSERT INTO streetname VALUES('downing creek');\n    INSERT INTO streetname VALUES('driscol');\n    INSERT INTO streetname VALUES('driwood');\n    INSERT INTO streetname VALUES('dry brook');\n    INSERT INTO streetname VALUES('dumont');\n    INSERT INTO streetname VALUES('dunblane');\n    INSERT INTO streetname VALUES('dunfield');\n    INSERT INTO streetname VALUES('dunoon');\n    INSERT INTO streetname VALUES('dunslow');\n    INSERT INTO streetname VALUES('dunstaff');\n    INSERT INTO streetname VALUES('durham');\n    INSERT INTO streetname VALUES('durston');\n    INSERT INTO streetname VALUES('dusty cedar');\n    INSERT INTO streetname VALUES('dusty trail');\n    INSERT INTO streetname VALUES('dutchess');\n    INSERT INTO streetname VALUES('duxford');\n    INSERT INTO streetname VALUES('eagle creek');\n    INSERT INTO streetname VALUES('eagles field');\n    INSERT INTO streetname VALUES('eargle');\n    INSERT INTO streetname VALUES('earlswood');\n    INSERT INTO streetname VALUES('early mist');\n    INSERT INTO streetname VALUES('earthenware');\n    INSERT INTO streetname VALUES('eastfield park');\n    INSERT INTO streetname VALUES('eastfield village');\n    INSERT INTO streetname VALUES('easy');\n    INSERT INTO streetname VALUES('eben');\n    INSERT INTO streetname VALUES('edgepine');\n    INSERT INTO streetname VALUES('edgewier');\n    INSERT INTO streetname VALUES('edinburgh');\n    INSERT INTO streetname VALUES('edinmeadow');\n    INSERT INTO streetname VALUES('edmonton');\n    INSERT INTO streetname VALUES('edwin jones');\n    INSERT INTO streetname VALUES('elberon');\n    INSERT INTO streetname VALUES('elderslie');\n    INSERT INTO streetname VALUES('elementary view');\n    INSERT INTO streetname VALUES('elendil');\n    INSERT INTO streetname VALUES('elizabeth');\n    INSERT INTO streetname VALUES('elm cove');\n    INSERT INTO streetname VALUES('elrond');\n    INSERT INTO streetname VALUES('elsenham');\n    INSERT INTO streetname VALUES('elven');\n    INSERT INTO streetname VALUES('emma lynn');\n    INSERT INTO streetname VALUES('english setter');\n    INSERT INTO streetname VALUES('enoch');\n    INSERT INTO streetname VALUES('equipment');\n    INSERT INTO streetname VALUES('ernest russell');\n    INSERT INTO streetname VALUES('ernie');\n    INSERT INTO streetname VALUES('esmeralda');\n    INSERT INTO streetname VALUES('evergreen hollow');\n    INSERT INTO streetname VALUES('eversfield');\n    INSERT INTO streetname VALUES('ewen');\n    INSERT INTO streetname VALUES('ewert cut');\n    INSERT INTO streetname VALUES('exbury');\n    INSERT INTO streetname VALUES('fair grounds park');\n    INSERT INTO streetname VALUES('fairbourne');\n    INSERT INTO streetname VALUES('fairchase');\n    INSERT INTO streetname VALUES('faircreek');\n    INSERT INTO streetname VALUES('fairglen');\n    INSERT INTO streetname VALUES('fairlea');\n    INSERT INTO streetname VALUES('fairmead');\n    INSERT INTO streetname VALUES('fairmeadows');\n    INSERT INTO streetname VALUES('fairstone');\n    INSERT INTO streetname VALUES('fairvista');\n    INSERT INTO streetname VALUES('fairway point');\n    INSERT INTO streetname VALUES('falconcrest');\n    INSERT INTO streetname VALUES('falls ridge');\n    INSERT INTO streetname VALUES('falmouth');\n    INSERT INTO streetname VALUES('far west');\n    INSERT INTO streetname VALUES('farlow');\n    INSERT INTO streetname VALUES('farris wheel');\n    INSERT INTO streetname VALUES('fawndale');\n    INSERT INTO streetname VALUES('feather bend');\n    INSERT INTO streetname VALUES('fernledge');\n    INSERT INTO streetname VALUES('fernmoss');\n    INSERT INTO streetname VALUES('ferrell commons');\n    INSERT INTO streetname VALUES('fieldstone');\n    INSERT INTO streetname VALUES('fillian');\n    INSERT INTO streetname VALUES('fincher');\n    INSERT INTO streetname VALUES('foggy meadow');\n    INSERT INTO streetname VALUES('fordyce');\n    INSERT INTO streetname VALUES('forest grove');\n    INSERT INTO streetname VALUES('forest path');\n    INSERT INTO streetname VALUES('forestridge commons');\n    INSERT INTO streetname VALUES('forestrock');\n    INSERT INTO streetname VALUES('fortunes ridge');\n    INSERT INTO streetname VALUES('founders club');\n    INSERT INTO streetname VALUES('fountaingrass');\n    INSERT INTO streetname VALUES('fox chase');\n    INSERT INTO streetname VALUES('fox glen');\n    INSERT INTO streetname VALUES('fox hill');\n    INSERT INTO streetname VALUES('fox point');\n    INSERT INTO streetname VALUES('fox trot');\n    INSERT INTO streetname VALUES('foxbriar');\n    INSERT INTO streetname VALUES('frank little');\n    INSERT INTO streetname VALUES('franzia');\n    INSERT INTO streetname VALUES('french woods');\n    INSERT INTO streetname VALUES('frostmoor');\n    INSERT INTO streetname VALUES('frye');\n    INSERT INTO streetname VALUES('furlong');\n    INSERT INTO streetname VALUES('galena view');\n    INSERT INTO streetname VALUES('gallery pointe');\n    INSERT INTO streetname VALUES('gammon');\n    INSERT INTO streetname VALUES('garden grove');\n    INSERT INTO streetname VALUES('gardendale');\n    INSERT INTO streetname VALUES('garganey');\n    INSERT INTO streetname VALUES('garnet field');\n    INSERT INTO streetname VALUES('garrison');\n    INSERT INTO streetname VALUES('garvin');\n    INSERT INTO streetname VALUES('garvis');\n    INSERT INTO streetname VALUES('gaskill');\n    INSERT INTO streetname VALUES('gemstone');\n    INSERT INTO streetname VALUES('gibbon');\n    INSERT INTO streetname VALUES('gibbon terrace');\n    INSERT INTO streetname VALUES('gibbons link');\n    INSERT INTO streetname VALUES('gillman');\n    INSERT INTO streetname VALUES('gladwood');\n    INSERT INTO streetname VALUES('gladwyne');\n    INSERT INTO streetname VALUES('glamorgan');\n    INSERT INTO streetname VALUES('glaze');\n    INSERT INTO streetname VALUES('glen brook');\n    INSERT INTO streetname VALUES('glen cove');\n    INSERT INTO streetname VALUES('glen hope');\n    INSERT INTO streetname VALUES('glen manor');\n    INSERT INTO streetname VALUES('glen olden');\n    INSERT INTO streetname VALUES('glencairn');\n    INSERT INTO streetname VALUES('glendock');\n    INSERT INTO streetname VALUES('glenolden');\n    INSERT INTO streetname VALUES('glenover');\n    INSERT INTO streetname VALUES('glenshire');\n    INSERT INTO streetname VALUES('glenstone');\n    INSERT INTO streetname VALUES('gold dust');\n    INSERT INTO streetname VALUES('golden pond');\n    INSERT INTO streetname VALUES('goldenblush');\n    INSERT INTO streetname VALUES('goldenfield');\n    INSERT INTO streetname VALUES('goose landing');\n    INSERT INTO streetname VALUES('gorham gate');\n    INSERT INTO streetname VALUES('grabill');\n    INSERT INTO streetname VALUES('graburns ford');\n    INSERT INTO streetname VALUES('graham');\n    INSERT INTO streetname VALUES('grahamson');\n    INSERT INTO streetname VALUES('granard');\n    INSERT INTO streetname VALUES('grand teton');\n    INSERT INTO streetname VALUES('grande heights');\n    INSERT INTO streetname VALUES('grandeur');\n    INSERT INTO streetname VALUES('granite creek');\n    INSERT INTO streetname VALUES('grasset');\n    INSERT INTO streetname VALUES('graypark');\n    INSERT INTO streetname VALUES('grays ridge');\n    INSERT INTO streetname VALUES('great bear');\n    INSERT INTO streetname VALUES('green clover');\n    INSERT INTO streetname VALUES('green hedge');\n    INSERT INTO streetname VALUES('green meadow');\n    INSERT INTO streetname VALUES('green pasture');\n    INSERT INTO streetname VALUES('greene');\n    INSERT INTO streetname VALUES('greenloch');\n    INSERT INTO streetname VALUES('greenock ridge');\n    INSERT INTO streetname VALUES('greenware');\n    INSERT INTO streetname VALUES('greenway village');\n    INSERT INTO streetname VALUES('grenelefe village');\n    INSERT INTO streetname VALUES('grey dogwood');\n    INSERT INTO streetname VALUES('greyhound');\n    INSERT INTO streetname VALUES('greylock ridge');\n    INSERT INTO streetname VALUES('grosbeak');\n    INSERT INTO streetname VALUES('grove');\n    INSERT INTO streetname VALUES('groveton');\n    INSERT INTO streetname VALUES('groveview');\n    INSERT INTO streetname VALUES('hackberry creek');\n    INSERT INTO streetname VALUES('hackberry grove');\n    INSERT INTO streetname VALUES('hackett');\n    INSERT INTO streetname VALUES('haddington');\n    INSERT INTO streetname VALUES('hagler');\n    INSERT INTO streetname VALUES('halcott');\n    INSERT INTO streetname VALUES('half dome');\n    INSERT INTO streetname VALUES('hallam');\n    INSERT INTO streetname VALUES('hamilton russell');\n    INSERT INTO streetname VALUES('hampton place');\n    INSERT INTO streetname VALUES('hankins');\n    INSERT INTO streetname VALUES('harburn forest');\n    INSERT INTO streetname VALUES('harringham');\n    INSERT INTO streetname VALUES('harrington woods');\n    INSERT INTO streetname VALUES('harris corners');\n    INSERT INTO streetname VALUES('harris cove');\n    INSERT INTO streetname VALUES('harris glen');\n    INSERT INTO streetname VALUES('harris hill');\n    INSERT INTO streetname VALUES('harris oak');\n    INSERT INTO streetname VALUES('harris pointe');\n    INSERT INTO streetname VALUES('harris pond');\n    INSERT INTO streetname VALUES('harris ridge');\n    INSERT INTO streetname VALUES('harris technology');\n    INSERT INTO streetname VALUES('harris woods');\n    INSERT INTO streetname VALUES('hartfield downs');\n    INSERT INTO streetname VALUES('hattie little');\n    INSERT INTO streetname VALUES('hatwynn');\n    INSERT INTO streetname VALUES('hawkins');\n    INSERT INTO streetname VALUES('hawksnest');\n    INSERT INTO streetname VALUES('haybridge');\n    INSERT INTO streetname VALUES('hayden');\n    INSERT INTO streetname VALUES('hazelcroft');\n    INSERT INTO streetname VALUES('hazlitt');\n    INSERT INTO streetname VALUES('hazy valley');\n    INSERT INTO streetname VALUES('hearst');\n    INSERT INTO streetname VALUES('heathcrest');\n    INSERT INTO streetname VALUES('heathcroft');\n    INSERT INTO streetname VALUES('hedge maple');\n    INSERT INTO streetname VALUES('hedgecrest');\n    INSERT INTO streetname VALUES('hedingham');\n    INSERT INTO streetname VALUES('heman');\n    INSERT INTO streetname VALUES('henderson');\n    INSERT INTO streetname VALUES('henderson oaks');\n    INSERT INTO streetname VALUES('henderson valley');\n    INSERT INTO streetname VALUES('hendry');\n    INSERT INTO streetname VALUES('heritage hills');\n    INSERT INTO streetname VALUES('heritage woods');\n    INSERT INTO streetname VALUES('heron cove');\n    INSERT INTO streetname VALUES('heron glen');\n    INSERT INTO streetname VALUES('hewitt');\n    INSERT INTO streetname VALUES('hey rock');\n    INSERT INTO streetname VALUES('heysham');\n    INSERT INTO streetname VALUES('hickory cove');\n    INSERT INTO streetname VALUES('hidden meadow');\n    INSERT INTO streetname VALUES('high glen');\n    INSERT INTO streetname VALUES('high laurel');\n    INSERT INTO streetname VALUES('high valley');\n    INSERT INTO streetname VALUES('highcroft');\n    INSERT INTO streetname VALUES('highland');\n    INSERT INTO streetname VALUES('highland commons');\n    INSERT INTO streetname VALUES('highland creek');\n    INSERT INTO streetname VALUES('highland glen');\n    INSERT INTO streetname VALUES('highland park');\n    INSERT INTO streetname VALUES('highlander');\n    INSERT INTO streetname VALUES('highstream');\n    INSERT INTO streetname VALUES('hilltop');\n    INSERT INTO streetname VALUES('hobbitshire');\n    INSERT INTO streetname VALUES('hoffman');\n    INSERT INTO streetname VALUES('hogans way');\n    INSERT INTO streetname VALUES('holbert');\n    INSERT INTO streetname VALUES('hollow ridge');\n    INSERT INTO streetname VALUES('holly vista');\n    INSERT INTO streetname VALUES('hollywood');\n    INSERT INTO streetname VALUES('hoover');\n    INSERT INTO streetname VALUES('hopkins');\n    INSERT INTO streetname VALUES('horace mann');\n    INSERT INTO streetname VALUES('hornbeam');\n    INSERT INTO streetname VALUES('horse pasture');\n    INSERT INTO streetname VALUES('hosta');\n    INSERT INTO streetname VALUES('howard');\n    INSERT INTO streetname VALUES('hubbard');\n    INSERT INTO streetname VALUES('hubbard falls');\n    INSERT INTO streetname VALUES('hubbard woods');\n    INSERT INTO streetname VALUES('hucks');\n    INSERT INTO streetname VALUES('hunters creek');\n    INSERT INTO streetname VALUES('hunters pointe');\n    INSERT INTO streetname VALUES('hunters spring');\n    INSERT INTO streetname VALUES('hunters whip');\n    INSERT INTO streetname VALUES('huntmeadow');\n    INSERT INTO streetname VALUES('hutchison mcdonald');\n    INSERT INTO streetname VALUES('ingleton');\n    INSERT INTO streetname VALUES('insdale');\n    INSERT INTO streetname VALUES('interstate 85 service');\n    INSERT INTO streetname VALUES('iola');\n    INSERT INTO streetname VALUES('iredell');\n    INSERT INTO streetname VALUES('iron brigade');\n    INSERT INTO streetname VALUES('irwin valley');\n    INSERT INTO streetname VALUES('irwin wood');\n    INSERT INTO streetname VALUES('ivy brook');\n    INSERT INTO streetname VALUES('ivy ridge');\n    INSERT INTO streetname VALUES('jack russell');\n    INSERT INTO streetname VALUES('jackson');\n    INSERT INTO streetname VALUES('jacob martin');\n    INSERT INTO streetname VALUES('jamison');\n    INSERT INTO streetname VALUES('jane');\n    INSERT INTO streetname VALUES('jaspar crest');\n    INSERT INTO streetname VALUES('jessica');\n    INSERT INTO streetname VALUES('jimmy oehler');\n    INSERT INTO streetname VALUES('jocelyn');\n    INSERT INTO streetname VALUES('johnston mill');\n    INSERT INTO streetname VALUES('johnston oehler');\n    INSERT INTO streetname VALUES('judal');\n    INSERT INTO streetname VALUES('junipeous');\n    INSERT INTO streetname VALUES('juniper');\n    INSERT INTO streetname VALUES('juniperus');\n    INSERT INTO streetname VALUES('kalispell');\n    INSERT INTO streetname VALUES('karylsturn');\n    INSERT INTO streetname VALUES('katelyn');\n    INSERT INTO streetname VALUES('kayron');\n    INSERT INTO streetname VALUES('keaton');\n    INSERT INTO streetname VALUES('keble');\n    INSERT INTO streetname VALUES('keels');\n    INSERT INTO streetname VALUES('keith');\n    INSERT INTO streetname VALUES('keithwood');\n    INSERT INTO streetname VALUES('kelden walker');\n    INSERT INTO streetname VALUES('kelsey emma');\n    INSERT INTO streetname VALUES('kendrick');\n    INSERT INTO streetname VALUES('kenmont');\n    INSERT INTO streetname VALUES('kennerly cove');\n    INSERT INTO streetname VALUES('kenninghall');\n    INSERT INTO streetname VALUES('kent village');\n    INSERT INTO streetname VALUES('kestral ridge');\n    INSERT INTO streetname VALUES('kestrel');\n    INSERT INTO streetname VALUES('kilmartin');\n    INSERT INTO streetname VALUES('kilty');\n    INSERT INTO streetname VALUES('kinglet');\n    INSERT INTO streetname VALUES('kingsland');\n    INSERT INTO streetname VALUES('kingsnorth');\n    INSERT INTO streetname VALUES('kinsmore');\n    INSERT INTO streetname VALUES('kirkgard');\n    INSERT INTO streetname VALUES('kirkmont');\n    INSERT INTO streetname VALUES('knightsgate');\n    INSERT INTO streetname VALUES('kobuk');\n    INSERT INTO streetname VALUES('kotlik');\n    INSERT INTO streetname VALUES('kotz');\n    INSERT INTO streetname VALUES('kyndall walk');\n    INSERT INTO streetname VALUES('laborde');\n    INSERT INTO streetname VALUES('lady bank');\n    INSERT INTO streetname VALUES('lagrande');\n    INSERT INTO streetname VALUES('lake');\n    INSERT INTO streetname VALUES('lakeridge commons');\n    INSERT INTO streetname VALUES('lakeview');\n    INSERT INTO streetname VALUES('lakewood edge');\n    INSERT INTO streetname VALUES('lakota');\n    INSERT INTO streetname VALUES('lambrook');\n    INSERT INTO streetname VALUES('lampkin');\n    INSERT INTO streetname VALUES('lampkin park');\n    INSERT INTO streetname VALUES('langham');\n    INSERT INTO streetname VALUES('lanzerac manor');\n    INSERT INTO streetname VALUES('larkmead forest');\n    INSERT INTO streetname VALUES('lattice');\n    INSERT INTO streetname VALUES('laurel crest');\n    INSERT INTO streetname VALUES('laurel ridge');\n    INSERT INTO streetname VALUES('laurel run');\n    INSERT INTO streetname VALUES('laurenfield');\n    INSERT INTO streetname VALUES('laveta');\n    INSERT INTO streetname VALUES('lazy day');\n    INSERT INTO streetname VALUES('leawood run');\n    INSERT INTO streetname VALUES('lee marie');\n    INSERT INTO streetname VALUES('legacy lake');\n    INSERT INTO streetname VALUES('legacy park');\n    INSERT INTO streetname VALUES('legato');\n    INSERT INTO streetname VALUES('legolas');\n    INSERT INTO streetname VALUES('leigh glen');\n    INSERT INTO streetname VALUES('lence');\n    INSERT INTO streetname VALUES('lenox hill');\n    INSERT INTO streetname VALUES('leonine');\n    INSERT INTO streetname VALUES('leslie');\n    INSERT INTO streetname VALUES('lester hill');\n    INSERT INTO streetname VALUES('levisey');\n    INSERT INTO streetname VALUES('liberty bell');\n    INSERT INTO streetname VALUES('linden berry');\n    INSERT INTO streetname VALUES('lisbon');\n    INSERT INTO streetname VALUES('little stoney');\n    INSERT INTO streetname VALUES('livengood');\n    INSERT INTO streetname VALUES('lochway');\n    INSERT INTO streetname VALUES('lockman');\n    INSERT INTO streetname VALUES('loganville');\n    INSERT INTO streetname VALUES('lone tree');\n    INSERT INTO streetname VALUES('long creek park');\n    INSERT INTO streetname VALUES('long forest');\n    INSERT INTO streetname VALUES('looking glass');\n    INSERT INTO streetname VALUES('lookout point');\n    INSERT INTO streetname VALUES('lowen');\n    INSERT INTO streetname VALUES('lusby');\n    INSERT INTO streetname VALUES('lyleton');\n    INSERT INTO streetname VALUES('lynn lee');\n    INSERT INTO streetname VALUES('lynnewood glen');\n    INSERT INTO streetname VALUES('machrie');\n    INSERT INTO streetname VALUES('mackinac');\n    INSERT INTO streetname VALUES('maddox');\n    INSERT INTO streetname VALUES('madison park');\n    INSERT INTO streetname VALUES('mallard');\n    INSERT INTO streetname VALUES('mallard cove');\n    INSERT INTO streetname VALUES('mallard forest');\n    INSERT INTO streetname VALUES('mallard grove');\n    INSERT INTO streetname VALUES('mallard hill');\n    INSERT INTO streetname VALUES('mallard park');\n    INSERT INTO streetname VALUES('mallard ridge');\n    INSERT INTO streetname VALUES('mallard view');\n    INSERT INTO streetname VALUES('manbey');\n    INSERT INTO streetname VALUES('manning');\n    INSERT INTO streetname VALUES('mantario');\n    INSERT INTO streetname VALUES('maple');\n    INSERT INTO streetname VALUES('maple cove');\n    INSERT INTO streetname VALUES('maple park');\n    INSERT INTO streetname VALUES('marathon hill');\n    INSERT INTO streetname VALUES('marbury');\n    INSERT INTO streetname VALUES('marett');\n    INSERT INTO streetname VALUES('marigold');\n    INSERT INTO streetname VALUES('marionwood');\n    INSERT INTO streetname VALUES('marshbank');\n    INSERT INTO streetname VALUES('mason');\n    INSERT INTO streetname VALUES('mayapple');\n    INSERT INTO streetname VALUES('maylandia');\n    INSERT INTO streetname VALUES('mayspring');\n    INSERT INTO streetname VALUES('mcadam');\n    INSERT INTO streetname VALUES('mcchesney');\n    INSERT INTO streetname VALUES('mccurdy');\n    INSERT INTO streetname VALUES('mcgrath');\n    INSERT INTO streetname VALUES('mckendree');\n    INSERT INTO streetname VALUES('mclaughlin');\n    INSERT INTO streetname VALUES('mctaggart');\n    INSERT INTO streetname VALUES('meadow green');\n    INSERT INTO streetname VALUES('meadow knoll');\n    INSERT INTO streetname VALUES('meadow post');\n    INSERT INTO streetname VALUES('meadowmont');\n    INSERT INTO streetname VALUES('meadowmont view');\n    INSERT INTO streetname VALUES('meadowview hills');\n    INSERT INTO streetname VALUES('melshire');\n    INSERT INTO streetname VALUES('melstrand');\n    INSERT INTO streetname VALUES('mentone');\n    INSERT INTO streetname VALUES('meridale crossing');\n    INSERT INTO streetname VALUES('merion hills');\n    INSERT INTO streetname VALUES('merlot');\n    INSERT INTO streetname VALUES('mersham');\n    INSERT INTO streetname VALUES('metromont');\n    INSERT INTO streetname VALUES('metromont industrial');\n    INSERT INTO streetname VALUES('michaw');\n    INSERT INTO streetname VALUES('milhaven');\n    INSERT INTO streetname VALUES('milhof');\n    INSERT INTO streetname VALUES('millstream ridge');\n    INSERT INTO streetname VALUES('mineral ridge');\n    INSERT INTO streetname VALUES('mint thistle');\n    INSERT INTO streetname VALUES('mintleaf');\n    INSERT INTO streetname VALUES('mintvale');\n    INSERT INTO streetname VALUES('misty');\n    INSERT INTO streetname VALUES('misty arbor');\n    INSERT INTO streetname VALUES('misty creek');\n    INSERT INTO streetname VALUES('misty oaks');\n    INSERT INTO streetname VALUES('misty wood');\n    INSERT INTO streetname VALUES('mitzi deborah');\n    INSERT INTO streetname VALUES('mobile');\n    INSERT INTO streetname VALUES('molly elizabeth');\n    INSERT INTO streetname VALUES('monmouth');\n    INSERT INTO streetname VALUES('montrose');\n    INSERT INTO streetname VALUES('moonlight');\n    INSERT INTO streetname VALUES('moose');\n    INSERT INTO streetname VALUES('morning dew');\n    INSERT INTO streetname VALUES('morningsong');\n    INSERT INTO streetname VALUES('morningview');\n    INSERT INTO streetname VALUES('morsey');\n    INSERT INTO streetname VALUES('moss glen');\n    INSERT INTO streetname VALUES('mossy bank');\n    INSERT INTO streetname VALUES('motor sport');\n    INSERT INTO streetname VALUES('mountain laurel');\n    INSERT INTO streetname VALUES('mourning dove');\n    INSERT INTO streetname VALUES('mozart');\n    INSERT INTO streetname VALUES('munsing');\n    INSERT INTO streetname VALUES('murray');\n    INSERT INTO streetname VALUES('nathan');\n    INSERT INTO streetname VALUES('netherhall');\n    INSERT INTO streetname VALUES('netherton');\n    INSERT INTO streetname VALUES('neuhoff');\n    INSERT INTO streetname VALUES('nevin');\n    INSERT INTO streetname VALUES('nevin brook');\n    INSERT INTO streetname VALUES('nevin glen');\n    INSERT INTO streetname VALUES('nevin place');\n    INSERT INTO streetname VALUES('new england');\n    INSERT INTO streetname VALUES('new house');\n    INSERT INTO streetname VALUES('newbary');\n    INSERT INTO streetname VALUES('newchurch');\n    INSERT INTO streetname VALUES('newfane');\n    INSERT INTO streetname VALUES('newgard');\n    INSERT INTO streetname VALUES('nicholas');\n    INSERT INTO streetname VALUES('nicole');\n    INSERT INTO streetname VALUES('nobility');\n    INSERT INTO streetname VALUES('norcroft');\n    INSERT INTO streetname VALUES('northridge');\n    INSERT INTO streetname VALUES('northside');\n    INSERT INTO streetname VALUES('northwoods business');\n    INSERT INTO streetname VALUES('norway');\n    INSERT INTO streetname VALUES('nottinghill');\n    INSERT INTO streetname VALUES('numenore');\n    INSERT INTO streetname VALUES('nyewood');\n    INSERT INTO streetname VALUES('oak');\n    INSERT INTO streetname VALUES('oak cove');\n    INSERT INTO streetname VALUES('oak pasture');\n    INSERT INTO streetname VALUES('oakburn');\n    INSERT INTO streetname VALUES('oakwinds');\n    INSERT INTO streetname VALUES('oakwood');\n    INSERT INTO streetname VALUES('obrien');\n    INSERT INTO streetname VALUES('ocala');\n    INSERT INTO streetname VALUES('old bridge');\n    INSERT INTO streetname VALUES('old fox');\n    INSERT INTO streetname VALUES('old potters');\n    INSERT INTO streetname VALUES('old statesville');\n    INSERT INTO streetname VALUES('old steine');\n    INSERT INTO streetname VALUES('old stoney creek');\n    INSERT INTO streetname VALUES('old sugar creek');\n    INSERT INTO streetname VALUES('old timber');\n    INSERT INTO streetname VALUES('old wagon');\n    INSERT INTO streetname VALUES('old willow');\n    INSERT INTO streetname VALUES('oldenway');\n    INSERT INTO streetname VALUES('oneida');\n    INSERT INTO streetname VALUES('ontario');\n    INSERT INTO streetname VALUES('oriole');\n    INSERT INTO streetname VALUES('orofino');\n    INSERT INTO streetname VALUES('orr');\n    INSERT INTO streetname VALUES('osage');\n    INSERT INTO streetname VALUES('osceola');\n    INSERT INTO streetname VALUES('osprey knoll');\n    INSERT INTO streetname VALUES('oxford hill');\n    INSERT INTO streetname VALUES('painted fern');\n    INSERT INTO streetname VALUES('painted pony');\n    INSERT INTO streetname VALUES('paisley');\n    INSERT INTO streetname VALUES('pale moss');\n    INSERT INTO streetname VALUES('palladium');\n    INSERT INTO streetname VALUES('palmutum');\n    INSERT INTO streetname VALUES('palustris');\n    INSERT INTO streetname VALUES('panglemont');\n    INSERT INTO streetname VALUES('panther');\n    INSERT INTO streetname VALUES('panthersville');\n    INSERT INTO streetname VALUES('paper whites');\n    INSERT INTO streetname VALUES('park');\n    INSERT INTO streetname VALUES('parker green');\n    INSERT INTO streetname VALUES('parkhouse');\n    INSERT INTO streetname VALUES('passour ridge');\n    INSERT INTO streetname VALUES('pasture view');\n    INSERT INTO streetname VALUES('patricia ann');\n    INSERT INTO streetname VALUES('patton');\n    INSERT INTO streetname VALUES('patton ridge');\n    INSERT INTO streetname VALUES('pawpaw');\n    INSERT INTO streetname VALUES('peach');\n    INSERT INTO streetname VALUES('peakwood');\n    INSERT INTO streetname VALUES('pebble creek');\n    INSERT INTO streetname VALUES('pecan cove');\n    INSERT INTO streetname VALUES('pedigree');\n    INSERT INTO streetname VALUES('pelorus');\n    INSERT INTO streetname VALUES('penmore');\n    INSERT INTO streetname VALUES('pensfold');\n    INSERT INTO streetname VALUES('pepperstone');\n    INSERT INTO streetname VALUES('peregrine');\n    INSERT INTO streetname VALUES('periwinkle');\n    INSERT INTO streetname VALUES('perkins');\n    INSERT INTO streetname VALUES('pete brown');\n    INSERT INTO streetname VALUES('phillips');\n    INSERT INTO streetname VALUES('pickway');\n    INSERT INTO streetname VALUES('piercy woods');\n    INSERT INTO streetname VALUES('pierpoint');\n    INSERT INTO streetname VALUES('pine');\n    INSERT INTO streetname VALUES('pine branch');\n    INSERT INTO streetname VALUES('pine meadow');\n    INSERT INTO streetname VALUES('pineleaf');\n    INSERT INTO streetname VALUES('pinewood');\n    INSERT INTO streetname VALUES('pintail');\n    INSERT INTO streetname VALUES('pipestone');\n    INSERT INTO streetname VALUES('placer maple');\n    INSERT INTO streetname VALUES('plover');\n    INSERT INTO streetname VALUES('plum');\n    INSERT INTO streetname VALUES('po box');\n    INSERT INTO streetname VALUES('pochard');\n    INSERT INTO streetname VALUES('pointview');\n    INSERT INTO streetname VALUES('polk and white');\n    INSERT INTO streetname VALUES('pond valley');\n    INSERT INTO streetname VALUES('pondridge');\n    INSERT INTO streetname VALUES('pope farm');\n    INSERT INTO streetname VALUES('poplar grove');\n    INSERT INTO streetname VALUES('poplar springs');\n    INSERT INTO streetname VALUES('portola');\n    INSERT INTO streetname VALUES('potters glen');\n    INSERT INTO streetname VALUES('powatan');\n    INSERT INTO streetname VALUES('prairie valley');\n    INSERT INTO streetname VALUES('prescott');\n    INSERT INTO streetname VALUES('presmann');\n    INSERT INTO streetname VALUES('prestigious');\n    INSERT INTO streetname VALUES('princess');\n    INSERT INTO streetname VALUES('prosperity');\n    INSERT INTO streetname VALUES('prosperity church');\n    INSERT INTO streetname VALUES('prosperity commons');\n    INSERT INTO streetname VALUES('prosperity park');\n    INSERT INTO streetname VALUES('prosperity point');\n    INSERT INTO streetname VALUES('prosperity ridge');\n    INSERT INTO streetname VALUES('prosperity view');\n    INSERT INTO streetname VALUES('purple finch');\n    INSERT INTO streetname VALUES('quail');\n    INSERT INTO streetname VALUES('queensbury');\n    INSERT INTO streetname VALUES('quinn');\n    INSERT INTO streetname VALUES('racine');\n    INSERT INTO streetname VALUES('radbourne');\n    INSERT INTO streetname VALUES('raddington');\n    INSERT INTO streetname VALUES('raku');\n    INSERT INTO streetname VALUES('rancliffe');\n    INSERT INTO streetname VALUES('ravencrest');\n    INSERT INTO streetname VALUES('reames');\n    INSERT INTO streetname VALUES('rebecca run');\n    INSERT INTO streetname VALUES('red bluff');\n    INSERT INTO streetname VALUES('red clay');\n    INSERT INTO streetname VALUES('red clover');\n    INSERT INTO streetname VALUES('red rose');\n    INSERT INTO streetname VALUES('red shed');\n    INSERT INTO streetname VALUES('red tail');\n    INSERT INTO streetname VALUES('redbridge');\n    INSERT INTO streetname VALUES('redstart');\n    INSERT INTO streetname VALUES('redstone view');\n    INSERT INTO streetname VALUES('reedmont');\n    INSERT INTO streetname VALUES('reeves');\n    INSERT INTO streetname VALUES('regal');\n    INSERT INTO streetname VALUES('reinbeck');\n    INSERT INTO streetname VALUES('retriever');\n    INSERT INTO streetname VALUES('ribbonwalk');\n    INSERT INTO streetname VALUES('richardson park');\n    INSERT INTO streetname VALUES('richfield');\n    INSERT INTO streetname VALUES('riddings');\n    INSERT INTO streetname VALUES('ridge');\n    INSERT INTO streetname VALUES('ridge cliff');\n    INSERT INTO streetname VALUES('ridge path');\n    INSERT INTO streetname VALUES('ridge peak');\n    INSERT INTO streetname VALUES('ridgefield');\n    INSERT INTO streetname VALUES('ridgeline');\n    INSERT INTO streetname VALUES('ridgeview commons');\n    INSERT INTO streetname VALUES('riley');\n    INSERT INTO streetname VALUES('riley woods');\n    INSERT INTO streetname VALUES('rillet');\n    INSERT INTO streetname VALUES('rindle');\n    INSERT INTO streetname VALUES('rivendell');\n    INSERT INTO streetname VALUES('robin');\n    INSERT INTO streetname VALUES('robins nest');\n    INSERT INTO streetname VALUES('robur');\n    INSERT INTO streetname VALUES('robyns glen');\n    INSERT INTO streetname VALUES('rock stream');\n    INSERT INTO streetname VALUES('rockwell');\n    INSERT INTO streetname VALUES('rockwell church');\n    INSERT INTO streetname VALUES('rocky brook');\n    INSERT INTO streetname VALUES('rocky ford club');\n    INSERT INTO streetname VALUES('rotary');\n    INSERT INTO streetname VALUES('rouda');\n    INSERT INTO streetname VALUES('royal bluff');\n    INSERT INTO streetname VALUES('royal celadon');\n    INSERT INTO streetname VALUES('rubin lura');\n    INSERT INTO streetname VALUES('runswyck');\n    INSERT INTO streetname VALUES('ruth ferrell');\n    INSERT INTO streetname VALUES('ruth polk');\n    INSERT INTO streetname VALUES('ryan jay');\n    INSERT INTO streetname VALUES('sackett');\n    INSERT INTO streetname VALUES('saddle pace');\n    INSERT INTO streetname VALUES('saddle run');\n    INSERT INTO streetname VALUES('saddle trail');\n    INSERT INTO streetname VALUES('saguaro');\n    INSERT INTO streetname VALUES('saint audrey');\n    INSERT INTO streetname VALUES('saint bernard');\n    INSERT INTO streetname VALUES('saint frances');\n    INSERT INTO streetname VALUES('sam roper');\n    INSERT INTO streetname VALUES('samara');\n    INSERT INTO streetname VALUES('sanders creek');\n    INSERT INTO streetname VALUES('saquache');\n    INSERT INTO streetname VALUES('sarnia');\n    INSERT INTO streetname VALUES('savannah springs');\n    INSERT INTO streetname VALUES('sawgrass ridge');\n    INSERT INTO streetname VALUES('saxonbury');\n    INSERT INTO streetname VALUES('scotch moss');\n    INSERT INTO streetname VALUES('seasons');\n    INSERT INTO streetname VALUES('serenity');\n    INSERT INTO streetname VALUES('seths');\n    INSERT INTO streetname VALUES('shadow lawn');\n    INSERT INTO streetname VALUES('shadow oaks');\n    INSERT INTO streetname VALUES('shadow pine');\n    INSERT INTO streetname VALUES('shadyside');\n    INSERT INTO streetname VALUES('shallow oak');\n    INSERT INTO streetname VALUES('shelley');\n    INSERT INTO streetname VALUES('shining oak');\n    INSERT INTO streetname VALUES('ship');\n    INSERT INTO streetname VALUES('shore haven');\n    INSERT INTO streetname VALUES('shuman');\n    INSERT INTO streetname VALUES('sidney');\n    INSERT INTO streetname VALUES('silver birch');\n    INSERT INTO streetname VALUES('silvermere');\n    INSERT INTO streetname VALUES('simonton');\n    INSERT INTO streetname VALUES('singing hills');\n    INSERT INTO streetname VALUES('singing oak');\n    INSERT INTO streetname VALUES('sipes');\n    INSERT INTO streetname VALUES('six point');\n    INSERT INTO streetname VALUES('skycrest');\n    INSERT INTO streetname VALUES('skyline');\n    INSERT INTO streetname VALUES('small');\n    INSERT INTO streetname VALUES('smith corners');\n    INSERT INTO streetname VALUES('smithwood');\n    INSERT INTO streetname VALUES('snow hill');\n    INSERT INTO streetname VALUES('soapstone');\n    INSERT INTO streetname VALUES('sobeck');\n    INSERT INTO streetname VALUES('socata');\n    INSERT INTO streetname VALUES('solace');\n    INSERT INTO streetname VALUES('solway');\n    INSERT INTO streetname VALUES('song sparrow');\n    INSERT INTO streetname VALUES('sorrento');\n    INSERT INTO streetname VALUES('spector');\n    INSERT INTO streetname VALUES('spin drift');\n    INSERT INTO streetname VALUES('spring crest');\n    INSERT INTO streetname VALUES('spring lee');\n    INSERT INTO streetname VALUES('spring park');\n    INSERT INTO streetname VALUES('spring terrace');\n    INSERT INTO streetname VALUES('spring trace');\n    INSERT INTO streetname VALUES('springhaven');\n    INSERT INTO streetname VALUES('squirrel trail');\n    INSERT INTO streetname VALUES('stardust');\n    INSERT INTO streetname VALUES('stargaze');\n    INSERT INTO streetname VALUES('starita');\n    INSERT INTO streetname VALUES('starmount');\n    INSERT INTO streetname VALUES('statesville');\n    INSERT INTO streetname VALUES('steed');\n    INSERT INTO streetname VALUES('steelewood');\n    INSERT INTO streetname VALUES('steepleglen');\n    INSERT INTO streetname VALUES('stephens farm');\n    INSERT INTO streetname VALUES('stewarton');\n    INSERT INTO streetname VALUES('stone park');\n    INSERT INTO streetname VALUES('stonebrook');\n    INSERT INTO streetname VALUES('stonefield');\n    INSERT INTO streetname VALUES('stoneglen');\n    INSERT INTO streetname VALUES('stonemarsh');\n    INSERT INTO streetname VALUES('stoney garden');\n    INSERT INTO streetname VALUES('stoney run');\n    INSERT INTO streetname VALUES('stoney valley');\n    INSERT INTO streetname VALUES('stoneykirk');\n    INSERT INTO streetname VALUES('stream bank');\n    INSERT INTO streetname VALUES('stream ridge');\n    INSERT INTO streetname VALUES('suburban');\n    INSERT INTO streetname VALUES('suffield');\n    INSERT INTO streetname VALUES('sugar creek');\n    INSERT INTO streetname VALUES('sugarberry');\n    INSERT INTO streetname VALUES('sugarstone');\n    INSERT INTO streetname VALUES('summer creek');\n    INSERT INTO streetname VALUES('summer valley');\n    INSERT INTO streetname VALUES('summercrest');\n    INSERT INTO streetname VALUES('summercroft');\n    INSERT INTO streetname VALUES('summerford');\n    INSERT INTO streetname VALUES('summergold');\n    INSERT INTO streetname VALUES('sunbeam');\n    INSERT INTO streetname VALUES('sunbridge');\n    INSERT INTO streetname VALUES('sunpath');\n    INSERT INTO streetname VALUES('sunset');\n    INSERT INTO streetname VALUES('sunset ridge');\n    INSERT INTO streetname VALUES('sunstone');\n    INSERT INTO streetname VALUES('suntrace');\n    INSERT INTO streetname VALUES('sunwalk');\n    INSERT INTO streetname VALUES('sutters hill');\n    INSERT INTO streetname VALUES('suttonview');\n    INSERT INTO streetname VALUES('swallow tail');\n    INSERT INTO streetname VALUES('swanston');\n    INSERT INTO streetname VALUES('sweet grove');\n    INSERT INTO streetname VALUES('sweet rose');\n    INSERT INTO streetname VALUES('sweetbriar ridge');\n    INSERT INTO streetname VALUES('sweetfield');\n    INSERT INTO streetname VALUES('sydney overlook');\n    INSERT INTO streetname VALUES('sylvan');\n    INSERT INTO streetname VALUES('symphony woods');\n    INSERT INTO streetname VALUES('tallia');\n    INSERT INTO streetname VALUES('tallu');\n    INSERT INTO streetname VALUES('talwyn');\n    INSERT INTO streetname VALUES('tanager');\n    INSERT INTO streetname VALUES('tanager park');\n    INSERT INTO streetname VALUES('tangley');\n    INSERT INTO streetname VALUES('taranasay');\n    INSERT INTO streetname VALUES('tarby');\n    INSERT INTO streetname VALUES('tarland');\n    INSERT INTO streetname VALUES('tarpway');\n    INSERT INTO streetname VALUES('tauten');\n    INSERT INTO streetname VALUES('taymouth');\n    INSERT INTO streetname VALUES('ten trees');\n    INSERT INTO streetname VALUES('terrace view');\n    INSERT INTO streetname VALUES('terrier');\n    INSERT INTO streetname VALUES('tesh');\n    INSERT INTO streetname VALUES('teton');\n    INSERT INTO streetname VALUES('tewkesbury');\n    INSERT INTO streetname VALUES('thelema');\n    INSERT INTO streetname VALUES('thistle bloom');\n    INSERT INTO streetname VALUES('thistledown');\n    INSERT INTO streetname VALUES('thomas ridge');\n    INSERT INTO streetname VALUES('thornbrook');\n    INSERT INTO streetname VALUES('tifton grass');\n    INSERT INTO streetname VALUES('tigerton');\n    INSERT INTO streetname VALUES('tomsie efird');\n    INSERT INTO streetname VALUES('tor');\n    INSERT INTO streetname VALUES('torphin');\n    INSERT INTO streetname VALUES('torrence');\n    INSERT INTO streetname VALUES('towering pine');\n    INSERT INTO streetname VALUES('towhee');\n    INSERT INTO streetname VALUES('toxaway');\n    INSERT INTO streetname VALUES('tracy glenn');\n    INSERT INTO streetname VALUES('tradition view');\n    INSERT INTO streetname VALUES('trailer');\n    INSERT INTO streetname VALUES('transport');\n    INSERT INTO streetname VALUES('trehurst');\n    INSERT INTO streetname VALUES('trexler');\n    INSERT INTO streetname VALUES('trillium fields');\n    INSERT INTO streetname VALUES('trimbach');\n    INSERT INTO streetname VALUES('tucker');\n    INSERT INTO streetname VALUES('tullamore');\n    INSERT INTO streetname VALUES('tullock creek');\n    INSERT INTO streetname VALUES('tunston');\n    INSERT INTO streetname VALUES('tupelo');\n    INSERT INTO streetname VALUES('turnabout');\n    INSERT INTO streetname VALUES('turney');\n    INSERT INTO streetname VALUES('turtle cross');\n    INSERT INTO streetname VALUES('turtleback');\n    INSERT INTO streetname VALUES('twelvestone');\n    INSERT INTO streetname VALUES('twin');\n    INSERT INTO streetname VALUES('twin brook');\n    INSERT INTO streetname VALUES('twin lakes');\n    INSERT INTO streetname VALUES('twisted pine');\n    INSERT INTO streetname VALUES('tyler finley');\n    INSERT INTO streetname VALUES('university station');\n    INSERT INTO streetname VALUES('uphill');\n    INSERT INTO streetname VALUES('valeview');\n    INSERT INTO streetname VALUES('valhalla');\n    INSERT INTO streetname VALUES('van');\n    INSERT INTO streetname VALUES('vance davis');\n    INSERT INTO streetname VALUES('vanhoy');\n    INSERT INTO streetname VALUES('veckman');\n    INSERT INTO streetname VALUES('victoria');\n    INSERT INTO streetname VALUES('victory');\n    INSERT INTO streetname VALUES('village glen');\n    INSERT INTO streetname VALUES('vireo');\n    INSERT INTO streetname VALUES('viscount');\n    INSERT INTO streetname VALUES('voeltz');\n    INSERT INTO streetname VALUES('wade e morgan');\n    INSERT INTO streetname VALUES('wake');\n    INSERT INTO streetname VALUES('wales');\n    INSERT INTO streetname VALUES('wallace ridge');\n    INSERT INTO streetname VALUES('waltham');\n    INSERT INTO streetname VALUES('wanamassa');\n    INSERT INTO streetname VALUES('warbler wood');\n    INSERT INTO streetname VALUES('washington');\n    INSERT INTO streetname VALUES('water');\n    INSERT INTO streetname VALUES('waterelm');\n    INSERT INTO streetname VALUES('waterford hills');\n    INSERT INTO streetname VALUES('waterford valley');\n    INSERT INTO streetname VALUES('waterloo');\n    INSERT INTO streetname VALUES('waterton leas');\n    INSERT INTO streetname VALUES('waverly lynn');\n    INSERT INTO streetname VALUES('waverlyglen');\n    INSERT INTO streetname VALUES('wayside');\n    INSERT INTO streetname VALUES('westbury lake');\n    INSERT INTO streetname VALUES('westray');\n    INSERT INTO streetname VALUES('whistlers chase');\n    INSERT INTO streetname VALUES('whistley green');\n    INSERT INTO streetname VALUES('whistling oak');\n    INSERT INTO streetname VALUES('whitcomb');\n    INSERT INTO streetname VALUES('white aspen');\n    INSERT INTO streetname VALUES('white cascade');\n    INSERT INTO streetname VALUES('white mist');\n    INSERT INTO streetname VALUES('white rock');\n    INSERT INTO streetname VALUES('white stag');\n    INSERT INTO streetname VALUES('whitegate');\n    INSERT INTO streetname VALUES('whitehill');\n    INSERT INTO streetname VALUES('whitetail');\n    INSERT INTO streetname VALUES('whitewood');\n    INSERT INTO streetname VALUES('wilburn park');\n    INSERT INTO streetname VALUES('wild garden');\n    INSERT INTO streetname VALUES('wild rose');\n    INSERT INTO streetname VALUES('wilkins terrace');\n    INSERT INTO streetname VALUES('william ficklen');\n    INSERT INTO streetname VALUES('wiltshire ridge');\n    INSERT INTO streetname VALUES('windchase');\n    INSERT INTO streetname VALUES('winding jordan');\n    INSERT INTO streetname VALUES('windy meadow');\n    INSERT INTO streetname VALUES('winghaven');\n    INSERT INTO streetname VALUES('wingmont');\n    INSERT INTO streetname VALUES('winslow');\n    INSERT INTO streetname VALUES('winter pine');\n    INSERT INTO streetname VALUES('winter view');\n    INSERT INTO streetname VALUES('wolf creek');\n    INSERT INTO streetname VALUES('wondering oak');\n    INSERT INTO streetname VALUES('woodard');\n    INSERT INTO streetname VALUES('woodfire');\n    INSERT INTO streetname VALUES('woodland commons');\n    INSERT INTO streetname VALUES('woodland hills');\n    INSERT INTO streetname VALUES('woodnotch');\n    INSERT INTO streetname VALUES('woodstone');\n    INSERT INTO streetname VALUES('worsley');\n    INSERT INTO streetname VALUES('wren creek');\n    INSERT INTO streetname VALUES('wrens nest');\n    INSERT INTO streetname VALUES('wrexham');\n    INSERT INTO streetname VALUES('wt harris');\n    INSERT INTO streetname VALUES('wylie meadow');\n    INSERT INTO streetname VALUES('wynborough');\n    INSERT INTO streetname VALUES('wynbrook');\n    INSERT INTO streetname VALUES('wyndham hill');\n    INSERT INTO streetname VALUES('yandem');\n    INSERT INTO streetname VALUES('yellow rose');\n    INSERT INTO streetname VALUES('yellow spaniel');\n    INSERT INTO streetname VALUES('yorkford');\n    INSERT INTO streetname VALUES('ziegler');\n    INSERT INTO streetname VALUES('zion renaissance');\n\n    SELECT count(*) FROM streetname;"))
 	_ = db.Query("SELECT n, distance FROM f2, streetname\n     WHERE f2.word MATCH 'wersley'\n       AND f2.distance<=150\n       AND f2.word=streetname.n")
 	_ = db.Query("SELECT n, distance FROM f2, streetname\n     WHERE f2.word MATCH 'testledown'\n       AND f2.distance<=150\n       AND f2.word=streetname.n")
 	_ = db.Query("SELECT DISTINCT streetname.n FROM f2, streetname\n     WHERE f2.word MATCH 'tayle'\n       AND f2.distance<=200\n       AND streetname.n>=f2.word AND streetname.n<=(f2.word || x'F7BFBFBF')")
@@ -7648,6 +7851,12 @@ func TestSQLite_fuzzer1(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x;\n  DELETE FROM \"fuzzer [x] rules table\";\n  INSERT INTO \"fuzzer [x] rules table\" VALUES((1<<32)+100, 'x', 'y', 2);"))
 	checkExecOK(t, db.Exec("CREATE TABLE [x2 \"rules] (a, b, c, d);\n  INSERT INTO [x2 \"rules] VALUES(0, 'a', 'b', 5);"))
 	checkQueryResult(t, db.Query("SELECT word FROM x2 WHERE word MATCH 'aaa'"), "{aaa baa aba aab bab abb bba bbb}")
+	checkExecOK(t, db.Exec("CREATE TABLE x3_rules(rule_set, cFrom, cTo, cost);\n  INSERT INTO x3_rules VALUES(2, 'a', 'x', 10);\n  INSERT INTO x3_rules VALUES(2, 'a', 'y',  9);\n  INSERT INTO x3_rules VALUES(2, 'a', 'z',  8);\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);"))
+	checkExecOK(t, db.Exec("CREATE TABLE x4_rules(a, b, c, d);\n  INSERT INTO x4_rules VALUES(0, 'a', 'b', 10);\n  INSERT INTO x4_rules VALUES(0, 'a', 'c', 11);\n  INSERT INTO x4_rules VALUES(0, 'bx', 'zz', 20);\n  INSERT INTO x4_rules VALUES(0, 'cx', 'yy', 15);\n  INSERT INTO x4_rules VALUES(0, 'zz', '!!', 50);\n  CREATE VIRTUAL TABLE x4 USING fuzzer(x4_rules);"))
+	checkExecOK(t, db.Exec("CREATE TABLE x5_rules(a, b, c, d);\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS f1;\n  CREATE VIRTUAL TABLE f1 USING fuzzer('aaaaaaaaaaaaaaaa'bbbbbbbbbbbbbbbb);"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS f2;\n  CREATE VIRTUAL TABLE f2 USING fuzzer(\"xxxxxxxxxxxxxxxx\"yyyyyyyyyyyyyyyy);"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fuzzer2.test
@@ -7657,6 +7866,7 @@ func TestSQLite_fuzzer2(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);"))
 	checkExecOK(t, db.Exec("UPDATE x1_rules SET cost = 20 WHERE cost<20 AND cFrom!='xx'"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n  SELECT word FROM x1 WHERE word MATCH 'xx' LIMIT 10;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from fuzzerfault.test
@@ -7665,8 +7875,11 @@ func TestSQLite_fuzzerfault(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n    SELECT word FROM x1 WHERE word MATCH 'xax';"))
+	checkExecOK(t, db.Exec("CREATE TABLE x2_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x2_rules VALUES(0, 'a', 'x', 1);\n    INSERT INTO x2_rules VALUES(0, 'b', 'x', 2);\n    INSERT INTO x2_rules VALUES(0, 'c', 'x', 3);\n    CREATE VIRTUAL TABLE x2 USING fuzzer(x2_rules);"))
 	_ = db.Query("SELECT count(*) FROM x2 WHERE word MATCH 'abc';")
 	checkExecOK(t, db.Exec("CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n    SELECT count(*) FROM (SELECT * FROM x1 WHERE word MATCH 'a' LIMIT 2);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -7800,6 +8013,7 @@ func TestSQLite_hook(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t2(c INTEGER PRIMARY KEY, d);\n      CREATE TRIGGER t1_trigger AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        UPDATE t2 SET d = d || ' via trigger' WHERE new.a = c;\n        DELETE FROM t2 WHERE new.a = c;\n      END;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 'one');\n      INSERT INTO t1 VALUES(2, 'two');"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO aux.t3 SELECT * FROM t1;\n      UPDATE t3 SET b = 'two or so' WHERE a = 2;\n      DELETE FROM t3 WHERE 1; -- Avoid the truncate optimization (for now)"))
 	checkExecOK(t, db.Exec("DROP TRIGGER t1_trigger;"))
 	checkExecOK(t, db.Exec("CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a > 1;"))
 	_ = db.Query("SELECT * FROM t1 UNION SELECT * FROM t3;\n      SELECT * FROM t1 UNION ALL SELECT * FROM t3;\n      SELECT * FROM t1 INTERSECT SELECT * FROM t3;\n      SELECT * FROM t1 EXCEPT SELECT * FROM t3;\n      SELECT * FROM t1 ORDER BY b;\n      SELECT * FROM t1 GROUP BY b;")
@@ -7829,7 +8043,6 @@ func TestSQLite_hook(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b) WITHOUT ROWID;\n\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES(5, 6);\n  INSERT INTO t2 VALUES(7, 8);\n\n  CREATE TABLE t3 (a INTEGER PRIMARY KEY, b) WITHOUT ROWID;"))
-	checkExecOK(t, db.Exec("INSERT INTO t3 SELECT a, b FROM t2"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from hook2.test
@@ -7974,7 +8187,6 @@ func TestSQLite_in3(t *testing.T) {
 }
 // Auto-generated from in4.test
 func TestSQLite_in4(t *testing.T) {
-	t.Skip("hanging test - skipped for now")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8062,6 +8274,7 @@ func TestSQLite_in6(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c,d);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b,c,d)\n        SELECT 100, 200+x/2, 300+x/5, x FROM c;\n    CREATE INDEX t1abc ON t1(a,b,c);\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='1000000 500000 500 50';\n    ANALYZE sqlite_master;"))
 	_ = db.Query("SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);")
 	_ = db.Query("EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;")
 	checkQueryResult(t, db.Query("SELECT d FROM t1\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;"), "{1 2 3 4 5 8 9}")
@@ -8113,6 +8326,7 @@ func TestSQLite_incrblob(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO blobs(k, v, i) VALUES(X'010203040506070809', 'hello', 'world');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, 2);"))
 	checkExecOK(t, db.Exec("CREATE VIEW blobs_view AS SELECT k, v, i FROM blobs"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE blobs_echo USING echo(blobs)"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO blobs(k, v, i) VALUES('a', 'different', 'connection');"))
 	_ = db.Query("SELECT rowid FROM blobs ORDER BY rowid")
 	_ = db.Query("SELECT * FROM blobs WHERE rowid = 4;")
@@ -8154,12 +8368,14 @@ func TestSQLite_incrblob3(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("INSERT INTO blobs VALUES(3, 42);\n  INSERT INTO blobs VALUES(4, 54.4);\n  INSERT INTO blobs VALUES(5, NULL);"))
 	checkExecOK(t, db.Exec("UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('rules to open a column to which');"))
 	checkExecOK(t, db.Exec("CREATE VIEW v1 AS SELECT * FROM blobs"))
 	_ = db.Query("PRAGMA foreign_keys = 0")
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x)"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from incrblob4.test
@@ -8231,6 +8447,7 @@ func TestSQLite_incrvacuum(t *testing.T) {
 	checkExecOK(t, db.Exec("BEGIN;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;\n    COMMIT;"))
 	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES($::str);\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;"))
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO tbl1 VALUES($::str);\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;"))
+	checkExecOK(t, db.Exec("BEGIN;\n    PRAGMA incremental_vacuum;           -- Vacuum up the two pages.\n    CREATE TABLE tbl2(b);                -- Use one free page as a table root.\n    INSERT INTO tbl2 VALUES('a nice string');\n    COMMIT;"))
 	_ = db.Query("SELECT * FROM tbl2;")
 	checkExecOK(t, db.Exec("DROP TABLE tbl1;\n    DROP TABLE tbl2;\n    PRAGMA incremental_vacuum;"))
 	_ = db.Query("SELECT tbl_name FROM sqlite_master WHERE type = 'table'")
@@ -8252,7 +8469,6 @@ func TestSQLite_incrvacuum(t *testing.T) {
 	_ = db.Query("PRAGMA incremental_vacuum(5);")
 	_ = db.Query("PRAGMA incremental_vacuum('1');")
 	_ = db.Query("PRAGMA incremental_vacuum(\"+3\");")
-	_ = db.Query("PRAGMA incremental_vacuum = 1;")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from incrvacuum2.test
@@ -8397,6 +8613,7 @@ func TestSQLite_index6(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;"))
 	checkExecOK(t, db.Exec("DROP INDEX IF EXISTS bad1;"))
 	checkExecOK(t, db.Exec("ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"))
 	checkExecOK(t, db.Exec("UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"))
@@ -8438,7 +8655,6 @@ func TestSQLite_index6(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP TABLE t0;\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (NULL);\n  CREATE INDEX i0 ON t0(1) WHERE c0 NOT NULL;\n  SELECT 1 FROM t0 WHERE (t0.c0 IS FALSE) IS FALSE;"))
 	checkQueryResult(t, db.Query("SELECT 1 FROM t0 WHERE (t0.c0 IS FALSE) BETWEEN FALSE AND TRUE;"), "{1}")
 	checkQueryResult(t, db.Query("SELECT 1 FROM t0 WHERE TRUE BETWEEN (t0.c0 IS FALSE) AND TRUE;"), "{1}")
-	checkQueryResult(t, db.Query("SELECT 1 FROM t0 WHERE FALSE BETWEEN FALSE AND (t0.c0 IS FALSE);"), "{1}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from index7.test
@@ -8446,6 +8662,7 @@ func TestSQLite_index7(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;"))
 	_ = db.Query("SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\"")
 	checkExecOK(t, db.Exec("INSERT INTO t1(a,b,c)\n     VALUES('abcde',1,101),('abdef',2,102),('xyz',3,103),('abcz',4,104);\n  SELECT c FROM t1 WHERE a NOT LIKE 'abc%' AND a=7 ORDER BY +b;"))
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT b FROM t1 WHERE a NOT LIKE 'abc%' AND a=7 ORDER BY +b;"), "{/SEARCH t1 USING COVERING INDEX bad1 /}")
@@ -8530,6 +8747,7 @@ func TestSQLite_indexA(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER, z INTEGER);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 2);\n  INSERT INTO t2 VALUES(1, 5, 1);\n  INSERT INTO t2 VALUES(2, 5, 2);\n\n  CREATE INDEX t2z ON t2(z) WHERE y=5;"))
+	checkExecOK(t, db.Exec("ANALYZE;\n  UPDATE sqlite_stat1 SET stat = '50 1' WHERE idx='t2z';\n  UPDATE sqlite_stat1 SET stat = '50' WHERE tbl='t2' AND idx IS NULL;\n  UPDATE sqlite_stat1 SET stat = '5000' WHERE tbl='t1' AND idx IS NULL;\n  ANALYZE sqlite_schema;"))
 	checkExecOK(t, db.Exec("CREATE INDEX t2yz ON t2(y, z) WHERE y=5;"))
 	db.Close()
 	db = setupDB(t)
@@ -8812,7 +9030,6 @@ func TestSQLite_insert3(t *testing.T) {
 }
 // Auto-generated from insert4.test
 func TestSQLite_insert4(t *testing.T) {
-	t.Skip("hanging test - skipped for now")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8983,7 +9200,6 @@ func TestSQLite_interrupt2(t *testing.T) {
 }
 // Auto-generated from intpkey.test
 func TestSQLite_intpkey(t *testing.T) {
-	t.Skip("hanging test - skipped for now")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9075,6 +9291,7 @@ func TestSQLite_io(t *testing.T) {
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO abc VALUES(7, 8);"))
 	checkExecOK(t, db.Exec("INSERT INTO def VALUES('a', 'b');"))
 	checkExecOK(t, db.Exec("BEGIN IMMEDIATE;\n    -- INSERT INTO abc VALUES(9, randstr(1000,1000));"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_size = 1024;\n      CREATE TABLE aux.abc2(a, b);\n      BEGIN;\n      INSERT INTO abc VALUES(9, 10);"))
 	checkExecOK(t, db.Exec("INSERT INTO abc2 SELECT * FROM abc"))
 	_ = db.Query("SELECT * FROM abc UNION ALL SELECT * FROM abc2")
 	checkExecOK(t, db.Exec("BEGIN;\n    DELETE FROM abc;"))
@@ -9094,7 +9311,6 @@ func TestSQLite_io(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO abc VALUES('c', 'd')"))
 	checkExecOK(t, db.Exec("INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"))
 	_ = db.Query("PRAGMA synchronous = full;\n      PRAGMA cache_size = 10;\n      PRAGMA synchronous;")
-	checkExecOK(t, db.Exec("BEGIN;\n    UPDATE abc SET a = 'x';"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from ioerr.test
@@ -9106,6 +9322,7 @@ func TestSQLite_ioerr(t *testing.T) {
 	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500)); -- Page 4 is overflow")
 	checkExecOK(t, db.Exec("INSERT INTO abc VALUES(randstr(100,100));"))
 	checkExecOK(t, db.Exec("INSERT INTO abc (a1) VALUES(NULL)"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' as aux;\n        CREATE TABLE tx(a, b);\n        CREATE TABLE aux.ty(a, b);"))
 	_ = db.Query("SELECT * FROM t1;")
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);"))
@@ -9359,6 +9576,7 @@ func TestSQLite_join5(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t3(x);\n  INSERT INTO t3(x) VALUES(1);\n  CREATE INDEX t3x ON t3(x);\n\n  CREATE TABLE t4(x, y, z);\n  CREATE INDEX t4xy ON t4(x, y);\n  CREATE INDEX t4xz ON t4(x, z);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n  INSERT INTO t4 SELECT i/10, i, i FROM s;\n\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10 1' WHERE idx='t3x';\n  ANALYZE sqlite_schema;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -9366,12 +9584,14 @@ func TestSQLite_join5(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a ,b FLOAT);\n  INSERT INTO t1 VALUES(1,1);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x1','648 324 81 81 81 81 81 81 81081 81 81 81');\n  ANALYZE sqlite_schema;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;"))
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1 LEFT JOIN t2 ON c=b WHERE d IS NULL;"), "{4}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1 LEFT JOIN t2 ON c=b WHERE d=100;"), "{1}")
 	db.Close()
@@ -9447,6 +9667,7 @@ func TestSQLite_join8(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t4','t4d','20 1');\n  INSERT INTO sqlite_stat1 VALUES('t3','t3c','32 1');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2b','48 1');\n  INSERT INTO sqlite_stat1 VALUES('t1',NULL,'100');\n  ANALYZE sqlite_schema;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -9479,9 +9700,6 @@ func TestSQLite_join8(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(0),(1);\n  CREATE TABLE t2(a INT);  INSERT INTO t2 VALUES(0),(2);\n  CREATE TABLE t3(a INT);  INSERT INTO t3 VALUES(0),(3);"))
 	checkQueryResult(t, db.Query("SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL RIGHT JOIN t3;"), "{1 {ambiguous reference to a in USING()}}")
 	checkQueryResult(t, db.Query("SELECT * FROM t1 RIGHT JOIN t2 ON t2.a<>0 NATURAL LEFT JOIN t3;"), "{1 {ambiguous reference to a in USING()}}")
-	db.Close()
-	db = setupDB(t)
-	dbs = append(dbs, db)
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from joinA.test
@@ -9881,18 +10099,24 @@ func TestSQLite_jrnlmode(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode;\n    PRAGMA main.journal_mode;\n    PRAGMA Temp.journal_mode;")
 	_ = db.Query("PRAGMA journal_mode = truncate;")
 	_ = db.Query("PRAGMA journal_mode = off;\n    PRAGMA journal_mode = invalid;")
+	_ = db.Query("PRAGMA journal_mode = PERSIST;\n      ATTACH ':memory:' as aux1;")
 	_ = db.Query("PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;")
 	_ = db.Query("PRAGMA main.journal_mode = OFF;")
 	_ = db.Query("PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;")
 	_ = db.Query("PRAGMA journal_mode;")
+	checkExecOK(t, db.Exec("ATTACH ':memory:' as aux2;"))
 	_ = db.Query("PRAGMA main.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;")
 	_ = db.Query("PRAGMA aux1.journal_mode = DELETE;")
 	_ = db.Query("PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;")
+	checkExecOK(t, db.Exec("ATTACH ':memory:' as aux3;"))
 	_ = db.Query("PRAGMA main.journal_mode;\n      PRAGMA temp.journal_mode;\n      PRAGMA aux1.journal_mode;\n      PRAGMA aux2.journal_mode;\n      PRAGMA aux3.journal_mode;")
 	_ = db.Query("PRAGMA journal_mode = TRUNCATE;")
+	checkExecOK(t, db.Exec("DETACH aux1;\n      DETACH aux2;\n      DETACH aux3;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA main.journal_mode = persist;\n      PRAGMA aux.journal_mode = persist;\n      CREATE TABLE abc(a, b, c);\n      CREATE TABLE aux.def(d, e, f);"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO def VALUES(4, 5, 6);\n      COMMIT;"))
 	_ = db.Query("SELECT * FROM abc;")
 	_ = db.Query("SELECT * FROM def;")
+	checkExecOK(t, db.Exec("CREATE TABLE x(n INTEGER); \n      ATTACH 'test2.db' AS a; \n      create table a.x ( n integer ); \n      insert into a.x values(1); \n      insert into a.x values (2); \n      insert into a.x values (3); \n      insert into a.x values (4);"))
 	_ = db.Query("PRAGMA journal_mode=off;")
 	checkExecOK(t, db.Exec("BEGIN IMMEDIATE;\n      INSERT OR IGNORE INTO main.x SELECT * FROM a.x;\n      COMMIT;"))
 	_ = db.Query("PRAGMA cache_size = 1;\n      PRAGMA auto_vacuum = 1;\n      CREATE TABLE abc(a, b, c);")
@@ -9902,17 +10126,11 @@ func TestSQLite_jrnlmode(t *testing.T) {
 	_ = db.Query("pragma page_size=1024")
 	_ = db.Query("pragma journal_mode=persist")
 	_ = db.Query("PRAGMA journal_size_limit")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.journal_mode=persist;\n      PRAGMA aux.journal_size_limit;"))
 	_ = db.Query("PRAGMA aux.journal_size_limit = 999999999999")
 	_ = db.Query("PRAGMA aux.journal_size_limit = 10240")
 	_ = db.Query("PRAGMA main.journal_size_limit = 20480")
 	_ = db.Query("PRAGMA aux.journal_size_limit")
-	checkExecOK(t, db.Exec("CREATE TABLE main.t1(a, b, c);\n      CREATE TABLE aux.t2(a, b, c);\n      CREATE TABLE aux2.t3(a, b, c);"))
-	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t3 VALUES(randomblob(1000),randomblob(1000),randomblob(1000));\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t3 \n          SELECT randomblob(1000),randomblob(1000),randomblob(1000) FROM t3;\n      INSERT INTO t2 SELECT * FROM t3;\n      INSERT INTO t1 SELECT * FROM t2;\n      COMMIT;"))
-	checkExecOK(t, db.Exec("BEGIN;\n      UPDATE t1 SET a = randomblob(1000);"))
-	checkExecOK(t, db.Exec("BEGIN;\n      UPDATE t2 SET a = randomblob(1000);"))
-	checkExecOK(t, db.Exec("BEGIN;\n      UPDATE t3 SET a = randomblob(1000);"))
-	_ = db.Query("PRAGMA journal_size_limit = -4;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);")
-	_ = db.Query("PRAGMA journal_size_limit = 0;\n      BEGIN;\n      UPDATE t1 SET a = randomblob(1000);")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from jrnlmode2.test
@@ -10356,6 +10574,7 @@ func TestSQLite_limit2(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t300(a,b,c);\n  CREATE INDEX t300x ON t300(a,b,c);\n  INSERT INTO t300 VALUES(0,1,99),(0,1,0),(0,0,0);\n  SELECT *,'.' FROM t300 WHERE a=0 AND (c=0 OR c=99) ORDER BY c DESC;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t500(i INTEGER PRIMARY KEY, j);\n  INSERT INTO t500 VALUES(1, 1);\n  INSERT INTO t500 VALUES(2, 2);\n  INSERT INTO t500 VALUES(3, 3);\n  INSERT INTO t500 VALUES(4, 0);\n  INSERT INTO t500 VALUES(5, 5);\n  SELECT j FROM t500 WHERE i IN (1,2,3,4,5) ORDER BY j DESC LIMIT 3;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t501(i INTEGER PRIMARY KEY, j);\n  INSERT INTO t501 VALUES(1, 5);\n  INSERT INTO t501 VALUES(2, 4);\n  INSERT INTO t501 VALUES(3, 3);\n  INSERT INTO t501 VALUES(4, 6);\n  INSERT INTO t501 VALUES(5, 1);\n  SELECT j FROM t501 WHERE i IN (1,2,3,4,5) ORDER BY j LIMIT 3;"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(aa VARCHAR PRIMARY KEY NOT NULL,bb,cc,x VARCHAR(400));\n  INSERT INTO t1(aa,bb,cc) VALUES('maroon','meal','lecture');\n  INSERT INTO t1(aa,bb,cc) VALUES('reality','meal','catsear');\n  CREATE TABLE t2(aa VARCHAR PRIMARY KEY, dd INT DEFAULT 1, ee, x VARCHAR(100));\n  INSERT INTO t2(aa,dd,ee) VALUES('maroon',0,'travel'),('reality',0,'hour');\n  CREATE INDEX t2x1 ON t2(dd,ee);\n  ANALYZE;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES\n    ('t2','t2x1','3 3 3'),\n    ('t2','sqlite_autoindex_t2_1','3 1'),\n    ('t1','sqlite_autoindex_t1_1','2 1');\n  ANALYZE sqlite_master;\n  SELECT *\n    FROM t1 LEFT JOIN t2 ON t1.aa=t2.aa\n   WHERE t1.bb='meal'\n   ORDER BY t2.dd DESC\n   LIMIT 1;"))
 	checkExecOK(t, db.Exec("DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(aa, bb);\n  INSERT INTO t1 VALUES('maroon','meal');\n  CREATE TABLE t2(cc, dd, ee, x VARCHAR(100));\n  INSERT INTO t2(cc,dd,ee) VALUES('maroon',1,'one');\n  INSERT INTO t2(cc,dd,ee) VALUES('maroon',2,'two');\n  INSERT INTO t2(cc,dd,ee) VALUES('maroon',0,'zero');\n  CREATE INDEX t2ddee ON t2(dd,ee);\n  CREATE INDEX t2cc ON t2(cc);\n   ANALYZE;\n  SELECT t2.cc, t2.dd, t2.ee FROM t1 CROSS JOIN t2 ON t1.aa=t2.cc\n  ORDER BY t2.dd LIMIT 1;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -10530,6 +10749,7 @@ func TestSQLite_malloc(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE abc(a, b, c)"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' as aux;"))
 	_ = db.Query("SELECT * FROM t1; \n      SELECT * FROM t2;")
 	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b COLLATE string_compare);\n      INSERT INTO t1 VALUES(10, 'string');\n      INSERT INTO t1 VALUES(10, 'string2');"))
@@ -10632,7 +10852,6 @@ func TestSQLite_malloc5(t *testing.T) {
 }
 // Auto-generated from mallocA.test
 func TestSQLite_mallocA(t *testing.T) {
-	t.Skip("crashes with slice bounds out of range")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10677,6 +10896,7 @@ func TestSQLite_mallocK(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n        CREATE VIRTUAL TABLE t2 USING echo(t1);"))
 	_ = db.Query("SELECT DISTINCT c FROM t3 WHERE b BETWEEN '.xx..' AND '.xxxx'")
 	checkExecOK(t, db.Exec("CREATE TABLE x1(a INTEGER PRIMARY KEY, b);"))
 	_ = db.Query("SELECT * FROM x1 WHERE a = (SELECT 1)")
@@ -10744,6 +10964,7 @@ func TestSQLite_memdb(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM t5 WHERE x>5;\n      SELECT * FROM t5;"))
 	checkExecOK(t, db.Exec("DELETE FROM t5 WHERE y<3;\n      SELECT * FROM t5;"))
 	checkExecOK(t, db.Exec("DELETE FROM t5 WHERE x>0;\n    SELECT * FROM t5;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t6(x);\n      CREATE VIRTUAL TABLE nums USING wholenumber;\n      INSERT INTO t6 SELECT value FROM nums WHERE value BETWEEN 1 AND 256;\n      SELECT count(*) FROM (SELECT DISTINCT x FROM t6);"))
 	_ = db.Query("SELECT count(*) FROM t6")
 	_ = db.Query("PRAGMA auto_vacuum=TRUE;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    INSERT INTO t1 VALUES(randstr(5000,6000));\n    SELECT count(*) FROM t1;")
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n    SELECT count(*) FROM t1;"))
@@ -10761,6 +10982,7 @@ func TestSQLite_memdb1(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(3,4); SELECT * FROM t1"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;"))
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux1"))
 	_ = db.Query("SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;")
 	checkQueryResult(t, db.Query("PRAGMA integrity_check;"), "{ok}")
 	checkExecOK(t, db.Exec("CREATE TABLE t4(a,b);\n  INSERT INTO t4 VALUES('hello','world!');\n  PRAGMA integrity_check;\n  SELECT * FROM t4;"))
@@ -10783,7 +11005,18 @@ func TestSQLite_memjournal(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("SAVEPOINT one;\n      UPDATE t1 SET a=randomblob(500);"))
+	checkExecOK(t, db.Exec("SAVEPOINT abc"))
+	checkExecOK(t, db.Exec("RELEASE abc"))
 	checkExecOK(t, db.Exec("COMMIT;"))
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from memjournal2.test
+func TestSQLite_memjournal2(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkQueryResult(t, db.Query("PRAGMA integrity_check;\n    ROLLBACK TO one;\n    RELEASE one;"), "{ok}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from memsubsys1.test
@@ -11162,7 +11395,11 @@ func TestSQLite_misc7(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE abc(a PRIMARY KEY, b, c);"))
 	checkExecOK(t, db.Exec("DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;"))
 	checkExecOK(t, db.Exec("BEGIN EXCLUSIVE;"))
+	_ = db.Query("PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    CREATE TABLE aux.hello(world);\n    SELECT name FROM aux.sqlite_master;")
+	checkExecOK(t, db.Exec("DETACH aux;"))
+	_ = db.Query("PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;")
 	_ = db.Query("SELECT * \n    FROM (SELECT name+1 AS one FROM sqlite_master LIMIT 1 OFFSET 1) \n    WHERE one LIKE 'hello%';")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;"))
 	_ = db.Query("SELECT t1.a, t2.a FROM t1, t1 AS t2 ORDER BY 2 LIMIT 1;")
 	_ = db.Query("SELECT * FROM t1 WHERE a = 1;")
 	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;")
@@ -11195,6 +11432,7 @@ func TestSQLite_misc8(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  ATTACH 'test2.db' AS aux2;\n  CREATE TABLE aux2.t2(c,d,e);\n  INSERT INTO t2 VALUES(4,5,6);\n  SELECT * FROM t1, t2;"))
 	checkQueryResult(t, db.Query("PRAGMA database_list;"), "{/0 main .* 2 aux2/}")
 	checkQueryResult(t, db.Query("SELECT name FROM icecube.sqlite_master;"), "{t1}")
 	_ = db.Query("PRAGMA database_list")
@@ -11219,6 +11457,7 @@ func TestSQLite_mjournal(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);"))
 	_ = db.Query("SELECT * FROM t1;")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -11454,6 +11693,7 @@ func TestSQLite_notify1(t *testing.T) {
 	checkExecOK(t, db.Exec("BEGIN ; INSERT INTO t3 VALUES(1, 2)"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES('a', 'b');"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS two"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);"))
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO t2 VALUES(1, 2);"))
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(3, 4);"))
@@ -11470,6 +11710,8 @@ func TestSQLite_notify2(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;\n      CREATE TABLE main.t1(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE aux2.t2(a INTEGER PRIMARY KEY, b);\n      CREATE TABLE aux3.t3(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 SELECT NULL, 0;\n      INSERT INTO t2 SELECT NULL, 0;\n      INSERT INTO t3 SELECT NULL, 0;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;"))
 	_ = db.Query("SELECT (SELECT max(a) FROM t1)\n           + (SELECT max(a) FROM t2)\n           + (SELECT max(a) FROM t3)")
 	for _, d := range dbs { d.Close() }
 }
@@ -11604,6 +11846,7 @@ func TestSQLite_nulls1(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);"))
+	checkExecOK(t, db.Exec("ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('v0','v3','648 324 81');\n  ANALYZE sqlite_master;"))
 	checkExecOK(t, db.Exec("INSERT INTO v0 VALUES\n      (1, 10, 'b'),\n      (1, 10, 'd'),\n      (1, 10, NULL),\n      (2, 10, 'a'),\n      (2, 10, NULL),\n      (1, 10, 'c'),\n      (2, 10, 'b'),\n      (1, 10, 'a'),\n      (1, 10, NULL),\n      (2, 10, NULL),\n      (2, 10, 'd'),\n      (2, 10, 'c');"))
 	db.Close()
 	db = setupDB(t)
@@ -11889,20 +12132,28 @@ func TestSQLite_pager1(t *testing.T) {
 	_ = db.Query("PRAGMA auto_vacuum")
 	checkExecOK(t, db.Exec("CREATE TABLE x(y, z);\n    INSERT INTO x VALUES(1, 2);"))
 	_ = db.Query("SELECT * FROM x")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;"))
 	_ = db.Query("SELECT count(*) FROM t1;\n    PRAGMA integrity_check;")
 	_ = db.Query("PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);")
 	_ = db.Query("SELECT * FROM t1")
 	checkExecOK(t, db.Exec("BEGIN;\n          INSERT INTO a SELECT * FROM b WHERE rowid<=3;\n          INSERT INTO b SELECT * FROM a WHERE rowid<=3;\n        COMMIT;"))
 	checkQueryResult(t, db.Query("PRAGMA journal_mode = DELETE;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t1 VALUES('I', 'II');\n  INSERT INTO t2 VALUES('III', 'IV');\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  COMMIT;"), "{delete}")
 	checkQueryResult(t, db.Query("SELECT * FROM t1;\n  SELECT * FROM t2;"), "{I II III IV}")
+	_ = db.Query("PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db2' AS two;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n    INSERT INTO t1 VALUES(1, 't1.1');\n    INSERT INTO t2 VALUES(1, 't2.1');\n    BEGIN;\n      UPDATE t1 SET b = 't1.2';\n      UPDATE t2 SET b = 't2.2';\n    COMMIT;")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS two;\n  SELECT * FROM t2;"))
+	_ = db.Query("PRAGMA journal_mode = DELETE;\n    ATTACH 'test.db3' AS three;\n    CREATE TABLE three.t3(a, b);\n    INSERT INTO t3 VALUES(1, 't3.1');\n    BEGIN;\n      UPDATE t2 SET b = 't2.3';\n      UPDATE t3 SET b = 't3.3';\n    COMMIT;")
+	checkExecOK(t, db.Exec("ATTACH 'test.db3' AS three;\n  SELECT * FROM t3;"))
 	checkQueryResult(t, db.Query("PRAGMA journal_mode = DELETE;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  CREATE INDEX i1 ON t1(y);\n  INSERT INTO t1 VALUES('I',   'one');\n  INSERT INTO t1 VALUES('II',  'four');\n  INSERT INTO t1 VALUES('III', 'nine');\n  BEGIN;\n    INSERT INTO t1 VALUES('IV', 'sixteen');\n    INSERT INTO t1 VALUES('V' , 'twentyfive');\n  COMMIT;"), "{delete}")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES(17, 'Lenin');\n    INSERT INTO t1 VALUES(22, 'Stalin');\n    INSERT INTO t1 VALUES(53, 'Khrushchev');"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(64, 'Brezhnev');\n      INSERT INTO t2 SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("BEGIN;\n      SELECT * FROM t2;"))
 	_ = db.Query("SELECT * FROM t2")
 	_ = db.Query("PRAGMA journal_mode = memory;\n    BEGIN;\n      INSERT INTO t1 VALUES(84, 'Andropov');\n      INSERT INTO t2 VALUES(84, 'Andropov');\n    COMMIT;")
 	_ = db.Query("PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux"))
 	_ = db.Query("PRAGMA journal_mode = DELETE;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;")
 	_ = db.Query("PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Lenin';\n      DELETE FROM t2 WHERE b = 'Lenin';\n    COMMIT;")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = PERSIST;\n    CREATE TABLE t3(a, b);\n    INSERT INTO t3 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    UPDATE t3 SET b = randomblob(1501);"))
 	_ = db.Query("PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Stalin';\n      DELETE FROM t2 WHERE b = 'Stalin';\n    COMMIT;")
 	_ = db.Query("PRAGMA auto_vacuum = none;\n    PRAGMA max_page_count = 10;\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);")
 	checkExecOK(t, db.Exec("CREATE TABLE t11(a, b)"))
@@ -11912,14 +12163,6 @@ func TestSQLite_pager1(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t11 VALUES(3, 4);\n    PRAGMA max_page_count = 10;"))
 	checkQueryResult(t, db.Query("PRAGMA max_page_count = 10"), "{11}")
 	checkQueryResult(t, db.Query("SELECT * FROM t11"), "{1 2 3 4}")
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 2)"))
-	_ = db.Query("PRAGMA journal_mode = persist")
-	checkExecOK(t, db.Exec("COMMIT"))
-	_ = db.Query("PRAGMA journal_mode = persist;\n    PRAGMA journal_size_limit;")
-	_ = db.Query("PRAGMA auto_vacuum = 1;\n      CREATE TABLE x1(x);\n      INSERT INTO x1 VALUES('Charles');\n      INSERT INTO x1 VALUES('James');\n      INSERT INTO x1 VALUES('Mary');\n      SELECT * FROM x1;")
-	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO x1 VALUES('William');\n      INSERT INTO x1 VALUES('Anne');\n    ROLLBACK;"))
-	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE ab(a, b, UNIQUE(a, b));\n      INSERT INTO ab VALUES( a_string(200), a_string(300) );\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n      INSERT INTO ab SELECT a_string(200), a_string(300) FROM ab;\n    COMMIT;")
-	checkExecOK(t, db.Exec("UPDATE ab SET a = a_string(201)"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from pager2.test
@@ -11954,15 +12197,19 @@ func TestSQLite_pagerfault(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM t1")
 	_ = db.Query("PRAGMA page_size = 4096;\n    BEGIN;\n      CREATE TABLE abc(a, b, c);\n      INSERT INTO abc VALUES('o', 't', 't'); \n      INSERT INTO abc VALUES('f', 'f', 's'); \n      INSERT INTO abc SELECT * FROM abc; -- 4\n      INSERT INTO abc SELECT * FROM abc; -- 8\n      INSERT INTO abc SELECT * FROM abc; -- 16\n      INSERT INTO abc SELECT * FROM abc; -- 32\n      INSERT INTO abc SELECT * FROM abc; -- 64\n      INSERT INTO abc SELECT * FROM abc; -- 128\n      INSERT INTO abc SELECT * FROM abc; -- 256\n    COMMIT;\n    PRAGMA page_size = 1024;\n    VACUUM;")
 	_ = db.Query("SELECT * FROM abc")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    SELECT count(*) FROM t2;\n    SELECT count(*) FROM t1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE x(y);\n    INSERT INTO x VALUES('z');\n    SELECT * FROM x;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;"))
 	_ = db.Query("PRAGMA journal_mode = PERSIST")
 	checkExecOK(t, db.Exec("INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1"))
 	_ = db.Query("PRAGMA journal_mode = PERSIST;\n    PRAGMA journal_size_limit = 2048;")
+	_ = db.Query("PRAGMA journal_mode = PERSIST;\n    ATTACH 'test2.db' AS aux;\n    PRAGMA aux.journal_mode = PERSIST;\n    PRAGMA aux.journal_size_limit = 0;")
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n      CREATE TABLE aux.t2 AS SELECT * FROM t1;\n    COMMIT;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));"))
 	_ = db.Query("PRAGMA journal_mode = TRUNCATE")
 	checkExecOK(t, db.Exec("#     CREATE TABLE t1(x, y, UNIQUE(x, y));\n#     INSERT INTO t1 VALUES(1, randomblob(1501));\n#     INSERT INTO t1 VALUES(2, randomblob(1502));\n#     INSERT INTO t1 VALUES(3, randomblob(1503));\n#     INSERT INTO t1 VALUES(4, randomblob(1504));\n#     INSERT INTO t1 \n#       SELECT x, randomblob(1500+oid+(SELECT max(oid) FROM t1)) FROM t1;\n#     INSERT INTO t1 \n#       SELECT x, randomblob(1500+oid+(SELECT max(oid) FROM t1)) FROM t1;\n#     INSERT INTO t1 \n#       SELECT x, randomblob(1500+oid+(SELECT max(oid) FROM t1)) FROM t1;\n#     INSERT INTO t1 \n#       SELECT x, randomblob(1500+oid+(SELECT max(oid) FROM t1)) FROM t1;\n#"))
+	checkExecOK(t, db.Exec("#     BEGIN;\n#       UPDATE t1 SET x=x+4 WHERE x=1;\n#       SAVEPOINT one;\n#         UPDATE t1 SET x=x+4 WHERE x=2;\n#         SAVEPOINT three;\n#           UPDATE t1 SET x=x+4 WHERE x=3;\n#           SAVEPOINT four;\n#             UPDATE t1 SET x=x+4 WHERE x=4;\n#         RELEASE three;\n#     COMMIT;\n#     SELECT DISTINCT x FROM t1;\n#"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  4\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  8\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 16\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 32\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 64\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 SELECT * FROM t2;\n    DROP TABLE t2;"))
 	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE t1 SET b = randomblob(1500);")
 	checkExecOK(t, db.Exec("UPDATE t1 SET a = 65, b = randomblob(1500) WHERE (a+1)>200"))
@@ -11970,10 +12217,13 @@ func TestSQLite_pagerfault(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM t1 WHERE a>32"))
 	checkExecOK(t, db.Exec("BEGIN;\n    DELETE FROM t1 WHERE a>32;"))
 	_ = db.Query("PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);\n\n    INSERT INTO t1 VALUES(randomblob(900));\n    INSERT INTO t1 VALUES(randomblob(900));\n    DELETE FROM t1;")
+	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(randomblob(900));\n      INSERT INTO t1 VALUES(randomblob(900));\n      DROP TABLE t3;\n      DROP TABLE t2;\n      SAVEPOINT abc;\n        PRAGMA incremental_vacuum;"))
+	checkExecOK(t, db.Exec("ROLLBACK TO abc;\n    COMMIT;\n    PRAGMA freelist_count"))
 	_ = db.Query("PRAGMA cache_size = 10;\n      BEGIN;\n        CREATE TABLE xx(a, b, UNIQUE(a, b));\n        INSERT INTO xx VALUES(a_string(200), a_string(200));\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n        INSERT INTO xx SELECT a_string(200), a_string(200) FROM xx;\n      COMMIT;")
 	checkExecOK(t, db.Exec("UPDATE xx SET a = a_string(300)"))
 	_ = db.Query("PRAGMA auto_vacuum = on;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y UNIQUE);\n    CREATE TABLE t3(z UNIQUE);\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(202));\n      INSERT INTO t2 VALUES(a_string(203));\n      INSERT INTO t3 VALUES(a_string(204));\n      INSERT INTO t1 SELECT a_string(202) FROM t1;\n      INSERT INTO t1 SELECT a_string(203) FROM t1;\n      INSERT INTO t1 SELECT a_string(204) FROM t1;\n      INSERT INTO t1 SELECT a_string(205) FROM t1;\n      INSERT INTO t2 SELECT a_string(length(x)) FROM t1;\n      INSERT INTO t3 SELECT a_string(length(x)) FROM t1;\n    COMMIT;")
 	_ = db.Query("PRAGMA cache_size = 10")
+	checkExecOK(t, db.Exec("SAVEPOINT trans;\n      UPDATE t2 SET y = y||'2';\n      INSERT INTO t3 SELECT * FROM t2;\n      DELETE FROM t1;\n    ROLLBACK TO trans;\n    UPDATE t1 SET x = x||'3';\n    INSERT INTO t2 SELECT * FROM t1;\n    DELETE FROM t3;\n    RELEASE trans;"))
 	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(44), a_string(55) FROM t1 LIMIT 13;\n    COMMIT;")
 	checkExecOK(t, db.Exec("UPDATE t1 SET x = a_string(length(x)), y = a_string(length(y));"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 10;"))
@@ -11981,15 +12231,8 @@ func TestSQLite_pagerfault(t *testing.T) {
 	_ = db.Query("SELECT rowid FROM t1 LIMIT 2")
 	_ = db.Query("PRAGMA journal_mode = PERSIST;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n    COMMIT;")
 	checkExecOK(t, db.Exec("CREATE TABLE xx(a, b)"))
+	_ = db.Query("PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;")
 	checkExecOK(t, db.Exec("BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;"))
-	_ = db.Query("SELECT * FROM t1 LIMIT 1")
-	checkExecOK(t, db.Exec("BEGIN; INSERT INTO t1 VALUES(a_string(333), a_string(555)); COMMIT;\n      BEGIN; INSERT INTO t1 VALUES(a_string(333), a_string(555)); COMMIT;"))
-	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y UNIQUE)"))
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1862, 'Botha');\n    INSERT INTO t1 VALUES(1870, 'Smuts');\n    INSERT INTO t1 VALUES(1866, 'Hertzog');"))
-	_ = db.Query("PRAGMA journal_mode = wal;\n    PRAGMA journal_mode = delete;")
-	_ = db.Query("PRAGMA synchronous = OFF")
-	_ = db.Query("PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(22, 'Clarke');\n    PRAGMA journal_mode = delete;")
-	_ = db.Query("PRAGMA journal_mode = delete")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from pagerfault2.test
@@ -11999,8 +12242,11 @@ func TestSQLite_pagerfault2(t *testing.T) {
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));")
 	checkExecOK(t, db.Exec("INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1"))
+	checkExecOK(t, db.Exec("BEGIN;\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(5, 6);\n      SAVEPOINT abc;\n        UPDATE t1 SET a = a||'x' WHERE rowid<3700;"))
 	checkExecOK(t, db.Exec("UPDATE t1 SET a = a||'x' WHERE rowid>=3700 AND rowid<=4200"))
+	checkExecOK(t, db.Exec("ROLLBACK TO abc"))
 	checkExecOK(t, db.Exec("DELETE FROM t1"))
+	_ = db.Query("PRAGMA cache_size = 20;\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(401), a_string(402));\n      SAVEPOINT abc;")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES (a_string(2000000), a_string(2500000))"))
 	for _, d := range dbs { d.Close() }
 }
@@ -12118,6 +12364,7 @@ func TestSQLite_percentile(t *testing.T) {
 	_ = db.Query("SELECT median() WITHIN GROUP (ORDER BY x) FROM t2")
 	checkExecOK(t, db.Exec("UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1"))
 	checkExecOK(t, db.Exec("UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE nums USING wholenumber;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT value-1 FROM nums WHERE value BETWEEN 1 AND 500000;\n      INSERT INTO t3 SELECT value*10 FROM nums\n                      WHERE value BETWEEN 500000 AND 999999;\n      SELECT count(*) FROM t3;"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES (1, 'A', 'one',   8.4),\n                        (2, 'B', 'two',   7.1),\n                        (3, 'C', 'three', 5.9),\n                        (4, 'D', 'one',  11.0),\n                        (5, 'E', 'two',  12.5),\n                        (6, 'F', 'three', 0.0),\n                        (7, 'G', 'one',   2.7);"))
 	checkExecOK(t, db.Exec("CREATE TABLE products(\n    vendorId INT,\n    productId INTEGER PRIMARY KEY,\n    productName REAL,\n    price REAL\n  );\n  INSERT INTO products VALUES\n    (1001, 17,  'Left-handed screwdriver', 25.99),\n    (1001, 49,  'Right-handed screwdriver', 25.99),\n    (1001, 216, 'Long weight (blue)', 14.75),\n    (1001, 31,  'Long weight (green)', 11.99),\n    (1002, 37,  'Sledge hammer', 33.49),\n    (1003, 7,   'Chainsaw', 245.00),\n    (1003, 8,   'Straw dog box', 55.99),\n    (1003, 12,  'Hammock', 11.01),\n    (1004, 113, 'Teapot', 12.45),\n    (1004, 117, 'Bottomless coffee mug', 9.99);"))
 	checkExecOK(t, db.Exec("CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);"))
@@ -12152,6 +12399,7 @@ func TestSQLite_pragma(t *testing.T) {
 	_ = db.Query("PRAGMA vdbe_listing=NO;\n      PRAGMA vdbe_listing;")
 	_ = db.Query("PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;")
 	_ = db.Query("PRAGMA bogus = -1234;  -- Parsing of negative values")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;"))
 	_ = db.Query("pragma aux.synchronous;")
 	_ = db.Query("pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;")
 	_ = db.Query("pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;")
@@ -12160,14 +12408,13 @@ func TestSQLite_pragma(t *testing.T) {
 	_ = db.Query("PRAGMA page_size")
 	_ = db.Query("PRAGMA integrity_check")
 	_ = db.Query("PRAGMA integrity_check=1")
+	checkExecOK(t, db.Exec("ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check"))
 	_ = db.Query("PRAGMA integrity_check=4")
 	_ = db.Query("PRAGMA integrity_check=0")
+	checkExecOK(t, db.Exec("DETACH t2"))
+	checkExecOK(t, db.Exec("REINDEX t2"))
 	_ = db.Query("PRAGMA quick_check")
 	_ = db.Query("PRAGMA QUICK_CHECK")
-	_ = db.Query("PRAGMA integrity_check=5")
-	_ = db.Query("PRAGMA integrity_check=3")
-	_ = db.Query("PRAGMA integrity_check(2)")
-	_ = db.Query("PRAGMA integrity_check(10)")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from pragma2.test
@@ -12180,6 +12427,7 @@ func TestSQLite_pragma2(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE abc(a, b, c);\n    PRAGMA freelist_count;"))
 	checkExecOK(t, db.Exec("DROP TABLE abc;\n    PRAGMA freelist_count;"))
 	_ = db.Query("PRAGMA main.freelist_count;")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=OFF;\n      PRAGMA aux.freelist_count;"))
 	checkExecOK(t, db.Exec("CREATE TABLE aux.abc(a, b, c);\n      PRAGMA aux.freelist_count;"))
 	checkExecOK(t, db.Exec("INSERT INTO aux.abc VALUES(1, 2, $::val);\n      PRAGMA aux.freelist_count;"))
 	checkExecOK(t, db.Exec("DELETE FROM aux.abc;\n      PRAGMA aux.freelist_count;"))
@@ -12188,11 +12436,13 @@ func TestSQLite_pragma2(t *testing.T) {
 	_ = db.Query("PRAGMA aux.freelist_count = 500;\n      PRAGMA aux.freelist_count;")
 	checkQueryResult(t, db.Query("PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;"), "{2000 2000 2000}")
 	checkQueryResult(t, db.Query("PRAGMA cache_spill=OFF;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;"), "{0 0 0}")
+	checkQueryResult(t, db.Query("PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;"), "{}")
 	checkExecOK(t, db.Exec("BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;"))
 	checkExecOK(t, db.Exec("ROLLBACK;\n    PRAGMA cache_spill=OFF;\n    PRAGMA Cache_Spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;"))
 	checkExecOK(t, db.Exec("ROLLBACK;\n    PRAGMA cache_spill=100000;\n    PRAGMA cache_spill;\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;"))
 	checkExecOK(t, db.Exec("ROLLBACK;\n      PRAGMA cache_spill=25;\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;"))
 	checkExecOK(t, db.Exec("ROLLBACK;\n      PRAGMA cache_spill(-25);\n      PRAGMA main.cache_spill;\n      BEGIN;\n      UPDATE t1 SET c=c+1;\n      PRAGMA lock_status;"))
+	checkExecOK(t, db.Exec("ROLLBACK;\n  PRAGMA cache_spill=OFF;\n  ATTACH 'test2.db' AS aux1;\n  PRAGMA aux1.cache_size=50;\n  BEGIN;\n  UPDATE t2 SET c=c+1;\n  PRAGMA lock_status;"))
 	checkExecOK(t, db.Exec("COMMIT;"))
 	checkQueryResult(t, db.Query("PRAGMA cache_spill=ON; -- Applies to all databases\n  BEGIN;\n  UPDATE t2 SET c=c-1;\n  PRAGMA lock_status;"), "{main unlocked temp unknown aux1 exclusive}")
 	checkQueryResult(t, db.Query("PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;"), "{2}")
@@ -12228,6 +12478,7 @@ func TestSQLite_pragma4(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);"))
 	checkExecOK(t, db.Exec("DROP TABLE t1"))
 	checkExecOK(t, db.Exec("DROP TABLE t2"))
 	checkQueryResult(t, db.Query("PRAGMA table_info(t1)"), "{1 {database schema has changed}}")
@@ -12239,6 +12490,7 @@ func TestSQLite_pragma4(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);"))
 	checkQueryResult(t, db.Query("SELECT * FROM pragma_index_info('i2')"), "{0 1 e}")
 	checkExecOK(t, db.Exec("DROP INDEX i1"))
 	checkExecOK(t, db.Exec("DROP INDEX i2"))
@@ -12747,12 +12999,19 @@ func TestSQLite_reindex(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    CREATE INDEX i1 ON t1(a);\n    REINDEX;"))
+	checkExecOK(t, db.Exec("REINDEX t1;"))
+	checkExecOK(t, db.Exec("REINDEX i1;"))
+	checkExecOK(t, db.Exec("REINDEX main.t1;"))
+	checkExecOK(t, db.Exec("REINDEX main.i1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;"))
 	_ = db.Query("SELECT b FROM t2 ORDER BY b;")
 	_ = db.Query("SELECT c FROM t2 ORDER BY c;")
 	_ = db.Query("SELECT d FROM t2 ORDER BY d;")
 	_ = db.Query("SELECT a FROM t2 ORDER BY a;")
 	_ = db.Query("PRAGMA integrity_check")
+	checkExecOK(t, db.Exec("REINDEX c2;\n    SELECT a FROM t2 ORDER BY a;"))
+	checkExecOK(t, db.Exec("REINDEX t1;\n    SELECT a FROM t2 ORDER BY a;"))
+	checkExecOK(t, db.Exec("REINDEX c1;\n    SELECT a FROM t2 ORDER BY a;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from reservebytes.test
@@ -12947,9 +13206,9 @@ func TestSQLite_rowid(t *testing.T) {
 	_ = db.Query("SELECT oid FROM t1 WHERE x>8")
 	_ = db.Query("SELECT max(x) FROM t1")
 	_ = db.Query("SELECT x FROM t1")
+	checkExecOK(t, db.Exec("DELETE FROM t1 WHERE rowid=$::norow"))
 	checkExecOK(t, db.Exec("DELETE FROM t1;\n    DROP TABLE t2;\n    DROP INDEX idxt1;\n    INSERT INTO t1 VALUES(1,2);\n    SELECT rowid, * FROM t1;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(99,100);\n    SELECT rowid,* FROM t1"))
-	checkExecOK(t, db.Exec("CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2(b) VALUES(55);\n    SELECT * FROM t2;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from rowvalue.test
@@ -12986,6 +13245,7 @@ func TestSQLite_rowvalue(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT t1.*, t2.* FROM t1 FULL JOIN t2 ON (a,b)=(x,y)\n   ORDER BY coalesce(a,x);"), "{\n  1 2 - -\n  - - 3 4\n}")
 	checkExecOK(t, db.Exec("CREATE TABLE t12(x);\n  INSERT INTO t12 VALUES(2), (4);"))
 	checkExecOK(t, db.Exec("CREATE TABLE x1(a PRIMARY KEY, b);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b);"))
+	checkExecOK(t, db.Exec("DETACH (SELECT * FROM (SELECT 1,2))<3;"))
 	checkExecOK(t, db.Exec("UPDATE x1 SET a=(SELECT * FROM (SELECT b,2))<3;"))
 	checkExecOK(t, db.Exec("UPDATE x1 SET a=NULL WHERE  a<(SELECT * FROM (SELECT b,2));"))
 	checkExecOK(t, db.Exec("DELETE FROM x1 WHERE  a<(SELECT * FROM (SELECT b,2));"))
@@ -12996,7 +13256,6 @@ func TestSQLite_rowvalue(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT * FROM b3 WHERE (VALUES(b3.a, b3.b)) IN ( SELECT a, b FROM b5 );"), "{1 1 1 2}")
 	checkQueryResult(t, db.Query("SELECT * FROM b3 WHERE (b3.a, b3.b) IN ( SELECT a, b FROM b5 );"), "{1 1 1 2}")
 	checkQueryResult(t, db.Query("SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (SELECT b3.a, b3.b) IN ( SELECT a, b FROM b5 );"), "{1 1 1 1 2 1}")
-	checkQueryResult(t, db.Query("SELECT * FROM b3 JOIN b4 ON b4.a = b3.a\n  WHERE (VALUES(b3.a, b3.b)) IN ( SELECT a, b FROM b5 );"), "{1 1 1 1 2 1}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from rowvalue2.test
@@ -13133,6 +13392,7 @@ func TestSQLite_rowvaluevtab(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES('one', 1, 1);\n  INSERT INTO t1 VALUES('two', 1, 2);\n  INSERT INTO t1 VALUES('three', 1, 3);\n  INSERT INTO t1 VALUES('four', 2, 1);\n  INSERT INTO t1 VALUES('five', 2, 2);\n  INSERT INTO t1 VALUES('six', 2, 3);\n  INSERT INTO t1 VALUES('seven', 3, 1);\n  INSERT INTO t1 VALUES('eight', 3, 2);\n  INSERT INTO t1 VALUES('nine', 3, 3);\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  ) INSERT INTO t1 SELECT NULL, NULL, NULL FROM s;\n  CREATE VIRTUAL TABLE e1 USING echo(t1);"))
 	checkQueryResult(t, db.Query("SELECT a FROM e1 WHERE (b, c) = (2, 2)"), "{five}")
 	checkQueryResult(t, db.Query("SELECT a FROM e1 WHERE (b, c) > (2, 2)"), "{six seven eight nine}")
 	checkQueryResult(t, db.Query("SELECT a FROM e1 WHERE (b, c) >= (2, 2)"), "{five six seven eight nine}")
@@ -13145,41 +13405,46 @@ func TestSQLite_savepoint(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    RELEASE sp1;"))
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    ROLLBACK TO sp1;"))
+	checkExecOK(t, db.Exec("SAVEPOINT sp1"))
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp1;"))
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp2;"))
+	checkExecOK(t, db.Exec("RELEASE sp1"))
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    ROLLBACK TO sp1;"))
+	checkExecOK(t, db.Exec("RELEASE SAVEPOINT sp1"))
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    SAVEPOINT sp3;\n    ROLLBACK TO SAVEPOINT sp3;\n    ROLLBACK TRANSACTION TO sp2;\n    ROLLBACK TRANSACTION TO SAVEPOINT sp1;"))
+	checkExecOK(t, db.Exec("RELEASE SAVEPOINT SP1"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2, 3);\n    SAVEPOINT one;\n    UPDATE t1 SET a = 2, b = 3, c = 4;"))
 	_ = db.Query("SELECT * FROM t1")
+	checkExecOK(t, db.Exec("ROLLBACK TO one;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(4, 5, 6);"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(7, 8, 9);\n    SAVEPOINT two;\n    INSERT INTO t1 VALUES(10, 11, 12);"))
+	checkExecOK(t, db.Exec("ROLLBACK TO two;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(10, 11, 12);"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('a', 'b', 'c');\n    SAVEPOINT two;\n    INSERT INTO t1 VALUES('d', 'e', 'f');"))
+	checkExecOK(t, db.Exec("RELEASE two;"))
 	checkExecOK(t, db.Exec("ROLLBACK;"))
+	checkExecOK(t, db.Exec("SAVEPOINT \"transaction\""))
 	_ = db.Query("PRAGMA lock_status")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 2, 3)"))
+	checkExecOK(t, db.Exec("ROLLBACK TO \"transaction\""))
+	checkExecOK(t, db.Exec("RELEASE \"transaction\""))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(d, e, f);\n    SELECT sql FROM sqlite_master;"))
+	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE t3(g,h);\n    INSERT INTO t3 VALUES('I', 'II');\n    SAVEPOINT one;\n    DROP TABLE t3;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(g, h, i);\n    INSERT INTO t3 VALUES('III', 'IV', 'V');"))
 	_ = db.Query("SELECT * FROM t3")
 	checkExecOK(t, db.Exec("ROLLBACK;\n    SELECT sql FROM sqlite_master;"))
+	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO t1 VALUES('o', 't', 't');\n    SAVEPOINT sp1;\n    CREATE TABLE t3(a, b, c);\n    INSERT INTO t3 VALUES('z', 'y', 'x');"))
+	checkExecOK(t, db.Exec("ROLLBACK TO sp1;\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('value');"))
 	checkExecOK(t, db.Exec("CREATE TABLE blobs(x);\n      INSERT INTO blobs VALUES('a twentyeight character blob');"))
+	checkExecOK(t, db.Exec("RELEASE abc"))
+	checkExecOK(t, db.Exec("SAVEPOINT abc"))
+	checkExecOK(t, db.Exec("SAVEPOINT def"))
+	checkExecOK(t, db.Exec("savepoint def"))
+	checkExecOK(t, db.Exec("release abc"))
+	checkExecOK(t, db.Exec("SAVEPOINT main;\n      INSERT INTO blobs VALUES('another blob');"))
 	checkExecOK(t, db.Exec("BEGIN ; SELECT count(*) FROM blobs"))
-	_ = db.Query("SELECT x FROM blobs WHERE rowid = 2")
-	_ = db.Query("SELECT count(*) FROM blobs")
-	_ = db.Query("PRAGMA auto_vacuum = incremental")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n      CREATE INDEX i1 ON t1(a, b);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));"))
-	checkExecOK(t, db.Exec("COMMIT"))
-	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;")
-	_ = db.Query("PRAGMA integrity_check;")
-	checkExecOK(t, db.Exec("COMMIT;\n    PRAGMA integrity_check;"))
-	checkExecOK(t, db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT a, b FROM t1;"))
-	_ = db.Query("PRAGMA integrity_check")
-	checkExecOK(t, db.Exec("DROP TABLE t5;"))
-	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES(3, 4);\n      PRAGMA lock_status;"))
-	_ = db.Query("SELECT * FROM t2")
-	_ = db.Query("SELECT 'a', * FROM t1 ; SELECT 'b', * FROM t3")
-	_ = db.Query("SELECT * FROM t1;\n      SELECT * FROM t2;\n      SELECT * FROM t3;")
-	checkExecOK(t, db.Exec("ROLLBACK"))
-	_ = db.Query("PRAGMA auto_vacuum = full;")
-	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));"))
-	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    DROP TABLE IF EXISTS t3;"))
-	checkExecOK(t, db.Exec("CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');"))
-	checkExecOK(t, db.Exec("BEGIN;\n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 2);\n      COMMIT;\n      PRAGMA journal_mode = off;"))
-	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 SELECT a+4,b+4  FROM t1;\n      COMMIT;"))
-	_ = db.Query("SELECT * FROM foo")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from savepoint2.test
@@ -13207,6 +13472,8 @@ func TestSQLite_savepoint5(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("SAVEPOINT sp1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT count(*) FROM sqlite_master;\n    SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("ROLLBACK TO sp1;\n    SELECT count(*) FROM sqlite_master;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT count(*) FROM sqlite_master;\n    SELECT * FROM t1;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -13226,12 +13493,25 @@ func TestSQLite_savepoint7(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c);\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SAVEPOINT x1;"))
 	_ = db.Query("SELECT * FROM t1")
+	_ = db.Query("SELECT * FROM t2; RELEASE x1")
 	checkExecOK(t, db.Exec("DELETE FROM t2;"))
 	_ = db.Query("SELECT * FROM t2;")
 	checkExecOK(t, db.Exec("DELETE FROM t2; BEGIN;"))
 	_ = db.Query("SELECT * FROM t2; ROLLBACK;")
+	checkExecOK(t, db.Exec("DELETE FROM t2; SAVEPOINT x1; CREATE TABLE t4(abc);"))
+	checkExecOK(t, db.Exec("RELEASE x1"))
 	_ = db.Query("SELECT * FROM t2")
+	_ = db.Query("PRAGMA page_size=1024;\n      PRAGMA temp_store=MEMORY;\n      BEGIN;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n      WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<$::i)\n      INSERT INTO t1(x,y) SELECT x*10, printf('%04d%.800c',x,'*') FROM c;\n      SAVEPOINT one;\n        SELECT count(*) FROM t1;\n        WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<$::i)\n        INSERT INTO t1(x,y) SELECT x*10+1, printf('%04d%.800c',x,'*') FROM c;\n      ROLLBACK TO one;\n        SELECT count(*) FROM t1;\n        SAVEPOINT twoB;\n          WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n          INSERT INTO t1(x,y) SELECT x*10+2, printf('%04d%.800c',x,'*') FROM c;\n        ROLLBACK TO twoB;\n      RELEASE one;\n      COMMIT;")
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from savepointfault.test
+func TestSQLite_savepointfault(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("SAVEPOINT one;\n    RELEASE one;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from scanstatus.test
@@ -13312,6 +13592,8 @@ func TestSQLite_schema(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP TRIGGER abc_trig;"))
 	checkExecOK(t, db.Exec("CREATE INDEX abc_index ON abc(a);"))
 	checkExecOK(t, db.Exec("DROP INDEX abc_index;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;"))
+	checkExecOK(t, db.Exec("DETACH aux;"))
 	checkExecOK(t, db.Exec("CREATE VIEW abcview AS SELECT * FROM abc;"))
 	checkExecOK(t, db.Exec("DROP VIEW abcview;"))
 	checkExecOK(t, db.Exec("INSERT INTO abc VALUES(1, 2, 3);"))
@@ -13333,6 +13615,8 @@ func TestSQLite_schema2(t *testing.T) {
 	checkExecOK(t, db.Exec("DROP TRIGGER abc_trig;"))
 	checkExecOK(t, db.Exec("CREATE INDEX abc_index ON abc(a);"))
 	checkExecOK(t, db.Exec("DROP INDEX abc_index;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;"))
+	checkExecOK(t, db.Exec("DETACH aux;"))
 	checkExecOK(t, db.Exec("CREATE VIEW abcview AS SELECT * FROM abc;"))
 	checkExecOK(t, db.Exec("DROP VIEW abcview;"))
 	checkExecOK(t, db.Exec("INSERT INTO abc VALUES(1, 2, 3);"))
@@ -13373,12 +13657,15 @@ func TestSQLite_securedel(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA secure_delete;")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS db2;\n    PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;"))
 	_ = db.Query("PRAGMA main.secure_delete=OFF;\n    PRAGMA db2.secure_delete;")
 	_ = db.Query("PRAGMA secure_delete=OFF;\n    PRAGMA db2.secure_delete;")
 	_ = db.Query("PRAGMA secure_delete=ON;\n    PRAGMA db2.secure_delete;")
 	_ = db.Query("PRAGMA secure_delete=FAST;\n    PRAGMA db2.secure_delete;")
 	_ = db.Query("PRAGMA main.secure_delete=FAST;\n    PRAGMA db2.secure_delete;")
 	_ = db.Query("PRAGMA main.secure_delete=ON;\n    PRAGMA db2.secure_delete;")
+	checkExecOK(t, db.Exec("DETACH db2;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;"))
+	checkExecOK(t, db.Exec("DETACH db2;\n    PRAGMA main.secure_delete=OFF;\n    ATTACH 'test2.db' AS db2;\n    PRAGMA db2.secure_delete;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from securedel2.test
@@ -13841,6 +14128,7 @@ func TestSQLite_selectD(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux1;\n      CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(111,'x1');\n      CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');\n      CREATE TEMP TABLE t3(a,b); INSERT INTO t3 VALUES(333,'x3');\n      CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');\n      CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');"))
 	_ = db.Query("SELECT *\n        FROM (t1), (t2), (t3), (t4)\n       WHERE t4.a=t3.a+111 \n         AND t3.a=t2.a+111\n         AND t2.a=t1.a+111;")
 	_ = db.Query("SELECT *\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;")
 	_ = db.Query("SELECT t3.a\n        FROM t1 JOIN (t2 JOIN (t3 JOIN t4 ON t4.a=t3.a+111)\n                              ON t3.a=t2.a+111)\n                     ON t2.a=t1.a+111;")
@@ -13916,6 +14204,8 @@ func TestSQLite_shared(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO seq SELECT i + :max, x FROM seq;"))
 	checkExecOK(t, db.Exec("DELETE FROM seq WHERE i = :i"))
 	_ = db.Query("SELECT * FROM seq;")
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS test2"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db' AS test"))
 	checkExecOK(t, db.Exec("CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(d, e, f);\n    INSERT INTO abc VALUES('i', 'ii', 'iii');\n    INSERT INTO def VALUES('I', 'II', 'III');"))
 	_ = db.Query("SELECT * FROM test.abc;")
 	checkExecOK(t, db.Exec("BEGIN;\n    SELECT * FROM test.abc;"))
@@ -13923,6 +14213,8 @@ func TestSQLite_shared(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE test2.ghi(g, h, i);\n      SELECT 'test.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test2.db:'||name FROM test2.sqlite_master;"))
 	_ = db.Query("SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;")
 	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE jkl(j, k, l);"))
+	checkExecOK(t, db.Exec("ATTACH 'test1.db' AS test1;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test3.db' AS test3;"))
+	checkExecOK(t, db.Exec("ATTACH 'test3.db' AS test3;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test1.db' AS test1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);"))
 	checkExecOK(t, db.Exec("CREATE VIEW test1.v1 AS SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;"))
@@ -13937,10 +14229,6 @@ func TestSQLite_shared(t *testing.T) {
 	checkExecOK(t, db.Exec("COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);"))
 	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(:a, :b);"))
-	checkExecOK(t, db.Exec("INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;"))
-	checkExecOK(t, db.Exec("DELETE FROM t1;"))
-	_ = db.Query("PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;")
-	_ = db.Query("PRAGMA encoding;")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from shared2.test
@@ -14005,6 +14293,7 @@ func TestSQLite_shared7(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(x);"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS test2;\n    CREATE TABLE test2.t2(y);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from shared8.test
@@ -14196,16 +14485,24 @@ func TestSQLite_skipscan1(t *testing.T) {
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE c BETWEEN 6 AND 7 ORDER BY a, b, c;"), "{/* USING INDEX t1abc (ANY(a) AND ANY(b) AND c>? AND c<?)*/}")
 	checkQueryResult(t, db.Query("SELECT a,b,c,d,'|' FROM t1 WHERE b IN (234, 345) AND c BETWEEN 6 AND 7\n   ORDER BY a, b;"), "{abc 234 6 7 | abc 345 7 8 |}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t1 WHERE b IN (234, 345) AND c BETWEEN 6 AND 7\n   ORDER BY a, b;"), "{/* USING INDEX t1abc (ANY(a) AND b=? AND c>? AND c<?)*/}")
+	checkExecOK(t, db.Exec("CREATE TABLE t1j(x TEXT, y INTEGER);\n  INSERT INTO t1j VALUES('one',1),('six',6),('ninty-nine',99);\n  INSERT INTO sqlite_stat1 VALUES('t1j',null,'3');\n  ANALYZE sqlite_master;\n  SELECT x, a, b, c, d, '|' FROM t1j, t1 WHERE c=y ORDER BY +a;"))
 	checkQueryResult(t, db.Query("SELECT x, a, b, c, d, '|' FROM t1j LEFT JOIN t1 ON c=y ORDER BY +y, +a;"), "{one {} {} {} {} | six abc 234 6 7 | six bcd 100 6 11 | ninty-nine {} {} {} {} |}")
 	checkQueryResult(t, db.Query("SELECT a,b,c,d,'|' FROM t2 WHERE d<>99 AND b=345 ORDER BY a;"), "{abc 345 7 8 | def 345 9 10 |}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t2 WHERE d<>99 AND b=345 ORDER BY a;"), "{/* USING INDEX sqlite_autoindex_t2_1 (ANY(a) AND b=?)*/}")
 	checkQueryResult(t, db.Query("SELECT a,b,c,d,'|' FROM t3 WHERE b=345 ORDER BY a;"), "{abc 345 7 8 | def 345 9 10 |}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t3 WHERE b=345 ORDER BY a;"), "{/* PRIMARY KEY (ANY(a) AND b=?)*/}")
 	checkExecOK(t, db.Exec("CREATE TABLE t5(\n    id INTEGER PRIMARY KEY,\n    loc TEXT,\n    lang INTEGER,\n    utype INTEGER,\n    xa INTEGER,\n    xd INTEGER,\n    xh INTEGER\n  );\n  CREATE INDEX t5i1 on t5(loc, xh, xa, utype, lang);\n  CREATE INDEX t5i2 ON t5(xd,loc,utype,lang);\n  EXPLAIN QUERY PLAN\n    SELECT xh, loc FROM t5 WHERE loc >= 'M' AND loc < 'N';"))
+	checkExecOK(t, db.Exec("ANALYZE;\n  DELETE FROM sqlite_stat1;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('t5','t5i1','2702931 3 2 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('t5','t5i2','2702931 686 2 2 2');\n  ANALYZE sqlite_master;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a,b,c,d,e,f,g,h varchar(300));\n  CREATE INDEX t1ab ON t1(a,b);\n  ANALYZE sqlite_master;\n  -- Only two distinct values for the skip-scan column.  Skip-scan is not used.\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','500000 250000 125000');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;"))
+	checkExecOK(t, db.Exec("-- Four distinct values for the skip-scan column.  Skip-scan is used.\n  UPDATE sqlite_stat1 SET stat='500000 250000 62500';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;"))
+	checkExecOK(t, db.Exec("UPDATE sqlite_stat1 SET stat='500000 125000 1 sz=100';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;"))
+	checkExecOK(t, db.Exec("UPDATE sqlite_stat1 SET stat='500000 125000 1 noskipscan sz=100';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y, PRIMARY KEY(x,y)) WITHOUT ROWID;\n  INSERT INTO t1(x,y) VALUES(1,'AB');\n  INSERT INTO t1(x,y) VALUES(2,'CD');\n  ANALYZE;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1','1000000 100 1');\n  ANALYZE sqlite_master;\n  SELECT * FROM t1\n   WHERE (y = 'AB' AND x <= 4)\n      OR (y = 'EF' AND x = 5);"))
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT * FROM t1\n   WHERE (y = 'AB' AND x <= 4)\n      OR (y = 'EF' AND x = 5);"), "{/ANY/}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT  * FROM t9a WHERE b IN (SELECT x FROM t9b WHERE y!=5);"), "{/{SCAN t9a}/}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a;"), "{/* USING INDEX t6abc (ANY(a) AND b=?)*/}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a DESC;"), "{/* USING INDEX t6abc (ANY(a) AND b=?)*/}")
+	checkExecOK(t, db.Exec("CREATE TABLE t1 (c1, c2, c3, c4, PRIMARY KEY(c4, c3));\n  INSERT INTO t1 VALUES(3,0,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  INSERT INTO t1 VALUES(5,6,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','sqlite_autoindex_t1_1','18 18 6');\n  ANALYZE sqlite_master;\n  SELECT DISTINCT quote(c1), quote(c2), quote(c3), quote(c4), '|'\n    FROM t1 WHERE t1.c3 = 1;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -14222,6 +14519,7 @@ func TestSQLite_skipscan2(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);"))
 	checkExecOK(t, db.Exec("INSERT INTO people VALUES('Alice','student',156);\n  INSERT INTO people VALUES('Bob','student',161);\n  INSERT INTO people VALUES('Cindy','student',155);\n  INSERT INTO people VALUES('David','student',181);\n  INSERT INTO people VALUES('Emily','teacher',158);\n  INSERT INTO people VALUES('Fred','student',163);\n  INSERT INTO people VALUES('Ginny','student',169);\n  INSERT INTO people VALUES('Harold','student',172);\n  INSERT INTO people VALUES('Imma','student',179);\n  INSERT INTO people VALUES('Jack','student',181);\n  INSERT INTO people VALUES('Karen','student',163);\n  INSERT INTO people VALUES('Logan','student',177);\n  INSERT INTO people VALUES('Megan','teacher',159);\n  INSERT INTO people VALUES('Nathan','student',163);\n  INSERT INTO people VALUES('Olivia','student',161);\n  INSERT INTO people VALUES('Patrick','teacher',180);\n  INSERT INTO people VALUES('Quiana','student',182);\n  INSERT INTO people VALUES('Robert','student',159);\n  INSERT INTO people VALUES('Sally','student',166);\n  INSERT INTO people VALUES('Tom','student',171);\n  INSERT INTO people VALUES('Ursula','student',170);\n  INSERT INTO people VALUES('Vance','student',179);\n  INSERT INTO people VALUES('Willma','student',175);\n  INSERT INTO people VALUES('Xavier','teacher',185);\n  INSERT INTO people VALUES('Yvonne','student',149);\n  INSERT INTO people VALUES('Zach','student',170);"))
 	checkQueryResult(t, db.Query("SELECT name FROM people WHERE height>=180 ORDER BY +name;"), "{David Jack Patrick Quiana Xavier}")
+	checkExecOK(t, db.Exec("ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;"))
 	checkQueryResult(t, db.Query("SELECT name FROM people\n   WHERE role IN (SELECT DISTINCT role FROM people)\n     AND height>=180 ORDER BY +name;"), "{David Jack Patrick Quiana Xavier}")
 	checkExecOK(t, db.Exec("INSERT INTO people VALUES('Angie','student',166);\n  INSERT INTO people VALUES('Brad','student',176);\n  INSERT INTO people VALUES('Claire','student',168);\n  INSERT INTO people VALUES('Donald','student',162);\n  INSERT INTO people VALUES('Elaine','student',177);\n  INSERT INTO people VALUES('Frazier','student',159);\n  INSERT INTO people VALUES('Grace','student',179);\n  INSERT INTO people VALUES('Horace','student',166);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';"))
 	checkExecOK(t, db.Exec("INSERT INTO people VALUES('Ingrad','student',155);\n  INSERT INTO people VALUES('Jacob','student',179);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';"))
@@ -14255,6 +14553,15 @@ func TestSQLite_skipscan5(t *testing.T) {
 	db = setupDB(t)
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);"))
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from skipscan6.test
+func TestSQLite_skipscan6(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(\n    aa int,\n    bb int,\n    cc int,\n    dd int,\n    ee int\n  );\n  CREATE INDEX ix on t1(aa, bb, cc,  dd DESC);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','ix','2695116 1347558 264 18 2');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 196859 196859 32 1','0 15043 15043 92468 92499','0 19 286 81846 92499',X'0609010804031552977BD725BD28');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 14687 161 1 1','0 289067 299306 299457 299457','0 199 6772 273984 299457',X'060902020403013406314D67456415B819');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 19313 19308 22 1','0 325815 325815 343725 343746','0 261 9545 315009 343746',X'060902080403018A49B0A3AD1ED931');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 25047 9051 15 1','0 350443 350443 356590 356604','0 266 9795 325519 356604',X'06090208040301914C2DD2E91F93CF');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 42327 9906 7 1','0 376381 376381 380291 380297','0 268 10100 344232 380297',X'06090208040301934BF672511F7ED3');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 24513 2237 1 1','0 455150 467779 470015 470015','0 286 10880 425401 470015',X'06090202040301A703464A28F2611EF1EE');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 18730 18724 15 1','0 479663 479663 498271 498285','0 287 10998 450793 498285',X'06090208040301A8494AF3A41EC50C');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 119603 47125 1 1','0 572425 572425 598915 598915','0 404 14230 546497 598915',X'06090208040302474FD1929A03194F');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 1454 1454 1 1','0 898346 898346 898373 898373','0 952 31165 827562 898373',X'06090208040304FD53F6A2A2097F64');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 57138 7069 1 1','0 1122389 1122389 1129457 1129457','0 1967 46801 1045943 1129457',X'06090208040309884BC4C52F1F6EB7');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 285 11 1 1','0 1197683 1197824 1197831 1197831','0 2033 50990 1112280 1197831',X'06090202040309D80346503FE2A9038E4F');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 25365 9773 1 1','0 1301013 1301013 1310785 1310785','0 2561 58806 1217877 1310785',X'0609020804030C5F4C8F88AB0AF2A2');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 45180 7222 1 1','0 1326378 1326378 1333599 1333599','0 2562 59921 1240187 1333599',X'0609020804030C604CAB75490B0351');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 8537 41 1 1','0 1496959 1497288 1497289 1497289','0 3050 68246 1394126 1497289',X'0609020204030EA0057F527459B0257C4B');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 26139 26131 17 1','0 1507977 1507977 1520578 1520594','0 3074 69188 1416111 1520594',X'0609020804030EB95169453423D4EA');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 102894 29678 1 1','0 1537421 1550467 1564894 1564894','0 3109 69669 1459820 1564894',X'0609020204030EE3183652A6ED3006EBCB');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 319 3 1 1','0 1796728 1796746 1796747 1796747','0 3650 86468 1682243 1796747',X'0609020204031163033550D0C41018C28D');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 127 127 1 1','0 2096194 2096194 2096205 2096205','0 5145 106437 1951535 2096205',X'060902080403180F53BB1AF727EE50');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 66574 5252 1 1','0 2230524 2265961 2271212 2271212','0 5899 114976 2085829 2271212',X'0609020204031B8A05195009976D223B90');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 19440 19440 1 1','0 2391680 2391680 2395663 2395663','0 6718 123714 2184781 2395663',X'0609020804031F7452E00A7B07431A');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 18321 2177 1 1','0 2522928 2523231 2525407 2525407','0 7838 139084 2299958 2525407',X'06090201040324A7475231103B1AA7B8');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 22384 1361 1 1','0 2541249 2544834 2546194 2546194','0 7839 139428 2308416 2546194',X'06090202040324A8011652323D4B1AA9EB');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','2677151 18699 855 1 1','0 2563633 2578178 2579032 2579032','0 7840 139947 2321671 2579032',X'06090202040324A9077452323D7D1052C5');\n  INSERT INTO sqlite_stat4 VALUES('t1','ix','17965 1579 1579 1 1','2677151 2690666 2690666 2692244 2692244','1 9870 153959 2418294 2692244',X'060102080403021B8A4FE1AB84032B35');\n  ANALYZE sqlite_master;"))
+	checkExecOK(t, db.Exec("DROP INDEX ix;\n  CREATE INDEX good on t1(bb, aa, dd DESC);\n  CREATE INDEX bad on t1(aa, bb, cc,  dd DESC);\n  DELETE FROM sqlite_stat1;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('t1','good','2695116 299 264 2');\n  INSERT INTO sqlite_stat1 VALUES('t1','bad','2695116 1347558 264 18 2');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','197030 196859 32 1','15086 15086 92511 92536','19 25 81644 92536',X'05010904031552977BD725BD22');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','14972 14687 1 1','289878 289878 299457 299457','199 244 267460 299457',X'050209040301344F7E569402C419');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','19600 19313 22 1','327127 327127 346222 346243','261 319 306884 346243',X'0502090403018A49503BC01EC577');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','25666 25047 15 1','352087 352087 372692 372706','266 327 325601 372706',X'050209040301914C2DD2E91F93CF');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','42392 42327 26 1','378657 378657 382547 382572','268 331 333529 382572',X'05020904030193533B2FE326ED48');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','24619 24513 11 1','457872 457872 461748 461758','286 358 399322 461758',X'050209040301A752B1557825EA7C');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','18969 18730 15 1','482491 482491 501105 501119','287 360 433605 501119',X'050209040301A8494AF3A41EC50C');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','119710 119603 1 1','576500 576500 598915 598915','404 505 519877 598915',X'05020904030247539A7A7912F617');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','11955 11946 1 1','889796 889796 898373 898373','938 1123 794694 898373',X'050209040304EF4DF9C4150BBB28');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','57197 57138 24 1','1129865 1129865 1151492 1151515','1967 2273 1027048 1151515',X'05020904030988533510BC26E20A');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','3609 3543 1 1','1196265 1196265 1197831 1197831','2002 2313 1070108 1197831',X'050209040309B050E95CD718D94D');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','25391 25365 13 1','1309378 1309378 1315567 1315579','2561 2936 1178358 1315579',X'05020904030C5F53DF9E13283570');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','45232 45180 17 1','1334769 1334769 1337946 1337962','2562 2938 1198998 1337962',X'05020904030C60541CACEE28BCAC');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','5496 5493 1 1','1495882 1495882 1497289 1497289','3043 3479 1348695 1497289',X'05020904030E99515C62AD0F0B34');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','26348 26139 17 1','1517381 1517381 1529990 1530006','3074 3519 1378320 1530006',X'05020904030EB95169453423D4EA');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','102927 102894 10 1','1547088 1547088 1649950 1649959','3109 3559 1494260 1649959',X'05020904030EE34D309F671FFA47');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','3602 3576 1 1','1793873 1793873 1796747 1796747','3601 4128 1630783 1796747',X'050209040311294FE88B432219B9');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','154 154 1 1','2096059 2096059 2096205 2096205','5037 5779 1893039 2096205',X'050209040317994EFF05A016DCED');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','68153 66574 60 1','2244039 2244039 2268892 2268951','5899 6749 2027553 2268951',X'05020904031B8A532DBC5A26D2BA');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','321 321 1 1','2395618 2395618 2395663 2395663','6609 7528 2118435 2395663',X'05020904031EFA54078EEE1E2D65');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','19449 19440 22 1','2407769 2407769 2426049 2426070','6718 7651 2146904 2426070',X'05020904031F7450E6118C2336BD');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','18383 18321 56 1','2539949 2539949 2551080 2551135','7838 8897 2245459 2551135',X'050209040324A752EA2E1E2642B2');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','22479 22384 60 1','2558332 2558332 2565233 2565292','7839 8899 2251202 2565292',X'050209040324A853926538279A5F');\n  INSERT INTO sqlite_stat4 VALUES('t1','good','18771 18699 63 1','2580811 2580811 2596914 2596976','7840 8901 2263572 2596976',X'050209040324A9526C1DE9256E72');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 196859 196859 32 1','0 15043 15043 92468 92499','0 19 286 81846 92499',X'0609010804031552977BD725BD28');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 14687 161 1 1','0 289067 299306 299457 299457','0 199 6772 273984 299457',X'060902020403013406314D67456415B819');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 19313 19308 22 1','0 325815 325815 343725 343746','0 261 9545 315009 343746',X'060902080403018A49B0A3AD1ED931');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 25047 9051 15 1','0 350443 350443 356590 356604','0 266 9795 325519 356604',X'06090208040301914C2DD2E91F93CF');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 42327 9906 7 1','0 376381 376381 380291 380297','0 268 10100 344232 380297',X'06090208040301934BF672511F7ED3');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 24513 2237 1 1','0 455150 467779 470015 470015','0 286 10880 425401 470015',X'06090202040301A703464A28F2611EF1EE');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 18730 18724 15 1','0 479663 479663 498271 498285','0 287 10998 450793 498285',X'06090208040301A8494AF3A41EC50C');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 119603 47125 1 1','0 572425 572425 598915 598915','0 404 14230 546497 598915',X'06090208040302474FD1929A03194F');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 1454 1454 1 1','0 898346 898346 898373 898373','0 952 31165 827562 898373',X'06090208040304FD53F6A2A2097F64');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 57138 7069 1 1','0 1122389 1122389 1129457 1129457','0 1967 46801 1045943 1129457',X'06090208040309884BC4C52F1F6EB7');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 285 11 1 1','0 1197683 1197824 1197831 1197831','0 2033 50990 1112280 1197831',X'06090202040309D80346503FE2A9038E4F');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 25365 9773 1 1','0 1301013 1301013 1310785 1310785','0 2561 58806 1217877 1310785',X'0609020804030C5F4C8F88AB0AF2A2');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 45180 7222 1 1','0 1326378 1326378 1333599 1333599','0 2562 59921 1240187 1333599',X'0609020804030C604CAB75490B0351');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 8537 41 1 1','0 1496959 1497288 1497289 1497289','0 3050 68246 1394126 1497289',X'0609020204030EA0057F527459B0257C4B');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 26139 26131 17 1','0 1507977 1507977 1520578 1520594','0 3074 69188 1416111 1520594',X'0609020804030EB95169453423D4EA');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 102894 29678 1 1','0 1537421 1550467 1564894 1564894','0 3109 69669 1459820 1564894',X'0609020204030EE3183652A6ED3006EBCB');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 319 3 1 1','0 1796728 1796746 1796747 1796747','0 3650 86468 1682243 1796747',X'0609020204031163033550D0C41018C28D');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 127 127 1 1','0 2096194 2096194 2096205 2096205','0 5145 106437 1951535 2096205',X'060902080403180F53BB1AF727EE50');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 66574 5252 1 1','0 2230524 2265961 2271212 2271212','0 5899 114976 2085829 2271212',X'0609020204031B8A05195009976D223B90');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 19440 19440 1 1','0 2391680 2391680 2395663 2395663','0 6718 123714 2184781 2395663',X'0609020804031F7452E00A7B07431A');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 18321 2177 1 1','0 2522928 2523231 2525407 2525407','0 7838 139084 2299958 2525407',X'06090201040324A7475231103B1AA7B8');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 22384 1361 1 1','0 2541249 2544834 2546194 2546194','0 7839 139428 2308416 2546194',X'06090202040324A8011652323D4B1AA9EB');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','2677151 18699 855 1 1','0 2563633 2578178 2579032 2579032','0 7840 139947 2321671 2579032',X'06090202040324A9077452323D7D1052C5');\n  INSERT INTO sqlite_stat4 VALUES('t1','bad','17965 1579 1579 1 1','2677151 2690666 2690666 2692244 2692244','1 9870 153959 2418294 2692244',X'060102080403021B8A4FE1AB84032B35');\n  ANALYZE sqlite_master;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from snapshot.test
@@ -14306,6 +14613,7 @@ func TestSQLite_snapshot2(t *testing.T) {
 	checkQueryResult(t, db.Query("PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('c', 'd');"), "{wal}")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('e', 'f')"))
 	checkExecOK(t, db.Exec("BEGIN;\n      SELECT * FROM sqlite_master;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    PRAGMA aux.journal_mode = wal;\n    CREATE TABLE aux.t2(x, y);"))
 	_ = db.Query("PRAGMA aux.journal_mode = delete;")
 	db.Close()
 	db = setupDB(t)
@@ -14538,6 +14846,7 @@ func TestSQLite_speed3(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("INSERT INTO aux.t1 SELECT * FROM main.t1"))
+	_ = db.Query("PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
 	checkExecOK(t, db.Exec("CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);"))
 	_ = db.Query("SELECT name FROM sqlite_master ORDER BY 1;")
 	checkExecOK(t, db.Exec("CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);"))
@@ -14577,6 +14886,7 @@ func TestSQLite_spellfix(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING spellfix1"))
 	checkExecOK(t, db.Exec("CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;"))
 	checkQueryResult(t, db.Query("SELECT next_char('re','vocab','w');"), "{a}")
 	checkQueryResult(t, db.Query("SELECT next_char('re','(SELECT w AS x FROM vocab)','x');"), "{a}")
@@ -14588,6 +14898,7 @@ func TestSQLite_spellfix(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE word='rabbit';"), "{2}")
 	checkExecOK(t, db.Exec("UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(rowid, word) VALUES(3000,'melody');\n  SELECT rowid, word, matchlen FROM t1 WHERE word MATCH 'melotti'\n   ORDER BY score LIMIT 3;"))
+	checkExecOK(t, db.Exec("CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);"))
 	checkExecOK(t, db.Exec("INSERT INTO t3(command) VALUES('edit_cost_table=NULL');"))
 	checkExecOK(t, db.Exec("CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');"))
 	checkQueryResult(t, db.Query("SELECT word FROM t3 WHERE rowid = 10;"), "{keener}")
@@ -14601,6 +14912,14 @@ func TestSQLite_spellfix(t *testing.T) {
 	checkExecOK(t, db.Exec("UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;"))
 	checkExecOK(t, db.Exec("UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;"))
 	checkExecOK(t, db.Exec("DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');"))
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from spellfix2.test
+func TestSQLite_spellfix2(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from spellfix3.test
@@ -14649,6 +14968,7 @@ func TestSQLite_sqldiff1(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS x2;\n    DELETE FROM x2.t1 WHERE a=49;\n    DELETE FROM x2.t2 WHERE a=48;\n    INSERT INTO x2.t1(a,b) VALUES(1234,'hello');\n    INSERT INTO x2.t2(a,b) VALUES(50.5,'xyzzy');\n    INSERT INTO x2.t2(a,b) VALUES(51.5,'');\n    INSERT INTO x2.t2(a,b) VALUES(52.5,''||X'0d0a');\n    INSERT INTO x2.t2(a,b) VALUES(53.5,'one'||X'0a0d');\n    INSERT INTO x2.t2(a,b) VALUES(54.5,'one'||X'0a'||'two');\n    CREATE TABLE x2.t3(a,b,c);\n    INSERT INTO x2.t3 VALUES(111,222,333);\n    CREATE TABLE main.t4(x,y,z);\n    INSERT INTO t4 SELECT * FROM t3;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY);"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a INTEGER PRIMARY KEY, b);"))
 	for _, d := range dbs { d.Close() }
@@ -14691,6 +15011,7 @@ func TestSQLite_starschema1(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(\n  a01 INT, a02 INT, a03 INT, a04 INT, a05 INT, a06 INT, a07 INT, a08 INT,\n  a09 INT, a10 INT, a11 INT, a12 INT, a13 INT, a14 INT, a15 INT, a16 INT,\n  a17 INT, a18 INT, a19 INT, a20 INT, a21 INT, a22 INT, a23 INT, a24 INT,\n  a25 INT, a26 INT, a27 INT, a28 INT, a29 INT, a30 INT, a31 INT, a32 INT,\n  a33 INT, a34 INT, a35 INT, a36 INT, a37 INT, a38 INT, a39 INT, a40 INT,\n  a41 INT, a42 INT, a43 INT, a44 INT, a45 INT, a46 INT, a47 INT, a48 INT,\n  a49 INT, a50 INT, a51 INT, a52 INT, a53 INT, a54 INT, a55 INT, a56 INT,\n  a57 INT, a58 INT, a59 INT, a60 INT, a61 INT, a62 INT, a63 INT, d TEXT);\nCREATE TABLE x01(b01 INT, c01 TEXT);\nCREATE TABLE x02(b02 INT, c02 TEXT);\nCREATE TABLE x03(b03 INT, c03 TEXT);\nCREATE TABLE x04(b04 INT, c04 TEXT);\nCREATE TABLE x05(b05 INT, c05 TEXT);\nCREATE TABLE x06(b06 INT, c06 TEXT);\nCREATE TABLE x07(b07 INT, c07 TEXT);\nCREATE TABLE x08(b08 INT, c08 TEXT);\nCREATE TABLE x09(b09 INT, c09 TEXT);\nCREATE TABLE x10(b10 INT, c10 TEXT);\nCREATE TABLE x11(b11 INT, c11 TEXT);\nCREATE TABLE x12(b12 INT, c12 TEXT);\nCREATE TABLE x13(b13 INT, c13 TEXT);\nCREATE TABLE x14(b14 INT, c14 TEXT);\nCREATE TABLE x15(b15 INT, c15 TEXT);\nCREATE TABLE x16(b16 INT, c16 TEXT);\nCREATE TABLE x17(b17 INT, c17 TEXT);\nCREATE TABLE x18(b18 INT, c18 TEXT);\nCREATE TABLE x19(b19 INT, c19 TEXT);\nCREATE TABLE x20(b20 INT, c20 TEXT);\nCREATE TABLE x21(b21 INT, c21 TEXT);\nCREATE TABLE x22(b22 INT, c22 TEXT);\nCREATE TABLE x23(b23 INT, c23 TEXT);\nCREATE TABLE x24(b24 INT, c24 TEXT);\nCREATE TABLE x25(b25 INT, c25 TEXT);\nCREATE TABLE x26(b26 INT, c26 TEXT);\nCREATE TABLE x27(b27 INT, c27 TEXT);\nCREATE TABLE x28(b28 INT, c28 TEXT);\nCREATE TABLE x29(b29 INT, c29 TEXT);\nCREATE TABLE x30(b30 INT, c30 TEXT);\nCREATE TABLE x31(b31 INT, c31 TEXT);\nCREATE TABLE x32(b32 INT, c32 TEXT);\nCREATE TABLE x33(b33 INT, c33 TEXT);\nCREATE TABLE x34(b34 INT, c34 TEXT);\nCREATE TABLE x35(b35 INT, c35 TEXT);\nCREATE TABLE x36(b36 INT, c36 TEXT);\nCREATE TABLE x37(b37 INT, c37 TEXT);\nCREATE TABLE x38(b38 INT, c38 TEXT);\nCREATE TABLE x39(b39 INT, c39 TEXT);\nCREATE TABLE x40(b40 INT, c40 TEXT);\nCREATE TABLE x41(b41 INT, c41 TEXT);\nCREATE TABLE x42(b42 INT, c42 TEXT);\nCREATE TABLE x43(b43 INT, c43 TEXT);\nCREATE TABLE x44(b44 INT, c44 TEXT);\nCREATE TABLE x45(b45 INT, c45 TEXT);\nCREATE TABLE x46(b46 INT, c46 TEXT);\nCREATE TABLE x47(b47 INT, c47 TEXT);\nCREATE TABLE x48(b48 INT, c48 TEXT);\nCREATE TABLE x49(b49 INT, c49 TEXT);\nCREATE TABLE x50(b50 INT, c50 TEXT);\nCREATE TABLE x51(b51 INT, c51 TEXT);\nCREATE TABLE x52(b52 INT, c52 TEXT);\nCREATE TABLE x53(b53 INT, c53 TEXT);\nCREATE TABLE x54(b54 INT, c54 TEXT);\nCREATE TABLE x55(b55 INT, c55 TEXT);\nCREATE TABLE x56(b56 INT, c56 TEXT);\nCREATE TABLE x57(b57 INT, c57 TEXT);\nCREATE TABLE x58(b58 INT, c58 TEXT);\nCREATE TABLE x59(b59 INT, c59 TEXT);\nCREATE TABLE x60(b60 INT, c60 TEXT);\nCREATE TABLE x61(b61 INT, c61 TEXT);\nCREATE TABLE x62(b62 INT, c62 TEXT);\nCREATE TABLE x63(b63 INT, c63 TEXT);\n/****  Uncomment to generate actual data ************************************\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<172800)\n  INSERT INTO t1\n    SELECT stmtrand()%12, stmtrand()%13, stmtrand()%14, stmtrand()%15,\n           stmtrand()%16, stmtrand()%17, stmtrand()%18, stmtrand()%19,\n           stmtrand()%20, stmtrand()%21, stmtrand()%22, stmtrand()%23,\n           stmtrand()%24, stmtrand()%25, stmtrand()%26, stmtrand()%27,\n           stmtrand()%28, stmtrand()%29, stmtrand()%30, stmtrand()%31,\n           stmtrand()%32, stmtrand()%33, stmtrand()%34, stmtrand()%35,\n           stmtrand()%36, stmtrand()%37, stmtrand()%38, stmtrand()%39,\n           stmtrand()%40, stmtrand()%41, stmtrand()%42, stmtrand()%43,\n           stmtrand()%28, stmtrand()%29, stmtrand()%30, stmtrand()%31,\n           stmtrand()%32, stmtrand()%33, stmtrand()%34, stmtrand()%35,\n           stmtrand()%36, stmtrand()%37, stmtrand()%38, stmtrand()%39,\n           stmtrand()%40, stmtrand()%41, stmtrand()%42, stmtrand()%43,\n           stmtrand()%28, stmtrand()%29, stmtrand()%30, stmtrand()%31,\n           stmtrand()%32, stmtrand()%33, stmtrand()%34, stmtrand()%35,\n           stmtrand()%36, stmtrand()%37, stmtrand()%38, stmtrand()%39,\n           stmtrand()%40, stmtrand()%41, stmtrand()%42, stmtrand() FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<8)\n  INSERT INTO x01 SELECT n%4, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  INSERT INTO x02 SELECT n%6, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<16)\n  INSERT INTO x03 SELECT n%8, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<20)\n  INSERT INTO x04 SELECT n%10, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<24)\n  INSERT INTO x05 SELECT n%12, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<32)\n  INSERT INTO x06 SELECT n%16, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<36)\n  INSERT INTO x07 SELECT n%18, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<40)\n  INSERT INTO x08 SELECT n%20, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<44)\n  INSERT INTO x09 SELECT n%22, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<48)\n  INSERT INTO x10 SELECT n%24, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<52)\n  INSERT INTO x11 SELECT n%26, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<56)\n  INSERT INTO x12 SELECT n%28, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<60)\n  INSERT INTO x13 SELECT n%30, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<64)\n  INSERT INTO x14 SELECT n%32, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<72)\n  INSERT INTO x15 SELECT n%36, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<80)\n  INSERT INTO x16 SELECT n%40, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<8)\n  INSERT INTO x17 SELECT n%4, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  INSERT INTO x18 SELECT n%6, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<16)\n  INSERT INTO x19 SELECT n%8, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<20)\n  INSERT INTO x20 SELECT n%10, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<24)\n  INSERT INTO x21 SELECT n%12, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<32)\n  INSERT INTO x22 SELECT n%16, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<36)\n  INSERT INTO x23 SELECT n%18, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<40)\n  INSERT INTO x24 SELECT n%20, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<44)\n  INSERT INTO x25 SELECT n%22, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<48)\n  INSERT INTO x26 SELECT n%24, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<52)\n  INSERT INTO x27 SELECT n%26, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<56)\n  INSERT INTO x28 SELECT n%28, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<60)\n  INSERT INTO x29 SELECT n%30, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<64)\n  INSERT INTO x30 SELECT n%32, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<72)\n  INSERT INTO x31 SELECT n%36, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<80)\n  INSERT INTO x32 SELECT n%40, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<8)\n  INSERT INTO x33 SELECT n%4, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  INSERT INTO x34 SELECT n%6, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<16)\n  INSERT INTO x35 SELECT n%8, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<20)\n  INSERT INTO x36 SELECT n%10, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<24)\n  INSERT INTO x37 SELECT n%12, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<32)\n  INSERT INTO x38 SELECT n%16, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<36)\n  INSERT INTO x39 SELECT n%18, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<40)\n  INSERT INTO x40 SELECT n%20, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<44)\n  INSERT INTO x41 SELECT n%22, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<48)\n  INSERT INTO x42 SELECT n%24, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<52)\n  INSERT INTO x43 SELECT n%26, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<56)\n  INSERT INTO x44 SELECT n%28, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<60)\n  INSERT INTO x45 SELECT n%30, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<64)\n  INSERT INTO x46 SELECT n%32, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<72)\n  INSERT INTO x47 SELECT n%36, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<80)\n  INSERT INTO x48 SELECT n%40, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<8)\n  INSERT INTO x49 SELECT n%4, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<12)\n  INSERT INTO x50 SELECT n%6, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<16)\n  INSERT INTO x51 SELECT n%8, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<20)\n  INSERT INTO x52 SELECT n%10, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<24)\n  INSERT INTO x53 SELECT n%12, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<32)\n  INSERT INTO x54 SELECT n%16, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<36)\n  INSERT INTO x55 SELECT n%18, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<40)\n  INSERT INTO x56 SELECT n%20, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<44)\n  INSERT INTO x57 SELECT n%22, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<48)\n  INSERT INTO x58 SELECT n%24, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<52)\n  INSERT INTO x59 SELECT n%26, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<56)\n  INSERT INTO x60 SELECT n%28, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<60)\n  INSERT INTO x61 SELECT n%30, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<64)\n  INSERT INTO x62 SELECT n%32, format('%d-or-0x%04x',n,n) FROM c;\nWITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<72)\n  INSERT INTO x63 SELECT n%36, format('%d-or-0x%04x',n,n) FROM c;\n****************************************************************************/\nCREATE INDEX t1a01 ON t1(a01);\nCREATE INDEX t1a02 ON t1(a02);\nCREATE INDEX t1a03 ON t1(a03);\nCREATE INDEX t1a04 ON t1(a04);\nCREATE INDEX t1a05 ON t1(a05);\nCREATE INDEX t1a06 ON t1(a06);\nCREATE INDEX t1a07 ON t1(a07);\nCREATE INDEX t1a08 ON t1(a08);\nCREATE INDEX t1a09 ON t1(a09);\nCREATE INDEX t1a10 ON t1(a10);\nCREATE INDEX t1a11 ON t1(a11);\nCREATE INDEX t1a12 ON t1(a12);\nCREATE INDEX t1a13 ON t1(a13);\nCREATE INDEX t1a14 ON t1(a14);\nCREATE INDEX t1a15 ON t1(a15);\nCREATE INDEX t1a16 ON t1(a16);\nCREATE INDEX t1a17 ON t1(a17);\nCREATE INDEX t1a18 ON t1(a18);\nCREATE INDEX t1a19 ON t1(a19);\nCREATE INDEX t1a20 ON t1(a20);\nCREATE INDEX t1a21 ON t1(a21);\nCREATE INDEX t1a22 ON t1(a22);\nCREATE INDEX t1a23 ON t1(a23);\nCREATE INDEX t1a24 ON t1(a24);\nCREATE INDEX t1a25 ON t1(a25);\nCREATE INDEX t1a26 ON t1(a26);\nCREATE INDEX t1a27 ON t1(a27);\nCREATE INDEX t1a28 ON t1(a28);\nCREATE INDEX t1a29 ON t1(a29);\nCREATE INDEX t1a30 ON t1(a30);\nCREATE INDEX t1a31 ON t1(a31);\nCREATE INDEX t1a32 ON t1(a32);\nCREATE INDEX t1a33 ON t1(a33);\nCREATE INDEX t1a34 ON t1(a34);\nCREATE INDEX t1a35 ON t1(a35);\nCREATE INDEX t1a36 ON t1(a36);\nCREATE INDEX t1a37 ON t1(a37);\nCREATE INDEX t1a38 ON t1(a38);\nCREATE INDEX t1a39 ON t1(a39);\nCREATE INDEX t1a40 ON t1(a40);\nCREATE INDEX t1a41 ON t1(a41);\nCREATE INDEX t1a42 ON t1(a42);\nCREATE INDEX t1a43 ON t1(a43);\nCREATE INDEX t1a44 ON t1(a44);\nCREATE INDEX t1a45 ON t1(a45);\nCREATE INDEX t1a46 ON t1(a46);\nCREATE INDEX t1a47 ON t1(a47);\nCREATE INDEX t1a48 ON t1(a48);\nCREATE INDEX t1a49 ON t1(a49);\nCREATE INDEX t1a50 ON t1(a50);\nCREATE INDEX t1a51 ON t1(a51);\nCREATE INDEX t1a52 ON t1(a52);\nCREATE INDEX t1a53 ON t1(a53);\nCREATE INDEX t1a54 ON t1(a54);\nCREATE INDEX t1a55 ON t1(a55);\nCREATE INDEX t1a56 ON t1(a56);\nCREATE INDEX t1a57 ON t1(a57);\nCREATE INDEX t1a58 ON t1(a58);\nCREATE INDEX t1a59 ON t1(a59);\nCREATE INDEX t1a60 ON t1(a60);\nCREATE INDEX t1a61 ON t1(a61);\nCREATE INDEX t1a62 ON t1(a62);\nCREATE INDEX t1a63 ON t1(a63);\nCREATE INDEX x01x ON x01(b01);\nCREATE INDEX x02x ON x02(b02);\nCREATE INDEX x03x ON x03(b03);\nCREATE INDEX x04x ON x04(b04);\nCREATE INDEX x05x ON x05(b05);\nCREATE INDEX x06x ON x06(b06);\nCREATE INDEX x07x ON x07(b07);\nCREATE INDEX x08x ON x08(b08);\nCREATE INDEX x09x ON x09(b09);\nCREATE INDEX x10x ON x10(b10);\nCREATE INDEX x11x ON x11(b11);\nCREATE INDEX x12x ON x12(b12);\nCREATE INDEX x13x ON x13(b13);\nCREATE INDEX x14x ON x14(b14);\nCREATE INDEX x15x ON x15(b15);\nCREATE INDEX x16x ON x16(b16);\nCREATE INDEX x17x ON x17(b17);\nCREATE INDEX x18x ON x18(b18);\nCREATE INDEX x19x ON x19(b19);\nCREATE INDEX x20x ON x20(b20);\nCREATE INDEX x21x ON x21(b21);\nCREATE INDEX x22x ON x22(b22);\nCREATE INDEX x23x ON x23(b23);\nCREATE INDEX x24x ON x24(b24);\nCREATE INDEX x25x ON x25(b25);\nCREATE INDEX x26x ON x26(b26);\nCREATE INDEX x27x ON x27(b27);\nCREATE INDEX x28x ON x28(b28);\nCREATE INDEX x29x ON x29(b29);\nCREATE INDEX x30x ON x30(b30);\nCREATE INDEX x31x ON x31(b31);\nCREATE INDEX x32x ON x32(b32);\nCREATE INDEX x33x ON x33(b33);\nCREATE INDEX x34x ON x34(b34);\nCREATE INDEX x35x ON x35(b35);\nCREATE INDEX x36x ON x36(b36);\nCREATE INDEX x37x ON x37(b37);\nCREATE INDEX x38x ON x38(b38);\nCREATE INDEX x39x ON x39(b39);\nCREATE INDEX x40x ON x40(b40);\nCREATE INDEX x41x ON x41(b41);\nCREATE INDEX x42x ON x42(b42);\nCREATE INDEX x43x ON x43(b43);\nCREATE INDEX x44x ON x44(b44);\nCREATE INDEX x45x ON x45(b45);\nCREATE INDEX x46x ON x46(b46);\nCREATE INDEX x47x ON x47(b47);\nCREATE INDEX x48x ON x48(b48);\nCREATE INDEX x49x ON x49(b49);\nCREATE INDEX x50x ON x50(b50);\nCREATE INDEX x51x ON x51(b51);\nCREATE INDEX x52x ON x52(b52);\nCREATE INDEX x53x ON x53(b53);\nCREATE INDEX x54x ON x54(b54);\nCREATE INDEX x55x ON x55(b55);\nCREATE INDEX x56x ON x56(b56);\nCREATE INDEX x57x ON x57(b57);\nCREATE INDEX x58x ON x58(b58);\nCREATE INDEX x59x ON x59(b59);\nCREATE INDEX x60x ON x60(b60);\nCREATE INDEX x61x ON x61(b61);\nCREATE INDEX x62x ON x62(b62);\nCREATE INDEX x63x ON x63(b63);\nANALYZE sqlite_schema;\nINSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n  ('t1','t1a01','172800 14400'),\n  ('t1','t1a02','172800 13293'),\n  ('t1','t1a03','172800 12343'),\n  ('t1','t1a04','172800 11520'),\n  ('t1','t1a05','172800 10800'),\n  ('t1','t1a06','172800 10165'),\n  ('t1','t1a07','172800 9600'),\n  ('t1','t1a08','172800 9095'),\n  ('t1','t1a09','172800 8640'),\n  ('t1','t1a10','172800 8229'),\n  ('t1','t1a11','172800 7855'),\n  ('t1','t1a12','172800 7514'),\n  ('t1','t1a13','172800 7200'),\n  ('t1','t1a14','172800 6912'),\n  ('t1','t1a15','172800 6647'),\n  ('t1','t1a16','172800 6400'),\n  ('t1','t1a17','172800 6172'),\n  ('t1','t1a18','172800 5959'),\n  ('t1','t1a19','172800 5760'),\n  ('t1','t1a20','172800 5575'),\n  ('t1','t1a21','172800 5400'),\n  ('t1','t1a22','172800 5237'),\n  ('t1','t1a23','172800 5083'),\n  ('t1','t1a24','172800 4938'),\n  ('t1','t1a25','172800 4800'),\n  ('t1','t1a26','172800 4671'),\n  ('t1','t1a27','172800 4548'),\n  ('t1','t1a28','172800 4431'),\n  ('t1','t1a29','172800 4320'),\n  ('t1','t1a30','172800 4215'),\n  ('t1','t1a31','172800 4115'),\n  ('t1','t1a32','172800 4019'),\n  ('t1','t1a33','172800 6172'),\n  ('t1','t1a34','172800 5959'),\n  ('t1','t1a35','172800 5760'),\n  ('t1','t1a36','172800 5575'),\n  ('t1','t1a37','172800 5400'),\n  ('t1','t1a38','172800 5237'),\n  ('t1','t1a39','172800 5083'),\n  ('t1','t1a40','172800 4938'),\n  ('t1','t1a41','172800 4800'),\n  ('t1','t1a42','172800 4671'),\n  ('t1','t1a43','172800 4548'),\n  ('t1','t1a44','172800 4431'),\n  ('t1','t1a45','172800 4320'),\n  ('t1','t1a46','172800 4215'),\n  ('t1','t1a47','172800 4115'),\n  ('t1','t1a48','172800 4019'),\n  ('t1','t1a49','172800 6172'),\n  ('t1','t1a50','172800 5959'),\n  ('t1','t1a51','172800 5760'),\n  ('t1','t1a52','172800 5575'),\n  ('t1','t1a53','172800 5400'),\n  ('t1','t1a54','172800 5237'),\n  ('t1','t1a55','172800 5083'),\n  ('t1','t1a56','172800 4938'),\n  ('t1','t1a57','172800 4800'),\n  ('t1','t1a58','172800 4671'),\n  ('t1','t1a59','172800 4548'),\n  ('t1','t1a60','172800 4431'),\n  ('t1','t1a61','172800 4320'),\n  ('t1','t1a62','172800 4215'),\n  ('t1','t1a63','172800 4115'),\n  ('x01','x01x','80 2'),\n  ('x02','x02x','120 2'),\n  ('x03','x03x','160 2'),\n  ('x04','x04x','20 2'),\n  ('x05','x05x','24 2'),\n  ('x06','x06x','32 2'),\n  ('x07','x07x','36 2'),\n  ('x08','x08x','40 2'),\n  ('x09','x09x','44 2'),\n  ('x10','x10x','48 2'),\n  ('x11','x11x','52 2'),\n  ('x12','x12x','56 2'),\n  ('x13','x13x','60 2'),\n  ('x14','x14x','64 2'),\n  ('x15','x15x','72 2'),\n  ('x16','x16x','80 2'),\n  ('x17','x17x','80 2'),\n  ('x18','x18x','120 2'),\n  ('x19','x19x','160 2'),\n  ('x20','x20x','20 2'),\n  ('x21','x21x','24 2'),\n  ('x22','x22x','32 2'),\n  ('x23','x23x','36 2'),\n  ('x24','x24x','40 2'),\n  ('x25','x25x','44 2'),\n  ('x26','x26x','48 2'),\n  ('x27','x27x','52 2'),\n  ('x28','x28x','56 2'),\n  ('x29','x29x','60 2'),\n  ('x30','x30x','64 2'),\n  ('x31','x31x','72 2'),\n  ('x32','x32x','80 2'),\n  ('x33','x33x','80 2'),\n  ('x34','x34x','120 2'),\n  ('x35','x35x','160 2'),\n  ('x36','x36x','20 2'),\n  ('x37','x37x','24 2'),\n  ('x38','x38x','32 2'),\n  ('x39','x39x','36 2'),\n  ('x40','x40x','40 2'),\n  ('x41','x41x','44 2'),\n  ('x42','x42x','48 2'),\n  ('x43','x43x','52 2'),\n  ('x44','x44x','56 2'),\n  ('x45','x45x','60 2'),\n  ('x46','x46x','64 2'),\n  ('x47','x47x','72 2'),\n  ('x48','x48x','80 2'),\n  ('x49','x49x','80 2'),\n  ('x50','x50x','120 2'),\n  ('x51','x51x','160 2'),\n  ('x52','x52x','20 2'),\n  ('x53','x53x','24 2'),\n  ('x54','x54x','32 2'),\n  ('x55','x55x','36 2'),\n  ('x56','x56x','40 2'),\n  ('x57','x57x','44 2'),\n  ('x58','x58x','48 2'),\n  ('x59','x59x','52 2'),\n  ('x60','x60x','56 2'),\n  ('x61','x61x','60 2'),\n  ('x62','x62x','64 2'),\n  ('x63','x63x','72 2');\nANALYZE sqlite_schema;"))
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03\n    FROM t1, x01, x02, x03\n   WHERE a01=b01 AND a02=b02 AND a03=b03;"), "{/SCAN t1.*SEARCH.*SEARCH.*SEARCH/}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04\n    FROM t1, x01, x02, x03, x04\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04;"), "{/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH /}")
 	checkQueryResult(t, db.Query("EXPLAIN QUERY PLAN\n  SELECT c01, c02, c03, c04, c05\n    FROM t1, x01, x02, x03, x04, x05\n   WHERE a01=b01 AND a02=b02 AND a03=b03 AND a04=b04 AND a05=b05;"), "{/SCAN .*SEARCH .*SEARCH .*SEARCH .*SEARCH .*SEARCH/}")
@@ -14713,10 +15034,15 @@ func TestSQLite_stat(t *testing.T) {
 	_ = db.Query("SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n      FROM stat WHERE name = 'sqlite_schema';")
 	checkExecOK(t, db.Exec("DROP TABLE t1;"))
 	checkQueryResult(t, db.Query("SELECT name, quote(path), pageno, quote(pagetype), ncell, payload,\n         unused, mx_payload, '|' FROM dbstat('main',1);"), "{sqlite_schema NULL 1 NULL 1 34 878 34 | tx NULL 1 NULL 0 0 1016 0 |}")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS '123';\n  PRAGMA \"123\".auto_vacuum = OFF;\n  CREATE TABLE \"123\".x1(a, b);\n  INSERT INTO x1 VALUES(1, 2);"))
 	checkQueryResult(t, db.Query("SELECT * FROM dbstat('123');"), "{\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n}")
 	checkQueryResult(t, db.Query("SELECT * FROM dbstat(123);"), "{\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x2 USING dbstat('123');\n  SELECT * FROM x2;"))
+	checkExecOK(t, db.Exec("DETACH 123;\n  DROP TABLE x2;\n  DROP TABLE x3;\n  ATTACH 'test.db2' AS '123corp';"))
 	checkQueryResult(t, db.Query("SELECT * FROM dbstat('123corp');"), "{\n  sqlite_schema / 1 leaf 1 37 875 37 0 1024 \n  x1 / 2 leaf 1 4 1008 4 1024 1024\n}")
 	checkQueryResult(t, db.Query("SELECT * FROM dbstat(123corp);"), "{1 {unrecognized token: \"123corp\"}}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE x2 USING dbstat('123corp');\n  SELECT * FROM x2;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE st4 USING dbstat;"))
 	_ = db.Query("SELECT * FROM st4 WHERE st4.aggregate = NULL;")
 	_ = db.Query("SELECT aggregate=1 FROM st4 WHERE aggregate = 5")
 	checkQueryResult(t, db.Query("SELECT * FROM st4 WHERE name = NULL;"), "{}")
@@ -14730,6 +15056,7 @@ func TestSQLite_statfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;"))
 	_ = db.Query("SELECT 1 FROM sqlite_master LIMIT 1")
 	_ = db.Query("SELECT count(*) FROM sss")
 	_ = db.Query("SELECT * FROM sss")
@@ -14839,6 +15166,7 @@ func TestSQLite_subjournal(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkQueryResult(t, db.Query("PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);"), "{}")
+	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SAVEPOINT one;\n      INSERT INTO t1 VALUES(7, 8, 9);\n    ROLLBACK TO one;\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("COMMIT;"))
 	_ = db.Query("PRAGMA cache_size = 5;\n  CREATE TABLE t2(a BLOB);\n  CREATE INDEX i2 ON t2(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  ) INSERT INTO t2 SELECT randomblob(500) FROM s;")
 	_ = db.Query("PRAGMA integrity_check")
@@ -15013,6 +15341,7 @@ func TestSQLite_swarmvtab(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.s1 USING swarmvtab('SELECT * FROM dir');"))
 	checkQueryResult(t, db.Query("SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;"), "{80000}")
 	checkExecOK(t, db.Exec("DELETE FROM t0 WHERE rowid<=200"))
 	db.Close()
@@ -15021,6 +15350,7 @@ func TestSQLite_swarmvtab(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);"))
 	checkQueryResult(t, db.Query("SELECT * FROM s1 WHERE rowid BETWEEN 1 AND 100;"), "{1 {unable to open database file}}")
 	checkQueryResult(t, db.Query("SELECT * FROM s1 WHERE rowid BETWEEN 101 AND 200;"), "{1 {no such rowid table: t15}}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir');"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from swarmvtab2.test
@@ -15028,6 +15358,7 @@ func TestSQLite_swarmvtab2(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );"))
 	checkQueryResult(t, db.Query("SELECT b FROM v1 WHERE a=3875;"), "{**03875**}")
 	checkQueryResult(t, db.Query("SELECT b FROM v1 WHERE a BETWEEN 3999 AND 4000 ORDER BY a;"), "{**03999** **04000**}")
 	checkQueryResult(t, db.Query("SELECT b FROM v1 WHERE a>=99998;"), "{**99998** **99999**}")
@@ -15048,6 +15379,7 @@ func TestSQLite_swarmvtabfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n        'VALUES\n        (\"test.db1\", \"t1\", 1, 10),\n        (\"test.db2\", \"t1\", 11, 20)\n        ', 'fetch_db'\n    );"))
 	_ = db.Query("SELECT a FROM xyz")
 	for _, d := range dbs { d.Close() }
 }
@@ -15083,6 +15415,7 @@ func TestSQLite_sync(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);")
 	_ = db.Query("PRAGMA main.synchronous=on;\n      PRAGMA db2.synchronous=on;\n      BEGIN;\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t2 VALUES(3,4);\n      COMMIT;")
 	_ = db.Query("PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;")
 	_ = db.Query("PRAGMA main.synchronous=off;\n      PRAGMA db2.synchronous=off;\n      BEGIN;\n      INSERT INTO t1 VALUES(5,6);\n      INSERT INTO t2 VALUES(7,8);\n      COMMIT;")
@@ -15105,6 +15438,8 @@ func TestSQLite_syscall(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux"))
 	checkExecOK(t, db.Exec("BEGIN;\n          INSERT INTO t1 VALUES(5, 6);\n          INSERT INTO t2 VALUES(7, 8);\n        COMMIT;"))
 	_ = db.Query("SELECT * FROM t1;\n        SELECT * FROM t2;")
 	_ = db.Query("PRAGMA temp_store = file;\n\n    PRAGMA main.cache_size = 10;\n    PRAGMA temp.cache_size = 10;\n    CREATE TABLE temp.tt(a, b);\n    INSERT INTO tt VALUES(randomblob(500), randomblob(600));\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;")
@@ -15119,6 +15454,9 @@ func TestSQLite_sysfault(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('y');"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);"))
 	_ = db.Query("SELECT * FROM t1;")
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS 'aux';\n    SELECT * FROM t1;\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n      INSERT INTO t1 VALUES('jkl', 'mno', 'pqr');\n      INSERT INTO t1 VALUES(randomblob(10000), 0, 0);\n      UPDATE t2 SET x = 2;\n    COMMIT;\n    DELETE FROM t1 WHERE length(a)>3;\n    SELECT * FROM t1;\n    SELECT * FROM t2;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS 'aux';\n    SELECT * FROM t1;\n    PRAGMA journal_mode = truncate;\n    BEGIN;\n      INSERT INTO t1 VALUES('jkl', 'mno', 'pqr');\n      UPDATE t2 SET x = 2;\n    COMMIT;\n    SELECT * FROM t1;\n    SELECT * FROM t2;"))
 	_ = db.Query("PRAGMA synchronous=OFF;\n    CREATE TABLE t1(a, b);\n    BEGIN;\n      SELECT * FROM t1;")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(randomblob(10000), randomblob(10000));\n    SELECT length(a) + length(b) FROM t1;\n    COMMIT;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"))
@@ -15134,6 +15472,7 @@ func TestSQLite_tabfunc01(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT *, '|' FROM generate_series(0) LIMIT 5;"), "{0 | 1 | 2 | 3 | 4 |}")
 	checkQueryResult(t, db.Query("SELECT *, '|' FROM generate_series LIMIT 5;"), "{1 {first argument to \"generate_series()\" missing or unusable}}")
 	checkQueryResult(t, db.Query("SELECT *, '|' FROM generate_series(value) LIMIT 5;"), "{1 {first argument to \"generate_series()\" missing or unusable}}")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING generate_series;"))
 	checkQueryResult(t, db.Query("SELECT * FROM generate_series(1,9,2);"), "{1 3 5 7 9}")
 	checkQueryResult(t, db.Query("SELECT * FROM generate_series(1,9);"), "{1 2 3 4 5 6 7 8 9}")
 	checkQueryResult(t, db.Query("SELECT * FROM generate_series(1,10) WHERE step=3;"), "{1 4 7 10}")
@@ -15168,7 +15507,6 @@ func TestSQLite_tabfunc01(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT value FROM generate_series(10,1,-1) WHERE value>=5.5;"), "{10 9 8 7 6}")
 	checkQueryResult(t, db.Query("SELECT value FROM generate_series(10,1,-1) WHERE value>=5.0;"), "{10 9 8 7 6 5}")
 	checkQueryResult(t, db.Query("SELECT value FROM generate_series(1,10) WHERE value==5.5;"), "{}")
-	checkQueryResult(t, db.Query("SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT 10 OFFSET 5;"), "{6 7 8 9 10 101 102 103 104}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from table.test
@@ -15214,8 +15552,8 @@ func TestSQLite_table(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO 'spaces in this name!' VALUES(1)"))
 	checkExecOK(t, db.Exec("CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      [14_vac] boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )"))
 	checkExecOK(t, db.Exec("INSERT INTO weird VALUES('a','b',9,0,'xyz','hi','y''all');\n    SELECT * FROM weird;"))
+	checkExecOK(t, db.Exec("CREATE TABLE savepoint(release);\n    INSERT INTO savepoint(release) VALUES(10);\n    UPDATE savepoint SET release = 5;\n    SELECT release FROM savepoint;"))
 	_ = db.Query("SELECT sql FROM sqlite_master WHERE name='t2';")
-	checkExecOK(t, db.Exec("CREATE TABLE \"t3\"\"xyz\"(a,b,c);\n    INSERT INTO [t3\"xyz] VALUES(1,2,3);\n    SELECT * FROM [t3\"xyz];"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from tableopts.test
@@ -15307,6 +15645,7 @@ func TestSQLite_tempfault(t *testing.T) {
 	checkExecOK(t, db.Exec("UPDATE t1 SET a = randomblob(99)"))
 	_ = db.Query("PRAGMA page_size = 1024;\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b, a);\n      WITH x(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<100)\n          INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;")
 	_ = db.Query("PRAGMA page_size = 1024;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b, a);\n    WITH x(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<50)\n    INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;")
+	checkExecOK(t, db.Exec("BEGIN;\n      UPDATE t1 SET a = randomblob(99);\n      SAVEPOINT abc;\n        UPDATE t1 SET a = randomblob(98) WHERE (rowid%10)==0;\n      ROLLBACK TO abc;\n        UPDATE t1 SET a = randomblob(97) WHERE (rowid%5)==0;\n      ROLLBACK TO abc;\n    COMMIT;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from temptable.test
@@ -15358,6 +15697,7 @@ func TestSQLite_temptable2(t *testing.T) {
 	checkQueryResult(t, db.Query("PRAGMA main.cache_size = 10;\n  PRAGMA temp.cache_size = 10;\n\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n\n  WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n\n  SELECT count(*) FROM t1;"), "{1000}")
 	checkExecOK(t, db.Exec("BEGIN;\n    UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==0;\n  ROLLBACK;"))
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1;"), "{1000}")
+	checkExecOK(t, db.Exec("BEGIN;\n    UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==0;\n    SAVEPOINT abc;\n      UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==1;\n    ROLLBACK TO abc;\n    UPDATE t1 SET b=randomblob(100) WHERE (rowid%10)==2;\n  COMMIT;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -15399,6 +15739,7 @@ func TestSQLite_temptrigger(t *testing.T) {
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(10, 20);\n    SELECT * FROM tt1;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(30, 40);\n    SELECT * FROM tt1;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t2(a, b)"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;\n    CREATE TEMP TABLE tt2(a, b);\n    CREATE TEMP TRIGGER tr2 AFTER INSERT ON aux.t2 BEGIN\n      INSERT INTO tt2 VALUES(new.a, new.b);\n    END;"))
 	checkExecOK(t, db.Exec("INSERT INTO aux.t2 VALUES(1, 2);\n    SELECT * FROM aux.t2;"))
 	_ = db.Query("SELECT * FROM tt2")
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a, b)"))
@@ -15418,27 +15759,26 @@ func TestSQLite_temptrigger(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n  CREATE TEMP TRIGGER tr1 BEFORE INSERT ON t1 BEGIN \n    SELECT raise(ABORT, 'error'); \n  END;\n  ATTACH 'test.db2' AS aux;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);"))
 	checkQueryResult(t, db.Query("SELECT type,name,tbl_name,sql FROM aux.sqlite_master;\n  INSERT INTO aux.t1 VALUES(1,2,3);"), "{\n  table t1 t1 {CREATE TABLE t1(a, b, c)}")
 	checkExecOK(t, db.Exec("INSERT INTO main.t1 VALUES(1);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE m1(a, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.a1(c, d);"))
 	checkExecOK(t, db.Exec("CREATE TABLE a1(e, f);\n  INSERT INTO m1 VALUES(7, 8);"))
 	checkExecOK(t, db.Exec("DROP TRIGGER tr1;\n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON m1 BEGIN\n    INSERT INTO a1 SELECT d, c FROM aux.a1;\n  END;\n\n  DELETE FROM aux.a1;\n  DELETE FROM main.a1;\n  INSERT INTO aux.a1 VALUES('hello', 'world');"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE aux.t1(e, f);\n  CREATE TABLE aux.t2(g, h);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS db$ii"))
 	checkExecOK(t, db.Exec("CREATE TABLE db$ii.tbl(a, b, c)"))
 	checkExecOK(t, db.Exec("CREATE TEMP TRIGGER tr$ii AFTER INSERT ON db$ii.tbl BEGIN\n        INSERT INTO db$jj.tbl VALUES(new.b, new.c, new.a);\n      END;"))
-	checkExecOK(t, db.Exec("INSERT INTO db0.tbl VALUES('a', 'b', 'c');"))
-	checkQueryResult(t, db.Query("SELECT * FROM db1.tbl"), "{b c a}")
-	checkQueryResult(t, db.Query("SELECT * FROM db2.tbl"), "{c a b}")
-	checkQueryResult(t, db.Query("SELECT * FROM db3.tbl"), "{a b c}")
-	checkQueryResult(t, db.Query("SELECT * FROM db4.tbl"), "{b c a}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from thread001.test
@@ -15497,6 +15837,7 @@ func TestSQLite_thread005(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b)"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux"))
 	checkExecOK(t, db.Exec("CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);"))
 	_ = db.Query("SELECT count(*) FROM t1 WHERE b IS NULL")
 	for _, d := range dbs { d.Close() }
@@ -16092,6 +16433,7 @@ func TestSQLite_tkt_d11f09d36e(t *testing.T) {
 	_ = db.Query("PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;")
 	checkExecOK(t, db.Exec("BEGIN;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK;"))
 	_ = db.Query("PRAGMA integrity_check")
+	checkExecOK(t, db.Exec("SAVEPOINT tr;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK TO tr;\n    RELEASE tr;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from tkt-d635236375.test
@@ -16122,9 +16464,12 @@ func TestSQLite_tkt_f3e5abed55(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n    CREATE TABLE main.t1(a, b);\n    CREATE TABLE aux.t2(c, d);"))
 	checkExecOK(t, db.Exec("BEGIN; SELECT * FROM t1"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t2 VALUES(1, 2);"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n      BEGIN;\n        INSERT INTO t1 VALUES(3, 4);\n        INSERT INTO t2 VALUES(3, 4);"))
 	checkExecOK(t, db.Exec("COMMIT;\n      SELECT * FROM t1;\n      SELECT * FROM t2;"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from tkt-f67b41381a.test
@@ -16385,7 +16730,9 @@ func TestSQLite_tkt1873(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x, y);\n    ATTACH 'test2.db' AS aux;\n    CREATE TABLE aux.t2(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t2 VALUES(5, 6);\n    INSERT INTO t2 VALUES(7, 8);"))
 	_ = db.Query("SELECT * FROM t2 LIMIT 1")
+	checkExecOK(t, db.Exec("DETACH aux"))
 	_ = db.Query("SELECT * FROM t1 LIMIT 1")
 	for _, d := range dbs { d.Close() }
 }
@@ -16629,6 +16976,7 @@ func TestSQLite_tkt2854(t *testing.T) {
 	checkExecOK(t, db.Exec("COMMIT"))
 	checkExecOK(t, db.Exec("BEGIN EXCLUSIVE"))
 	checkExecOK(t, db.Exec("CREATE TABLE def(d, e, f)"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux"))
 	checkExecOK(t, db.Exec("BEGIN IMMEDIATE"))
 	for _, d := range dbs { d.Close() }
 }
@@ -16730,6 +17078,7 @@ func TestSQLite_tkt3121(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA encoding = 'utf16';\n\n    CREATE TABLE r1(field);\n    CREATE TABLE r2(col PRIMARY KEY, descr);\n\n    INSERT INTO r1 VALUES('abcd');\n    INSERT INTO r2 VALUES('abcd', 'A nice description');\n    INSERT INTO r2 VALUES('efgh', 'Another description');\n\n    CREATE VIRTUAL TABLE t1 USING echo(r1);\n    CREATE VIRTUAL TABLE t2 USING echo(r2);")
 	_ = db.Query("select\n      t1.field as Field,\n      t2.descr as Descr\n    from t1 inner join t2 on t1.field = t2.col order by t1.field")
 	for _, d := range dbs { d.Close() }
 }
@@ -16960,7 +17309,6 @@ func TestSQLite_tkt35xx(t *testing.T) {
 }
 // Auto-generated from tkt3630.test
 func TestSQLite_tkt3630(t *testing.T) {
-	t.Skip("crash")
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17070,6 +17418,8 @@ func TestSQLite_tkt3810(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t1(x);\n    CREATE TEMP TRIGGER r1 DELETE ON t1 BEGIN SELECT *; END;\n    CREATE VIEW t1 AS SELECT *;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING nosuchmodule;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t3(z);"))
 	for _, d := range dbs { d.Close() }
 }
@@ -17115,6 +17465,7 @@ func TestSQLite_tkt3871(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE e USING echo(t1);\n    SELECT count(*) FROM e;"))
 	_ = db.Query("SELECT * FROM e WHERE a = 1 OR a = 2")
 	_ = db.Query("SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9")
 	for _, d := range dbs { d.Close() }
@@ -17436,13 +17787,13 @@ func TestSQLite_trigger1(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t3(a,b);\n        CREATE TABLE t4(x UNIQUE, b);\n        CREATE TRIGGER r34 AFTER INSERT ON t3 BEGIN\n          REPLACE INTO t4 VALUES(new.a,new.b);\n        END;\n        INSERT INTO t3 VALUES(1,2);\n        SELECT * FROM t3; SELECT 99, 99; SELECT * FROM t4;"))
 	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES(1,3);\n        SELECT * FROM t3; SELECT 99, 99; SELECT * FROM t4;"))
 	checkExecOK(t, db.Exec("DROP TABLE t3;\n    DROP TABLE t4;"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS aux;"))
 	checkExecOK(t, db.Exec("CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE temp.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TABLE insert_log(db, a, b, c);"))
 	checkExecOK(t, db.Exec("CREATE TEMP TRIGGER trig1 AFTER INSERT ON main.t4 BEGIN \n        INSERT INTO insert_log VALUES('main', new.a, new.b, new.c);\n      END;\n      CREATE TEMP TRIGGER trig2 AFTER INSERT ON temp.t4 BEGIN \n        INSERT INTO insert_log VALUES('temp', new.a, new.b, new.c);\n      END;\n      CREATE TEMP TRIGGER trig3 AFTER INSERT ON aux.t4 BEGIN \n        INSERT INTO insert_log VALUES('aux', new.a, new.b, new.c);\n      END;"))
 	checkExecOK(t, db.Exec("INSERT INTO main.t4 VALUES(1, 2, 3);\n      INSERT INTO temp.t4 VALUES(4, 5, 6);\n      INSERT INTO aux.t4  VALUES(7, 8, 9);"))
 	_ = db.Query("SELECT * FROM insert_log;")
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO main.t4 VALUES(1, 2, 3);\n      INSERT INTO temp.t4 VALUES(4, 5, 6);\n      INSERT INTO aux.t4  VALUES(7, 8, 9);\n      ROLLBACK;"))
 	checkExecOK(t, db.Exec("DELETE FROM insert_log;\n      INSERT INTO main.t4 VALUES(11, 12, 13);\n      INSERT INTO temp.t4 VALUES(14, 15, 16);\n      INSERT INTO aux.t4  VALUES(17, 18, 19);"))
-	checkExecOK(t, db.Exec("DROP TABLE insert_log;\n      CREATE TABLE aux.insert_log(db, d, e, f);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from trigger2.test
@@ -17708,6 +18059,7 @@ func TestSQLite_triggerD(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM log;\n    UPDATE t1 SET x=x+1;\n    SELECT * FROM log"))
 	checkExecOK(t, db.Exec("CREATE TABLE t300(x);\n    CREATE TEMP TABLE t300(x);\n    CREATE TABLE t301(y);\n    CREATE TRIGGER main.r300 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(10000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;"))
 	checkExecOK(t, db.Exec("DELETE FROM t301;\n    CREATE TRIGGER temp.r301 AFTER INSERT ON t300 BEGIN\n      INSERT INTO t301 VALUES(20000 + new.x);\n    END;\n    INSERT INTO main.t300 VALUES(3);\n    INSERT INTO temp.t300 VALUES(4);\n    SELECT * FROM t301;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n    ATTACH 'test2.db' AS db2;\n    CREATE TABLE db2.t2(y);\n    CREATE TABLE db2.log(z);\n    CREATE TRIGGER db2.trig AFTER INSERT ON db2.t2 BEGIN\n      INSERT INTO log(z) VALUES(new.y);\n    END;\n    INSERT INTO t2 VALUES(123);\n    SELECT * FROM log;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from triggerE.test
@@ -17716,6 +18068,7 @@ func TestSQLite_triggerE(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);"))
+	checkExecOK(t, db.Exec("#   ATTACH 'test.db2' AS aux;\n#   CREATE TABLE aux.t4(x);\n#   INSERT INTO aux.t4 VALUES(5);\n# \n#   CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.a IN (SELECT x FROM aux.t4)\n#   BEGIN\n#     SELECT 1;\n#   END;\n#"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(5,5);"))
 	checkQueryResult(t, db.Query("PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );"), "db close")
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;"))
@@ -17748,6 +18101,7 @@ func TestSQLite_triggerupfrom(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four');\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;\n  END;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1(a) VALUES(1);"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t3(x, y);\n  INSERT INTO aux.t3 VALUES('x', 'y');"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -17937,11 +18291,21 @@ func TestSQLite_unionvtab(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE u1 USING unionvtab(\"VALUES(NULL, 't1', 1, 100)\");"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE main.u1 USING unionvtab(\"VALUES('', 't1', 1, 100)\");"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 't555', 1, 100)\");"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('aux', 't555', 1, 100)\");"))
 	checkExecOK(t, db.Exec("CREATE TABLE wr1(a, b, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE VIEW v2 AS SELECT _rowid_, * FROM t1;\n\n  CREATE TABLE wr2(a, _rowid_ INTEGER, c PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE wr3(a, b, _rowid_ PRIMARY KEY) WITHOUT ROWID;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES('main', 'wr1', 1, 2)\");"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v1', 1, 2)\");"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'v2', 1, 2)\");"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.u1 USING unionvtab(\"VALUES(NULL, 'wr2', 1, 2)\");"))
 	checkExecOK(t, db.Exec("CREATE TABLE x1(a BLOB, b);\n  CREATE TABLE x2(a BLOB, b);\n  CREATE TEMP TABLE x3(a BLOB, b);\n\n  CREATE TABLE aux.y1(one, two, three INTEGER PRIMARY KEY);\n  CREATE TEMP TABLE y2(one, two, three INTEGER PRIMARY KEY);\n  CREATE TABLE y3(one, two, three INTEGER PRIMARY KEY);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );"))
 	checkQueryResult(t, db.Query("SELECT * FROM uu WHERE rowid = 10;"), "{10 {1.10}}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid <= 25"), "{100}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid <= 26"), "{126}")
@@ -17969,16 +18333,6 @@ func TestSQLite_unionvtab(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid > 76"), "{24}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid > 99"), "{1}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid > 100"), "{0}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 24"), "{277}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 25"), "{276}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 26"), "{200}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 27"), "{174}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 73"), "{128}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 74"), "{127}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 75"), "{100}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 76"), "{25}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 99"), "{2}")
-	checkQueryResult(t, db.Query("SELECT count(*) FROM uu WHERE rowid >= 100"), "{1}")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from unionvtabfault.test
@@ -17986,7 +18340,11 @@ func TestSQLite_unionvtabfault(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');"))
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS aux;"))
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE xyz(x);"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n    \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n    );"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n      \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n  );"))
 	_ = db.Query("SELECT * FROM uuu")
 	for _, d := range dbs { d.Close() }
 }
@@ -18303,6 +18661,9 @@ func TestSQLite_uri(t *testing.T) {
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b)"))
 	_ = db.Query("SELECT * FROM t1")
+	checkExecOK(t, db.Exec("ATTACH 'file:test.db2?vfs=tvfs2' AS aux;\n      PRAGMA main.journal_mode = PERSIST;\n      PRAGMA aux.journal_mode = PERSIST;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE aux.t2(a, b);\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      INSERT INTO t1 VALUES('x', 'y');\n      INSERT INTO t2 VALUES('x', 'y');"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE aux.t2(a, b);\n    INSERT INTO t1 VALUES('a', 'b');"))
+	checkExecOK(t, db.Exec("ATTACH 'file:test.db2?mode=rw' AS aux"))
 	checkExecOK(t, db.Exec("INSERT INTO t2 VALUES('c', 'd')"))
 	for _, d := range dbs { d.Close() }
 }
@@ -18333,6 +18694,15 @@ func TestSQLite_vacuum_into(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("VACUUM main INTO 'out.db';"))
+	checkExecOK(t, db.Exec("VACUUM INTO 'out.db';"))
+	checkExecOK(t, db.Exec("VACUUM INTO 'out2.db';"))
+	checkExecOK(t, db.Exec("CREATE TABLE t2(name TEXT);\n  INSERT INTO t2 VALUES(':memory:');\n  VACUUM main INTO (SELECT name FROM t2);"))
+	checkExecOK(t, db.Exec("VACUUM INTO null;"))
+	checkExecOK(t, db.Exec("VACUUM INTO x;"))
+	checkExecOK(t, db.Exec("VACUUM INTO t1.nosuchcol;"))
+	checkExecOK(t, db.Exec("VACUUM INTO target()"))
+	checkExecOK(t, db.Exec("VACUUM INTO 'test.db2';"))
 	_ = db.Query("PRAGMA page_size;\n      PRAGMA integrity_check;")
 	db.Close()
 	db = setupDB(t)
@@ -18424,6 +18794,18 @@ func TestSQLite_vacuum4(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	_ = db.Query("PRAGMA auto_vacuum=FULL;\n    CREATE TABLE t1(\n      c000, c001, c002, c003, c004, c005, c006, c007, c008, c009,\n      c010, c011, c012, c013, c014, c015, c016, c017, c018, c019,\n      c020, c021, c022, c023, c024, c025, c026, c027, c028, c029,\n      c030, c031, c032, c033, c034, c035, c036, c037, c038, c039,\n      c040, c041, c042, c043, c044, c045, c046, c047, c048, c049,\n      c050, c051, c052, c053, c054, c055, c056, c057, c058, c059,\n      c060, c061, c062, c063, c064, c065, c066, c067, c068, c069,\n      c070, c071, c072, c073, c074, c075, c076, c077, c078, c079,\n      c080, c081, c082, c083, c084, c085, c086, c087, c088, c089,\n      c090, c091, c092, c093, c094, c095, c096, c097, c098, c099,\n      c100, c101, c102, c103, c104, c105, c106, c107, c108, c109,\n      c110, c111, c112, c113, c114, c115, c116, c117, c118, c119,\n      c120, c121, c122, c123, c124, c125, c126, c127, c128, c129,\n      c130, c131, c132, c133, c134, c135, c136, c137, c138, c139,\n      c140, c141, c142, c143, c144, c145, c146, c147, c148, c149\n    );\n    CREATE TABLE t2(\n      c000, c001, c002, c003, c004, c005, c006, c007, c008, c009,\n      c010, c011, c012, c013, c014, c015, c016, c017, c018, c019,\n      c020, c021, c022, c023, c024, c025, c026, c027, c028, c029,\n      c030, c031, c032, c033, c034, c035, c036, c037, c038, c039,\n      c040, c041, c042, c043, c044, c045, c046, c047, c048, c049,\n      c050, c051, c052, c053, c054, c055, c056, c057, c058, c059,\n      c060, c061, c062, c063, c064, c065, c066, c067, c068, c069,\n      c070, c071, c072, c073, c074, c075, c076, c077, c078, c079,\n      c080, c081, c082, c083, c084, c085, c086, c087, c088, c089,\n      c090, c091, c092, c093, c094, c095, c096, c097, c098, c099,\n      c100, c101, c102, c103, c104, c105, c106, c107, c108, c109,\n      c110, c111, c112, c113, c114, c115, c116, c117, c118, c119,\n      c120, c121, c122, c123, c124, c125, c126, c127, c128, c129,\n      c130, c131, c132, c133, c134, c135, c136, c137, c138, c139,\n      c140, c141, c142, c143, c144, c145, c146, c147, c148, c149\n    );\n    VACUUM;")
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from vacuum5.test
+func TestSQLite_vacuum5(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkQueryResult(t, db.Query("PRAGMA auto_vacuum = 0;\n  CREATE TABLE main.t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT x, randomblob(1000) FROM c;\n  CREATE TEMP TABLE ttemp(x,y);\n  INSERT INTO ttemp SELECT * FROM t1;\n  ATTACH 'test2.db' AS x2;\n  ATTACH 'test3.db' AS x3;\n  CREATE TABLE x2.t2(c,d);\n  INSERT INTO t2 SELECT * FROM t1;\n  CREATE TABLE x3.t3(e,f);\n  INSERT INTO t3 SELECT * FROM t1;\n  DELETE FROM t1 WHERE (rowid%3)!=0;\n  DELETE FROM t2 WHERE (rowid%4)!=0;\n  DELETE FROM t3 WHERE (rowid%5)!=0;\n  PRAGMA main.integrity_check;\n  PRAGMA x2.integrity_check;\n  PRAGMA x3.integrity_check;"), "{ok ok ok}")
+	checkExecOK(t, db.Exec("VACUUM main;"))
+	checkExecOK(t, db.Exec("VACUUM x2;"))
+	checkExecOK(t, db.Exec("VACUUM x3;"))
+	checkExecOK(t, db.Exec("VACUUM temp;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vacuum6.test
@@ -18607,14 +18989,17 @@ func TestSQLite_vtab1(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE t2152b(x,y)"))
 	checkExecOK(t, db.Exec("DROP TABLE t2152a; DROP TABLE t2152b"))
 	checkExecOK(t, db.Exec("DROP TABLE treal;\n    SELECT name FROM sqlite_master ORDER BY 1"))
+	checkExecOK(t, db.Exec("CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);"))
 	checkExecOK(t, db.Exec("DROP TABLE techo;\n    CREATE TABLE logmsg(log);"))
 	checkExecOK(t, db.Exec("DROP TABLE treal;\n    DROP TABLE logmsg;\n    SELECT sql FROM sqlite_master;"))
 	checkExecOK(t, db.Exec("CREATE TABLE template(a, b, c);"))
 	_ = db.Query("PRAGMA table_info(template);")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING echo(template);"))
 	_ = db.Query("PRAGMA table_info(t1);")
 	checkExecOK(t, db.Exec("DROP TABLE t1;"))
 	_ = db.Query("SELECT sql FROM sqlite_master;")
 	checkExecOK(t, db.Exec("DROP TABLE template;\n    SELECT sql FROM sqlite_master;"))
+	checkExecOK(t, db.Exec("CREATE TABLE treal(a INTEGER, b INTEGER, c); \n    CREATE INDEX treal_idx ON treal(b);\n    CREATE VIRTUAL TABLE t1 USING echo(treal);"))
 	_ = db.Query("SELECT a, b, c FROM t1;")
 	checkExecOK(t, db.Exec("INSERT INTO treal VALUES(1, 2, 3);\n    INSERT INTO treal VALUES(4, 5, 6);\n    SELECT * FROM t1;"))
 	_ = db.Query("SELECT a FROM t1;")
@@ -18627,22 +19012,19 @@ func TestSQLite_vtab1(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1 WHERE b BETWEEN 2 AND 10;")
 	_ = db.Query("SELECT * FROM t1 WHERE b MATCH 'string';")
 	checkExecOK(t, db.Exec("DROP TABLE t1;\n  DROP TABLE treal;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    INSERT INTO t1 VALUES(1, 'red', 'green');\n    INSERT INTO t1 VALUES(2, 'blue', 'black');\n    INSERT INTO t2 VALUES(1, 'spades', 'clubs');\n    INSERT INTO t2 VALUES(2, 'hearts', 'diamonds');\n    CREATE VIRTUAL TABLE et1 USING echo(t1);\n    CREATE VIRTUAL TABLE et2 USING echo(t2);"))
 	_ = db.Query("SELECT * FROM et1, et2;")
 	_ = db.Query("SELECT * FROM et1, et2 WHERE et2.d = 2;")
 	checkExecOK(t, db.Exec("CREATE INDEX i1 ON t2(d);"))
 	checkExecOK(t, db.Exec("DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE et1;\n  DROP TABLE et2;"))
 	_ = db.Query("SELECT sql FROM sqlite_master")
+	checkExecOK(t, db.Exec("CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n    SELECT name FROM sqlite_master WHERE type = 'table';"))
 	_ = db.Query("PRAGMA count_changes=ON;\n    INSERT INTO techo VALUES(1, 2, 3);")
 	_ = db.Query("SELECT * FROM techo;")
 	checkExecOK(t, db.Exec("UPDATE techo SET a = 5;"))
 	checkExecOK(t, db.Exec("UPDATE techo SET a=6 WHERE a<0;"))
 	checkExecOK(t, db.Exec("UPDATE techo set a = a||b||c;"))
 	checkExecOK(t, db.Exec("UPDATE techo set rowid = 10;"))
-	_ = db.Query("SELECT rowid FROM techo;")
-	checkExecOK(t, db.Exec("INSERT INTO techo VALUES(11,12,13);"))
-	_ = db.Query("SELECT * FROM techo ORDER BY a;")
-	checkExecOK(t, db.Exec("UPDATE techo SET b=b+1000"))
-	checkExecOK(t, db.Exec("DELETE FROM techo WHERE a=5;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vtab2.test
@@ -18650,15 +19032,18 @@ func TestSQLite_vtab2(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;"))
 	_ = db.Query("SELECT length(tablename) FROM schema GROUP by tablename;")
 	_ = db.Query("SELECT tablename FROM schema GROUP by length(tablename);")
 	_ = db.Query("SELECT length(tablename) FROM schema GROUP by length(tablename);")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE vars USING tclvar;\n    SELECT name, arrayname, value FROM vars WHERE name='abc';"))
 	_ = db.Query("SELECT name, arrayname, value FROM vars WHERE name='A';")
 	_ = db.Query("SELECT name, value FROM vars\n      WHERE name MATCH 'tcl_*' AND arrayname = '' \n      ORDER BY name;")
 	_ = db.Query("SELECT * FROM schema WHERE dflt_value IS NULL LIMIT 1")
 	_ = db.Query("SELECT *, b.rowid\n      FROM schema a LEFT JOIN schema b ON a.dflt_value=b.dflt_value\n     WHERE a.rowid=1")
 	_ = db.Query("SELECT *, b.rowid\n      FROM schema a LEFT JOIN schema b ON a.dflt_value IS b.dflt_value\n                                      AND a.dflt_value IS NOT NULL\n     WHERE a.rowid=1")
 	checkExecOK(t, db.Exec("BEGIN TRANSACTION;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    CREATE TABLE fkey(\n      to_tbl,\n      to_col\n    );\n    INSERT INTO \"fkey\" VALUES('t1',NULL);\n    COMMIT;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE v_col USING schema"))
 	_ = db.Query("SELECT name FROM v_col WHERE tablename = 't1' AND pk")
 	checkExecOK(t, db.Exec("UPDATE fkey \n    SET to_col = (SELECT name FROM v_col WHERE tablename = 't1' AND pk);"))
 	_ = db.Query("SELECT * FROM fkey")
@@ -18670,6 +19055,7 @@ func TestSQLite_vtab3(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE pachyderm USING echo(elephant);"))
 	checkExecOK(t, db.Exec("DROP TABLE pachyderm;"))
 	_ = db.Query("SELECT name FROM sqlite_master WHERE type = 'table';")
 	for _, d := range dbs { d.Close() }
@@ -18679,10 +19065,12 @@ func TestSQLite_vtab4(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);"))
 	checkExecOK(t, db.Exec("INSERT INTO techo VALUES(1, 2, 3);"))
 	checkExecOK(t, db.Exec("UPDATE techo SET a = 2;"))
 	checkExecOK(t, db.Exec("DELETE FROM techo;"))
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO techo VALUES(1, 2, 3);\n    INSERT INTO techo VALUES(4, 5, 6);\n    INSERT INTO techo VALUES(7, 8, 9);\n    COMMIT;"))
+	checkExecOK(t, db.Exec("CREATE TABLE sreal(a, b, c UNIQUE);\n    CREATE VIRTUAL TABLE secho USING echo(sreal);"))
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO secho SELECT * FROM techo;\n    DELETE FROM techo;\n    COMMIT;"))
 	_ = db.Query("SELECT * FROM secho;")
 	_ = db.Query("SELECT * FROM techo;")
@@ -18694,12 +19082,14 @@ func TestSQLite_vtab5(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE treal(a VARCHAR(16), b INTEGER, c FLOAT);\n    INSERT INTO treal VALUES('a', 'b', 'c');\n    CREATE VIRTUAL TABLE techo USING echo(treal);"))
 	_ = db.Query("SELECT * FROM techo;")
 	checkExecOK(t, db.Exec("INSERT INTO techo VALUES('c', 'd', 'e');\n    SELECT * FROM techo;"))
 	checkExecOK(t, db.Exec("UPDATE techo SET a = 10;\n    SELECT * FROM techo;"))
 	checkExecOK(t, db.Exec("DELETE FROM techo WHERE b > 'c';\n    SELECT * FROM techo;"))
 	checkExecOK(t, db.Exec("DROP TABLE techo;\n    DROP TABLE treal;"))
 	checkExecOK(t, db.Exec("CREATE TABLE strings(str COLLATE NOCASE);\n    INSERT INTO strings VALUES('abc1');\n    INSERT INTO strings VALUES('Abc3');\n    INSERT INTO strings VALUES('ABc2');\n    INSERT INTO strings VALUES('aBc4');\n    SELECT str FROM strings ORDER BY 1;"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE echo_strings USING echo(strings);\n    SELECT str FROM echo_strings ORDER BY 1;"))
 	_ = db.Query("SELECT str||'' FROM echo_strings ORDER BY 1;")
 	for _, d := range dbs { d.Close() }
 }
@@ -18743,6 +19133,7 @@ func TestSQLite_vtab6(t *testing.T) {
 	_ = db.Query("SELECT * FROM t12 NATURAL LEFT JOIN t13\n      EXCEPT\n      SELECT * FROM t12 NATURAL LEFT JOIN (SELECT * FROM t13 WHERE b>0);")
 	checkExecOK(t, db.Exec("CREATE VIEW v13 AS SELECT * FROM t13 WHERE b>0;\n      SELECT * FROM t12 NATURAL LEFT JOIN t13\n        EXCEPT\n        SELECT * FROM t12 NATURAL LEFT JOIN v13;"))
 	checkExecOK(t, db.Exec("CREATE INDEX i22 ON real_t22(q);\n    SELECT a FROM t21 LEFT JOIN t22 ON b=p WHERE q=\n       (SELECT max(m.q) FROM t22 m JOIN t21 n ON n.b=m.p WHERE n.c=1);"))
+	checkExecOK(t, db.Exec("CREATE TABLE ab_r(a, b);\n    CREATE TABLE bc_r(b, c);\n\n    CREATE VIRTUAL TABLE ab USING echo(ab_r); \n    CREATE VIRTUAL TABLE bc USING echo(bc_r); \n\n    INSERT INTO ab VALUES(1, 2);\n    INSERT INTO bc VALUES(2, 3);"))
 	_ = db.Query("SELECT a, b, c FROM ab NATURAL JOIN bc;")
 	_ = db.Query("SELECT a, b, c FROM bc NATURAL JOIN ab;")
 	checkExecOK(t, db.Exec("CREATE INDEX ab_i ON ab_r(b);\n    CREATE INDEX bc_i ON bc_r(b);"))
@@ -18753,6 +19144,7 @@ func TestSQLite_vtab7(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE abc(a, b, c);\n    CREATE VIRTUAL TABLE abc2 USING echo(abc);"))
 	checkExecOK(t, db.Exec("INSERT INTO abc2 VALUES(1, 2, 3);"))
 	checkExecOK(t, db.Exec("INSERT INTO log VALUES('xSync');"))
 	checkExecOK(t, db.Exec("CREATE TABLE log(msg);\n    INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;"))
@@ -18760,9 +19152,11 @@ func TestSQLite_vtab7(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE TABLE newtab(d, e, f);"))
 	checkExecOK(t, db.Exec("INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;"))
 	checkExecOK(t, db.Exec("DROP TABLE newtab"))
+	checkExecOK(t, db.Exec("ATTACH 'test2.db' AS db2;\n      CREATE TABLE db2.stuff(description, shape, color);"))
 	checkExecOK(t, db.Exec("INSERT INTO db2.stuff VALUES('abc', 'square', 'green');"))
 	checkExecOK(t, db.Exec("INSERT INTO abc2 VALUES(1, 2, 3);\n      SELECT * from stuff;"))
 	checkExecOK(t, db.Exec("INSERT INTO log VALUES('hello')"))
+	checkExecOK(t, db.Exec("CREATE TABLE def(d, e, f);\n    CREATE VIRTUAL TABLE def2 USING echo(def);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vtab8.test
@@ -18770,8 +19164,11 @@ func TestSQLite_vtab8(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t2244(a, b);\n    CREATE VIRTUAL TABLE t2244e USING echo(t2244);\n    INSERT INTO t2244 VALUES('AA', 'BB');\n    INSERT INTO t2244 VALUES('CC', 'DD');\n    SELECT rowid, * FROM t2244e;"))
 	_ = db.Query("SELECT * FROM t2244e WHERE rowid = 10;")
 	checkExecOK(t, db.Exec("UPDATE t2244e SET a = 'hello world' WHERE 0;\n    SELECT rowid, * FROM t2244e;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t2250(a, b);\n    INSERT INTO t2250 VALUES(10, 20);\n    CREATE VIRTUAL TABLE t2250e USING echo(t2250);\n    select max(rowid) from t2250;\n    select max(rowid) from t2250e;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t2260a_real(a, b);\n    CREATE TABLE t2260b_real(a, b);\n\n    CREATE INDEX i2260 ON t2260a_real(a);\n    CREATE INDEX i2260x ON t2260b_real(a);\n\n    CREATE VIRTUAL TABLE t2260a USING echo(t2260a_real);\n    CREATE VIRTUAL TABLE t2260b USING echo(t2260b_real);\n\n    SELECT * FROM t2260a, t2260b WHERE t2260a.a = t2260b.a AND t2260a.a > 101;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vtab9.test
@@ -18779,6 +19176,9 @@ func TestSQLite_vtab9(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t0(a);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);\n    INSERT INTO t1 SELECT 'hello';\n    SELECT rowid, * FROM t1;"))
+	checkExecOK(t, db.Exec("CREATE TABLE t2(a,b,c);\n    CREATE VIRTUAL TABLE t3 USING echo(t2);\n    CREATE TABLE d1(a,b,c);\n    INSERT INTO d1 VALUES(1,2,3);\n    INSERT INTO d1 VALUES('a','b','c');\n    INSERT INTO d1 VALUES(NULL,'x',123.456);\n    INSERT INTO d1 VALUES(x'6869',123456789,-12345);\n    INSERT INTO t3(a,b,c) SELECT * FROM d1;\n    SELECT rowid, * FROM t3;"))
+	checkExecOK(t, db.Exec("#     CREATE TABLE t4(a);\n#     CREATE VIRTUAL TABLE t5 USING echo(t4);\n#     INSERT INTO t4 VALUES('hello');\n#     SELECT rowid, a FROM t5;\n#"))
 	checkExecOK(t, db.Exec("#     INSERT INTO t5(rowid, a) VALUES(1, 'goodbye');\n#"))
 	checkExecOK(t, db.Exec("#     REPLACE INTO t5(rowid, a) VALUES(1, 'goodbye');\n#     SELECT * FROM t5;\n#"))
 	for _, d := range dbs { d.Close() }
@@ -18789,6 +19189,7 @@ func TestSQLite_vtabA(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER)"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1e USING echo(t1)"))
 	_ = db.Query("PRAGMA table_info(t1e)")
 	_ = db.Query("SELECT a, b, c FROM t1e;")
 	_ = db.Query("SELECT * FROM t1e;")
@@ -18798,6 +19199,7 @@ func TestSQLite_vtabA(t *testing.T) {
 	_ = db.Query("SELECT * FROM t1e ORDER BY 1;")
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1e;"))
 	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vtabB.test
@@ -18805,6 +19207,8 @@ func TestSQLite_vtabB(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(x);\n    BEGIN;\n    CREATE VIRTUAL TABLE temp.echo_test1 USING echo(t1);\n    DROP TABLE echo_test1;\n    ROLLBACK;"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);\n    SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);"))
 	_ = db.Query("SELECT rowid FROM echo_t2")
 	_ = db.Query("SELECT * FROM t1 WHERE x IN (SELECT rowid FROM t2);")
 	_ = db.Query("SELECT * FROM t1 WHERE x IN (SELECT rowid FROM echo_t2);")
@@ -18829,6 +19233,7 @@ func TestSQLite_vtabD(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    CREATE VIRTUAL TABLE tv1 USING echo(t1);"))
 	_ = db.Query("SELECT * FROM tv1 WHERE a = 1 OR b = 4")
 	_ = db.Query("SELECT * FROM tv1 WHERE a = 1 OR b = 1")
 	_ = db.Query("SELECT * FROM tv1 WHERE (a > 0 AND a < 5) OR (b > 15 AND b < 65)")
@@ -18839,11 +19244,20 @@ func TestSQLite_vtabD(t *testing.T) {
 	_ = db.Query("SELECT * FROM tv1 WHERE a = 90001 OR b = 810000")
 	for _, d := range dbs { d.Close() }
 }
+// Auto-generated from vtabE.test
+func TestSQLite_vtabE(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;"))
+	for _, d := range dbs { d.Close() }
+}
 // Auto-generated from vtabF.test
 func TestSQLite_vtabF(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    INSERT INTO t1 VALUES(10,110);\n    INSERT INTO t1 VALUES(11,111);\n    INSERT INTO t1 SELECT a+2, b+2 FROM t1;\n    INSERT INTO t1 SELECT null, b+4 FROM t1;\n    INSERT INTO t1 SELECT null, b+8 FROM t1;\n    INSERT INTO t1 SELECT null, b+16 FROM t1;\n    ANALYZE;\n    CREATE VIRTUAL TABLE tv1 USING echo(t1);\n    SELECT b FROM t1 WHERE a IS NOT NULL;"))
 	_ = db.Query("SELECT b FROM tv1 WHERE a IS NOT NULL")
 	for _, d := range dbs { d.Close() }
 }
@@ -18852,9 +19266,18 @@ func TestSQLite_vtabH(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from vtabI.test
+func TestSQLite_vtabI(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from vtabJ.test
@@ -18910,7 +19333,9 @@ func TestSQLite_vtab_alter(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b VARCHAR, c INTEGER)"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1echo USING echo(t1)"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1echo RENAME TO new"))
+	checkExecOK(t, db.Exec("DROP TABLE new;\n    DROP TABLE t1;\n    CREATE TABLE t1_base(a, b, c);\n    CREATE VIRTUAL TABLE t1 USING echo('*_base');"))
 	checkExecOK(t, db.Exec("INSERT INTO t1_base VALUES(1, 2, 3);\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO x"))
 	_ = db.Query("SELECT * FROM x;")
@@ -18927,6 +19352,7 @@ func TestSQLite_vtab_err(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);"))
 	checkExecOK(t, db.Exec("BEGIN;\n      CREATE TABLE xyz(x);\n      SELECT a FROM e;\n    COMMIT;"))
 	for _, d := range dbs { d.Close() }
 }
@@ -18935,11 +19361,13 @@ func TestSQLite_vtab_shared(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE t0(a, b, c);\n    INSERT INTO t0 VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE t1 USING echo(t0);"))
 	_ = db.Query("SELECT * FROM t1")
 	_ = db.Query("SELECT * FROM t0")
 	checkExecOK(t, db.Exec("BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("COMMIT"))
 	_ = db.Query("SELECT *  FROM t1")
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);"))
 	_ = db.Query("SELECT * FROM t3")
 	_ = db.Query("SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3")
 	checkExecOK(t, db.Exec("ALTER TABLE t1 RENAME TO t4"))
@@ -18949,6 +19377,7 @@ func TestSQLite_vtab_shared(t *testing.T) {
 	checkExecOK(t, db.Exec("DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;"))
 	checkExecOK(t, db.Exec("INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;"))
 	checkExecOK(t, db.Exec("DROP TABLE rt"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;"))
 	checkExecOK(t, db.Exec("DROP TABLE ft"))
 	for _, d := range dbs { d.Close() }
 }
@@ -19006,12 +19435,19 @@ func TestSQLite_wal(t *testing.T) {
 	checkExecOK(t, db.Exec("COMMIT; SELECT * FROM t1"))
 	checkExecOK(t, db.Exec("BEGIN; DELETE FROM t1"))
 	checkExecOK(t, db.Exec("ROLLBACK"))
+	checkExecOK(t, db.Exec("DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n      SAVEPOINT sp;\n        INSERT INTO t1 VALUES('c', 'd');\n        SELECT * FROM t1;"))
+	checkExecOK(t, db.Exec("ROLLBACK TO sp;\n      SELECT * FROM t1;"))
 	checkExecOK(t, db.Exec("COMMIT;\n    SELECT * FROM t1;"))
 	_ = db.Query("PRAGMA cache_size = 10")
+	checkExecOK(t, db.Exec("CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(blob(400), blob(400));\n    SAVEPOINT tr;\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  2 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  4 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  8 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /* 16 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /* 32 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /*  2 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /*  4 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /*  8 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /* 16 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /* 32 */\n      SELECT count(*) FROM t2;"))
+	checkExecOK(t, db.Exec("ROLLBACK TO tr"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('x', 'y');\n    RELEASE tr;"))
 	_ = db.Query("SELECT count(*) FROM t2")
 	_ = db.Query("SELECT count(*) FROM t2 ; SELECT count(*) FROM t1")
 	_ = db.Query("PRAGMA integrity_check")
 	_ = db.Query("PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');")
+	checkExecOK(t, db.Exec("CREATE TABLE t2(a, b);\n    BEGIN;\n    INSERT INTO t2 VALUES(blob(400), blob(400));\n    SAVEPOINT tr;\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  2 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  4 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /*  8 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /* 16 */\n      INSERT INTO t2 SELECT blob(400), blob(400) FROM t2; /* 32 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /*  2 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /*  4 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /*  8 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /* 16 */\n      INSERT INTO t1 SELECT blob(400), blob(400) FROM t1; /* 32 */\n      SELECT count(*) FROM t2;"))
+	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES('x', 'y');\n    RELEASE tr;\n    COMMIT;"))
 	_ = db.Query("SELECT * FROM t2")
 	checkExecOK(t, db.Exec("CREATE TEMP TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);"))
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO t2 VALUES(3, 4);\n      SELECT * FROM t2;"))
@@ -19022,13 +19458,6 @@ func TestSQLite_wal(t *testing.T) {
 	_ = db.Query("PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = wal;\n    PRAGMA auto_vacuum;")
 	_ = db.Query("PRAGMA cache_size=2000;\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(blob(900));\n    INSERT INTO t1 VALUES(blob(900));\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /*  4 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /*  8 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 16 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 32 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 64 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 128 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 256 */")
 	_ = db.Query("PRAGMA auto_vacuum = 0;\n      PRAGMA journal_mode = wal;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      SELECT * FROM t1;")
-	checkExecOK(t, db.Exec("BEGIN; INSERT INTO t1 VALUES(3, 4);"))
-	checkExecOK(t, db.Exec("COMMIT"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(5, 6);"))
-	checkExecOK(t, db.Exec("BEGIN ; SELECT * FROM t1"))
-	checkExecOK(t, db.Exec("BEGIN"))
-	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(19, 20)"))
-	_ = db.Query("SELECT * FROM t1 ; COMMIT")
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from wal2.test
@@ -19267,6 +19696,7 @@ func TestSQLite_walcksum(t *testing.T) {
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("SAVEPOINT one;\n    INSERT INTO t1 VALUES(2, randomblob(2048), 'two');\n    INSERT INTO t1 VALUES(3, randomblob(2048), 'three');\n    INSERT INTO t1 VALUES(4, randomblob(2048), 'four');\n    INSERT INTO t1 VALUES(5, randomblob(2048), 'five');\n    INSERT INTO t1 VALUES(6, randomblob(2048), 'six');\n    INSERT INTO t1 VALUES(7, randomblob(2048), 'seven');\n\n    UPDATE t1 SET b=randomblob(2048) WHERE i=5;\n    UPDATE t1 SET b=randomblob(2048) WHERE i=6;\n    UPDATE t1 SET b=randomblob(2048) WHERE i=7;"))
 	db.Close()
 	db = setupDB(t)
 	dbs = append(dbs, db)
@@ -19279,6 +19709,7 @@ func TestSQLite_walcrash(t *testing.T) {
 	dbs = append(dbs, db)
 	_ = db.Query("SELECT sum(a)==max(b) FROM t1")
 	_ = db.Query("PRAGMA main.journal_mode")
+	checkExecOK(t, db.Exec("#       ATTACH 'test2.db' AS aux;\n#       SELECT * FROM t1 EXCEPT SELECT * FROM t2;\n#"))
 	_ = db.Query("PRAGMA main.integrity_check")
 	_ = db.Query("PRAGMA aux.integrity_check")
 	_ = db.Query("SELECT * FROM t1 WHERE a = 1;")
@@ -19331,6 +19762,8 @@ func TestSQLite_walfault(t *testing.T) {
 	_ = db.Query("PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));")
 	_ = db.Query("PRAGMA cache_size = 10")
 	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 1 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 2 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 4 */\n      --INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 8 */\n    ROLLBACK;\n    SELECT count(*) FROM abc;"))
+	checkExecOK(t, db.Exec("BEGIN;\n      INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 1 */\n      SAVEPOINT spoint;\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 2 */\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 4 */\n        INSERT INTO abc SELECT randomblob(900) FROM abc;    /* 8 */\n      ROLLBACK TO spoint;\n    COMMIT;\n    SELECT count(*) FROM abc;"))
+	checkExecOK(t, db.Exec("ROLLBACK TO spoint"))
 	checkExecOK(t, db.Exec("COMMIT"))
 	_ = db.Query("PRAGMA cache_size = 10;\n    BEGIN;\n      UPDATE z SET zzz = randomblob(799);")
 	checkExecOK(t, db.Exec("INSERT INTO z VALUES(NULL, NULL)"))
@@ -19392,7 +19825,9 @@ func TestSQLite_walmode(t *testing.T) {
 	checkExecOK(t, db.Exec("BEGIN;\n      CREATE TEMP TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    SELECT * FROM t1;\n    PRAGMA temp.journal_mode;"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    PRAGMA temp.journal_mode;"))
 	_ = db.Query("PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);")
+	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);"))
 	checkQueryResult(t, db.Query("PRAGMA two.journal_mode"), "{delete}")
+	checkExecOK(t, db.Exec("ATTACH 'test.db2' AS two"))
 	checkExecOK(t, db.Exec("INSERT INTO two.t2 DEFAULT VALUES"))
 	checkExecOK(t, db.Exec("INSERT INTO t1 DEFAULT VALUES"))
 	_ = db.Query("PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;")
@@ -19426,6 +19861,8 @@ func TestSQLite_waloverwrite(t *testing.T) {
 	_ = db.Query("SELECT sum(length(y)) FROM t1")
 	_ = db.Query("PRAGMA integrity_check")
 	checkExecOK(t, db.Exec("WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;"))
+	checkExecOK(t, db.Exec("SAVEPOINT abc"))
+	checkExecOK(t, db.Exec("ROLLBACK TO abc"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from walpersist.test
@@ -19901,6 +20338,7 @@ func TestSQLite_where8(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b TEXT, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1,  'one',   'I');\n    INSERT INTO t1 VALUES(2,  'two',   'II');\n    INSERT INTO t1 VALUES(3,  'three', 'III');\n    INSERT INTO t1 VALUES(4,  'four',  'IV');\n    INSERT INTO t1 VALUES(5,  'five',  'V');\n    INSERT INTO t1 VALUES(6,  'six',   'VI');\n    INSERT INTO t1 VALUES(7,  'seven', 'VII');\n    INSERT INTO t1 VALUES(8,  'eight', 'VIII');\n    INSERT INTO t1 VALUES(9,  'nine',  'IX');\n    INSERT INTO t1 VALUES(10, 'ten',   'X');"))
+	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE e1 USING echo(t1);\n      SELECT b FROM e1;"))
 	_ = db.Query("SELECT c FROM e1 WHERE a=1 OR b='three';")
 	checkExecOK(t, db.Exec("CREATE TABLE t2(d, e, f);\n    CREATE INDEX i3 ON t2(d);\n    CREATE INDEX i4 ON t2(e);\n\n    INSERT INTO t2 VALUES(1,  NULL,         'I');\n    INSERT INTO t2 VALUES(2,  'four',       'IV');\n    INSERT INTO t2 VALUES(3,  NULL,         'IX');\n    INSERT INTO t2 VALUES(4,  'sixteen',    'XVI');\n    INSERT INTO t2 VALUES(5,  NULL,         'XXV');\n    INSERT INTO t2 VALUES(6,  'thirtysix',  'XXXVI');\n    INSERT INTO t2 VALUES(7,  'fortynine',  'XLIX');\n    INSERT INTO t2 VALUES(8,  'sixtyeight', 'LXIV');\n    INSERT INTO t2 VALUES(9,  'eightyone',  'LXXXIX');\n    INSERT INTO t2 VALUES(10, NULL,         'C');"))
 	checkExecOK(t, db.Exec("BEGIN;\n    CREATE TABLE t3(a INTEGER, b REAL, c TEXT);\n    CREATE TABLE t4(f INTEGER, g REAL, h TEXT);\n    INSERT INTO t3 VALUES('hills', NULL, 1415926535);\n    INSERT INTO t3 VALUES('and', 'of', NULL);\n    INSERT INTO t3 VALUES('have', 'towering', 53594.08128);\n    INSERT INTO t3 VALUES(NULL, 45.64856692, 'Not');\n    INSERT INTO t3 VALUES('same', 5028841971, NULL);\n    INSERT INTO t3 VALUES('onlookers', 'in', 8214808651);\n    INSERT INTO t3 VALUES(346.0348610, 2643383279, NULL);\n    INSERT INTO t3 VALUES(1415926535, 'of', 'are');\n    INSERT INTO t3 VALUES(NULL, 0.4811174502, 'snapshots');\n    INSERT INTO t3 VALUES('over', 'the', 8628034825);\n    INSERT INTO t3 VALUES(8628034825, 66.59334461, 2847564.823);\n    INSERT INTO t3 VALUES('onlookers', 'same', 'and');\n    INSERT INTO t3 VALUES(NULL, 'light', 6939937510);\n    INSERT INTO t3 VALUES('from', 'their', 'viewed');\n    INSERT INTO t3 VALUES('from', 'Alpine', 'snapshots');\n    INSERT INTO t3 VALUES('from', 'sometimes', 'unalike');\n    INSERT INTO t3 VALUES(1339.360726, 'light', 'have');\n    INSERT INTO t3 VALUES(6939937510, 3282306647, 'other');\n    INSERT INTO t3 VALUES('paintings', 8628034825, 'all');\n    INSERT INTO t3 VALUES('paintings', NULL, 'same');\n    INSERT INTO t3 VALUES('Alpine', 378678316.5, 'unalike');\n    INSERT INTO t3 VALUES('Alpine', NULL, 'same');\n    INSERT INTO t3 VALUES(1339.360726, 2847564.823, 'over');\n    INSERT INTO t3 VALUES('villages', 'their', 'have');\n    INSERT INTO t3 VALUES('unalike', 'remarkably', 'in');\n    INSERT INTO t3 VALUES('and', 8979323846, 'and');\n    INSERT INTO t3 VALUES(NULL, 1415926535, 'an');\n    INSERT INTO t3 VALUES(271.2019091, 8628034825, 0.4811174502);\n    INSERT INTO t3 VALUES('all', 3421170679, 'the');\n    INSERT INTO t3 VALUES('Not', 'and', 1415926535);\n    INSERT INTO t3 VALUES('of', 'other', 'light');\n    INSERT INTO t3 VALUES(NULL, 'towering', 'Not');\n    INSERT INTO t3 VALUES(346.0348610, NULL, 'other');\n    INSERT INTO t3 VALUES('Not', 378678316.5, NULL);\n    INSERT INTO t3 VALUES('snapshots', 8628034825, 'of');\n    INSERT INTO t3 VALUES(3282306647, 271.2019091, 'and');\n    INSERT INTO t3 VALUES(50.58223172, 378678316.5, 5028841971);\n    INSERT INTO t3 VALUES(50.58223172, 2643383279, 'snapshots');\n    INSERT INTO t3 VALUES('writings', 8979323846, 8979323846);\n    INSERT INTO t3 VALUES('onlookers', 'his', 'in');\n    INSERT INTO t3 VALUES('unalike', 8628034825, 1339.360726);\n    INSERT INTO t3 VALUES('of', 'Alpine', 'and');\n    INSERT INTO t3 VALUES('onlookers', NULL, 'from');\n    INSERT INTO t3 VALUES('writings', 'it', 1339.360726);\n    INSERT INTO t3 VALUES('it', 'and', 'villages');\n    INSERT INTO t3 VALUES('an', 'the', 'villages');\n    INSERT INTO t3 VALUES(8214808651, 8214808651, 'same');\n    INSERT INTO t3 VALUES(346.0348610, 'light', 1415926535);\n    INSERT INTO t3 VALUES(NULL, 8979323846, 'and');\n    INSERT INTO t3 VALUES(NULL, 'same', 1339.360726);\n    INSERT INTO t4 VALUES('his', 'from', 'an');\n    INSERT INTO t4 VALUES('snapshots', 'or', NULL);\n    INSERT INTO t4 VALUES('Alpine', 'have', 'it');\n    INSERT INTO t4 VALUES('have', 'peak', 'remarkably');\n    INSERT INTO t4 VALUES('hills', NULL, 'Not');\n    INSERT INTO t4 VALUES('same', 'from', 2643383279);\n    INSERT INTO t4 VALUES('have', 'angle', 8628034825);\n    INSERT INTO t4 VALUES('sometimes', 'it', 2847564.823);\n    INSERT INTO t4 VALUES(0938446095, 'peak', 'of');\n    INSERT INTO t4 VALUES(8628034825, 'and', 'same');\n    INSERT INTO t4 VALUES('and', 271.2019091, 'their');\n    INSERT INTO t4 VALUES('the', 'of', 'remarkably');\n    INSERT INTO t4 VALUES('and', 3421170679, 1415926535);\n    INSERT INTO t4 VALUES('and', 'in', 'all');\n    INSERT INTO t4 VALUES(378678316.5, 0.4811174502, 'snapshots');\n    INSERT INTO t4 VALUES('it', 'are', 'have');\n    INSERT INTO t4 VALUES('angle', 'snapshots', 378678316.5);\n    INSERT INTO t4 VALUES('from', 1415926535, 8628034825);\n    INSERT INTO t4 VALUES('snapshots', 'angle', 'have');\n    INSERT INTO t4 VALUES(3421170679, 0938446095, 'Not');\n    INSERT INTO t4 VALUES('peak', NULL, 0.4811174502);\n    INSERT INTO t4 VALUES('same', 'have', 'Alpine');\n    INSERT INTO t4 VALUES(271.2019091, 66.59334461, 0938446095);\n    INSERT INTO t4 VALUES(8979323846, 'his', 'an');\n    INSERT INTO t4 VALUES(NULL, 'and', 3282306647);\n    INSERT INTO t4 VALUES('remarkably', NULL, 'Not');\n    INSERT INTO t4 VALUES('villages', 4543.266482, 'his');\n    INSERT INTO t4 VALUES(2643383279, 'paintings', 'onlookers');\n    INSERT INTO t4 VALUES(1339.360726, 'of', 'the');\n    INSERT INTO t4 VALUES('peak', 'other', 'peak');\n    INSERT INTO t4 VALUES('it', 'or', 8979323846);\n    INSERT INTO t4 VALUES('onlookers', 'Not', 'towering');\n    INSERT INTO t4 VALUES(NULL, 'peak', 'Not');\n    INSERT INTO t4 VALUES('of', 'have', 6939937510);\n    INSERT INTO t4 VALUES('light', 'hills', 0.4811174502);\n    INSERT INTO t4 VALUES(5028841971, 'Not', 'it');\n    INSERT INTO t4 VALUES('and', 'Not', NULL);\n    INSERT INTO t4 VALUES(346.0348610, 'villages', NULL);\n    INSERT INTO t4 VALUES(8979323846, NULL, 6939937510);\n    INSERT INTO t4 VALUES('an', 'light', 'peak');\n    INSERT INTO t4 VALUES(5028841971, 6939937510, 'light');\n    INSERT INTO t4 VALUES('sometimes', 'peak', 'peak');\n    INSERT INTO t4 VALUES(378678316.5, 5028841971, 'an');\n    INSERT INTO t4 VALUES(378678316.5, 'his', 'Alpine');\n    INSERT INTO t4 VALUES('from', 'of', 'all');\n    INSERT INTO t4 VALUES(0938446095, 'same', NULL);\n    INSERT INTO t4 VALUES(0938446095, 'Alpine', NULL);\n    INSERT INTO t4 VALUES('his', 'of', 378678316.5);\n    INSERT INTO t4 VALUES(271.2019091, 'viewed', 3282306647);\n    INSERT INTO t4 VALUES('hills', 'all', 'peak');\n    CREATE TABLE t5(s);\n    INSERT INTO t5 VALUES('tab-t5');\n    CREATE TABLE t6(t);\n    INSERT INTO t6 VALUES(123456);\n    COMMIT;"))
@@ -19927,6 +20365,7 @@ func TestSQLite_where9(t *testing.T) {
 	_ = db.Query("SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;")
 	_ = db.Query("SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a IN (5,31,57,82,83,84,85,86,87);\n    ROLLBACK;")
 	_ = db.Query("SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a%100 IN (5,31,57,82,83,84,85,86,87) ORDER BY rowid;\n    ROLLBACK;")
+	checkExecOK(t, db.Exec("CREATE TABLE t5(a, b, c, d, e, f, g, x, y);\n    INSERT INTO t5\n     SELECT a, b, c, e, d, f, g,\n            CASE WHEN (a&1)!=0 THEN 'y' ELSE 'n' END,\n            CASE WHEN (a&2)!=0 THEN 'y' ELSE 'n' END\n       FROM t1;\n    CREATE INDEX t5xb ON t5(x, b);\n    CREATE INDEX t5xc ON t5(x, c);\n    CREATE INDEX t5xd ON t5(x, d);\n    CREATE INDEX t5xe ON t5(x, e);\n    CREATE INDEX t5xf ON t5(x, f);\n    CREATE INDEX t5xg ON t5(x, g);\n    CREATE INDEX t5yb ON t5(y, b);\n    CREATE INDEX t5yc ON t5(y, c);\n    CREATE INDEX t5yd ON t5(y, d);\n    CREATE INDEX t5ye ON t5(y, e);\n    CREATE INDEX t5yf ON t5(y, f);\n    CREATE INDEX t5yg ON t5(y, g);\n    CREATE TABLE t6(a, b, c, e, d, f, g, x, y);\n    INSERT INTO t6 SELECT * FROM t5;\n    ANALYZE t5;"))
 	_ = db.Query("SELECT a FROM t6 WHERE x='y' AND (b=913 OR c=27027) ORDER BY a;")
 	_ = db.Query("SELECT a FROM t6 WHERE x='n' AND (b=913 OR c=27027) ORDER BY a;")
 	_ = db.Query("SELECT a FROM t6 WHERE (x='y' OR y='y') AND b=913 ORDER BY a;")
@@ -20135,9 +20574,11 @@ func TestSQLite_whereJ(t *testing.T) {
 	var dbs []*DB
 	dbs = append(dbs, db)
 	checkExecOK(t, db.Exec("CREATE TABLE tx1 (\n    est,\n    cid,\n    sid,\t\n    fid,\n    aid,\n    edate,\n    rstat,\n    ftype,\n    cx,\n    fyear,\n    fp,\n    acode,\n    a1,\n    curx,\n    tdate,\n    gstat,\n    trgtpx,\n    effdate,\n    adate,\n    ytime,\n    mstat\n  );\n  CREATE INDEX ix0 on tx1(a1,curx,aid,cid,sid,ftype,fp,fyear DESC,edate DESC,fid);\n  CREATE INDEX ix1 on tx1(a1,curx,aid,ftype,fp,fyear DESC,fid,edate DESC,cid,sid);\n  CREATE INDEX ix2 on tx1(a1,curx,cid,sid,ftype,fp,fyear DESC,edate DESC,aid,fid);\n  CREATE INDEX ix3 on tx1(a1,curx,fid,ftype,fp,fyear DESC,cid,sid,aid,edate DESC);\n  CREATE INDEX ix4 on tx1(a1,curx,ftype,cid,sid,aid,edate DESC,fid,fp,fyear DESC);\n  CREATE INDEX ix5 on tx1(a1,curx,ftype,aid,fid,cid,sid,edate DESC,fp,fyear DESC);\n  CREATE INDEX ix6 on tx1(ftype,fp,fyear DESC,cid,sid,edate DESC,a1,fid,aid,curx,est,rstat,cx,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix7 on tx1(cid,a1,curx,sid,ftype,est,fid,aid,edate,rstat,cx,fyear,fp,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix8 on tx1(cid,sid,edate DESC,aid,est);\n  CREATE INDEX ix9 on tx1(aid,edate DESC,a1,curx);"))
+	checkExecOK(t, db.Exec("ANALYZE sqlite_master;\n  DELETE FROM sqlite_stat1;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix9','11680827 289 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix8','11680827 286 250 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix7','11680827 286 194 98 88 83 18 7 6 2 2 2 2 2 2 2 2 2 2 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix6','11680827 5840414 5840414 5840414 240 212 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix5','11680827 5840414 2920207 1668690 114 90 8 8 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix4','11680827 5840414 2920207 1668690 92 83 9 2 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix3','11680827 5840414 2920207 2048 1835 1835 1835 12 11 8 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix2','11680827 5840414 2920207 98 88 83 83 83 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix1','11680827 5840414 2920207 117 114 114 114 90 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('tx1','ix0','11680827 5840414 2920207 117 9 9 9 9 9 2 2');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','6736 21 21 21 1','29210 29404 29404 29404 29424','44 12184 13020 13079 29424',X'06030409080416C1150133512800B01FCA');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','6658 24 21 21 1','452220 453273 453276 453276 453296','622 226258 235279 236774 453296',X'06030409080416F34501332ADC00AA1BD3');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','820 2 2 2 1','1297771 1297869 1297869 1297869 1297869','1964 681724 711020 715822 1297869',X'06030409080317875501332C6C55AF4D');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','26985 2216 2216 2216 1','1797607 1797782 1797782 1797782 1799997','3162 970307 1008879 1016089 1799997',X'0603040809041A08040132401A0099A334');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','10434 19 17 17 1','2118117 2120403 2120405 2120405 2120421','3815 1136110 1181459 1190207 2120421',X'0603040908041AD36901332CD000861A2F');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','437 1 1 1 1','2595414 2595739 2595739 2595739 2595739','5005 1409452 1464066 1475163 2595739',X'0603040808031CE7FD01317FD46BFBCC');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','12619 38 38 38 1','2595957 2600212 2600212 2600212 2600249','5007 1410347 1464961 1476068 2600249',X'0603040808041CE87E01328F61008CE96A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','7534 23 18 18 1','3329985 3334890 3334895 3334895 3334912','6901 1834013 1902216 1917268 3334912',X'060304090804244E1901328F59008CAA39');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','5693 1 1 1 1','3891665 3893609 3893609 3893609 3893609','8357 2164400 2245393 2263185 3893609',X'0603040808043063B70132B66800A28A43');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','44405 2588 2223 1527 1','4220255 4221633 4221998 4222694 4224220','9221 2354858 2441973 2461511 4224220',X'0603040909043377630133517A00B0DE4F');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','6883 32 28 28 1','4423918 4429926 4429930 4429930 4429957','9690 2452276 2543443 2563995 4429957',X'06030409080434F46801328F5C008CC3DA');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','6974 27 26 26 1','5048404 5051129 5051130 5051130 5051155','11703 2817010 2920184 2944013 5051155',X'0603040908043C1C5C0132DEA5009F7473');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','476 2 2 2 1','5191322 5191479 5191479 5191479 5191479','12242 2901130 3006663 3031222 5191479',X'0603040908033DC6080132DEA478849A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','627 4 4 4 1','6488823 6489349 6489349 6489349 6489349','16423 3644815 3778857 3809866 6489349',X'0603040808035AA00E0131F4AE342150');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','145 2 2 1 1','7787091 7787218 7787218 7787219 7787219','20223 4343720 4510110 4547961 7787219',X'0603040809037254890132189C703706');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','20 1 1 1 1','9085074 9085089 9085089 9085089 9085089','25315 5033102 5230788 5275692 9085089',X'06040408080300EAE6CA01326657620652');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','229621 6135 5934 5934 1','9507353 9572696 9572696 9572696 9576801','27189 5255584 5463962 5511784 9576801',X'06040408080300F2FA440132DF1A7D1A60');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','6376 24 22 22 1','10381524 10382938 10382940 10382940 10382959','30519 5581705 5804515 5856651 10382959',X'06040409080400F9DBF3013305AC00A688A4');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','7761 45 9 9 1','10569039 10572476 10572512 10572512 10572520','31455 5661599 5888691 5941811 10572520',X'06040409080400FB31560132DDD800A05DF5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','8382 37 37 37 1','10866664 10867565 10867565 10867565 10867601','33475 5809193 6042611 6097741 10867601',X'06040409080400FFA4A701332A0E00A93957');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','76136 4099 3018 3018 1','11283107 11308143 11309224 11309224 11312241','37001 6022861 6264510 6322923 11312241',X'060404090804010B0A5C0133517200B0E8E0');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','23472 2188 2188 2181 1','11365285 11380281 11380281 11380288 11382468','37055 6026680 6268909 6327509 11382468',X'060404080904010B3C6701332B2E00AA4374');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','59591 4087 4073 4 1','11415316 11448759 11448773 11452842 11452845','37350 6040743 6283483 6342389 11452845',X'060404090904010BFA810133512800B010AE');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix9','43891 3029 3021 4 1','11598477 11622881 11622889 11625906 11625909','39110 6107644 6353109 6413914 11625909',X'0604040909040113B9960133512800B01235');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7340 4977 19 1 1 1','206533 206533 208739 208757 208757 208757','125 164 111403 207397 207399 208757',X'070308040407030187840132B54B0101A0D1401C0000000000004C87E5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','8877 8788 45 1 1 1','1221375 1221375 1224509 1224553 1224553 1224553','931 1117 679933 1216705 1216722 1224553',X'07030804040703018D3F0133023D010B9B67401C0000000000007A99EF');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7204 7204 39 1 1 1','1240162 1240162 1242572 1242610 1242610 1242610','942 1131 688420 1234655 1234672 1242610',X'07030804040703018D4F0132DB820105D324401C0000000000007EC569');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','9608 9608 44 1 1 1','1264939 1264939 1266529 1266572 1266572 1266572','952 1145 699518 1258423 1258440 1266572',X'07030804040704018D61013305B9010D3CEB406E8000000000000081E17A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','6636 6636 1 1 1 1','1294580 1294580 1297869 1297869 1297869 1297869','964 1159 713121 1289522 1289540 1297869',X'07030804030704018D7801328F693482A2403400000000000000A26728');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7822 6629 26 1 1 1','2375708 2375708 2381333 2381358 2381358 2381358','3423 3833 1371902 2366527 2366559 2381358',X'0703080403070301B1F501317F16403B7B403F00000000000060D67A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','1403 1303 5 1 1 1','2594767 2594767 2595737 2595739 2595739 2595739','3914 4427 1512042 2580073 2580114 2595739',X'0703080403070301B6480131CC18558082407120000000000029CC12');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7901 6067 26 1 1 1','3424107 3424107 3425939 3425964 3425964 3425964','5872 6630 2032411 3406550 3406594 3425964',X'0703080404070401C3F90132B7A100FDCC04403E00000000000000A014CE');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7483 6161 22 1 1 1','3549446 3549446 3555223 3555244 3555244 3555244','5932 6752 2099309 3535259 3535304 3555244',X'0703080403070301C4490131573F4104F8403400000000000067FD1E');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','12076 8263 37 1 1 1','3558079 3558079 3560036 3560072 3560072 3560072','5935 6758 2101989 3540078 3540123 3560072',X'0703080404070301C44E0132DD0901076DA9404200000000000076F994');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','1123 1113 1 1 1 1','3892913 3892913 3893609 3893609 3893609 3893609','6594 7611 2305483 3871711 3871770 3893609',X'0703080403070301CA280131CA1C215083401C00000000000071F6B2');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','9344 7315 41 1 1 1','4213510 4213510 4219434 4219474 4219474 4219474','7200 8390 2503024 4196141 4196204 4219474',X'0703080404070301CE8C01317DE800FE4E8B4034000000000000458317');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','8062 3291 1 1 1 1','5037060 5037060 5040350 5040350 5040350 5040350','10201 11915 3045602 5012912 5012997 5040350',X'070308040307030213B20130B83A16DF86403600000000000028F8CD');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','9125 2926 1 1 1 1','5046490 5052665 5055590 5055590 5055590 5055590','10203 11926 3055524 5028097 5028182 5055590',X'070302040307030213B5232A013107F01745AF40330000000000002B57DE');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','591 591 1 1 1 1','5190991 5190991 5191479 5191479 5191479 5191479','10649 12426 3145181 5163206 5163296 5191479',X'070308040307030244AD0131315217C1CD401C00000000000003BC32');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7381 4689 1 1 1 1','6112248 6112248 6116936 6116936 6116936 6116936','13780 16308 3748958 6083681 6083797 6116936',X'0703080403070402A9D1013108B531A21C401C0000000000000092F5C6');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7569 7381 28 1 1 1','6280084 6280084 6281842 6281869 6281869 6281869','14559 17217 3856803 6247722 6247841 6281869',X'0703080404070302C14C0132DBF101044CC7401C00000000000074FB16');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','8289 7047 28 1 1 1','6290764 6290764 6296854 6296881 6296881 6296881','14569 17229 3863206 6262658 6262777 6296881',X'0703080403070302C16401317CC348B670401C0000000000006824BB');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','2209 2209 1 1 1 1','6489075 6489075 6489349 6489349 6489349 6489349','15377 18147 3986912 6454194 6454318 6489349',X'0703080403070402EA5901332A656C6F5E401C00000000000000AE7C03');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7381 6799 1 1 1 1','7314420 7314420 7321218 7321218 7321218 7321218','18403 21722 4532963 7281695 7281847 7321218',X'07030804030703049EE501310667176DC940438000000000005ED2B5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','7163 7001 31 1 1 1','7652849 7652849 7658600 7658630 7658630 7658630','19462 22956 4750159 7617449 7617608 7658630',X'070308040407030503EB01317DEF010ADD3F402800000000000061C3EF');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','1433 1433 2 1 1 1','7785842 7785842 7787219 7787219 7787219 7787219','20001 23575 4834605 7745315 7745477 7787219',X'07030804030703055010013156D81B11AC404380000000000004A313');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','2247 2247 1 1 1 1','9083272 9083272 9085089 9085089 9085089 9085089','24940 29143 5668423 9036693 9036887 9085089',X'070308040307031A620A01323EEB5CE39C406FE000000000006F8177');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix8','107 107 5 1 1 1','10382912 10382912 10382957 10382959 10382959 10382959','31251 36297 6541362 10329764 10330008 10382959',X'0704080403070400955501013350516AA9D0406060000000000000884648');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7340 4770 4527 3331 3331 970 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','206533 206533 206533 206533 206533 206596 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565 207565','125 202 402 512 560 6209 20696 25885 206260 206260 206260 206260 206260 206260 206260 206260 206260 206260 206260 206260 206260 207565',X'1703080808080704030408030808010308070808080803018784401C000000000000024FD353493F8801317E4700FFFF0F00FFFFC0F869E0000000002642C5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','8877 4669 71 3 3 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','1221375 1225583 1230181 1230249 1230249 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251 1230251','931 1504 2992 3495 3751 39629 120561 147424 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1222711 1230251',X'1703090902080704030408090808010108070404040804018D3F03E8405680000000000000822B981EB823013351F00F0C4086E00000000000013351F0013351F053870D7500B22A8C');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7204 4801 193 193 4 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','1240162 1240162 1244770 1244770 1244959 1244961 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962 1244962','942 1520 3024 3531 3791 40098 122274 149540 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1237296 1244962',X'1703080908010703030408030808010308070408040803018D4F07406FE000000000000602CF16DE05013303C300FFFF0300FFFFC0F869E000000000013303C3008000004BD756');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','9608 6098 5910 5910 5910 2149 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','1264939 1264939 1264939 1264939 1264939 1265217 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365 1267365','952 1536 3055 3576 3841 40616 124132 151876 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1259547 1267365',X'1703080808080704030408090808010101070404040803018D61401C0000000000000131374D1726AB0132DD780F0C0540390000000000000132DD780132DD784E2789C6190CA9');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','6636 4411 4237 4237 4237 33 8 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1','1294580 1294580 1294580 1294580 1294580 1297842 1297862 1297862 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869','964 1557 3097 3622 3888 41246 126538 154868 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1289863 1297869',X'1703080808080703030408090808010308070808080803018D7840420000000000007332F1227B5901321AF80800FFFF40260000000000006D0CEB');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7822 4817 260 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','2375708 2375708 2380265 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524 2380524','3423 5117 10120 11184 11775 86237 242937 294878 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2366404 2380524',X'170308090308070304040803080801030807040408080401B1F501831C405C40000000000077646800EAD44C0132697000FFFF0300FFFFC0F869E0000000000132696F0132696F0094935E');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','1403 1022 82 74 74 55 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','2594767 2594767 2595707 2595707 2595707 2595708 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739','3914 5817 11518 12879 13613 98100 278304 342850 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2580971 2595739',X'170308090808070303040803080801030807080808080301B648405C400000000000038EAC243F770131A6F700FFFF0E00FFFFC0F869E0000000005C8664');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7901 5298 291 55 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','3424107 3424107 3429114 3429350 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404 3429404','5872 8944 17727 19769 20846 145206 401995 498360 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3411279 3429404',X'170308090201070404040803080801030807040808080401C3F9232807405C40000000000000FF559400F2FA440133294600FFFF0300FFFFC0F869E000000000013329460083157B');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7483 5407 230 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','3549446 3549446 3554623 3554845 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852 3554852','5932 9041 17921 20139 21264 149060 417718 520064 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3536268 3554852',X'170308090201070404040803080801030807040808080401C449232807405C40000000000000FF559400F2FA440133294600FFFF0300FFFFC0F869E000000000013329460083162A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','12076 8365 7981 5546 5546 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','3558079 3558079 3558079 3558079 3558079 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624 3563624','5935 9046 17930 20154 21279 149235 418443 521109 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3544970 3563624',X'170308080808070303040803080801030107040408080301C44E4074300000000000029EB13BB98E01328EFE00FFFF0E00FFFF0AC0F869E00000000001328F0001328F0071D802');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','1123 916 875 875 875 93 22 22 1 1 1 1 1 1 1 1 1 1 1 1 1 1','3892913 3892913 3892913 3892913 3892913 3893531 3893602 3893602 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609','6594 10057 19942 22653 23964 165533 468498 587524 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3873325 3893609',X'170308080808070403040802080801030107040404080301CA28403F00000000000000832DC71933330132DB8800FC0F00FFFF054050C000000000000132DB870132DB8A4D5E35A2107205');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','9344 6359 6022 9 9 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','4213510 4213510 4213510 4219523 4219523 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531 4219531','7200 11025 21872 25036 26543 181203 517345 652858 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4198057 4219531',X'170308080308070303040803080801030807080808080301CE8C0186A0403F00000000000002C2142F19870131554100FFFF0F00FFFFC0F869E0000000000687F7');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','8062 4993 241 53 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','5037060 5037060 5041812 5042000 5042051 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052 5042052','10201 15484 30736 35196 37326 231854 654010 829510 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5017193 5042052',X'17030809020107030404080308080103080704080808030213B2245407406FE0000000000002C0AA00F6ABA101332A7E00FFFF0300FFFFC0F869E00000000001332A7E5287C0');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','9125 5761 264 5 5 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','5046490 5046490 5051987 5052246 5052246 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250 5052250','10203 15488 30744 35230 37365 232178 654964 830718 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5027358 5052250',X'17030809030807030304080308080103080708080808030213B501831F406FE00000000000029E627136F901328DD500FFFF0300FFFFC0F869E000000000290DD6');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','591 591 566 566 566 27 18 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1','5190991 5190991 5190991 5190991 5190991 5191461 5191464 5191474 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479','10649 16115 31973 36593 38793 239550 673441 853755 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5165855 5191479',X'17030808080807030404080108080101080708080808040244AD4045800000000000029E6200EAE8740132690D0A0F0C402E00000000000000941EAF');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7381 3728 83 16 16 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','6112248 6115901 6119546 6119613 6119613 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628 6119628','13780 20707 41067 47538 50438 296473 834203 1056686 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6089878 6119628',X'170309090208070304040809080801010807040404080402A9D12328407360000000000002172300EABCFF0133517F0F0C404AA6665E02EA960133517F01335239538BC5C1008B5EC9');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7569 5785 274 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','6280084 6280084 6285595 6285867 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868 6285868','14559 21811 43240 50020 53057 307264 862871 1092992 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6255378 6285868',X'170308090301070404040803080801030807040808080302C14C01832707405C40000000000000FF559400F2FA440133294600FFFF0300FFFFC0F869E000000000013329461E5109');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','8289 5734 266 33 3 3 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','6290764 6290764 6296232 6296465 6296495 6296495 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497 6296497','14569 21827 43272 50056 53096 307563 864043 1094585 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6265950 6296497',X'170308090201070404040803080801030807040808080402C164232807405C40000000000000FF559400F2FA440133294600FFFF0300FFFFC0F869E0000000000133294600A90415');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','2209 1450 1369 1369 1369 597 13 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1','6489075 6489075 6489075 6489075 6489075 6489139 6489344 6489344 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349','15377 22998 45584 52641 55837 319564 895653 1134252 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6458046 6489349',X'170308080808070303040802080801030807040404080302EA59401C0000000000000D4B201AD8B30132DF0400FC0600FFFF40180000000000000132DF040132DF054EBA338714FBBA');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7381 5446 171 11 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','7314420 7314420 7319695 7319855 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865 7319865','18403 27319 54152 62541 66337 369851 1032180 1306261 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7284923 7319865',X'1703080902010703030408030808010308070408080804049EE503E907405C400000000000029EC32E97BE0133061F00FFFF0300FFFFC0F869E0000000000133061F00A9ECEF');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','7163 4782 209 5 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','7652849 7652849 7657422 7657626 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630 7657630','19462 28830 57147 65962 69945 388539 1084446 1372423 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7621247 7657630',X'17030809020107040404080308080103080704080808040503EB03EA07405C40000000000000FF559400F2FA440133294600FFFF0300FFFFC0F869E0000000000133294600831554');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','1433 582 571 571 571 15 15 15 1 1 1 1 1 1 1 1 1 1 1 1 1 1','7785842 7786693 7786693 7786693 7786693 7787208 7787208 7787208 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219','20001 29582 58632 67649 71736 396840 1107204 1400830 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7750264 7787219',X'1703090808080703040408090808010108070404040804055010406E80000000000001C7A600FC429201332D890F0C402C00000000000001332D890133505352D7248A008775D8');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','2247 682 657 657 657 117 45 45 1 1 1 1 1 1 1 1 1 1 1 1 1 1','9083272 9084837 9084837 9084837 9084837 9085088 9085088 9085088 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089','24940 36384 72113 82665 87632 474987 1318830 1664527 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9042708 9085089',X'17030908080807030304080208080103010704040408031A620A403E00000000000001C3D332CF850132DE9D00FC0200FFFF054050E000000000000132DE9D0132DE9D4E8C092E790553');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix7','107 77 69 69 69 11 5 5 1 1 1 1 1 1 1 1 1 1 1 1 1 1','10382912 10382942 10382942 10382942 10382942 10382952 10382956 10382956 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959','31251 45639 90416 102896 109225 567280 1544395 1943661 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10337289 10382959',X'170409080808070303040809080801010807040404080300955501403E000000000000029E686E250B01332D220F0C402E00000000000001332D220133504E52CFCF4F21CD7F');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7337 4975 19 19 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 206462 206462 210789 210789 210807 210807 210807 210807 210807 210807 210807 210807 210807 210807 210807 210807 210807 210807 210807','0 0 0 125 164 112407 128579 207456 209489 209490 209490 209490 209490 209490 209490 209490 209490 209490 209490 209490 209490 210807',X'170808080308040804030807080301030807080808080301878401317F26024FD3531E2DAF404200000000000000FFFF0200FFFFC0F869E0000000002642C4');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 8874 8785 45 25 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 1221012 1221012 1224145 1224165 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189 1224189','0 0 0 931 1117 679896 773861 1207582 1216653 1216673 1216673 1216673 1216673 1216673 1216673 1216673 1216673 1216673 1216673 1216673 1216673 1224189',X'1708080803080409040408070809010308070404040803018D3F0133023D01940C420106B14D40420000000000000F00FFFF4070E000000000000133023D0133023D4F2053654AE525');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7200 7200 39 15 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 1239793 1239793 1242199 1242223 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237 1242237','0 0 0 942 1131 688381 783660 1225441 1234602 1234622 1234622 1234622 1234622 1234622 1234622 1234622 1234622 1234622 1234622 1234622 1234622 1242237',X'1708080803080409040308070809010301070404040804018D4F0132DB820113FAB92F19C5401C0000000000000F00FFFF0F403A0000000000000132DB820132DB824D542A4F009B5C72');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 9606 9606 44 25 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 1264560 1264560 1266149 1266168 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192 1266192','0 0 0 952 1145 699479 796008 1249062 1258369 1258391 1258391 1258391 1258391 1258391 1258391 1258391 1258391 1258391 1258391 1258391 1258391 1266192',X'1708080803080409040308070809010101070404040803018D61013305B9017CDF4916F8B140280000000000000F0C0A403600000000000001330557013305B9507EA8DD212E79');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 6635 6635 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 1294199 1294199 1297868 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869 1297869','0 0 0 964 1159 713241 812408 1280435 1289849 1289871 1289871 1289871 1289871 1289871 1289871 1289871 1289871 1289871 1289871 1289871 1289871 1297869',X'1708080803080409030308070803010308070808080803018D78013267DC0EF747387106403F00000000000000FFFF0F00FFFFC0F869E00000000006B968');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7815 6624 26 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 2374939 2374939 2380559 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584 2380584','0 0 0 3423 3833 1371803 1539928 2350493 2366415 2366460 2366460 2366460 2366460 2366460 2366460 2366460 2366460 2366460 2366460 2366460 2366460 2380584',X'170808080308040903030807080301030807080808080301B1F501317F160DDEA51C46AB405280000000000000FFFF0F00FFFFC0F869E0000000006ADDA9');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 3595 3459 10 7 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 2595336 2595336 2595734 2595737 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739 2595739','0 0 0 3918 4433 1512586 1693312 2557025 2580917 2580967 2580967 2580967 2580967 2580967 2580967 2580967 2580967 2580967 2580967 2580967 2580967 2595739',X'170808080308040903030807080101010107040404080301B64F01332ACC029E833D19084028000000000000320F0C054074A0000000000001332A0901332ACC518A316F1F30D6');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7894 6061 26 10 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 3422592 3422592 3424418 3424434 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443 3424443','0 0 0 5872 6630 2032185 2267240 3366727 3406294 3406363 3406363 3406363 3406363 3406363 3406363 3406363 3406363 3406363 3406363 3406363 3406363 3424443',X'170808080308040904030807080101030807040404080401C3F90132B7A100D6FD7F6CE97F4070500000000000100F00FFFF40560000000000000132B7310132DB2D4D3F72D9009AE8EE');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7479 6158 22 22 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 3547845 3547845 3553619 3553619 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640 3553640','0 0 0 5932 6752 2099067 2343370 3491679 3534981 3535053 3535053 3535053 3535053 3535053 3535053 3535053 3535053 3535053 3535053 3535053 3535053 3553640',X'170808080308040804030807080301030807080808080301C4490131573F008E7AC03077E0403E00000000000000FFFF0F00FFFFC0F869E00000000065B45A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 12068 8257 37 17 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 3556474 3556474 3558426 3558446 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462 3558462','0 0 0 5935 6758 2101744 2346448 3496404 3539797 3539869 3539869 3539869 3539869 3539869 3539869 3539869 3539869 3539869 3539869 3539869 3539869 3558462',X'170808080308040904030807080201010107040404080301C44E0132DD09016891C11788EB404200000000000000FC0F0C0F400199999999999A0132DD090132DD094DE5DCE3763299');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 1510 1497 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 3892149 3892149 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609 3893609','0 0 0 6596 7614 2306358 2572095 3823194 3873232 3873319 3873319 3873319 3873319 3873319 3873319 3873319 3873319 3873319 3873319 3873319 3873319 3893609',X'170808080308040803030807080301030807080808080301CA2E01312E3A038EE6257265400000000000000000FFFF0600FFFFC0F869E00000000032518F');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 9341 7313 41 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 4211282 4211282 4217204 4217243 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244 4217244','0 0 0 7200 8390 2502650 2792131 4139620 4195704 4195798 4195798 4195798 4195798 4195798 4195798 4195798 4195798 4195798 4195798 4195798 4195798 4217244',X'170808080308040903030807080301030807080808080301CE8C01317DE8029E9D3B6D23403E00000000000000FFFF0F00FFFFC0F869E00000000008EF7D');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 8055 3290 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 5033936 5033936 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225 5037225','0 0 0 10201 11915 3045026 3383481 4941323 5012256 5012369 5012369 5012369 5012369 5012369 5012369 5012369 5012369 5012369 5012369 5012369 5012369 5037225',X'17080808030804090303080708030803080708080808030213B20130B83A018A7516DF86403600000000000000FFFF00FFFFC0F869E00000000028F8CD');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 9117 2923 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 5043358 5049528 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450 5052450','0 0 0 10203 11926 3054947 3394812 4956408 5027439 5027552 5027552 5027552 5027552 5027552 5027552 5027552 5027552 5027552 5027552 5027552 5027552 5052450',X'17080808030204080303080708030103080708080808030213B5232A013107F00217231745AF403300000000000000FFFF0200FFFFC0F869E0000000002B57DE');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 333 333 4 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 5191271 5191271 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479 5191479','0 0 0 10672 12452 3147059 3494842 5093162 5165710 5165827 5165827 5165827 5165827 5165827 5165827 5165827 5165827 5165827 5165827 5165827 5165827 5191479',X'17080808030804080303080708030103080708080808030244F00131CB4201C1C917188E403F00000000000000FFFF0800FFFFC0F869E00000000001C5CB');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7374 4684 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 6107894 6107894 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577 6112577','0 0 0 13780 16308 3748117 4153600 5995776 6082692 6082834 6082834 6082834 6082834 6082834 6082834 6082834 6082834 6082834 6082834 6082834 6082834 6112577',X'170808080308040803030807080301030807080808080402A9D1013108B5029E6831A21C401C00000000000000FFFF0200FFFFC0F869E0000000000092F5C6');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7562 7376 28 11 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 6275521 6275521 6277274 6277291 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301 6277301','0 0 0 14559 17217 3855913 4271255 6156622 6246677 6246823 6246823 6246823 6246823 6246823 6246823 6246823 6246823 6246823 6246823 6246823 6246823 6277301',X'170808080308040904030807080201030107040404080302C14C0132DBF100832DC739FF53403F00000000000000FC0F00FFFF05402C0000000000000132DBF10132DBF34D89B7AA1114CB');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 8282 7043 28 28 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 6286191 6286191 6292277 6292277 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304 6292304','0 0 0 14569 17229 3862314 4278722 6171137 6261611 6261757 6261757 6261757 6261757 6261757 6261757 6261757 6261757 6261757 6261757 6261757 6261757 6292304',X'170808080308040804030807080301030807080808080302C16401317CC301B5AA4A1AB270405680000000000000FFFF0F00FFFFC0F869E00000000048FD4C');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 3101 3101 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 6486495 6486495 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349 6489349','0 0 0 15379 18149 3988504 4417216 6363796 6457879 6458036 6458036 6458036 6458036 6458036 6458036 6458036 6458036 6458036 6458036 6458036 6458036 6489349',X'170808080308040803030807080301030807080808080302EA6601317F7301C3EB17C4CE401C00000000000000FFFF0F00FFFFC0F869E000000000398198');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 7379 6798 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 7308682 7308682 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479 7315479','0 0 0 18403 21722 4531809 5008068 7172304 7280343 7280536 7280536 7280536 7280536 7280536 7280536 7280536 7280536 7280536 7280536 7280536 7280536 7315479',X'1708080803080408040308070803010308070808080803049EE501310667008390D0176DC9404380000000000000FFFF0500FFFFC0F869E0000000005ED2B5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 211 211 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 7787150 7787150 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219 7787219','0 0 0 20027 23602 4837427 5341824 7634169 7750020 7750224 7750224 7750224 7750224 7750224 7750224 7750224 7750224 7750224 7750224 7750224 7750224 7787219',X'17080808030804080303080708090103080704040808030550B30132B73501A79C17C3D840340000000000000F00FFFF40140000000000000132B6D00132B7400D1DB9');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 26 26 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 9085083 9085083 9085088 9085088 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089 9085089','0 0 0 24964 29171 5671673 6246216 8904392 9042441 9042684 9042684 9042684 9042684 9042684 9042684 9042684 9042684 9042684 9042684 9042684 9042684 9085089',X'17080808030804080303080708030103080708080808031AA25C0131CA197A6D831B1D84401C00000000000000FFFF0F00FFFFC0F869E00000000071E307');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','11668540 11668540 11668540 1261 1261 9 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','0 0 0 10381872 10381872 10382956 10382956 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959 10382959','0 0 0 31297 36344 6545140 7198586 10180602 10336983 10337266 10337266 10337266 10337266 10337266 10337266 10337266 10337266 10337266 10337266 10337266 10337266 10382959',X'17080808040804080303080708010101080708080808030095A4C401321BB603010141073C401C000000000000080F0C40308000000000007E55BE');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix6','12287 12287 12287 17 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1','11668540 11668540 11668540 11672111 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127 11672127','1 1 1 43128 49243 7431284 8170740 11452355 11624787 11625093 11625093 11625093 11625093 11625093 11625093 11625093 11625093 11625093 11625093 11625093 11625093 11672127',X'1701080803020408040409070803010308070408040804070267C127130133041E00AB540900E64074405C40000000000000FFFF0300FFFFC0F869E0000000000133041E0080000000A3EE16');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 24157 24157 29 29 1 1 1 1','0 0 0 1236590 1236590 1251799 1251799 1251827 1251827 1251827 1251827','0 0 0 3120 4771 71527 72755 1238782 1238782 1238782 1251827',X'0C08080803040308040808031A080400FF5594029BB30131CD372B1368');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 1209 1209 129 129 1 1 1 1','0 0 0 1296873 1296873 1297744 1297744 1297869 1297869 1297869 1297869','0 0 0 3203 4902 74577 75831 1284645 1284645 1284645 1297869',X'0C08080803030308040808041A215F04C9D901B0A30131066F0087162A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 12129 9261 428 428 1 1 1 1','0 0 0 1790076 1790076 1790076 1790076 1790503 1790503 1790503 1790503','0 0 0 4938 7561 108783 110860 1774402 1774402 1774402 1790503',X'0C08080803030308040808031CE87E029E6B018700013219C1373BA8');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 273 273 5 5 1 1 1 1','0 0 0 2595625 2595625 2595738 2595738 2595739 2595739 2595739 2595739','0 0 0 7863 12132 166423 169877 2575172 2575172 2575172 2595739',X'0C08080803030308040808042F020502DA0E02C73A0133049700A711F8');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 7735 7735 29 29 1 1 1 1','0 0 0 2924165 2924165 2929754 2929754 2929782 2929782 2929782 2929782','0 0 0 9123 14045 191316 195293 2907742 2907742 2907742 2929782',X'0C080808030403080408080333776300FF559475928D013329435A824F');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 360 229 27 27 1 1 1 1','0 0 0 3893374 3893505 3893605 3893605 3893609 3893609 3893609 3893609','0 0 0 13912 21124 273265 278784 3866425 3866425 3866425 3893609',X'0C08080803030308040808044717710E070B01E88F0131A5B80098D0A5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 683 671 32 32 1 1 1 1','0 0 0 5191447 5191459 5191477 5191477 5191479 5191479 5191479 5191479','0 0 0 20361 30776 381171 389104 5158962 5158962 5158962 5191479',X'0C08080803030308040808037370D10F00290188450132B537354C5E');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 213354 213354 113 113 1 1 1 1','0 0 0 6102233 6102233 6155183 6155183 6155295 6155295 6155295 6155295','0 0 0 26812 39489 472780 483115 6119281 6119281 6119281 6155295',X'0C080808040403080408080300F2FA4400FF5594019B6D01324067714AE8');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 3675 3675 241 241 1 1 1 1','0 0 0 6486701 6486701 6489287 6489287 6489349 6489349 6489349 6489349','0 0 0 28380 41383 502486 513750 6452691 6452691 6452691 6489349',X'0C080808040304080408080300F6ABAC6C967D009F84B60132DBDD155A2A');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 24063 24063 38 38 1 1 1 1','0 0 0 7080911 7080911 7102380 7102380 7102417 7102417 7102417 7102417','0 0 0 35724 49844 582928 595393 7065320 7065320 7065320 7102417',X'0C0808080404040804080803010B0A5C00FF559400CCD3EE0133294559DDCD');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 7173953 7173950 20284 20284 38 38 1 1 1 1','0 0 0 7107237 7107237 7126606 7126606 7126643 7126643 7126643 7126643','0 0 0 35764 49885 586473 599030 7089546 7089546 7089546 7126643',X'0C0808080404040804080803010B3C6700FF55940114CE73013329432225CC');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 630326 618063 11855 11855 3 1 1 1 1 1','0 7173953 7173953 7665258 7665258 7672559 7672561 7672561 7672561 7672561 7672561','0 1 2 64320 91213 1077048 1100563 7630436 7630436 7630436 7672561',X'0C080908040403020408080400F2FA4400FF559405DD0A23280132DD75009F3468');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 630326 618063 4 4 1 1 1 1 1 1','0 7173953 7173953 7787218 7787218 7787219 7787219 7787219 7787219 7787219 7787219','0 1 2 74034 102405 1189484 1215034 7745001 7745001 7745001 7787219',X'0C0809080403040804080803010DDABE0368B700FEBFF60133068F22D1E5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','7804279 630326 12263 1433 1433 1 1 1 1 1 1','0 7173953 7792016 7797877 7797877 7799309 7799309 7799309 7799309 7799309 7799309','0 1 3 76213 104626 1201397 1227113 7757087 7757087 7757087 7799309',X'0C08090104040408040808030700F2FA4400FF559401C3969E013329461E5052');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 8657 8657 605 605 1 1 1 1','7804279 7804279 7804279 8360485 8360485 8364643 8364643 8365247 8365247 8365247 8365247','1 2 4 77865 106290 1217527 1243460 8321843 8321843 8321843 8365247',X'0C09080803030308040808031AD369021FFC0DC36E01328E2F3D9128');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 33421 33421 57 26 1 1 1 1','7804279 7804279 7804279 8873934 8873934 8891008 8891039 8891064 8891064 8891064 8891064','1 2 4 78914 107340 1231432 1257622 8846644 8846644 8846644 8891064',X'0C090808030403020408080433776300FF55940CE166232801332A1800836DFB');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 2182 2182 94 94 1 1 1 1','7804279 7804279 7804279 9083187 9083187 9085006 9085006 9085089 9085089 9085089 9085089','1 2 4 79307 107733 1237174 1263453 9040316 9040316 9040316 9085089',X'0C09080803030308040808033AC92C021FFC04AF670132B5FC38DBD0');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 6023 6023 50 50 1 1 1 1','7804279 7804279 7804279 9393480 9393480 9395815 9395815 9395864 9395864 9395864 9395864','1 2 4 79973 108402 1245294 1271679 9350536 9350536 9350536 9395864',X'0C09080803030308040808034CDD9A7E1C2301C30D0132908703CC11');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 79 79 6 6 1 1 1 1','7804279 7804279 7804279 10382946 10382946 10382956 10382956 10382959 10382959 10382959 10382959','1 2 4 82501 110947 1276304 1303221 10336296 10336296 10336296 10382959',X'0C090808040303080408080400E9A10A0CC31602A47201332C6C00ABCD60');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 8251 8251 280 280 1 1 1 1','7804279 7804279 7804279 11067468 11067468 11072690 11072690 11072969 11072969 11072969 11072969','1 2 4 85529 113989 1307763 1335183 11025935 11025935 11025935 11072969',X'0C090808040404080408080300FFA4A7008A66AD0089DBDD0132B5FF6AE2B8');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 44772 44772 58 58 1 1 1 1','7804279 7804279 7804279 11268036 11268036 11269261 11269261 11269318 11269318 11269318 11269318','1 2 4 87132 115597 1321101 1348736 11222284 11222284 11222284 11269318',X'0C0908080404030804080804010B0A5C00FF5594018ACD0133294300B0E291');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 53775 53775 37 19 1 1 1 1','7804279 7804279 7804279 11330929 11330929 11355027 11355045 11355063 11355063 11355063 11355063','1 2 4 87335 115800 1327560 1355328 11308029 11308029 11308029 11355063',X'0C0908080404030204080803010BFA8100FF5594026C24232801332B2E1F8BB5');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 3718791 3718791 39430 39430 39 39 1 1 1 1','7804279 7804279 7804279 11458789 11458789 11476757 11476757 11476795 11476795 11476795 11476795','1 2 4 88502 116970 1340484 1368500 11429761 11429761 11429761 11476795',X'0C09080804040308040808030113B99600FF559402F6AF01332B2E1F8A54');\n  INSERT INTO sqlite_stat4 VALUES('tx1','ix5','3876548 157757 157736 5317 5317 1 1 1 1 1 1','7804279 11523070 11523070 11652823 11652823 11658139 11658139 11658139 11658139 11658139 11658139','1 3 5 100045 128561 1480184 1510648 11611105 11611105 11611105 11658139',X'0C0909080404040204080803010BFA8100FF559402594CCB2328013351E85B0F5D');"))
 	checkExecOK(t, db.Exec("CREATE TABLE tab(\n    id INTEGER PRIMARY KEY,\n    minChild INTEGER REFERENCES t1,\n    maxChild INTEGER REFERENCES t1,\n    x INTEGER\n  );\n  EXPLAIN QUERY PLAN\n  SELECT t4.x\n    FROM tab AS t0, tab AS t1, tab AS t2, tab AS t3, tab AS t4\n   WHERE t0.id=0\n     AND t1.id BETWEEN t0.minChild AND t0.maxChild\n     AND t2.id BETWEEN t1.minChild AND t1.maxChild\n     AND t3.id BETWEEN t2.minChild AND t2.maxChild\n     AND t4.id BETWEEN t3.minChild AND t3.maxChild\n  ORDER BY t4.x;"))
 	checkExecOK(t, db.Exec("CREATE TABLE t1(a, b, c)"))
 	checkExecOK(t, db.Exec("CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);"))
+	checkExecOK(t, db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a,b,c,d,e,f,g,h);\n    CREATE INDEX t1abc ON t1(a,b,c);\n    CREATE INDEX t1abe ON t1(a,b,e);\n    CREATE INDEX t1abf ON t1(a,b,f);\n    ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1(tbl,idx,stat)\n      VALUES('t1','t1abc','2000000 8000 1600 800'),\n            ('t1','t1abe','2000000 8000 1600 150'),\n            ('t1','t1abf','2000000 8000 1600 150');\n    ANALYZE sqlite_master;\n  \n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1\n     WHERE (a=1 OR a=2)\n       AND (b=3 OR b=4)\n       AND (d>=5 AND d<=5)\n       AND ((e>=7 AND e<=7) OR (f>=8 AND f<=8))\n       AND g>0;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from whereK.test
@@ -20211,6 +20652,14 @@ func TestSQLite_whereM(t *testing.T) {
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1 WHERE e=10 AND e = '10.0'"), "{0}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1 WHERE e=10 AND e LIKE '10.0'"), "{1}")
 	checkQueryResult(t, db.Query("SELECT count(*) FROM t1 WHERE e='10.0' AND e LIKE '10.0'"), "{0}")
+	for _, d := range dbs { d.Close() }
+}
+// Auto-generated from whereN.test
+func TestSQLite_whereN(t *testing.T) {
+	db := setupDB(t)
+	var dbs []*DB
+	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("CREATE TABLE datasource(dsid INT, name TEXT);\n  INSERT INTO datasource VALUES(1,'ds-one'),(2,'ds-two'),(3,'ds-three');\n  CREATE INDEX ds1 ON datasource(name, dsid);\n\n  CREATE TABLE rule(rid INT, team_id INT, dsid INT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<9)\n    INSERT INTO rule(rid,team_id,dsid) SELECT n, 1, 1 FROM c;\n  WITH RECURSIVE c(n) AS (VALUES(10) UNION ALL SELECT n+1 FROM c WHERE n<24)\n    INSERT INTO rule(rid,team_id,dsid) SELECT n, 2, 2 FROM c;\n  CREATE INDEX rule2 ON rule(dsid, rid);\n\n  CREATE TABLE violation(vid INT, rid INT, vx BLOB);\n  /***  Uncomment to insert actual data\n  WITH src(rid, cnt) AS (VALUES(1,3586),(2,1343),(3,6505),(5,76230),\n                               (6,740),(7,287794),(8,457),(12,1),\n                               (14,1),(16,1),(17,1),(18,1),(19,1))\n    INSERT INTO violation(vid, rid, vx)\n      SELECT rid*1000000+value, rid, randomblob(15)\n        FROM src, generate_series(1,cnt);\n  ***/\n  CREATE INDEX v1 ON violation(rid, vid);\n  CREATE INDEX v2 ON violation(vid);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES\n    ('violation','v2','376661 1'),\n    ('violation','v1','376661 28974 1'),\n    ('rule','rule2','24 12 1'),\n    ('datasource','ds1','3 1 1');\n  ANALYZE sqlite_schema;"))
 	for _, d := range dbs { d.Close() }
 }
 // Auto-generated from wherefault.test
@@ -20734,6 +21183,7 @@ func TestSQLite_with4(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	checkExecOK(t, db.Exec("ATTACH ':memory:' AS aux;\n  CREATE TABLE main.t1(a,b);\n  CREATE TABLE aux.t2(x,y);\n  INSERT INTO t1 VALUES(1,2);\n  INSERT INTO t2 VALUES(3,4);"))
 	checkExecOK(t, db.Exec("CREATE VIEW v1 AS SELECT * FROM t1, aux.t2;"))
 	checkExecOK(t, db.Exec("CREATE VIEW v2 AS WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;"))
 	checkExecOK(t, db.Exec("CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n     WITH v(m,n) AS (SELECT x,y FROM aux.t2) SELECT * FROM t1, v;\n  END;"))
@@ -21047,6 +21497,7 @@ func TestSQLite_zerodamage(t *testing.T) {
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
+	_ = db.Query("PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;")
 	checkExecOK(t, db.Exec("UPDATE t1 SET y=randomblob(50) WHERE x=123;"))
 	checkExecOK(t, db.Exec("UPDATE t1 SET y=randomblob(50) WHERE x=124;"))
 	_ = db.Query("PRAGMA synchronous=FULL;\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;")

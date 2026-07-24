@@ -149,11 +149,10 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 // --- CREATE TABLE ---
 
 func (e *Engine) execCreateTable(s *sql.CreateTableStmt) *Result {
-	// Strip schema prefix from table name (e.g. "main.t1" -> "t1")
+	// Use the full table name including schema prefix
+	// (e.g. "aux.t4" stays as "aux.t4", "main.t1" -> "main.t1")
+	// This allows tables in different schema (attached DBs) to coexist.
 	tableName := s.Name
-	if dotIdx := strings.Index(tableName, "."); dotIdx >= 0 {
-		tableName = tableName[dotIdx+1:]
-	}
 
 	existing, err := e.schema.FindTable(tableName)
 	if err == nil && existing != nil {
