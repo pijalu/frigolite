@@ -8,6 +8,7 @@ import (
 	"hash/crc32"
 	"math"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,6 +70,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "MAX", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &maxAgg{} }})
 	r.register(&Func{Name: "TOTAL", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &totalAgg{} }})
 	r.register(&Func{Name: "GROUP_CONCAT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
+	r.register(&Func{Name: "STRING_AGG", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
 
 	// Scalar functions
 	r.register(&Func{Name: "ABS", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnABS})
@@ -205,20 +207,42 @@ func (c *countAgg) Final() (interface{}, error) {
 }
 
 type sumAgg struct {
-	sum   float64
-	count int64
+	intSum   int64
+	floatSum float64
+	count    int64
+	isFloat  bool // true if we've switched to float mode (non-int input or overflow)
 }
 
 func (s *sumAgg) Step(args []interface{}) error {
 	if args[0] == nil {
 		return nil
 	}
+	s.count++
+
+	if !s.isFloat {
+		if v, ok := args[0].(int64); ok {
+			// Check for overflow when adding to intSum
+			newSum := s.intSum + v
+			if (v > 0 && newSum < s.intSum) || (v < 0 && newSum > s.intSum) {
+				// Overflow: switch to float
+				s.isFloat = true
+				s.floatSum = float64(s.intSum) + float64(v)
+			} else {
+				s.intSum = newSum
+			}
+			return nil
+		}
+		// Non-int input: switch to float mode
+		s.isFloat = true
+		s.floatSum = float64(s.intSum)
+	}
+
+	// Float mode: add as float64
 	f, err := toFloat64(args[0])
 	if err != nil {
 		return err
 	}
-	s.sum += f
-	s.count++
+	s.floatSum += f
 	return nil
 }
 
@@ -226,7 +250,10 @@ func (s *sumAgg) Final() (interface{}, error) {
 	if s.count == 0 {
 		return nil, nil
 	}
-	return s.sum, nil
+	if s.isFloat {
+		return s.floatSum, nil
+	}
+	return s.intSum, nil
 }
 
 type totalAgg struct {
@@ -235,7 +262,10 @@ type totalAgg struct {
 
 func (t *totalAgg) Final() (interface{}, error) {
 	// TOTAL returns 0.0 for empty sets (unlike SUM which returns NULL)
-	return t.sum, nil
+	if t.isFloat {
+		return t.floatSum, nil
+	}
+	return float64(t.intSum), nil
 }
 
 type avgAgg struct {
@@ -246,7 +276,10 @@ func (a *avgAgg) Final() (interface{}, error) {
 	if a.count == 0 {
 		return nil, nil
 	}
-	return a.sum / float64(a.count), nil
+	if a.isFloat {
+		return a.floatSum / float64(a.count), nil
+	}
+	return float64(a.intSum) / float64(a.count), nil
 }
 
 type minAgg struct {
@@ -648,7 +681,11 @@ func toFloat64(v interface{}) (float64, error) {
 	case int64:
 		return float64(x), nil
 	case string:
-		return 0, fmt.Errorf("cannot convert string to number")
+		f, err := strconv.ParseFloat(x, 64)
+		if err != nil {
+			return 0.0, nil // SQLite: non-numeric strings contribute 0
+		}
+		return f, nil
 	default:
 		return 0, fmt.Errorf("cannot convert %T to number", v)
 	}

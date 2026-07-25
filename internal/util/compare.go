@@ -34,6 +34,11 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 
 	// INTEGER and REAL are mutually comparable (both are numeric)
 	if isNumeric(ta) && isNumeric(tb) {
+		// INTEGER vs REAL: use SQLite's int-float compare to avoid precision loss
+		if ta != tb {
+			return compareIntFloat(a, b)
+		}
+		// Same type: both INTEGER or both REAL
 		fa, fb := toFloat64(a), toFloat64(b)
 		switch {
 		case fa < fb:
@@ -87,6 +92,52 @@ func compareNumericText(a, b interface{}, typeOrder int) int {
 		}
 	}
 	return typeOrder
+}
+
+// compareIntFloat compares an int64 value with a float64 value using SQLite's
+// int-float comparison algorithm (sqlite3IntFloatCompare). This avoids precision
+// loss that occurs when converting both to float64.
+func compareIntFloat(a, b interface{}) int {
+	var i int64
+	var r float64
+	swap := false
+
+	switch v := a.(type) {
+	case int64:
+		i = v
+		r = b.(float64)
+	case float64:
+		i = b.(int64)
+		r = v
+		swap = true
+	}
+
+	result := sqlite3IntFloatCompare(i, r)
+	if swap {
+		result = -result
+	}
+	return result
+}
+
+// sqlite3IntFloatCompare implements SQLite's comparison between int64 and float64.
+// Returns -1 if i < r, 0 if i == r, 1 if i > r.
+func sqlite3IntFloatCompare(i int64, r float64) int {
+	// If r is outside int64 range, compare as floats (i converted to float64)
+	if r > float64(math.MaxInt64) {
+		return -1 // r > i (since i <= MaxInt64 < r)
+	}
+	if r < float64(math.MinInt64) {
+		return 1 // r < i (since i >= MinInt64 > r)
+	}
+	// r is within int64 range: convert r to int64 and compare as integers
+	ri := int64(r)
+	if ri < i {
+		return 1 // i > r
+	}
+	if ri > i {
+		return -1 // i < r
+	}
+	return 0 // equal
 }
 
 // compareTextNumeric compares a text value a with a numeric value b.

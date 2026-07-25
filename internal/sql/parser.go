@@ -2540,14 +2540,23 @@ func (p *Parser) parseAlterAlter(s *AlterTableStmt) {
 		s.Column = p.cur.Value
 		p.next()
 	}
-	// Skip SET/DROP and their arguments
-	if p.cur.Type == TokenKeyword && (p.cur.Value == "SET" || p.cur.Value == "DROP") {
+	// Capture SET/DROP action
+	if p.cur.Type == TokenKeyword && p.cur.Value == "SET" {
 		p.next()
-		// Skip NOT NULL, DEFAULT, etc.
-		if p.cur.Type == TokenKeyword && (p.cur.Value == "NOT" || p.cur.Value == "DEFAULT") {
+		if p.cur.Type == TokenKeyword && p.cur.Value == "NOT" {
 			p.next()
 			if p.cur.Type == TokenKeyword && p.cur.Value == "NULL" {
 				p.next()
+				s.AlterColAction = "SET NOT NULL"
+			}
+		}
+	} else if p.cur.Type == TokenKeyword && p.cur.Value == "DROP" {
+		p.next()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "NOT" {
+			p.next()
+			if p.cur.Type == TokenKeyword && p.cur.Value == "NULL" {
+				p.next()
+				s.AlterColAction = "DROP NOT NULL"
 			}
 		}
 	}
@@ -3196,23 +3205,30 @@ func (p *Parser) parseFunctionCall(name string) Expr {
 	}
 	// Handle empty argument list with ORDER BY: count(ORDER BY x)
 	var args []Expr
+	var fc *FuncCall
 	if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
 		// Empty args, just ORDER BY
-		p.skipFunctionOrderBy()
+		orderBy := p.parseFunctionOrderBy()
+		fc = &FuncCall{Name: name, Args: args, Distinct: distinct, OrderBy: orderBy}
 	} else {
 		args = p.parseExprList()
-		// Skip optional ORDER BY inside function call: string_agg(x ORDER BY y)
+		// Parse optional ORDER BY inside function call: string_agg(x ORDER BY y)
+		var orderBy []OrderByTerm
 		if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
-			p.skipFunctionOrderBy()
+			orderBy = p.parseFunctionOrderBy()
 		}
+		fc = &FuncCall{Name: name, Args: args, Distinct: distinct, OrderBy: orderBy}
 	}
 	p.expect(TokenRParen)
-	fc := &FuncCall{Name: name, Args: args, Distinct: distinct}
+	if fc == nil {
+		fc = &FuncCall{Name: name, Args: args, Distinct: distinct}
+	}
 	p.skipWindowClause()
 	return fc
 }
 
-func (p *Parser) skipFunctionOrderBy() {
+func (p *Parser) parseFunctionOrderBy() []OrderByTerm {
+	var terms []OrderByTerm
 	p.next() // skip ORDER
 	if p.cur.Type == TokenKeyword && p.cur.Value == "BY" {
 		p.next() // skip BY
@@ -3221,8 +3237,10 @@ func (p *Parser) skipFunctionOrderBy() {
 			if expr == nil {
 				break
 			}
+			desc := false
 			// Optional ASC/DESC
 			if p.cur.Type == TokenKeyword && (p.cur.Value == "ASC" || p.cur.Value == "DESC") {
+				desc = p.cur.Value == "DESC"
 				p.next()
 			}
 			// Optional NULLS FIRST/LAST
@@ -3232,6 +3250,7 @@ func (p *Parser) skipFunctionOrderBy() {
 					p.next()
 				}
 			}
+			terms = append(terms, OrderByTerm{Expr: expr, Desc: desc})
 			if p.cur.Type == TokenComma {
 				p.next()
 			} else {
@@ -3239,6 +3258,7 @@ func (p *Parser) skipFunctionOrderBy() {
 			}
 		}
 	}
+	return terms
 }
 
 func (p *Parser) parseKeywordExpr() Expr {

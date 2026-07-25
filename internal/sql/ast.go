@@ -292,10 +292,11 @@ func (s *PragmaStmt) stmt() {}
 // AlterTableStmt represents an ALTER TABLE statement.
 type AlterTableStmt struct {
 	Table   string
-	Action  string // "RENAME", "ADD", "DROP"
+	Action  string // "RENAME", "ADD", "DROP", "ALTER"
 	NewName string // for RENAME
 	Column  string // for ADD/DROP columns
 	ColDef  ColumnDef // for ADD
+	AlterColAction string // "SET NOT NULL" or "DROP NOT NULL" for ALTER COLUMN
 }
 
 func (s *AlterTableStmt) stmt() {}
@@ -387,7 +388,8 @@ func (e *NullLit) expr() {}
 type FuncCall struct {
 	Name     string
 	Args     []Expr
-	Distinct bool // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
+	Distinct bool         // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
+	OrderBy  []OrderByTerm // ORDER BY inside aggregate function call
 }
 
 func (e *FuncCall) expr() {}

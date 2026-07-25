@@ -233,7 +233,7 @@
       "name": "600",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n    CREATE TABLE t0(c0 REAL UNIQUE);\n    INSERT INTO t0(c0) VALUES (3175546974276630385);\n    SELECT 3175546974276630385 < c0 FROM t0;",
           "expect": "1"
         }

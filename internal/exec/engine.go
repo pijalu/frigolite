@@ -41,6 +41,8 @@ type Engine struct {
 	triggerDepth int                    // prevents recursive trigger firing
 	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer    []func()               // DDL undo operations for transaction rollback
+	outerRow     map[string]interface{}   // outer query row for correlated subquery resolution
+	outerRows    []map[string]interface{} // all outer rows for correlated aggregate evaluation
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -1490,23 +1492,65 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 // handleSelectAggregates evaluates aggregates. Returns the result if aggregates
 // were processed and a result is available, or nil if no aggregates or empty result.
 func (e *Engine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []map[string]interface{}, colDefs []sql.ColumnDef) *Result {
-	if !e.hasAggregates(s.Columns) {
-		return nil
-	}
-	if len(s.GroupBy) > 0 {
-		result := e.evalAggregatesGroupBy(s, rowMaps, colDefs)
-		if result != nil {
-			return result
+	hasAggs := e.hasAggregates(s.Columns)
+	if hasAggs {
+		if len(s.GroupBy) > 0 {
+			result := e.evalAggregatesGroupBy(s, rowMaps, colDefs)
+			if result != nil {
+				return result
+			}
+		} else {
+			result := e.evalAggregates(s, rowMaps)
+			if result != nil {
+				return result
+			}
 		}
-	} else {
-		result := e.evalAggregates(s, rowMaps)
-		if result != nil {
-			return result
-		}
+	} else if len(s.GroupBy) > 0 {
+		// GROUP BY without aggregates: group rows, build output rows using buildOutputRow
+		return e.evalGroupByNoAggs(s, rowMaps, colDefs)
 	}
 	return nil
 }
 
+// evalGroupByNoAggs handles GROUP BY without aggregate functions.
+// It groups the row maps by the GROUP BY key, then for each group uses
+// buildOutputRow to build the output row (properly handling * expansion).
+func (e *Engine) evalGroupByNoAggs(s *sql.SelectStmt, rowMaps []map[string]interface{}, colDefs []sql.ColumnDef) *Result {
+	if len(rowMaps) == 0 {
+		return nil
+	}
+
+	// Partition rows by GROUP BY key
+	groups := make(map[string][]map[string]interface{})
+	var keyOrder []string
+
+	for _, row := range rowMaps {
+		key := e.computeGroupByKey(s.GroupBy, row)
+		if _, exists := groups[key]; !exists {
+			keyOrder = append(keyOrder, key)
+		}
+		groups[key] = append(groups[key], row)
+	}
+
+	var outRows [][]interface{}
+	for _, key := range keyOrder {
+		groupRows := groups[key]
+		// Apply HAVING filter
+		if s.Having != nil {
+			match, err := e.evalHaving(s.Having, groupRows)
+			if err != nil || !match {
+				continue
+			}
+		}
+		// Use the first row of the group as the representative for non-aggregated columns
+		row := groupRows[0]
+		outRow := e.buildOutputRow(s.Columns, colDefs, row)
+		outRows = append(outRows, outRow)
+	}
+
+	columns := e.buildColumnNames(s.Columns, colDefs)
+	return &Result{Columns: columns, Rows: outRows}
+}
 
 // buildIndexSQL builds the SQL string for creating an index.
 func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, where sql.Expr) string {
@@ -1540,6 +1584,12 @@ func buildIndexSQL(name, table string, columns []sql.IndexColumn, unique bool, w
 
 
 func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
+	// Validate expressions before executing: check for invalid ORDER BY usage and
+	// aggregates inside UNION ALL in subqueries.
+	if err := e.validateSelectExprs(s); err != nil {
+		return &Result{Error: err}
+	}
+
 	// Handle SELECT without FROM (e.g., SELECT 1, SELECT CASE...)
 	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
 		return e.execSelectNoFrom(s)
@@ -1587,6 +1637,49 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 	}
 
 	allRows, allRowMaps := e.scanTableRows(cursor, s, colDefs)
+
+	// If outerRows is set (from a parent collapse) and this query has aggregates
+	// referencing only outer columns, evaluate them over all outer rows while
+	// using the first inner row for non-aggregate columns.
+	if len(e.outerRows) > 0 && e.hasAggregates(s.Columns) {
+		// Build set of inner column names from the scanned rows
+		innerColNames := make(map[string]bool)
+		for _, cd := range colDefs {
+			innerColNames[cd.Name] = true
+		}
+		// Check if any aggregate references inner columns — if so, fall through to normal handling
+		allOuterRefs := true
+		for _, col := range s.Columns {
+			if fn, ok := col.Expr.(*sql.FuncCall); ok {
+				if reg, found := e.funcs.Find(fn.Name); found && reg.Type == function.TypeAggregate {
+					if !e.aggregateHasOnlyOuterRefs(fn, innerColNames) {
+						allOuterRefs = false
+						break
+					}
+				}
+			}
+		}
+		if allOuterRefs {
+			columns := e.buildColumnNames(s.Columns, colDefs)
+			outRow := e.evalAggOverOuterRowsWithInner(s, e.outerRows, allRowMaps)
+			result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+			return e.finalizeSelectResult(result, s, allRowMaps)
+		}
+	}
+
+	// If any SELECT column contains a subquery with a correlated aggregate,
+	// re-evaluate the SELECT columns with outerRows set to all rowMaps.
+	// This allows the aggregate to evaluate over all outer rows (collapsing to 1).
+	if len(allRowMaps) > 0 && e.hasSubqueryWithCorrelatedAgg(s.Columns) {
+		prevOuterRows := e.outerRows
+		e.outerRows = allRowMaps
+		e.outerRow = allRowMaps[0] // provide first row for non-aggregate column refs
+		outRow := e.buildOutputRow(s.Columns, colDefs, allRowMaps[0])
+		e.outerRows = prevOuterRows
+		columns := e.buildColumnNames(s.Columns, colDefs)
+		result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+		return e.finalizeSelectResult(result, s, allRowMaps)
+	}
 
 	// If there are JOINs, process them (nested-loop join)
 	if len(s.Joins) > 0 {
@@ -1814,13 +1907,22 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 		}
 	}
 
+	// Check for correlated aggregates with outerRows: if this FROM-less SELECT
+	// has aggregates that reference columns, evaluate them over all outer rows.
 	var outRow []interface{}
-	for _, col := range s.Columns {
-		v, err := e.evalExpr(col.Expr, nil)
-		if err != nil {
-			return &Result{Error: err}
+	if len(e.outerRows) > 0 && e.hasAggregates(s.Columns) && e.aggHasColumnRef(s.Columns) {
+		outRow = e.evalAggOverOuterRows(s, e.outerRows)
+	} else {
+		for _, col := range s.Columns {
+			// Pass outerRow as the evaluation context so subqueries inside
+			// FROM-less SELECTs can resolve correlated column references.
+			evalRow := e.outerRow
+			v, err := e.evalExpr(col.Expr, evalRow)
+			if err != nil {
+				return &Result{Error: err}
+			}
+			outRow = append(outRow, v)
 		}
-		outRow = append(outRow, v)
 	}
 
 	// Handle UNION / INTERSECT / EXCEPT for no-FROM selects
@@ -1847,7 +1949,34 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 		}
 	}
 
-	return &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+	// Apply LIMIT/OFFSET for FROM-less SELECT
+	limitExpr, offsetExpr := s.Limit, s.Offset
+	if s.Limit != nil {
+		if v, err := e.evalExpr(s.Limit, nil); err == nil {
+			switch n := v.(type) {
+			case int64:
+				limitExpr = &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
+			case float64:
+				limitExpr = &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}
+			}
+		}
+	}
+	if s.Offset != nil {
+		if v, err := e.evalExpr(s.Offset, nil); err == nil {
+			switch n := v.(type) {
+			case int64:
+				offsetExpr = &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
+			case float64:
+				offsetExpr = &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}
+			}
+		}
+	}
+	result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+	if s.Limit != nil || s.Offset != nil {
+		result.Rows = applyLimitOffset(result.Rows, limitExpr, offsetExpr)
+	}
+	return result
+
 }
 
 // execSelectFromSubquery executes an outer SELECT whose FROM is a subquery.
@@ -1886,6 +2015,12 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 	// Handle aggregate functions
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
 		return result
+	}
+
+	// Build output rows by evaluating outer SELECT expressions against each row map
+	allRows = make([][]interface{}, len(allRowMaps))
+	for i, rowMap := range allRowMaps {
+		allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
 	}
 
 	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs), Rows: allRows}
@@ -2190,10 +2325,351 @@ func (e *Engine) exprHasAggregate(expr sql.Expr) bool {
 	}
 }
 
+// aggHasColumnRef checks if any aggregate function in the SELECT columns
+// has arguments that contain column references. This identifies correlated
+// aggregates that need to be evaluated over all outer rows.
+func (e *Engine) aggHasColumnRef(columns []sql.SelectColumn) bool {
+	for _, col := range columns {
+		if fn, ok := col.Expr.(*sql.FuncCall); ok {
+			if reg, found := e.funcs.Find(fn.Name); found && reg.Type == function.TypeAggregate {
+				for _, arg := range fn.Args {
+						if e.exprHasColumnRef(arg) {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false
+}
+
+// exprHasColumnRef recursively checks if an expression tree contains a ColumnRef node.
+// This does NOT recurse into Subquery expressions — correlated aggregate detection
+// is handled separately at the SELECT level.
+func (e *Engine) exprHasColumnRef(expr sql.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		return true
+	case *sql.BinaryOp:
+		return e.exprHasColumnRef(v.Left) || e.exprHasColumnRef(v.Right)
+	case *sql.UnaryOp:
+		return e.exprHasColumnRef(v.Operand)
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if e.exprHasColumnRef(arg) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+// selectHasCorrelatedAggSubquery checks if a SELECT statement (or any nested
+// subquery within it) contains a correlated aggregate — an aggregate function
+// that references columns from an outer context.
+// This detects two cases:
+//  1. FROM-less SELECT with aggregates that have column references
+//  2. SELECT with FROM clause where aggregate args reference only outer columns
+//     (none exist in the FROM table — making the aggregate fully correlated).
+func (e *Engine) selectHasCorrelatedAggSubquery(s *sql.SelectStmt) bool {
+	if s == nil {
+		return false
+	}
+	// Case 1: FROM-less SELECT with aggregates that reference columns
+	if s.From.Name == "" && s.From.Subquery == nil && len(s.From.As) == 0 {
+		if e.aggHasColumnRef(s.Columns) {
+			return true
+		}
+	}
+	// Case 2: SELECT with FROM table that has aggregates referencing only outer columns.
+	// This means the aggregate's column references do NOT match any column in the FROM table.
+	if s.From.Name != "" && e.aggHasColumnRef(s.Columns) && !e.aggRefsMatchFromTable(s) {
+		return true
+	}
+	// Check FROM subquery recursively
+	if s.From.Subquery != nil {
+		if e.selectHasCorrelatedAggSubquery(s.From.Subquery) {
+			return true
+		}
+	}
+	// Check subqueries in SELECT columns
+	for _, col := range s.Columns {
+		if subq, ok := col.Expr.(*sql.Subquery); ok {
+			if e.selectHasCorrelatedAggSubquery(subq.Select) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// aggRefsMatchFromTable checks if any aggregate function's column references
+// match a column name in the FROM table. Returns true if any aggregate arg
+// references a column that exists in the FROM table, indicating the aggregate
+// is NOT fully correlated (it references inner columns).
+func (e *Engine) aggRefsMatchFromTable(s *sql.SelectStmt) bool {
+	if s.From.Name == "" {
+		return false
+	}
+	tableEntry, err := e.schema.FindTable(s.From.Name)
+	if err != nil {
+		return false
+	}
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	colNames := make(map[string]bool)
+	for _, cd := range colDefs {
+		colNames[cd.Name] = true
+	}
+	for _, col := range s.Columns {
+		if fn, ok := col.Expr.(*sql.FuncCall); ok {
+			for _, arg := range fn.Args {
+				if exprHasColRefInMap(arg, colNames) {
+					return true
+				}
+			}
+			// Also check ORDER BY terms for column references matching inner table
+			for _, ob := range fn.OrderBy {
+				if exprHasColRefInMap(ob.Expr, colNames) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// exprHasColRefInMap checks if an expression tree contains a ColumnRef whose
+// name matches an entry in the provided column name map.
+func exprHasColRefInMap(expr sql.Expr, colNames map[string]bool) bool {
+	if expr == nil {
+		return false
+	}
+	switch v := expr.(type) {
+	case *sql.ColumnRef:
+		return colNames[v.Name]
+	case *sql.BinaryOp:
+		return exprHasColRefInMap(v.Left, colNames) || exprHasColRefInMap(v.Right, colNames)
+	case *sql.UnaryOp:
+		return exprHasColRefInMap(v.Operand, colNames)
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if exprHasColRefInMap(arg, colNames) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+// exprHasCorrelatedSubquery checks if an expression tree contains a subquery
+// that has a correlated aggregate.
+func (e *Engine) exprHasCorrelatedSubquery(expr sql.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	switch v := expr.(type) {
+	case *sql.Subquery:
+		return e.selectHasCorrelatedAggSubquery(v.Select)
+	case *sql.BinaryOp:
+		return e.exprHasCorrelatedSubquery(v.Left) || e.exprHasCorrelatedSubquery(v.Right)
+	case *sql.UnaryOp:
+		return e.exprHasCorrelatedSubquery(v.Operand)
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if e.exprHasCorrelatedSubquery(arg) {
+				return true
+			}
+		}
+		return false
+	default:
+		return false
+	}
+}
+
+// hasSubqueryWithCorrelatedAgg checks if any SELECT column contains a subquery
+// that has a correlated aggregate at any nesting depth.
+func (e *Engine) hasSubqueryWithCorrelatedAgg(columns []sql.SelectColumn) bool {
+	for _, col := range columns {
+		if subq, ok := col.Expr.(*sql.Subquery); ok {
+			if e.selectHasCorrelatedAggSubquery(subq.Select) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// evalAggOverOuterRows evaluates aggregate functions in FROM-less SELECT
+// over all provided outer rows, returning a single-row result.
+func (e *Engine) evalAggOverOuterRows(s *sql.SelectStmt, outerRows []map[string]interface{}) []interface{} {
+	var outRow []interface{}
+	for _, col := range s.Columns {
+		if fn, ok := col.Expr.(*sql.FuncCall); ok {
+			if reg, found := e.funcs.Find(fn.Name); found && reg.Type == function.TypeAggregate {
+				// Aggregate: step over all outer rows
+				agg := reg.AggregateFn()
+				for _, row := range outerRows {
+					args := make([]interface{}, len(fn.Args))
+					for i, arg := range fn.Args {
+						v, err := e.evalExpr(arg, row)
+						if err != nil {
+							args[i] = nil
+						} else {
+							args[i] = v
+						}
+					}
+					if err := agg.Step(args); err != nil {
+						// Continue with what we have
+					}
+				}
+				result, _ := agg.Final()
+				outRow = append(outRow, result)
+				continue
+			}
+		}
+		// Non-aggregate: evaluate with nil row
+		v, err := e.evalExpr(col.Expr, nil)
+		if err != nil {
+			outRow = append(outRow, nil)
+		} else {
+			outRow = append(outRow, v)
+		}
+	}
+	return outRow
+}
+
+// aggregateHasOnlyOuterRefs checks if an aggregate function's arguments and
+// ORDER BY terms contain column references, and if none of those references
+// match the given inner column set. Returns true only if the aggregate has
+// column references and all of them are from outside the inner table.
+// This distinguishes from aggregates with no column refs (like count(*))
+// which should use inner rows, not outer rows.
+func (e *Engine) aggregateHasOnlyOuterRefs(fn *sql.FuncCall, innerColNames map[string]bool) bool {
+	hasColRefs := false
+	for _, arg := range fn.Args {
+		if e.exprHasColumnRef(arg) {
+			hasColRefs = true
+			if innerColNames != nil && exprHasColRefInMap(arg, innerColNames) {
+				return false // Found a column ref matching inner table
+			}
+		}
+	}
+	// Check ORDER BY terms for column references
+	for _, ob := range fn.OrderBy {
+		if e.exprHasColumnRef(ob.Expr) {
+			hasColRefs = true
+			if innerColNames != nil && exprHasColRefInMap(ob.Expr, innerColNames) {
+				return false
+			}
+		}
+	}
+	// Only use outer rows if we have at least one column ref
+	// and none matched inner columns
+	return hasColRefs
+}
+
+// evalAggOverOuterRowsWithInner evaluates aggregate functions over outerRows
+// and non-aggregate expressions over the first inner row (allRowMaps).
+// This handles the case where a subquery with its own FROM has aggregates
+// that reference only outer columns (fully correlated).
+func (e *Engine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRows, allRowMaps []map[string]interface{}) []interface{} {
+	var outRow []interface{}
+	for _, col := range s.Columns {
+		if fn, ok := col.Expr.(*sql.FuncCall); ok {
+			if reg, found := e.funcs.Find(fn.Name); found && reg.Type == function.TypeAggregate {
+				// Aggregate: step over all outer rows
+				agg := reg.AggregateFn()
+				for _, row := range outerRows {
+					args := make([]interface{}, len(fn.Args))
+					for i, arg := range fn.Args {
+						v, err := e.evalExpr(arg, row)
+						if err != nil {
+							args[i] = nil
+						} else {
+							args[i] = v
+						}
+					}
+					if err := agg.Step(args); err != nil {
+						// Continue with what we have
+					}
+				}
+				result, _ := agg.Final()
+				outRow = append(outRow, result)
+				continue
+			}
+		}
+		// Non-aggregate: evaluate using first inner row
+		if len(allRowMaps) > 0 {
+			v, err := e.evalExpr(col.Expr, allRowMaps[0])
+			if err != nil {
+				outRow = append(outRow, nil)
+			} else {
+				outRow = append(outRow, v)
+			}
+		} else {
+			v, err := e.evalExpr(col.Expr, nil)
+			if err != nil {
+				outRow = append(outRow, nil)
+			} else {
+				outRow = append(outRow, v)
+			}
+		}
+	}
+	return outRow
+}
+
 // evalAggregates evaluates aggregate functions across all row maps.
 func (e *Engine) evalAggregates(s *sql.SelectStmt, rowMaps []map[string]interface{}) *Result {
 	if len(rowMaps) == 0 {
 		return e.evalAggregatesEmpty(s)
+	}
+
+	// If any aggregate has ORDER BY, sort rowMaps so bare columns evaluate
+	// from the correct row (the one that provides the aggregate value).
+	// For max, bare columns come from the last row in sorted order.
+	// For min, from the first row.
+	hasMaxOrderBy := false
+	var orderBy []sql.OrderByTerm
+	for _, col := range s.Columns {
+		if fn, ok := col.Expr.(*sql.FuncCall); ok && len(fn.OrderBy) > 0 {
+			orderBy = fn.OrderBy
+			hasMaxOrderBy = strings.ToUpper(fn.Name) == "MAX"
+			break
+		}
+	}
+	if len(orderBy) > 0 && len(rowMaps) > 1 {
+		sortedMaps := make([]map[string]interface{}, len(rowMaps))
+		copy(sortedMaps, rowMaps)
+		sort.SliceStable(sortedMaps, func(i, j int) bool {
+			for _, ob := range orderBy {
+				vi, errI := e.evalExpr(ob.Expr, sortedMaps[i])
+				vj, errJ := e.evalExpr(ob.Expr, sortedMaps[j])
+				if errI != nil || errJ != nil {
+					continue
+				}
+				cmp := util.CompareValues(vi, vj)
+				if cmp != 0 {
+					if ob.Desc {
+						return cmp > 0
+					}
+					return cmp < 0
+				}
+			}
+			return false
+		})
+		// For max ORDER BY, the aggregate's value comes from the last row.
+		// Set rowMaps[0] to the last sorted row so bare columns use it.
+		if hasMaxOrderBy {
+			sortedMaps[0] = sortedMaps[len(sortedMaps)-1]
+		}
+		rowMaps = sortedMaps
 	}
 
 	columns := e.buildColumnNames(s.Columns, nil)
@@ -2248,6 +2724,8 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []map[string]i
 		}
 		groups[key] = append(groups[key], row)
 	}
+	// Sort keys for deterministic output matching SQLite GROUP BY behavior
+	sort.Strings(keyOrder)
 
 	columns := e.buildColumnNames(s.Columns, colDefs)
 	var outRows [][]interface{}
@@ -2346,6 +2824,8 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{
 		return e.evalHavingIsDistinctFrom(v, groupRows)
 	case *sql.IsNotDistinctFrom:
 		return e.evalHavingIsNotDistinctFrom(v, groupRows)
+	case *sql.Subquery:
+		return e.evalHavingSubquery(v, groupRows)
 	default:
 		return e.evalHavingDefault(expr, groupRows)
 	}
@@ -2441,6 +2921,19 @@ func (e *Engine) evalHavingDefault(expr sql.Expr, groupRows []map[string]interfa
 	return nil, nil
 }
 
+// evalHavingSubquery evaluates a Subquery expression in a HAVING clause.
+// It sets outerRows to all group rows so that correlated aggregates within
+// the subquery can evaluate over the entire group (not just one row).
+func (e *Engine) evalHavingSubquery(v *sql.Subquery, groupRows []map[string]interface{}) (interface{}, error) {
+	prevOuterRows := e.outerRows
+	if len(groupRows) > 0 {
+		e.outerRows = groupRows
+	}
+	result, err := e.evalSubquery(v, groupRows[0])
+	e.outerRows = prevOuterRows
+	return result, err
+}
+
 
 func (e *Engine) evalAggregateExpr(expr sql.Expr, rowMaps []map[string]interface{}) (interface{}, error) {
 	switch v := expr.(type) {
@@ -2475,9 +2968,40 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface
 		}
 	}
 
+	// Check ORDER BY expressions for nested aggregates
+	for _, ob := range v.OrderBy {
+		if nested := findNestedAggregate(ob.Expr, e.funcs); nested != "" {
+			return nil, fmt.Errorf("misuse of aggregate function %s()", nested)
+		}
+	}
+
 	agg := fn.AggregateFn()
 
-	for _, row := range rowMaps {
+	// Sort rowMaps by ORDER BY terms if specified (for ordered aggregates like group_concat)
+	rows := rowMaps
+	if len(v.OrderBy) > 0 && len(rowMaps) > 1 {
+		rows = make([]map[string]interface{}, len(rowMaps))
+		copy(rows, rowMaps)
+		sort.SliceStable(rows, func(i, j int) bool {
+			for _, ob := range v.OrderBy {
+				vi, errI := e.evalExpr(ob.Expr, rows[i])
+				vj, errJ := e.evalExpr(ob.Expr, rows[j])
+				if errI != nil || errJ != nil {
+					continue
+				}
+				cmp := util.CompareValues(vi, vj)
+				if cmp != 0 {
+					if ob.Desc {
+						return cmp > 0
+					}
+					return cmp < 0
+				}
+			}
+			return false
+		})
+	}
+
+	for _, row := range rows {
 		args := make([]interface{}, len(v.Args))
 		for i, arg := range v.Args {
 			val, err := e.evalExpr(arg, row)
@@ -2599,6 +3123,253 @@ func findNestedAggregateRowValue(v *sql.RowValue, funcs *function.Registry) stri
 	return ""
 }
 
+// validateSelectExprs checks for invalid usage in SELECT expressions, such as
+// ORDER BY with non-aggregate functions or aggregates inside UNION ALL in subqueries.
+func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
+	for _, col := range s.Columns {
+		if err := e.validateExprOrderBy(col.Expr); err != nil {
+			return err
+		}
+		// Check column expressions for subqueries with UNION ALL aggregates
+		if err := e.validateExprSubqueries(col.Expr); err != nil {
+			return err
+		}
+	}
+	if s.Having != nil {
+		if err := e.validateExprOrderBy(s.Having); err != nil {
+			return err
+		}
+		if err := e.validateExprSubqueries(s.Having); err != nil {
+			return err
+		}
+	}
+	if s.Where != nil {
+		if err := e.validateExprSubqueries(s.Where); err != nil {
+			return err
+		}
+	}
+
+	// Check for aggregates inside UNION ALL in FROM subquery (SQLite rule)
+	if s.From.Subquery != nil {
+		if err := validateUnionSubqueryNoAggs(s.From.Subquery); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// validateExprSubqueries walks an expression tree looking for subqueries and
+// checking them for invalid patterns like aggregates inside UNION ALL.
+func (e *Engine) validateExprSubqueries(expr sql.Expr) error {
+	switch v := expr.(type) {
+	case *sql.Subquery:
+		if v.Select != nil {
+			// Validate the subquery's SELECT statement
+			if err := e.validateSelectExprs(v.Select); err != nil {
+				return err
+			}
+		}
+	case *sql.ExistsExpr:
+		if v.Select != nil {
+			if err := e.validateSelectExprs(v.Select); err != nil {
+				return err
+			}
+		}
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if err := e.validateExprSubqueries(arg); err != nil {
+				return err
+			}
+		}
+	case *sql.BinaryOp:
+		if err := e.validateExprSubqueries(v.Left); err != nil {
+			return err
+		}
+		return e.validateExprSubqueries(v.Right)
+	case *sql.UnaryOp:
+		return e.validateExprSubqueries(v.Operand)
+	case *sql.CaseExpr:
+		if v.Operand != nil {
+			if err := e.validateExprSubqueries(v.Operand); err != nil {
+				return err
+			}
+		}
+		for _, w := range v.Whens {
+			if err := e.validateExprSubqueries(w.When); err != nil {
+				return err
+			}
+			if err := e.validateExprSubqueries(w.Then); err != nil {
+				return err
+			}
+		}
+		if v.Else != nil {
+			return e.validateExprSubqueries(v.Else)
+		}
+	case *sql.Between:
+		if err := e.validateExprSubqueries(v.Operand); err != nil {
+			return err
+		}
+		if err := e.validateExprSubqueries(v.Low); err != nil {
+			return err
+		}
+		return e.validateExprSubqueries(v.High)
+	case *sql.InList:
+		if err := e.validateExprSubqueries(v.Operand); err != nil {
+			return err
+		}
+		for _, val := range v.List {
+			if err := e.validateExprSubqueries(val); err != nil {
+				return err
+			}
+		}
+	case *sql.IsNull:
+		return e.validateExprSubqueries(v.Operand)
+	case *sql.IsNotNull:
+		return e.validateExprSubqueries(v.Operand)
+	case *sql.IsDistinctFrom:
+		if err := e.validateExprSubqueries(v.Left); err != nil {
+			return err
+		}
+		return e.validateExprSubqueries(v.Right)
+	case *sql.IsNotDistinctFrom:
+		if err := e.validateExprSubqueries(v.Left); err != nil {
+			return err
+		}
+		return e.validateExprSubqueries(v.Right)
+	}
+	return nil
+}
+
+// validateUnionSubqueryNoAggs checks that a subquery used in FROM does not
+// contain aggregates inside a UNION ALL. SQLite prohibits this pattern:
+// SELECT * FROM (SELECT 1 UNION ALL SELECT sum(x) FROM t) -- invalid
+func validateUnionSubqueryNoAggs(s *sql.SelectStmt) error {
+	if s.Union != nil {
+		// Check both branches of the UNION/UNION ALL for aggregates
+		if nested := findAggregateInSelect(s); nested != "" {
+			return fmt.Errorf("misuse of aggregate: %s()", nested)
+		}
+		if nested := findAggregateInSelect(s.Union); nested != "" {
+			return fmt.Errorf("misuse of aggregate: %s()", nested)
+		}
+	}
+	// Recurse into nested FROM subqueries
+	if s.From.Subquery != nil {
+		return validateUnionSubqueryNoAggs(s.From.Subquery)
+	}
+	return nil
+}
+
+// findAggregateInSelect checks if a SELECT statement directly contains an aggregate function.
+func findAggregateInSelect(s *sql.SelectStmt) string {
+	for _, col := range s.Columns {
+		if nested := findAggregateInExpr(col.Expr); nested != "" {
+			return nested
+		}
+	}
+	return ""
+}
+
+// findAggregateInExpr walks an expression looking for aggregate function calls.
+func findAggregateInExpr(expr sql.Expr) string {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		// Check if this is an aggregate by name (no registry lookup needed)
+		upper := strings.ToUpper(v.Name)
+		if upper == "COUNT" || upper == "SUM" || upper == "AVG" || upper == "MIN" || upper == "MAX" || upper == "TOTAL" || upper == "GROUP_CONCAT" || upper == "STRING_AGG" {
+			return v.Name
+		}
+		for _, arg := range v.Args {
+			if nested := findAggregateInExpr(arg); nested != "" {
+				return nested
+			}
+		}
+	case *sql.BinaryOp:
+		if nested := findAggregateInExpr(v.Left); nested != "" {
+			return nested
+		}
+		return findAggregateInExpr(v.Right)
+	case *sql.UnaryOp:
+		return findAggregateInExpr(v.Operand)
+	case *sql.CaseExpr:
+		if v.Operand != nil {
+			if nested := findAggregateInExpr(v.Operand); nested != "" {
+				return nested
+			}
+		}
+		for _, w := range v.Whens {
+			if nested := findAggregateInExpr(w.When); nested != "" {
+				return nested
+			}
+			if nested := findAggregateInExpr(w.Then); nested != "" {
+				return nested
+			}
+		}
+		if v.Else != nil {
+			return findAggregateInExpr(v.Else)
+		}
+	}
+	return ""
+}
+
+func (e *Engine) validateExprOrderBy(expr sql.Expr) error {
+	switch v := expr.(type) {
+	case *sql.FuncCall:
+		if len(v.OrderBy) > 0 {
+			fn, ok := e.funcs.Find(v.Name)
+			if ok && fn.Type != function.TypeAggregate {
+				return fmt.Errorf("ORDER BY may not be used with non-aggregate %s()", v.Name)
+			}
+			// Check ORDER BY expressions for nested aggregates
+			for _, ob := range v.OrderBy {
+				if nested := findNestedAggregate(ob.Expr, e.funcs); nested != "" {
+					return fmt.Errorf("misuse of aggregate function %s()", nested)
+				}
+			}
+		}
+		// Recurse into args for any nested expressions
+		for _, arg := range v.Args {
+			if err := e.validateExprOrderBy(arg); err != nil {
+				return err
+			}
+		}
+	case *sql.BinaryOp:
+		if err := e.validateExprOrderBy(v.Left); err != nil {
+			return err
+		}
+		return e.validateExprOrderBy(v.Right)
+	case *sql.UnaryOp:
+		return e.validateExprOrderBy(v.Operand)
+	case *sql.CaseExpr:
+		if v.Operand != nil {
+			if err := e.validateExprOrderBy(v.Operand); err != nil {
+				return err
+			}
+		}
+		for _, w := range v.Whens {
+			if err := e.validateExprOrderBy(w.When); err != nil {
+				return err
+			}
+			if err := e.validateExprOrderBy(w.Then); err != nil {
+				return err
+			}
+		}
+		if v.Else != nil {
+			return e.validateExprOrderBy(v.Else)
+		}
+	case *sql.Subquery:
+		if v.Select != nil {
+			return e.validateSelectExprs(v.Select)
+		}
+	case *sql.ExistsExpr:
+		if v.Select != nil {
+			return e.validateSelectExprs(v.Select)
+		}
+	}
+	return nil
+}
+
 // evalDistinctAggregate evaluates an aggregate function with DISTINCT,
 // deduplicating argument values before passing them to the aggregator.
 func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []map[string]interface{}) interface{} {
@@ -2608,6 +3379,7 @@ func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []map[string]int
 	}
 	agg := fn.AggregateFn()
 	seen := make(map[string]bool)
+	var uniqueRows []map[string]interface{}
 
 	for _, row := range rowMaps {
 		args := make([]interface{}, len(v.Args))
@@ -2630,8 +3402,42 @@ func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []map[string]int
 		}
 		if !seen[key] {
 			seen[key] = true
-			agg.Step(args)
+			uniqueRows = append(uniqueRows, row)
 		}
+	}
+
+	// If ORDER BY is specified, sort unique rows by ORDER BY
+	if len(v.OrderBy) > 0 && len(uniqueRows) > 1 {
+		sort.SliceStable(uniqueRows, func(i, j int) bool {
+			for _, ob := range v.OrderBy {
+				vi, errI := e.evalExpr(ob.Expr, uniqueRows[i])
+				vj, errJ := e.evalExpr(ob.Expr, uniqueRows[j])
+				if errI != nil || errJ != nil {
+					continue
+				}
+				cmp := util.CompareValues(vi, vj)
+				if cmp != 0 {
+					if ob.Desc {
+						return cmp > 0
+					}
+					return cmp < 0
+				}
+			}
+			return false
+		})
+	}
+
+	for _, row := range uniqueRows {
+		args := make([]interface{}, len(v.Args))
+		for i, arg := range v.Args {
+			val, err := e.evalExpr(arg, row)
+			if err != nil {
+				args[i] = nil
+			} else {
+				args[i] = val
+			}
+		}
+		agg.Step(args)
 	}
 	result, _ := agg.Final()
 	return result
@@ -3098,6 +3904,7 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"LOCKING_MODE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
 	"DATABASE_LIST":       func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "file"}, Rows: [][]interface{}{{int64(0), "main", ""}}} },
 	"INTEGRITY_CHECK":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{}}} },
+	"LEGACY_ALTER_TABLE":  func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"TABLE_X":             func(e *Engine) *Result { return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}} },
 	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
@@ -3127,6 +3934,8 @@ func (e *Engine) execAlterTable(s *sql.AlterTableStmt) *Result {
 		return e.execAlterTableAdd(s)
 	case "DROP":
 		return e.execAlterTableDrop(s)
+	case "ALTER":
+		return e.execAlterTableAlter(s)
 	default:
 		// No-op for unsupported ALTER TABLE operations
 		return &Result{}
@@ -3355,10 +4164,54 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	return &Result{}
 }
 
+func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
+	// ALTER TABLE ... ALTER COLUMN SET NOT NULL / DROP NOT NULL
+	if s.AlterColAction == "" {
+		return &Result{}
+	}
+	tableName := s.Table
+	tableEntry, err := e.schema.FindTable(tableName)
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	colDefs := e.colCache[tableName]
+	if colDefs == nil {
+		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	}
+
+	// Find and update the column
+	found := false
+	for i, c := range colDefs {
+		if c.Name == s.Column {
+			switch s.AlterColAction {
+			case "SET NOT NULL":
+				colDefs[i].NotNull = true
+			case "DROP NOT NULL":
+				colDefs[i].NotNull = false
+			}
+			found = true
+			break
+		}
+	}
+	if !found {
+		return &Result{Error: fmt.Errorf("no such column: \"%s\"", s.Column)}
+	}
+	e.colCache[tableName] = colDefs
+
+	// Rebuild the CREATE TABLE SQL with updated column definitions
+	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, colDefs)
+	if updateSQL != "" {
+		tableEntry.SQL = updateSQL
+		_ = e.schema.RemoveEntry(tableEntry.Name)
+		_ = e.schema.AddEntry(tableEntry)
+	}
+
+	return &Result{}
+}
+
 // rebuildCreateTableSQL rebuilds a CREATE TABLE SQL string with updated column definitions.
 func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
-	// Simple approach: extract the table name from the original SQL
-	// and rebuild the CREATE TABLE statement with new column defs
 	upper := strings.ToUpper(origSQL)
 	if !strings.Contains(upper, "CREATE TABLE") {
 		return ""
@@ -3377,8 +4230,86 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 		return ""
 	}
 
-	// Find the existing SQL structure to preserve table-level constraints
-	// For simplicity, just build a minimal CREATE TABLE
+	// Find the content between outer parentheses to extract table-level constraints
+	parenStart := strings.Index(origSQL, "(")
+	if parenStart < 0 {
+		return ""
+	}
+	depth := 0
+	parenEnd := -1
+	for i := parenStart; i < len(origSQL); i++ {
+		switch origSQL[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				parenEnd = i
+				break
+			}
+		}
+	}
+	if parenEnd < 0 {
+		return ""
+	}
+
+	trailingSQL := strings.TrimSpace(origSQL[parenEnd+1:])
+	defText := origSQL[parenStart+1 : parenEnd]
+
+	// Build a set of column names from current column definitions
+	colNames := make(map[string]bool)
+	for _, cd := range colDefs {
+		colNames[strings.ToUpper(cd.Name)] = true
+	}
+
+	// Parse the original definition text to extract table-level constraints.
+	// Split by top-level commas (not inside nested parens).
+	var parts []string
+	depth = 0
+	start := 0
+	for i := 0; i < len(defText); i++ {
+		switch defText[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				parts = append(parts, strings.TrimSpace(defText[start:i]))
+				start = i + 1
+			}
+		}
+	}
+	if start < len(defText) {
+		parts = append(parts, strings.TrimSpace(defText[start:]))
+	}
+
+	// Separate column definitions from table-level constraints
+	var constraints []string
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed == "" {
+			continue
+		}
+		// Check if this part looks like a column definition (starts with a known column name)
+		upperPart := strings.ToUpper(trimmed)
+		isColumnDef := false
+		for name := range colNames {
+			if strings.HasPrefix(upperPart, name) || strings.HasPrefix(upperPart, "\""+name+"\"") {
+				isColumnDef = true
+				break
+			}
+		}
+		if !isColumnDef && (strings.HasPrefix(upperPart, "PRIMARY KEY") ||
+			strings.HasPrefix(upperPart, "UNIQUE") ||
+			strings.HasPrefix(upperPart, "CHECK") ||
+			strings.HasPrefix(upperPart, "FOREIGN KEY") ||
+			strings.HasPrefix(upperPart, "CONSTRAINT")) {
+			constraints = append(constraints, trimmed)
+		}
+	}
+
+	// Build the final SQL
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
 	buf.WriteString(tableName)
@@ -3389,7 +4320,15 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 		}
 		formatColumnDef(&buf, col)
 	}
+	for _, tc := range constraints {
+		buf.WriteString(", ")
+		buf.WriteString(tc)
+	}
 	buf.WriteString(")")
+	if trailingSQL != "" {
+		buf.WriteString(" ")
+		buf.WriteString(trailingSQL)
+	}
 	return buf.String()
 }
 
@@ -3419,7 +4358,7 @@ func (e *Engine) evalExpr(expr sql.Expr, row map[string]interface{}) (interface{
 	case *sql.NullLit:
 		return nil, nil
 	case *sql.ColumnRef:
-		return evalColumnRef(v, row)
+		return e.evalColumnRef(v, row)
 	case *sql.FuncCall:
 		return e.evalFuncCall(v, row)
 	case *sql.RowValue:
@@ -3473,6 +4412,11 @@ func (e *Engine) evalComplexExpr(expr sql.Expr, row map[string]interface{}) (int
 }
 
 func (e *Engine) evalSubquery(v *sql.Subquery, row map[string]interface{}) (interface{}, error) {
+	// Save and restore outerRow for correlated subquery support
+	prevOuterRow := e.outerRow
+	e.outerRow = row
+	defer func() { e.outerRow = prevOuterRow }()
+
 	result := e.execSelect(v.Select)
 	if result.Error != nil {
 		return nil, result.Error
@@ -3488,6 +4432,11 @@ func (e *Engine) evalSubquery(v *sql.Subquery, row map[string]interface{}) (inte
 }
 
 func (e *Engine) evalExists(v *sql.ExistsExpr, row map[string]interface{}) (interface{}, error) {
+	// Propagate outerRow for correlated subquery references
+	prevOuterRow := e.outerRow
+	e.outerRow = row
+	defer func() { e.outerRow = prevOuterRow }()
+
 	result := e.execSelect(v.Select)
 	if result.Error != nil {
 		return nil, result.Error
@@ -3588,7 +4537,7 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 	return v.Value, nil
 }
 
-func evalColumnRef(v *sql.ColumnRef, row map[string]interface{}) (interface{}, error) {
+func (e *Engine) evalColumnRef(v *sql.ColumnRef, row map[string]interface{}) (interface{}, error) {
 	if v.Name == "*" {
 		return "*", nil
 	}
@@ -3597,10 +4546,22 @@ func evalColumnRef(v *sql.ColumnRef, row map[string]interface{}) (interface{}, e
 		if val, ok := row[v.Table+"."+v.Name]; ok {
 			return val, nil
 		}
+		// Fallback to outer row for correlated references
+		if e.outerRow != nil {
+			if val, ok := e.outerRow[v.Table+"."+v.Name]; ok {
+				return val, nil
+			}
+		}
 	}
 	// Unqualified: check short name
 	if val, ok := row[v.Name]; ok {
 		return val, nil
+	}
+	// Fallback to outer row for correlated references (unqualified)
+	if e.outerRow != nil {
+		if val, ok := e.outerRow[v.Name]; ok {
+			return val, nil
+		}
 	}
 	return nil, nil
 }
@@ -3993,6 +4954,11 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row map[string]interface{}) (inte
 	fn, ok := e.funcs.Find(f.Name)
 	if !ok {
 		return nil, fmt.Errorf("unknown function: %s", f.Name)
+	}
+
+	// ORDER BY is only allowed for aggregate functions
+	if len(f.OrderBy) > 0 && fn.Type != function.TypeAggregate {
+		return nil, fmt.Errorf("ORDER BY may not be used with non-aggregate %s()", f.Name)
 	}
 
 	args := make([]interface{}, len(f.Args))

@@ -176,6 +176,9 @@ func cleanExpected(s string) string {
 					token := strings.TrimSpace(s[tokenStart:i])
 					if token != "" {
 						parts = append(parts, token)
+					} else {
+						// TCL {} represents an empty value (maps to SQL NULL)
+						parts = append(parts, "NULL")
 					}
 				}
 				tokenStart = i + 1
