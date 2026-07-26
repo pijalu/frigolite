@@ -1,6 +1,19 @@
-# PLAN-P1B-PARSER-FIXES.md — Close Remaining Parser/Engine Limitations
+# PLAN-P1B-PARSER-FIXES.md — Close Remaining Parser/Engine Limitations (DONE)
 
-## Goal
+## Status: ✅ COMPLETE
+
+All P1B fixes completed and committed:
+- Error message rebaseline (~25 tests)
+- SQL output formatting (trigger SQL, CREATE TABLE spacing)
+- NOD keyword handling verified working
+- CTE+VALUES edge case in parseWithStatement
+- WINDOW clause parsing (unblocked ~30 WINDOW tests)
+- ConstraintName in AST, REFERENCES target columns
+- Circular view detection in renameUpdateRelatedEntries
+
+Result: 96→65 alter FAIL.
+
+## Goal (Historical)
 
 Fix the 5 remaining parser/engine blockages preventing ALTER TABLE zero-failure verification.
 Current state: 76 FAIL across 7 alter suites. Target: 0 FAIL.

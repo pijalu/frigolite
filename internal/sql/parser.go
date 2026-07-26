@@ -566,6 +566,10 @@ func (p *Parser) parseOneWindowDef() WindowDef {
 				}
 				wd.Partitions = partitions
 			} else if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
+				p.next() // consume ORDER
+				if p.cur.Type == TokenKeyword && p.cur.Value == "BY" {
+					p.next() // consume BY
+				}
 				wd.OrderBy = p.parseOrderBy()
 			} else if p.cur.Type == TokenKeyword &&
 				(p.cur.Value == "RANGE" || p.cur.Value == "ROWS" || p.cur.Value == "GROUPS") {

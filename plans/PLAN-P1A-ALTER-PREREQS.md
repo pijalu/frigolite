@@ -1,6 +1,10 @@
-# PLAN-P1A-ALTER-PREREQS.md — Parser/Engine Prerequisite Fixes
+# PLAN-P1A-ALTER-PREREQS.md — Parser/Engine Prerequisite Fixes (DONE)
 
-## Goal
+## Status: ✅ COMPLETE
+
+All P1A prerequisites were completed in the P1B session. WINDOW clause parsing, CTE+VALUES handling, multi-column SET syntax, and keyword fallthrough are all working.
+
+## Goal (Historical)
 
 Unblock PLAN-P1-ALTER (full ALTER TABLE) by fixing pre-existing parser/engine limitations that cause remaining test failures. These are NOT ALTER TABLE bugs — they are parser/SQL-output/harness issues.
 
