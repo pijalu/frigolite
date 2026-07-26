@@ -1598,6 +1598,7 @@ func (p *Parser) parseTableOptions(s *CreateTableStmt) {
 					return
 				}
 				p.next()
+				s.WithoutRowid = true
 			}
 			continue
 		}
@@ -1859,18 +1860,35 @@ func (p *Parser) parseParenExprOnly() Expr {
 	return nil
 }
 
-// parseParenIdentList parses (ident1, ident2, ...) and returns the list of identifiers.
-func (p *Parser) parseParenIdentList() []string {
+// parseParenIdentList parses (ident1, ident2, ...) with optional COLLATE and ASC/DESC
+// and returns the list of indexed columns.
+func (p *Parser) parseParenIdentList() []IndexedColumn {
 	if p.cur.Type == TokenLParen {
 		p.next()
-		var names []string
+		var cols []IndexedColumn
 		for p.cur.Type != TokenRParen {
 			if p.cur.Type == TokenEOF {
-				return names
+				return cols
 			}
 			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				names = append(names, p.cur.Value)
+				col := IndexedColumn{Name: p.cur.Value}
 				p.next()
+				// Optional COLLATE clause
+				if p.cur.Type == TokenKeyword && p.cur.Value == "COLLATE" {
+					p.next()
+					if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+						col.Collate = p.cur.Value
+						p.next()
+					}
+				}
+				// Optional ASC/DESC
+				if p.cur.Type == TokenKeyword && (p.cur.Value == "ASC" || p.cur.Value == "DESC") {
+					if p.cur.Value == "DESC" {
+						col.Desc = true
+					}
+					p.next()
+				}
+				cols = append(cols, col)
 			}
 			if p.cur.Type == TokenComma {
 				p.next()
@@ -1879,7 +1897,7 @@ func (p *Parser) parseParenIdentList() []string {
 		if p.cur.Type == TokenRParen {
 			p.next()
 		}
-		return names
+		return cols
 	}
 	return nil
 }
@@ -2300,9 +2318,12 @@ func (p *Parser) parseIndexColumns() []IndexColumn {
 			p.cur.Type == TokenMinus || p.cur.Type == TokenBlob {
 			expr := p.parseExpr()
 			p.skipIndexColumnCollate()
-			col := IndexColumn{Name: ""}
+			col := IndexColumn{}
 			if colRef, ok := expr.(*ColumnRef); ok {
 				col.Name = colRef.Name
+			} else {
+				// For expression-based index columns, store the expression text
+				col.Name = ExprString(expr)
 			}
 			if p.cur.Type == TokenKeyword && p.cur.Value == "ASC" {
 				p.next()
@@ -2620,6 +2641,7 @@ func (p *Parser) parseAlterDrop(s *AlterTableStmt) {
 		p.next()
 		s.Column = "CONSTRAINT"
 		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			s.NewName = p.cur.Value // store the constraint name
 			p.next()
 		}
 		return

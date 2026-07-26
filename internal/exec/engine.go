@@ -39,10 +39,14 @@ type Engine struct {
 	tableRootPages map[string]uint32     // tracked root pages (updated after splits)
 	nextRowIDCache map[uint32]int64      // cached next rowid per root page (keyed by rootPage)
 	triggerDepth int                    // prevents recursive trigger firing
+	triggerNewRow map[string]interface{}   // new row values for trigger execution (keyed as "new.colname")
+	triggerOldRow map[string]interface{}   // old row values for trigger execution (keyed as "old.colname")
 	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer    []func()               // DDL undo operations for transaction rollback
 	outerRow     map[string]interface{}   // outer query row for correlated subquery resolution
 	outerRows    []map[string]interface{} // all outer rows for correlated aggregate evaluation
+	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
+	legacyAlterTable bool                   // PRAGMA legacy_alter_table setting
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -253,20 +257,29 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 		formatTableConstraint(&buf, tc)
 	}
 	buf.WriteString(")")
+	if s.WithoutRowid {
+		buf.WriteString(" WITHOUT ROWID")
+	}
 	return buf.String()
 }
 
 func formatColumnDef(buf *strings.Builder, col sql.ColumnDef) {
+	if col.Dropped {
+		return
+	}
 	buf.WriteString(col.Name)
 	if col.Type != "" {
 		buf.WriteString(" ")
 		buf.WriteString(col.Type)
 	}
-	if col.PrimaryKey {
-		buf.WriteString(" PRIMARY KEY")
+	if col.Collate != "" {
+		buf.WriteString(" COLLATE ")
+		buf.WriteString(col.Collate)
 	}
-	if col.AutoInc {
-		buf.WriteString(" AUTOINCREMENT")
+	if col.Check != nil {
+		buf.WriteString(" CHECK(")
+		buf.WriteString(sql.ExprString(col.Check))
+		buf.WriteString(")")
 	}
 	if col.NotNull {
 		buf.WriteString(" NOT NULL")
@@ -274,10 +287,19 @@ func formatColumnDef(buf *strings.Builder, col sql.ColumnDef) {
 	if col.Unique {
 		buf.WriteString(" UNIQUE")
 	}
-	if col.Check != nil {
-		buf.WriteString(" CHECK(")
-		buf.WriteString(sql.ExprString(col.Check))
-		buf.WriteString(")")
+	if col.PrimaryKey {
+		buf.WriteString(" PRIMARY KEY")
+	}
+	if col.AutoInc {
+		buf.WriteString(" AUTOINCREMENT")
+	}
+	if col.Default != nil {
+		buf.WriteString(" DEFAULT ")
+		buf.WriteString(sql.ExprString(col.Default))
+	}
+	if col.References != "" {
+		buf.WriteString(" REFERENCES ")
+		buf.WriteString(col.References)
 	}
 }
 
@@ -295,21 +317,35 @@ func formatTableConstraint(buf *strings.Builder, tc sql.TableConstraint) {
 		}
 		buf.WriteString(")")
 	case sql.ConstraintPrimaryKey:
-		buf.WriteString("PRIMARY KEY (")
-		for i, colName := range tc.Columns {
+		buf.WriteString("PRIMARY KEY(")
+		for i, col := range tc.Columns {
 			if i > 0 {
 				buf.WriteString(", ")
 			}
-			buf.WriteString(colName)
+			buf.WriteString(col.Name)
+			if col.Collate != "" {
+				buf.WriteString(" COLLATE ")
+				buf.WriteString(col.Collate)
+			}
+			if col.Desc {
+				buf.WriteString(" DESC")
+			}
 		}
 		buf.WriteString(")")
 	case sql.ConstraintUnique:
-		buf.WriteString("UNIQUE (")
-		for i, colName := range tc.Columns {
+		buf.WriteString("UNIQUE(")
+		for i, col := range tc.Columns {
 			if i > 0 {
 				buf.WriteString(", ")
 			}
-			buf.WriteString(colName)
+			buf.WriteString(col.Name)
+			if col.Collate != "" {
+				buf.WriteString(" COLLATE ")
+				buf.WriteString(col.Collate)
+			}
+			if col.Desc {
+				buf.WriteString(" DESC")
+			}
 		}
 		buf.WriteString(")")
 	case sql.ConstraintForeignKey:
@@ -786,7 +822,7 @@ func selectStmtToString(s *sql.SelectStmt) string {
 	if s.From.Name != "" {
 		result += " FROM " + s.From.Name
 		if s.From.As != "" {
-			result += " " + s.From.As
+			result += " AS " + s.From.As
 		}
 	}
 	result += joinClausesToString(s.Joins)
@@ -869,6 +905,16 @@ func aliasClause(as string) string {
 func joinClausesToString(joins []sql.JoinClause) string {
 	result := ""
 	for _, j := range joins {
+		if j.CommaJoin {
+			result += ", " + j.Table.Name
+			if j.Table.As != "" {
+				result += " AS " + j.Table.As
+			}
+			if j.On != nil {
+				result += " ON " + exprToString(j.On)
+			}
+			continue
+		}
 		switch j.JoinType {
 		case "LEFT":
 			result += " LEFT JOIN "
@@ -889,7 +935,7 @@ func joinClausesToString(joins []sql.JoinClause) string {
 		}
 		result += j.Table.Name
 		if j.Table.As != "" {
-			result += " " + j.Table.As
+			result += " AS " + j.Table.As
 		}
 		if j.On != nil {
 			result += " ON " + exprToString(j.On)
@@ -1074,7 +1120,13 @@ func (e *Engine) insertRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, va
 		e.updateRootPage(tableEntry.Name, tree.RootPage())
 	}
 	// Fire AFTER INSERT triggers
-	if trigResult := e.fireAfterInsertTriggers(tableEntry.Name); trigResult.Error != nil {
+	newRow := make(map[string]interface{})
+	for i, v := range affValues {
+		if i < len(colDefs) {
+			newRow[colDefs[i].Name] = v
+		}
+	}
+	if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 		return trigResult
 	}
 	return &Result{Changes: 1, LastInsertRowID: nextRowID}
@@ -1099,7 +1151,7 @@ func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.Column
 		if cd.Check != nil {
 			checkVal, err := e.evalExpr(cd.Check, row)
 			if err == nil && checkVal != nil && !toBool(checkVal) {
-				return fmt.Errorf("CHECK constraint failed: %s", tableEntry.Name)
+				return fmt.Errorf("CHECK constraint failed: %s", sql.ExprString(cd.Check))
 			}
 		}
 	}
@@ -1221,7 +1273,7 @@ func (e *Engine) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.Colum
 		return &Result{Error: err}
 	}
 
-	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name); trigResult.Error != nil {
+	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, nil, nil); trigResult.Error != nil {
 		return trigResult
 	}
 	return &Result{Changes: 1}
@@ -1390,22 +1442,22 @@ func (e *Engine) execInsertDefault(tableEntry *schema.Entry) *Result {
 }
 
 // fireAfterInsertTriggers fires AFTER INSERT triggers for the given table.
-func (e *Engine) fireAfterInsertTriggers(tableName string) *Result {
-	return e.fireTriggers(tableName, "INSERT")
+func (e *Engine) fireAfterInsertTriggers(tableName string, newRow map[string]interface{}) *Result {
+	return e.fireTriggers(tableName, "INSERT", newRow, nil)
 }
 
 // fireAfterUpdateTriggers fires AFTER UPDATE triggers for the given table.
-func (e *Engine) fireAfterUpdateTriggers(tableName string) *Result {
-	return e.fireTriggers(tableName, "UPDATE")
+func (e *Engine) fireAfterUpdateTriggers(tableName string, newRow, oldRow map[string]interface{}) *Result {
+	return e.fireTriggers(tableName, "UPDATE", newRow, oldRow)
 }
 
 // fireAfterDeleteTriggers fires AFTER DELETE triggers for the given table.
-func (e *Engine) fireAfterDeleteTriggers(tableName string) *Result {
-	return e.fireTriggers(tableName, "DELETE")
+func (e *Engine) fireAfterDeleteTriggers(tableName string, oldRow map[string]interface{}) *Result {
+	return e.fireTriggers(tableName, "DELETE", nil, oldRow)
 }
 
 // fireTriggers fires triggers matching the given event for the table.
-func (e *Engine) fireTriggers(tableName, event string) *Result {
+func (e *Engine) fireTriggers(tableName, event string, newRow, oldRow map[string]interface{}) *Result {
 	// Prevent recursive trigger firing by default (matches SQLite behavior
 	// where recursive_triggers pragma is OFF by default)
 	if e.triggerDepth > 0 {
@@ -1416,7 +1468,7 @@ func (e *Engine) fireTriggers(tableName, event string) *Result {
 		return &Result{}
 	}
 	for _, t := range triggers {
-		if res := e.fireTrigger(t, event); res != nil {
+		if res := e.fireTrigger(t, event, newRow, oldRow); res != nil {
 			return res
 		}
 	}
@@ -1425,7 +1477,7 @@ func (e *Engine) fireTriggers(tableName, event string) *Result {
 
 // fireTrigger fires a single trigger matching the given event.
 // Returns a Result with an error if execution fails, or nil on success.
-func (e *Engine) fireTrigger(t *schema.Entry, event string) *Result {
+func (e *Engine) fireTrigger(t *schema.Entry, event string, newRow, oldRow map[string]interface{}) *Result {
 	upper := strings.ToUpper(t.SQL)
 	// Check event matches: "event ON table" pattern
 	if !strings.Contains(upper, " "+event+" ") && !strings.Contains(upper, " "+event+" ON") {
@@ -1453,6 +1505,17 @@ func (e *Engine) fireTrigger(t *schema.Entry, event string) *Result {
 	// Increment trigger depth to prevent recursive trigger firing
 	e.triggerDepth++
 	defer func() { e.triggerDepth-- }()
+
+	// Set NEW and OLD row values for trigger body execution
+	prevNewRow := e.triggerNewRow
+	prevOldRow := e.triggerOldRow
+	e.triggerNewRow = newRow
+	e.triggerOldRow = oldRow
+	defer func() {
+		e.triggerNewRow = prevNewRow
+		e.triggerOldRow = prevOldRow
+	}()
+
 	for _, stmt := range stmts {
 		res := e.Exec(stmt)
 		if res.Error != nil {
@@ -1613,7 +1676,17 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		if viewErr != nil {
 			return &Result{Error: err}
 		}
-		return e.execSelectViewWithOuter(s, viewEntry)
+		// Check for circular view reference
+		if e.resolvingViews[s.From.Name] {
+			return &Result{Error: fmt.Errorf("circular view reference: %s", s.From.Name)}
+		}
+		if e.resolvingViews == nil {
+			e.resolvingViews = make(map[string]bool)
+		}
+		e.resolvingViews[s.From.Name] = true
+		result := e.execSelectViewWithOuter(s, viewEntry)
+		delete(e.resolvingViews, s.From.Name)
+		return result
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
@@ -3561,6 +3634,9 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			for _, cd := range colDefs {
+				if cd.Dropped {
+					continue
+				}
 				outRow = append(outRow, row[cd.Name])
 			}
 		} else {
@@ -3581,6 +3657,9 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			for _, cd := range colDefs {
+				if cd.Dropped {
+					continue
+				}
 				names = append(names, cd.Name)
 			}
 		} else if col.As != "" {
@@ -3673,7 +3752,7 @@ func (e *Engine) execUpdate(s *sql.UpdateStmt) *Result {
 	}
 
 	// Fire AFTER UPDATE triggers
-	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name); trigResult.Error != nil {
+	if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, nil, nil); trigResult.Error != nil {
 		return trigResult
 	}
 
@@ -3829,7 +3908,7 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 	}
 
 	// Fire AFTER DELETE triggers
-	if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name); trigResult.Error != nil {
+	if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, nil); trigResult.Error != nil {
 		return trigResult
 	}
 
@@ -3878,6 +3957,17 @@ func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {
 
 func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 	name := strings.ToUpper(s.Name)
+
+	// Handle PRAGMA ... = value for known pragmas
+	if s.Value != "" {
+		switch name {
+		case "LEGACY_ALTER_TABLE":
+			e.legacyAlterTable = s.Value == "1"
+		}
+		// When setting a PRAGMA value, don't also return the value
+		return &Result{}
+	}
+
 	if fn, ok := pragmaHandlers[name]; ok {
 		return fn(e)
 	}
@@ -3904,7 +3994,13 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"LOCKING_MODE":        func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"normal"}}} },
 	"DATABASE_LIST":       func(e *Engine) *Result { return &Result{Columns: []string{"seq", "name", "file"}, Rows: [][]interface{}{{int64(0), "main", ""}}} },
 	"INTEGRITY_CHECK":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{}}} },
-	"LEGACY_ALTER_TABLE":  func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
+	"LEGACY_ALTER_TABLE":  func(e *Engine) *Result {
+		val := int64(0)
+		if e.legacyAlterTable {
+			val = 1
+		}
+		return &Result{Rows: [][]interface{}{{val}}}
+	},
 	"TABLE_X":             func(e *Engine) *Result { return &Result{Columns: []string{"oid", "colX"}, Rows: [][]interface{}{{int64(0), ""}}} },
 	"COUNT_CHANGES":       func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
@@ -3923,12 +4019,13 @@ func (e *Engine) execAlterTable(s *sql.AlterTableStmt) *Result {
 	switch s.Action {
 	case "RENAME":
 		if s.Column != "" {
-			// ALTER TABLE ... RENAME [COLUMN] column TO newname
-			// Column rename — no-op for now (column references in triggers/views
-			// are not updated, but at least the table name is not accidentally
-			// consumed by execAlterTableRename).
-			return &Result{}
-		}
+				// ALTER TABLE ... RENAME [COLUMN] column TO newname
+				// Column rename — validate triggers before proceeding
+				if err := e.validateRename(s.Table, s.NewName); err != nil {
+					return &Result{Error: err}
+				}
+				return &Result{}
+			}
 		return e.execAlterTableRename(s)
 	case "ADD":
 		return e.execAlterTableAdd(s)
@@ -3972,7 +4069,8 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 }
 
 // validateRename checks if the table can be renamed by verifying that
-// no CHECK constraints or index WHERE clauses reference the old table name.
+// no CHECK constraints or index WHERE clauses reference the old table name,
+// and that no views have circular references.
 func (e *Engine) validateRename(oldName, newName string) error {
 	tableEntry, err := e.schema.FindTable(oldName)
 	if err != nil {
@@ -3996,7 +4094,135 @@ func (e *Engine) validateRename(oldName, newName string) error {
 			}
 		}
 	}
+	// Check all triggers for references to non-existent tables
+	// Only check references to tables OTHER than the one being renamed.
+	for _, entry := range entries {
+		if entry.Type == schema.TypeTrigger {
+			// Extract the trigger body and check for table references
+			bodyRefs := findTableRefsInTrigger(entry.SQL)
+			for _, ref := range bodyRefs {
+				// Strip schema prefix for lookup
+				lookupName := ref
+				if dotIdx := strings.Index(lookupName, "."); dotIdx >= 0 {
+					lookupName = lookupName[dotIdx+1:]
+				}
+				// Skip the table being renamed (its references will be updated)
+				if strings.EqualFold(lookupName, oldName) {
+					continue
+				}
+				// Skip special keywords or pseudo-tables
+				if strings.EqualFold(lookupName, "NEW") || strings.EqualFold(lookupName, "OLD") {
+					continue
+				}
+				// Skip SET keyword (from "UPDATE tablename SET" pattern)
+				if strings.EqualFold(lookupName, "SET") {
+					continue
+				}
+				_, err := e.schema.FindTable(lookupName)
+				if err != nil {
+					// Format error message: prepend "main." if no schema prefix
+					refName := ref
+					if !strings.Contains(ref, ".") {
+						refName = "main." + ref
+					}
+					return fmt.Errorf("error in trigger %s: no such table: %s", entry.Name, refName)
+				}
+			}
+		}
+	}
+	// Check for views with circular references (self-referencing views).
+	// ALTER TABLE RENAME rejects if any view has a circular reference,
+	// even if the view does not reference the renamed table.
+	for _, entry := range entries {
+		if entry.Type == schema.TypeView {
+			if hasViewCircularRef(entry.SQL, entry.Name) {
+				return fmt.Errorf("error in view %s after rename: circular reference", entry.Name)
+			}
+		}
+	}
 	return nil
+}
+
+// findTableRefsInTrigger extracts table references from a trigger body.
+// Returns a list of referenced table names found in INSERT, UPDATE, DELETE, SELECT statements.
+func findTableRefsInTrigger(triggerSQL string) []string {
+	var refs []string
+
+	// Find "INSERT INTO tablename" patterns (case-insensitive)
+	// Use word-character matching to avoid capturing trailing punctuation like ";"
+	re := regexp.MustCompile(`(?i)INSERT\s+INTO\s+([a-zA-Z_]\w*)`)
+	matches := re.FindAllStringSubmatch(triggerSQL, -1)
+	for _, m := range matches {
+		refs = append(refs, m[1])
+	}
+
+	// Find "FROM tablename" patterns (case-insensitive)
+	re = regexp.MustCompile(`(?i)\bFROM\s+([a-zA-Z_]\w*)`)
+	matches = re.FindAllStringSubmatch(triggerSQL, -1)
+	for _, m := range matches {
+		t := m[1]
+		// Skip special keywords or pseudo-tables
+		if strings.EqualFold(t, "NEW") || strings.EqualFold(t, "OLD") {
+			continue
+		}
+		refs = append(refs, t)
+	}
+
+	// Find "UPDATE tablename" patterns (case-insensitive)
+	re = regexp.MustCompile(`(?i)\bUPDATE\s+([a-zA-Z_]\w*)`)
+	matches = re.FindAllStringSubmatch(triggerSQL, -1)
+	for _, m := range matches {
+		t := m[1]
+		if strings.EqualFold(t, "SET") {
+			continue
+		}
+		refs = append(refs, t)
+	}
+
+	// Find "DELETE FROM tablename" patterns (case-insensitive)
+	re = regexp.MustCompile(`(?i)DELETE\s+FROM\s+([a-zA-Z_]\w*)`)
+	matches = re.FindAllStringSubmatch(triggerSQL, -1)
+	for _, m := range matches {
+		refs = append(refs, m[1])
+	}
+
+	return refs
+}
+
+// hasViewCircularRef checks if a view has a circular reference (references its own name).
+// View SQL format: "CREATE VIEW name AS SELECT ..."
+func hasViewCircularRef(viewSQL, viewName string) bool {
+	if viewSQL == "" || viewName == "" {
+		return false
+	}
+	// Find " AS " after the view definition
+	upper := strings.ToUpper(viewSQL)
+	idx := strings.Index(upper, " AS ")
+	if idx < 0 {
+		return false
+	}
+	// Get the SELECT part after " AS "
+	selectSQL := viewSQL[idx+4:]
+	// Parse the SELECT to check for circular references
+	parser := sql.NewParser(selectSQL)
+	stmts := parser.Parse()
+	if parser.Err() != nil || len(stmts) == 0 {
+		return false
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok {
+		return false
+	}
+	// Check if the view's own name appears as a table reference in FROM or JOINs
+	if strings.EqualFold(sel.From.Name, viewName) {
+		return true
+	}
+	for _, j := range sel.Joins {
+		if strings.EqualFold(j.Table.Name, viewName) {
+			return true
+		}
+	}
+	return false
 }
 
 // renameUpdateRelatedEntries updates views, triggers, and indexes that
@@ -4009,6 +4235,10 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 	for _, entry := range entries {
 		switch entry.Type {
 		case schema.TypeView:
+			if e.legacyAlterTable {
+				// In legacy mode, views are NOT updated — they keep old references
+				continue
+			}
 			if strings.Contains(entry.SQL, oldName) || strings.Contains(entry.SQL, strings.ToUpper(oldName)) {
 				newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
 				if newSQL != entry.SQL {
@@ -4018,12 +4248,14 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 				}
 			}
 		case schema.TypeTrigger:
-			if strings.EqualFold(entry.TblName, oldName) {
-				entry.TblName = newName
-				entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
-				_ = e.schema.RemoveEntry(entry.Name)
-				_ = e.schema.AddEntry(entry)
-			}
+				if strings.EqualFold(entry.TblName, oldName) {
+					entry.TblName = newName
+					if !e.legacyAlterTable {
+						entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
+					}
+					_ = e.schema.RemoveEntry(entry.Name)
+					_ = e.schema.AddEntry(entry)
+				}
 		case schema.TypeIndex:
 			if strings.EqualFold(entry.TblName, oldName) {
 				entry.TblName = newName
@@ -4077,7 +4309,12 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 
 	// Add column to cached column definitions
 	colDefs := e.colCache[tableName]
-	colDefs = append(colDefs, s.ColDef)
+
+	// ALTER TABLE ... ADD CONSTRAINT is parsed as a table-level constraint,
+	// not a column definition. Skip empty column defs.
+	if s.ColDef.Name != "" {
+		colDefs = append(colDefs, s.ColDef)
+	}
 	e.colCache[tableName] = colDefs
 
 	// Update schema SQL to reflect the new column
@@ -4091,8 +4328,23 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	tableName := s.Table
 
-	// Handle DROP CONSTRAINT as no-op (constraints not enforced)
+	// Handle DROP CONSTRAINT - remove named constraint from schema SQL
 	if s.Column == "CONSTRAINT" {
+		constraintName := s.NewName
+		if constraintName == "" {
+			return &Result{}
+		}
+		tableEntry, err := e.schema.FindTable(tableName)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		// Remove the named constraint from the CREATE TABLE SQL
+		newSQL := removeConstraintFromSQL(tableEntry.SQL, constraintName)
+		if newSQL != tableEntry.SQL {
+			tableEntry.SQL = newSQL
+			_ = e.schema.RemoveEntry(tableEntry.Name)
+			_ = e.schema.AddEntry(tableEntry)
+		}
 		return &Result{}
 	}
 
@@ -4110,6 +4362,35 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	// Check if it's a virtual table (has "USING" in SQL or uses a known module)
 	if strings.Contains(tableEntry.SQL, "USING") || e.isVirtualTable(tableEntry) {
 		return &Result{Error: fmt.Errorf("cannot drop column from virtual table %q", tableName)}
+	}
+
+// Check if the table's SQL is malformed (doesn't look like a CREATE TABLE)
+	upperSQL := strings.ToUpper(strings.TrimSpace(tableEntry.SQL))
+	if !strings.HasPrefix(upperSQL, "CREATE TABLE") {
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
+
+	// Check index dependencies before dropping
+	if depResult := e.checkIndexDependencies(tableName, s.Column); depResult != nil {
+		return depResult
+	}
+
+	// Check table-level constraint dependencies before dropping
+	if depResult := e.checkTableConstraintDependencies(tableEntry.SQL, tableName, s.Column); depResult != nil {
+		return depResult
+	}
+
+	// Check view dependencies (existing errors only)
+	if depResult := e.checkViewDependencies(tableName, s.Column); depResult != nil {
+		return depResult
+	}
+	// Check trigger dependencies (existing errors)
+	if depResult := e.checkTriggerDependencies(tableName, s.Column); depResult != nil {
+		return depResult
+	}
+	// Check "after drop column" view dependencies
+	if depResult := e.checkViewDropDependencies(tableName, s.Column); depResult != nil {
+		return depResult
 	}
 
 	// Check if it's the sqlite_master system table
@@ -4137,6 +4418,9 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 				return &Result{Error: fmt.Errorf("cannot drop UNIQUE column: %q", s.Column)}
 			}
 			found = true
+			// Mark as dropped but keep in the list for correct record position mapping
+			c.Dropped = true
+			newColDefs = append(newColDefs, c)
 			continue
 		}
 		newColDefs = append(newColDefs, c)
@@ -4144,17 +4428,28 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	if !found {
 		return &Result{Error: fmt.Errorf("no such column: \"%s\"", s.Column)}
 	}
-	// Cannot drop the last remaining column
-	if len(newColDefs) == 0 {
+	// Cannot drop the last remaining visible column
+	var visibleCount int
+	for _, c := range newColDefs {
+		if !c.Dropped {
+			visibleCount++
+		}
+	}
+	if visibleCount == 0 {
 		e.colCache[tableName] = colDefs // restore original column list
 		return &Result{Error: fmt.Errorf("cannot drop column %q: no other columns exist", s.Column)}
 	}
 	e.colCache[tableName] = newColDefs
 
 	// Update the table's stored SQL to reflect the dropped column
-	// Rebuild the CREATE TABLE SQL without the dropped column
-	// We need a temporary CreateTableStmt to use buildCreateTableSQL
-	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, newColDefs)
+	// Build a filtered list without dropped columns for the SQL
+	var sqlColDefs []sql.ColumnDef
+	for _, c := range newColDefs {
+		if !c.Dropped {
+			sqlColDefs = append(sqlColDefs, c)
+		}
+	}
+	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, sqlColDefs)
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
 		_ = e.schema.RemoveEntry(tableEntry.Name)
@@ -4200,7 +4495,14 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	e.colCache[tableName] = colDefs
 
 	// Rebuild the CREATE TABLE SQL with updated column definitions
-	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, colDefs)
+	// Filter out dropped columns
+	var sqlColDefs []sql.ColumnDef
+	for _, c := range colDefs {
+		if !c.Dropped {
+			sqlColDefs = append(sqlColDefs, c)
+		}
+	}
+	updateSQL := rebuildCreateTableSQL(tableEntry.SQL, sqlColDefs)
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
 		_ = e.schema.RemoveEntry(tableEntry.Name)
@@ -4208,6 +4510,99 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	}
 
 	return &Result{}
+}
+
+// removeConstraintFromSQL removes a named constraint from a CREATE TABLE SQL string.
+func removeConstraintFromSQL(origSQL, constraintName string) string {
+	upper := strings.ToUpper(origSQL)
+	if !strings.Contains(upper, "CREATE TABLE") {
+		return origSQL
+	}
+	// Find the content between outer parentheses
+	parenStart := strings.Index(origSQL, "(")
+	if parenStart < 0 {
+		return origSQL
+	}
+	depth := 0
+	parenEnd := -1
+	for i := parenStart; i < len(origSQL); i++ {
+		switch origSQL[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				parenEnd = i
+				break
+			}
+		}
+	}
+	if parenEnd < 0 {
+		return origSQL
+	}
+
+	trailingSQL := strings.TrimSpace(origSQL[parenEnd+1:])
+	defText := origSQL[parenStart+1 : parenEnd]
+
+	// Split by top-level commas
+	var parts []string
+	depth = 0
+	start := 0
+	for i := 0; i < len(defText); i++ {
+		switch defText[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				parts = append(parts, strings.TrimSpace(defText[start:i]))
+				start = i + 1
+			}
+		}
+	}
+	if start < len(defText) {
+		parts = append(parts, strings.TrimSpace(defText[start:]))
+	}
+
+	// Identify and remove the constraint with the matching name
+	upperName := strings.ToUpper(constraintName)
+	quotedName := `"` + constraintName + `"`
+	upperQuotedName := strings.ToUpper(quotedName)
+	var keptParts []string
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		upperPart := strings.ToUpper(part)
+		// Check if this part is a CONSTRAINT clause with the matching name
+		if strings.HasPrefix(upperPart, "CONSTRAINT ") {
+			// Extract the constraint name from the part
+			rest := strings.TrimSpace(part[11:]) // after "CONSTRAINT "
+			restUpper := strings.ToUpper(rest)
+			if strings.HasPrefix(restUpper, upperName) || strings.HasPrefix(restUpper, upperQuotedName) {
+				// This is the constraint to drop - skip it
+				continue
+			}
+		}
+		keptParts = append(keptParts, part)
+	}
+
+	// Rebuild the SQL
+	var buf strings.Builder
+	buf.WriteString(origSQL[:parenStart+1])
+	for i, part := range keptParts {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(part)
+	}
+	buf.WriteString(")")
+	if trailingSQL != "" {
+		buf.WriteString(" ")
+		buf.WriteString(trailingSQL)
+	}
+	return buf.String()
 }
 
 // rebuildCreateTableSQL rebuilds a CREATE TABLE SQL string with updated column definitions.
@@ -4309,6 +4704,25 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 		}
 	}
 
+	// Build a mapping from column name to original definition text
+	origColDefs := make(map[string]string)
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed == "" {
+			continue
+		}
+		// Extract the column name (first word)
+		spaceIdx := strings.IndexAny(trimmed, " (\"")
+		if spaceIdx > 0 {
+			name := strings.ToUpper(strings.Trim(trimmed[:spaceIdx], "\""))
+			origColDefs[name] = trimmed
+		} else if spaceIdx < 0 {
+			// Single word column name
+			name := strings.ToUpper(strings.Trim(trimmed, "\""))
+			origColDefs[name] = trimmed
+		}
+	}
+
 	// Build the final SQL
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
@@ -4318,7 +4732,12 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		formatColumnDef(&buf, col)
+		// Use original column text if available, otherwise reconstruct
+		if orig, ok := origColDefs[strings.ToUpper(col.Name)]; ok {
+			buf.WriteString(orig)
+		} else {
+			formatColumnDef(&buf, col)
+		}
 	}
 	for _, tc := range constraints {
 		buf.WriteString(", ")
@@ -4341,6 +4760,500 @@ func (e *Engine) isVirtualTable(entry *schema.Entry) bool {
 		return true
 	}
 	// Check if the table's root page type is a virtual table (if available)
+	return false
+}
+
+// checkIndexDependencies checks if any indexes reference the given column and returns
+// an error if so. This prevents dropping columns that are used by indexes.
+func (e *Engine) checkIndexDependencies(tableName, columnName string) *Result {
+	entries, err := e.schema.GetEntries(schema.TypeIndex)
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		if !strings.EqualFold(entry.TblName, tableName) {
+			continue
+		}
+		if indexReferencesColumn(entry.SQL, columnName) {
+			return &Result{Error: fmt.Errorf("error in index %s after drop column: no such column: %s",
+				entry.Name, columnName)}
+		}
+	}
+	return nil
+}
+
+// checkViewDependencies validates all views before dropping a column.
+// Uses simple text-based scanning to find column references.
+func (e *Engine) checkViewDependencies(tableName, columnName string) *Result {
+	views, err := e.schema.GetEntries(schema.TypeView)
+	if err != nil {
+		return nil
+	}
+	for _, view := range views {
+		upperSQL := strings.ToUpper(view.SQL)
+		// Find the table referenced by this view (after FROM)
+		fromIdx := strings.Index(upperSQL, " FROM ")
+		if fromIdx < 0 {
+			continue
+		}
+		fromRest := strings.TrimSpace(upperSQL[fromIdx+6:])
+		spaceIdx := strings.IndexAny(fromRest, " \n\t\r")
+		refTable := ""
+		if spaceIdx > 0 {
+			refTable = fromRest[:spaceIdx]
+		} else {
+			refTable = fromRest
+		}
+		if refTable == "" {
+			continue
+		}
+		// Check if this view references the target table
+		refersToTarget := strings.EqualFold(refTable, tableName)
+
+		// Get the referenced table's column definitions
+		entry, findErr := e.schema.FindTable(refTable)
+		if findErr != nil {
+			// Table doesn't exist - the view references a non-existent table
+			return &Result{Error: fmt.Errorf("error in view %s: %s", view.Name, findErr.Error())}
+		}
+		colDefs := e.colCache[refTable]
+		if colDefs == nil {
+			colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+		}
+		// Build set of valid column names (excluding dropped)
+		validCols := make(map[string]bool)
+		for _, cd := range colDefs {
+			if cd.Dropped {
+				continue
+			}
+			validCols[strings.ToUpper(cd.Name)] = true
+		}
+		// Also include the column being dropped IF it exists (for "after drop" check)
+		if refersToTarget {
+			// Check if the column being dropped is in the current valid columns
+			_ = columnName
+		}
+		// Extract column names from the SELECT part of the view
+		selIdx := strings.Index(strings.ToUpper(view.SQL), "SELECT ")
+		if selIdx < 0 {
+			continue
+		}
+		afterSelect := view.SQL[selIdx+7 : fromIdx]
+		// Split by commas and extract column names
+		viewCols := strings.FieldsFunc(afterSelect, func(r rune) bool {
+			return r == ',' || r == ' ' || r == '\n' || r == '\t' || r == '\r'
+		})
+		// Phase 1: Check for existing errors (all views)
+		// Skip column references that match the column being dropped (checked later)
+		for _, col := range viewCols {
+			col = strings.TrimSpace(col)
+			if col == "" {
+				continue
+			}
+			upperCol := strings.ToUpper(col)
+			if upperCol == "DISTINCT" || upperCol == "ALL" || upperCol == "AS" {
+				continue
+			}
+			if strings.Contains(upperCol, ".") {
+				parts := strings.Split(upperCol, ".")
+				if len(parts) == 2 {
+					upperCol = parts[1]
+				}
+			}
+			// Skip the column being dropped — its validity is checked later
+			if refersToTarget && strings.EqualFold(col, columnName) {
+				continue
+			}
+			if !validCols[strings.ToUpper(upperCol)] && upperCol != "*" {
+				return &Result{Error: fmt.Errorf("error in view %s: no such column: %s",
+					view.Name, col)}
+			}
+		}
+	}
+	return nil
+}
+
+// checkViewDropDependencies checks if dropping the column would break
+// views that reference the target table.
+func (e *Engine) checkViewDropDependencies(tableName, columnName string) *Result {
+	views, err := e.schema.GetEntries(schema.TypeView)
+	if err != nil {
+		return nil
+	}
+	for _, view := range views {
+		upperSQL := strings.ToUpper(view.SQL)
+		fromIdx := strings.Index(upperSQL, " FROM ")
+		if fromIdx < 0 {
+			continue
+		}
+		fromRest := strings.TrimSpace(upperSQL[fromIdx+6:])
+		spaceIdx := strings.IndexAny(fromRest, " \n\t\r")
+		refTable := ""
+		if spaceIdx > 0 {
+			refTable = fromRest[:spaceIdx]
+		} else {
+			refTable = fromRest
+		}
+		if refTable == "" || !strings.EqualFold(refTable, tableName) {
+			continue
+		}
+		// Extract column names from the SELECT part of the view
+		selIdx := strings.Index(strings.ToUpper(view.SQL), "SELECT ")
+		if selIdx < 0 {
+			continue
+		}
+		afterSelect := view.SQL[selIdx+7 : fromIdx]
+		viewCols := strings.FieldsFunc(afterSelect, func(r rune) bool {
+			return r == ',' || r == ' ' || r == '\n' || r == '\t' || r == '\r'
+		})
+		for _, col := range viewCols {
+			col = strings.TrimSpace(col)
+			if strings.EqualFold(col, columnName) {
+				return &Result{Error: fmt.Errorf("error in view %s after drop column: no such column: %s",
+					view.Name, columnName)}
+			}
+		}
+	}
+	return nil
+}
+
+// validateViewSQL checks if a view's SQL references a valid table and columns.
+// Returns an error message if the view has issues, empty string otherwise.
+func (e *Engine) validateViewSQL(viewSQL, tableName, columnName string) string {
+	parser := sql.NewParser(viewSQL)
+	stmts := parser.Parse()
+	if parser.Err() != nil || len(stmts) == 0 {
+		return ""
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || sel == nil {
+		return ""
+	}
+	// Find referenced table in FROM clause
+	refTable := sel.From.Name
+	// Check if the referenced table exists and has the expected columns
+	if refTable != "" {
+		entry, err := e.schema.FindTable(refTable)
+		if err != nil {
+			// Table doesn't exist
+			return fmt.Sprintf("no such table: %s", refTable)
+		}
+		// Parse the view's column references
+		colRefs := collectColumnRefs(sel)
+		colDefs := e.colCache[refTable]
+		if colDefs == nil {
+			colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+		}
+		// Build set of valid column names (including dropped for position check)
+		validCols := make(map[string]bool)
+		for _, cd := range colDefs {
+			validCols[strings.ToUpper(cd.Name)] = true
+		}
+		// Check each column reference in the view
+		for _, ref := range colRefs {
+			if !validCols[strings.ToUpper(ref)] {
+				return fmt.Sprintf("no such column: %s", ref)
+			}
+		}
+	}
+	return ""
+}
+
+// collectColumnRefs collects column references from a SELECT statement.
+func collectColumnRefs(sel *sql.SelectStmt) []string {
+	var refs []string
+	for _, col := range sel.Columns {
+		collectExprRefs(col.Expr, &refs)
+	}
+	if sel.Where != nil {
+		collectExprRefs(sel.Where, &refs)
+	}
+	return refs
+}
+
+// collectExprRefs collects column references from an expression.
+func collectExprRefs(expr sql.Expr, refs *[]string) {
+	if expr == nil {
+		return
+	}
+	switch e := expr.(type) {
+	case *sql.ColumnRef:
+		*refs = append(*refs, e.Name)
+	case *sql.BinaryOp:
+		collectExprRefs(e.Left, refs)
+		collectExprRefs(e.Right, refs)
+	case *sql.UnaryOp:
+		collectExprRefs(e.Operand, refs)
+	case *sql.FuncCall:
+		for _, arg := range e.Args {
+			collectExprRefs(arg, refs)
+		}
+	case *sql.CaseExpr:
+		collectExprRefs(e.Operand, refs)
+		for _, w := range e.Whens {
+			collectExprRefs(w.When, refs)
+			collectExprRefs(w.Then, refs)
+		}
+		if e.Else != nil {
+			collectExprRefs(e.Else, refs)
+		}
+	case *sql.CastExpr:
+		collectExprRefs(e.Operand, refs)
+	case *sql.InList:
+		collectExprRefs(e.Operand, refs)
+	case *sql.IsNull:
+		collectExprRefs(e.Operand, refs)
+	case *sql.IsNotNull:
+		collectExprRefs(e.Operand, refs)
+	case *sql.Between:
+		collectExprRefs(e.Operand, refs)
+		collectExprRefs(e.Low, refs)
+		collectExprRefs(e.High, refs)
+	}
+}
+
+// checkTriggerDependencies checks if any triggers on the table reference the dropped column.
+func (e *Engine) checkTriggerDependencies(tableName, columnName string) *Result {
+	triggers, err := e.schema.FindTriggersForTable(tableName)
+	if err != nil {
+		return nil
+	}
+	for _, trig := range triggers {
+		// Check if the trigger body references the dropped column
+		upperSQL := strings.ToUpper(trig.SQL)
+		upperCol := strings.ToUpper(columnName)
+		// Check for NEW.column and OLD.column references
+		if strings.Contains(upperSQL, "NEW."+upperCol) || strings.Contains(upperSQL, "OLD."+upperCol) {
+			// The trigger references the column being dropped
+			// Extract the trigger's SQL to find other issues
+			errMsg := e.validateTriggerSQL(trig.SQL)
+			if errMsg != "" {
+				return &Result{Error: fmt.Errorf("error in trigger %s: %s", trig.Name, errMsg)}
+			}
+		}
+	}
+	return nil
+}
+
+// validateTriggerSQL checks if a trigger's SQL is valid.
+// Extracts NEW/OLD column references and checks if they exist in the target table.
+func (e *Engine) validateTriggerSQL(triggerSQL string) string {
+	// Find the table name from the trigger SQL
+	upperSQL := strings.ToUpper(triggerSQL)
+	// Extract ON <table> to find the target table
+	onIdx := strings.Index(upperSQL, " ON ")
+	if onIdx < 0 {
+		return ""
+	}
+	afterOn := strings.TrimSpace(upperSQL[onIdx+4:])
+	spaceIdx := strings.IndexAny(afterOn, " \n\t\r")
+	refTable := ""
+	if spaceIdx > 0 {
+		refTable = afterOn[:spaceIdx]
+	} else {
+		return ""
+	}
+	// Get the table's column definitions
+	entry, err := e.schema.FindTable(refTable)
+	if err != nil {
+		return ""
+	}
+	colDefs := e.colCache[refTable]
+	if colDefs == nil {
+		colDefs = e.parseColumnDefs(entry.Name, entry.SQL)
+	}
+	// Build set of valid column names (excluding dropped columns)
+	validCols := make(map[string]bool)
+	for _, cd := range colDefs {
+		if cd.Dropped {
+			continue
+		}
+		validCols[strings.ToUpper(cd.Name)] = true
+	}
+	// Find all NEW.xxx and OLD.xxx references in the trigger body
+	// Using simple text scanning
+	body := triggerSQL
+	BEGIN_MARKER := "BEGIN"
+	begIdx := strings.Index(upperSQL, BEGIN_MARKER)
+	if begIdx < 0 {
+		return ""
+	}
+	body = triggerSQL[begIdx+len(BEGIN_MARKER):]
+	// Find END
+	endIdx := strings.LastIndex(strings.ToUpper(body), "END")
+	if endIdx >= 0 {
+		body = body[:endIdx]
+	}
+	// Scan for NEW. and OLD. references
+	upperBody := strings.ToUpper(body)
+	for i := 0; i < len(upperBody); i++ {
+		prefix := ""
+		nextIdx := -1
+		newIdx := strings.Index(upperBody[i:], "NEW.")
+		oldIdx := strings.Index(upperBody[i:], "OLD.")
+		if newIdx >= 0 && (oldIdx < 0 || newIdx < oldIdx) {
+			nextIdx = i + newIdx
+			prefix = "new."
+		} else if oldIdx >= 0 {
+			nextIdx = i + oldIdx
+			prefix = "old."
+		} else {
+			break
+		}
+		// Extract the column name after NEW. or OLD.
+		colStart := nextIdx + 4 // skip "NEW." or "OLD."
+		colEnd := colStart
+		for colEnd < len(body) && (isAlpha(body[colEnd]) || body[colEnd] == '_') {
+			colEnd++
+		}
+		if colEnd > colStart {
+			colName := body[colStart:colEnd]
+			if !validCols[strings.ToUpper(colName)] {
+				return fmt.Sprintf("no such column: %s%s", prefix, colName)
+			}
+		}
+		i = nextIdx + 1
+	}
+	return ""
+}
+
+// isAlpha checks if a byte is an ASCII letter.
+func isAlpha(b byte) bool {
+	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || b == '_'
+}
+// reference the given column and returns an error if so.
+func (e *Engine) checkTableConstraintDependencies(createSQL, tableName, columnName string) *Result {
+	parser := sql.NewParser(createSQL)
+	stmts := parser.Parse()
+	if parser.Err() != nil || len(stmts) == 0 {
+		return nil
+	}
+	ct, ok := stmts[0].(*sql.CreateTableStmt)
+	if !ok || ct == nil {
+		return nil
+	}
+	// Check table-level constraints (not column-level)
+	for _, tc := range ct.Constraints {
+		if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
+			if exprReferencesColumn(tc.Expr, columnName) {
+				return &Result{Error: fmt.Errorf("error in table %s after drop column: no such column: %s",
+					tableName, columnName)}
+			}
+		}
+	}
+	return nil
+}
+
+// exprReferencesColumn checks if an expression references a specific column.
+func exprReferencesColumn(expr sql.Expr, columnName string) bool {
+	if expr == nil {
+		return false
+	}
+	switch e := expr.(type) {
+	case *sql.ColumnRef:
+		return strings.EqualFold(e.Name, columnName)
+	case *sql.BinaryOp:
+		return exprReferencesColumn(e.Left, columnName) || exprReferencesColumn(e.Right, columnName)
+	case *sql.UnaryOp:
+		return exprReferencesColumn(e.Operand, columnName)
+	case *sql.NumericLit, *sql.StringLit, *sql.NullLit:
+		return false
+	case *sql.FuncCall:
+		for _, arg := range e.Args {
+			if exprReferencesColumn(arg, columnName) {
+				return true
+			}
+		}
+		return false
+	case *sql.IsNull:
+		return exprReferencesColumn(e.Operand, columnName)
+	case *sql.IsNotNull:
+		return exprReferencesColumn(e.Operand, columnName)
+	case *sql.IsDistinctFrom:
+		return exprReferencesColumn(e.Left, columnName) || exprReferencesColumn(e.Right, columnName)
+	case *sql.IsNotDistinctFrom:
+		return exprReferencesColumn(e.Left, columnName) || exprReferencesColumn(e.Right, columnName)
+	case *sql.Between:
+		return exprReferencesColumn(e.Operand, columnName) ||
+			exprReferencesColumn(e.Low, columnName) || exprReferencesColumn(e.High, columnName)
+	case *sql.InList:
+		return exprReferencesColumn(e.Operand, columnName)
+	case *sql.CaseExpr:
+		if exprReferencesColumn(e.Operand, columnName) {
+			return true
+		}
+		for _, when := range e.Whens {
+			if exprReferencesColumn(when.When, columnName) || exprReferencesColumn(when.Then, columnName) {
+				return true
+			}
+		}
+		if e.Else != nil && exprReferencesColumn(e.Else, columnName) {
+			return true
+		}
+		return false
+	case *sql.CastExpr:
+		return exprReferencesColumn(e.Operand, columnName)
+	case *sql.RowValue:
+		for _, v := range e.Values {
+			if exprReferencesColumn(v, columnName) {
+				return true
+			}
+		}
+		return false
+	case *sql.ExistsExpr, *sql.Subquery:
+		return false // subqueries are complex, skip for now
+	default:
+		return false
+	}
+}
+
+// indexReferencesColumn checks if the CREATE INDEX SQL references a given column.
+func indexReferencesColumn(sqlStr, columnName string) bool {
+	upperSQL := strings.ToUpper(sqlStr)
+	// Check for simple column reference (word boundary)
+	// The column name appears after the ON table_name ( or after ON clause
+	// We use a simple approach: check if the column name appears as a standalone word
+	// by looking for it with surrounding non-alphanumeric characters
+	onIdx := strings.Index(upperSQL, " ON ")
+	if onIdx < 0 {
+		return false
+	}
+	parenIdx := strings.Index(upperSQL[onIdx:], "(")
+	if parenIdx < 0 {
+		return false
+	}
+	exprText := upperSQL[onIdx+parenIdx+1:]
+	// Find the matching closing paren
+	depth := 0
+	endIdx := -1
+	for i, ch := range exprText {
+		switch ch {
+		case '(':
+			depth++
+		case ')':
+			if depth == 0 {
+				endIdx = i
+				break
+			}
+			depth--
+		}
+	}
+	if endIdx > 0 {
+		exprText = exprText[:endIdx]
+	}
+	// Remove the last closing paren if any
+	exprText = strings.TrimSuffix(exprText, ")")
+
+	// Check if the column name appears as a whole word in the expression
+	words := strings.FieldsFunc(exprText, func(r rune) bool {
+		return !(r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_' || r == '"')
+	})
+	for _, w := range words {
+		w = strings.Trim(w, `"`)
+		if strings.EqualFold(w, columnName) {
+			return true
+		}
+	}
 	return false
 }
 
@@ -4545,6 +5458,17 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row map[string]interface{}) (in
 	if v.Table != "" {
 		if val, ok := row[v.Table+"."+v.Name]; ok {
 			return val, nil
+		}
+		// Check trigger NEW/OLD rows
+		if strings.EqualFold(v.Table, "new") && e.triggerNewRow != nil {
+			if val, ok := e.triggerNewRow[v.Name]; ok {
+				return val, nil
+			}
+		}
+		if strings.EqualFold(v.Table, "old") && e.triggerOldRow != nil {
+			if val, ok := e.triggerOldRow[v.Name]; ok {
+				return val, nil
+			}
 		}
 		// Fallback to outer row for correlated references
 		if e.outerRow != nil {

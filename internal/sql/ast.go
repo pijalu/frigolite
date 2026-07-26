@@ -147,12 +147,19 @@ const (
 	ConstraintForeignKey  ConstraintType = "FOREIGN KEY"
 )
 
+// IndexedColumn represents a column in a table constraint (PRIMARY KEY, UNIQUE, etc.).
+type IndexedColumn struct {
+	Name    string // column name
+	Collate string // optional COLLATE collation name
+	Desc    bool   // DESC (default is ASC)
+}
+
 // TableConstraint represents a table-level constraint in CREATE TABLE.
 type TableConstraint struct {
 	Type    ConstraintType // PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY
 	Name    string         // optional constraint name
 	Expr    Expr           // for CHECK: the check expression
-	Columns []string       // for PRIMARY KEY/UNIQUE: column names
+	Columns []IndexedColumn // for PRIMARY KEY/UNIQUE: indexed columns with options
 }
 
 type CreateTableStmt struct {
@@ -161,6 +168,7 @@ type CreateTableStmt struct {
 	IfNotExists bool
 	AsSelect    *SelectStmt // CREATE TABLE ... AS SELECT
 	Constraints []TableConstraint // table-level constraints
+	WithoutRowid bool // WITHOUT ROWID option
 }
 
 func (s *CreateTableStmt) stmt() {}
@@ -178,6 +186,7 @@ type ColumnDef struct {
 	References string
 	Default    Expr
 	Check      Expr
+	Dropped    bool  // column has been dropped via ALTER TABLE DROP COLUMN
 }
 
 // CreateIndexStmt represents a CREATE INDEX statement.
