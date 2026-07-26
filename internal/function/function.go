@@ -186,7 +186,7 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "EVAL", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnEVALSTUB})
 	r.register(&Func{Name: "Ieee754", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754})
 	r.register(&Func{Name: "Ieee754_from_blob", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754FromBlob})
-	r.register(&Func{Name: "Ieee754_inc", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754Inc})
+	r.register(&Func{Name: "Ieee754_inc", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754Inc})
 }
 
 // --- Aggregate implementations ---
@@ -1308,7 +1308,20 @@ func fnIeee754FromBlob(args []interface{}) (interface{}, error) {
 }
 
 func fnIeee754Inc(args []interface{}) (interface{}, error) {
-	// Stub: return first argument
-	if args[0] == nil { return nil, nil }
-	return args[0], nil
+	if args[0] == nil {
+		return nil, nil
+	}
+	x, _ := toFloat64(args[0])
+	n := int64(-1) // default: next representable float toward zero
+	if len(args) >= 2 && args[1] != nil {
+		n = toInt64(args[1])
+	}
+	// Manipulate the IEEE 754 bits directly
+	bits := math.Float64bits(x)
+	if n >= 0 {
+		bits += uint64(n)
+	} else {
+		bits -= uint64(-n)
+	}
+	return math.Float64frombits(bits), nil
 }

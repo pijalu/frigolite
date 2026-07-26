@@ -34,7 +34,7 @@
       "name": "atof1-2.30",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i1 ON t1(a);\n  SELECT count(*) FROM t1 WHERE substr(a,',');",
           "expect": "1"
         }
