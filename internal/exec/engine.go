@@ -611,8 +611,10 @@ func buildTriggerSQL(name, time, event, table string, when sql.Expr, statements 
 	var b strings.Builder
 	b.WriteString("CREATE TRIGGER ")
 	b.WriteString(name)
-	b.WriteString(" ")
-	b.WriteString(time)
+	if time != "" {
+		b.WriteString(" ")
+		b.WriteString(time)
+	}
 	b.WriteString(" ")
 	b.WriteString(event)
 	b.WriteString(" ON ")
@@ -1357,7 +1359,7 @@ func exprToString(expr sql.Expr) string {
 	case *sql.NullLit:
 		return "NULL"
 	case *sql.BinaryOp:
-		return exprToString(v.Left) + " " + v.Operator + " " + exprToString(v.Right)
+		return exprToString(v.Left) + v.Operator + exprToString(v.Right)
 	case *sql.UnaryOp:
 		if v.Operator == "NOT" {
 			return v.Operator + " " + exprToString(v.Operand)
