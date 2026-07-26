@@ -1359,6 +1359,9 @@ func exprToString(expr sql.Expr) string {
 	case *sql.BinaryOp:
 		return exprToString(v.Left) + " " + v.Operator + " " + exprToString(v.Right)
 	case *sql.UnaryOp:
+		if v.Operator == "NOT" {
+			return v.Operator + " " + exprToString(v.Operand)
+		}
 		return v.Operator + exprToString(v.Operand)
 	case *sql.FuncCall:
 		return funcCallToString(v)
@@ -1371,7 +1374,13 @@ func exprToString(expr sql.Expr) string {
 	case *sql.InList:
 		return inListToString(v)
 	case *sql.Subquery:
-		return "(SELECT ...)"
+		return "(" + selectStmtToString(v.Select) + ")"
+	case *sql.ExistsExpr:
+		result := ""
+		if v.Negated {
+			result += "NOT "
+		}
+		return result + "EXISTS(" + selectStmtToString(v.Select) + ")"
 	case *sql.CaseExpr:
 		return caseExprToString(v)
 	case *sql.CastExpr:
@@ -4893,12 +4902,27 @@ func (e *Engine) validateRename(oldName, newName string) error {
 func findTableRefsInTrigger(triggerSQL string) []string {
 	var refs []string
 
+	// Extract CTE names from WITH definitions — these should be skipped
+	// as they are not real table references.
+	cteNames := extractCTENames(triggerSQL)
+	cteSet := make(map[string]bool)
+	for _, name := range cteNames {
+		cteSet[name] = true
+	}
+
+	// Helper to check if a name is a CTE (should be skipped)
+	isCTE := func(name string) bool {
+		return cteSet[strings.ToUpper(name)] || cteSet[name]
+	}
+
 	// Find "INSERT INTO tablename" patterns (case-insensitive)
 	// Use word-character matching to avoid capturing trailing punctuation like ";"
 	re := regexp.MustCompile(`(?i)INSERT\s+INTO\s+([a-zA-Z_]\w*)`)
 	matches := re.FindAllStringSubmatch(triggerSQL, -1)
 	for _, m := range matches {
-		refs = append(refs, m[1])
+		if !isCTE(m[1]) {
+			refs = append(refs, m[1])
+		}
 	}
 
 	// Find "FROM tablename" patterns (case-insensitive)
@@ -4908,6 +4932,9 @@ func findTableRefsInTrigger(triggerSQL string) []string {
 		t := m[1]
 		// Skip special keywords or pseudo-tables
 		if strings.EqualFold(t, "NEW") || strings.EqualFold(t, "OLD") {
+			continue
+		}
+		if isCTE(t) {
 			continue
 		}
 		refs = append(refs, t)
@@ -4921,6 +4948,9 @@ func findTableRefsInTrigger(triggerSQL string) []string {
 		if strings.EqualFold(t, "SET") {
 			continue
 		}
+		if isCTE(t) {
+			continue
+		}
 		refs = append(refs, t)
 	}
 
@@ -4928,10 +4958,25 @@ func findTableRefsInTrigger(triggerSQL string) []string {
 	re = regexp.MustCompile(`(?i)DELETE\s+FROM\s+([a-zA-Z_]\w*)`)
 	matches = re.FindAllStringSubmatch(triggerSQL, -1)
 	for _, m := range matches {
-		refs = append(refs, m[1])
+		if !isCTE(m[1]) {
+			refs = append(refs, m[1])
+		}
 	}
 
 	return refs
+}
+
+// extractCTENames collects all CTE names defined in WITH clauses within a SQL string.
+// Returns the CTE names in uppercase for easy comparison.
+func extractCTENames(sql string) []string {
+	var names []string
+	// Match WITH name AS (...), including nested WITH clauses
+	re := regexp.MustCompile(`(?i)\bWITH\s+(\w+)\s+AS\s*\(`)
+	matches := re.FindAllStringSubmatch(sql, -1)
+	for _, m := range matches {
+		names = append(names, strings.ToUpper(m[1]))
+	}
+	return names
 }
 
 // hasViewCircularRef checks if a view has a circular reference (references its own name).
@@ -4940,22 +4985,17 @@ func hasViewCircularRef(viewSQL, viewName string) bool {
 	if viewSQL == "" || viewName == "" {
 		return false
 	}
-	// Check raw SQL for CTE-based circular references: WITH ... (SELECT ... viewName ...)
-	// This catches cases where selectStmtToString drops CTE definitions from stored SQL.
+	// Find " AS " after the view definition — extract the SELECT body
 	upper := strings.ToUpper(viewSQL)
-	if strings.Contains(upper, "WITH ") && strings.Contains(upper, strings.ToUpper(viewName)) {
-		// The SQL contains both WITH and the view name — likely a CTE self-reference
-		return true
-	}
-	// Find " AS " after the view definition
 	idx := strings.Index(upper, " AS ")
 	if idx < 0 {
 		return false
 	}
-	// Get the SELECT part after " AS "
-	selectSQL := viewSQL[idx+4:]
+	// Get the SELECT body part after " AS "
+	bodySQL := viewSQL[idx+4:]
+
 	// Parse the SELECT to check for circular references
-	parser := sql.NewParser(selectSQL)
+	parser := sql.NewParser(bodySQL)
 	stmts := parser.Parse()
 	if parser.Err() != nil || len(stmts) == 0 {
 		return false
@@ -4979,12 +5019,39 @@ func hasViewCircularRef(viewSQL, viewName string) bool {
 			return true
 		}
 		if cte.Select != nil && strings.EqualFold(cte.Select.From.Name, viewName) {
+			// The CTE references the view in its FROM clause.
+			// Only flag as circular if the CTE is actually used in the main statement.
+			// If the main statement has no FROM (e.g., VALUES subquery), the CTE is unused.
+			if isCTEReferencedInMain(sel, cte.Name) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// isCTEReferencedInMain checks if a CTE with the given name is actually referenced
+// in the main body of a SELECT statement (FROM clause, JOINs, WHERE, etc.).
+// CTEs that are defined but never referenced don't create circular view references.
+func isCTEReferencedInMain(sel *sql.SelectStmt, cteName string) bool {
+	if sel == nil || cteName == "" {
+		return false
+	}
+	// Check FROM clause
+	if strings.EqualFold(sel.From.Name, cteName) {
+		return true
+	}
+	// Check JOINs
+	for _, j := range sel.Joins {
+		if strings.EqualFold(j.Table.Name, cteName) {
 			return true
 		}
 	}
 	return false
 }
 
+// renameUpdateRelatedEntries updates views, triggers, and indexes that
+// reference the old table name to use the new table name.
 // renameUpdateRelatedEntries updates views, triggers, and indexes that
 // reference the old table name to use the new table name.
 func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
