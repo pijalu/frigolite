@@ -49,9 +49,10 @@ func (s *SelectStmt) stmt() {}
 
 // JoinClause represents a JOIN clause.
 type JoinClause struct {
-	Table    TableRef
-	JoinType string // "INNER", "LEFT", "RIGHT", "CROSS", ""
-	On       Expr   // ON condition
+	Table     TableRef
+	JoinType  string // "INNER", "LEFT", "RIGHT", "CROSS", ""
+	On        Expr   // ON condition
+	CommaJoin bool   // true if this is a comma-join (FROM t1, t2) not explicit CROSS JOIN
 }
 
 // SelectColumn represents a single column in a SELECT list.

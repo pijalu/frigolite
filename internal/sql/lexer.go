@@ -28,6 +28,7 @@ const (
 	TokenStar      // *
 	TokenSlash     // /
 	TokenMod       // %
+	TokenBitAnd    // &
 	TokenLParen    // (
 	TokenRParen    // )
 	TokenComma     // ,

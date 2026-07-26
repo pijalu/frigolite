@@ -5441,7 +5441,8 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row map[string]interface{}) (inte
 }
 
 func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
-	if i, err := strconv.ParseInt(v.Value, 10, 64); err == nil {
+	// Try base 0 first (auto-detect for hex literals like 0x...)
+	if i, err := strconv.ParseInt(v.Value, 0, 64); err == nil {
 		return i, nil
 	}
 	if f, err := strconv.ParseFloat(v.Value, 64); err == nil {

@@ -3053,6 +3053,10 @@ func (p *Parser) parseMulExpr() Expr {
 			p.next()
 			right := p.parseUnaryExpr()
 			left = &BinaryOp{Left: left, Right: right, Operator: "%"}
+		case p.cur.Type == TokenBitAnd:
+			p.next()
+			right := p.parseUnaryExpr()
+			left = &BinaryOp{Left: left, Right: right, Operator: "&"}
 		default:
 			return left
 		}
