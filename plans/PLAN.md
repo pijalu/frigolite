@@ -82,17 +82,17 @@ Various remaining small issues
 
 Each phase is a self-contained goal to be run with the `goal` tool. The completion check verifies all tests in the phase pass.
 
-| Phase | Goal ID | Test Pattern | Est. Failures | Est. Effort | Priority |
-|-------|---------|-------------|---------------|-------------|----------|
-| PF-0 Aggregate | `pass-agg` | `TestAggregate\|TestSQLiteSuite/agg` | 32 | Small | **HIGH** (foundation) |
-| P1 ALTER TABLE | `pass-alter` | `TestSQLiteSuite/alter` | 128 | Large | HIGH |
-| P2 ANALYZE | `pass-analyze` | `TestSQLiteSuite/analyze\|autoanalyze` | 57 | Medium | HIGH |
-| P3 ATTACH | `pass-attach` | `TestSQLiteSuite/attach` | 20 | Medium | HIGH |
-| P4 Auth | `pass-auth` | `TestSQLiteSuite/alterauth` | 5 | Small | MEDIUM |
-| P5 Auto-Index | `pass-autoindex` | `TestSQLiteSuite/autoindex` | 15 | Medium | MEDIUM |
-| P6 FTS | `pass-fts` | `TestSQLite_.*fts` | ~30 | Large | MEDIUM |
-| P7 amatch | `pass-amatch` | `TestSQLiteSuite/amatch` | 3 | Small | LOW |
-| P8 Misc | `pass-misc` | `TestUpdateWithExpr\|TestSQLiteSuite/atomic\|analyzeD\|analyze8` | 8 | Small | LOW |
+| Phase | Goal Name | Test Pattern | Est. Failures | Est. Effort | Priority |
+|-------|-----------|-------------|---------------|-------------|----------|
+| PF-0 Aggregate | `honest.toad` (active) | `TestAggregate\|TestSQLiteSuite/agg` | 32 | Small | **HIGH** (foundation) |
+| P1 ALTER TABLE | `kind.pike` | `TestSQLiteSuite/alter` | 128 | Large | HIGH |
+| P2 ANALYZE | `gleaming.koala` | `TestSQLiteSuite/analyze\|autoanalyze` | 57 | Medium | HIGH |
+| P3 ATTACH | `calm.swan` | `TestSQLiteSuite/attach` | 20 | Medium | HIGH |
+| P4 Auth | `indigo.ibex` | `TestSQLiteSuite/alterauth` | 5 | Small | MEDIUM |
+| P5 Auto-Index | `jade.marten` | `TestSQLiteSuite/autoindex` | 15 | Medium | MEDIUM |
+| P6 FTS | `swift.yak` | `TestSQLiteSuite/fts` | ~284 | Large | MEDIUM |
+| P7 amatch | `bright.stag` | `TestSQLiteSuite/amatch` | 3 | Small | LOW |
+| P8 Misc | `lucky.robin` | Full suite (final cleanup) | ~8 | Small | LOW |
 
 ## Progress Tracking
 
