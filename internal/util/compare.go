@@ -141,10 +141,10 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 		}
 		// NONE: compare as TEXT by converting numeric to string
 		if ta == typeText && isNumeric(tb) {
-			return stringCompare(toStr(a), toStr(b), collation)
+			return stringCompare(toString(a), formatNumeric(b), collation)
 		}
 		if tb == typeText && isNumeric(ta) {
-			return stringCompare(toStr(a), toStr(b), collation)
+			return stringCompare(formatNumeric(a), toString(b), collation)
 		}
 	}
 
@@ -296,6 +296,35 @@ func toStr(v interface{}) string {
 		return s
 	}
 	return ""
+}
+
+// toString converts any value to its string representation, including numeric types.
+func toString(v interface{}) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	if i, ok := v.(int64); ok {
+		return strconv.FormatInt(i, 10)
+	}
+	if f, ok := v.(float64); ok {
+		return strconv.FormatFloat(f, 'g', -1, 64)
+	}
+	if b, ok := v.([]byte); ok {
+		return string(b)
+	}
+	return fmt.Sprintf("%v", v)
+}
+
+// formatNumeric formats a numeric value as a string, like SQLite does.
+func formatNumeric(v interface{}) string {
+	switch x := v.(type) {
+	case int64:
+		return strconv.FormatInt(x, 10)
+	case float64:
+		return strconv.FormatFloat(x, 'g', -1, 64)
+	default:
+		return toString(v)
+	}
 }
 
 func toBytes(v interface{}) []byte {
