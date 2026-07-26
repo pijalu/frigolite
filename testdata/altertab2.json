@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE p1 RENAME TO p2;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
-          "expect": "{CREATE TABLE c1(x REFERENCES \"p2\")} {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")} {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
+          "expect": "{CREATE TABLE c1 (x REFERENCES \"p2\")} {CREATE TABLE c2 (x, FOREIGN KEY (x) REFERENCES \"p2\")} {CREATE TABLE c3 (x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "type": "query",
           "sql": "PRAGMA legacy_alter_table = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
-          "expect": "{CREATE TABLE c1(x REFERENCES \"p2\")} {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")} {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
+          "expect": "{CREATE TABLE c1 (x REFERENCES \"p2\")} {CREATE TABLE c2 (x, FOREIGN KEY (x) REFERENCES \"p2\")} {CREATE TABLE c3 (x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
         }
       ]
     },
@@ -37,7 +37,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE p3 RENAME TO p2;\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
-          "expect": "{CREATE TABLE c1(x REFERENCES \"p3\")} {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p3\")} {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p3\"(a))}"
+          "expect": "{CREATE TABLE c1 (x REFERENCES \"p3\")} {CREATE TABLE c2 (x, FOREIGN KEY (x) REFERENCES \"p3\")} {CREATE TABLE c3 (x, FOREIGN KEY (x) REFERENCES \"p3\"(a))}"
         },
         {
           "type": "exec",

@@ -387,8 +387,8 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 		return fmt.Errorf("no such table: %s", oldName)
 	}
 
-	// Rebuild SQL with new table name
-	newSQL := strings.Replace(oldEntry.SQL, oldName, newName, 1)
+	// Rebuild SQL with new table name (use quoted name to match SQLite format)
+	newSQL := strings.Replace(oldEntry.SQL, oldName, `"`+newName+`"`, 1)
 
 	// Remove old entry
 	if err := m.RemoveEntry(oldName); err != nil {

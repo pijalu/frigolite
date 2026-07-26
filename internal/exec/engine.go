@@ -246,7 +246,7 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
 	buf.WriteString(s.Name)
-	buf.WriteString("(")
+	buf.WriteString(" (")
 	for i, col := range s.Columns {
 		if i > 0 {
 			buf.WriteString(", ")

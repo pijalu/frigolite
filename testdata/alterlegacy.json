@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
-          "expect": "{CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2(a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
+          "expect": "{CREATE TABLE t1 (a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2 (a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
         }
       ]
     },
@@ -46,7 +46,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
-          "expect": "{CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2(a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
+          "expect": "{CREATE TABLE t1 (a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2 (a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
         }
       ]
     },
@@ -66,7 +66,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
-          "expect": "{CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2(a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
+          "expect": "{CREATE TABLE t1 (a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2 (a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
         }
       ]
     },
@@ -387,7 +387,7 @@
         {
           "type": "query",
           "sql": "INSERT INTO aux.c1 VALUES(NULL, 1);\n  SELECT sql FROM aux.sqlite_master WHERE name = 'c1';",
-          "expect": "{CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
+          "expect": "{CREATE TABLE c1 (x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
         }
       ]
     },
