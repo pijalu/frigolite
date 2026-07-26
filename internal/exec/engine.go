@@ -828,32 +828,38 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 		nRow = 1000000 // default estimate
 	}
 
-	// Check if there's a WHERE clause with indexable conditions
+	// Collect indexed constraints and conditions for plan output
 	bestIndex := ""
-	bestEstimate := float64(nRow) // start with full scan estimate
+	bestEstimate := float64(nRow)
+	conditions := "" // formatted as "(col op ? AND col op ?)"
 	if s.Where != nil {
-		bestIndex = e.bestIndexForQuery(tableName, s.Where, &bestEstimate)
+		bestIndex, conditions = e.bestIndexForQuery(tableName, s.Where, &bestEstimate)
 	}
 
 	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
 	threshold := float64(nRow) * 0.10
 	if bestIndex != "" && bestEstimate < threshold {
-		return simplePlan(fmt.Sprintf("SEARCH %s USING INDEX %s", tableName, bestIndex))
+		plan := fmt.Sprintf("SEARCH %s USING INDEX %s", tableName, bestIndex)
+		if conditions != "" {
+			plan += " " + conditions
+		}
+		return simplePlan(plan)
 	}
 	return simplePlan(fmt.Sprintf("SCAN %s", tableName))
 }
 
-// bestIndexForQuery examines the WHERE clause and returns the best index name
-// and estimated row count for an indexed column constraint.
-func (e *Engine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) string {
+// bestIndexForQuery examines the WHERE clause and returns the best index name,
+// estimated row count, and formatted column conditions for the plan output.
+func (e *Engine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) (string, string) {
 	// Collect all column references with their operators
 	refs := collectIndexedRefs(where, tableName, e)
 	if len(refs) == 0 {
-		return ""
+		return "", ""
 	}
 	// Pick the one with the lowest estimate
 	bestName := ""
 	bestEst := *estimate
+	var bestRefs []indexedRef // all refs matching the best index
 	for _, ref := range refs {
 		var sel float64
 		if ref.selectivity > 0 {
@@ -867,20 +873,46 @@ func (e *Engine) bestIndexForQuery(tableName string, where sql.Expr, estimate *f
 			bestName = ref.indexName
 		}
 	}
+	// Collect all refs for the best index to build conditions
+	if bestName != "" {
+		for _, ref := range refs {
+			if ref.indexName == bestName {
+				bestRefs = append(bestRefs, ref)
+			}
+		}
+	}
 	*estimate = bestEst
-	return bestName
+	return bestName, formatConditions(bestRefs)
+}
+
+// formatConditions formats indexed refs as "(col op ? AND col op ?)".
+func formatConditions(refs []indexedRef) string {
+	if len(refs) == 0 {
+		return ""
+	}
+	var parts []string
+	for _, ref := range refs {
+		op := ref.op
+		if op == "BETWEEN" {
+			parts = append(parts, fmt.Sprintf("%s>? AND %s<?", ref.colName, ref.colName))
+		} else {
+			parts = append(parts, fmt.Sprintf("%s%s?", ref.colName, op))
+		}
+	}
+	return "(" + strings.Join(parts, " AND ") + ")"
 }
 
 type indexedRef struct {
-	indexName  string
-	constant   interface{}
-	op         string
+	indexName   string
+	colName     string   // column name for condition formatting
+	constant    interface{}
+	op          string
 	selectivity float64 // pre-computed selectivity (for non-standard ops)
 }
 
 func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef {
 	var refs []indexedRef
-	_ = walkExpr(expr, func(e2 sql.Expr) {
+	_, _ = walkExpr, walkExpr(expr, func(e2 sql.Expr) {
 		if binop, ok := e2.(*sql.BinaryOp); ok {
 			colRef, constVal := findColAndConst(binop)
 			if colRef != nil {
@@ -888,6 +920,7 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 				if idxName != "" {
 					refs = append(refs, indexedRef{
 						indexName:  idxName,
+						colName:    colRef.Name,
 						constant:   constVal,
 						op:         binop.Operator,
 					})
@@ -896,7 +929,7 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 		}
 	})
 	// ALSO handle BETWEEN — it's not a BinaryOp
-	_ = walkExpr(expr, func(e2 sql.Expr) {
+	_, _ = walkExpr, walkExpr(expr, func(e2 sql.Expr) {
 		if bt, ok := e2.(*sql.Between); ok {
 			if colRef, ok := bt.Operand.(*sql.ColumnRef); ok {
 				idxName := e.findIndexOnColumn(tableName, colRef.Name)
@@ -904,6 +937,7 @@ func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef
 					sel := computeBetweenSelectivity(bt)
 					refs = append(refs, indexedRef{
 						indexName:   idxName,
+						colName:     colRef.Name,
 						constant:    float64(0),
 						op:          "BETWEEN",
 						selectivity: sel,
