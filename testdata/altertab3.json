@@ -25,7 +25,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'r1';",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM \"t1x\" \n      INTERSECT \n    SELECT a,b,c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, b, a name FROM \"t1x\"\n    INTERSECT\n    SELECT a, b, c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\nEND}"
         }
       ]
     },
@@ -333,7 +333,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t2 RENAME TO t3;\n  SELECT sql FROM sqlite_master WHERE name='v1';",
-          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5}"
+          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE (SELECT t1.a FROM t1, \"t3\") IN () OR t1.a=5}"
         }
       ]
     },
