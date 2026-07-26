@@ -199,7 +199,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE c1 DROP COLUMN z;\n  ALTER TABLE c2 DROP COLUMN z;\n  SELECT sql FROM sqlite_schema WHERE name IN ('c1', 'c2');",
-          "expect": "{CREATE TABLE c1(x, y)} \n  {CREATE TABLE c2(x, y, w REFERENCES p1(b))}"
+          "expect": "{CREATE TABLE c1(x, y)} {CREATE TABLE c2(x, y, w REFERENCES p1(b))}"
         }
       ]
     },

@@ -360,7 +360,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t1x;",
-          "expect": "1 {no such table: t1}"
+          "expect": "1 {error in trigger b: no such table: main.abc}"
         }
       ]
     },
@@ -379,7 +379,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'b';",
-          "expect": "{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}"
+          "expect": "{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() AS w3 FROM \"t1x\" WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}"
         }
       ]
     },

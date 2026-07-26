@@ -1292,7 +1292,7 @@ func selectColumnToString(col sql.SelectColumn) string {
 
 func aliasClause(as string) string {
 	if as != "" {
-		return " AS " + as
+		return " " + as
 	}
 	return ""
 }
