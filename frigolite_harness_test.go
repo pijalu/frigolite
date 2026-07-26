@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -97,12 +98,19 @@ func TestSQLiteSuite(t *testing.T) {
 									return
 								}
 								if step.Expect != "" {
-									got := flattenResult(res)
-									want := cleanExpected(step.Expect)
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										got := flattenResult(res)
+										want := cleanExpected(step.Expect)
+										// Check for regex patterns wrapped in /.../
+										if strings.HasPrefix(want, "/") && strings.HasSuffix(want, "/") && len(want) > 2 {
+											pattern := want[1 : len(want)-1]
+											matched, err := regexp.MatchString(pattern, got)
+											if err != nil || !matched {
+												t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", got, pattern, step.SQL)
+											}
+										} else if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										}
 									}
-								}
 						}
 					}
 				})

@@ -236,18 +236,21 @@ func (p *Parser) parseEndAsCommit() Stmt {
 
 func (p *Parser) parseExplain() Stmt {
 	p.next() // skip EXPLAIN
+	e := &ExplainStmt{}
 	// EXPLAIN QUERY PLAN is a variant
 	if p.cur.Type == TokenKeyword && p.cur.Value == "QUERY" {
 		p.next()
 		if p.cur.Type == TokenKeyword && p.cur.Value == "PLAN" {
 			p.next()
+			e.QueryPlan = true
 		}
 	}
 	stmt := p.parseStatement()
 	if stmt == nil {
 		return nil
 	}
-	return &ExplainStmt{Statement: stmt}
+	e.Statement = stmt
+	return e
 }
 
 func (p *Parser) parseAnalyze() Stmt {

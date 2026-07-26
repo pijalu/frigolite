@@ -718,14 +718,105 @@ func deleteStmtToString(s *sql.DeleteStmt) string {
 // selectStmtToString converts a SELECT statement to SQL text (used for views).
 
 func (e *Engine) execExplain(s *sql.ExplainStmt) *Result {
-	// Return a simple explanation of the statement
+	if s.QueryPlan {
+		return e.execExplainQueryPlan(s.Statement)
+	}
+	// Regular EXPLAIN: return simple opcode-like rows
 	stmtType := fmt.Sprintf("%T", s.Statement)
 	return &Result{
-		Columns: []string{"opcode", "description"},
+		Columns: []string{"addr", "opcode", "p1", "p2", "p3", "p4", "p5", "comment"},
 		Rows: [][]interface{}{
-			{"EXECUTE", stmtType},
+			{int64(0), "Init", int64(0), int64(1), int64(0), "", int64(0), "Start"},
+			{int64(1), "Return", int64(0), int64(0), int64(0), "", int64(0), stmtType},
 		},
 	}
+}
+
+func (e *Engine) execExplainQueryPlan(stmt sql.Stmt) *Result {
+	switch s := stmt.(type) {
+	case *sql.SelectStmt:
+		return e.explainQueryPlanSelect(s)
+	case *sql.InsertStmt:
+		if s.Select != nil {
+			return e.explainQueryPlanSelect(s.Select)
+		}
+		return simplePlan("SCAN " + s.Table)
+	default:
+		return simplePlan("SCAN (unnamed)")
+	}
+}
+
+func simplePlan(desc string) *Result {
+	return &Result{
+		Columns: []string{"plan"},
+		Rows:    [][]interface{}{{fmt.Sprintf("QUERY PLAN\n`--%s", desc)}},
+	}
+}
+
+func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
+	if s.From.Name == "" && s.From.Subquery == nil {
+		return simplePlan("SCAN (no from)")
+	}
+	tableName := s.From.Name
+	if s.From.As != "" {
+		tableName = s.From.As
+	}
+
+	// Check if there's a WHERE clause with indexable conditions
+	hasIndex := false
+	if s.Where != nil {
+		hasIndex = e.hasIndexOnColumn(tableName, s.Where)
+	}
+
+	if hasIndex {
+		return simplePlan(fmt.Sprintf("SEARCH %s USING INDEX (index)", tableName))
+	}
+	return simplePlan(fmt.Sprintf("SCAN %s", tableName))
+}
+
+func (e *Engine) hasIndexOnColumn(tableName string, where sql.Expr) bool {
+	// Extract column references from the WHERE expression
+	cols := extractColumnRefs(where)
+	for _, colName := range cols {
+		idx := e.findIndexOnColumn(tableName, colName)
+		if idx != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// extractColumnRefs recursively extracts column names from an expression.
+func extractColumnRefs(expr sql.Expr) []string {
+	switch e := expr.(type) {
+	case *sql.ColumnRef:
+		return []string{e.Name}
+	case *sql.BinaryOp:
+		return append(extractColumnRefs(e.Left), extractColumnRefs(e.Right)...)
+	case *sql.Between:
+		return append(extractColumnRefs(e.Operand), extractColumnRefs(e.Low)...)
+	case *sql.InList:
+		return extractColumnRefs(e.Operand)
+	case *sql.UnaryOp:
+		return extractColumnRefs(e.Operand)
+	default:
+		return nil
+	}
+}
+
+func (e *Engine) findIndexOnColumn(tableName, colName string) *schema.Entry {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return nil
+	}
+	for _, entry := range entries {
+		if entry.Type == "index" && entry.TblName == tableName {
+			if strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(colName)) {
+				return entry
+			}
+		}
+	}
+	return nil
 }
 
 // --- CREATE VIRTUAL TABLE ---

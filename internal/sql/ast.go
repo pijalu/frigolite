@@ -271,7 +271,8 @@ func (s *DropTriggerStmt) stmt() {}
 
 // ExplainStmt wraps another statement with EXPLAIN.
 type ExplainStmt struct {
-	Statement Stmt
+	Statement  Stmt
+	QueryPlan  bool // true for EXPLAIN QUERY PLAN
 }
 
 func (s *ExplainStmt) stmt() {}
