@@ -17,6 +17,39 @@ func CompareValues(a, b interface{}) int {
 	return CompareValuesCollate(a, b, "")
 }
 
+// ColumnValue wraps a value retrieved from a column, carrying the column's
+// affinity type. This is used by CompareValuesCollate to correctly apply
+// SQLite's type affinity rules for comparisons.
+//
+// SQLite affinity rules:
+//   - TEXT vs BLOB → TEXT is preferred (no numeric conversion)
+//   - NUMERIC vs TEXT → TEXT is converted to REAL
+//   - TEXT vs NONE (no affinity) → TEXT is preferred (no numeric conversion)
+//
+// Affinity is stripped by expression operators like unary + and CAST.
+type ColumnValue struct {
+	Value    interface{}
+	Affinity rune // 'B'=BLOB, 'T'=TEXT, 'I'=INTEGER, 'R'=REAL, 'N'=NUMERIC
+}
+
+// UnwrapColumnValue extracts the underlying value from a ColumnValue wrapper.
+// Returns the value unchanged if it is not a ColumnValue.
+func UnwrapColumnValue(v interface{}) interface{} {
+	if cv, ok := v.(*ColumnValue); ok {
+		return cv.Value
+	}
+	return v
+}
+
+// ColumnAffinity returns the column affinity stored in a ColumnValue wrapper,
+// or 0 if the value is not wrapped.
+func ColumnAffinity(v interface{}) rune {
+	if cv, ok := v.(*ColumnValue); ok {
+		return cv.Affinity
+	}
+	return 0
+}
+
 // CompareValuesCollate compares two SQL values with an optional collation.
 // collation can be "NOCASE", "RTRIM", "BINARY", or "" (defaults to BINARY).
 func CompareValuesCollate(a, b interface{}, collation string) int {
@@ -29,6 +62,12 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 	if b == nil {
 		return 1
 	}
+
+	// Extract column affinity wrappers and track their type.
+	aAff := ColumnAffinity(a)
+	bAff := ColumnAffinity(b)
+	a = UnwrapColumnValue(a)
+	b = UnwrapColumnValue(b)
 
 	ta, tb := classifyValue(a), classifyValue(b)
 
@@ -50,14 +89,63 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 		}
 	}
 
-	// SQLite affinity: when comparing numeric with text, try to convert
-	// text to numeric. This matches SQLite's type affinity rules for
-	// comparisons (rules 2, 3 from SQLite docs on type affinity).
-	if isNumeric(ta) && tb == typeText {
-		return compareNumericText(a, b, -1)
+	// SQLite affinity rules for comparisons:
+	//
+	// Rule 1: NUMERIC vs non-numeric → convert non-numeric to REAL
+	//   - INTEGER/REAL/NUMERIC column vs TEXT column → convert TEXT to REAL
+	//   - But only if the TEXT column has column affinity (not a bare literal)
+	//
+	// Rule 2: TEXT vs BLOB → TEXT is preferred (no numeric conversion)
+	//
+	// Rule 3: TEXT vs NONE (no column affinity) → TEXT is preferred
+	//   (no numeric conversion). This applies when the other operand
+	//   comes from an expression like unary + or a bare literal.
+	//
+	// In modern SQLite (3.41+), expressions like +col have NO affinity,
+	// even though their value is numeric. This is the key difference
+	// from bare column references which preserve their column affinity.
+
+	// Determine if we should skip numeric conversion.
+	// Skip when comparing TEXT with BLOB, or TEXT with NONE.
+	skipConv := false
+	isBlob := false
+	if aAff == 'T' && (bAff == 'B' || bAff == 0) {
+		skipConv = true
+		if bAff == 'B' {
+			isBlob = true
+		}
 	}
-	if isNumeric(tb) && ta == typeText {
-		return compareTextNumeric(a, b, 1)
+	if bAff == 'T' && (aAff == 'B' || aAff == 0) {
+		skipConv = true
+		if aAff == 'B' {
+			isBlob = true
+		}
+	}
+
+	if !skipConv {
+		if isNumeric(ta) && tb == typeText {
+			return compareNumericText(a, b, -1)
+		}
+		if isNumeric(tb) && ta == typeText {
+			return compareTextNumeric(a, b, 1)
+		}
+	}
+
+	// When skipConv is true:
+	// - BLOB affinity: compare by type (INTEGER/REAL < TEXT)
+	// - NONE affinity: convert numeric to TEXT and compare as strings
+	if skipConv && ta != tb {
+		if isBlob {
+			// BLOB: type precedence (INTEGER/REAL < TEXT)
+			return int(ta) - int(tb)
+		}
+		// NONE: compare as TEXT by converting numeric to string
+		if ta == typeText && isNumeric(tb) {
+			return stringCompare(toStr(a), toStr(b), collation)
+		}
+		if tb == typeText && isNumeric(ta) {
+			return stringCompare(toStr(a), toStr(b), collation)
+		}
 	}
 
 	// Different types: compare by type ordering

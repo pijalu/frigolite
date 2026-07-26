@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 func setupDB(t *testing.T) *DB {
@@ -202,6 +204,8 @@ func TestDumpAll(t *testing.T) {
 // formatSQLiteValue formats a value the way SQLite does.
 // For float64, integer-valued floats get ".0" suffix (1.0 not 1).
 func formatSQLiteValue(val interface{}) string {
+	// Unwrap column affinity wrapper for correct formatting.
+	val = util.UnwrapColumnValue(val)
 	switch v := val.(type) {
 	case float64:
 		// Check if float is a whole number

@@ -3616,7 +3616,10 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 	row := make(map[string]interface{})
 	for i, v := range rec.Values {
 		if i < len(colDefs) {
-			row[colDefs[i].Name] = v
+			// Wrap all column values with their affinity so comparison logic
+			// can correctly apply SQLite affinity rules.
+			aff := util.Affinity(colDefs[i].Type)
+			row[colDefs[i].Name] = &util.ColumnValue{Value: v, Affinity: aff}
 		} else {
 			row[fmt.Sprintf("c%d", i)] = v
 		}
@@ -3639,14 +3642,14 @@ func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.Column
 				if cd.Dropped {
 					continue
 				}
-				outRow = append(outRow, row[cd.Name])
+				outRow = append(outRow, util.UnwrapColumnValue(row[cd.Name]))
 			}
 		} else {
 			v, err := e.evalExpr(col.Expr, row)
 			if err != nil {
 				outRow = append(outRow, nil)
 			} else {
-				outRow = append(outRow, v)
+				outRow = append(outRow, util.UnwrapColumnValue(v))
 			}
 		}
 	}
@@ -5649,6 +5652,9 @@ func regexpValues(str, pattern interface{}) bool {
 }
 
 func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
+	// Unwrap BlobColumnValue so arithmetic functions see the base value.
+	left = util.UnwrapColumnValue(left)
+	right = util.UnwrapColumnValue(right)
 	switch op {
 	case "+":
 		return evalAdd(left, right)
@@ -5767,6 +5773,8 @@ func (e *Engine) evalUnaryOp(v *sql.UnaryOp, row map[string]interface{}) (interf
 	if operand == nil {
 		return nil, nil
 	}
+	// Unwrap BlobColumnValue so arithmetic operators see the base value.
+	operand = util.UnwrapColumnValue(operand)
 	switch v.Operator {
 	case "-":
 		return negateValue(operand)
@@ -5945,6 +5953,8 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row map[string]interface{}) (inte
 		if err != nil {
 			return nil, err
 		}
+		// Unwrap BlobColumnValue so functions see the raw value.
+		v = util.UnwrapColumnValue(v)
 		// For UTF-16 encoding, truncate odd-length blobs (ignore last byte)
 		// to ensure valid UTF-16 byte sequences. (SQLite ticket 9eda2697f5cc1aba)
 		if b, ok := v.([]byte); ok && len(b)%2 == 1 {
