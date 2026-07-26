@@ -1017,7 +1017,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='view'",
-          "expect": "{CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )}"
+          "expect": "{CREATE VIEW v1 AS SELECT (VALUES(a), b)}"
         }
       ]
     },

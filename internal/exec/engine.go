@@ -1390,6 +1390,15 @@ func exprToString(expr sql.Expr) string {
 		return caseExprToString(v)
 	case *sql.CastExpr:
 		return "CAST(" + exprToString(v.Operand) + " AS " + v.AsType + ")"
+	case *sql.RowValue:
+		result := "("
+		for i, val := range v.Values {
+			if i > 0 {
+				result += ", "
+			}
+			result += exprToString(val)
+		}
+		return result + ")"
 	default:
 		return "?"
 	}

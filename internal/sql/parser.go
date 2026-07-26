@@ -3624,6 +3624,15 @@ func ExprString(e Expr) string {
 		return formatInList(v)
 	case *FuncCall:
 		return formatFuncCall(v)
+	case *RowValue:
+		result := "("
+		for i, val := range v.Values {
+			if i > 0 {
+				result += ", "
+			}
+			result += ExprString(val)
+		}
+		return result + ")"
 	default:
 		return "?"
 	}
