@@ -2259,42 +2259,70 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{},
 	for _, join := range s.Joins {
 		var rightMaps []map[string]interface{}
 		var rightDefs []sql.ColumnDef
+		var tableName string
 
-		// Resolve the right table
+		// Resolve the right table — could be a table or a view
 		tableEntry, err := e.schema.FindTable(join.Table.Name)
 		if err != nil {
-			return nil, nil, err
-		}
-		rightDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
-		tableName := join.Table.Name
-		if join.Table.As != "" {
-			tableName = join.Table.As
+			viewEntry, viewErr := e.schema.FindView(join.Table.Name)
+			if viewErr != nil {
+				return nil, nil, err
+			}
+			// Execute the view to get its columns and rows
+			viewResult := e.execSelectView(viewEntry)
+			if viewResult.Error != nil {
+				return nil, nil, viewResult.Error
+			}
+			// Build column defs from view result columns
+			for _, colName := range viewResult.Columns {
+				rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
+			}
+			tableName = join.Table.Name
+			if join.Table.As != "" {
+				tableName = join.Table.As
+			}
+			// Build row maps from view result rows
+			for _, row := range viewResult.Rows {
+				rightRowMap := make(map[string]interface{})
+				for i, val := range row {
+					if i < len(rightDefs) {
+						rightRowMap[rightDefs[i].Name] = val
+					}
+				}
+				rightMaps = append(rightMaps, rightRowMap)
+			}
+		} else {
+			rightDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+			tableName = join.Table.Name
+			if join.Table.As != "" {
+				tableName = join.Table.As
+			}
+
+			// Scan all rows from the right table
+			tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+			cursor, err := tree.OpenCursor()
+			if err != nil {
+				return nil, nil, err
+			}
+			for {
+				cell, err := cursor.ReadCell()
+				if err != nil {
+					break
+				}
+				rec, err := storage.DecodeRecord(cell.Payload)
+				if err != nil {
+					break
+				}
+				rightRowMap := e.buildRowMap(rec, rightDefs, cell.RowID)
+				rightMaps = append(rightMaps, rightRowMap)
+				ok, err := cursor.Next()
+				if err != nil || !ok {
+					break
+				}
+			}
 		}
 
-		// Scan all rows from the right table
-		tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
-		cursor, err := tree.OpenCursor()
-		if err != nil {
-			return nil, nil, err
-		}
-		for {
-			cell, err := cursor.ReadCell()
-			if err != nil {
-				break
-			}
-			rec, err := storage.DecodeRecord(cell.Payload)
-			if err != nil {
-				break
-			}
-			rightRowMap := e.buildRowMap(rec, rightDefs, cell.RowID)
-			rightMaps = append(rightMaps, rightRowMap)
-			ok, err := cursor.Next()
-			if err != nil || !ok {
-				break
-			}
-		}
-
-		// Nested-loop join
+		// Nested-loop join (for both table and view)
 		var combinedMaps []map[string]interface{}
 		combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefs...)
 
