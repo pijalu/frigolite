@@ -5171,9 +5171,14 @@ func findQualifiedTableRefs(sql, tableName string) []string {
 func replaceTableNameInSQL(sql, oldName, newName string) string {
 	quotedNew := `"` + newName + `"`
 	quotedOld := regexp.QuoteMeta(oldName)
-	// Match as a whole word: preceded by non-alphanumeric or start, followed by non-alphanumeric or end
-	re := regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + quotedOld + `([^a-zA-Z0-9_]|$)`)
-	return re.ReplaceAllString(sql, "${1}"+quotedNew+"${2}")
+	// First, replace already-quoted occurrences: "t3" -> "t4" (avoids double-quoting)
+	re := regexp.MustCompile(`(?i)"` + quotedOld + `"`)
+	if re.MatchString(sql) {
+		return re.ReplaceAllString(sql, quotedNew)
+	}
+	// Fallback: replace unquoted occurrences with word boundaries, adding quotes
+	re = regexp.MustCompile(`\b` + quotedOld + `\b`)
+	return re.ReplaceAllString(sql, quotedNew)
 }
 
 func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {

@@ -972,7 +972,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='trigger'",
-          "expect": "{CREATE TRIGGER Trigger1 DELETE ON \"t3\" \n  BEGIN \n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\n  END}\n  {CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y FROM (\n      SELECT \"t3\".* FROM \"t3\"\n    );\n  END}"
+          "expect": "{CREATE TRIGGER Trigger1 DELETE ON \"t3\" BEGIN\n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\nEND CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y;\nEND}"
         }
       ]
     },
