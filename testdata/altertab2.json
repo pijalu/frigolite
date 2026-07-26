@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE p1 RENAME TO p2;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
-          "expect": "{CREATE TABLE c1 (x REFERENCES \"p2\")} {CREATE TABLE c2 (x, FOREIGN KEY (x) REFERENCES \"p2\")} {CREATE TABLE c3 (x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
+          "expect": "{CREATE TABLE c1(x REFERENCES \"p2\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
         }
       ]
     },
@@ -27,7 +27,7 @@
         {
           "type": "query",
           "sql": "PRAGMA legacy_alter_table = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
-          "expect": "{CREATE TABLE c1 (x REFERENCES \"p2\")} {CREATE TABLE c2 (x, FOREIGN KEY (x) REFERENCES \"p2\")} {CREATE TABLE c3 (x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
+          "expect": "{CREATE TABLE c1(x REFERENCES \"p2\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))}"
         }
       ]
     },
@@ -37,7 +37,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE p3 RENAME TO p2;\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
-          "expect": "{CREATE TABLE c1 (x REFERENCES \"p3\")} {CREATE TABLE c2 (x, FOREIGN KEY (x) REFERENCES \"p3\")} {CREATE TABLE c3 (x, FOREIGN KEY (x) REFERENCES \"p3\"(a))}"
+          "expect": "{CREATE TABLE c1(x REFERENCES \"p3\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p3\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p3\"(a))}"
         },
         {
           "type": "exec",
@@ -72,7 +72,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN UPDATE \"t1x\" SET (c,d)=(a,b); END}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(a,b);\n  END}"
         }
       ]
     },
@@ -82,7 +82,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN UPDATE \"t1x\" SET (c,d)=(aaa,b); END}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(aaa,b);\n  END}"
         }
       ]
     },
@@ -92,7 +92,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1x RENAME d TO ddd;\n  SELECT sql FROM sqlite_master WHERE type = 'trigger';",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN UPDATE \"t1x\" SET (c,ddd)=(aaa,b); END}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,ddd)=(aaa,b);\n  END}"
         }
       ]
     },
@@ -111,7 +111,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t3 RENAME TO t3x;\n  SELECT sql FROM sqlite_master WHERE name = 'r3';",
-          "expect": "{CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a; SELECT rowid, * FROM \"t3x\"; END}"
+          "expect": "{CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a;\n    SELECT rowid, * FROM \"t3x\";\n  END}"
         }
       ]
     },
@@ -121,7 +121,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t3x RENAME a TO abcd;\n  SELECT sql FROM sqlite_master WHERE name = 'r3';",
-          "expect": "{CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd; SELECT rowid, * FROM \"t3x\"; END}"
+          "expect": "{CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN\n    SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd;\n    SELECT rowid, * FROM \"t3x\";\n  END}"
         }
       ]
     },
@@ -158,7 +158,7 @@
         {
           "type": "query",
           "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM t1 UNION SELECT d,e,f FROM t1 ORDER BY b,c;\n  END;\n  INSERT INTO t1 VALUES(2,3,4,5,6,7);\n  SELECT * FROM t2;",
-          "expect": "1 2 3 2 3 4 4 5 6 5 6 7"
+          "expect": "1 2 3  2 3 4  4 5 6  5 6 7"
         }
       ]
     },
@@ -168,7 +168,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO xyzzy;\n  SELECT sql FROM sqlite_master WHERE name='r1'",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN INSERT INTO t2 SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c; END}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c;\n  END}"
         }
       ]
     },
@@ -178,7 +178,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE xyzzy RENAME c TO ccc;\n  SELECT sql FROM sqlite_master WHERE name='r1'",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN INSERT INTO t2 SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc; END}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc;\n  END}"
         }
       ]
     },
@@ -214,7 +214,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME a TO aaa;",
-          "expect": "1 {error in trigger tr: no such table: main.v1}"
+          "expect": "1 {error in trigger tr after rename: no such column: a}"
         }
       ]
     },

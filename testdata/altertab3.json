@@ -25,7 +25,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'r1';",
-          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, b, a name FROM \"t1x\"\n    INTERSECT\n    SELECT a, b, c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\nEND}"
+          "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM \"t1x\" \n      INTERSECT \n    SELECT a,b,c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END}"
         }
       ]
     },
@@ -61,7 +61,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE name = 'v1'",
-          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE a=1 OR b IN ()}"
+          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE a=1 OR (b IN ())}"
         }
       ]
     },
@@ -107,7 +107,7 @@
         {
           "type": "query",
           "sql": "SELECT type, name, tbl_name, sql \n  FROM sqlite_master WHERE type='table' AND name!='t1';",
-          "expect": "table t3 t3 {CREATE TABLE t3 (e, f)}"
+          "expect": "table t3 t3 {CREATE TABLE t3(e, f)}"
         }
       ]
     },
@@ -136,7 +136,7 @@
         {
           "type": "query",
           "sql": "SELECT type, name, tbl_name, sql \n  FROM sqlite_master WHERE type='table' AND name!='t1';",
-          "expect": "table t3 t3 {CREATE TABLE t3 (e, f)}"
+          "expect": "table t3 t3 {CREATE TABLE t3(e, f)}"
         }
       ]
     },
@@ -215,7 +215,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master;",
-          "expect": "{CREATE TABLE \"t1x\" (a,b,c)}\n  {CREATE TRIGGER AFTER INSERT ON \"t1x\" BEGIN\n    SELECT a, rank() OVER w1 FROM \"t1x\"\n    WINDOW w1 AS (PARTITION BY b, percent_rank() OVER w1);\n  END}"
+          "expect": "{CREATE TABLE \"t1x\"(a,b,c)}\n  {CREATE TRIGGER AFTER INSERT ON \"t1x\" BEGIN\n    SELECT a, rank() OVER w1 FROM \"t1x\"\n    WINDOW w1 AS (PARTITION BY b, percent_rank() OVER w1);\n  END}"
         }
       ]
     },
@@ -234,7 +234,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1x RENAME TO t1;",
-          "expect": "1 {no such table: t1x}"
+          "expect": "1 {error in trigger AFTER: no such column: d}"
         }
       ]
     },
@@ -261,7 +261,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t0 RENAME TO t1;\n  SELECT sql FROM sqlite_master;",
-          "expect": "{CREATE TABLE \"t1\" (c0)}\n  {CREATE INDEX i0 ON \"t1\"('1' IN ())}"
+          "expect": "{CREATE TABLE \"t1\"(c0)}\n  {CREATE INDEX i0 ON \"t1\"('1' IN ())}"
         }
       ]
     },
@@ -280,7 +280,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE tbl_name = 't2';",
-          "expect": "{CREATE TABLE t2 (c1)} \n  {CREATE INDEX i2 ON t2(LIKELIHOOD(c1, 1.0) IN ())}"
+          "expect": "{CREATE TABLE t2 (c1)} \n  {CREATE INDEX i2 ON t2((LIKELIHOOD(c1, 1.0) IN ()))}"
         }
       ]
     },
@@ -333,7 +333,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t2 RENAME TO t3;\n  SELECT sql FROM sqlite_master WHERE name='v1';",
-          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE (SELECT t1.a FROM t1, \"t3\") IN () OR t1.a=5}"
+          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5}"
         }
       ]
     },
@@ -379,7 +379,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'b';",
-          "expect": "{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}"
+          "expect": "{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}"
         }
       ]
     },
@@ -449,7 +449,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t1x;",
-          "expect": "1 {no such table: t1}"
+          "expect": "1 {error in trigger AFTER: no such column: a}"
         }
       ]
     },
@@ -557,7 +557,7 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;",
-          "expect": "1 {frigolite: parse error: unexpected keyword: VALUES}"
+          "expect": "1 {error in index k: no tables specified}"
         }
       ]
     },
@@ -711,7 +711,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE v0 RENAME TO t3 ;",
-          "expect": "1 {no such table: v0}"
+          "expect": "1 {error in view v2: view v2 is circularly defined}"
         }
       ]
     },
@@ -729,7 +729,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE v0 RENAME TO x ;",
-          "expect": "1 {no such table: v0}"
+          "expect": "1 {error in trigger x: cannot join using column VALUE - column not present in both tables}"
         }
       ]
     },
@@ -873,7 +873,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';",
-          "expect": "{CREATE TABLE t1 (a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}"
+          "expect": "{CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}"
         }
       ]
     },
@@ -972,7 +972,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='trigger'",
-          "expect": "{CREATE TRIGGER Trigger1 DELETE ON \"t3\" BEGIN\n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\nEND CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y;\nEND}"
+          "expect": "{CREATE TRIGGER Trigger1 DELETE ON \"t3\" \n  BEGIN \n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\n  END}\n  {CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y FROM (\n      SELECT \"t3\".* FROM \"t3\"\n    );\n  END}"
         }
       ]
     },
@@ -1017,7 +1017,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='view'",
-          "expect": "{CREATE VIEW v1 AS SELECT (VALUES(a), b)}"
+          "expect": "{CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )}"
         }
       ]
     },
@@ -1093,7 +1093,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{CREATE TABLE t1 (a INT, b INT)}"
+          "expect": "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
         }
       ]
     },
@@ -1129,7 +1129,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{CREATE TABLE t1 (a INT, b INT)}"
+          "expect": "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
         }
       ]
     },
@@ -1156,7 +1156,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;",
-          "expect": "{CREATE TABLE x1 (a TEXT, c CHECK(c!=0))}"
+          "expect": "{CREATE TABLE x1(a TEXT, c CHECK(c!=0))}"
         }
       ]
     }

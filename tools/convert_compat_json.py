@@ -22,7 +22,7 @@ UNSUPPORTED_FEATURES = re.compile(
 UNSUPPORTED_IFCAPABLE = {
     'fts3', 'fts4', 'fts5', 'rtree', 'json1', 'icu', 'session',
     'dbstat', 'csv', 'dbdata', 'decimal', 'memorydb', 'shared_cache',
-    'direct_read', 'dirread', 'windowfunc', 'auth',
+    'direct_read', 'dirread', 'windowfunc',
 }
 
 # ifcapable features that ARE supported at the block level
@@ -415,9 +415,6 @@ def main():
                      r'commit_hook|rollback_hook|update_hook|preupdate_hook|'
                      r'snapshot_get|snapshot_open|snapshot_free)\s',
                      content, re.IGNORECASE):
-            skip_files.add(fname)
-        # Also skip files using TCL-level db auth (authorization callback via "db auth")
-        if re.search(r'db\s+auth\s', content, re.IGNORECASE):
             skip_files.add(fname)
     
     print(f"Skipping {len(skip_files)} C API test files")

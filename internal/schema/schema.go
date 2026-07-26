@@ -194,16 +194,7 @@ func (m *Manager) FindTable(name string) (*Entry, error) {
 			}, nil
 		}
 
-		// Internal system tables
-		if searchUpper == "SQLITE_STAT1" || searchUpper == "SQLITE_STAT4" {
-			return &Entry{
-				Type:     TypeTable,
-				Name:     name,
-				TblName:  name,
-				RootPage: 1,
-				SQL:      fmt.Sprintf("CREATE TABLE %s (tbl TEXT,idx TEXT,stat TEXT)", name),
-			}, nil
-		}
+		// sqlite_sequence is a system table for AUTOINCREMENT tracking
 		if searchUpper == "SQLITE_SEQUENCE" {
 			return &Entry{
 				Type:     TypeTable,

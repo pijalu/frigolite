@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
-          "expect": "{CREATE TABLE c1 (b)}"
+          "expect": "{CREATE TABLE c1(b)}"
         }
       ]
     },
@@ -44,7 +44,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
-          "expect": "{CREATE TABLE c1 (b)}"
+          "expect": "{CREATE TABLE c1(b)}"
         }
       ]
     },
@@ -71,7 +71,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
-          "expect": "{CREATE TABLE c1 (b)}"
+          "expect": "{CREATE TABLE c1(b)}"
         }
       ]
     },
@@ -115,7 +115,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{CREATE TABLE x1 (a, b)}"
+          "expect": "{CREATE TABLE x1(a, b }"
         }
       ]
     }

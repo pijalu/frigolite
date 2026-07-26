@@ -66,7 +66,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name = 't1'",
-          "expect": "{CREATE TABLE t1 (a, c)}"
+          "expect": "{CREATE TABLE t1(a, c)}"
         }
       ]
     },
@@ -85,7 +85,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE name = 't1'",
-          "expect": "{CREATE TABLE t1 (a)}"
+          "expect": "{CREATE TABLE t1(a)}"
         }
       ]
     },
@@ -199,7 +199,7 @@
         {
           "type": "query",
           "sql": "ALTER TABLE c1 DROP COLUMN z;\n  ALTER TABLE c2 DROP COLUMN z;\n  SELECT sql FROM sqlite_schema WHERE name IN ('c1', 'c2');",
-          "expect": "{CREATE TABLE c1 (x, y)} {CREATE TABLE c2 (x, y, w REFERENCES p1(b))}"
+          "expect": "{CREATE TABLE c1(x, y)} \n  {CREATE TABLE c2(x, y, w REFERENCES p1(b))}"
         }
       ]
     },
@@ -347,7 +347,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema;",
-          "expect": "{CREATE TABLE t1 (a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID}"
+          "expect": "{CREATE TABLE t1(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID}"
         }
       ]
     },
@@ -401,7 +401,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema;",
-          "expect": "{CREATE TABLE t1 (a INTEGER PRIMARY KEY AUTOINCREMENT)}"
+          "expect": "{CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT)}"
         }
       ]
     }

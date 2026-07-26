@@ -17,7 +17,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
-          "expect": "{CREATE TABLE t1 (a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2 (a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
+          "expect": "{CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
         }
       ]
     },
@@ -46,7 +46,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
-          "expect": "{CREATE TABLE t1 (a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2 (a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
+          "expect": "{CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
         }
       ]
     },
@@ -66,7 +66,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master",
-          "expect": "{CREATE TABLE t1 (a, b, CHECK(t1.a != t1.b))} {CREATE TABLE t2 (a, b)} {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
+          "expect": "{CREATE TABLE t1(a, b, CHECK(t1.a != t1.b))}\n  {CREATE TABLE t2(a, b)}\n  {CREATE INDEX t2expr ON t2(a) WHERE t2.b>0}"
         }
       ]
     },
@@ -102,7 +102,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE fff RENAME TO ggg;",
-          "expect": "1 {no such table: fff}"
+          "expect": "1 {no such module: echo}"
         }
       ]
     },
@@ -148,7 +148,7 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM vvv;",
-          "expect": "1 {no such table: txx}"
+          "expect": "1 {no such table: main.txx}"
         }
       ]
     },
@@ -168,7 +168,7 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM uuu;",
-          "expect": "1 {no such table: txx}"
+          "expect": "1 {no such table: main.txx}"
         }
       ]
     },
@@ -234,7 +234,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t11 VALUES(2, 2);",
-          "expect": "1 {no such table: t1}"
+          "expect": "1 {no such table: main.t1}"
         }
       ]
     },
@@ -253,7 +253,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 3);",
-          "expect": "1 {no such table: t1}"
+          "expect": "1 {no such table: main.t2}"
         }
       ]
     },
@@ -322,7 +322,7 @@
         {
           "type": "exec",
           "sql": "SELECT  *  FROM v",
-          "expect": "1 {no such table: t2}"
+          "expect": "1 {no such table: main.t2}"
         }
       ]
     },
@@ -387,7 +387,7 @@
         {
           "type": "query",
           "sql": "INSERT INTO aux.c1 VALUES(NULL, 1);\n  SELECT sql FROM aux.sqlite_master WHERE name = 'c1';",
-          "expect": "{CREATE TABLE c1 (x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
+          "expect": "{CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
         }
       ]
     },
@@ -468,7 +468,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_temp_master;\n  SELECT sql FROM sqlite_master WHERE type='trigger';",
-          "expect": "{CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END} {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}"
+          "expect": "{CREATE TRIGGER tr AFTER INSERT ON aux.t1 BEGIN SELECT 1, 2, 3; END}\n  {CREATE TRIGGER tr AFTER INSERT ON \"t3\" WHEN new.a IS NULL BEGIN SELECT 1, 2, 3; END}"
         }
       ]
     },

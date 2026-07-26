@@ -7,12 +7,16 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/pijalu/frigolite/internal/auth"
 )
 
 type TestStep struct {
 	Type   string `json:"type"`
 	SQL    string `json:"sql,omitempty"`
 	Expect string `json:"expect,omitempty"`
+	Action string `json:"action,omitempty"` // for auth steps: SQLITE_ALTER_TABLE, etc.
+	Result string `json:"result,omitempty"` // for auth steps: SQLITE_OK, SQLITE_DENY, SQLITE_IGNORE
 }
 
 type TestCase struct {
@@ -114,6 +118,66 @@ func TestSQLiteSuite(t *testing.T) {
 											}
 										}
 									}
+							case "auth":
+								actionStr := step.Action
+								resultStr := step.Result
+								if actionStr == "" || resultStr == "" {
+									t.Errorf("auth step requires action and result fields")
+									return
+								}
+								var action auth.Action
+								switch actionStr {
+								case "SQLITE_CREATE_TABLE":
+									action = auth.ActionCreateTable
+								case "SQLITE_CREATE_INDEX":
+									action = auth.ActionCreateIndex
+								case "SQLITE_CREATE_VIEW":
+									action = auth.ActionCreateView
+								case "SQLITE_CREATE_TRIGGER":
+									action = auth.ActionCreateTrigger
+								case "SQLITE_DROP_TABLE":
+									action = auth.ActionDropTable
+								case "SQLITE_DROP_INDEX":
+									action = auth.ActionDropIndex
+								case "SQLITE_DROP_VIEW":
+									action = auth.ActionDropView
+								case "SQLITE_DROP_TRIGGER":
+									action = auth.ActionDropTrigger
+								case "SQLITE_INSERT":
+									action = auth.ActionInsert
+								case "SQLITE_UPDATE":
+									action = auth.ActionUpdate
+								case "SQLITE_DELETE":
+									action = auth.ActionDelete
+								case "SQLITE_SELECT":
+									action = auth.ActionSelect
+								case "SQLITE_READ":
+									action = auth.ActionRead
+								case "SQLITE_ALTER_TABLE":
+									action = auth.ActionAlterTable
+								case "SQLITE_ATTACH":
+									action = auth.ActionAttach
+								case "SQLITE_DETACH":
+									action = auth.ActionDetach
+								case "SQLITE_FUNCTION":
+									action = auth.ActionFunction
+								case "SQLITE_PRAGMA":
+									action = auth.ActionPragma
+								default:
+									t.Errorf("unknown auth action: %s", actionStr)
+									return
+								}
+								switch resultStr {
+								case "SQLITE_OK":
+									db.SetAuthorizer(auth.NewActionFilterAuthorizer())
+								case "SQLITE_DENY":
+									db.SetAuthorizer(auth.NewActionFilterAuthorizer(action))
+								case "SQLITE_IGNORE":
+									db.SetAuthorizer(auth.NewActionFilterAuthorizer(action))
+								default:
+									t.Errorf("unknown auth result: %s", resultStr)
+									return
+								}
 						}
 					}
 				})

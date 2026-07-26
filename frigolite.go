@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/exec"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -50,6 +51,16 @@ func (db *DB) LastInsertRowID() int64 {
 	return db.engine.LastInsertRowID()
 }
 
+// SetAuthorizer sets the authorization callback for the database.
+// A nil authorizer allows all operations (default behavior).
+// The callback is invoked before each database operation to check
+// whether it should be allowed.
+func (db *DB) SetAuthorizer(a auth.Authorizer) {
+	if db != nil && db.engine != nil {
+		db.engine.SetAuthorizer(a)
+	}
+}
+
 // Open opens a database file. Use ":memory:" for an in-memory database.
 func Open(path string) (*DB, error) {
 	var pg *pager.Pager
@@ -75,6 +86,12 @@ func Open(path string) (*DB, error) {
 	if err := db.schema.Init(); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("frigolite: init schema: %w", err)
+	}
+
+	// Create sqlite_stat1 table (always available, like sqlite_sequence)
+	if err := db.engine.InitStatTable(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("frigolite: init stat table: %w", err)
 	}
 
 	return db, nil

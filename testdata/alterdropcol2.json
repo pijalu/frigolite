@@ -26,7 +26,7 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1;",
-          "expect": "2 3 5 6"
+          "expect": "2 3   5 6"
         }
       ]
     },
@@ -36,7 +36,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema;",
-          "expect": "{CREATE TABLE t1 (b, a, PRIMARY KEY(b, a)) WITHOUT ROWID}"
+          "expect": "{CREATE TABLE t1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID}"
         }
       ]
     },
