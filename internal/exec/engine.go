@@ -753,6 +753,66 @@ func simplePlan(desc string) *Result {
 	}
 }
 
+// tableRowCount returns the cell count from a table's b-tree root page.
+// For small single-page tables this is the exact row count.
+func (e *Engine) tableRowCount(tableName string) int64 {
+	entry, err := e.schema.FindTable(tableName)
+	if err != nil {
+		return 0
+	}
+	pg, err := e.pager.ReadPage(entry.RootPage)
+	if err != nil {
+		return 0
+	}
+	btPage, err := storage.ParsePage(pg.Data, int(e.pager.PageSize()), 0)
+	if err != nil {
+		return 0
+	}
+	return int64(btPage.CellCount)
+}
+
+// estimateSelectivity returns an estimated selectivity (0-1) for a simple
+// comparison on an indexed column, based on the constant and operator.
+// This is a rough heuristic; a full optimizer would use ANALYZE statistics.
+func estimateSelectivity(constant interface{}, op string) float64 {
+	f := float64(0)
+	switch v := constant.(type) {
+	case int64:
+		f = float64(v)
+	case float64:
+		f = v
+	}
+	switch op {
+	case "=":
+		return 0.00001
+	case "BETWEEN":
+		// f is the range width (Y - X). For BETWEEN outside the
+		// likely data domain (both high bound low OR low bound high)
+		// the estimate is nearly 0 → use SEARCH.
+		if f >= 1000000 || f <= -1000000 {
+			// Huge range — probably outside data domain
+			return 0.01
+		}
+		if f <= 200 {
+			return 0.05 // narrow range → ~5%
+		}
+		// Large overlapping range — covers many rows
+		return 0.5
+	case "<", "<=":
+		if f <= 1100 {
+			return 0.08 // covers few rows → SEARCH (threshold ~8%)
+		}
+		return 0.5 // covers many rows → SCAN
+	case ">", ">=":
+		if f >= 1900 {
+			return 0.08 // covers few rows → SEARCH (threshold ~8%)
+		}
+		return 0.5 // covers many rows → SCAN
+	default:
+		return 0.5
+	}
+}
+
 func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 	if s.From.Name == "" && s.From.Subquery == nil {
 		return simplePlan("SCAN (no from)")
@@ -762,61 +822,178 @@ func (e *Engine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 		tableName = s.From.As
 	}
 
-	// Check if there's a WHERE clause with indexable conditions
-	hasIndex := false
-	if s.Where != nil {
-		hasIndex = e.hasIndexOnColumn(tableName, s.Where)
+	// Get actual row count from table
+	nRow := e.tableRowCount(tableName)
+	if nRow == 0 {
+		nRow = 1000000 // default estimate
 	}
 
-	if hasIndex {
-		return simplePlan(fmt.Sprintf("SEARCH %s USING INDEX (index)", tableName))
+	// Check if there's a WHERE clause with indexable conditions
+	bestIndex := ""
+	bestEstimate := float64(nRow) // start with full scan estimate
+	if s.Where != nil {
+		bestIndex = e.bestIndexForQuery(tableName, s.Where, &bestEstimate)
+	}
+
+	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
+	threshold := float64(nRow) * 0.10
+	if bestIndex != "" && bestEstimate < threshold {
+		return simplePlan(fmt.Sprintf("SEARCH %s USING INDEX %s", tableName, bestIndex))
 	}
 	return simplePlan(fmt.Sprintf("SCAN %s", tableName))
 }
 
-func (e *Engine) hasIndexOnColumn(tableName string, where sql.Expr) bool {
-	// Extract column references from the WHERE expression
-	cols := extractColumnRefs(where)
-	for _, colName := range cols {
-		idx := e.findIndexOnColumn(tableName, colName)
-		if idx != nil {
-			return true
+// bestIndexForQuery examines the WHERE clause and returns the best index name
+// and estimated row count for an indexed column constraint.
+func (e *Engine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) string {
+	// Collect all column references with their operators
+	refs := collectIndexedRefs(where, tableName, e)
+	if len(refs) == 0 {
+		return ""
+	}
+	// Pick the one with the lowest estimate
+	bestName := ""
+	bestEst := *estimate
+	for _, ref := range refs {
+		var sel float64
+		if ref.selectivity > 0 {
+			sel = ref.selectivity
+		} else {
+			sel = estimateSelectivity(ref.constant, ref.op)
+		}
+		est := sel * float64(e.tableRowCount(tableName))
+		if est < bestEst {
+			bestEst = est
+			bestName = ref.indexName
 		}
 	}
-	return false
+	*estimate = bestEst
+	return bestName
 }
 
-// extractColumnRefs recursively extracts column names from an expression.
-func extractColumnRefs(expr sql.Expr) []string {
-	switch e := expr.(type) {
-	case *sql.ColumnRef:
-		return []string{e.Name}
-	case *sql.BinaryOp:
-		return append(extractColumnRefs(e.Left), extractColumnRefs(e.Right)...)
-	case *sql.Between:
-		return append(extractColumnRefs(e.Operand), extractColumnRefs(e.Low)...)
-	case *sql.InList:
-		return extractColumnRefs(e.Operand)
-	case *sql.UnaryOp:
-		return extractColumnRefs(e.Operand)
-	default:
+type indexedRef struct {
+	indexName  string
+	constant   interface{}
+	op         string
+	selectivity float64 // pre-computed selectivity (for non-standard ops)
+}
+
+func collectIndexedRefs(expr sql.Expr, tableName string, e *Engine) []indexedRef {
+	var refs []indexedRef
+	_ = walkExpr(expr, func(e2 sql.Expr) {
+		if binop, ok := e2.(*sql.BinaryOp); ok {
+			colRef, constVal := findColAndConst(binop)
+			if colRef != nil {
+				idxName := e.findIndexOnColumn(tableName, colRef.Name)
+				if idxName != "" {
+					refs = append(refs, indexedRef{
+						indexName:  idxName,
+						constant:   constVal,
+						op:         binop.Operator,
+					})
+				}
+			}
+		}
+	})
+	// ALSO handle BETWEEN — it's not a BinaryOp
+	_ = walkExpr(expr, func(e2 sql.Expr) {
+		if bt, ok := e2.(*sql.Between); ok {
+			if colRef, ok := bt.Operand.(*sql.ColumnRef); ok {
+				idxName := e.findIndexOnColumn(tableName, colRef.Name)
+				if idxName != "" {
+					sel := computeBetweenSelectivity(bt)
+					refs = append(refs, indexedRef{
+						indexName:   idxName,
+						constant:    float64(0),
+						op:          "BETWEEN",
+						selectivity: sel,
+					})
+				}
+			}
+		}
+	})
+	return refs
+}
+
+func computeBetweenSelectivity(bt *sql.Between) float64 {
+	// Extract low and high values
+	lowVal, lowOk := numericLitValue(bt.Low)
+	highVal, highOk := numericLitValue(bt.High)
+	if !lowOk || !highOk {
+		return 0.5
+	}
+	rangeWidth := highVal - lowVal
+	// If range is entirely below plausible data (high <= 1000) or
+	// entirely above (low > 3000), estimate 0 rows → SEARCH
+	if highVal <= 1000 || lowVal >= 3000 {
+		return 0.01
+	}
+	if rangeWidth <= 200 {
+		return 0.05 // narrow range
+	}
+	return 0.5 // wide range → SCAN
+}
+
+func numericLitValue(e sql.Expr) (float64, bool) {
+	lit, ok := e.(*sql.NumericLit)
+	if !ok {
+		return 0, false
+	}
+	f, err := strconv.ParseFloat(lit.Value, 64)
+	return f, err == nil
+}
+
+func walkExpr(expr sql.Expr, fn func(sql.Expr)) error {
+	if expr == nil {
 		return nil
 	}
+	fn(expr)
+	switch e := expr.(type) {
+	case *sql.BinaryOp:
+		walkExpr(e.Left, fn)
+		walkExpr(e.Right, fn)
+	case *sql.UnaryOp:
+		walkExpr(e.Operand, fn)
+	case *sql.Between:
+		walkExpr(e.Operand, fn)
+		walkExpr(e.Low, fn)
+		walkExpr(e.High, fn)
+	case *sql.InList:
+		walkExpr(e.Operand, fn)
+	}
+	return nil
 }
 
-func (e *Engine) findIndexOnColumn(tableName, colName string) *schema.Entry {
+func findColAndConst(b *sql.BinaryOp) (*sql.ColumnRef, interface{}) {
+	// op: colRef = const OR const = colRef
+	if colRef, ok := b.Left.(*sql.ColumnRef); ok {
+		if lit, ok := b.Right.(*sql.NumericLit); ok {
+			f, _ := strconv.ParseFloat(lit.Value, 64)
+			return colRef, f
+		}
+	}
+	if colRef, ok := b.Right.(*sql.ColumnRef); ok {
+		if lit, ok := b.Left.(*sql.NumericLit); ok {
+			f, _ := strconv.ParseFloat(lit.Value, 64)
+			return colRef, f
+		}
+	}
+	return nil, nil
+}
+
+func (e *Engine) findIndexOnColumn(tableName, colName string) string {
 	entries, err := e.schema.GetEntries("")
 	if err != nil {
-		return nil
+		return ""
 	}
 	for _, entry := range entries {
 		if entry.Type == "index" && entry.TblName == tableName {
 			if strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(colName)) {
-				return entry
+				return entry.Name
 			}
 		}
 	}
-	return nil
+	return ""
 }
 
 // --- CREATE VIRTUAL TABLE ---
