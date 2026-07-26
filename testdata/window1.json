@@ -135,7 +135,7 @@
       "name": "12.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(id INT, b VARCHAR, c VARCHAR);\n  INSERT INTO t1 VALUES(1, 'A', 'one');\n  INSERT INTO t1 VALUES(2, 'B', 'two');\n  INSERT INTO t1 VALUES(3, 'C', 'three');\n  INSERT INTO t1 VALUES(4, 'D', 'one');\n  INSERT INTO t1 VALUES(5, 'E', 'two');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x \n    FROM t1 WHERE id>1\n   ORDER BY b LIMIT 1;",
           "expect": "2 B two"
         }
@@ -145,7 +145,7 @@
       "name": "12.110",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(6, 'F', 'three');\n  INSERT INTO t1 VALUES(7, 'G', 'one');\n  SELECT id, b, lead(c,1) OVER(ORDER BY c) AS x\n    FROM t1 WHERE id>1\n   ORDER BY b LIMIT 2;",
           "expect": "2 B two 3 C three"
         }
@@ -223,7 +223,7 @@
       "name": "14.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x); INSERT INTO t1(x) VALUES(12345);\n  CREATE TABLE t2(c); INSERT INTO t2(c) VALUES(1);\n  SELECT y, y+1, y+2 FROM (\n    SELECT c IN (\n      SELECT (row_number() OVER()) FROM t1\n    ) AS y FROM t2\n  );",
           "expect": "1 2 3"
         }
@@ -566,7 +566,7 @@
       "name": "37.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(a UNIQUE, b PRIMARY KEY);\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN 10 AND 20;"
         }
       ]
@@ -575,7 +575,7 @@
       "name": "37.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW v0;\n  CREATE VIEW v0(c) AS SELECT max((SELECT count(a)OVER(ORDER BY 1234))) FROM t0;\n  SELECT c FROM v0 WHERE c BETWEEN -10 AND 20;"
         }
       ]
@@ -780,7 +780,7 @@
       "name": "44.4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t0 VALUES(2), (1), (0);\n  SELECT (0, 1) IN(SELECT MIN(c0), NTILE(1) OVER()) FROM t0;",
           "expect": "1"
         }
@@ -905,7 +905,7 @@
       "name": "48.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  SELECT (SELECT max(x)OVER(ORDER BY x) + min(x)OVER(ORDER BY x))\n    FROM (SELECT (SELECT sum(a) FROM t1) AS x FROM t1);",
           "expect": "12 12 12"
         }
@@ -1012,7 +1012,7 @@
       "name": "53.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE a(c UNIQUE);\n  INSERT INTO a VALUES(4),(0),(9),(-9);\n  SELECT a.c\n    FROM a\n    JOIN a AS b ON a.c=4\n    JOIN a AS e ON a.c=e.c\n   WHERE a.c=(SELECT (SELECT coalesce(lead(2) OVER(),0) + sum(d.c))\n                FROM a AS d\n               WHERE a.c);",
           "expect": "4 4 4 4"
         }
@@ -1076,7 +1076,7 @@
       "name": "55.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE a(b);\n   SELECT\n      (SELECT b FROM a\n        GROUP BY b\n        HAVING (SELECT COUNT()OVER() + lead(b)OVER(ORDER BY SUM(DISTINCT b) + b))\n      ) \n    FROM a\n  UNION\n   SELECT 99\n    ORDER BY 1;",
           "expect": "99"
         }
@@ -1138,7 +1138,7 @@
       "name": "57.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE v0 ( v1 INTEGER PRIMARY KEY ) ; \n  INSERT INTO v0 VALUES ( 10 ) ; \n  SELECT DISTINCT v1, lead(v1) OVER() FROM v0 GROUP BY v1 ORDER BY 2;",
           "expect": "10 {}"
         }
@@ -1176,7 +1176,7 @@
       "name": "60.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1 (x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES (99);\n  SELECT EXISTS(SELECT count(*) OVER() FROM t1 ORDER BY sum(x) OVER());",
           "expect": "1"
         }
@@ -1580,7 +1580,7 @@
       "name": "74.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "/* Original test case reported in https://sqlite.org/forum/forumpost/bad532820c\n  CREATE TABLE v0 (c1);\n  CREATE INDEX i ON v0 (c1, c1=1);\n  SELECT 0 FROM v0 AS a1\n   WHERE (SELECT count((SELECT(sum(0) OVER(PARTITION BY(c1), (a1.c1=1) ))))\n            FROM v0\n           GROUP BY hex(0))\n     AND a1.c1=0;"
         }
       ]

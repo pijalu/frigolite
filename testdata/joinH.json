@@ -239,7 +239,7 @@
       "name": "6.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t1 VALUES(3);\n  SELECT CASE WHEN t2.b THEN 0 ELSE 1 END FROM t1 LEFT JOIN t2 ON true;",
           "expect": "1"
         }
@@ -408,7 +408,7 @@
       "name": "9.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO x1(rowid, a) VALUES(101, 'A');\n  INSERT INTO x2(rowid, b) VALUES(55, 'B');\n  SELECT * FROM x1 NATURAL JOIN x2;",
           "expect": "A B"
         }
@@ -484,7 +484,7 @@
       "name": "10.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT COUNT(*) FROM rt0 LEFT JOIN rt3 JOIN v6 ON ((CASE v6.c0 WHEN rt0.c4 THEN rt3.c3 END) NOT BETWEEN (rt0.c4) AND (NULL)) WHERE (rt0.c1); -- 2",
           "expect": "0"
         }
@@ -494,7 +494,7 @@
       "name": "10.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT COUNT(*) FROM rt0 LEFT JOIN rt3 RIGHT OUTER JOIN v6 ON ((CASE v6.c0 WHEN rt0.c4 THEN rt3.c3 END) NOT BETWEEN (rt0.c4) AND (NULL)) WHERE (rt0.c1); -- 2",
           "expect": "0"
         }
@@ -575,7 +575,7 @@
       "name": "13.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INT AS (b), b INT);\n  INSERT INTO t1(b) VALUES(123);\n  CREATE TABLE t2(a INT, c INT);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;",
           "expect": "123"
         }
@@ -585,7 +585,7 @@
       "name": "13.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t1a ON t1(a);\n  SELECT a FROM t2 NATURAL RIGHT JOIN t1;",
           "expect": "123"
         }
@@ -595,7 +595,7 @@
       "name": "13.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a INT, b INT);\n  CREATE UNIQUE INDEX t3x ON t3(a, a+b);\n  INSERT INTO t3(a,b) VALUES(1,2),(4,8),(16,32),(4,80),(1,-300);\n  CREATE TABLE t4(x INT, y INT);\n  INSERT INTO t4(x,y) SELECT a, b FROM t3;\n  INSERT INTO t4(x,y) VALUES(99,99);\n  SELECT a1.a, sum( a1.a+a1.b ) FROM t3 AS a1 RIGHT JOIN t4 ON a=x\n   GROUP BY a1.a ORDER BY 1;",
           "expect": "NULL NULL 1 -592 4 192 16 48"
         }
@@ -720,7 +720,7 @@
       "name": "15.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c0);\n  CREATE TABLE t2(c0);\n  INSERT INTO t0 VALUES ('1.0');\n  INSERT INTO t2(c0) VALUES (9);\n  SELECT t0.c0,t2.c0 FROM (SELECT CAST(t0.c0 as REAL) AS c0 FROM t0) as subquery NATURAL LEFT JOIN t1  NATURAL JOIN t0  RIGHT JOIN t2 ON 1;",
           "expect": "1.0 9"
         }

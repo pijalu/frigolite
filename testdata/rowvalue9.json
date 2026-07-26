@@ -218,7 +218,7 @@
       "name": "3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE UNIQUE INDEX c1ab ON c1(a, b);\n  SELECT * FROM c1 WHERE (a, b) IN (SELECT x, y FROM c2)"
         }
       ]
@@ -332,7 +332,7 @@
       "name": "6.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );"
         }
       ]
@@ -445,7 +445,7 @@
       "name": "9.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );",
           "expect": "2 2 3 3"
         }

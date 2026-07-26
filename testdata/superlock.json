@@ -6,7 +6,7 @@
       "name": "1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  PRAGMA journal_mode = DELETE;",
           "expect": "delete"
         }
@@ -26,7 +26,7 @@
       "name": "2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(3, 4);\n  PRAGMA journal_mode = WAL;",
           "expect": "wal"
         }
@@ -185,7 +185,7 @@
       "name": "6.11codec",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = delete;\n    VACUUM;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(5, 6);",
           "expect": "delete wal"
         }
@@ -195,7 +195,7 @@
       "name": "6.11",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = delete;\n    PRAGMA page_size = 512;\n    VACUUM;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(5, 6);",
           "expect": "delete wal"
         }

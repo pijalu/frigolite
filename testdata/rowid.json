@@ -6,7 +6,7 @@
       "name": "rowid-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x int, y int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT x FROM t1 ORDER BY y;",
           "expect": "1 3"
         },
@@ -220,7 +220,7 @@
       "name": "rowid-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(rowid int, x int, y int);\n    INSERT INTO t2 VALUES(0,2,3);\n    INSERT INTO t2 VALUES(4,5,6);\n    INSERT INTO t2 VALUES(7,8,9);\n    SELECT * FROM t2 ORDER BY x;",
           "expect": "0 2 3 4 5 6 7 8 9"
         },
@@ -624,7 +624,7 @@
       "name": "rowid-7.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n    DROP TABLE t2;\n    DROP INDEX idxt1;\n    INSERT INTO t1 VALUES(1,2);\n    SELECT rowid, * FROM t1;",
           "expect": "1 1 2"
         },
@@ -638,7 +638,7 @@
       "name": "rowid-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(99,100);\n    SELECT rowid,* FROM t1",
           "expect": "1 1 2 2 99 100"
         },
@@ -652,7 +652,7 @@
       "name": "rowid-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2(b) VALUES(55);\n    SELECT * FROM t2;",
           "expect": "1 55"
         },
@@ -666,7 +666,7 @@
       "name": "rowid-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2(b) VALUES(66);\n    SELECT * FROM t2;",
           "expect": "1 55 2 66"
         },
@@ -680,7 +680,7 @@
       "name": "rowid-7.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2(a,b) VALUES(1000000,77);\n    INSERT INTO t2(b) VALUES(88);\n    SELECT * FROM t2;",
           "expect": "1 55 2 66 1000000 77 1000001 88"
         },
@@ -694,7 +694,7 @@
       "name": "rowid-7.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2(a,b) VALUES(2147483647,99);\n    INSERT INTO t2(b) VALUES(11);\n    SELECT b FROM t2 ORDER BY b;",
           "expect": "11 55 66 77 88 99"
         },
@@ -722,7 +722,7 @@
       "name": "rowid-7.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2(b) VALUES(22);\n      INSERT INTO t2(b) VALUES(33);\n      INSERT INTO t2(b) VALUES(44);\n      INSERT INTO t2(b) VALUES(55);\n      SELECT b FROM t2 WHERE a NOT IN(1,2,1000000,1000001,2147483647) \n          ORDER BY b;",
           "expect": "11 22 33 44 55"
         },
@@ -736,7 +736,7 @@
       "name": "rowid-7.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t2 WHERE a!=2;\n    INSERT INTO t2(b) VALUES(111);\n    SELECT * FROM t2;",
           "expect": "2 66 3 111"
         },
@@ -750,7 +750,7 @@
       "name": "rowid-8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a integer primary key);\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    CREATE TRIGGER r3 AFTER INSERT on t3 FOR EACH ROW BEGIN\n      INSERT INTO t4 VALUES(NEW.a+10);\n    END;\n    SELECT * FROM t3;"
         },
         {
@@ -777,7 +777,7 @@
       "name": "rowid-8.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t3 VALUES(123);\n    SELECT last_insert_rowid();",
           "expect": "123"
         },
@@ -819,7 +819,7 @@
       "name": "rowid-8.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t3 VALUES(NULL);\n    SELECT last_insert_rowid();",
           "expect": "124"
         },
@@ -1003,7 +1003,7 @@
       "name": "rowid-10.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES(1);\n    INSERT INTO t5 VALUES(2);\n    INSERT INTO t5 SELECT a+2 FROM t5;\n    INSERT INTO t5 SELECT a+4 FROM t5;\n    SELECT rowid, * FROM t5;",
           "expect": "1 1 2 2 3 3 4 4 5 5 6 6 7 7 8 8"
         },
@@ -1297,7 +1297,7 @@
       "name": "rowid-10.30",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t6(a);\n    INSERT INTO t6(rowid,a) SELECT -a,a FROM t5;\n    SELECT rowid, * FROM t6;",
           "expect": "-8 8 -7 7 -6 6 -5 5 -4 4 -3 3 -2 2 -1 1"
         },
@@ -1753,7 +1753,7 @@
       "name": "rowid-12.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    CREATE TABLE t7temp(a INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(9223372036854775807,'a');\n    SELECT y FROM t7;",
           "expect": "a"
         },
@@ -1767,7 +1767,7 @@
       "name": "rowid-12.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t7 VALUES(NULL,'b');\n    SELECT x, y FROM t7 ORDER BY x;",
           "expect": "/\\d+ b 9223372036854775807 a/"
         }
@@ -1820,7 +1820,7 @@
       "name": "rowid-13.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t13(x);\n  INSERT INTO t13(rowid,x) VALUES(1234,5);\n  SELECT rowid, x, addrow(rowid+1000), '|' FROM t13 LIMIT 3;\n  SELECT last_insert_rowid();",
           "expect": "1234 5 2234 | 2234 4990756 3234 | 3234 10458756 4234 | 4234"
         }
@@ -1859,7 +1859,7 @@
       "name": "rowid-14.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t14;\n  SELECT * FROM t14 WHERE x < 'a' ORDER BY rowid ASC;"
         }
       ]
@@ -1885,7 +1885,7 @@
       "name": "rowid-15.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA reverse_unordered_selects=true;\n  CREATE TABLE t1 (c0, c1);\n  CREATE TABLE t2 (c0 INT UNIQUE);\n  INSERT INTO t1(c0, c1) VALUES (0, 0), (0, NULL);\n  INSERT INTO t2(c0) VALUES (1);"
         }
       ]

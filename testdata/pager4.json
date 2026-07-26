@@ -6,7 +6,7 @@
       "name": "pager4-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(673,'stone','philips');\n  SELECT * FROM t1;",
           "expect": "673 stone philips"
         }

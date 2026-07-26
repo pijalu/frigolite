@@ -6,7 +6,7 @@
       "name": "vacuum-1.2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n  PRAGMA main.integrity_check;",
           "expect": "ok"
         }
@@ -16,7 +16,7 @@
       "name": "vacuum-1.3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t2;\n  PRAGMA x2.integrity_check;",
           "expect": "ok"
         }

@@ -6,7 +6,7 @@
       "name": "100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(0),(1),(2);\n  CREATE TABLE t2 AS\n     SELECT DISTINCT a.x AS aa, b.x AS bb\n      FROM t1 a, t1 b;\n  SELECT *, '|' FROM t2 ORDER BY aa, bb;",
           "expect": "0 0 | 0 1 | 0 2 | 1 0 | 1 1 | 1 2 | 2 0 | 2 1 | 2 2 |"
         }
@@ -16,7 +16,7 @@
       "name": "110",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t2;\n  CREATE TABLE t2 AS\n     SELECT DISTINCT a.x AS aa, b.x AS bb\n       FROM t1 a, t1 b\n      WHERE a.x IN t1 AND b.x IN t1;\n  SELECT *, '|' FROM t2 ORDER BY aa, bb;",
           "expect": "0 0 | 0 1 | 0 2 | 1 0 | 1 1 | 1 2 | 2 0 | 2 1 | 2 2 |"
         }
@@ -26,7 +26,7 @@
       "name": "120",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t102 (i0 TEXT UNIQUE NOT NULL);\n  INSERT INTO t102 VALUES ('0'),('1'),('2');\n  DROP TABLE t2;\n  CREATE TABLE t2 AS\n    SELECT DISTINCT * \n    FROM t102 AS t0 \n    JOIN t102 AS t4 ON (t2.i0 IN t102)\n    NATURAL JOIN t102 AS t3\n    JOIN t102 AS t1 ON (t0.i0 IN t102)\n    JOIN t102 AS t2 ON (t2.i0=+t0.i0 OR (t0.i0<>500 AND t2.i0=t1.i0));\n  SELECT *, '|' FROM t2 ORDER BY 1, 2, 3, 4, 5;",
           "expect": "0 0 0 0 | 0 0 1 0 | 0 0 1 1 | 0 0 2 0 | 0 0 2 2 | 0 1 0 0 | 0 1 1 0 | 0 1 1 1 | 0 1 2 0 | 0 1 2 2 | 0 2 0 0 | 0 2 1 0 | 0 2 1 1 | 0 2 2 0 | 0 2 2 2 | 1 0 0 0 | 1 0 0 1 | 1 0 1 1 | 1 0 2 1 | 1 0 2 2 | 1 1 0 0 | 1 1 0 1 | 1 1 1 1 | 1 1 2 1 | 1 1 2 2 | 1 2 0 0 | 1 2 0 1 | 1 2 1 1 | 1 2 2 1 | 1 2 2 2 | 2 0 0 0 | 2 0 0 2 | 2 0 1 1 | 2 0 1 2 | 2 0 2 2 | 2 1 0 0 | 2 1 0 2 | 2 1 1 1 | 2 1 1 2 | 2 1 2 2 | 2 2 0 0 | 2 2 0 2 | 2 2 1 1 | 2 2 1 2 | 2 2 2 2 |"
         }
@@ -36,7 +36,7 @@
       "name": "400",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4(a,b,c,d,e,f,g,h,i,j);\n  INSERT INTO t4 VALUES(0,1,2,3,4,5,6,7,8,9);\n  INSERT INTO t4 SELECT * FROM t4;\n  INSERT INTO t4 SELECT * FROM t4;\n  CREATE INDEX t4x ON t4(c,d,e);\n  SELECT DISTINCT a,b,c FROM t4 WHERE a=0 AND b=1;",
           "expect": "0 1 2"
         }
@@ -86,7 +86,7 @@
       "name": "500",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(a INT, b INT);\n  CREATE UNIQUE INDEX t5x ON t5(a+b);\n  INSERT INTO t5(a,b) VALUES(0,0),(1,0),(1,1),(0,3);\n  CREATE TEMP TABLE out AS SELECT DISTINCT a+b FROM t5;\n  SELECT * FROM out ORDER BY 1;",
           "expect": "0 1 2 3"
         }
@@ -96,7 +96,7 @@
       "name": "600",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t6a(x INTEGER PRIMARY KEY);\n  INSERT INTO t6a VALUES(1);\n  CREATE TABLE t6b(y INTEGER PRIMARY KEY);\n  INSERT INTO t6b VALUES(2),(3);\n  SELECT DISTINCT x, x FROM t6a, t6b;",
           "expect": "1 1"
         }
@@ -135,7 +135,7 @@
       "name": "730",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i7 ON t7(a, b+1);\n  ANALYZE;\n  SELECT DISTINCT a, b+1 FROM t7;",
           "expect": "0 1    0 2\n  1 3    1 4"
         }
@@ -174,7 +174,7 @@
       "name": "830",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i8 ON t8(a, c);\n  ANALYZE;\n  SELECT DISTINCT a, b, c FROM t8 WHERE b=3;",
           "expect": "1 3 1"
         }
@@ -203,7 +203,7 @@
       "name": "920",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i9 ON t9(v COLLATE NOCASE, v);\n  ANALYZE;\n\n  SELECT DISTINCT v COLLATE NOCASE, v FROM t9 ORDER BY +v;",
           "expect": "ABCD ABCD ABCd ABCd ABcD ABcD ABcd ABcd AbCD\n  AbCD AbCd AbCd AbcD AbcD Abcd Abcd\n  WXYZ WXYZ WXYz WXYz WXyZ WXyZ WXyz WXyz WxYZ\n  WxYZ WxYz WxYz WxyZ WxyZ Wxyz Wxyz\n  aBCD aBCD aBCd aBCd aBcD aBcD aBcd aBcd abCD\n  abCD abCd abCd abcD abcD abcd abcd\n  wXYZ wXYZ wXYz wXYz wXyZ wXyZ wXyz wXyz wxYZ\n  wxYZ wxYz wxYz wxyZ wxyZ wxyz wxyz"
         }
@@ -221,7 +221,7 @@
       "name": "1000",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  CREATE INDEX t2y ON t2(y);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1(b) SELECT x/10 - 1 FROM c;\n  WITH RECURSIVE c(x) AS (VALUES(-1) UNION ALL SELECT x+1 FROM c WHERE x<19)\n    INSERT INTO t2(x,y) SELECT x, 1 FROM c;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>-1;\n  ANALYZE;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>-1;",
           "expect": "1 1"
         }
@@ -239,7 +239,7 @@
       "name": "1010",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  CREATE INDEX t2y ON t2(y);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1(b) SELECT -(x/10 - 1) FROM c;\n  WITH RECURSIVE c(x) AS (VALUES(-1) UNION ALL SELECT x+1 FROM c WHERE x<19)\n    INSERT INTO t2(x,y) SELECT -x, 1 FROM c;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>1 ORDER BY y DESC;\n  ANALYZE;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>1 ORDER BY y DESC;",
           "expect": "1 1"
         }
@@ -257,7 +257,7 @@
       "name": "1020",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a, b);\n  -- Lots of rows of (1, 'no'), followed by a single (1, 'yes').\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a, b) SELECT 1, 'no' FROM c;\n  INSERT INTO t1(a, b) VALUES(1, 'yes');\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('yes');\n  SELECT DISTINCT a FROM t1, t2 WHERE x=b;\n  ANALYZE;\n  SELECT DISTINCT a FROM t1, t2 WHERE x=b;",
           "expect": "1 1"
         }
@@ -452,7 +452,7 @@
       "name": "5050",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(a TEXT); INSERT INTO t0 VALUES('abcd');\n  CREATE TABLE t1(b TEXT);\n  CREATE TABLE t2(c TEXT);\n  CREATE TABLE t3(d TEXT); INSERT INTO t3 VALUES('wxyz');\n  CREATE VIEW  v4(e) AS SELECT (SELECT t2.c FROM t0, t1 GROUP BY 1) FROM t2;\n  SELECT v4.e FROM t3 LEFT JOIN v4 ON true GROUP BY 1;"
         }
       ]
@@ -461,7 +461,7 @@
       "name": "5060",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW v4;\n  CREATE VIEW  v4(e) AS SELECT (SELECT t2.c COLLATE nocase FROM t0, t1 GROUP BY 1) FROM t2;\n  SELECT v4.e FROM t3 LEFT JOIN v4 ON true GROUP BY 1;"
         }
       ]
@@ -470,7 +470,7 @@
       "name": "5070",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW v4;\n  CREATE VIEW  v4(e) AS SELECT (SELECT unlikely(t2.c COLLATE nocase) FROM t0, t1 GROUP BY 1) FROM t2;\n  SELECT v4.e FROM t3 LEFT JOIN v4 ON true GROUP BY 1;"
         }
       ]
@@ -479,7 +479,7 @@
       "name": "5080",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE dual(dummy TEXT);\n  INSERT INTO dual VALUES('X');\n  SELECT 11 = (\n                SELECT b\n                  FROM (\n                         SELECT a AS b\n                           FROM dual\n                           LEFT JOIN (SELECT 22 AS a FROM dual)\n                       )\n                 GROUP BY b, b\n              );"
         }
       ]
@@ -525,7 +525,7 @@
       "name": "6040",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ANALYZE;\n  SELECT DISTINCT * FROM t1 LEFT OUTER JOIN t0 ON c0>c1;",
           "expect": "1 {}"
         }

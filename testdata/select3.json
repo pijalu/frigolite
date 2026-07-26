@@ -438,7 +438,7 @@
       "name": "select3-6.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i1 ON t1(log);\n    SELECT log, min(n) FROM t1 GROUP BY log ORDER BY log;",
           "expect": "0 1 1 2 2 3 3 5 4 9 5 17"
         },
@@ -494,7 +494,7 @@
       "name": "select3-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT a, sum(b) FROM t2 WHERE b=5 GROUP BY a;"
         },
         {
@@ -521,7 +521,7 @@
       "name": "select3-8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE A (\n      A1 DOUBLE,\n      A2 VARCHAR COLLATE NOCASE,\n      A3 DOUBLE\n    );\n    INSERT INTO A VALUES(39136,'ABC',1201900000);\n    INSERT INTO A VALUES(39136,'ABC',1207000000);\n    SELECT typeof(sum(a3)) FROM a;",
           "expect": "real"
         },
@@ -557,7 +557,7 @@
       "name": "select3-9.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 REAL, c1 REAL GENERATED ALWAYS AS (c0));\n  INSERT INTO t0(c0) VALUES (1);\n  SELECT * FROM t0 GROUP BY c0;",
           "expect": "1.0 1.0"
         }
@@ -575,7 +575,7 @@
       "name": "select3.10.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  SELECT max(t1.a), \n         (SELECT 'xyz' FROM (SELECT * FROM t2 WHERE 0) WHERE t1.b=1) \n  FROM t1;",
           "expect": "{} {}"
         }
@@ -611,7 +611,7 @@
       "name": "12.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(1), (1), (2), (3);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
           "expect": "0 {}\n  0 {}\n  0 {}"
         }
@@ -621,7 +621,7 @@
       "name": "12.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 VALUES(45);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
           "expect": "2 59\n  1 59\n  1 59"
         }
@@ -631,7 +631,7 @@
       "name": "12.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 VALUES(210);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
           "expect": "4 59\n  2 59\n  2 59"
         }
@@ -641,7 +641,7 @@
       "name": "12.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 VALUES(NULL);\n  SELECT count(x), m FROM t1 LEFT JOIN (SELECT x, 59 AS m FROM t2) GROUP BY a;",
           "expect": "4 59\n  2 59\n  2 59"
         }

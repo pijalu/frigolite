@@ -90,7 +90,7 @@
       "name": "dbfuzz001-440",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);",
           "expect": "memory"
         }

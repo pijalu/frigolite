@@ -6,7 +6,7 @@
       "name": "selectC-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1,'aaa','bbb');\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 VALUES(2,'ccc','ddd');\n\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y IN ('aaabbb','xxx');",
           "expect": "1 aaabbb"
         },
@@ -254,7 +254,7 @@
       "name": "selectC-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE person (\n        org_id          TEXT NOT NULL,\n        nickname        TEXT NOT NULL,\n        license         TEXT,\n        CONSTRAINT person_pk PRIMARY KEY (org_id, nickname),\n        CONSTRAINT person_license_uk UNIQUE (license)\n    );\n    INSERT INTO person VALUES('meyers', 'jack', '2GAT123');\n    INSERT INTO person VALUES('meyers', 'hill', 'V345FMP');\n    INSERT INTO person VALUES('meyers', 'jim', '2GAT138');\n    INSERT INTO person VALUES('smith', 'maggy', '');\n    INSERT INTO person VALUES('smith', 'jose', 'JJZ109');\n    INSERT INTO person VALUES('smith', 'jack', 'THX138');\n    INSERT INTO person VALUES('lakeside', 'dave', '953OKG');\n    INSERT INTO person VALUES('lakeside', 'amy', NULL);\n    INSERT INTO person VALUES('lake-apts', 'tom', NULL);\n    INSERT INTO person VALUES('acorn', 'hideo', 'CQB421');\n    \n    SELECT \n      org_id, \n      count((NOT (org_id IS NULL)) AND (NOT (nickname IS NULL)))\n    FROM person \n    WHERE (CASE WHEN license != '' THEN 1 ELSE 0 END)\n    GROUP BY 1;",
           "expect": "acorn 1 lakeside 1 meyers 3 smith 2"
         },
@@ -268,7 +268,7 @@
       "name": "selectC-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t2 VALUES('abc', 'xxx');\n    INSERT INTO t2 VALUES('def', 'yyy');\n    SELECT a, max(b || a) FROM t2 WHERE (b||b||b)!='value' GROUP BY a;",
           "expect": "abc xxxabc def yyydef"
         },
@@ -315,7 +315,7 @@
       "name": "selectC-4.2b",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v42b AS SELECT DISTINCT a, b FROM t_distinct_bug;\n  SELECT a FROM v42b;",
           "expect": "1 1 1"
         }
@@ -344,7 +344,7 @@
       "name": "5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE x4 AS SELECT b FROM vvv UNION ALL SELECT c from x3;\n  SELECT * FROM x4;",
           "expect": "21 22 23 24 25 302 303 301"
         }

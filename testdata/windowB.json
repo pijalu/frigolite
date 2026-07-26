@@ -32,7 +32,7 @@
       "name": "3.5a",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE testjson SET j = replace(j,char(125),',\"e\":9'||char(125));\n    SELECT j FROM testjson;",
           "expect": "{{\"a\":1,\"e\":9}}\n    {{\"b\":2,\"e\":9}}\n    {{\"c\":3,\"e\":9}}\n    {{\"d\":4,\"e\":9}}"
         }

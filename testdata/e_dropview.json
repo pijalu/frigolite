@@ -23,7 +23,7 @@
       "name": "2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";",
           "expect": "{a main} {b main} {a main} {b main}"
         }
@@ -33,7 +33,7 @@
       "name": "2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": ";\n  SELECT * FROM sqlite_master WHERE name = 'new view';",
           "expect": "view {new view} {new view} 0 \n  {CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y}"
         }
@@ -43,7 +43,7 @@
       "name": "2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW \"new view\";\n  SELECT * FROM sqlite_master WHERE name = 'new view';"
         }
       ]

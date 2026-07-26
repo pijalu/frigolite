@@ -6,7 +6,7 @@
       "name": "1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT DISTINCT a, b, c FROM t1 WHERE a=0;",
           "expect": "~/B-TREE/"
         }
@@ -103,6 +103,16 @@
       ]
     },
     {
+      "name": "2.1a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a,b,c);\n  CREATE INDEX t2bc ON t2(b,c);\n  ANALYZE;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1bc','1000000 10 9');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2bc','100 10 5');\n  ANALYZE sqlite_master;\n\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t2 WHERE a=0 ORDER BY a, b, c;",
+          "expect": "~/B-TREE/"
+        }
+      ]
+    },
+    {
       "name": "2.1b",
       "steps": [
         {
@@ -176,7 +186,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c, d, e, f);\n  CREATE INDEX t3bcde ON t3(b, c, d, e);\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t3 WHERE b=2 AND c=3 ORDER BY d DESC, e DESC, b, c, a DESC;",
           "expect": "~/B-TREE/"
         }
@@ -186,7 +196,7 @@
       "name": "3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t3;\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b, c, d, e, f) WITHOUT rowid;\n  CREATE INDEX t3bcde ON t3(b, c, d, e);\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t3 WHERE b=2 AND c=3 ORDER BY d DESC, e DESC, b, c, a DESC;",
           "expect": "~/B-TREE/"
         }
@@ -291,7 +301,7 @@
       "name": "4.4.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a);\n  DROP TABLE t2;\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, c INT);\n  SELECT DISTINCT *\n    FROM t1 LEFT JOIN t2 ON b=c AND b=(SELECT a FROM t1)\n   WHERE c>10;"
         }
       ]

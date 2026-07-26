@@ -6,7 +6,7 @@
       "name": "fallocate-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);"
         },
         {
@@ -96,7 +96,7 @@
       "name": "fallocate-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);"
         },
         {
@@ -126,7 +126,7 @@
       "name": "fallocate-2.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN ; SELECT count(a) FROM t1"
         },
         {

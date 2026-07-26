@@ -6,7 +6,7 @@
       "name": "tkt1444-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE DemoTable (x INTEGER, TextKey TEXT, DKey Real);\n    CREATE INDEX DemoTableIdx ON DemoTable (TextKey);\n    INSERT INTO DemoTable VALUES(9,8,7);\n    INSERT INTO DemoTable VALUES(1,2,3);\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable ORDER BY TextKey;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;",
           "expect": "1 2 3.0 1 2 3.0 9 8 7.0 9 8 7.0"
         },
@@ -34,7 +34,7 @@
       "name": "tkt1444-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW DemoView;\n    CREATE VIEW DemoView AS SELECT * FROM DemoTable;\n    SELECT * FROM DemoTable UNION ALL SELECT * FROM DemoView ORDER BY 1;",
           "expect": "1 2 3.0 1 2 3.0 9 8 7.0 9 8 7.0"
         },

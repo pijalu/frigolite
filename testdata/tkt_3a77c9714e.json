@@ -44,7 +44,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(i INT PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(NULL,'one','i');\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  SELECT (SELECT 1\n            FROM (SELECT 1 FROM t1 WHERE a=1 OR b='i')\n           WHERE a='o'\n              OR b IN (SELECT a=('b' IN (SELECT 'a'))))\n    FROM t1;",
           "expect": "{}"
         }

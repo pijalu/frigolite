@@ -6,7 +6,7 @@
       "name": "tkt2332.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;"
         },
         {

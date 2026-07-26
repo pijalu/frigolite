@@ -6,7 +6,7 @@
       "name": "conflict2-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
         },
         {
@@ -31,7 +31,7 @@
       "name": "conflict2-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
         },
         {
@@ -56,7 +56,7 @@
       "name": "conflict2-3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;"
         },
         {
@@ -81,7 +81,7 @@
       "name": "conflict2-4.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;"
         },
         {
@@ -106,7 +106,7 @@
       "name": "conflict2-5.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;"
         },
         {
@@ -192,7 +192,7 @@
       "name": "conflict2-7.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;",
           "expect": "1"
         },
@@ -234,7 +234,7 @@
       "name": "conflict2-7.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;",
           "expect": "50"
         },
@@ -766,7 +766,7 @@
       "name": "conflict2-12.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(a INTEGER PRIMARY KEY, b text) WITHOUT rowid;\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5",
           "expect": "1 one 2 two"
         },
@@ -780,7 +780,7 @@
       "name": "conflict2-12.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;",
           "expect": "1 one 2 two"
         },
@@ -804,7 +804,7 @@
       "name": "conflict2-12.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;",
           "expect": "2 one"
         },
@@ -832,7 +832,7 @@
       "name": "conflict2-13.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;",
           "expect": "1 3"
         },
@@ -846,7 +846,7 @@
       "name": "conflict2-14.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    x TEXT PRIMARY KEY NOT NULL, \n    y TEXT NOT NULL,\n    z INTEGER\n  );\n  INSERT INTO t1 VALUES('alpha','beta',1);\n  CREATE UNIQUE INDEX t1xy ON t1(x,y);\n  REPLACE INTO t1(x,y,z) VALUES('alpha','gamma',1);\n  PRAGMA integrity_check;\n  SELECT x,y FROM t1 INDEXED BY t1xy;\n  SELECT x,y,z FROM t1 NOT INDEXED;",
           "expect": "ok alpha gamma alpha gamma 1"
         }
@@ -856,7 +856,7 @@
       "name": "conflict2-14.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    x TEXT PRIMARY KEY NOT NULL, \n    y TEXT NOT NULL,\n    z INTEGER\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('alpha','beta',1);\n  CREATE UNIQUE INDEX t1xy ON t1(x,y);\n  REPLACE INTO t1(x,y,z) VALUES('alpha','gamma',1);\n  PRAGMA integrity_check;\n  SELECT x,y FROM t1 INDEXED BY t1xy;\n  SELECT x,y,z FROM t1 NOT INDEXED;",
           "expect": "ok alpha gamma alpha gamma 1"
         }

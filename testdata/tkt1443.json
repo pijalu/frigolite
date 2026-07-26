@@ -33,7 +33,7 @@
       "name": "tkt1443-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE UNIQUE INDEX PermissionsIdx\n         ON Permissions(userGroupId, labelId, itemId);\n    select distinct\n        Items.Item as trove, UP.pattern as pattern\n    from\n       ( select\n           Permissions.labelId as labelId,\n           PerItems.item as pattern\n         from\n           Users, UserGroupMembers, Permissions\n           left outer join Items as PerItems\n                 on Permissions.itemId = PerItems.itemId\n         where\n               Users.user = 'limited'\n           and Users.userId = UserGroupMembers.userId\n           and UserGroupMembers.userGroupId = Permissions.userGroupId\n       ) as UP join LabelMap on ( UP.labelId = 0 or\n                                  UP.labelId = LabelMap.labelId ),\n       Labels, Items\n    where\n        Labels.label = 'localhost@rpl:branch'\n    and Labels.labelId = LabelMap.labelId\n    and LabelMap.itemId = Items.itemId\n    ORDER BY +trove, +pattern",
           "expect": "double .*:runtime double:runtime .*:runtime double:source .*:runtime"
         },

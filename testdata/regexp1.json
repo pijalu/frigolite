@@ -407,7 +407,7 @@
       "name": "regexp1-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a TEXT);\n  INSERT INTO t1(id, a) VALUES(1, '\u65e5\u672c\u8a9e');\n  SELECT a, hex(a), length(a) FROM t1;",
           "expect": "\u65e5\u672c\u8a9e E697A5E69CACE8AA9E 3"
         }
@@ -739,7 +739,7 @@
       "name": "regexp1-8.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES('abc-def');\n  SELECT length(a) FROM t2;",
           "expect": "7"
         }

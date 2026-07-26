@@ -6,7 +6,7 @@
       "name": "1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cache_size = 4194304;\n  CREATE INDEX i1 ON t1(a, b);"
         }
       ]

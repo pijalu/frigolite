@@ -174,7 +174,7 @@
       "name": "1.320",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TEMP TABLE temp3(a, b DEFAULT(f3(31)));\n  INSERT INTO temp3(a) VALUES(22);\n  SELECT * FROM temp3;",
           "expect": "22 31"
         }
@@ -214,7 +214,7 @@
       "name": "1.421",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t4a ON t4(a) WHERE f1(c);\n  SELECT a FROM t4 WHERE f1(c) ORDER BY a;",
           "expect": "1"
         }
@@ -274,7 +274,7 @@
       "name": "1.521",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t5x1 ON t5(a+f1(b));\n  SELECT * FROM t5 INDEXED BY t5x1 WHERE a+f1(b)=3;",
           "expect": "1 2 3"
         }
@@ -312,7 +312,7 @@
       "name": "2.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),(100,50,75),(-11,22,-33);\n  CREATE VIEW v1a AS SELECT f3(a+b) FROM t1;\n  SELECT f3(a+b) FROM t1;",
           "expect": "3 150 11"
         }
@@ -342,7 +342,7 @@
       "name": "2.120",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW v1a;\n  CREATE TEMP VIEW v1a AS SELECT f3(a+b) FROM t1;\n  SELECT * FROM v1a;",
           "expect": "3 150 11"
         }
@@ -352,7 +352,7 @@
       "name": "2.130",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v1b AS SELECT f2(b+c) FROM t1;\n  SELECT f2(b+c) FROM t1;",
           "expect": "5 125 -11"
         }
@@ -382,7 +382,7 @@
       "name": "2.150",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW v1b;\n  CREATE TEMP VIEW v1b AS SELECT f2(b+c) FROM t1;\n  SELECT * FROM v1b;",
           "expect": "5 125 -11"
         }
@@ -420,7 +420,7 @@
       "name": "3.120",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TRIGGER r1;\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2(x) SELECT f2(new.a)+100;\n  END;\n  PRAGMA trusted_schema=ON;\n  INSERT INTO t1 VALUES(7,6,5);\n  SELECT * FROM t1, t2;",
           "expect": "7 6 5 107"
         }

@@ -126,7 +126,7 @@
       "name": "fts3b-4.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t4 (docid, c) VALUES (10, 'yet another test');\n    SELECT * FROM t4 WHERE docid = 10;",
           "expect": "{yet another test}"
         },
@@ -140,7 +140,7 @@
       "name": "fts3b-4.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t4 (docid, c) VALUES (12, 'still testing');\n    SELECT * FROM t4 WHERE docid = 12;",
           "expect": "{still testing}"
         },

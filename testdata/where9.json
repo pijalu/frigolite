@@ -170,6 +170,19 @@
       ]
     },
     {
+      "name": "where9-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c, d, e, f, g, x, y);\n    INSERT INTO t5\n     SELECT a, b, c, e, d, f, g,\n            CASE WHEN (a&1)!=0 THEN 'y' ELSE 'n' END,\n            CASE WHEN (a&2)!=0 THEN 'y' ELSE 'n' END\n       FROM t1;\n    CREATE INDEX t5xb ON t5(x, b);\n    CREATE INDEX t5xc ON t5(x, c);\n    CREATE INDEX t5xd ON t5(x, d);\n    CREATE INDEX t5xe ON t5(x, e);\n    CREATE INDEX t5xf ON t5(x, f);\n    CREATE INDEX t5xg ON t5(x, g);\n    CREATE INDEX t5yb ON t5(y, b);\n    CREATE INDEX t5yc ON t5(y, c);\n    CREATE INDEX t5yd ON t5(y, d);\n    CREATE INDEX t5ye ON t5(y, e);\n    CREATE INDEX t5yf ON t5(y, f);\n    CREATE INDEX t5yg ON t5(y, g);\n    CREATE TABLE t6(a, b, c, e, d, f, g, x, y);\n    INSERT INTO t6 SELECT * FROM t5;\n    ANALYZE t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c, d, e, f, g, x, y);\n    INSERT INTO t5\n     SELECT a, b, c, e, d, f, g,\n            CASE WHEN (a&1)!=0 THEN 'y' ELSE 'n' END,\n            CASE WHEN (a&2)!=0 THEN 'y' ELSE 'n' END\n       FROM t1;\n    CREATE INDEX t5xb ON t5(x, b);\n    CREATE INDEX t5xc ON t5(x, c);\n    CREATE INDEX t5xd ON t5(x, d);\n    CREATE INDEX t5xe ON t5(x, e);\n    CREATE INDEX t5xf ON t5(x, f);\n    CREATE INDEX t5xg ON t5(x, g);\n    CREATE INDEX t5yb ON t5(y, b);\n    CREATE INDEX t5yc ON t5(y, c);\n    CREATE INDEX t5yd ON t5(y, d);\n    CREATE INDEX t5ye ON t5(y, e);\n    CREATE INDEX t5yf ON t5(y, f);\n    CREATE INDEX t5yg ON t5(y, g);\n    CREATE TABLE t6(a, b, c, e, d, f, g, x, y);\n    INSERT INTO t6 SELECT * FROM t5;\n    ANALYZE t5;"
+        }
+      ]
+    },
+    {
       "name": "where9-7.1.2",
       "steps": [
         {

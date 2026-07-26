@@ -461,7 +461,7 @@
       "name": "percentile-1.18",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET x=NULL;\n    SELECT ifnull(percentile(x, 50),'NULL') FROM t1",
           "expect": "NULL"
         },
@@ -475,7 +475,7 @@
       "name": "percentile-1.19",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET x=12345 WHERE rowid=5;\n    SELECT percentile(x, 0), percentile(x, 50), percentile(x,100) FROM t1",
           "expect": "12345.0 12345.0 12345.0"
         },

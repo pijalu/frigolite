@@ -47,7 +47,7 @@
       "name": "tkt2391.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX f_i ON folders(foldername);\n    SELECT count(*) FROM folders WHERE foldername < 'FolderC' COLLATE nocase;",
           "expect": "2"
         },

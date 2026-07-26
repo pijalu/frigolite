@@ -94,7 +94,7 @@
       "name": "colname-9.320",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2 AS SELECT BBb FROM (SELECT aaa AS Bbb FROM t1);\n    SELECT name FROM pragma_table_info('t2');",
           "expect": "Bbb"
         }
@@ -104,7 +104,7 @@
       "name": "colname-9.330",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "-- added 2019-08-10 to invalidate\n  DROP TABLE IF EXISTS t1;      -- a couple assert()s that were\n  CREATE TABLE t1(a);           -- added by ticket 3b44500725\n  INSERT INTO t1 VALUES(17),(2),(99),(-3),(7);\n  SELECT (SELECT avg(a) UNION SELECT min(a) OVER()) FROM t1;",
           "expect": "17"
         }
@@ -124,7 +124,7 @@
       "name": "colname-10.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\"with space\" TEXT);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2 AS SELECT \"with space\" FROM t1;\n  PRAGMA table_info(t2);",
           "expect": "0 {with space} TEXT 0 {} 0"
         }
@@ -134,7 +134,7 @@
       "name": "colname-10.110",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS SELECT \"with space\" FROM t1 GROUP BY 1;\n  PRAGMA table_info(t3);",
           "expect": "0 {with space} TEXT 0 {} 0"
         }

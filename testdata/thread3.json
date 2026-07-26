@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = DELETE;",
           "expect": "delete"
         }

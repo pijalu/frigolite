@@ -23,7 +23,7 @@
       "name": "2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 INT, c1 INT);\n  CREATE TABLE t1 (c0 INT);\n\n  CREATE VIEW v1(c0) AS SELECT t0.c0 FROM t0 NATURAL RIGHT JOIN t1;\n  CREATE VIEW v2(c0) AS SELECT 0 FROM v1;\n\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  INSERT INTO t1(c0) VALUES (NULL);\n\n  SELECT * FROM v1 INNER JOIN (v2 CROSS JOIN t0) ON (t0.c0 < t0.c1);",
           "expect": "{} 0 -1 0"
         }

@@ -146,7 +146,7 @@
       "name": "printf2-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(-1,-2,-3);\n  INSERT INTO t1 VALUES('abc','def','ghi');\n  INSERT INTO t1 VALUES(1.5,2.25,3.125);\n  SELECT printf('(%s)-%n-(%s)',a,b,c) FROM t1 ORDER BY rowid;",
           "expect": "(1)--(2) (-1)--(-2) (abc)--(def) (1.5)--(2.25)"
         }

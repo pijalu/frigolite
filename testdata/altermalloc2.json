@@ -19,7 +19,7 @@
       "name": "2.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);"
         },
         {

@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t2(d);"
         }
       ]
@@ -33,7 +33,7 @@
       "name": "4.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4(a,b,c,d,e, PRIMARY KEY(a,b,c));\n  CREATE INDEX t4adc ON t4(a,d,c);\n  CREATE UNIQUE INDEX t4aebc ON t4(a,e,b,c);\n  EXPLAIN QUERY PLAN SELECT rowid FROM t4 WHERE a=? AND b=?;",
           "expect": "/a=. AND b=./"
         }
@@ -90,7 +90,7 @@
       "name": "7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );",
           "expect": "4 5"
         }
@@ -100,7 +100,7 @@
       "name": "7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb < t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa > t1.a )\n    )\n    FROM t1;",
           "expect": "2"
         }
@@ -110,7 +110,7 @@
       "name": "7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;",
           "expect": "~/ (Lt|Ge) /"
         }

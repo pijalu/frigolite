@@ -35,7 +35,7 @@
       "name": "3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v1 AS\n    SELECT c16 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c17 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c18 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c19 AS a, *, counter(1) AS x FROM t1;\n  SELECT count(*) FROM v1 WHERE c60=60;",
           "expect": "4"
         }
@@ -75,7 +75,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  SELECT 1 FROM (SELECT DISTINCT name COLLATE rtrim FROM sqlite_schema\n                 UNION ALL SELECT a FROM t1);",
           "expect": "1 1"
         }

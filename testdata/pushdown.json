@@ -125,7 +125,7 @@
       "name": "3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW v0 AS SELECT CAST(t0.c0 AS INTEGER) AS c0 FROM t0;\n  CREATE VIEW v1(a,b) AS SELECT a, b FROM t1_a UNION ALL SELECT c, 0 FROM t1_b;\n  SELECT v1.a, quote(v1.b), t0.c0 AS cd FROM t0 LEFT JOIN v0 ON v0.c0!=0,v1;",
           "expect": "1 'one' 0\n  2 0     0"
         }
@@ -164,7 +164,7 @@
       "name": "3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT, b INT, c TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES\n    (1,100,'abc'),\n    (2,200,'def'),\n    (3,300,'abc');\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INT, b INT, c TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t2(a,b,c) VALUES\n    (1,110,'efg'),\n    (2,200,'hij'),\n    (3,330,'klm');\n  CREATE VIEW v3 AS\n    SELECT a, b, c FROM t1\n    UNION ALL\n    SELECT a, b, 'xyz' FROM t2;\n  SELECT * FROM v3 WHERE a=2 AND b=200;",
           "expect": "2 200 def 2 200 xyz"
         }
@@ -191,7 +191,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c INT);\n  INSERT INTO t3(c) VALUES(3);\n  CREATE TABLE t4(d INT);\n  CREATE TABLE t5(e INT);\n  INSERT INTO t5(e) VALUES(5);\n  CREATE VIEW v6(f,g) AS SELECT d, e FROM t4 RIGHT JOIN t5 ON true;\n  SELECT * FROM  t1 JOIN t2 ON false RIGHT JOIN t3 ON true CROSS JOIN v6;",
           "expect": "- - 3 - 5"
         }
@@ -229,7 +229,7 @@
       "name": "5.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INT);  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(b INT);  INSERT INTO t2 VALUES(2);\n  CREATE TABLE t3(c INT);  INSERT INTO t3 VALUES(3);\n  CREATE TABLE t4(d INT);  INSERT INTO t4 VALUES(4);\n  CREATE TABLE t5(e INT);  INSERT INTO t5 VALUES(5);\n  SELECT *\n    FROM t1 JOIN t2 ON null RIGHT JOIN t3 ON true\n          LEFT JOIN (t4 JOIN t5 ON d+1=e) ON d=4\n   WHERE e>0;",
           "expect": "- - 3 4 5"
         }

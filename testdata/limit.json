@@ -228,7 +228,7 @@
       "name": "limit-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v1 AS SELECT * FROM t1 LIMIT 2;\n      SELECT count(*) FROM (SELECT * FROM v1);"
         },
         {
@@ -241,7 +241,7 @@
       "name": "limit-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 2;\n    SELECT count(*) FROM t2;"
         },
         {
@@ -281,7 +281,7 @@
       "name": "limit-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n      CREATE TABLE t3(x);\n      INSERT INTO t3 SELECT x FROM t1 ORDER BY x LIMIT 10 OFFSET 1;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      INSERT INTO t3 SELECT x+(SELECT max(x) FROM t3) FROM t3;\n      END;\n      SELECT count(*) FROM t3;",
           "expect": "10240"
         },
@@ -321,7 +321,7 @@
       "name": "limit-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4 AS SELECT x,\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x ||\n       'abcdefghijklmnopqrstuvwyxz ABCDEFGHIJKLMNOPQRSTUVWYXZ' || x AS y\n    FROM t3 LIMIT 1000;\n    SELECT x FROM t4 ORDER BY y DESC LIMIT 1 OFFSET 999;",
           "expect": "1000"
         },
@@ -335,7 +335,7 @@
       "name": "limit-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(x,y);\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;",
           "expect": "5 15 6 16"
         },
@@ -349,7 +349,7 @@
       "name": "limit-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x BETWEEN 10 AND 15\n        ORDER BY x DESC LIMIT 2;\n    SELECT * FROM t5 ORDER BY x;",
           "expect": "9 19 10 20"
         },
@@ -363,7 +363,7 @@
       "name": "limit-5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t5;\n    INSERT INTO t5 SELECT x-y, x+y FROM t1 WHERE x ORDER BY x DESC LIMIT 31;\n    SELECT * FROM t5 ORDER BY x LIMIT 2;",
           "expect": "-4 6 -3 7"
         },
@@ -391,7 +391,7 @@
       "name": "limit-5.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t5;\n    INSERT INTO t5 SELECT a.x*100+b.x, a.y*100+b.y FROM t1 AS a, t1 AS b\n                   ORDER BY 1, 2 LIMIT 1000;\n    SELECT count(*), sum(x), sum(y), min(x), max(x), min(y), max(y) FROM t5;",
           "expect": "1000 1528204 593161 0 3107 505 1005"
         },
@@ -405,7 +405,7 @@
       "name": "limit-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    CREATE TABLE t6(a);\n    INSERT INTO t6 VALUES(1);\n    INSERT INTO t6 VALUES(2);\n    INSERT INTO t6 SELECT a+2 FROM t6;\n    COMMIT;\n    SELECT * FROM t6;",
           "expect": "1 2 3 4"
         },
@@ -1142,7 +1142,7 @@
       "name": "limit-15.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a PRIMARY KEY, b TEXT);\n  CREATE TABLE t4(c PRIMARY KEY, d);\n  CREATE TABLE t5(e PRIMARY KEY, f);\n  CREATE TABLE t6(g, h);\n  CREATE TABLE t3_a(k, v);\n  CREATE TABLE t3_b(k, v);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;\n  INSERT INTO t5(e,f) VALUES(500000,'orange');\n  INSERT INTO t4(c,d) VALUES(300000,'blue'),(400,'green'),(8000,'grey');\n  INSERT INTO t1(a,b) VALUES(300000,'purple');\n  INSERT INTO t3_a VALUES(300000,'yellow'),(500,'pink'),(8000,'red');\n  INSERT INTO t6 default values;\n  SELECT (\n      SELECT 100000 FROM\n          (SELECT 200000 FROM t6 WHERE a = ( SELECT 300000 FROM t3 WHERE a ) ),\n          (SELECT 400000 FROM t5 WHERE e=500000),\n          (SELECT 600000 FROM t4 WHERE c=a)\n  ) FROM t1;",
           "expect": "100000"
         }

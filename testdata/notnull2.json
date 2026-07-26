@@ -86,7 +86,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1(a) VALUES(1);\n  CREATE TABLE t2(b INT);\n  SELECT * FROM (SELECT 3 AS c FROM t1) AS t3 LEFT JOIN t2 ON c IS NULL;",
           "expect": "3 {}"
         }
@@ -104,7 +104,7 @@
       "name": "5.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INT NOT NULL);\n  SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;",
           "expect": "1 0 0"
         }

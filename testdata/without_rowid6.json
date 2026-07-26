@@ -55,7 +55,7 @@
       "name": "without_rowid6-200",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b UNIQUE,\n    c UNIQUE,\n    PRIMARY KEY(b)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
           "expect": "4 1"
         }
@@ -85,7 +85,7 @@
       "name": "without_rowid6-300",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b PRIMARY KEY,\n    c UNIQUE,\n    UNIQUE(b)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
           "expect": "4 1"
         }
@@ -115,7 +115,7 @@
       "name": "without_rowid6-400",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(\n    a UNIQUE,\n    b UNIQUE PRIMARY KEY,\n    c UNIQUE\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
           "expect": "4 1"
         }
@@ -145,7 +145,7 @@
       "name": "without_rowid6-500",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,\n    UNIQUE(b,c),\n    PRIMARY KEY(b,c)\n  ) WITHOUT ROWID;\n  INSERT INTO t1(a,b,c) VALUES(1,8,3),(4,5,6),(7,2,9);\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;",
           "expect": "4 1"
         }

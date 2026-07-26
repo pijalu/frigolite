@@ -214,7 +214,7 @@
       "name": "4.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t44(a INTEGER, b INTEGER);\n  INSERT INTO t44 VALUES(1,2);\n  INSERT INTO t44 VALUES(3,4);\n  SELECT *\n    FROM t44 AS x\n       LEFT JOIN (SELECT a AS c, b AS d FROM t44) AS y ON a=c\n   WHERE d=4 OR d IS NULL;",
           "expect": "3 4 3 4"
         }
@@ -234,7 +234,7 @@
       "name": "4.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t46(c INTEGER, d INTEGER);\n  INSERT INTO t46 SELECT a, b FROM t44;\n  SELECT * FROM t44 LEFT JOIN t46 ON a=c\n   WHERE d=4 OR d IS NULL;",
           "expect": "3 4 3 4"
         }
@@ -254,7 +254,7 @@
       "name": "5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t;\n  CREATE TABLE t(c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17);\n  CREATE INDEX tc0 ON t(c0);\n  CREATE INDEX tc1 ON t(c1);\n  CREATE INDEX tc2 ON t(c2);\n  CREATE INDEX tc3 ON t(c3);\n  CREATE INDEX tc4 ON t(c4);\n  CREATE INDEX tc5 ON t(c5);\n  CREATE INDEX tc6 ON t(c6);\n  CREATE INDEX tc7 ON t(c7);\n  CREATE INDEX tc8 ON t(c8);\n  CREATE INDEX tc9 ON t(c9);\n  CREATE INDEX tc10 ON t(c10);\n  CREATE INDEX tc11 ON t(c11);\n  CREATE INDEX tc12 ON t(c12);\n  CREATE INDEX tc13 ON t(c13);\n  CREATE INDEX tc14 ON t(c14);\n  CREATE INDEX tc15 ON t(c15);\n  CREATE INDEX tc16 ON t(c16);\n  CREATE INDEX tc17 ON t(c17);\n  \n  INSERT INTO t(c0, c16) VALUES (1,1);\n  \n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;",
           "expect": "1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1 {}"
         }
@@ -264,7 +264,7 @@
       "name": "5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t;\n  INSERT INTO t(c0,c17) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;",
           "expect": "1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1"
         }
@@ -274,7 +274,7 @@
       "name": "5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t;\n  INSERT INTO t(c0,c15) VALUES(1,1);\n  SELECT * FROM t WHERE\n    c0=1 or  c1=1 or  c2=1 or  c3=1 or\n    c4=1 or  c5=1 or  c6=1 or  c7=1 or\n    c8=1 or  c9=1 or c10=1 or c11=1 or\n    c12=1 or c13=1 or c14=1 or c15=1 or\n    c16=1 or c17=1;",
           "expect": "1 {} {} {} {} {} {} {} {} {} {} {} {} {} {} 1 {} {}"
         }
@@ -293,7 +293,7 @@
       "name": "6.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a UNIQUE, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(null,2);\n  CREATE VIEW t2 AS SELECT * FROM t1 WHERE b<10 OR a<7 ORDER BY b;\n  SELECT t1.* FROM t1 LEFT JOIN t2 ON abs(t1.a)=abs(t2.b);",
           "expect": "{} 2"
         }
@@ -341,7 +341,7 @@
       "name": "7.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX idx_bar ON bar(ba, bb);\n  SELECT \n    bar.Id, bar.ba, bar.bb, foo.fb\n    FROM foo LEFT JOIN bar\n           ON (bar.ba = 1 AND bar.bb = foo.fb)\n           OR (bar.ba = 5 AND bar.bb = foo.fb);",
           "expect": "1 1 1 1 \n  {} {} {} 2 \n  {} {} {} 3 \n  4 1 4 4 \n  {} {} {} 5 \n  {} {} {} 6 \n  7 1 7 7 \n  {} {} {} 8 \n  {} {} {} 9"
         }

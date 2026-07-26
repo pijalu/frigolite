@@ -77,7 +77,7 @@
       "name": "3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE first(nulls, last);\n  INSERT INTO first(last, nulls) VALUES(100,200), (300,400), (200,300);\n  SELECT * FROM first ORDER BY nulls;",
           "expect": "200 100\n  300 200\n  400 300"
         }
@@ -146,7 +146,7 @@
       "name": "5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t4ab ON t4(a, b);\n  SELECT * FROM t4 WHERE a IN (1, 2, 3) ORDER BY a, b NULLS LAST",
           "expect": "1 1 11   1 2 12   1 {} 1   \n  2 1 11   2 2 12   2 {} 1 \n  3 2 12   3 {} 1   3 {} 3"
         }
@@ -183,7 +183,7 @@
       "name": "6.1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;"
         }
       ]
@@ -201,7 +201,7 @@
       "name": "7.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t71(a, b, c);\n  CREATE INDEX t71abc ON t71(a, b, c);\n\n  SELECT * FROM t71 WHERE a=1 AND b=2 ORDER BY c NULLS LAST;\n  SELECT * FROM t71 WHERE a=1 AND b=2 ORDER BY c DESC NULLS FIRST;\n\n  SELECT * FROM t71 ORDER BY a NULLS LAST;\n  SELECT * FROM t71 ORDER BY a DESC NULLS FIRST;"
         }
       ]
@@ -230,6 +230,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE v0 (c1, c2, c3);\n  CREATE INDEX v3 ON v0 (c1, c2, c3);"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('v0','v3','648 324 81');\n  ANALYZE sqlite_master;"
         }
       ]
     },
@@ -264,7 +273,7 @@
       "name": "10.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('X');\n  CREATE TABLE t2(c, d);\n  CREATE INDEX t2dc ON t2(d, c);\n  SELECT c FROM t1 LEFT JOIN t2 ON d=NULL ORDER BY d, c NULLS LAST;",
           "expect": "{}"
         }
@@ -274,7 +283,7 @@
       "name": "10.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2(c,d) VALUES(5,'X'),(6,'Y'),(7,'Z'),(3,'A'),(4,'B');\n  SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY d, c NULLS LAST;",
           "expect": "5"
         }
@@ -284,7 +293,7 @@
       "name": "10.30",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t2 SET d='X';\n  UPDATE t2 SET c=NULL WHERE c=6;\n  SELECT c FROM t1 LEFT JOIN t2 ON d=x ORDER BY d NULLS FIRST, c NULLS FIRST;",
           "expect": "{} 3 4 5 7"
         }
@@ -324,7 +333,7 @@
       "name": "10.50",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1(x) VALUES(NULL),('Y');\n  SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY d NULLS LAST, c NULLS LAST;",
           "expect": "X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |"
         }

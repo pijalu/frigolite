@@ -6,7 +6,7 @@
       "name": "selectA-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;",
           "expect": "1 a a 9.9 b B {} C c hello d D abc e e"
         },
@@ -20,7 +20,7 @@
       "name": "selectA-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(x,y,z COLLATE NOCASE);\n    INSERT INTO t2 VALUES(NULL,'U','u');\n    INSERT INTO t2 VALUES('mad', 'Z', 'z');\n    INSERT INTO t2 VALUES(x'68617265', 'm', 'M');\n    INSERT INTO t2 VALUES(5.2e6, 'X', 'x');\n    INSERT INTO t2 VALUES(-23, 'Y', 'y');\n    SELECT * FROM t2;",
           "expect": "{} U u mad Z z hare m M 5200000.0 X x -23 Y y"
         },
@@ -34,7 +34,7 @@
       "name": "selectA-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a,b,c COLLATE NOCASE);\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    INSERT INTO t3 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n    SELECT count(*) FROM t3;",
           "expect": "30"
         },
@@ -1420,7 +1420,7 @@
       "name": "selectA-3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE UNIQUE INDEX t1a ON t1(a);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    CREATE UNIQUE INDEX t2x ON t2(x);\n    CREATE UNIQUE INDEX t2y ON t2(y);\n    CREATE UNIQUE INDEX t2z ON t2(z);\n    SELECT name FROM sqlite_master WHERE type='index'",
           "expect": "t1a t1b t1c t2x t2y t2z"
         },
@@ -2873,7 +2873,7 @@
       "name": "6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER);\n  CREATE TABLE t2(b TEXT);\n  INSERT INTO t2(b) VALUES('12345');\n  SELECT * FROM (SELECT a FROM t1 UNION SELECT b FROM t2) WHERE a=a;",
           "expect": "12345"
         }
@@ -2920,7 +2920,7 @@
       "name": "7.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE a(b);\n  CREATE VIEW c(d) AS SELECT b FROM a ORDER BY b;\n  SELECT sum(d) OVER( PARTITION BY(SELECT 0 FROM c JOIN a WHERE b =(SELECT b INTERSECT SELECT d FROM c) AND b = 123)) FROM c;"
         }
       ]

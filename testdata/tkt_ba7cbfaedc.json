@@ -24,7 +24,7 @@
       "name": "2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "drop table if exists t1;\n  create table t1(id int);\n  insert into t1(id) values(1),(2),(3),(4),(5);\n  create index t1_idx_id on t1(id asc);\n  select * from t1 group by id order by id;\n  select * from t1 group by id order by id asc;\n  select * from t1 group by id order by id desc;",
           "expect": "1 2 3 4 5   1 2 3 4 5   5 4 3 2 1"
         }

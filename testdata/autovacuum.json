@@ -6,7 +6,7 @@
       "name": "autovacuum-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);"
         },
         {
@@ -44,7 +44,7 @@
       "name": "autovacuum-2.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;",
           "expect": "3"
         },
@@ -62,7 +62,7 @@
       "name": "autovacuum-2.2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;",
           "expect": "3 4"
         },
@@ -76,7 +76,7 @@
       "name": "autovacuum-2.2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;",
           "expect": "3 4 5"
         },
@@ -90,7 +90,7 @@
       "name": "autovacuum-2.2.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;",
           "expect": "3 4 5 6"
         },
@@ -143,7 +143,7 @@
       "name": "autovacuum-2.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;",
           "expect": "3 4 5"
         },
@@ -306,7 +306,7 @@
       "name": "autovacuum-2.5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE av3;\n    SELECT name, rootpage FROM sqlite_master;"
         },
         {
@@ -361,7 +361,7 @@
       "name": "autovacuum-2.5.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE av1;\n    SELECT name, rootpage FROM sqlite_master;"
         },
         {
@@ -402,7 +402,7 @@
       "name": "autovacuum-2.5.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE av4;\n    SELECT name, rootpage FROM sqlite_master;"
         },
         {
@@ -497,7 +497,7 @@
       "name": "autovacuum-3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE av1(x);\n    PRAGMA auto_vacuum;"
         },
         {
@@ -639,7 +639,7 @@
       "name": "autovacuum-7.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32",
           "expect": "73"
         },
@@ -667,7 +667,7 @@
       "name": "autovacuum-7.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;",
           "expect": "286"
         }

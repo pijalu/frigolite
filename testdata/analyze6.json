@@ -24,6 +24,34 @@
           "sql": "CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;"
         }
       ]
+    },
+    {
+      "name": "analyze6-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;",
+          "expect": "/*SEARCH t201 USING INDEX t201z (z=?)*/"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;"
+        }
+      ]
+    },
+    {
+      "name": "analyze6-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;",
+          "expect": "/*SEARCH t201 USING INDEX t201z (z=?)*/"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;"
+        }
+      ]
     }
   ]
 }

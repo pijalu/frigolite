@@ -86,7 +86,7 @@
       "name": "200",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(4);\n  CREATE VIEW t2(y) AS\n    WITH c(z) AS (VALUES(4),(5),(6))\n    SELECT c1.z+c2.z*100+t1.x*10000\n      FROM t1,\n           (SELECT z FROM c LIMIT 5) AS c1,\n           (SELECT z FROM c LIMIT 5) AS c2;\n  SELECT y FROM t2 ORDER BY y;",
           "expect": "40404 40405 40406 40504 40505 40506 40604 40605 40606"
         }
@@ -96,7 +96,7 @@
       "name": "210",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW t2;\n  CREATE VIEW t2(y) AS\n    WITH c(z) AS NOT MATERIALIZED (VALUES(4),(5),(6))\n    SELECT c1.z+c2.z*100+t1.x*10000\n      FROM t1,\n           (SELECT z FROM c LIMIT 5) AS c1,\n           (SELECT z FROM c LIMIT 5) AS c2;\n  SELECT y FROM t2 ORDER BY y;",
           "expect": "40404 40405 40406 40504 40505 40506 40604 40605 40606"
         }
@@ -106,7 +106,7 @@
       "name": "220",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP VIEW t2;\n  CREATE VIEW t2(y) AS\n    WITH c(z) AS MATERIALIZED (VALUES(4),(5),(6))\n    SELECT c1.z+c2.z*100+t1.x*10000\n      FROM t1,\n           (SELECT z FROM c LIMIT 5) AS c1,\n           (SELECT z FROM c LIMIT 5) AS c2;\n  SELECT y FROM t2 ORDER BY y;",
           "expect": "40404 40405 40406 40504 40505 40506 40604 40605 40606"
         }

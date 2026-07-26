@@ -59,7 +59,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA synchronous = OFF;\n  CREATE TABLE t1(x, y);"
         }
       ]

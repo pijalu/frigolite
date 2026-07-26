@@ -135,7 +135,7 @@
       "name": "strict1-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1(a, b) VALUES(1,2),('3','4'),(5.0, 6.0),(null,null);\n  SELECT a, b, '|' FROM t1;",
           "expect": "1 2 | 3 4 | 5 6 | {} {} |"
         }
@@ -185,7 +185,7 @@
       "name": "strict1-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n  INSERT INTO t1(c) VALUES(x'313233'), (NULL);\n  SELECT typeof(c), c FROM t1;",
           "expect": "blob 123 null {}"
         }
@@ -205,7 +205,7 @@
       "name": "strict1-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n  INSERT INTO t1(d) VALUES('xyz'),(4),(5.5),(NULL);\n  SELECT typeof(d), d FROM t1;",
           "expect": "text xyz text 4 text 5.5 null {}"
         }
@@ -225,7 +225,7 @@
       "name": "strict1-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n  INSERT INTO t1(e) VALUES(1),(2.5),('3'),('4.5'),(6.0),(NULL);\n  SELECT typeof(e), e FROM t1;",
           "expect": "real 1.0 real 2.5 real 3.0 real 4.5 real 6.0 null {}"
         }
@@ -255,7 +255,7 @@
       "name": "strict1-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t4;\n    CREATE TABLE t4(\n      a INT AS (b*2) VIRTUAL,\n      b INT AS (c*2) STORED,\n      c INT PRIMARY KEY\n    ) STRICT;\n    INSERT INTO t4(c) VALUES(1);\n    SELECT * FROM t4;",
           "expect": "4 2 1"
         }
@@ -293,7 +293,7 @@
       "name": "strict1-8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE csv_import_table (\n    \"debit\" TEXT,\n    \"credit\" TEXT\n  );\n  INSERT INTO csv_import_table VALUES ('', '250.00');\n  CREATE TABLE IF NOT EXISTS transactions (\n      debit REAL,\n      credit REAL,\n      amount REAL GENERATED ALWAYS AS (ifnull(credit, 0.0) - ifnull(debit, 0.0))\n  ) STRICT;\n  INSERT INTO transactions\n  SELECT\n      nullif(debit, '') AS debit,\n      nullif(credit, '') AS credit\n  FROM csv_import_table;\n  SELECT * FROM transactions;",
           "expect": "{} 250.0 250.0"
         }
@@ -303,7 +303,7 @@
       "name": "strict1-8.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x REAL, y REAL AS (x)) STRICT;\n  INSERT INTO t1 VALUES(5),(4611686018427387904);\n  SELECT *, '|' FROM t1;",
           "expect": "/5.0 5.0 4.6116\\d*e\\+18 4.6116\\d+e\\+18 |/"
         }
@@ -313,7 +313,7 @@
       "name": "strict1-9.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE strict (\n    k INTEGER PRIMARY KEY,\n    c1 REAL AS(if(k=11,1.5, k=12,2, k=13,'x', k=14,x'34', 0.0))   STORED,\n    c2 INT  AS(if(k=21,1.5, k=22,2, k=23,'x', k=24,x'34', 0))     STORED,\n    c3 TEXT AS(if(k=31,1.5, k=32,2, k=33,'x', k=34,x'34', 'x'))   STORED,\n    c4 BLOB AS(if(k=41,1.5, k=42,2, k=43,'x', k=44,x'34', x'00')) STORED,\n    c5 ANY  AS(if(k=51,1.5, k=52,2, k=53,'x', k=54,x'34', 0))     STORED\n  ) STRICT;\n  INSERT INTO strict(k) VALUES(11);\n  INSERT INTO strict(k) VALUES(12);\n  INSERT INTO strict(k) VALUES(22);\n  INSERT INTO strict(k) VALUES(31);\n  INSERT INTO strict(k) VALUES(32);\n  INSERT INTO strict(k) VALUES(33);\n  INSERT INTO strict(k) VALUES(44);\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -413,7 +413,7 @@
       "name": "strict1-9.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE strict;\n  CREATE TABLE strict (\n    k INTEGER PRIMARY KEY,\n    c1 REAL AS(if(k=11,1.5, k=12,2, k=13,'x', k=14,x'34', 0.0))   VIRTUAL,\n    c2 INT  AS(if(k=21,1.5, k=22,2, k=23,'x', k=24,x'34', 0))     VIRTUAL,\n    c3 TEXT AS(if(k=31,1.5, k=32,2, k=33,'x', k=34,x'34', 'x'))   VIRTUAL,\n    c4 BLOB AS(if(k=41,1.5, k=42,2, k=43,'x', k=44,x'34', x'00')) VIRTUAL,\n    c5 ANY  AS(if(k=51,1.5, k=52,2, k=53,'x', k=54,x'34', 0))     VIRTUAL\n  ) STRICT;\n  INSERT INTO strict(k) VALUES(11);\n  INSERT INTO strict(k) VALUES(12);\n  INSERT INTO strict(k) VALUES(22);\n  INSERT INTO strict(k) VALUES(31);\n  INSERT INTO strict(k) VALUES(32);\n  INSERT INTO strict(k) VALUES(33);\n  INSERT INTO strict(k) VALUES(44);\n  PRAGMA integrity_check;",
           "expect": "ok"
         }

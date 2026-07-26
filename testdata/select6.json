@@ -6,7 +6,7 @@
       "name": "select6-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;",
           "expect": "1 2 3 4 5"
         },
@@ -132,7 +132,7 @@
       "name": "select6-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;\n    SELECT DISTINCT b FROM t2 ORDER BY b;",
           "expect": "1 2 3 4 5"
         },
@@ -550,7 +550,7 @@
       "name": "select6-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1 WHERE x>4;\n    SELECT * FROM t1",
           "expect": "1 1 2 2 3 2 4 3"
         },
@@ -675,7 +675,7 @@
       "name": "select6-8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    CREATE TABLE t3(p,q);\n    INSERT INTO t3 VALUES(1,11);\n    INSERT INTO t3 VALUES(2,22);\n    CREATE TABLE t4(q,r);\n    INSERT INTO t4 VALUES(11,111);\n    INSERT INTO t4 VALUES(22,222);\n    COMMIT;\n    SELECT * FROM t3 NATURAL JOIN t4;",
           "expect": "1 11 111 2 22 222"
         },
@@ -957,7 +957,7 @@
       "name": "11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(w INT, x INT);\n  INSERT INTO t1(w,x)\n   VALUES(1,10),(2,20),(3,30),\n         (2,21),(3,31),\n         (3,32);\n  CREATE INDEX t1wx ON t1(w,x);\n\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(w INT, y VARCHAR(8));\n  INSERT INTO t2(w,y) VALUES(1,'one'),(2,'two'),(3,'three'),(4,'four');\n  CREATE INDEX t2wy ON t2(w,y);\n\n  SELECT cnt, xyz, (SELECT y FROM t2 WHERE w=cnt), '|'\n    FROM (SELECT count(*) AS cnt, w AS xyz FROM t1 GROUP BY 2)\n   ORDER BY cnt, xyz;",
           "expect": "1 1 one | 2 2 two | 3 3 three |"
         }
@@ -1007,7 +1007,7 @@
       "name": "11.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y, z);\n  SELECT ( SELECT y FROM t2 WHERE z = cnt )\n    FROM ( SELECT count(*) AS cnt FROM t1 );",
           "expect": "{}"
         }
@@ -1017,7 +1017,7 @@
       "name": "12.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  CREATE TABLE t2(b);\n  INSERT INTO t2 VALUES(3);\n  SELECT * FROM (\n    SELECT * FROM (SELECT * FROM t1 LIMIT 1)\n    UNION ALL\n    SELECT * from t2);",
           "expect": "1 3"
         }

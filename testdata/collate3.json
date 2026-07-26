@@ -171,7 +171,7 @@
       "name": "collate3-1.7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;",
           "expect": "abc1 Abc2 aBc3"
         },
@@ -744,7 +744,7 @@
       "name": "collate3-4.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;",
           "expect": "2 {} 12 {} 101 {}"
         },

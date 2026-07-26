@@ -6,7 +6,7 @@
       "name": "queryonly-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(123),(456);\n  SELECT a FROM t1 ORDER BY a;",
           "expect": "123 456"
         }
@@ -136,7 +136,7 @@
       "name": "queryonly-2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(789);\n  SELECT a FROM t1 ORDER BY a;",
           "expect": "123 456 789"
         }
@@ -146,7 +146,7 @@
       "name": "queryonly-2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET a=a+1;\n  SELECT a FROM t1 ORDER BY a;",
           "expect": "124 457 790"
         }

@@ -20,7 +20,7 @@
       "name": "fts3am-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1 WHERE rowid = 1;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
           "expect": "1 1 3"
         },
@@ -34,7 +34,7 @@
       "name": "fts3am-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1 WHERE rowid = 2;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
           "expect": "0 1 2"
         },
@@ -48,7 +48,7 @@
       "name": "fts3am-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1 WHERE rowid = 3;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
           "expect": "0 0 1"
         },
@@ -62,7 +62,7 @@
       "name": "fts3am-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1 WHERE rowid = 4;\n    SELECT COUNT(col_a), COUNT(col_b), COUNT(*) FROM t1;",
           "expect": "0 0 0"
         },

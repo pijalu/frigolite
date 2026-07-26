@@ -24,7 +24,7 @@
       "name": "subquery2-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1\n     WHERE b IN (SELECT x+1 FROM (SELECT DISTINCT f/(a*a) AS x FROM t3));",
           "expect": "1 3 5 7"
         },
@@ -113,7 +113,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (id INTEGER PRIMARY KEY, data TEXT);\n  INSERT INTO t1(id,data) VALUES(9,'nine-a');\n  INSERT INTO t1(id,data) VALUES(10,'ten-a');\n  INSERT INTO t1(id,data) VALUES(11,'eleven-a');\n  CREATE TABLE t2 (id INTEGER PRIMARY KEY, data TEXT);\n  INSERT INTO t2(id,data) VALUES(9,'nine-b');\n  INSERT INTO t2(id,data) VALUES(10,'ten-b');\n  INSERT INTO t2(id,data) VALUES(11,'eleven-b');\n  \n  SELECT id FROM (\n    SELECT id,data FROM (\n       SELECT * FROM t1 UNION ALL SELECT * FROM t2\n    )\n    WHERE id=10 ORDER BY data\n  );",
           "expect": "10 10"
         }
@@ -133,7 +133,7 @@
       "name": "3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  CREATE TABLE t3(id INTEGER, data TEXT);\n  CREATE TABLE t4(id INTEGER, data TEXT);\n  INSERT INTO t3 VALUES(4, 'a'),(2,'c');\n  INSERT INTO t4 VALUES(3, 'b'),(1,'d');\n\n  SELECT data, id FROM (\n    SELECT id, data FROM (\n       SELECT * FROM t3 UNION ALL SELECT * FROM t4\n    ) ORDER BY data\n  );",
           "expect": "a 4 b 3 c 2 d 1"
         }

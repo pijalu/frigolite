@@ -6,7 +6,7 @@
       "name": "tkt3918.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(i, x);"
         },
         {

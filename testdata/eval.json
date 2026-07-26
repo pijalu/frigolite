@@ -6,7 +6,7 @@
       "name": "eval-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY); \n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    SELECT count(*), max(x) FROM t1;",
           "expect": "512 512"
         },
@@ -34,7 +34,7 @@
       "name": "eval-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT x, x+1 FROM t1 WHERE x<5;\n    SELECT x, test_eval('DELETE FROM t2 WHERE x='||x), y FROM t2;",
           "expect": "1 {} {} 2 {} {} 3 {} {} 4 {} {}"
         },
@@ -61,7 +61,7 @@
       "name": "eval-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 SELECT x, x+1 FROM t1 WHERE x<5;\n    SELECT x, test_eval('DELETE FROM t2 WHERE x='||x), y FROM t2\n     ORDER BY rowid DESC;",
           "expect": "4 {} {} 3 {} {} 2 {} {} 1 {} {}"
         },
@@ -88,7 +88,7 @@
       "name": "eval-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 SELECT x, x+1 FROM t1 WHERE x<5;\n    SELECT x, test_eval('UPDATE t2 SET y=y+100 WHERE x='||x), y FROM t2;",
           "expect": "1 {} 102 2 {} 103 3 {} 104 4 {} 105"
         },

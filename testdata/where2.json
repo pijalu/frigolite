@@ -89,7 +89,7 @@
       "name": "where2-6.14.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t614a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t614a VALUES('AAA','BBB');\n  CREATE TABLE t614b(x,y,c TEXT);\n  INSERT INTO t614b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t614b_c ON t614b(c);\n  SELECT c FROM t614a, t614b WHERE a=c OR b=c;",
           "expect": "aaa bbb"
         }
@@ -128,7 +128,7 @@
       "name": "where2-6.15.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t615a(a TEXT, b TEXT);\n  INSERT INTO t615a VALUES('AAA','BBB');\n  CREATE TABLE t615b(x,y,c TEXT COLLATE NOCASE);\n  INSERT INTO t615b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t615b_c ON t615b(c);\n  SELECT c FROM t615a, t615b WHERE c=a OR c=b;",
           "expect": "aaa bbb"
         }
@@ -167,7 +167,7 @@
       "name": "where2-6.16.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t616a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t616a VALUES('AAA','BBB');\n  CREATE TABLE t616b(x,y,c TEXT COLLATE NOCASE);\n  INSERT INTO t616b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t616b_c ON t616b(c);\n  SELECT c FROM t616a, t616b WHERE c=a OR c=b;",
           "expect": "aaa bbb"
         }
@@ -281,7 +281,7 @@
       "name": "where2-8.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)",
           "expect": "12 13 14"
         },
@@ -510,7 +510,7 @@
       "name": "where2-11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;",
           "expect": "3 9"
         },
@@ -566,7 +566,7 @@
       "name": "where2-13.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t13(a,b);\n  CREATE INDEX t13a ON t13(a);\n  INSERT INTO t13 VALUES(4,5);\n  SELECT * FROM t13 WHERE (1=2 AND a=3) OR a=4;",
           "expect": "4 5"
         }
@@ -576,7 +576,7 @@
       "name": "where2-14.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t14a(x INTEGER PRIMARY KEY);\n  INSERT INTO t14a(x) VALUES(1),(2),(3),(4);\n  CREATE TABLE t14b(y INTEGER PRIMARY KEY);\n  INSERT INTO t14b(y) VALUES(1);\n  SELECT x FROM t14a WHERE x NOT IN (SELECT x FROM t14b);"
         }
       ]
@@ -585,7 +585,7 @@
       "name": "where2-15.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b INT);\n  INSERT INTO t1 VALUES(12,34),(56,78),(90,12);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INT UNIQUE);\n  INSERT INTO t2 VALUES(78),(12);\n  SELECT a,b,quote(x),'|'\n    FROM t1 LEFT JOIN (SELECT x FROM t2) AS s1 ON t1.b=s1.x\n   ORDER BY a,EXISTS(SELECT 1 FROM t1 LEFT JOIN (SELECT x AS y FROM t2) AS s2 ON t1.b=s2.y),x;",
           "expect": "12 34 NULL | 56 78 78 | 90 12 12 |"
         }
@@ -632,7 +632,7 @@
       "name": "where2-17.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1 VALUES('A'),('b');\n  SELECT * FROM t1 WHERE (a='a' COLLATE nocase) OR a='b' ORDER BY +a;",
           "expect": "A b"
         }
@@ -642,7 +642,7 @@
       "name": "where2-17.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t1_a ON t1(a);\n  SELECT * FROM t1 WHERE (a='a' COLLATE nocase) OR a='b' ORDER BY +a;",
           "expect": "A b"
         }

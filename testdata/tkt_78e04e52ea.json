@@ -6,7 +6,7 @@
       "name": "tkt-78e04-1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE \"\"(\"\" UNIQUE, x CHAR(100));\n    CREATE TABLE t2(x);\n    INSERT INTO \"\"(\"\") VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT * FROM \"\", t2;",
           "expect": "1 {} 2"
         },
@@ -61,7 +61,7 @@
       "name": "tkt-78e04-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE \"\";\n    SELECT name FROM sqlite_master;",
           "expect": "t2"
         },
@@ -75,7 +75,7 @@
       "name": "tkt-78e04-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX \"\" ON t2(x);\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=5;",
           "expect": "/*SEARCH t2 USING COVERING INDEX  (x=?)*/"
         },
@@ -89,7 +89,7 @@
       "name": "tkt-78e04-2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP INDEX \"\";\n    EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=2;",
           "expect": "/*SCAN t2*/"
         },

@@ -26,7 +26,7 @@
       "name": "200",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n  INSERT INTO t1(a) VALUES(0),(2),(3),(8),(9);\n  DELETE FROM t2;\n  DELETE FROM t3;\n  DROP TRIGGER tr;\n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    INSERT INTO t3 SELECT new.c+1 WHERE new.c<5;\n    INSERT INTO t2 SELECT new.c*10000+xx.a*100+yy.a\n                     FROM t1 AS xx, t1 AS yy\n                    WHERE xx.a IN (1,2,3,4)\n                      AND yy.a IN (2,3,4,5);\n  END;\n\n  INSERT INTO t3 VALUES(2);\n  SELECT b FROM t2 ORDER BY b;",
           "expect": "20202 20203 20302 20303 30202 30203 30302 30303 40202 40203 40302 40303 50202 50203 50302 50303"
         }

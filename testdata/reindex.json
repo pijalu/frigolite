@@ -19,7 +19,7 @@
       "name": "reindex-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(\n      a TEXT PRIMARY KEY COLLATE c1,\n      b TEXT UNIQUE COLLATE c2,\n      c TEXT COLLATE nocase,\n      d TEST COLLATE binary\n    );\n    INSERT INTO t2 VALUES('abc','abc','abc','abc');\n    INSERT INTO t2 VALUES('ABCD','ABCD','ABCD','ABCD');\n    INSERT INTO t2 VALUES('bcd','bcd','bcd','bcd');\n    INSERT INTO t2 VALUES('BCDE','BCDE','BCDE','BCDE');\n    SELECT a FROM t2 ORDER BY a;",
           "expect": "bcd abc BCDE ABCD"
         },

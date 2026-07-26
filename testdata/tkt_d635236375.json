@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(id1 INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(9999);\n    CREATE TABLE t2(id2 INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(12345);\n    INSERT INTO t2 VALUES(54321);\n    SELECT DISTINCT id1 AS x, id1 AS y FROM t1, t2;",
           "expect": "9999 9999"
         },

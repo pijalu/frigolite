@@ -115,7 +115,7 @@
       "name": "tkt-99378-300",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT);\n  CREATE INDEX i1 ON t1(a,a=a);\n  INSERT INTO t1 VALUES(1),(2),(3),(4);\n  SELECT * FROM t1 NATURAL JOIN t1 \n   WHERE a==1\n      OR (\n           (SELECT avg(\n                (SELECT sum((SELECT 1 FROM t1 NATURAL RIGHT JOIN t1 WHERE a=a)))) AS xyz\n           )\n           AND a==2\n         );",
           "expect": "1 2"
         }
@@ -125,7 +125,7 @@
       "name": "tkt-99378-310",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP INDEX i1;\n  SELECT * FROM t1 NATURAL JOIN t1 \n   WHERE a==1\n      OR (\n           (SELECT avg(\n                (SELECT sum((SELECT 1 FROM t1 NATURAL RIGHT JOIN t1 WHERE a=a)))) AS xyz\n           )\n           AND a==2\n         );",
           "expect": "1 2"
         }
@@ -135,7 +135,7 @@
       "name": "tkt-99378-400",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t0(w);\n  INSERT INTO t0(w) VALUES(1);\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(1);\n  CREATE INDEX t1x ON t1(x > 0);\n  CREATE VIEW t2(y) AS SELECT avg(w) FROM t0 GROUP BY w>1;\n  CREATE VIEW t3(z) AS SELECT count(*) FROM t2 WHERE y BETWEEN 0 and 0;\n  SELECT count(*) FROM t1 NOT INDEXED WHERE (SELECT z FROM t3);\n  SELECT count(*) FROM t1 INDEXED BY t1x WHERE (SELECT z FROM t3);",
           "expect": "0 0"
         }

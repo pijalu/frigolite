@@ -6,7 +6,7 @@
       "name": "collateA-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;",
           "expect": "6"
         },
@@ -361,7 +361,7 @@
       "name": "collateA-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;",
           "expect": "ok"
         },
@@ -632,7 +632,7 @@
       "name": "collateA-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "REINDEX;\n    PRAGMA integrity_check;",
           "expect": "ok"
         }

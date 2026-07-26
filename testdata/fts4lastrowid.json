@@ -6,7 +6,7 @@
       "name": "1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES('one string');\n  INSERT INTO t1 VALUES('two string');\n  INSERT INTO t1 VALUES('three string');\n  SELECT last_insert_rowid();",
           "expect": "3"
         }
@@ -16,7 +16,7 @@
       "name": "1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    INSERT INTO t1 VALUES('one string');\n    INSERT INTO t1 VALUES('two string');\n    INSERT INTO t1 VALUES('three string');\n  COMMIT;\n  SELECT last_insert_rowid();",
           "expect": "6"
         }
@@ -26,7 +26,7 @@
       "name": "1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1(rowid, str) VALUES(-22, 'some more text');\n  SELECT last_insert_rowid();",
           "expect": "-22"
         }
@@ -36,7 +36,7 @@
       "name": "1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    INSERT INTO t1(rowid, str) VALUES(45, 'some more text');\n    INSERT INTO t1(rowid, str) VALUES(46, 'some more text');\n    INSERT INTO t1(rowid, str) VALUES(222, 'some more text');\n    SELECT last_insert_rowid();\n  COMMIT;\n  SELECT last_insert_rowid();",
           "expect": "222 222"
         }
@@ -46,7 +46,7 @@
       "name": "1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE x1(x);\n  INSERT INTO x1 VALUES('john'), ('paul'), ('george'), ('ringo');\n  INSERT INTO t1 SELECT x FROM x1;\n  SELECT last_insert_rowid();",
           "expect": "226"
         }
@@ -56,7 +56,7 @@
       "name": "1.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1(rowid, str) SELECT rowid+10, x FROM x1;\n  SELECT last_insert_rowid();",
           "expect": "14"
         }

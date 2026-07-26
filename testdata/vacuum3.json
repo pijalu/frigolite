@@ -6,7 +6,7 @@
       "name": "vacuum3-1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);"
         },
         {
@@ -41,7 +41,7 @@
       "name": "vacuum3-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    VACUUM;",
           "expect": "3072"
         },
@@ -107,7 +107,7 @@
       "name": "vacuum3-4.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);",
           "expect": "1 2 3 4 5 6"
         },
@@ -139,7 +139,7 @@
       "name": "vacuum3-4.3",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 2048;\n    VACUUM;",
           "expect": "1 2 3 4 5 6"
         },
@@ -171,7 +171,7 @@
       "name": "vacuum3-4.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size=16384;\n    VACUUM;",
           "expect": "1 2 3 4 5 6"
         },
@@ -189,7 +189,7 @@
       "name": "vacuum3-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size=1024;\n    VACUUM;",
           "expect": "1 2 3 4 5 6"
         },

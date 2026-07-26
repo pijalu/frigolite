@@ -9,7 +9,7 @@ C_API_RE = re.compile(r'sqlite3_(prepare|step|column|finalize|exec\b|limit|db_co
 
 UNSUPPORTED_FEATURES = re.compile(
     r'\b(WINDOW\s|OVER\s|FILTER\s*\(|WAL\s|VACUUM\s|'
-    r'SAVEPOINT\s|RELEASE\s|ROLLBACK\s+TO\s|REINDEX\s|ANALYZE\s|'
+    r'SAVEPOINT\s|RELEASE\s|ROLLBACK\s+TO\s|REINDEX\s|'
     r'CREATE\s+VIRTUAL\s+TABLE\s|fts\d+\s*\(|rtree\s*\(|'
     r'WITHOUT\s+ROWID\s|zipfile|writecrash|'
     r'PRAGMA\s+(wal_|journal_mode=WAL|page_count|cache_flush|locking_mode|'
@@ -75,6 +75,12 @@ def tcl_variable_substitute(sql):
     sql = re.sub(r'\$::temp\b', 'TEMP', sql)
     sql = re.sub(r'\$\{::temp\}', 'TEMP', sql)
     return sql
+
+
+def last_sql(sql):
+    """Return the last non-empty SQL statement from a multi-statement string."""
+    statements = [s.strip() for s in sql.split(';') if s.strip()]
+    return statements[-1] if statements else sql
 
 
 def extract_tests(content):
@@ -262,7 +268,7 @@ def extract_tests(content):
             flush()
             current_name = name
             has_current = True
-            is_query = cmd_type not in ("do_catchsql_test", "catchsql") and bool(re.match(r'\s*SELECT\b|\s*PRAGMA\b|\s*EXPLAIN\b', sql, re.IGNORECASE))
+            is_query = cmd_type not in ("do_catchsql_test", "catchsql") and bool(re.match(r'\s*SELECT\b|\s*PRAGMA\b|\s*EXPLAIN\b', last_sql(sql), re.IGNORECASE))
             if is_query:
                 step = {"type": "query", "sql": sql}
                 if expected:

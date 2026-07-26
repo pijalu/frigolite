@@ -16,7 +16,7 @@
       "name": "6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;",
           "expect": "test2"
         }

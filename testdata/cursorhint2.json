@@ -15,7 +15,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);"
         }
       ]

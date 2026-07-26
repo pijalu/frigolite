@@ -124,7 +124,7 @@
       "name": "aggorderby-5.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a TEXT);  INSERT INTO t1 VALUES('aaa'),('bbb');\n  CREATE TABLE t3(d TEXT);  INSERT INTO t3 VALUES('/'),('-');\n  SELECT (SELECT string_agg(a,d) FROM t3) FROM t1;",
           "expect": "aaa-aaa bbb-bbb"
         }

@@ -6,7 +6,7 @@
       "name": "collateB-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, x1 INT COLLATE NOCASE);\n  CREATE TABLE t3(x2 INT);\n  SELECT * FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;"
         }
       ]
@@ -15,7 +15,7 @@
       "name": "collateB-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1(a) VALUES(1),(2),(3);\n  INSERT INTO t2(b,x1) VALUES(11,1),(22,2),(33,3);\n  INSERT INTO t3(x2) VALUES(11),(22),(33);\n  SELECT *,'|' FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;",
           "expect": "11 11 1 1 |"
         }

@@ -163,7 +163,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n\n  WITH dset AS ( SELECT 2 UNION ALL SELECT 4 )\n  DELETE FROM t1 WHERE x IN dset;\n  SELECT * FROM t1;",
           "expect": "1 3"
         }
@@ -173,7 +173,7 @@
       "name": "4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "WITH iset AS ( SELECT 2 UNION ALL SELECT 4 )\n  INSERT INTO t1 SELECT * FROM iset;\n  SELECT * FROM t1;",
           "expect": "1 3 2 4"
         }
@@ -183,7 +183,7 @@
       "name": "4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "WITH uset(a, b) AS ( SELECT 2, 8 UNION ALL SELECT 4, 9 )\n  UPDATE t1 SET x = COALESCE( (SELECT b FROM uset WHERE a=x), x );\n  SELECT * FROM t1;",
           "expect": "1 3 8 9"
         }
@@ -544,7 +544,7 @@
       "name": "10.8.4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE tst(a,b);\n  INSERT INTO tst VALUES('a', 'A');\n  INSERT INTO tst VALUES('b', 'B');\n  INSERT INTO tst VALUES('c', 'C');\n  SELECT a COLLATE nocase FROM tst UNION ALL SELECT b FROM tst ORDER BY 1;",
           "expect": "a A b B c C"
         }
@@ -855,7 +855,7 @@
       "name": "23.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(id INTEGER NULL PRIMARY KEY, name Text);\n  INSERT INTO t1 VALUES (1, 'john');\n  INSERT INTO t1 VALUES (2, 'james');\n  INSERT INTO t1 VALUES (3, 'jingle');\n  INSERT INTO t1 VALUES (4, 'himer');\n  INSERT INTO t1 VALUES (5, 'smith');\n  CREATE VIEW v2 AS\n    WITH t4(Name) AS (VALUES ('A'), ('B'))\n    SELECT Name Name FROM t4;\n  CREATE VIEW v3 AS\n    WITH t4(Att, Val, Act) AS (VALUES\n      ('C', 'D', 'E'),\n      ('F', 'G', 'H')\n    )\n    SELECT D.Id Id, P.Name Protocol, T.Att Att, T.Val Val, T.Act Act\n    FROM t1 D\n    CROSS JOIN v2 P\n    CROSS JOIN t4 T;\n  SELECT * FROM v3;",
           "expect": "1 A C D E 1 A F G H 1 B C D E 1 B F G H 2 A C D E 2 A F G H 2 B C D E 2 B F G H 3 A C D E 3 A F G H 3 B C D E 3 B F G H 4 A C D E 4 A F G H 4 B C D E 4 B F G H 5 A C D E 5 A F G H 5 B C D E 5 B F G H"
         }
@@ -886,7 +886,7 @@
       "name": "24.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ATTACH \"\" AS aux;\n  CREATE VIEW aux.v3 AS VALUES(1);\n  CREATE VIEW main.v3 AS VALUES(3);\n\n  CREATE VIEW aux.v2 AS SELECT * FROM v3;\n  CREATE VIEW main.v2 AS SELECT * FROM v3;\n\n  SELECT * FROM main.v2 AS a, aux.v2 AS b, aux.v2 AS c, main.v2 AS d;",
           "expect": "3 1 1 3"
         }
@@ -952,7 +952,7 @@
       "name": "27.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;",
           "expect": "1 cte1 main1 | 2 cte2 main2 |"
         }
@@ -962,7 +962,7 @@
       "name": "28.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1),(4),(999);\n  SELECT (\n    WITH RECURSIVE t2(y) AS (\n      SELECT 4\n      UNION\n      SELECT NULL\n      UNION\n      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1\n    )\n    SELECT 1 FROM t2 WHERE y=x\n  ) FROM t1;",
           "expect": "NULL 1 NULL"
         }

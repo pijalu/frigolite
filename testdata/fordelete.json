@@ -108,7 +108,7 @@
       "name": "5.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(\n      c INTEGER PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n  );"
         }
       ]
@@ -117,7 +117,7 @@
       "name": "5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t2 VALUES(1, 2);\n  SELECT * FROM t2;",
           "expect": "1 2"
         }

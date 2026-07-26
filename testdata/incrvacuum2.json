@@ -118,7 +118,7 @@
       "name": "incrvacuum2-3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;"
         },
         {

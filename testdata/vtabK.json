@@ -16,7 +16,7 @@
       "name": "150",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO sqlite_stat1(a)\n  VALUES('We hold these truths to be self-evident...');\n  SELECT * FROM sqlite_stat1;",
           "expect": "{We hold these truths to be self-evident...}"
         }

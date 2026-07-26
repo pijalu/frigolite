@@ -6,7 +6,7 @@
       "name": "walbig-1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(300), a_string(500));\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1;",
           "expect": "wal"
         },

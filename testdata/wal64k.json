@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);",
           "expect": "wal"
         }

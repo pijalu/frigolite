@@ -69,7 +69,7 @@
       "name": "3.0.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  DELETE FROM t1 WHERE a=1;\n  SELECT printf('(%d)',changes());\n  SELECT * FROM t1;",
           "expect": "(2) 2 4"
         }
@@ -79,7 +79,7 @@
       "name": "3.0.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n     INSERT INTO t1(a,b) SELECT x, x+1 FROM c;\n  SELECT printf('(%d)',changes());\n  DELETE FROM t1;\n  SELECT printf('(%d)',changes());",
           "expect": "(100) (101)"
         }
@@ -135,7 +135,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -145,7 +145,7 @@
       "name": "4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -155,7 +155,7 @@
       "name": "4.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -165,7 +165,7 @@
       "name": "4.12",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -175,7 +175,7 @@
       "name": "6.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(x INT);\n  INSERT INTO t2(x) VALUES(1),(2),(3),(4),(5);\n  DELETE FROM t2 WHERE EXISTS(SELECT 1 FROM t2 AS v WHERE v.x=t2.x-1);\n  SELECT x FROM t2;",
           "expect": "1"
         }
@@ -185,7 +185,7 @@
       "name": "6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INT);\n  INSERT INTO t2(x) VALUES(1),(2),(3),(4),(5);\n  DELETE FROM t2 WHERE EXISTS(SELECT 1 FROM t2 AS v WHERE v.x=t2.x+1);\n  SELECT x FROM t2;",
           "expect": "5"
         }
@@ -266,7 +266,7 @@
       "name": "7.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;"
         }
       ]
@@ -284,7 +284,7 @@
       "name": "7.3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;"
         }
       ]

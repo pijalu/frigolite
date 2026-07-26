@@ -190,7 +190,7 @@
       "name": "select2-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE aa(a);\n    CREATE TABLE bb(b);\n    INSERT INTO aa VALUES(1);\n    INSERT INTO aa VALUES(3);\n    INSERT INTO bb VALUES(2);\n    INSERT INTO bb VALUES(4);\n    SELECT * FROM aa, bb WHERE max(a,b)>2;",
           "expect": "1 4 3 2 3 4"
         },
@@ -204,7 +204,7 @@
       "name": "select2-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO bb VALUES(0);\n    SELECT * FROM aa CROSS JOIN bb WHERE b;",
           "expect": "1 2 1 4 3 2 3 4"
         },

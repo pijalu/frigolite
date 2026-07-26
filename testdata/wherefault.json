@@ -23,7 +23,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;"
         },
         {

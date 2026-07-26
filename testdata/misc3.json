@@ -214,7 +214,7 @@
       "name": "misc3-3.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 VALUES(+2147483647);\n    INSERT INTO t2 VALUES(-2147483648);\n    INSERT INTO t2 VALUES(-2147483647);\n    INSERT INTO t2 VALUES(2147483646);\n    SELECT * FROM t2 ORDER BY a;",
           "expect": "-2147483649 -2147483648 -2147483647 2147483646 2147483647 2147483648 2147483649"
         },
@@ -340,7 +340,7 @@
       "name": "misc3-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3(b) VALUES('abc');\n    INSERT INTO t3(b) VALUES('xyz');\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) VALUES(NULL);\n    INSERT INTO t3(b) SELECT b||'d' FROM t3;\n    INSERT INTO t3(b) SELECT b||'e' FROM t3;\n    INSERT INTO t3(b) SELECT b||'f' FROM t3;\n    INSERT INTO t3(b) SELECT b||'g' FROM t3;\n    INSERT INTO t3(b) SELECT b||'h' FROM t3;\n    SELECT count(a), count(b) FROM t3;",
           "expect": "128 64"
         },
@@ -410,7 +410,7 @@
       "name": "misc3-6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN; EXPLAIN ROLLBACK",
           "expect": "0 {}"
         },
@@ -424,7 +424,7 @@
       "name": "misc3-6.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE ex1(\n        a INTEGER DEFAULT 54321,\n        b TEXT DEFAULT \"hello\",\n        c REAL DEFAULT 3.1415926\n      );\n      CREATE UNIQUE INDEX ex1i1 ON ex1(a);\n      EXPLAIN REINDEX;",
           "expect": "1"
         },
@@ -466,7 +466,7 @@
       "name": "misc3-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    CREATE TABLE y1(a);\n    CREATE TABLE y2(b);\n    CREATE TABLE y3(c);\n    CREATE TRIGGER r1 AFTER DELETE ON y1 FOR EACH ROW BEGIN\n      INSERT INTO y3(c) SELECT b FROM y2 ORDER BY b LIMIT 1;\n    END;\n    INSERT INTO y1 VALUES(1);\n    INSERT INTO y1 VALUES(2);\n    INSERT INTO y1 SELECT a+2 FROM y1;\n    INSERT INTO y1 SELECT a+4 FROM y1;\n    INSERT INTO y1 SELECT a+8 FROM y1;\n    INSERT INTO y1 SELECT a+16 FROM y1;\n    INSERT INTO y2 SELECT a FROM y1;\n    COMMIT;\n    SELECT count(*) FROM y1;"
         },
         {
@@ -479,7 +479,7 @@
       "name": "misc3-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM y1;\n    SELECT count(*) FROM y1;"
         },
         {

@@ -48,7 +48,7 @@
       "name": "3.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;",
           "expect": "3 4 5"
         }

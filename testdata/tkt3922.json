@@ -6,7 +6,7 @@
       "name": "tkt3922.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;",
           "expect": "-9223372036854775808 integer"
         },
@@ -20,7 +20,7 @@
       "name": "tkt3922.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-1');\n      SELECT a, typeof(a) FROM t1;",
           "expect": "-1 integer"
         },
@@ -46,7 +46,7 @@
       "name": "tkt3922.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;",
           "expect": "9223372036854775807 integer"
         },
@@ -60,7 +60,7 @@
       "name": "tkt3922.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('1');\n      SELECT a, typeof(a) FROM t1;",
           "expect": "1 integer"
         },

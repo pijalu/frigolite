@@ -16,7 +16,7 @@
       "name": "trigger3-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM tbl;\n        ROLLBACK;",
           "expect": "5 5 6"
         },
@@ -53,7 +53,7 @@
       "name": "trigger3-2.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM tbl;\n        ROLLBACK;",
           "expect": "5 5 6 2 5 6"
         },
@@ -123,7 +123,7 @@
       "name": "trigger3-4.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT * FROM tbl;\n        ROLLBACK;",
           "expect": "5 5 6"
         },
@@ -153,7 +153,7 @@
       "name": "trigger3-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE tbl SET c = 10;\n        SELECT * FROM tbl;",
           "expect": "1 2 3 4 5 10"
         },
@@ -167,7 +167,7 @@
       "name": "trigger3-5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM tbl;\n        SELECT * FROM tbl;",
           "expect": "1 2 3"
         },
@@ -189,7 +189,7 @@
       "name": "trigger3-6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO tbl2 VALUES (1, 2, 3);\n        SELECT * FROM tbl2;\n        SELECT * FROM tbl;",
           "expect": "1 2 3 1 2 3 1 2 3"
         },

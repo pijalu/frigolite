@@ -15,7 +15,7 @@
       "name": "110",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO tclvar(fullname, value)\n    VALUES('vtabJ(4)',4),('vtabJ(five)',555);\n  SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;",
           "expect": "vtabJ(1) this vtabJ(3) {a test} vtabJ(4) 4 vtabJ(five) 555 vtabJ(two) is"
         },
@@ -51,7 +51,7 @@
       "name": "161",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM tclvar WHERE arrayname='two';\n  SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;",
           "expect": "vtabJ(1) this vtabJ(3) {a test} vtabJ(5) 55"
         }
@@ -61,7 +61,7 @@
       "name": "171",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO tclvar(fullname, value) VALUES('xx', 'a');\n  SELECT name, value FROM tclvar where name = 'xx';",
           "expect": "xx a"
         }
@@ -71,7 +71,7 @@
       "name": "172",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE tclvar SET value = value || 't' \n  WHERE name = 'xx' OR name = 'x'||'x';\n  SELECT name, value FROM tclvar where name = 'xx';",
           "expect": "xx at"
         }
@@ -81,7 +81,7 @@
       "name": "173",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE tclvar SET value = value || 't' \n  WHERE name = 'xx' OR name BETWEEN 'xx' AND 'xx';\n  SELECT name, value FROM tclvar where name = 'xx';",
           "expect": "xx att"
         }
@@ -91,7 +91,7 @@
       "name": "181",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM tclvar WHERE name BETWEEN 'xx' AND 'xx' OR name='xx';\n  SELECT name, value FROM tclvar where name = 'xx';"
         }
       ]

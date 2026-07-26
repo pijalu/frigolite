@@ -20,7 +20,7 @@
       "name": "journal2-1.2",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);",
           "expect": "xOpen test.db-journal"
         },

@@ -6,7 +6,7 @@
       "name": "wal2-1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
           "expect": "4 10"
         },
@@ -42,7 +42,7 @@
       "name": "wal2-2.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
           "expect": "4 10"
         },
@@ -86,7 +86,7 @@
       "name": "wal2-3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);",
           "expect": "1"
         },
@@ -148,7 +148,7 @@
       "name": "wal2-5.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);"
         },
         {
@@ -207,7 +207,7 @@
       "name": "wal2-6.1.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(3, 4);\n    PRAGMA lock_status;",
           "expect": "main shared temp closed"
         },
@@ -221,7 +221,7 @@
       "name": "wal2-6.2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n    COMMIT;\n    Pragma loCK_STATus;",
           "expect": "main exclusive temp closed"
         },
@@ -276,7 +276,7 @@
       "name": "wal2-6.2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(3, 4);\n    pragma lock_status;",
           "expect": "main exclusive temp closed"
         },
@@ -290,7 +290,7 @@
       "name": "wal2-6.2.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN IMMEDIATE; COMMIT;\n    pragma lock_status;",
           "expect": "main shared temp closed"
         },
@@ -308,7 +308,7 @@
       "name": "wal2-6.2.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n    pragma lock_status;",
           "expect": "1 2 3 4 5 6 main shared temp closed"
         },
@@ -458,7 +458,7 @@
       "name": "wal2-7.1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);",
           "expect": "4096"
         },
@@ -494,7 +494,7 @@
       "name": "wal2-9.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');",
           "expect": "Barton Deakin Watson"
         },
@@ -616,7 +616,7 @@
       "name": "wal2-12.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE tx(y, z);\n      PRAGMA journal_mode = WAL;",
           "expect": "0 0"
         },

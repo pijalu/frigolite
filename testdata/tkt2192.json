@@ -32,7 +32,7 @@
       "name": "tkt2192-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b);\n    CREATE VIEW v1 AS\n      SELECT * FROM t1 WHERE b%7=0 UNION SELECT * FROM t1 WHERE b%5=0;\n    INSERT INTO t1 VALUES(1,7);\n    INSERT INTO t1 VALUES(2,10);\n    INSERT INTO t1 VALUES(3,14);\n    INSERT INTO t1 VALUES(4,15);\n    INSERT INTO t1 VALUES(1,16);\n    INSERT INTO t1 VALUES(2,17);\n    INSERT INTO t1 VALUES(3,20);\n    INSERT INTO t1 VALUES(4,21);\n    INSERT INTO t1 VALUES(1,22);\n    INSERT INTO t1 VALUES(2,24);\n    INSERT INTO t1 VALUES(3,25);\n    INSERT INTO t1 VALUES(4,26);\n    INSERT INTO t1 VALUES(1,27);\n \n    SELECT b FROM v1 ORDER BY b;",
           "expect": "7 10 14 15 20 21 25"
         },
@@ -74,7 +74,7 @@
       "name": "tkt2192-2.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v2 AS\n    SELECT x.a || '/' || x.b || '/' || y.b AS z\n      FROM v1 AS x JOIN v1 AS y ON x.a=y.a AND x.b<y.b\n     ORDER BY x.a, x.b, y.b;\n    SELECT * FROM v2;",
           "expect": "3/14/20 3/14/25 3/20/25 4/15/21"
         },

@@ -176,7 +176,7 @@
       "name": "resolver01-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4(m CHAR(2));\n  INSERT INTO t4 VALUES('az');\n  INSERT INTO t4 VALUES('by');\n  INSERT INTO t4 VALUES('cx');\n  SELECT '1', substr(m,2) AS m FROM t4 ORDER BY m;\n  SELECT '2', substr(m,2) AS m FROM t4 ORDER BY m COLLATE binary;\n  SELECT '3', substr(m,2) AS m FROM t4 ORDER BY lower(m);",
           "expect": "1 x 1 y 1 z 2 x 2 y 2 z 3 z 3 y 3 x"
         }
@@ -186,7 +186,7 @@
       "name": "resolver01-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(m CHAR(2));\n  INSERT INTO t5 VALUES('ax');\n  INSERT INTO t5 VALUES('bx');\n  INSERT INTO t5 VALUES('cy');\n  SELECT count(*), substr(m,2,1) AS m FROM t5 GROUP BY m ORDER BY 1, 2;",
           "expect": "1 x 1 x 1 y"
         }
@@ -226,7 +226,7 @@
       "name": "resolver01-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t61(name);\n  SELECT min(name) FROM t61 GROUP BY lower(name);"
         }
       ]
@@ -244,7 +244,7 @@
       "name": "resolver01-6.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t63(name);\n  INSERT INTO t63 VALUES (NULL);\n  INSERT INTO t63 VALUES ('abc');\n  SELECT count(),\n       NULLIF(name,'abc') AS name\n    FROM t63\n   GROUP BY lower(name);",
           "expect": "1 {} 1 {}"
         }

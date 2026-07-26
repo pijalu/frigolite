@@ -78,7 +78,7 @@
       "name": "tkt-80e031a00f.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x);\n  SELECT 1 IN t1;"
         }
       ]
@@ -114,7 +114,7 @@
       "name": "tkt-80e031a00f.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(y INTEGER PRIMARY KEY);\n  SELECT 1 IN t2;"
         }
       ]
@@ -150,7 +150,7 @@
       "name": "tkt-80e031a00f.13",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(z INT UNIQUE);\n  SELECT 1 IN t3;"
         }
       ]

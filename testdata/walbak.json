@@ -6,7 +6,7 @@
       "name": "walbak-1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;",
           "expect": "wal"
         },
@@ -48,7 +48,7 @@
       "name": "walbak-1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "VACUUM;\n    PRAGMA main.journal_mode;",
           "expect": "wal"
         },

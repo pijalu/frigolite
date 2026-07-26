@@ -6,7 +6,7 @@
       "name": "journal1-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(10,400));\n    INSERT INTO t1 VALUES(2,randstr(10,400));\n    INSERT INTO t1 SELECT a+2, a||b FROM t1;\n    INSERT INTO t1 SELECT a+4, a||b FROM t1;\n    SELECT count(*) FROM t1;"
         },
         {

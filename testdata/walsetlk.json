@@ -59,7 +59,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE x1(x, y);\n  BEGIN;\n    INSERT INTO x1 VALUES(1, 2);",
           "expect": "wal"
         }

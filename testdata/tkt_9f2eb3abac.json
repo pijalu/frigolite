@@ -6,7 +6,7 @@
       "name": "1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,d,e));\n  SELECT * FROM t1 WHERE a=? AND b=? AND c=? AND d=? AND e=?;"
         }
       ]
@@ -15,7 +15,7 @@
       "name": "1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE \"a\" (\n      \"b\" integer NOT NULL,\n      \"c\" integer NOT NULL,\n      PRIMARY KEY (\"b\", \"c\")\n      );\n\n  CREATE TABLE \"d\" (\n      \"e\" integer NOT NULL,\n      \"g\" integer NOT NULL,\n      \"f\" integer NOT NULL,\n      \"h\" integer NOT NULL,\n      \"i\" character(10) NOT NULL,\n      \"j\" int,\n      PRIMARY KEY (\"e\", \"g\", \"f\", \"h\")\n      );\n\n  CREATE TABLE \"d_to_a\" (\n      \"f_e\" integer NOT NULL,\n      \"f_g\" integer NOT NULL,\n      \"f_f\" integer NOT NULL,\n      \"f_h\" integer NOT NULL,\n      \"t_b\" integer NOT NULL,\n      \"t_c\" integer NOT NULL,\n      \"r\" character NOT NULL,\n      \"s\" integer,\n      PRIMARY KEY (\"f_e\", \"f_g\", \"f_f\", \"f_h\", \"t_b\", \"t_c\")\n      );\n\n  INSERT INTO d (g, e, h, f, j, i) VALUES ( 1, 1, 1, 1, 1, 1 );\n  INSERT INTO a (b, c) VALUES ( 1, 1 );\n  INSERT INTO d_to_a VALUES (1, 1, 1, 1, 1, 1, 1, 1);\n\n  DELETE FROM d_to_a \n  WHERE f_g = 1 AND f_e = 1 AND f_h = 1 AND f_f = 1 AND t_b = 1 AND t_c = 1;\n\n  SELECT * FROM d_to_a;"
         }
       ]

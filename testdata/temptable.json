@@ -66,7 +66,7 @@
       "name": "temptable-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
           "expect": "1 2"
         },
@@ -94,7 +94,7 @@
       "name": "temptable-2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
           "expect": "1 2"
         },
@@ -122,7 +122,7 @@
       "name": "temptable-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';"
         },
         {
@@ -149,7 +149,7 @@
       "name": "temptable-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP INDEX i2;\n    SELECT y FROM t2 WHERE x=1;",
           "expect": "2"
         },
@@ -177,7 +177,7 @@
       "name": "temptable-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TEMP TABLE t2(x,y);\n    INSERT INTO t2 VALUES(10,20);\n    SELECT * FROM t2;",
           "expect": "10 20"
         },
@@ -191,7 +191,7 @@
       "name": "temptable-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(x,y,z);\n    INSERT INTO t2 VALUES(9,8,7);\n    SELECT * FROM t2;",
           "expect": "9 8 7"
         },
@@ -305,7 +305,7 @@
       "name": "temptable-4.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TEMP TABLE t2(x unique,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
           "expect": "1 2"
         },
@@ -319,7 +319,7 @@
       "name": "temptable-4.9",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(x unique, y);\n    INSERT INTO t2 VALUES(3,4);\n    SELECT * FROM t2;",
           "expect": "3 4"
         },
@@ -495,7 +495,7 @@
       "name": "temptable-5.6",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t2 VALUES(1,2);\n    SELECT y FROM t2 WHERE x=1;",
           "expect": "2"
         },
@@ -551,7 +551,7 @@
       "name": "temptable-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t8(x);\n    INSERT INTO t8 VALUES('xyzzy');\n    SELECT * FROM t8;",
           "expect": "xyzzy"
         },

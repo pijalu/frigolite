@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x, y, UNIQUE(x, y));\n  INSERT INTO t1 VALUES('one', 'two');\n  SELECT * FROM t1 WHERE x='one';\n  PRAGMA integrity_check;",
           "expect": "one two ok"
         }
@@ -35,7 +35,7 @@
       "name": "3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 4096;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);"
         }
       ]

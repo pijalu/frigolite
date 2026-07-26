@@ -153,7 +153,7 @@
       "name": "500",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 TEXT UNIQUE, c1);\n  INSERT INTO t0(c0) VALUES (-1);\n  SELECT quote(- x'ce'), quote(t0.c0), quote(- x'ce' >= t0.c0) FROM t0;",
           "expect": "0 '-1' 1"
         }

@@ -146,6 +146,16 @@
           "type": "reset_db"
         }
       ]
+    },
+    {
+      "name": "whereA-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX t1aa ON t1(a,a);\n  INSERT INTO t1 VALUES(1,2);\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='27 3 3' WHERE idx='t1aa';\n  ANALYZE sqlite_schema;\n  PRAGMA reverse_unordered_selects (1) ;\n  SELECT a FROM t1 WHERE  a=1 OR a=2;",
+          "expect": "1"
+        }
+      ]
     }
   ]
 }

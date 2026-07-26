@@ -68,7 +68,7 @@
       "name": "300",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n  SELECT sum(c62) FROM t1;\n  UPDATE t1 SET c62=c62+1 WHERE c00=1000;\n  SELECT sum(c62) FROM t1;",
           "expect": "45620 45621"
         }
@@ -78,7 +78,7 @@
       "name": "310",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "SELECT sum(c65) FROM t1;\n  UPDATE t1 SET c65=c65+1 WHERE c00=1000;\n  SELECT sum(c65) FROM t1;\n  ROLLBACK;",
           "expect": "45650 45651"
         }
@@ -154,7 +154,7 @@
       "name": "500",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP INDEX t1x3;\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE INDEX t1x4 ON t1(c00, c62, a, b);\n  CREATE INDEX t2x4 ON t2(c01, c62, c63, b, c);\n  SELECT t1.b, t2.b FROM t1 JOIN t2 ON t2.c01=t1.c00+1 WHERE +t1.b<7000\n   ORDER BY +t1.b;",
           "expect": "101 101 1101 1101 2101 2101 3101 3101 4101 4101 5101 5101 6101 6101"
         }

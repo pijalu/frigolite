@@ -114,7 +114,7 @@
       "name": "stat-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a PRIMARY KEY, b);\n  INSERT INTO t3(rowid, a, b) VALUES(2, a_string(111), a_string(222));\n  INSERT INTO t3 SELECT a_string(110+rowid), a_string(221+rowid) FROM t3\n   ORDER BY rowid;\n  INSERT INTO t3 SELECT a_string(110+rowid), a_string(221+rowid) FROM t3\n   ORDER BY rowid;\n  INSERT INTO t3 SELECT a_string(110+rowid), a_string(221+rowid) FROM t3\n   ORDER BY rowid;\n  INSERT INTO t3 SELECT a_string(110+rowid), a_string(221+rowid) FROM t3\n   ORDER BY rowid;\n  INSERT INTO t3 SELECT a_string(110+rowid), a_string(221+rowid) FROM t3\n   ORDER BY rowid;\n  SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n    FROM stat WHERE name != 'sqlite_schema' ORDER BY name;"
         }
       ]
@@ -141,7 +141,7 @@
       "name": "stat-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4(x);\n  CREATE INDEX i4 ON t4(x);\n  INSERT INTO t4(rowid, x) VALUES(2, a_string(7777));\n  SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n    FROM stat WHERE name != 'sqlite_schema' ORDER BY name;"
         }
       ]
@@ -159,7 +159,7 @@
       "name": "stat-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(x);\n  CREATE INDEX i5 ON t5(x);\n  SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n    FROM stat WHERE name = 't5' OR name = 'i5';"
         }
       ]

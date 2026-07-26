@@ -6,7 +6,7 @@
       "name": "emptytable-100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a) SELECT x FROM c;\n  CREATE TABLE empty(x);\n  SELECT count(*) FROM t1;",
           "expect": "100"
         }

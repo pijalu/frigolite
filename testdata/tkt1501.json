@@ -6,7 +6,7 @@
       "name": "tkt1501-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT a, b, 'abc' FROM t1\n      UNION\n      SELECT b, a, 'xyz' FROM t1\n      ORDER BY 2, 3;",
           "expect": "2 1 xyz 1 2 abc"
         },

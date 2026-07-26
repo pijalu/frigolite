@@ -45,7 +45,7 @@
       "name": "2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(99),('abc');\n  CREATE VIEW v1(x,y) AS SELECT x,1 FROM t1 UNION ALL SELECT x,2 FROM t1;\n  SELECT count(*) FROM v1 WHERE x<>1;",
           "expect": "4"
         }
@@ -75,7 +75,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(4,'four');\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE VIEW t3 AS SELECT a, b FROM t1 UNION ALL SELECT c, d FROM t2;\n  SELECT count(*) FROM t3 ORDER BY sum(a);"
         }
       ]
@@ -92,7 +92,7 @@
       "name": "5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1,'one'),(4,'four');\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t2 VALUES(2,'two'),(5,'five');\n  CREATE VIEW t3 AS SELECT a, b FROM t1 UNION ALL SELECT c, d FROM t2;\n  SELECT count(*) FROM t3 HAVING count(*)>0;"
         }
       ]

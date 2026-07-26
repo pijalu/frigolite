@@ -241,7 +241,7 @@
       "name": "join5-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 LEFT JOIN x3 ON x3.d = x2.b;",
           "expect": "1 {} {} {}"
         }
@@ -251,7 +251,7 @@
       "name": "join5-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t1(x text NOT NULL, y text);\n  CREATE TABLE t2(u text NOT NULL, x text NOT NULL);\n  CREATE TABLE t3(w text NOT NULL, v text);\n  CREATE TABLE t4(w text NOT NULL, z text NOT NULL);\n  CREATE TABLE t5(z text NOT NULL, m text);\n  INSERT INTO t1 VALUES('f6d7661f-4efe-4c90-87b5-858e61cd178b',NULL);\n  INSERT INTO t1 VALUES('f6ea82c3-2cad-45ce-ae8f-3ddca4fb2f48',NULL);\n  INSERT INTO t1 VALUES('f6f47499-ecb4-474b-9a02-35be73c235e5',NULL);\n  INSERT INTO t1 VALUES('56f47499-ecb4-474b-9a02-35be73c235e5',NULL);\n  INSERT INTO t3 VALUES('007f2033-cb20-494c-b135-a1e4eb66130c',\n                        'f6d7661f-4efe-4c90-87b5-858e61cd178b');\n  SELECT *\n    FROM t3\n         INNER JOIN t1 ON t1.x= t3.v AND t1.y IS NULL\n         LEFT JOIN t4  ON t4.w = t3.w\n         LEFT JOIN t5  ON t5.z = t4.z\n         LEFT JOIN t2  ON t2.u = t5.m\n         LEFT JOIN t1 xyz ON xyz.y = t2.x;",
           "expect": "007f2033-cb20-494c-b135-a1e4eb66130c f6d7661f-4efe-4c90-87b5-858e61cd178b f6d7661f-4efe-4c90-87b5-858e61cd178b {} {} {} {} {} {} {} {} {}"
         }
@@ -261,7 +261,7 @@
       "name": "join5-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS x3;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1);\n  CREATE TABLE x2(b NOT NULL);\n  CREATE TABLE x3(c, d);\n  INSERT INTO x3 VALUES('a', NULL);\n  INSERT INTO x3 VALUES('b', NULL);\n  INSERT INTO x3 VALUES('c', NULL);\n  SELECT * FROM x1 LEFT JOIN x2 JOIN x3 WHERE x3.d = x2.b;"
         }
       ]
@@ -317,7 +317,7 @@
       "name": "5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v1 AS SELECT x, y, z FROM y1;\n  SELECT count(z) FROM v1 LEFT JOIN y2 ON x GROUP BY y;"
         }
       ]
@@ -371,7 +371,7 @@
       "name": "6.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(x);\n  INSERT INTO t3 VALUES(1);\n  CREATE TABLE t4(y, z);\n  SELECT ifnull(z, '!!!') FROM t3 LEFT JOIN t4 ON (x=y);",
           "expect": "!!!"
         }
@@ -381,7 +381,7 @@
       "name": "6.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t4i ON t4(y, ifnull(z, '!!!'));\n  SELECT ifnull(z, '!!!') FROM t3 LEFT JOIN t4 ON (x=y);",
           "expect": "!!!"
         }
@@ -399,7 +399,7 @@
       "name": "6.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(aa, bb);\n  CREATE INDEX t1x1 on t1(abs(aa), abs(bb));\n  INSERT INTO t1 VALUES(-2,-3),(+2,-3),(-2,+3),(+2,+3);\n  SELECT * FROM (t1) \n   WHERE ((abs(aa)=1 AND 1=2) OR abs(aa)=2)\n     AND abs(bb)=3\n  ORDER BY +1, +2;",
           "expect": "-2 -3 -2 3 2 -3 2 3"
         }
@@ -428,6 +428,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(x, y, z);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t2 SELECT i/10, i, NULL FROM s;\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x);\n  INSERT INTO t3(x) VALUES(1);\n  CREATE INDEX t3x ON t3(x);\n\n  CREATE TABLE t4(x, y, z);\n  CREATE INDEX t4xy ON t4(x, y);\n  CREATE INDEX t4xz ON t4(x, z);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000)\n  INSERT INTO t4 SELECT i/10, i, i FROM s;\n\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='1000000 10 1' WHERE idx='t3x';\n  ANALYZE sqlite_schema;"
         }
       ]
     },
@@ -467,6 +476,15 @@
       ]
     },
     {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a ,b FLOAT);\n  INSERT INTO t1 VALUES(1,1);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1x1','648 324 81 81 81 81 81 81 81081 81 81 81');\n  ANALYZE sqlite_schema;"
+        }
+      ]
+    },
+    {
       "name": "9.2",
       "steps": [
         {
@@ -489,6 +507,15 @@
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8)\n  INSERT INTO t1(a,b) SELECT x, 10*x FROM c;\n  INSERT INTO t2(c,d) SELECT b*2, 100*a FROM t1;\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES\n    ('t1',NULL,150105),('t2',NULL,98747);\n  ANALYZE sqlite_schema;"
         }
       ]
     },

@@ -11695,7 +11695,7 @@
       "name": "joinD-extra-1000",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE VIEW v1 AS\n    SELECT *\n    FROM t1 INNER JOIN t2 ON t1.b=t2.b AND t2.x>0\n    RIGHT JOIN t3 ON t1.c=t3.c AND t3.y>0\n    LEFT JOIN t4 ON t1.d=t4.d AND t4.z>0;\n  CREATE TRIGGER v1r1 INSTEAD OF UPDATE OF c ON v1 BEGIN\n    UPDATE t1 SET c=new.c WHERE (a,b,c,d) IS (old.a,old.b,old.c,old.d);\n    UPDATE t3 SET c=new.c WHERE (c,y) IS (old.c,old.y);\n  END;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;",
           "expect": "30 130 230 330 130 30 230 30 330 30\n   -   -   -   -   -  - 233 33   -  -\n  36 136 236 336 136 36 236 36   -  -\n   -   -   -   -   -  - 239 39   -  -"
         }

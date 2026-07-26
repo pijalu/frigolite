@@ -179,7 +179,7 @@
       "name": "tkt2822-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES(1,8);\n    INSERT INTO t3 VALUES(9,2);\n\n    SELECT a AS b FROM t3 ORDER BY b;",
           "expect": "1 9"
         },
@@ -249,7 +249,7 @@
       "name": "tkt2822-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t6a(p,q);\n    INSERT INTO t6a VALUES(1,8);\n    INSERT INTO t6a VALUES(9,2);\n    CREATE TABLE t6b(x,y);\n    INSERT INTO t6b VALUES(1,7);\n    INSERT INTO t6b VALUES(7,2);\n\n    SELECT p, q FROM t6a UNION ALL SELECT x, y FROM t6b ORDER BY 1, 2",
           "expect": "1 7 1 8 7 2 9 2"
         },

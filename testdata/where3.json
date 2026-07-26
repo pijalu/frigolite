@@ -6,7 +6,7 @@
       "name": "where3-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(p, q);\n    CREATE TABLE t3(x, y);\n    \n    INSERT INTO t1 VALUES(111,'one');\n    INSERT INTO t1 VALUES(222,'two');\n    INSERT INTO t1 VALUES(333,'three');\n    \n    INSERT INTO t2 VALUES(1,111);\n    INSERT INTO t2 VALUES(2,222);\n    INSERT INTO t2 VALUES(4,444);\n    CREATE INDEX t2i1 ON t2(p);\n    \n    INSERT INTO t3 VALUES(999,'nine');\n    CREATE INDEX t3i1 ON t3(x);\n    \n    SELECT * FROM t1, t2 LEFT JOIN t3 ON q=x WHERE p=2 AND a=q;",
           "expect": "222 two 2 222 {} {}"
         },
@@ -20,7 +20,7 @@
       "name": "where3-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE parent1(parent1key, child1key, Child2key, child3key);\n    CREATE TABLE child1 ( child1key NVARCHAR, value NVARCHAR );\n    CREATE UNIQUE INDEX PKIDXChild1 ON child1 ( child1key );\n    CREATE TABLE child2 ( child2key NVARCHAR, value NVARCHAR );\n\n    INSERT INTO parent1(parent1key,child1key,child2key)\n       VALUES ( 1, 'C1.1', 'C2.1' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.1', 'Value for C1.1' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.1', 'Value for C2.1' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 2, 'C1.2', 'C2.2' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.2', 'Value for C2.2' );\n\n    INSERT INTO parent1 ( parent1key, child1key, child2key )\n       VALUES ( 3, 'C1.3', 'C2.3' );\n    INSERT INTO child1 ( child1key, value ) VALUES ( 'C1.3', 'Value for C1.3' );\n    INSERT INTO child2 ( child2key, value ) VALUES ( 'C2.3', 'Value for C2.3' );\n\n    SELECT parent1.parent1key, child1.value, child2.value\n    FROM parent1\n    LEFT OUTER JOIN child1 ON child1.child1key = parent1.child1key\n    INNER JOIN child2 ON child2.child2key = parent1.child2key;",
           "expect": "1 {Value for C1.1} {Value for C2.1} 2 {} {Value for C2.2} 3 {Value for C1.3} {Value for C2.3}"
         },
@@ -76,7 +76,7 @@
       "name": "where3-4.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t400(a INTEGER PRIMARY KEY, b, c);\n  CREATE TABLE t401(p INTEGER PRIMARY KEY, q, r);\n  CREATE TABLE t402(x INTEGER PRIMARY KEY, y, z);\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t400, t401, t402 WHERE t402.z GLOB 'abc*';",
           "expect": "0 0 2 {SCAN t402} \n  0 1 0 {SCAN t400} \n  0 2 1 {SCAN t401}"
         }
@@ -136,7 +136,7 @@
       "name": "where3-8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b,c,d);  INSERT INTO t1 VALUES(1,2,3,4);\n  CREATE TABLE t2(x,y);      INSERT INTO t2 VALUES(3,4);\n  CREATE INDEX t2xy ON t2(x,y);\n  SELECT 1 FROM t1 JOIN t2 ON x=c AND y=d WHERE d>0;"
         }
       ]

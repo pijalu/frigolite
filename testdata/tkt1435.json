@@ -33,7 +33,7 @@
       "name": "tkt1435-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX InstancesNameIdx ON Instances(troveName);\n    CREATE UNIQUE INDEX InstancesIdx \n      ON Instances(troveName, versionId, flavorId);\n    ANALYZE;\n    select row, pinned from tlList, Instances, Versions, Flavors\n        where\n            Instances.troveName = tlList.name\n        and Versions.version = tlList.version\n        and Instances.versionId = Versions.versionId\n        and (    Flavors.flavor = tlList.flavor or Flavors.flavor is NULL\n             and tlList.flavor = '')\n        and Instances.flavorId = Flavors.flavorId\n    order by row asc;",
           "expect": "1 0 2 0 3 1"
         },

@@ -6,7 +6,7 @@
       "name": "collate8-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a TEXT COLLATE nocase);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('BBB');\n    INSERT INTO t1 VALUES('ccc');\n    INSERT INTO t1 VALUES('DDD');\n    SELECT a FROM t1 ORDER BY a;",
           "expect": "aaa BBB ccc DDD"
         },
@@ -146,7 +146,7 @@
       "name": "collate8-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('abc');\n    INSERT INTO t2 VALUES('ABC');\n    SELECT a AS x FROM t2 WHERE x='abc';",
           "expect": "abc"
         },

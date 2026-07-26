@@ -136,7 +136,7 @@
       "name": "2000",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(seq INTEGER PRIMARY KEY, val TEXT);\n  INSERT INTO t1 VALUES\n    (1, '-9999e99'),\n    (2, '-9998.000e+99'),\n    (3, '-9999.0'),\n    (4, '-1'),\n    (5, '-9999e-20'),\n    (6, '0'),\n    (7, '1e-30'),\n    (8, '1e-29'),\n    (9, '1'),\n    (10,'1.00000000000000001'),\n    (11,'+1.00001'),\n    (12,'99e+99');\n  SELECT *, '|'\n    FROM t1 AS a, t1 AS b\n   WHERE a.seq<b.seq\n     AND decimal_cmp(a.val,b.val)>=0;"
         }
       ]
@@ -192,7 +192,7 @@
       "name": "3000",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(seq INTEGER PRIMARY KEY, val TEXT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t3(seq, val) SELECT x, x FROM c;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<5)\n    INSERT INTO t3(seq, val) SELECT x+10, x*1000 FROM c;\n  SELECT decimal(val) FROM t3 ORDER BY seq;",
           "expect": "1 2 3 4 5 6 7 8 9 10 1000 2000 3000 4000 5000"
         }

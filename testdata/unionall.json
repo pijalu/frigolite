@@ -53,7 +53,7 @@
       "name": "1.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a UNION ALL SELECT c, c FROM t1_b;\n  SELECT * FROM (SELECT t1.a, t1.b AS b, t0.c0 FROM t0, t1);",
           "expect": "1 one 0 2 2 0"
         }
@@ -393,7 +393,7 @@
       "name": "8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  INSERT INTO t1_a VALUES(4,'four');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  INSERT INTO t1_b VALUES(5,'five');\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n  INSERT INTO t1_c VALUES(3,'three');\n  INSERT INTO t1_c VALUES(6,'six');\n  CREATE VIEW v0(c0) AS SELECT CAST(t0.c0 AS INTEGER) FROM t0;\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, c FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n  SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1;",
           "expect": "1 one 0 {} 4 four 0 {} 2 2 0 {} 5 5 0 {} 3 three 0 {} 6 six 0 {}"
         }

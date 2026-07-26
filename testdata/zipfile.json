@@ -112,7 +112,7 @@
       "name": "1.6.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM zz WHERE name='g.txt';\n  SELECT name FROM zz;",
           "expect": "f.txt h.txt i.txt"
         }
@@ -152,7 +152,7 @@
       "name": "1.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM zz;\n  SELECT * FROM zz;"
         }
       ]
@@ -169,7 +169,7 @@
       "name": "2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO zzz(name, data) VALUES('dirname2', NULL);\n  INSERT INTO zzz(name, data) VALUES('dirname2/file1.txt', 'abcdefghijklmnop');\n  SELECT name, mode, data FROM zzz;",
           "expect": "dirname/ 16877 {}\n  dirname2/ 16877 {}\n  dirname2/file1.txt 33188 abcdefghijklmnop"
         }
@@ -369,7 +369,7 @@
       "name": "11.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO z (name,data) VALUES ('b0','one');\n  SELECT name, data FROM z;",
           "expect": "b0 one"
         }
@@ -379,7 +379,7 @@
       "name": "11.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE z SET name = 'b1' WHERE name = 'b0';\n  SELECT name, data FROM z;",
           "expect": "b1 one"
         }
@@ -389,7 +389,7 @@
       "name": "11.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO z (name,data) VALUES ('b0','one');\n  SELECT name, data FROM z ORDER BY name;",
           "expect": "b0 one b1 one"
         }
@@ -409,7 +409,7 @@
       "name": "11.7",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE z SET data = 'two' WHERE name = 'b0';\n  SELECT name, data FROM z ORDER BY name;",
           "expect": "b0 two b1 one"
         }
@@ -439,7 +439,7 @@
       "name": "11.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE z SET name = name;\n  SELECT name, data FROM z ORDER BY name;",
           "expect": "b0 two b2 one"
         }
@@ -449,7 +449,7 @@
       "name": "11.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE z SET name = name || 'suffix';\n  SELECT name, data FROM z ORDER BY name;",
           "expect": "b0suffix two b2suffix one"
         }

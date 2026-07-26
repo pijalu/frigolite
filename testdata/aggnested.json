@@ -77,7 +77,7 @@
       "name": "aggnested-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS aa;\n  DROP TABLE IF EXISTS bb;\n  CREATE TABLE aa(x INT);  INSERT INTO aa(x) VALUES(123);\n  CREATE TABLE bb(y INT);  INSERT INTO bb(y) VALUES(456);\n  SELECT (SELECT sum(x+(SELECT y)) FROM bb) FROM aa;",
           "expect": "579"
         }
@@ -97,7 +97,7 @@
       "name": "aggnested-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS tx;\n  DROP TABLE IF EXISTS ty;\n  CREATE TABLE tx(x INT);\n  INSERT INTO tx VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE ty(y INT);\n  INSERT INTO ty VALUES(91),(92),(93);\n  SELECT min((SELECT count(y) FROM ty)) FROM tx;",
           "expect": "3"
         }
@@ -230,7 +230,7 @@
         {
           "type": "query",
           "sql": "SELECT ( \n    SELECT t2.b FROM (SELECT t2.b AS c FROM t1) GROUP BY 1 HAVING t2.b\n  )\n  FROM t2 GROUP BY 'constant_string';",
-          "expect": "{NULL}"
+          "expect": "{}"
         }
       ]
     },
@@ -240,7 +240,7 @@
         {
           "type": "query",
           "sql": "SELECT ( \n    SELECT c FROM (SELECT t2.b AS c FROM t1) GROUP BY c HAVING t2.b\n  )\n  FROM t2 GROUP BY 'constant_string';",
-          "expect": "{NULL}"
+          "expect": "{}"
         }
       ]
     },
@@ -285,7 +285,7 @@
       "name": "8.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x INT);\n  INSERT INTO t1 VALUES(100);\n  INSERT INTO t1 VALUES(20);\n  INSERT INTO t1 VALUES(3);\n  SELECT (SELECT y FROM (SELECT sum(x) AS y) AS t2 ) FROM t1;",
           "expect": "123"
         }
@@ -333,7 +333,7 @@
       "name": "9.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  INSERT INTO t1 VALUES(1), (2), (3);\n  INSERT INTO t2 VALUES(4), (5), (6);\n\n  SELECT ( \n    SELECT min(y) + (SELECT x) FROM (\n      SELECT sum(a) AS x, b AS y FROM t2\n    )\n  )\n  FROM t1;",
           "expect": "10"
         }

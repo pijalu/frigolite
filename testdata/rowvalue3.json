@@ -42,7 +42,7 @@
       "name": "5.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);",
           "expect": "aaa 0"
         }

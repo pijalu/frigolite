@@ -3,6 +3,16 @@
   "name": "autoindex3",
   "tests": [
     {
+      "name": "autoindex3-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b,x);\n  CREATE TABLE t2(c,d,y);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t2d ON t2(d);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1b','10000 500');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2d','10000 500');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d=b;",
+          "expect": "~/AUTO/"
+        }
+      ]
+    },
+    {
       "name": "autoindex3-110",
       "steps": [
         {
@@ -51,10 +61,28 @@
       ]
     },
     {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v(b, d, e);\n  CREATE TABLE u(a, b, c);\n  ANALYZE sqlite_master;\n  INSERT INTO \"sqlite_stat1\" VALUES('u','uab','40000 400 1');\n  INSERT INTO \"sqlite_stat1\" VALUES('v','vbde','40000 400 1 1');\n  INSERT INTO \"sqlite_stat1\" VALUES('v','ve','40000 21');\n\n  CREATE INDEX uab on u(a, b);\n  CREATE INDEX ve on v(e);\n  CREATE INDEX vbde on v(b,d,e);\n\n  DROP TABLE IF EXISTS sqlite_stat4;\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(cid INT, pid INT, rx INT, PRIMARY KEY(cid, pid, rx));\n  CREATE INDEX x1 ON t2(pid, rx);\n  ANALYZE sqlite_schema;\n  REPLACE INTO sqlite_stat1(tbl, idx, stat) VALUES\n    ('t2', 'x1', '500000 250 250'),\n    ('t2','sqlite_autoindex_t2_1','500000 1 1 1');\n  ANALYZE sqlite_schema;"
         }
       ]
     }

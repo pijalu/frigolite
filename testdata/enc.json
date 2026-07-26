@@ -105,7 +105,7 @@
       "name": "enc-12.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA encoding = 'UTF-8';\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');"
         },
         {

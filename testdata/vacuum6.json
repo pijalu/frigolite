@@ -57,7 +57,7 @@
       "name": "3.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 512;\n  VACUUM;"
         }
       ]

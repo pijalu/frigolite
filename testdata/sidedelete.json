@@ -28,7 +28,7 @@
       "name": "sidedelete-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;",
           "expect": "0 0"
         },
@@ -42,7 +42,7 @@
       "name": "sidedelete-3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n     CREATE TABLE t1(a PRIMARY KEY);\n     SELECT * FROM t1;"
         },
         {

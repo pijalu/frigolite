@@ -6,7 +6,7 @@
       "name": "join2-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;",
           "expect": "1 11 2 22 3 33"
         },
@@ -20,7 +20,7 @@
       "name": "join2-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;",
           "expect": "11 111 33 333 44 444"
         },
@@ -34,7 +34,7 @@
       "name": "join2-1.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;",
           "expect": "111 1111 444 4444 555 5555"
         },
@@ -286,7 +286,7 @@
       "name": "4.3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(x);\n  SELECT a.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);"
         }
       ]
@@ -295,7 +295,7 @@
       "name": "4.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(x) SELECT x FROM c;\n  INSERT INTO t2(x) SELECT x+9 FROM t1;\n  SELECT a.x, c.x\n    FROM t1 AS a\n    LEFT JOIN t1 AS b ON (a.x=b.x)\n    LEFT JOIN t2 AS c ON (a.x=c.x);",
           "expect": "1 {} 2 {} 3 {} 4 {} 5 {} 6 {} 7 {} 8 {} 9 {} 10 10"
         }
@@ -331,7 +331,7 @@
       "name": "7.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a,b);  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t2(c,d);  INSERT INTO t2 VALUES(2,4),(3,6);\n  CREATE TABLE t3(x);    INSERT INTO t3 VALUES(9);\n  CREATE VIEW test AS\n    SELECT *, 'x'\n      FROM t1 LEFT JOIN (SELECT * FROM t2, t3) ON (c=b AND x=9)\n      WHERE c IS NULL;\n  SELECT * FROM test;",
           "expect": "3 4 {} {} {} x 5 6 {} {} {} x"
         }
@@ -434,7 +434,7 @@
       "name": "9.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1 (aaa);\n  INSERT INTO t1 VALUES(23456);\n  CREATE TABLE t2(bbb);\n  CREATE VIEW v2(ccc) AS SELECT bbb IS 1234 FROM t2;\n  SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;",
           "expect": "{} 1"
         }
@@ -498,7 +498,7 @@
       "name": "11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(x TEXT, y INTEGER);\n  INSERT INTO t1(x,y) VALUES(NULL,-2),(NULL,1),('0',2);\n  CREATE TABLE t2(z INTEGER);\n  INSERT INTO t2(z) VALUES(2),(-2);\n  CREATE VIEW t3 AS SELECT z, (SELECT count(*) FROM t1) AS w FROM t2;\n  SELECT * FROM t1 LEFT JOIN t3 ON y=z;",
           "expect": "NULL -2 -2 3 NULL 1 NULL NULL 0 2 2 3"
         }

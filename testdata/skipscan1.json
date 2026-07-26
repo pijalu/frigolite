@@ -3,6 +3,15 @@
   "name": "skipscan1",
   "tests": [
     {
+      "name": "skipscan1-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('abc',234,5,6);\n  INSERT INTO t1 VALUES('abc',234,6,7);\n  INSERT INTO t1 VALUES('abc',345,7,8);\n  INSERT INTO t1 VALUES('def',567,8,9);\n  INSERT INTO t1 VALUES('def',345,9,10);\n  INSERT INTO t1 VALUES('bcd',100,6,11);\n\n  /* Fake the sqlite_stat1 table so that the query planner believes\n  ** the table contains thousands of rows and that the first few\n  ** columns are not selective. */\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5000 2000 10');\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
       "name": "skipscan1-1.2",
       "steps": [
         {
@@ -183,6 +192,16 @@
       ]
     },
     {
+      "name": "skipscan1-1.51",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1j(x TEXT, y INTEGER);\n  INSERT INTO t1j VALUES('one',1),('six',6),('ninty-nine',99);\n  INSERT INTO sqlite_stat1 VALUES('t1j',null,'3');\n  ANALYZE sqlite_master;\n  SELECT x, a, b, c, d, '|' FROM t1j, t1 WHERE c=y ORDER BY +a;",
+          "expect": "six abc 234 6 7 | six bcd 100 6 11 |"
+        }
+      ]
+    },
+    {
       "name": "skipscan1-1.51eqp",
       "steps": [
         {
@@ -209,6 +228,15 @@
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT x, a, b, c, d, '|' FROM t1j LEFT JOIN t1 ON c=y ORDER BY +y, +a;",
           "expect": "/* INDEX t1abc (ANY(a) AND ANY(b) AND c=?)*/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a TEXT, b INT, c INT, d INT,\n                  PRIMARY KEY(a,b,c));\n  INSERT INTO t2 SELECT * FROM t1;\n\n  /* Fake the sqlite_stat1 table so that the query planner believes\n  ** the table contains thousands of rows and that the first few\n  ** columns are not selective. */\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='10000 5000 2000 10' WHERE idx NOT NULL;\n  ANALYZE sqlite_master;"
         }
       ]
     },
@@ -243,6 +271,15 @@
       ]
     },
     {
+      "name": "skipscan1-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a TEXT, b INT, c INT, d INT,\n                  PRIMARY KEY(a,b,c)) WITHOUT ROWID;\n  INSERT INTO t3 SELECT * FROM t1;\n\n  /* Fake the sqlite_stat1 table so that the query planner believes\n  ** the table contains thousands of rows and that the first few\n  ** columns are not selective. */\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='10000 5000 2000 10' WHERE idx NOT NULL;\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
       "name": "skipscan1-3.2",
       "steps": [
         {
@@ -273,12 +310,31 @@
       ]
     },
     {
+      "name": "skipscan1-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(a,b,c,d,e,f,g,h,i);\n  CREATE INDEX t4all ON t4(a,b,c,d,e,f,g,h);\n  INSERT INTO t4 VALUES(1,2,3,4,5,6,7,8,9);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 \n    VALUES('t4','t4all','655360 163840 40960 10240 2560 640 160 40 10');\n  ANALYZE sqlite_master;\n  SELECT i FROM t4 WHERE a=1;\n  SELECT i FROM t4 WHERE b=2;\n  SELECT i FROM t4 WHERE c=3;\n  SELECT i FROM t4 WHERE d=4;\n  SELECT i FROM t4 WHERE e=5;\n  SELECT i FROM t4 WHERE f=6;\n  SELECT i FROM t4 WHERE g=7;\n  SELECT i FROM t4 WHERE h=8;",
+          "expect": "9 9 9 9 9 9 9 9"
+        }
+      ]
+    },
+    {
       "name": "skipscan1-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(\n    id INTEGER PRIMARY KEY,\n    loc TEXT,\n    lang INTEGER,\n    utype INTEGER,\n    xa INTEGER,\n    xd INTEGER,\n    xh INTEGER\n  );\n  CREATE INDEX t5i1 on t5(loc, xh, xa, utype, lang);\n  CREATE INDEX t5i2 ON t5(xd,loc,utype,lang);\n  EXPLAIN QUERY PLAN\n    SELECT xh, loc FROM t5 WHERE loc >= 'M' AND loc < 'N';",
           "expect": "/.*COVERING INDEX t5i1 .*/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n  DELETE FROM sqlite_stat1;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('t5','t5i1','2702931 3 2 2 2 2');\n  INSERT INTO sqlite_stat1 VALUES('t5','t5i2','2702931 686 2 2 2');\n  ANALYZE sqlite_master;"
         }
       ]
     },
@@ -289,6 +345,76 @@
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n    SELECT xh, loc FROM t5 WHERE loc >= 'M' AND loc < 'N';",
           "expect": "/.*COVERING INDEX t5i1 .*/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f,g,h varchar(300));\n  CREATE INDEX t1ab ON t1(a,b);\n  ANALYZE sqlite_master;\n  -- Only two distinct values for the skip-scan column.  Skip-scan is not used.\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','500000 250000 125000');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;",
+          "expect": "~/ANY/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "-- Four distinct values for the skip-scan column.  Skip-scan is used.\n  UPDATE sqlite_stat1 SET stat='500000 250000 62500';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;",
+          "expect": "/ANY.a. AND b=/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "-- Two distinct values for the skip-scan column again.  Skip-scan is not used.\n  UPDATE sqlite_stat1 SET stat='500000 125000 62500';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;",
+          "expect": "~/ANY/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat1 SET stat='500000 125000 1 sz=100';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;",
+          "expect": "/ANY/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat1 SET stat='500000 125000 1 noskipscan sz=100';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;",
+          "expect": "~/ANY/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat1 SET stat='500000 125000 1 sz=100 noskipscan';\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;",
+          "expect": "~/ANY/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y, PRIMARY KEY(x,y)) WITHOUT ROWID;\n  INSERT INTO t1(x,y) VALUES(1,'AB');\n  INSERT INTO t1(x,y) VALUES(2,'CD');\n  ANALYZE;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1','1000000 100 1');\n  ANALYZE sqlite_master;\n  SELECT * FROM t1\n   WHERE (y = 'AB' AND x <= 4)\n      OR (y = 'EF' AND x = 5);",
+          "expect": "1 AB"
         }
       ]
     },
@@ -313,12 +439,31 @@
       ]
     },
     {
+      "name": "skipscan1-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t9a(a,b,c);\n  CREATE INDEX t9a_ab ON t9a(a,b);\n  CREATE TABLE t9b(x,y);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t9a','t9a_ab','1000000 250000 1');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN\n  SELECT * FROM t9a WHERE b IN (SELECT x FROM t9b WHERE y!=5);",
+          "expect": "/USING INDEX t9a_ab .ANY.a. AND b=./"
+        }
+      ]
+    },
+    {
       "name": "skipscan1-9.3",
       "steps": [
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT  * FROM t9a WHERE b IN (SELECT x FROM t9b WHERE y!=5);",
           "expect": "/{SCAN t9a}/"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a TEXT, b INT, c INT, d INT);\n  CREATE INDEX t6abc ON t6(a,b,c);\n  INSERT INTO t6 VALUES('abc',123,4,5);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t6','t6abc','10000 5000 2000 10');\n  ANALYZE sqlite_master;\n  DELETE FROM t6;"
         }
       ]
     },
@@ -369,10 +514,30 @@
       ]
     },
     {
+      "name": "skipscan1-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1 (c1, c2, c3, c4, PRIMARY KEY(c4, c3));\n  INSERT INTO t1 VALUES(3,0,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  INSERT INTO t1 VALUES(5,6,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','sqlite_autoindex_t1_1','18 18 6');\n  ANALYZE sqlite_master;\n  SELECT DISTINCT quote(c1), quote(c2), quote(c3), quote(c4), '|'\n    FROM t1 WHERE t1.c3 = 1;",
+          "expect": "3 0 1 NULL | 0 4 1 NULL | 5 6 1 NULL |"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "skipscan1-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b INT);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,3),(4,5);\n  CREATE UNIQUE INDEX i1 ON t1(b,b,a,a,a,a,a,b,a);\n  ANALYZE;\n  DROP TABLE IF EXISTS sqlite_stat4;\n  INSERT INTO sqlite_stat1 VALUES('t1','i1','30 30 30 2 2 2 2 2 2 2');\n  ANALYZE sqlite_master;\n\n  SELECT DISTINCT a\n    FROM t1\n   WHERE a = b\n     AND a = 3\n     AND b IN (1,3,2,4)\n     AND b >= 0\n     AND a <= 10;",
+          "expect": "3"
         }
       ]
     },

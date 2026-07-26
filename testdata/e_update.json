@@ -105,7 +105,7 @@
       "name": "e_update-2.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM main.t6;\n  DELETE FROM temp.t6;\n  INSERT INTO main.t6 VALUES(1, 2);\n  INSERT INTO temp.t6 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr1 AFTER INSERT ON t4 BEGIN\n    UPDATE t6 SET x=x+1;\n  END;\n\n  INSERT INTO t4 VALUES(1, 2);\n  SELECT * FROM main.t6;\n  SELECT * FROM temp.t6;",
           "expect": "1 2 2 2"
         }
@@ -115,7 +115,7 @@
       "name": "e_update-2.3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM main.t1;\n  DELETE FROM aux.t1;\n  INSERT INTO main.t1 VALUES(1, 2);\n  INSERT INTO aux.t1 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr2 AFTER DELETE ON t4 BEGIN\n    UPDATE t1 SET a=a+1;\n  END;\n\n  DELETE FROM t4;\n  SELECT * FROM main.t1;\n  SELECT * FROM aux.t1;",
           "expect": "2 2 1 2"
         }
@@ -125,7 +125,7 @@
       "name": "e_update-2.3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM aux.t5;\n  INSERT INTO aux.t5 VALUES(1, 2);\n\n  INSERT INTO t4 VALUES('x', 'y');\n  CREATE TRIGGER temp.tr3 AFTER UPDATE ON t4 BEGIN\n    UPDATE t5 SET a=a+1;\n  END;\n\n  UPDATE t4 SET x=10;\n  SELECT * FROM aux.t5;",
           "expect": "2 2"
         }

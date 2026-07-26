@@ -26,7 +26,7 @@
       "name": "like3-2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(a, b TEXT);\n  INSERT INTO t2 SELECT a, b FROM t1;\n  CREATE INDEX t2ba ON t2(b,a);\n  SELECT a, b FROM t2 WHERE b GLOB 'ab*' ORDER BY +a;",
           "expect": "1 abc 4 abc"
         }
@@ -86,7 +86,7 @@
       "name": "like3-3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(x TEXT PRIMARY KEY COLLATE nocase);\n  INSERT INTO t3(x) VALUES('aaa'),('abc'),('abd'),('abe'),('acz');\n  INSERT INTO t3(x) SELECT CAST(x AS blob) FROM t3;\n  SELECT quote(x) FROM t3 WHERE x LIKE 'ab%' ORDER BY x;",
           "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
         }
@@ -136,7 +136,7 @@
       "name": "like3-4.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE INDEX t4x ON t4(x DESC);\n  INSERT INTO t4(x) SELECT x FROM t3;\n  SELECT quote(x) FROM t4 WHERE x LIKE 'ab%' ORDER BY x;",
           "expect": "'abc' 'abd' 'abe' X'616263' X'616264' X'616265'"
         }
@@ -186,7 +186,7 @@
       "name": "like3-5.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5a(x INT UNIQUE COLLATE nocase);\n  INSERT INTO t5a(x) VALUES('/abc'),(123),(-234);\n  SELECT x FROM t5a WHERE x LIKE '/%';",
           "expect": "/abc"
         }
@@ -226,7 +226,7 @@
       "name": "like3-5.200",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5b(x INT UNIQUE COLLATE binary);\n  INSERT INTO t5b(x) VALUES('/abc'),(123),(-234);\n  SELECT x FROM t5b WHERE x GLOB '/*';",
           "expect": "/abc"
         }
@@ -246,7 +246,7 @@
       "name": "like3-5.300",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5c (c0 REAL);\n  CREATE INDEX t5c_0 ON t5c(c0 COLLATE NOCASE);\n  INSERT INTO t5c(rowid, c0) VALUES (99,'+/');\n  SELECT * FROM t5c WHERE (c0 LIKE '+/');",
           "expect": "+/"
         }
@@ -256,7 +256,7 @@
       "name": "like3-5.400",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE COLLATE NOCASE);\n  INSERT INTO t0(c0) VALUES ('./');\n  SELECT * FROM t0 WHERE t0.c0 LIKE './';",
           "expect": "./"
         }
@@ -266,7 +266,7 @@
       "name": "like3-5.410",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INT UNIQUE COLLATE NOCASE);\n  INSERT INTO t0(c0) VALUES ('.1%');\n  SELECT * FROM t0 WHERE t0.c0 LIKE '.1%';",
           "expect": ".1%"
         }
@@ -276,7 +276,7 @@
       "name": "like3-5.420",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES(-1);\n  SELECT * FROM t0 WHERE t0.c0 GLOB '-*';",
           "expect": "-1"
         }
@@ -318,7 +318,7 @@
       "name": "like3-7.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA encoding = 'UTF-16be';\n  \n    CREATE TABLE Example(word TEXT NOT NULL);\n    CREATE INDEX Example_word on Example(word);\n  \n    INSERT INTO Example VALUES(char(0x307F));"
         }
       ]

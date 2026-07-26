@@ -41,6 +41,15 @@
       ]
     },
     {
+      "name": "skipscan2-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n  -- We do not have enough people above to actually force the use\n  -- of a skip-scan.  So make a manual adjustment to the stat1 table\n  -- to make it seem like there are many more.\n  UPDATE sqlite_stat1 SET stat='10000 5000 20' WHERE idx='people_idx1';\n  UPDATE sqlite_stat1 SET stat='10000 1' WHERE idx='sqlite_autoindex_people_1';\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
       "name": "skipscan2-1.5",
       "steps": [
         {
@@ -84,7 +93,7 @@
       "name": "skipscan2-1.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO people VALUES('Angie','student',166);\n  INSERT INTO people VALUES('Brad','student',176);\n  INSERT INTO people VALUES('Claire','student',168);\n  INSERT INTO people VALUES('Donald','student',162);\n  INSERT INTO people VALUES('Elaine','student',177);\n  INSERT INTO people VALUES('Frazier','student',159);\n  INSERT INTO people VALUES('Grace','student',179);\n  INSERT INTO people VALUES('Horace','student',166);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';",
           "expect": "{34 17 2}"
         }
@@ -114,7 +123,7 @@
       "name": "skipscan2-1.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO people VALUES('Ingrad','student',155);\n  INSERT INTO people VALUES('Jacob','student',179);\n  ANALYZE;\n  SELECT stat FROM sqlite_stat1 WHERE idx='people_idx1';",
           "expect": "{36 18 2}"
         }
@@ -144,7 +153,7 @@
       "name": "skipscan2-2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE peoplew(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  ) WITHOUT ROWID;\n  CREATE INDEX peoplew_idx1 ON peoplew(role, height);\n  INSERT INTO peoplew(name,role,height)\n     SELECT name, role, height FROM  people;\n  SELECT name FROM peoplew WHERE height>=180 ORDER BY +name;",
           "expect": "David Jack Patrick Quiana Xavier"
         }

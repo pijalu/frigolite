@@ -19,7 +19,7 @@
       "name": "tkt2832-1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE OR REPLACE t1 SET a = 1;\n    SELECT * FROM t1;",
           "expect": "1"
         },

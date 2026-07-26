@@ -25,7 +25,7 @@
       "name": "autovacuum2-1.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(x);\n  PRAGMA freelist_count;",
           "expect": "0"
         }

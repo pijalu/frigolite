@@ -34,7 +34,7 @@
       "name": "pcache-1.6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    SELECT * FROM sqlite_master;",
           "expect": "current 11 max 22 min 20 recyclable 0"
         },

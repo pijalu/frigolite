@@ -3,6 +3,16 @@
   "name": "analyzeC",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n    VALUES(1,2,3),(7,8,9),(4,5,6),(10,11,12),(4,8,12),(1,11,111);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1a','12345 2'),('t1','t1b','12345 4');\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;",
+          "expect": "4 5 6 # 7 8 9 # 4 8 12 #"
+        }
+      ]
+    },
+    {
       "name": "1.1",
       "steps": [
         {
@@ -39,6 +49,16 @@
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT c FROM t1 ORDER BY a;",
           "expect": "~/.*B-TREE FOR ORDER BY.*/"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat1 SET stat='12345 2 unordered' WHERE idx='t1a';\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;",
+          "expect": "4 5 6 # 7 8 9 # 4 8 12 #"
         }
       ]
     },
@@ -83,6 +103,16 @@
       ]
     },
     {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat1 SET stat='12345 2 whatever=5 unordered xyzzy=11'\n   WHERE idx='t1a';\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;",
+          "expect": "4 5 6 # 7 8 9 # 4 8 12 #"
+        }
+      ]
+    },
+    {
       "name": "3.1",
       "steps": [
         {
@@ -123,12 +153,32 @@
       ]
     },
     {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t1a;\n  CREATE INDEX t1ab ON t1(a,b);\n  CREATE INDEX t1ca ON t1(c,a);\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ab','12345 3 2 sz=10'),('t1','t1ca','12345 3 2 sz=20');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
       "name": "4.1",
       "steps": [
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT count(a) FROM t1;",
           "expect": "/.*INDEX t1ab.*/"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ab','12345 3 2 sz=20'),('t1','t1ca','12345 3 2 sz=10');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;",
+          "expect": "6"
         }
       ]
     },
@@ -143,12 +193,41 @@
       ]
     },
     {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t44;\n  CREATE TABLE t44(a PRIMARY KEY);\n  INSERT INTO sqlite_stat1 VALUES('t44',null,'sz=0');\n  ANALYZE sqlite_master;\n  SELECT 0 FROM t44 WHERE a IN(1,2,3);"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ab','12345 3 2 x=5 sz=10 y=10'),\n          ('t1','t1ca','12345 3 2 whatever sz=20 junk');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
       "name": "5.1",
       "steps": [
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT count(a) FROM t1;",
           "expect": "/.*INDEX t1ab.*/"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1ca','12345 3 2 x=5 sz=10 y=10'),\n          ('t1','t1ab','12345 3 2 whatever sz=20 junk');\n  ANALYZE sqlite_master;\n  SELECT count(a) FROM t1;",
+          "expect": "6"
         }
       ]
     },

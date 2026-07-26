@@ -65,7 +65,7 @@
       "name": "1.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');",
           "expect": "cDeF"
         }
@@ -115,7 +115,7 @@
       "name": "1.31",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';",
           "expect": "2000"
         }
@@ -173,7 +173,7 @@
       "name": "7.2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;",
           "expect": "1 Archilles   2 Apollo   3 Atrides"
         }
@@ -213,7 +213,7 @@
       "name": "7.2.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;",
           "expect": "1 Archilles   2 Apollo   3 Atrides"
         }
@@ -223,7 +223,7 @@
       "name": "7.3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;",
           "expect": "2 Apollo 3 Archilles"
         }
@@ -263,7 +263,7 @@
       "name": "7.3.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;",
           "expect": "2 Apollo  3 Archilles"
         }

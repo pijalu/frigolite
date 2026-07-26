@@ -352,7 +352,7 @@
       "name": "update-4.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;",
           "expect": "2"
         },
@@ -594,7 +594,7 @@
       "name": "update-5.6",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;",
           "expect": "2"
         },
@@ -1465,7 +1465,7 @@
       "name": "update-10.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1",
           "expect": "1 2 3 4 5 6 2 3 4 4 6 7"
         },
@@ -1569,7 +1569,7 @@
       "name": "update-11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;",
           "expect": "2 14 3 7"
         },
@@ -1583,7 +1583,7 @@
       "name": "update-11.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;",
           "expect": "1 15 2 8"
         },
@@ -1597,7 +1597,7 @@
       "name": "update-11.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;",
           "expect": "1 16 2 9"
         },
@@ -1611,7 +1611,7 @@
       "name": "update-11.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;",
           "expect": "1 16 2 10"
         },
@@ -1625,7 +1625,7 @@
       "name": "update-13.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT a+2 FROM t2;\n    INSERT INTO t2 SELECT a+4 FROM t2;\n    INSERT INTO t2 SELECT a+8 FROM t2;\n    INSERT INTO t2 SELECT a+16 FROM t2;\n    INSERT INTO t2 SELECT a+32 FROM t2;\n    INSERT INTO t2 SELECT a+64 FROM t2;\n    INSERT INTO t2 SELECT a+128 FROM t2;\n    INSERT INTO t2 SELECT a+256 FROM t2;\n    INSERT INTO t2 SELECT a+512 FROM t2;\n    INSERT INTO t2 SELECT a+1024 FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;",
           "expect": "2048"
         },
@@ -1653,7 +1653,7 @@
       "name": "update-13.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;",
           "expect": "2048"
         },
@@ -1667,7 +1667,7 @@
       "name": "update-13.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t2 SET rowid=rowid+10000;\n    UPDATE t2 SET rowid=rowid-9999;\n    SELECT count(*) FROM t2 WHERE a=rowid;",
           "expect": "2048"
         },
@@ -1694,7 +1694,7 @@
       "name": "update-13.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;"
         },
         {
@@ -1753,7 +1753,7 @@
       "name": "update-15.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t15(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t15(a,b) VALUES(10,'abc'),(20,'def'),(30,'ghi');\n    ALTER TABLE t15 ADD COLUMN c;\n    CREATE INDEX t15c ON t15(c);\n    INSERT INTO t15(a,b)\n      VALUES(5,'zyx'),(15,'wvu'),(25,'tsr'),(35,'qpo');\n    UPDATE t15 SET c=printf('y%d',a) WHERE c IS NULL;\n    SELECT a,b,c,'|' FROM t15 ORDER BY a;",
           "expect": "5 zyx y5 | 10 abc y10 | 15 wvu y15 | 20 def y20 | 25 tsr y25 | 30 ghi y30 | 35 qpo y35 |"
         }
@@ -1763,7 +1763,7 @@
       "name": "update-16.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t16(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t16(a,b) VALUES(1,2),(3,4),(5,6);\n  UPDATE t16 SET a=a;\n  SELECT * FROM t16 ORDER BY +a;",
           "expect": "1 2 3 4 5 6"
         }
@@ -1773,7 +1773,7 @@
       "name": "update-17.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  INSERT INTO t1(x) VALUES(1);\n  CREATE INDEX t1x1 ON t1(1) WHERE 3;\n  UPDATE t1 SET x=2, y=3 WHERE 3;\n  SELECT * FROM t1;",
           "expect": "2 3"
         }
@@ -1827,7 +1827,7 @@
       "name": "update-19.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(\n   a TEXT,\n   b INTEGER PRIMARY KEY UNIQUE\n  ); \n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET a = quote(b) WHERE b>=2;\n  SELECT * FROM t1;",
           "expect": "2 2"
         }
@@ -1931,7 +1931,7 @@
       "name": "update-22.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT, y INT);\n  INSERT INTO t1(x) VALUES(1),(2),(3),(4),(5);\n  UPDATE t1 SET x=x+100, y=x<=(SELECT min(x) FROM t1)\n   WHERE x<3 OR (1 BETWEEN 0 AND x<=(SELECT min(x)+2 FROM t1));\n  SELECT x FROM t1 WHERE x<100 ORDER BY x;",
           "expect": "4 5"
         }

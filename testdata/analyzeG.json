@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, x);\n  CREATE TABLE t2(b, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT (i%50), NULL FROM s;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t2 SELECT (CASE WHEN i<95 THEN 44 ELSE i END), NULL FROM s;"
         }
       ]

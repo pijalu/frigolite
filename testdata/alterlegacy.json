@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;"
         }
       ]
@@ -82,7 +82,7 @@
       "name": "2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE eee RENAME TO fff;\n    SELECT * FROM fff;",
           "expect": "1 2 3"
         }
@@ -118,7 +118,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE txx(a, b, c);\n  INSERT INTO txx VALUES(1, 2, 3);\n  CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx;\n  CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one;\n  CREATE VIEW temp.ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx;"
         }
       ]
@@ -214,7 +214,7 @@
       "name": "4.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE table t1(x, y);\n  CREATE table t2(a, b);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT t1.x, * FROM t1, t2;\n    INSERT INTO t2 VALUES(new.x, new.y);\n  END;"
         }
       ]
@@ -301,7 +301,7 @@
       "name": "5.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t2 VALUES(3, 4);\n  CREATE VIEW v AS SELECT one.a, one.b, t2.a, t2.b FROM t1 AS one, t2;\n  SELECT * FROM v;",
           "expect": "1 2 3 4"
         }
@@ -330,7 +330,7 @@
       "name": "5.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE one RENAME TO t2;\n  DROP VIEW v;\n  CREATE VIEW temp.vv AS SELECT one.a, one.b, t2.a, t2.b FROM t1 AS one, t2;\n  SELECT * FROM vv;",
           "expect": "1 2 3 4"
         }
@@ -359,7 +359,7 @@
       "name": "6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'",
           "expect": "{CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)}"
         }
@@ -386,7 +386,7 @@
       "name": "8.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  PRAGMA foreign_keys = on;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE aux.c1(x INTEGER PRIMARY KEY, y REFERENCES p1(a));\n  INSERT INTO aux.p1 VALUES(1, 1);\n  INSERT INTO aux.p1 VALUES(2, 2);\n  INSERT INTO aux.c1 VALUES(NULL, 2);\n  CREATE TABLE aux.c2(x INTEGER PRIMARY KEY, y REFERENCES c1(a));"
         }
       ]
@@ -404,7 +404,7 @@
       "name": "8.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO aux.c1 VALUES(NULL, 1);\n  SELECT sql FROM aux.sqlite_master WHERE name = 'c1';",
           "expect": "{CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
         }
@@ -422,7 +422,7 @@
       "name": "9.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t2;"
         }
       ]
@@ -530,7 +530,7 @@
       "name": "11.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;"
         }
       ]
@@ -558,7 +558,7 @@
       "name": "11.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE main.t1 RENAME TO t2;\n  SELECT name, tbl_name FROM sqlite_temp_master;",
           "expect": "tr t1"
         }
@@ -568,7 +568,7 @@
       "name": "11.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE aux.t1 RENAME TO t2;\n  SELECT name, tbl_name FROM sqlite_temp_master;",
           "expect": "tr t2"
         }
@@ -595,7 +595,7 @@
       "name": "12.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(w);\n  CREATE TRIGGER temp.r1 AFTER INSERT ON main.t2 BEGIN\n    INSERT INTO t1(a) VALUES(new.w);\n  END;\n  CREATE TEMP TABLE t2(x);"
         }
       ]
@@ -613,7 +613,7 @@
       "name": "12.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t3 VALUES('WWW');\n  SELECT * FROM t1;",
           "expect": "WWW"
         }
@@ -675,7 +675,7 @@
       "name": "14.5",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER xyz AFTER INSERT ON t1 BEGIN\n    SELECT a, b FROM v1;\n  END;"
         }
       ]

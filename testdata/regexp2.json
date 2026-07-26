@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE x1(x, y, z);\n  CREATE TABLE x2(x, y, z);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO x1 VALUES(\n        new.a REGEXP 'abc',\n        new.b REGEXP 'abc',\n        new.c REGEXP 'abc'\n    );\n  END;\n\n  CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO x2 VALUES(\n        new.a REGEXP 'def',\n        new.b REGEXP 'def',\n        new.c REGEXP 'def'\n    );\n  END;\n\n  INSERT INTO t1 VALUES('abc', 'def', 'abc');\n  SELECT * FROM t1;",
           "expect": "abc def abc"
         }
@@ -74,7 +74,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(a);\n  CREATE TABLE t6(x);\n\n  CREATE TRIGGER t5tr AFTER DELETE ON t5 BEGIN\n    DELETE FROM t6 WHERE t6.x REGEXP old.a;\n  END;\n\n  INSERT INTO t5 VALUES ('^a.*'), ('^b.*'), ('^c.*');\n  INSERT INTO t6 VALUES ('eab'), ('abc'), ('bcd'), ('cde'), ('dea');\n\n  DELETE FROM t5;\n  SELECT * FROM t6;",
           "expect": "eab dea"
         }

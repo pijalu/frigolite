@@ -169,7 +169,7 @@
       "name": "10.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE dual(dummy); INSERT INTO dual(dummy) VALUES('X');\n  CREATE TABLE t3(a TEXT,b TEXT,c TEXT,d TEXT,e TEXT,f TEXT);\n  CREATE INDEX t3x ON t3(b,c,d,e,f);\n\n  SELECT a FROM t3\n    WHERE (c,d) IN (SELECT 'c','d' FROM dual)\n    AND (a,b,e) IN (SELECT 'a','b','d' FROM dual);"
         }
       ]
@@ -258,7 +258,7 @@
       "name": "12.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT,b INT); INSERT INTO t1 VALUES(1,2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INT,y INT); INSERT INTO t2 VALUES(3,4);\n  SELECT *,'x' FROM t1 LEFT JOIN t2 ON (a,b)=(x,y);",
           "expect": "1 2 {} {} x"
         }
@@ -366,7 +366,7 @@
       "name": "16.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t16a(a,b,c);\n  INSERT INTO t16a VALUES(1,2,3);\n  CREATE TABLE t16b(x);\n  INSERT INTO t16b(x) VALUES(1);\n  CREATE TRIGGER t16r AFTER UPDATE ON t16b BEGIN\n     UPDATE t16a SET (a,b,c)=(SELECT new.x,new.x+1,new.x+2);\n  END;\n  UPDATE t16b SET x=7;\n  SELECT * FROM t16a;",
           "expect": "7 8 9"
         }
@@ -376,7 +376,7 @@
       "name": "16.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t16b SET x=97;\n  SELECT * FROM t16a;",
           "expect": "97 98 99"
         }
@@ -386,7 +386,7 @@
       "name": "16.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t16c(a, b, c, d, e);\n  INSERT INTO t16c VALUES(1, 'a', 'b', 'c', 'd');\n  CREATE TRIGGER t16c1 AFTER INSERT ON t16c BEGIN\n    UPDATE t16c SET (c, d) = (SELECT 'A', 'B'), (e, b) = (SELECT 'C', 'D')\n      WHERE a = new.a-1;\n  END;\n\n  SELECT * FROM t16c;",
           "expect": "1 a b c d"
         }
@@ -396,7 +396,7 @@
       "name": "16.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t16c VALUES(2, 'w', 'x', 'y', 'z');\n  SELECT * FROM t16c;",
           "expect": "1 D A B C \n  2 w x y z"
         }
@@ -406,7 +406,7 @@
       "name": "16.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TRIGGER t16c1;\n  PRAGMA recursive_triggers = 1;\n  INSERT INTO t16c VALUES(3, 'i', 'ii', 'iii', 'iv');\n  CREATE TRIGGER t16c1 AFTER UPDATE ON t16c WHEN new.a>1 BEGIN\n    UPDATE t16c SET (e, d) = (\n      SELECT b, c FROM t16c WHERE a = new.a-1\n    ), (c, b) = (\n      SELECT d, e FROM t16c WHERE a = new.a-1\n    ) WHERE a = new.a-1;\n  END;\n\n  UPDATE t16c SET a=a WHERE a=3;\n  SELECT * FROM t16c;",
           "expect": "1 C B A D\n  2 z y x w\n  3 i ii iii iv"
         }
@@ -503,7 +503,7 @@
       "name": "19.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1(a,b) VALUES(1,11),(2,22),(3,33),(4,44);\n  SELECT * FROM t1 WHERE (a,b)>(0,0) ORDER BY a;",
           "expect": "1 11 2 22 3 33 4 44"
         }
@@ -833,7 +833,7 @@
       "name": "21.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,PRIMARY KEY(b,b));\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT * FROM t1 WHERE (a,b) IN (VALUES(1,2));",
           "expect": "1 2"
         }
@@ -853,7 +853,7 @@
       "name": "23.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(aa COLLATE NOCASE, bb);\n  INSERT INTO t0 VALUES('a', 'A');\n  SELECT (+bb,1) >= (aa, 1), (aa,1)<=(+bb,1) FROM t0;\n  SELECT 2 FROM t0 WHERE (+bb,1) >= (aa,1);\n  SELECT 3 FROM t0 WHERE (aa,1) <= (+bb,1);",
           "expect": "0 1 3"
         }
@@ -873,7 +873,7 @@
       "name": "24.100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 TEXT PRIMARY KEY);\n  INSERT INTO t0(c0) VALUES ('');\n  SELECT (t0.c0, TRUE) > (CAST(0 AS REAL), FALSE) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, TRUE) > (CAST('' AS REAL), FALSE);",
           "expect": "1 2"
         }
@@ -883,7 +883,7 @@
       "name": "25.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 UNIQUE);\n  INSERT INTO t0(c0) VALUES('a');\n  SELECT (t0.c0, 0) < ('B' COLLATE NOCASE, 0) FROM t0;\n  SELECT 2 FROM t0 WHERE (t0.c0, 0) < ('B' COLLATE NOCASE, 0);",
           "expect": "1 2"
         }
@@ -931,7 +931,7 @@
       "name": "26.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1);\n  INSERT INTO t1(c1) VALUES (0);\n  SELECT (c0, x'') != (NULL, 0) FROM t1 LEFT JOIN t0;",
           "expect": "1"
         }
@@ -1078,7 +1078,7 @@
       "name": "31.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE a(a1 PRIMARY KEY,a2);\n  INSERT INTO a VALUES(1,5);\n  CREATE TABLE b(b1 UNIQUE,b2);\n  SELECT * FROM a LEFT JOIN b ON b2=NULL AND b2=5 WHERE (b1,substr(b.b1,1,1))==(SELECT 1024,'b');"
         }
       ]
@@ -1096,7 +1096,7 @@
       "name": "31.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(0);\n  CREATE TABLE t2(b,c,d);\n  INSERT INTO t2 VALUES(NULL,123,456);\n  SELECT * FROM t1 LEFT JOIN t2 ON b=NULL WHERE (c,d)==(SELECT 123, 456+a);"
         }
       ]
@@ -1122,7 +1122,7 @@
       "name": "32.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY);\n  INSERT INTO t1(a,b,c) VALUES(500,654,456);\n  INSERT INTO t1(a,b,c) VALUES(501,655,456);\n  INSERT INTO t1(a,b,c) VALUES(502,654,122);\n  INSERT INTO t1(a,b,c) VALUES(503,654,221);\n  INSERT INTO t1(a,b,c) VALUES(601,654,122);\n  INSERT INTO t2(d) VALUES(456);\n  INSERT INTO t2(d) VALUES(122);\n  SELECT a FROM (\n    SELECT t1.a FROM t2, t1 \n    WHERE (987, t1.b) = ( SELECT 987, 654 ) AND t2.d=t1.c\n  ) AS t3\n  WHERE a=1234 OR a<=567;",
           "expect": "500 502"
         }
@@ -1226,7 +1226,7 @@
       "name": "34.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE items (\n    Id INTEGER  /* rowid alias */,\n    Item INTEGER  /* any type */,\n    Test TEXT  /* TEXT or BLOB */,\n    Filler,  /* any type */\n    PRIMARY KEY(Id),\n    UNIQUE(Item, Id)\n  );\n  INSERT INTO items (Id, Item)\n    VALUES (1, 2), (2, 2), (3, 3), (4, 5);\n  UPDATE items SET test='ok'\n    WHERE (Id, Item) IN (SELECT Id, Item FROM items);\n  SELECT Id, Item, test FROM items ORDER BY id;",
           "expect": "1 2 ok 2 2 ok 3 3 ok 4 5 ok"
         }
@@ -1236,7 +1236,7 @@
       "name": "34.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE INDEX idx ON t1(b,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
           "expect": "1 22 NULL NULL"
         }
@@ -1246,7 +1246,7 @@
       "name": "34.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX idx ON t1(b,a,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
           "expect": "1 22 NULL NULL"
         }
@@ -1256,7 +1256,7 @@
       "name": "35.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(c1 TEXT, c2 INTEGER, PRIMARY KEY(c1, c2));\n  INSERT INTO t1(c1, c2) VALUES ('a', 1);\n  SELECT ('a', 1) IN (SELECT c1, c2 from t1);"
         }
       ]
@@ -1274,7 +1274,7 @@
       "name": "36.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  SELECT (1,2,3,max(x)) IN () FROM t1;"
         }
       ]

@@ -66,7 +66,7 @@
       "name": "fkey3-2.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);",
           "expect": "1 100 1 101 2 100 2 101"
         },

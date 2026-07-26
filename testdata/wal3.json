@@ -39,7 +39,7 @@
       "name": "wal3-5.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
         },
         {
@@ -101,7 +101,7 @@
       "name": "wal3-6.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN ; SELECT * FROM t1",
           "expect": "o t t f"
         },
@@ -115,7 +115,7 @@
       "name": "wal3-6.1.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    SELECT * FROM t1;",
           "expect": "o t t f f s"
         },
@@ -186,7 +186,7 @@
       "name": "wal3-7.1.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);",
           "expect": "wal"
         },
@@ -253,7 +253,7 @@
       "name": "wal3-9.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');",
           "expect": "wal"
         },

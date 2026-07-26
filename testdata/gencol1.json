@@ -6,7 +6,7 @@
       "name": "gencol1-100",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 AS(TYPEOF(c1)), c1);\n  INSERT INTO t0(c1) VALUES(0);\n  CREATE TABLE t1(x AS (typeof(y)), y);\n  INSERT INTO t1 SELECT * FROM t0;\n  SELECT * FROM t1;",
           "expect": "integer 0"
         }
@@ -107,7 +107,7 @@
       "name": "gencol1-7.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0 (c0 GENERATED ALWAYS AS (1), c1 UNIQUE, c2 UNIQUE);\n  INSERT INTO t0(c1) VALUES (1);\n  SELECT quote(0 = t0.c2 OR t0.c1 BETWEEN t0.c2 AND 1) FROM t0;",
           "expect": "NULL"
         }
@@ -117,7 +117,7 @@
       "name": "gencol1-7.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 NOT NULL DEFAULT 'xyz', c1 AS(c0) NOT NULL);\n  REPLACE INTO t0(c0) VALUES(NULL);\n  SELECT * FROM t0;",
           "expect": "xyz xyz"
         }
@@ -127,7 +127,7 @@
       "name": "gencol1-7.12",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t0;\n  CREATE TABLE t0(c0 NOT NULL DEFAULT 'xyz', c1 AS(c0) STORED NOT NULL);\n  REPLACE INTO t0(c0) VALUES(NULL);\n  SELECT * FROM t0;",
           "expect": "xyz xyz"
         }
@@ -137,7 +137,7 @@
       "name": "gencol1-7.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(c) NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t1(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t1;",
           "expect": "aaa ccc ccc"
         }
@@ -147,7 +147,7 @@
       "name": "gencol1-7.21",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(c) STORED NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t1(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t1;",
           "expect": "aaa ccc ccc"
         }
@@ -157,7 +157,7 @@
       "name": "gencol1-7.30",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t2(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(a) NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t2(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t2;",
           "expect": "aaa aaa ccc"
         }
@@ -167,7 +167,7 @@
       "name": "gencol1-7.31",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t2;\n  CREATE TABLE t2(\n   a NOT NULL DEFAULT 'aaa',\n   b AS(a) STORED NOT NULL,\n   c NOT NULL DEFAULT 'ccc');\n  REPLACE INTO t2(a,c) VALUES(NULL,NULL);\n  SELECT * FROM t2;",
           "expect": "aaa aaa ccc"
         }
@@ -177,7 +177,7 @@
       "name": "gencol1-7.40",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(a NOT NULL DEFAULT 123, b AS(a) UNIQUE);\n  REPLACE INTO t3 VALUES(NULL);\n  SELECT * FROM t3;",
           "expect": "123 123"
         }
@@ -197,7 +197,7 @@
       "name": "gencol1-7.50",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t4(a NOT NULL DEFAULT 123, b AS(a*10+4) STORED UNIQUE);\n  REPLACE INTO t4 VALUES(NULL);\n  SELECT * FROM t4;",
           "expect": "123 1234"
         }
@@ -217,7 +217,7 @@
       "name": "gencol1-8.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(\n    c0 AS (('a', 9) < ('b', c1)),\n    c1 AS (1),\n    c2 CHECK (1 = c1)\n  );\n  INSERT INTO t0 VALUES (0),(99);\n  SELECT * FROM t0;",
           "expect": "1 1 0 1 1 99"
         }
@@ -255,7 +255,7 @@
       "name": "gencol1-9.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t3(aa INT PRIMARY KEY, bb UNIQUE AS(aa));\n  INSERT INTO t3 VALUES(1);\n  SELECT 100, * FROM t3;\n  DELETE FROM t3 WHERE (SELECT bb FROM t3);\n  SELECT 200, * FROM t3;",
           "expect": "100 1 1"
         }
@@ -265,7 +265,7 @@
       "name": "gencol1-10.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(aa,bb);\n  CREATE TABLE IF NOT EXISTS t1(aa, bb AS (aa+1));\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -275,7 +275,7 @@
       "name": "gencol1-11.10",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );"
         }
       ]
@@ -351,7 +351,7 @@
       "name": "gencol1-12.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0 (c0, c1 NOT NULL AS (c0==0));\n  INSERT INTO t0(c0) VALUES (0);\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
@@ -361,7 +361,7 @@
       "name": "gencol1-14.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 AS(1 >= 1), c1 UNIQUE AS(TYPEOF(c0)), c2);\n  INSERT INTO t0 VALUES(0);\n  REINDEX;\n  SELECT * FROM t0;",
           "expect": "1 integer 0"
         }
@@ -407,7 +407,7 @@
       "name": "gencol1-16.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1, c2 AS(1));\n  INSERT INTO t0 VALUES(0);\n  SELECT c0, c1, c2 FROM t0 LEFT JOIN t1;",
           "expect": "0 {} {}"
         }
@@ -417,7 +417,7 @@
       "name": "gencol1-16.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(c1, c2 AS (c1 ISNULL));\n  SELECT c0, c1, c2 FROM t0 LEFT JOIN t1;",
           "expect": "0 {} {}"
         }
@@ -427,7 +427,7 @@
       "name": "gencol1-16.30",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t1(c1) VALUES(1),(NULL);\n  SELECT * FROM t1;",
           "expect": "1 0 {} 1"
         }
@@ -455,7 +455,7 @@
       "name": "gencol1-17.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 REAL AS(1) UNIQUE, c1 INT);\n  INSERT INTO t0 VALUES('');\n  SELECT quote(c0), quote(c1) from t0;",
           "expect": "1.0 ''"
         }
@@ -484,7 +484,7 @@
       "name": "gencol1-17.40",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a TEXT AS(b) COLLATE nocase, b TEXT, c INT, d DEFAULT 1);\n  INSERT INTO t1(b,c) VALUES('abc',11),('DEF',22),('ghi',33);\n  SELECT a FROM t1 WHERE b='DEF' AND a='def';",
           "expect": "DEF"
         }
@@ -494,7 +494,7 @@
       "name": "gencol1-17.50",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX t1bca ON t1(b,c,a);\n  SELECT a FROM t1 WHERE b='DEF' AND a='def';",
           "expect": "DEF"
         }
@@ -512,7 +512,7 @@
       "name": "gencol1-18.10",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(c0 UNIQUE AS(0), c1, c2);\n  INSERT INTO t0(c1) VALUES(0);\n  SELECT * FROM t0;",
           "expect": "0 0 {}"
         }
@@ -522,7 +522,7 @@
       "name": "gencol1-18.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t0 SET c1=0, c2=0 WHERE c0>=0;\n  SELECT * FROM t0;",
           "expect": "0 0 0"
         }
@@ -568,7 +568,7 @@
       "name": "gencol1-21.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(\n      a integer primary key,\n      b int generated always as (a+5),\n      c text    GENERATED   ALWAYS as (printf('%08x',a)),\n      d Generated\n        Always\n        AS ('xyzzy'),\n      e int                         Always default(5)\n    );\n    INSERT INTO t1(a) VALUES(5);\n    SELECT name, type FROM pragma_table_xinfo('t1');",
           "expect": "a INTEGER b INT c TEXT d {} e INT"
         }
@@ -586,7 +586,7 @@
       "name": "gencol1-22.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(a PRIMARY KEY,b TEXT AS ('2') UNIQUE);\n  INSERT INTO t0(a) VALUES(2);\n  SELECT * FROM t0 AS x JOIN t0 AS y\n   WHERE x.b='2'\n     AND (y.a=2 OR (x.b LIKE '2*' AND y.a=x.b));",
           "expect": "2 2 2 2"
         },
@@ -604,7 +604,7 @@
       "name": "gencol1-23.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(\n    x,\n    a INT AS (x) VIRTUAL,\n    b BLOB AS (x) VIRTUAL\n  );\n  CREATE INDEX x2 ON t1(a);\n  INSERT INTO t1(x) VALUES(NULL),('1'),('xyz'),(2),(3.5);\n  SELECT quote(a) FROM t1 INDEXED BY x2;",
           "expect": "NULL 1 2 3.5 'xyz'"
         }

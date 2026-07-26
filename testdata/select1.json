@@ -1021,7 +1021,7 @@
       "name": "select1-4.8",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,10);\n    INSERT INTO t5 VALUES(2,9);\n    SELECT * FROM t5 ORDER BY 1;",
           "expect": "1 10 2 9"
         },
@@ -1083,7 +1083,7 @@
       "name": "select1-4.11",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t5 VALUES(3,10);\n    SELECT * FROM t5 ORDER BY 2, 1 DESC;",
           "expect": "2 9 3 10 1 10"
         },
@@ -1197,7 +1197,7 @@
       "name": "select1-6.20",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t6(a TEXT, b TEXT);\n     INSERT INTO t6 VALUES('a','0');\n     INSERT INTO t6 VALUES('b','1');\n     INSERT INTO t6 VALUES('c','2');\n     INSERT INTO t6 VALUES('d','3');\n     SELECT a FROM t6 WHERE b IN \n        (SELECT b FROM t6 WHERE a<='b' UNION SELECT '3' AS x\n                 ORDER BY 1 LIMIT 1)",
           "expect": "a"
         },
@@ -1577,7 +1577,7 @@
       "name": "select1-11.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2);\n    INSERT INTO t4 VALUES(3,4);\n    SELECT * FROM t3, t4;",
           "expect": "1 2 3 4"
         },
@@ -1860,7 +1860,7 @@
       "name": "select1-17.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x);   INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(y,z); INSERT INTO t2 VALUES(2,3);\n  CREATE INDEX t2y ON t2(y);\n  SELECT * FROM t1,(SELECT * FROM t2 WHERE y=2 ORDER BY y,z);",
           "expect": "1 2 3"
         }
@@ -1890,7 +1890,7 @@
       "name": "select1-18.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(c);\n  CREATE TABLE t2(x PRIMARY KEY, y);\n  INSERT INTO t1(c) VALUES(123);\n  INSERT INTO t2(x) VALUES(123);\n  SELECT x FROM t2, t1 WHERE x BETWEEN c AND null OR x AND\n  x IN ((SELECT x FROM (SELECT x FROM t2, t1 \n  WHERE x BETWEEN (SELECT x FROM (SELECT x COLLATE rtrim \n  FROM t2, t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)) AND null\n  OR NOT EXISTS(SELECT -4.81 FROM t1, t2 WHERE x BETWEEN c AND null\n  OR x AND x IN ((SELECT x FROM (SELECT x FROM t2, t1\n  WHERE x BETWEEN (SELECT x FROM (SELECT x BETWEEN c AND null\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)) AND null\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)))) AND x IN (c)\n  ), t1 WHERE x BETWEEN c AND null\n  OR x AND x IN (c)));"
         }
       ]
@@ -1899,7 +1899,7 @@
       "name": "select1-18.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(c);\n  CREATE TABLE t2(x PRIMARY KEY, y);\n  INSERT INTO t1(c) VALUES(123);\n  INSERT INTO t2(x) VALUES(123);\n  SELECT x FROM t2, t1 WHERE x BETWEEN c AND (c+1) OR x AND\n  x IN ((SELECT x FROM (SELECT x FROM t2, t1 \n  WHERE x BETWEEN (SELECT x FROM (SELECT x COLLATE rtrim \n  FROM t2, t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)) AND (c+1)\n  OR NOT EXISTS(SELECT -4.81 FROM t1, t2 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN ((SELECT x FROM (SELECT x FROM t2, t1\n  WHERE x BETWEEN (SELECT x FROM (SELECT x BETWEEN c AND (c+1)\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)) AND (c+1)\n  OR x AND x IN (c)), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)))) AND x IN (c)\n  ), t1 WHERE x BETWEEN c AND (c+1)\n  OR x AND x IN (c)));",
           "expect": "123"
         }
@@ -1984,7 +1984,7 @@
       "name": "select1-21.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a IMTEGES PRIMARY KEY,R);\n  CREATE TABLE t2(x UNIQUE);\n  CREATE VIEW v1a(z,y) AS SELECT x IS NULL, x FROM t2;\n  SELECT a,(+a)b,(+a)b,(+a)b,NOT EXISTS(SELECT null FROM t2),CASE z WHEN 487 THEN 992 WHEN 391 THEN 203 WHEN 10 THEN '?k<D Q' END,'' FROM t1 LEFT JOIN v1a ON z=b;"
         }
       ]

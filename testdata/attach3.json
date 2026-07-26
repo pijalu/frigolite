@@ -71,7 +71,7 @@
       "name": "attach3-1.5",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO t3 VALUES(1, 2);\n    SELECT * FROM t3;",
           "expect": "1 2"
         },
@@ -124,7 +124,7 @@
       "name": "attach3-3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP INDEX aux.i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
         },
         {
@@ -137,7 +137,7 @@
       "name": "attach3-3.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE INDEX aux.i1 on t3(e);\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
         },
         {
@@ -150,7 +150,7 @@
       "name": "attach3-3.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP INDEX i1;\n    SELECT * FROM aux.sqlite_master WHERE name = 'i1';"
         },
         {
@@ -163,7 +163,7 @@
       "name": "attach3-4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE aux.t1;\n    SELECT name FROM aux.sqlite_master;",
           "expect": "t2 t3"
         },
@@ -177,7 +177,7 @@
       "name": "attach3-4.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;",
           "expect": "t2 t3"
         },
@@ -191,7 +191,7 @@
       "name": "attach3-4.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE t2;\n    SELECT name FROM aux.sqlite_master;",
           "expect": "t3"
         },
@@ -232,7 +232,7 @@
       "name": "attach3-5.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "INSERT INTO aux.t3 VALUES('hello', 'world');\n    SELECT * FROM v1;",
           "expect": "1 2 hello world"
         },
@@ -285,7 +285,7 @@
       "name": "attach3-7.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DELETE FROM t3;\n    INSERT INTO t3 VALUES(10, 20);\n    SELECT * FROM t3;",
           "expect": "10 20 20 40"
         },
@@ -339,7 +339,7 @@
       "name": "attach3-9.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE main.t4(a, b, c);\n      CREATE TABLE aux.t4(a, b, c);\n      CREATE TEMP TRIGGER tst_trigger BEFORE INSERT ON aux.t4 BEGIN \n        SELECT 'hello world';\n      END;\n      SELECT count(*) FROM temp.sqlite_master;",
           "expect": "1"
         },
@@ -353,7 +353,7 @@
       "name": "attach3-9.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE main.t4;\n      SELECT count(*) FROM sqlite_temp_master;",
           "expect": "1"
         },
@@ -367,7 +367,7 @@
       "name": "attach3-9.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "DROP TABLE aux.t4;\n      SELECT count(*) FROM temp.sqlite_master;",
           "expect": "0"
         },

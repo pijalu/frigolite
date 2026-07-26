@@ -15,7 +15,7 @@
       "name": "1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
           "expect": "{CREATE TABLE c1(b)}"
         }
@@ -42,7 +42,7 @@
       "name": "2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
           "expect": "{CREATE TABLE c1(b)}"
         }
@@ -69,7 +69,7 @@
       "name": "3.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE c1 DROP CONSTRAINT fk;\n  SELECT sql FROM sqlite_schema WHERE name='c1';",
           "expect": "{CREATE TABLE c1(b)}"
         }

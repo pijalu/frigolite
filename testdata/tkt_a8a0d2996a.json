@@ -6,7 +6,7 @@
       "name": "1.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t(x,y);\n  INSERT INTO t VALUES('1','1');\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
           "expect": "text text"
         }
@@ -56,7 +56,7 @@
       "name": "2.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t SET x='1xyzzy';\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
           "expect": "text text"
         }
@@ -106,7 +106,7 @@
       "name": "3.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t SET x='1.0';\n  SELECT typeof(x), typeof(y) FROM t WHERE 1=x+0 AND y=='1';",
           "expect": "text text"
         }

@@ -51,7 +51,7 @@
       "name": "2.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'r1';",
           "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM \"t1x\" \n      INTERSECT \n    SELECT a,b,c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END}"
         }
@@ -232,7 +232,7 @@
       "name": "7.1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master;",
           "expect": "{CREATE TABLE \"t1x\"(a,b,c)}\n  {CREATE TRIGGER AFTER INSERT ON \"t1x\" BEGIN\n    SELECT a, rank() OVER w1 FROM \"t1x\"\n    WINDOW w1 AS (PARTITION BY b, percent_rank() OVER w1);\n  END}"
         }
@@ -269,7 +269,7 @@
       "name": "8.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t0 RENAME TO t1;\n  SELECT sql FROM sqlite_master;",
           "expect": "{CREATE TABLE \"t1\"(c0)}\n  {CREATE INDEX i0 ON \"t1\"('1' IN ())}"
         }
@@ -341,7 +341,7 @@
       "name": "10.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t2 RENAME TO t3;\n  SELECT sql FROM sqlite_master WHERE name='v1';",
           "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5}"
         }
@@ -369,7 +369,7 @@
       "name": "11.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'b';",
           "expect": "{CREATE TRIGGER b AFTER INSERT ON \"t1x\" WHEN new.a BEGIN\n    SELECT a, sum() w3 FROM \"t1x\" \n    WINDOW b AS (ORDER BY NOT EXISTS(SELECT 1 FROM \"t1x\"));\n  END}"
         }
@@ -465,7 +465,7 @@
       "name": "17.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type='trigger';",
           "expect": "{CREATE TRIGGER AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    SELECT a () FILTER (WHERE aaa>0) FROM \"t1x\";\n  END}"
         }
@@ -720,7 +720,7 @@
       "name": "24.4",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE v0 RENAME TO xyz;\n  SELECT sql FROM sqlite_master WHERE type='trigger'",
           "expect": "{CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM \"xyz\")\n  ) BEGIN\n    DELETE FROM v2;\n  END}"
         }
@@ -845,7 +845,7 @@
       "name": "27.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';",
           "expect": "{CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}"
         }
@@ -1129,7 +1129,7 @@
       "name": "33.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;",
           "expect": "{CREATE TABLE x1(a TEXT, c CHECK(c!=0))}"
         }

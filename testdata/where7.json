@@ -6,7 +6,7 @@
       "name": "where7-1.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    INSERT INTO t1 VALUES(1,2,3,4);\n    INSERT INTO t1 VALUES(2,3,4,5);\n    INSERT INTO t1 VALUES(3,4,6,8);\n    INSERT INTO t1 VALUES(4,5,10,15);\n    INSERT INTO t1 VALUES(5,10,100,1000);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    SELECT * FROM t1;",
           "expect": "1 2 3 4 2 3 4 5 3 4 6 8 4 5 10 15 5 10 100 1000"
         },
@@ -61,7 +61,7 @@
       "name": "4.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0(w);\n  INSERT INTO t0(w) VALUES(1);\n  CREATE TABLE t1(x INT, y INT PRIMARY KEY, z); \n  INSERT INTO t1 VALUES(0,111,222);\n  CREATE INDEX t1zxy ON t1(z,x,y);\n  SELECT y FROM t1\n   WHERE (z=222 OR y=111)\n     AND (false OR EXISTS(SELECT 1 FROM t0 WHERE t1.y));",
           "expect": "111"
         }

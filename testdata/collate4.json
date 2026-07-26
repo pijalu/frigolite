@@ -123,7 +123,7 @@
       "name": "collate4-2.1.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA automatic_index=OFF;\n    CREATE TABLE collate4t1(a COLLATE NOCASE);\n    CREATE TABLE collate4t2(b COLLATE TEXT);\n\n    INSERT INTO collate4t1 VALUES('a');\n    INSERT INTO collate4t1 VALUES('A');\n    INSERT INTO collate4t1 VALUES('b');\n    INSERT INTO collate4t1 VALUES('B');\n    INSERT INTO collate4t1 VALUES('c');\n    INSERT INTO collate4t1 VALUES('C');\n    INSERT INTO collate4t1 VALUES('d');\n    INSERT INTO collate4t1 VALUES('D');\n    INSERT INTO collate4t1 VALUES('e');\n    INSERT INTO collate4t1 VALUES('D');\n\n    INSERT INTO collate4t2 VALUES('A');\n    INSERT INTO collate4t2 VALUES('Z');"
         },
         {

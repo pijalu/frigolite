@@ -23,7 +23,7 @@
       "name": "1.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "UPDATE t1 SET b=int2str(2);\n  SELECT b=int2str(2) FROM t1",
           "expect": "1 1 1"
         }
@@ -60,7 +60,7 @@
       "name": "2.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;"
         }
       ]

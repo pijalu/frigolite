@@ -42,7 +42,7 @@
       "name": "2.2",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n    SELECT * FROM t2;",
           "expect": "1 2 3 4"
         }
@@ -52,7 +52,7 @@
       "name": "2.3",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "ROLLBACK;\n  SELECT * FROM t2;",
           "expect": "1 2"
         }
@@ -174,7 +174,7 @@
       "name": "10.0",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);"
         }
       ]

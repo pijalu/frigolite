@@ -241,7 +241,7 @@
       "name": "7.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y UNIQUE);\n\n  INSERT INTO t1 VALUES(1), (2);\n  INSERT INTO t2 VALUES(1), (3);\n\n  SELECT * FROM t1 one LEFT JOIN t1 two ON (one.x=two.x AND EXISTS (\n    SELECT 1 FROM t2 WHERE y=one.x\n  ));",
           "expect": "1 1\n  2 {}"
         }
@@ -259,7 +259,7 @@
       "name": "8.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t0 (c0 INT);  INSERT INTO t0(c0) VALUES (1);\n  CREATE TABLE t1(c0 INT);   INSERT INTO t1(c0) VALUES (2);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t0 LIMIT 0);"
         }
       ]
@@ -285,7 +285,7 @@
       "name": "9.1",
       "steps": [
         {
-          "type": "query",
+          "type": "exec",
           "sql": "PRAGMA automatic_index = off;\n  CREATE TABLE t2(ii);\n  INSERT INTO t2 VALUES(100);\n  INSERT INTO t2 VALUES(200);"
         }
       ]
@@ -440,7 +440,7 @@
       "name": "13.0",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "CREATE TABLE t1(b,c);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(p,q);\n\n  INSERT INTO t1 VALUES(7,10);\n  INSERT INTO t2 VALUES(1,1), (4,7);\n  INSERT INTO t3 VALUES(4,7);\n\n  PRAGMA automatic_index = 0;"
         }
       ]
