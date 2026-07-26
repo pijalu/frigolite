@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -2877,6 +2878,15 @@ func (p *Parser) parseIsOp(left Expr) Expr {
 				return &IsNotDistinctFrom{Left: left, Right: right}
 			}
 		}
+		// IS NOT TRUE or IS NOT FALSE
+		if isTrueFalseToken(p.cur) {
+			if strings.EqualFold(p.cur.Value, "TRUE") {
+				p.next()
+				return &IsTrue{Operand: left, Negated: true}
+			}
+			p.next()
+			return &IsFalse{Operand: left, Negated: true}
+		}
 		p.consumeIsRightOperand()
 		return left
 	}
@@ -2893,14 +2903,33 @@ func (p *Parser) parseIsOp(left Expr) Expr {
 		p.next()
 		return &IsNull{Operand: left}
 	}
+	// IS TRUE or IS FALSE
+	if isTrueFalseToken(p.cur) {
+		if strings.EqualFold(p.cur.Value, "TRUE") {
+			p.next()
+			return &IsTrue{Operand: left}
+		}
+		p.next()
+		return &IsFalse{Operand: left}
+	}
 	p.consumeIsRightOperand()
 	return left
+}
+
+// isTrueFalseToken checks if the current token is TRUE or FALSE (case-insensitive).
+func isTrueFalseToken(tok Token) bool {
+	if tok.Type == TokenKeyword || tok.Type == TokenIdentifier {
+		if strings.EqualFold(tok.Value, "TRUE") || strings.EqualFold(tok.Value, "FALSE") {
+			return true
+		}
+	}
+	return false
 }
 
 // consumeIsRightOperand consumes the right operand expression after IS or IS NOT,
 // handling TRUE/FALSE as identifiers as well as any expression type.
 func (p *Parser) consumeIsRightOperand() {
-	if p.cur.Type == TokenIdentifier && (p.cur.Value == "TRUE" || p.cur.Value == "FALSE") {
+	if p.cur.Type == TokenIdentifier && (strings.EqualFold(p.cur.Value, "TRUE") || strings.EqualFold(p.cur.Value, "FALSE")) {
 		p.next()
 		return
 	}
@@ -3110,7 +3139,11 @@ func (p *Parser) parsePrimaryExprInner() Expr {
 		return lit
 
 	case TokenBlob:
-		lit := &StringLit{Value: p.cur.Value}
+		lit, err := decodeBlobLiteral(p.cur.Value)
+		if err != nil {
+			// If decoding fails, treat as string (graceful fallback)
+			return &StringLit{Value: "x" + p.cur.Value}
+		}
 		p.next()
 		return lit
 
@@ -3479,6 +3512,18 @@ func ExprString(e Expr) string {
 		return ExprString(v.Left) + " IS DISTINCT FROM " + ExprString(v.Right)
 	case *IsNotDistinctFrom:
 		return ExprString(v.Left) + " IS NOT DISTINCT FROM " + ExprString(v.Right)
+	case *IsTrue:
+		if v.Negated {
+			return ExprString(v.Operand) + " IS NOT TRUE"
+		}
+		return ExprString(v.Operand) + " IS TRUE"
+	case *IsFalse:
+		if v.Negated {
+			return ExprString(v.Operand) + " IS NOT FALSE"
+		}
+		return ExprString(v.Operand) + " IS FALSE"
+	case *BlobLit:
+		return "x'" + hex.EncodeToString(v.Value) + "'"
 	case *Between:
 		return formatBetween(v)
 	case *InList:
@@ -3637,4 +3682,20 @@ func (p *Parser) skipCollateExpr(left Expr) Expr {
 		}
 	}
 	return left
+}
+
+// decodeBlobLiteral decodes a hex blob literal string (e.g., "00AB") into a BlobLit.
+func decodeBlobLiteral(hexStr string) (*BlobLit, error) {
+	if len(hexStr) == 0 {
+		return &BlobLit{Value: []byte{}}, nil
+	}
+	// Allow odd-length hex strings by padding with leading zero
+	if len(hexStr)%2 == 1 {
+		hexStr = "0" + hexStr
+	}
+	data, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, err
+	}
+	return &BlobLit{Value: data}, nil
 }

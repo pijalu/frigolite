@@ -1,6 +1,7 @@
 package frigolite
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
@@ -208,6 +209,9 @@ func formatSQLiteValue(val interface{}) string {
 			return fmt.Sprintf("%.1f", v)
 		}
 		return fmt.Sprintf("%g", v)
+	case []byte:
+		// Format blob as hex string like SQLite's quote() for blobs
+		return "x'" + hex.EncodeToString(v) + "'"
 	default:
 		return fmt.Sprintf("%v", v)
 	}

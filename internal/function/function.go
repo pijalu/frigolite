@@ -660,6 +660,9 @@ func toString(v interface{}) string {
 	if s, ok := v.(string); ok {
 		return s
 	}
+	if b, ok := v.([]byte); ok {
+		return string(b)
+	}
 	return fmt.Sprintf("%v", v)
 }
 
@@ -669,6 +672,19 @@ func toInt64(v interface{}) int64 {
 		return x
 	case float64:
 		return int64(x)
+	case string:
+		// Try to parse as integer
+		if i, err := strconv.ParseInt(x, 10, 64); err == nil {
+			return i
+		}
+		// Try to parse as float (truncate)
+		if f, err := strconv.ParseFloat(x, 64); err == nil {
+			return int64(f)
+		}
+		return 0
+	case []byte:
+		// For blob, try to convert from hex or treat as 0
+		return 0
 	default:
 		return 0
 	}

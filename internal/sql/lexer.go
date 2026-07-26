@@ -427,20 +427,24 @@ func (t *Tokenizer) readIdent() Token {
 	// Hex blob literal: X'...' or x'...'
 	if len(word) == 1 && (word == "x" || word == "X") && t.pos < len(t.input) && t.input[t.pos] == '\'' {
 		t.pos++ // skip '
+		var hexBuf []byte
 		for t.pos < len(t.input) {
 			ch := t.input[t.pos]
 			if ch == '\'' {
 				t.pos++
 				// Check for doubled '' (escaped quote inside blob)
 				if t.pos < len(t.input) && t.input[t.pos] == '\'' {
+					hexBuf = append(hexBuf, '\'')
 					t.pos++
 					continue
 				}
 				break
 			}
+			hexBuf = append(hexBuf, ch)
 			t.pos++
 		}
-		t.last = Token{Type: TokenBlob, Value: word, Pos: pos}
+		// Store the hex content between the quotes as the token value
+		t.last = Token{Type: TokenBlob, Value: string(hexBuf), Pos: pos}
 		return t.last
 	}
 

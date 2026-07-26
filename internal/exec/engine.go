@@ -47,6 +47,7 @@ type Engine struct {
 	outerRows    []map[string]interface{} // all outer rows for correlated aggregate evaluation
 	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable bool                   // PRAGMA legacy_alter_table setting
+	encoding    string                   // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -98,6 +99,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		stmtCache: make(map[string][]sql.Stmt),
 		tableRootPages: make(map[string]uint32),
 		nextRowIDCache: make(map[uint32]int64),
+		encoding:  "UTF-8",
 	}
 	e.vtabs.RegisterDefaults()
 	return e
@@ -3963,6 +3965,18 @@ func (e *Engine) execPragma(s *sql.PragmaStmt) *Result {
 		switch name {
 		case "LEGACY_ALTER_TABLE":
 			e.legacyAlterTable = s.Value == "1"
+		case "ENCODING":
+			// Accept UTF-8, UTF-16, UTF-16le, UTF-16be (case-insensitive)
+			switch strings.ToUpper(s.Value) {
+			case "UTF-8", "UTF8":
+				e.encoding = "UTF-8"
+			case "UTF-16LE", "UTF16LE":
+				e.encoding = "UTF-16le"
+			case "UTF-16BE", "UTF16BE", "UTF-16", "UTF16":
+				e.encoding = "UTF-16be"
+			default:
+				return &Result{Error: fmt.Errorf("unsupported encoding: %s", s.Value)}
+			}
 		}
 		// When setting a PRAGMA value, don't also return the value
 		return &Result{}
@@ -4006,7 +4020,7 @@ var pragmaHandlers = map[string]func(e *Engine) *Result{
 	"CASE_SENSITIVE_LIKE": func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"RECURSIVE_TRIGGERS":  func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"READ_UNCOMMITTED":    func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
-	"ENCODING":            func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{"UTF-8"}}} },
+	"ENCODING":            func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{e.encoding}}} },
 	"SCHEMA_TABLE":        func(e *Engine) *Result { return &Result{Columns: []string{"type", "name", "tbl_name", "rootpage", "sql"}} },
 	"SOFT_HEAP_LIMIT":     func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(0)}}} },
 	"THREADS":             func(e *Engine) *Result { return &Result{Rows: [][]interface{}{{int64(1)}}} },
@@ -5268,6 +5282,8 @@ func (e *Engine) evalExpr(expr sql.Expr, row map[string]interface{}) (interface{
 		return evalNumericLit(v)
 	case *sql.StringLit:
 		return v.Value, nil
+	case *sql.BlobLit:
+		return v.Value, nil
 	case *sql.NullLit:
 		return nil, nil
 	case *sql.ColumnRef:
@@ -5303,6 +5319,10 @@ func (e *Engine) evalComplexExpr(expr sql.Expr, row map[string]interface{}) (int
 		return e.evalIsNull(v, row)
 	case *sql.IsNotNull:
 		return e.evalIsNotNull(v, row)
+	case *sql.IsTrue:
+		return e.evalIsTrue(v, row)
+	case *sql.IsFalse:
+		return e.evalIsFalse(v, row)
 	case *sql.IsDistinctFrom:
 		return e.evalIsDistinctFrom(v, row)
 	case *sql.IsNotDistinctFrom:
@@ -5776,6 +5796,36 @@ func (e *Engine) evalIsNotNull(v *sql.IsNotNull, row map[string]interface{}) (in
 	return operand != nil, nil
 }
 
+func (e *Engine) evalIsTrue(v *sql.IsTrue, row map[string]interface{}) (interface{}, error) {
+	operand, err := e.evalExpr(v.Operand, row)
+	if err != nil {
+		return nil, err
+	}
+	result := isTrue(operand)
+	if v.Negated {
+		result = !result
+	}
+	if result {
+		return int64(1), nil
+	}
+	return int64(0), nil
+}
+
+func (e *Engine) evalIsFalse(v *sql.IsFalse, row map[string]interface{}) (interface{}, error) {
+	operand, err := e.evalExpr(v.Operand, row)
+	if err != nil {
+		return nil, err
+	}
+	result := isFalse(operand)
+	if v.Negated {
+		result = !result
+	}
+	if result {
+		return int64(1), nil
+	}
+	return int64(0), nil
+}
+
 func (e *Engine) evalIsDistinctFrom(v *sql.IsDistinctFrom, row map[string]interface{}) (interface{}, error) {
 	left, err := e.evalExpr(v.Left, row)
 	if err != nil {
@@ -5895,6 +5945,13 @@ func (e *Engine) evalFuncCall(f *sql.FuncCall, row map[string]interface{}) (inte
 		if err != nil {
 			return nil, err
 		}
+		// For UTF-16 encoding, truncate odd-length blobs (ignore last byte)
+		// to ensure valid UTF-16 byte sequences. (SQLite ticket 9eda2697f5cc1aba)
+		if b, ok := v.([]byte); ok && len(b)%2 == 1 {
+			if strings.HasPrefix(e.encoding, "UTF-16") {
+				v = b[:len(b)-1]
+			}
+		}
 		args[i] = v
 	}
 
@@ -5986,6 +6043,8 @@ func toBool(v interface{}) bool {
 		return x != 0
 	case string:
 		return x != ""
+	case []byte:
+		return len(x) > 0
 	default:
 		return true
 	}

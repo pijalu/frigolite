@@ -394,6 +394,13 @@ type NullLit struct{}
 
 func (e *NullLit) expr() {}
 
+// BlobLit represents a hex blob literal (x'00' or X'AB').
+type BlobLit struct {
+	Value []byte
+}
+
+func (e *BlobLit) expr() {}
+
 // FuncCall represents a function call.
 type FuncCall struct {
 	Name     string
@@ -433,6 +440,22 @@ type IsNotDistinctFrom struct {
 }
 
 func (e *IsNotDistinctFrom) expr() {}
+
+// IsTrue represents an IS TRUE or IS NOT TRUE expression.
+type IsTrue struct {
+	Operand Expr
+	Negated bool // true for IS NOT TRUE
+}
+
+func (e *IsTrue) expr() {}
+
+// IsFalse represents an IS FALSE or IS NOT FALSE expression.
+type IsFalse struct {
+	Operand Expr
+	Negated bool // true for IS NOT FALSE
+}
+
+func (e *IsFalse) expr() {}
 
 // Between represents a BETWEEN expression.
 type Between struct {
