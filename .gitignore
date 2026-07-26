@@ -36,3 +36,5 @@ vendor/
 # Agent metadata
 .goa/
 *.bak
+test.db2
+?
