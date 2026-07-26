@@ -1404,7 +1404,52 @@ func funcCallToString(v *sql.FuncCall) string {
 		result += exprToString(arg)
 	}
 	result += ")"
+	if v.Over != nil {
+		result += " OVER " + windowDefToString(v.Over)
+	}
 	return result
+}
+
+func windowDefToString(w *sql.WindowDef) string {
+	if w == nil {
+		return ""
+	}
+	// Named window reference (no PARTITION BY/ORDER BY specs)
+	if len(w.Partitions) == 0 && len(w.OrderBy) == 0 && w.FrameSpec == "" {
+		return w.Name
+	}
+	result := "("
+	// PARTITION BY
+	if len(w.Partitions) > 0 {
+		result += "PARTITION BY "
+		for j, p := range w.Partitions {
+			if j > 0 {
+				result += ", "
+			}
+			result += exprToString(p)
+		}
+	}
+	// ORDER BY inside window
+	if len(w.OrderBy) > 0 {
+		if len(w.Partitions) > 0 {
+			result += " "
+		}
+		result += "ORDER BY "
+		for j, ob := range w.OrderBy {
+			if j > 0 {
+				result += ", "
+			}
+			result += exprToString(ob.Expr)
+			if ob.Desc {
+				result += " DESC"
+			}
+		}
+	}
+	// Frame spec
+	if w.FrameSpec != "" {
+		result += " " + w.FrameSpec
+	}
+	return result + ")"
 }
 
 func betweenToString(v *sql.Between) string {

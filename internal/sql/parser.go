@@ -3351,7 +3351,7 @@ func (p *Parser) parseFunctionCall(name string) Expr {
 		p.next()
 		p.expect(TokenRParen)
 		fc := &FuncCall{Name: name, Args: args, Distinct: distinct}
-		p.skipWindowClause()
+		fc.Over = p.parseWindowClause()
 		return fc
 	}
 	// Handle empty argument list with ORDER BY: count(ORDER BY x)
@@ -3374,7 +3374,7 @@ func (p *Parser) parseFunctionCall(name string) Expr {
 	if fc == nil {
 		fc = &FuncCall{Name: name, Args: args, Distinct: distinct}
 	}
-	p.skipWindowClause()
+	fc.Over = p.parseWindowClause()
 	return fc
 }
 
@@ -3660,13 +3660,57 @@ func formatFuncCall(v *FuncCall) string {
 	return v.Name + "(" + strings.Join(args, ", ") + ")"
 }
 
+// parseWindowClause parses an OVER clause after a function call, returning a WindowDef.
+// For named windows (OVER name), stores the name and returns a WindowDef.
+// For inline specs (OVER (...)), skips them entirely to avoid complex frame spec parsing
+// (can cause regressions like altertab3/12.1).
+// Also handles FILTER and WITHIN GROUP clauses (skipped).
+func (p *Parser) parseWindowClause() *WindowDef {
+	var over *WindowDef
+	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
+		p.next() // skip OVER
+		// Named window: OVER windowName
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			over = &WindowDef{Name: p.cur.Value}
+			p.next()
+		} else if p.cur.Type == TokenLParen {
+			// Inline window spec: too complex to safely parse (can cause 12.1 regression)
+			// Use skip to consume tokens without storing
+			p.skipInlineWindowSpec()
+		}
+		// If neither, OVER was incomplete (e.g., "OVER ," in 12.1) — just skip
+	}
+	if p.cur.Type == TokenKeyword && p.cur.Value == "FILTER" {
+		p.next() // skip FILTER
+		if p.cur.Type == TokenLParen {
+			p.next()
+			if p.cur.Type == TokenKeyword && p.cur.Value == "WHERE" {
+				p.next()
+				p.parseExpr()
+			}
+			p.expect(TokenRParen)
+		}
+	}
+	if p.cur.Type == TokenKeyword && p.cur.Value == "WITHIN" {
+		p.next()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "GROUP" {
+			p.next()
+			if p.expect(TokenLParen) {
+				p.parseOrderBy()
+				p.expect(TokenRParen)
+			}
+		}
+	}
+	return over
+}
+
 // skipWindowClause skips window function clauses (OVER, FILTER, WITHIN GROUP)
 // after a function call. This is a stub: the window clause is parsed but not
 // semantically analyzed.
-func (p *Parser) skipWindowClause() {
-	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
-		p.next() // skip OVER
-		p.skipWindowSpec()
+ func (p *Parser) skipWindowClause() {
+ 	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
+ 		p.next() // skip OVER
+ 		p.skipWindowSpec()
 	}
 	if p.cur.Type == TokenKeyword && p.cur.Value == "FILTER" {
 		p.next() // skip FILTER

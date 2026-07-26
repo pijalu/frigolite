@@ -419,6 +419,7 @@ type FuncCall struct {
 	Args     []Expr
 	Distinct bool         // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
 	OrderBy  []OrderByTerm // ORDER BY inside aggregate function call
+	Over     *WindowDef    // OVER clause for window functions (nil if not a window function)
 }
 
 func (e *FuncCall) expr() {}
