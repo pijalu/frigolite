@@ -3037,6 +3037,11 @@ func (p *Parser) parseInOp(left Expr) Expr {
 	if !p.expect(TokenLParen) {
 		return left
 	}
+	// Check for empty IN () — valid in SQLite as IN (empty-list)
+	if p.cur.Type == TokenRParen {
+		p.next() // consume )
+		return &InList{Operand: left, List: []Expr{}}
+	}
 	// Check for subquery: IN (SELECT ...)
 	if p.cur.Type == TokenKeyword && p.cur.Value == "SELECT" {
 		sel := p.parseSelect()
@@ -3068,6 +3073,11 @@ func (p *Parser) parseNegatedInOp(left Expr) Expr {
 	}
 	if !p.expect(TokenLParen) {
 		return left
+	}
+	// Check for empty IN () — valid in SQLite as NOT IN (empty-list)
+	if p.cur.Type == TokenRParen {
+		p.next() // consume )
+		return &InList{Operand: left, List: []Expr{}, Negated: true}
 	}
 	// Check for subquery: NOT IN (SELECT ...)
 	if p.cur.Type == TokenKeyword && p.cur.Value == "SELECT" {
@@ -3582,7 +3592,10 @@ func ExprString(e Expr) string {
 		}
 		return v.Name
 	case *BinaryOp:
-		return ExprString(v.Left) + " " + v.Operator + " " + ExprString(v.Right)
+		if v.Operator == "OR" || v.Operator == "AND" {
+			return ExprString(v.Left) + " " + v.Operator + " " + ExprString(v.Right)
+		}
+		return ExprString(v.Left) + v.Operator + ExprString(v.Right)
 	case *UnaryOp:
 		return v.Operator + " " + ExprString(v.Operand)
 	case *IsNull:

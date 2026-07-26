@@ -1359,6 +1359,9 @@ func exprToString(expr sql.Expr) string {
 	case *sql.NullLit:
 		return "NULL"
 	case *sql.BinaryOp:
+		if v.Operator == "OR" || v.Operator == "AND" {
+			return exprToString(v.Left) + " " + v.Operator + " " + exprToString(v.Right)
+		}
 		return exprToString(v.Left) + v.Operator + exprToString(v.Right)
 	case *sql.UnaryOp:
 		if v.Operator == "NOT" {
@@ -5583,7 +5586,7 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
 	buf.WriteString(tableName)
-	buf.WriteString("(")
+	buf.WriteString(" (")
 	for i, col := range colDefs {
 		if i > 0 {
 			buf.WriteString(", ")

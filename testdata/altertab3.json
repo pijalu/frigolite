@@ -61,7 +61,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE name = 'v1'",
-          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE a=1 OR (b IN ())}"
+          "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE a=1 OR b IN ()}"
         }
       ]
     },
@@ -1093,7 +1093,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{CREATE TABLE t1(a INT, b INT)}"
+          "expect": "{CREATE TABLE t1 (a INT, b INT)}"
         }
       ]
     },
@@ -1129,7 +1129,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{CREATE TABLE t1(a INT, b INT)}"
+          "expect": "{CREATE TABLE t1 (a INT, b INT)}"
         }
       ]
     },
