@@ -116,6 +116,7 @@ func tokenName(typ TokenType, value string) string {
 		TokenArrow:      "'->'",
 		TokenDoubleArrow: "'->>'",
 		TokenMod:        "'%'",
+		TokenBitAnd:     "'&'",
 		TokenLParen:     "'('",
 		TokenRParen:     "')'",
 		TokenComma:      "','",
@@ -309,7 +310,7 @@ func (p *Parser) parseSelectJoins(s *SelectStmt) {
 			// Creates an implicit CROSS JOIN
 			p.next()
 			table := p.parseTableRef()
-			s.Joins = append(s.Joins, JoinClause{Table: table, JoinType: "CROSS"})
+			s.Joins = append(s.Joins, JoinClause{Table: table, JoinType: "CROSS", CommaJoin: true})
 		} else {
 			break
 		}

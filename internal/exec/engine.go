@@ -4021,7 +4021,7 @@ func (e *Engine) execAlterTable(s *sql.AlterTableStmt) *Result {
 		if s.Column != "" {
 				// ALTER TABLE ... RENAME [COLUMN] column TO newname
 				// Column rename — validate triggers before proceeding
-				if err := e.validateRename(s.Table, s.NewName); err != nil {
+				if err := e.validateRename(s.Table, s.Table); err != nil {
 					return &Result{Error: err}
 				}
 				return &Result{}
@@ -5643,6 +5643,9 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 	case "%":
 		if left == nil || right == nil { return nil, nil }
 		return modValues(left, right)
+	case "&":
+		if left == nil || right == nil { return nil, nil }
+		return bitwiseAnd(left, right)
 	case "||":
 		return evalConcat(left, right)
 	case "AND":
@@ -6052,6 +6055,15 @@ func modValues(a, b interface{}) (interface{}, error) {
 		return int64(af) % int64(bf), nil
 	}
 	return nil, fmt.Errorf("cannot mod non-numeric values")
+}
+
+func bitwiseAnd(a, b interface{}) (interface{}, error) {
+	ai, aok := a.(int64)
+	bi, bok := b.(int64)
+	if aok && bok {
+		return ai & bi, nil
+	}
+	return nil, fmt.Errorf("cannot bitwise-AND non-integer values")
 }
 
 func concatValues(a, b interface{}) (interface{}, error) {

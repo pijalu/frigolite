@@ -149,6 +149,10 @@ func (t *Tokenizer) Next() Token {
 		t.pos++
 		t.last = Token{Type: TokenMod, Value: "%", Pos: pos}
 		return t.last
+	case ch == '&':
+		t.pos++
+		t.last = Token{Type: TokenBitAnd, Value: "&", Pos: pos}
+		return t.last
 	case ch == '{' || ch == '}':
 		// TCL-specific characters: skip them (used in compat test framework)
 		t.pos++
