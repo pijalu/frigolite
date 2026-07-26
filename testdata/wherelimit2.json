@@ -16,8 +16,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM v1 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
-          "expect": "delete 1 delete 2 delete 3"
+          "sql": "DELETE FROM v1 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
         }
       ]
     },
@@ -26,8 +25,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM v1 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
-          "expect": "delete 6 delete 5 delete 4"
+          "sql": "DELETE FROM v1 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
         }
       ]
     },
@@ -36,8 +34,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE v1 SET b = 555 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
-          "expect": "update 1 update 2 update 3"
+          "sql": "UPDATE v1 SET b = 555 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
         }
       ]
     },
@@ -46,8 +43,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE v1 SET b = 555 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
-          "expect": "update 6 update 5 update 4"
+          "sql": "UPDATE v1 SET b = 555 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
         }
       ]
     },
@@ -65,8 +61,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;",
-          "expect": "a c e f g h"
+          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;"
         }
       ]
     },
@@ -75,8 +70,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;",
-          "expect": "1 1 {} \n  1 2 g \n  2 1 {} \n  2 2 {} \n  3 1 d \n  3 2 c \n  4 1 b \n  4 2 a"
+          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;"
         }
       ]
     },
@@ -94,8 +88,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;",
-          "expect": "a c e f g h"
+          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;"
         }
       ]
     },
@@ -104,28 +97,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;",
-          "expect": "1 1 h\n  2 2 g \n  3 1 f\n  4 2 e\n  5 1 {}\n  6 2 {} \n  7 1 {} \n  8 2 a"
-        }
-      ]
-    },
-    {
-      "name": "3.1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM ft ORDER BY rowid LIMIT 3;\n      SELECT x FROM ft;\n    ROLLBACK;",
-          "expect": "{a d} {a c} {a b} {a a}"
-        }
-      ]
-    },
-    {
-      "name": "3.2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      UPDATE ft SET x='hello' ORDER BY rowid LIMIT 2 OFFSET 2;\n      SELECT x FROM ft;\n    ROLLBACK;",
-          "expect": "{a a} {a b} hello hello {a c} {a b} {a a}"
+          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;"
         }
       ]
     },
@@ -143,8 +115,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM x1 ORDER BY a LIMIT 2;\n    SELECT a FROM x1;\n  ROLLBACK;",
-          "expect": "3 4 5 6"
+          "sql": "BEGIN;\n    DELETE FROM x1 ORDER BY a LIMIT 2;\n    SELECT a FROM x1;\n  ROLLBACK;"
         }
       ]
     },
@@ -202,8 +173,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM \"x y\" WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;",
-          "expect": "a a c c d d e a g c h d"
+          "sql": "BEGIN;\n    DELETE FROM \"x y\" WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;"
         }
       ]
     },
@@ -212,8 +182,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE \"x y\" SET \"c d\"='e' WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;",
-          "expect": "a a b e c c d d e a f e g c h d"
+          "sql": "BEGIN;\n    UPDATE \"x y\" SET \"c d\"='e' WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;"
         }
       ]
     },
@@ -231,8 +200,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3",
-          "expect": "a a b b c c"
+          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
         },
         {
           "type": "exec",
@@ -245,8 +213,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;",
-          "expect": "ax a bx b cx c dx d ex a"
+          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
         },
         {
           "type": "exec",

@@ -26,8 +26,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;",
-          "expect": "1 2"
+          "sql": "CREATE VIEW v3 AS SELECT * FROM main.t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v3;"
         }
       ]
     },
@@ -36,8 +35,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;",
-          "expect": "1 2"
+          "sql": "CREATE VIEW v2 AS SELECT * FROM t1;\n  WITH t1(a, b) AS ( SELECT 3, 4 ) SELECT * FROM v2;"
         }
       ]
     }

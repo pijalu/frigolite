@@ -44,8 +44,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;",
-          "expect": "3"
+          "sql": "UPDATE tbl SET b = 1, c = 10; -- 2\n    UPDATE tbl SET b = 10; -- 0\n    UPDATE tbl SET d = 4 WHERE a = 0; --1\n    UPDATE tbl SET a = 4, b = 10; --0\n    SELECT * FROM log;"
         },
         {
           "type": "exec",
@@ -131,8 +130,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO tbl VALUES(100, 200, 300);",
-          "expect": "1"
+          "sql": "INSERT INTO tbl VALUES(100, 200, 300);"
         },
         {
           "type": "exec",

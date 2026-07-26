@@ -11,8 +11,7 @@ C_API_RE = re.compile(r'sqlite3_(prepare|step|column|finalize|exec\b|limit|db_co
 # NOTE: Only features that the engine truly cannot handle should be here.
 # Features that work as no-ops (ATTACH, SAVEPOINT, etc.) are NOT filtered.
 UNSUPPORTED = re.compile(
-    r'\b(WINDOW\s|OVER\s|'
-    r'fts\d+\s*\(|rtree\s*\(|'
+    r'\b(fts\d+\s*\(|rtree\s*\(|'
     r'WITHOUT\s+ROWID\s|\$\d+\b|zeroblob\s*\(|zipfile|'
     r'writecrash|'
     r'PRAGMA\s+(wal_|journal_mode=WAL|page_count|cache_flush|locking_mode|'
@@ -27,7 +26,7 @@ UNSUPPORTED = re.compile(
 UNSUPPORTED_IFCAPABLE = {
     'fts3', 'fts4', 'fts5', 'rtree', 'json1', 'icu', 'session',
     'dbstat', 'csv', 'dbdata', 'decimal', 'memorydb', 'shared_cache',
-    'direct_read', 'dirread', 'windowfunc',
+    'direct_read', 'dirread',
 }
 
 # ifcapable features that ARE supported at the block level

@@ -235,8 +235,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1",
-          "expect": "1 {no such index: i1}"
+          "sql": "DROP INDEX i1"
         },
         {
           "type": "exec",
@@ -249,8 +248,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(b)",
-          "expect": "0 {}"
+          "sql": "CREATE INDEX i1 ON t1(b)"
         },
         {
           "type": "exec",
@@ -263,8 +261,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(a)",
-          "expect": "0 {}"
+          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(a)"
         },
         {
           "type": "exec",

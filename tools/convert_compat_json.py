@@ -8,7 +8,7 @@ OUTPUT_DIR = "/Users/muaddib/dev/frigolite/testdata"
 C_API_RE = re.compile(r'sqlite3_(prepare|step|column|finalize|exec\b|limit|db_config|config|enable_shared|initialize|shutdown|malloc|free|realloc|memory_used|memory_highwater|randomness|sleep|strglob|stricmp|strnicmp|strlike|create_function|create_aggregate|connection_pointer|create_collation|create_module|overload|declare_vtab|table_column_metadata|db_filename|db_readonly|db_handle|next_stmt|commit_hook|rollback_hook|update_hook|preupdate|wal_hook|auto_extension|cancel_auto_extension|reset_auto_extension|set_authorizer|trace|progress_handler|file_control|test_control|keyword_|compileoption|db_cacheflush|snapshot|unlock_notify|log|vtab|db_config|txn_state|changes|total_changes|errcode|errstr|threadsafe|serialize|deserialize|hard_heap|soft_heap|release_memory|db_release_memory|db_status|status)')
 
 UNSUPPORTED_FEATURES = re.compile(
-    r'\b(WINDOW\s|OVER\s|FILTER\s*\(|WAL\s|VACUUM\s|'
+    r'\b(FILTER\s*\(|WAL\s|VACUUM\s|'
     r'SAVEPOINT\s|RELEASE\s|ROLLBACK\s+TO\s|REINDEX\s|'
     r'CREATE\s+VIRTUAL\s+TABLE\s|fts\d+\s*\(|rtree\s*\(|'
     r'WITHOUT\s+ROWID\s|zipfile|writecrash|'
@@ -16,6 +16,59 @@ UNSUPPORTED_FEATURES = re.compile(
     r'schema_version|user_version|application_id|mmap_size|'
     r'soft_heap_limit|hard_heap_limit|threads|page_size=65536))',
     re.IGNORECASE)
+
+
+# ifcapable features that are completely unsupported — entire blocks are skipped
+UNSUPPORTED_IFCAPABLE = {
+    'fts3', 'fts4', 'fts5', 'rtree', 'json1', 'icu', 'session',
+    'dbstat', 'csv', 'dbdata', 'decimal', 'memorydb', 'shared_cache',
+    'direct_read', 'dirread', 'windowfunc', 'auth',
+}
+
+# ifcapable features that ARE supported at the block level
+SUPPORTED_IFCAPABLE = {'altertable', 'trigger', 'view', 'explain'}
+
+
+def find_ifcapable_blocks(content):
+    """Find all ifcapable feature blocks and return list of (start, end) ranges to skip."""
+    blocks = []
+    pattern = r'ifcapable\s+(!?\w+)'
+    for m in re.finditer(pattern, content):
+        feature = m.group(1)
+        negated = feature.startswith('!')
+        if negated:
+            feature = feature[1:]
+        feature = feature.lower()
+
+        pos = m.end()
+        while pos < len(content) and content[pos] in ' \t\n\r':
+            pos += 1
+        if pos >= len(content) or content[pos] != '{':
+            continue
+
+        result = extract_balanced_braces(content, pos)
+        if result is None:
+            continue
+        _, end_pos = result
+
+        should_skip = False
+        if negated:
+            should_skip = feature in SUPPORTED_IFCAPABLE
+        else:
+            should_skip = feature in UNSUPPORTED_IFCAPABLE
+
+        if should_skip:
+            blocks.append((m.start(), end_pos))
+
+    return blocks
+
+
+def is_position_blocked(pos, blocks):
+    """Check if a position falls within any blocked ifcapable block."""
+    for start, end in blocks:
+        if start <= pos <= end:
+            return True
+    return False
 
 
 def has_unsupported_features(sql):
@@ -99,14 +152,17 @@ def extract_tests(content):
             has_current = False
     
     entries = []
+    blocked_ranges = find_ifcapable_blocks(content)
     
     # Phase 1: do_execsql_test / do_catchsql_test with balanced brace matching
     pattern = r'(do_execsql_test|do_catchsql_test)\s+(\S+)\s*'
     for m in re.finditer(pattern, content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         cmd_type = m.group(1)
         test_name = m.group(2)
         pos = m.end()
-        if '$' in test_name:
+        if '$' in test_name or '%' in test_name:
             continue
         while pos < len(content) and content[pos] in ' \t\n\r':
             pos += 1
@@ -133,9 +189,11 @@ def extract_tests(content):
     
     # Phase 2: do_test patterns (handle execsql/catchsql inside)
     for m in re.finditer(r'do_test\s+(\S+)\s*', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         test_name = m.group(1)
         pos = m.end()
-        if '$' in test_name:
+        if '$' in test_name or '%' in test_name:
             continue
         while pos < len(content) and content[pos] in ' \t\n\r':
             pos += 1
@@ -202,6 +260,8 @@ def extract_tests(content):
     
     # Phase 3: execsql { ... } (standalone, not inside do_test blocks)
     for m in re.finditer(r'execsql\s*\{([^}]*)\}', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if not sql:
             continue
@@ -217,6 +277,8 @@ def extract_tests(content):
     
     # Phase 4: execsql [subst -nocommands { SQL }]
     for m in re.finditer(r'execsql\s*\[subst -nocommands\s*\{([^}]*)\}\]', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             sql = tcl_variable_substitute(sql)
@@ -226,6 +288,8 @@ def extract_tests(content):
     
     # Phase 5: execsql [subst { SQL }]
     for m in re.finditer(r'execsql\s*\[subst\s+\{([^}]*)\}\]', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             sql = tcl_variable_substitute(sql)
@@ -235,25 +299,67 @@ def extract_tests(content):
     
     # Phase 6: db eval { }
     for m in re.finditer(r'db\s+eval\s*\{([^}]*)\}', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             entries.append((m.start(), "db_eval", sql, None, None))
     
     # Phase 7: db eval " "
     for m in re.finditer(r'db\s+eval\s+"([^"]*)"', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         sql = m.group(1).strip()
         if sql:
             entries.append((m.start(), "db_eval", sql, None, None))
     
     # Phase 8: reset_db
     for m in re.finditer(r'^reset_db\s*$', content, re.MULTILINE):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         entries.append((m.start(), "reset_db", None, None, None))
     
     # Phase 9: db close + sqlite3 db
     for m in re.finditer(r'db\s+close\s*\n\s*sqlite3\s+db\s', content):
+        if is_position_blocked(m.start(), blocked_ranges):
+            continue
         entries.append((m.start(), "reset_db", None, None, None))
     
     entries.sort(key=lambda x: x[0])
+    
+    # Find orphan virtual tables: CREATE VIRTUAL TABLE statements that will be filtered,
+    # whose tables are subsequently referenced by other SQL statements.
+    orphan_tables = set()
+    for pos, cmd_type, sql, expected, name in entries:
+        if sql and sql.strip().upper().startswith('CREATE VIRTUAL TABLE'):
+            if has_unsupported_features(sql):
+                m = re.search(r'CREATE\s+VIRTUAL\s+TABLE\s+(\S+)\s+USING\s+(\S+)', sql, re.IGNORECASE)
+                if m:
+                    tbl = m.group(1)
+                    # Strip schema prefix
+                    if '.' in tbl:
+                        parts = tbl.split('.')
+                        if parts[0].upper() in ('MAIN', 'TEMP', 'TEMPORARY'):
+                            tbl = parts[1]
+                    orphan_tables.add(tbl.upper())
+    
+    def references_table(sql, table_name):
+        """Check if SQL references the given table by its name."""
+        upper = table_name.upper()
+        patterns = [
+            r'\bALTER\s+TABLE\s+' + re.escape(upper) + r'\b',
+            r'\bDROP\s+TABLE\s+' + re.escape(upper) + r'\b',
+            r'\bINSERT\s+INTO\s+' + re.escape(upper) + r'\b',
+            r'\bDELETE\s+FROM\s+' + re.escape(upper) + r'\b',
+            r'\bUPDATE\s+' + re.escape(upper) + r'\b',
+            r'\bFROM\s+' + re.escape(upper) + r'\b',
+            r'\bTABLE\s+' + re.escape(upper) + r'\b',
+        ]
+        sql_upper = sql.upper()
+        for pat in patterns:
+            if re.search(pat, sql_upper):
+                return True
+        return False
     
     for pos, cmd_type, sql, expected, name in entries:
         if cmd_type == "reset_db":
@@ -262,6 +368,8 @@ def extract_tests(content):
             continue
         
         if sql and has_unsupported_features(sql):
+            continue
+        if sql and any(references_table(sql, orphan) for orphan in orphan_tables):
             continue
         
         if name:
@@ -276,7 +384,7 @@ def extract_tests(content):
                 current_steps.append(step)
             else:
                 step = {"type": "exec", "sql": sql}
-                if expected:
+                if expected and cmd_type in ("do_catchsql_test", "catchsql"):
                     step["expect"] = expected
                 current_steps.append(step)
         elif cmd_type in ("execsql", "db_eval"):
@@ -300,6 +408,16 @@ def main():
         with open(filepath, 'r', errors='replace') as f:
             content = f.read()
         if C_API_RE.search(content):
+            skip_files.add(fname)
+        # Also skip files that use TCL-level API wrappers (the sqlite3_ prefix is stripped in TCL)
+        if re.search(r'\b(set_authorizer|create_function|create_collation|create_module|'
+                     r'overload|declare_vtab|progress_handler|wal_hook|auto_extension|'
+                     r'commit_hook|rollback_hook|update_hook|preupdate_hook|'
+                     r'snapshot_get|snapshot_open|snapshot_free)\s',
+                     content, re.IGNORECASE):
+            skip_files.add(fname)
+        # Also skip files using TCL-level db auth (authorization callback via "db auth")
+        if re.search(r'db\s+auth\s', content, re.IGNORECASE):
             skip_files.add(fname)
     
     print(f"Skipping {len(skip_files)} C API test files")

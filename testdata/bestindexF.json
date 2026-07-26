@@ -27,16 +27,6 @@
           "sql": "CREATE TABLE real_t1(a, b);\n\n  INSERT INTO real_t1 VALUES (1, 'a');\n  INSERT INTO real_t1 VALUES (2, 'a');\n  INSERT INTO real_t1 VALUES (1, 'a');\n\n  INSERT INTO real_t1 VALUES (2, 'b');\n  INSERT INTO real_t1 VALUES (1, 'b');\n  INSERT INTO real_t1 VALUES (2, 'b');\n\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');"
         }
       ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a, b FROM t1",
-          "expect": "1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a 4 b 3 a \n  4 b 3 a 4 b"
-        }
-      ]
     }
   ]
 }

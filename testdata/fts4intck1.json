@@ -3,6 +3,16 @@
   "name": "fts4intck1",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT AS (slang(b)));\n  INSERT INTO t1(b) VALUES('the quick fox jumps over the lazy brown dog');\n  SELECT c FROM t1;",
+          "expect": "{deh quick fox jumps ovehr deh lazy brown dog}"
+        }
+      ]
+    },
+    {
       "name": "1.2",
       "steps": [
         {

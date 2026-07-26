@@ -33,7 +33,7 @@ func checkQueryResult(t *testing.T, res *Result, expected string) {
 	for _, row := range res.Rows {
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "NULL")
+				parts = append(parts, "")
 			} else {
 				parts = append(parts, formatSQLiteValue(val))
 			}

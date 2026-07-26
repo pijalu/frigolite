@@ -60,8 +60,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);",
-          "expect": "1024"
+          "sql": "BEGIN; INSERT INTO t1 VALUES(1, 2);"
         },
         {
           "type": "exec",

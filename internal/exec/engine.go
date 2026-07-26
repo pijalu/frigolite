@@ -278,6 +278,10 @@ func formatColumnDef(buf *strings.Builder, col sql.ColumnDef) {
 		buf.WriteString(" COLLATE ")
 		buf.WriteString(col.Collate)
 	}
+	if col.ConstraintName != "" {
+		buf.WriteString(" CONSTRAINT ")
+		buf.WriteString(col.ConstraintName)
+	}
 	if col.Check != nil {
 		buf.WriteString(" CHECK(")
 		buf.WriteString(sql.ExprString(col.Check))
@@ -652,13 +656,32 @@ func updateStmtToString(s *sql.UpdateStmt) string {
 	b.WriteString("UPDATE ")
 	b.WriteString(s.Table)
 	b.WriteString(" SET ")
-	for i, a := range s.Assignments {
-		if i > 0 {
-			b.WriteString(", ")
+	if len(s.SetParenColumns) > 0 {
+		// Parenthesized SET (col1,col2,...)=(expr1,expr2,...)
+		b.WriteString("(")
+		for i, col := range s.SetParenColumns {
+			if i > 0 {
+				b.WriteString(",")
+			}
+			b.WriteString(col)
 		}
-		b.WriteString(a.Column)
-		b.WriteString("=")
-		b.WriteString(sql.ExprString(a.Value))
+		b.WriteString(")=(")
+		for i, a := range s.Assignments {
+			if i > 0 {
+				b.WriteString(",")
+			}
+			b.WriteString(sql.ExprString(a.Value))
+		}
+		b.WriteString(")")
+	} else {
+		for i, a := range s.Assignments {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(a.Column)
+			b.WriteString("=")
+			b.WriteString(sql.ExprString(a.Value))
+		}
 	}
 	if s.Where != nil {
 		b.WriteString(" WHERE ")
@@ -1113,7 +1136,23 @@ func selectStmtToString(s *sql.SelectStmt) string {
 	if s == nil {
 		return ""
 	}
-	result := "SELECT "
+	result := ""
+	// CTEs must be output before SELECT: WITH name AS (...) SELECT ...
+	if len(s.CTEs) > 0 {
+		result += "WITH "
+		for i, cte := range s.CTEs {
+			if i > 0 {
+				result += ", "
+			}
+			result += cte.Name
+			if len(cte.Columns) > 0 {
+				result += "(" + strings.Join(cte.Columns, ",") + ")"
+			}
+			result += " AS (" + selectStmtToString(cte.Select) + ")"
+		}
+		result += " "
+	}
+	result += "SELECT "
 	if s.Distinct {
 		result += "DISTINCT "
 	}
@@ -1166,6 +1205,58 @@ func selectStmtToString(s *sql.SelectStmt) string {
 		if s.Offset != nil {
 			result += " OFFSET " + exprToString(s.Offset)
 		}
+	}
+	// Handle WINDOW clause
+	if len(s.Windows) > 0 {
+		result += " WINDOW "
+		for i, w := range s.Windows {
+			if i > 0 {
+				result += ", "
+			}
+			result += w.Name + " AS ("
+			// PARTITION BY
+			if len(w.Partitions) > 0 {
+				result += "PARTITION BY "
+				for j, p := range w.Partitions {
+					if j > 0 {
+						result += ", "
+					}
+					result += exprToString(p)
+				}
+			}
+			// ORDER BY inside window
+			if len(w.OrderBy) > 0 {
+				if len(w.Partitions) > 0 {
+					result += " "
+				}
+				result += "ORDER BY "
+				for j, ob := range w.OrderBy {
+					if j > 0 {
+						result += ", "
+					}
+					result += exprToString(ob.Expr)
+					if ob.Desc {
+						result += " DESC"
+					}
+				}
+			}
+			result += ")"
+		}
+	}
+	// Handle compound operators (UNION, INTERSECT, EXCEPT)
+	if s.SetOp != sql.SetNone && s.Union != nil {
+		switch s.SetOp {
+		case sql.SetUnion:
+			result += "\n    UNION"
+			if s.UnionAll {
+				result += " ALL"
+			}
+		case sql.SetIntersect:
+			result += "\n    INTERSECT"
+		case sql.SetExcept:
+			result += "\n    EXCEPT"
+		}
+		result += "\n    " + selectStmtToString(s.Union)
 	}
 	return result
 }
@@ -1982,7 +2073,7 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		}
 		// Check for circular view reference
 		if e.resolvingViews[s.From.Name] {
-			return &Result{Error: fmt.Errorf("circular view reference: %s", s.From.Name)}
+			return &Result{Error: fmt.Errorf("view %s is circularly defined", s.From.Name)}
 		}
 		if e.resolvingViews == nil {
 			e.resolvingViews = make(map[string]bool)
@@ -2774,6 +2865,61 @@ func (e *Engine) exprHasColumnRef(expr sql.Expr) bool {
 	}
 }
 
+// exprContainsSubquery checks if an expression tree contains a Subquery node.
+func exprContainsSubquery(expr sql.Expr) bool {
+	if expr == nil {
+		return false
+	}
+	switch v := expr.(type) {
+	case *sql.Subquery:
+		return true
+	case *sql.BinaryOp:
+		return exprContainsSubquery(v.Left) || exprContainsSubquery(v.Right)
+	case *sql.UnaryOp:
+		return exprContainsSubquery(v.Operand)
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if exprContainsSubquery(arg) {
+				return true
+			}
+		}
+		for _, ob := range v.OrderBy {
+			if exprContainsSubquery(ob.Expr) {
+				return true
+			}
+		}
+		return false
+	case *sql.Between:
+		return exprContainsSubquery(v.Operand) || exprContainsSubquery(v.Low) || exprContainsSubquery(v.High)
+	case *sql.InList:
+		if exprContainsSubquery(v.Operand) {
+			return true
+		}
+		for _, item := range v.List {
+			if exprContainsSubquery(item) {
+				return true
+			}
+		}
+		return false
+	case *sql.CaseExpr:
+		if exprContainsSubquery(v.Operand) {
+			return true
+		}
+		for _, w := range v.Whens {
+			if exprContainsSubquery(w.When) || exprContainsSubquery(w.Then) {
+				return true
+			}
+		}
+		return exprContainsSubquery(v.Else)
+	case *sql.CastExpr:
+		return exprContainsSubquery(v.Operand)
+	case *sql.ExistsExpr:
+		return true
+	default:
+		return false
+	}
+}
+
 // selectHasCorrelatedAggSubquery checks if a SELECT statement (or any nested
 // subquery within it) contains a correlated aggregate — an aggregate function
 // that references columns from an outer context.
@@ -2927,7 +3073,7 @@ func (e *Engine) evalAggOverOuterRows(s *sql.SelectStmt, outerRows []map[string]
 						if err != nil {
 							args[i] = nil
 						} else {
-							args[i] = v
+   				args[i] = util.UnwrapColumnValue(v)
 						}
 					}
 					if err := agg.Step(args); err != nil {
@@ -2957,6 +3103,19 @@ func (e *Engine) evalAggOverOuterRows(s *sql.SelectStmt, outerRows []map[string]
 // This distinguishes from aggregates with no column refs (like count(*))
 // which should use inner rows, not outer rows.
 func (e *Engine) aggregateHasOnlyOuterRefs(fn *sql.FuncCall, innerColNames map[string]bool) bool {
+	// If the aggregate has a subquery in its arguments, it needs inner rows
+	// for the subquery to evaluate correctly (the subquery may reference inner columns).
+	for _, arg := range fn.Args {
+		if exprContainsSubquery(arg) {
+			return false
+		}
+	}
+	// Check ORDER BY terms for subqueries
+	for _, ob := range fn.OrderBy {
+		if exprContainsSubquery(ob.Expr) {
+			return false
+		}
+	}
 	hasColRefs := false
 	for _, arg := range fn.Args {
 		if e.exprHasColumnRef(arg) {
@@ -2998,7 +3157,7 @@ func (e *Engine) evalAggOverOuterRowsWithInner(s *sql.SelectStmt, outerRows, all
 						if err != nil {
 							args[i] = nil
 						} else {
-							args[i] = v
+							args[i] = util.UnwrapColumnValue(v)
 						}
 					}
 					if err := agg.Step(args); err != nil {
@@ -3095,9 +3254,12 @@ func (e *Engine) evalAggregatesEmpty(s *sql.SelectStmt) *Result {
 	for _, col := range s.Columns {
 		if fn, ok := col.Expr.(*sql.FuncCall); ok {
 			if f, found := e.funcs.Find(fn.Name); found && f.Type == function.TypeAggregate {
-				if f.Name == "COUNT" {
+				switch f.Name {
+				case "COUNT":
 					outRow = append(outRow, int64(0))
-				} else {
+				case "TOTAL":
+					outRow = append(outRow, float64(0.0))
+				default:
 					outRow = append(outRow, nil)
 				}
 				continue
@@ -3413,7 +3575,7 @@ func (e *Engine) evalAggFuncCall(v *sql.FuncCall, rowMaps []map[string]interface
 			if err != nil {
 				args[i] = nil
 			} else {
-				args[i] = val
+				args[i] = util.UnwrapColumnValue(val)
 			}
 		}
 		agg.Step(args)
@@ -3793,10 +3955,9 @@ func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []map[string]int
 			if err != nil {
 				args[i] = nil
 			} else {
-				args[i] = val
+				args[i] = util.UnwrapColumnValue(val)
 			}
 		}
-		// Build a key for deduplication
 		var key string
 		for _, a := range args {
 			if a == nil {
@@ -4366,13 +4527,8 @@ func (e *Engine) execAlterTable(s *sql.AlterTableStmt) *Result {
 	switch s.Action {
 	case "RENAME":
 		if s.Column != "" {
-				// ALTER TABLE ... RENAME [COLUMN] column TO newname
-				// Column rename — validate triggers before proceeding
-				if err := e.validateRename(s.Table, s.Table); err != nil {
-					return &Result{Error: err}
-				}
-				return &Result{}
-			}
+			return e.execAlterTableRenameColumn(s)
+		}
 		return e.execAlterTableRename(s)
 	case "ADD":
 		return e.execAlterTableAdd(s)
@@ -4413,6 +4569,248 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	e.renameUpdateRelatedEntries(oldName, newName)
 
 	return &Result{}
+}
+
+// execAlterTableRenameColumn handles ALTER TABLE ... RENAME [COLUMN] old_name TO new_name.
+func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
+	tableName := s.Table
+	oldColName := s.Column
+	newColName := s.NewName
+
+	if oldColName == "" || newColName == "" {
+		return &Result{Error: fmt.Errorf("ALTER TABLE RENAME COLUMN requires old and new column names")}
+	}
+
+	// Validate triggers before proceeding - reject rename if any trigger
+	// references a non-existent table (matches SQLite behavior).
+	if err := e.validateRename(tableName, tableName); err != nil {
+		return &Result{Error: err}
+	}
+
+	// Find the table entry
+	tableEntry, err := e.schema.FindTable(tableName)
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	// Check for virtual table
+	if e.isVirtualTable(tableEntry) {
+		return &Result{Error: fmt.Errorf("cannot rename column of virtual table %q", tableName)}
+	}
+
+	// Get column definitions, parsing them if needed
+	colDefs := e.colCache[tableName]
+	if colDefs == nil {
+		colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	}
+
+	// Find and rename the column in colDefs
+	found := false
+	for i, c := range colDefs {
+		if strings.EqualFold(c.Name, oldColName) {
+			colDefs[i].Name = newColName
+			found = true
+			break
+		}
+	}
+	if !found {
+		return &Result{Error: fmt.Errorf("no such column: %q", oldColName)}
+	}
+	e.colCache[tableName] = colDefs
+
+	// Update the CREATE TABLE SQL in the schema entry
+	newSQL := renameColumnInCreateTableSQL(tableEntry.SQL, oldColName, newColName)
+	if newSQL != "" && newSQL != tableEntry.SQL {
+		tableEntry.SQL = newSQL
+		_ = e.schema.RemoveEntry(tableEntry.Name)
+		_ = e.schema.AddEntry(tableEntry)
+	}
+
+	// Update triggers that reference the old column name
+	e.renameColumnInTriggers(tableName, oldColName, newColName)
+
+	// Update indexes that reference the old column name
+	e.renameColumnInIndexes(tableName, oldColName, newColName)
+
+	return &Result{}
+}
+
+// renameColumnInCreateTableSQL renames a column within CREATE TABLE SQL text.
+// It replaces the column name at the beginning of its definition while preserving
+// the rest of the column definition text (type, constraints, etc.).
+func renameColumnInCreateTableSQL(sqlStr, oldName, newName string) string {
+	upperSQL := strings.ToUpper(sqlStr)
+	if !strings.Contains(upperSQL, "CREATE TABLE") {
+		return ""
+	}
+
+	// Find the parenthesized column definitions
+	parenStart := strings.Index(sqlStr, "(")
+	if parenStart < 0 {
+		return ""
+	}
+	depth := 0
+	parenEnd := -1
+	for i := parenStart; i < len(sqlStr); i++ {
+		switch sqlStr[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				parenEnd = i
+				break
+			}
+		}
+	}
+	if parenEnd < 0 {
+		return ""
+	}
+
+	defText := sqlStr[parenStart+1 : parenEnd]
+	// Split by top-level commas
+	var parts []string
+	depth = 0
+	start := 0
+	for i := 0; i < len(defText); i++ {
+		switch defText[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case ',':
+			if depth == 0 {
+				parts = append(parts, defText[start:i])
+				start = i + 1
+			}
+		}
+	}
+	if start < len(defText) {
+		parts = append(parts, defText[start:])
+	}
+
+	// Find and rename the column in its definition part
+	oldUpper := strings.ToUpper(oldName)
+	for i, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed == "" {
+			continue
+		}
+		// Extract the column name (first word, handling quoted names)
+		colName := extractColumnName(trimmed)
+		if colName != "" && strings.EqualFold(colName, oldName) {
+			// Replace the first occurrence of the column name
+			if strings.HasPrefix(trimmed, `"`+colName+`"`) {
+				parts[i] = strings.Replace(trimmed, `"`+colName+`"`, `"`+newName+`"`, 1)
+			} else {
+				// For unquoted names, replace the first word
+				spaceIdx := strings.IndexAny(trimmed, " (\"")
+				if spaceIdx > 0 {
+					parts[i] = newName + trimmed[spaceIdx:]
+				} else {
+					parts[i] = newName
+				}
+			}
+			break
+		}
+		_ = oldUpper
+	}
+
+	// Rebuild the SQL
+	var buf strings.Builder
+	buf.WriteString(sqlStr[:parenStart+1])
+	for i, part := range parts {
+		if i > 0 {
+			buf.WriteString(",")
+		}
+		buf.WriteString(part)
+	}
+	buf.WriteString(sqlStr[parenEnd:])
+	return buf.String()
+}
+
+// extractColumnName extracts the column name from the start of a column definition.
+func extractColumnName(def string) string {
+	def = strings.TrimSpace(def)
+	if def == "" {
+		return ""
+	}
+	// Handle quoted identifiers "name"
+	if def[0] == '"' {
+		end := strings.Index(def[1:], "\"")
+		if end >= 0 {
+			return def[1 : 1+end]
+		}
+	}
+	// Handle backtick-quoted identifiers `name`
+	if def[0] == '`' {
+		end := strings.Index(def[1:], "`")
+		if end >= 0 {
+			return def[1 : 1+end]
+		}
+	}
+	// Regular unquoted name: take first word
+	spaceIdx := strings.IndexAny(def, " (\"")
+	if spaceIdx > 0 {
+		return def[:spaceIdx]
+	}
+	return def
+}
+
+// renameColumnInTriggers updates trigger SQL for triggers on the given table,
+// replacing old column name references with the new column name.
+func (e *Engine) renameColumnInTriggers(tableName, oldColName, newColName string) {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.Type == schema.TypeTrigger && strings.EqualFold(entry.TblName, tableName) {
+			newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+			if newSQL != entry.SQL {
+				entry.SQL = newSQL
+				_ = e.schema.RemoveEntry(entry.Name)
+				_ = e.schema.AddEntry(entry)
+			}
+		}
+	}
+}
+
+// renameColumnInIndexes updates index SQL for indexes on the given table,
+// replacing old column name references with the new column name.
+func (e *Engine) renameColumnInIndexes(tableName, oldColName, newColName string) {
+	entries, err := e.schema.GetEntries("")
+	if err != nil {
+		return
+	}
+	for _, entry := range entries {
+		if entry.Type == schema.TypeIndex && strings.EqualFold(entry.TblName, tableName) {
+			newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+			if newSQL != entry.SQL {
+				entry.SQL = newSQL
+				_ = e.schema.RemoveEntry(entry.Name)
+				_ = e.schema.AddEntry(entry)
+			}
+		}
+	}
+}
+
+// replaceColumnNameInSQL replaces occurrences of oldColName with newColName
+// in a SQL string, using word-boundary matching to avoid partial matches.
+func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
+	if sqlStr == "" || oldColName == "" || newColName == "" {
+		return sqlStr
+	}
+	// Use word-boundary regex to match the old column name as a standalone identifier.
+	// Match at word boundaries (\b) and handle dots (.colname) for qualified refs.
+	// This matches:
+	//   - colname at start/end of string
+	//   - colname preceded by space, comma, paren, operator, or dot
+	//   - colname followed by space, comma, paren, operator, or dot
+	quotedOld := regexp.QuoteMeta(oldColName)
+	re := regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + quotedOld + `([^a-zA-Z0-9_]|$)`)
+	result := re.ReplaceAllString(sqlStr, "${1}"+newColName+"${2}")
+	return result
 }
 
 // validateRename checks if the table can be renamed by verifying that
@@ -4483,7 +4881,7 @@ func (e *Engine) validateRename(oldName, newName string) error {
 	for _, entry := range entries {
 		if entry.Type == schema.TypeView {
 			if hasViewCircularRef(entry.SQL, entry.Name) {
-				return fmt.Errorf("error in view %s after rename: circular reference", entry.Name)
+				return fmt.Errorf("error in view %s: view %s is circularly defined", entry.Name, entry.Name)
 			}
 		}
 	}
@@ -4542,8 +4940,14 @@ func hasViewCircularRef(viewSQL, viewName string) bool {
 	if viewSQL == "" || viewName == "" {
 		return false
 	}
-	// Find " AS " after the view definition
+	// Check raw SQL for CTE-based circular references: WITH ... (SELECT ... viewName ...)
+	// This catches cases where selectStmtToString drops CTE definitions from stored SQL.
 	upper := strings.ToUpper(viewSQL)
+	if strings.Contains(upper, "WITH ") && strings.Contains(upper, strings.ToUpper(viewName)) {
+		// The SQL contains both WITH and the view name — likely a CTE self-reference
+		return true
+	}
+	// Find " AS " after the view definition
 	idx := strings.Index(upper, " AS ")
 	if idx < 0 {
 		return false
@@ -4566,6 +4970,15 @@ func hasViewCircularRef(viewSQL, viewName string) bool {
 	}
 	for _, j := range sel.Joins {
 		if strings.EqualFold(j.Table.Name, viewName) {
+			return true
+		}
+	}
+	// Check CTE definitions for circular references
+	for _, cte := range sel.CTEs {
+		if strings.EqualFold(cte.Name, viewName) {
+			return true
+		}
+		if cte.Select != nil && strings.EqualFold(cte.Select.From.Name, viewName) {
 			return true
 		}
 	}
@@ -4654,20 +5067,31 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// Add column to cached column definitions
-	colDefs := e.colCache[tableName]
-
-	// ALTER TABLE ... ADD CONSTRAINT is parsed as a table-level constraint,
-	// not a column definition. Skip empty column defs.
+	// Validate column name
 	if s.ColDef.Name != "" {
-		colDefs = append(colDefs, s.ColDef)
-	}
-	e.colCache[tableName] = colDefs
+		// Check for duplicate column name
+		colDefs := e.colCache[tableName]
+		if colDefs == nil {
+			colDefs = e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+		}
+		for _, c := range colDefs {
+			if strings.EqualFold(c.Name, s.ColDef.Name) {
+				return &Result{Error: fmt.Errorf("duplicate column name: %q", s.ColDef.Name)}
+			}
+		}
 
-	// Update schema SQL to reflect the new column
-	// SQLite stores the original CREATE TABLE SQL
-	// We just need the column to be accessible
-	_ = tableEntry
+		// Add column to cached column definitions
+		colDefs = append(colDefs, s.ColDef)
+		e.colCache[tableName] = colDefs
+
+		// Update the stored CREATE TABLE SQL to include the new column
+		newSQL := addColumnToCreateTableSQL(tableEntry.SQL, s.ColDef)
+		if newSQL != "" && newSQL != tableEntry.SQL {
+			tableEntry.SQL = newSQL
+			_ = e.schema.RemoveEntry(tableEntry.Name)
+			_ = e.schema.AddEntry(tableEntry)
+		}
+	}
 
 	return &Result{}
 }
@@ -4885,10 +5309,14 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 		}
 	}
 	if parenEnd < 0 {
-		return origSQL
+		// No closing paren — treat end of string as the virtual closing paren
+		parenEnd = len(origSQL)
 	}
 
-	trailingSQL := strings.TrimSpace(origSQL[parenEnd+1:])
+	trailingSQL := ""
+	if parenEnd+1 < len(origSQL) {
+		trailingSQL = strings.TrimSpace(origSQL[parenEnd+1:])
+	}
 	defText := origSQL[parenStart+1 : parenEnd]
 
 	// Split by top-level commas
@@ -4928,8 +5356,20 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 			rest := strings.TrimSpace(part[11:]) // after "CONSTRAINT "
 			restUpper := strings.ToUpper(rest)
 			if strings.HasPrefix(restUpper, upperName) || strings.HasPrefix(restUpper, upperQuotedName) {
-				// This is the constraint to drop - skip it
+				// This is the constraint to drop - skip it entirely
 				continue
+			}
+		}
+		// Check for column-level constraint: colName CONSTRAINT name ...
+		// Find " CONSTRAINT " within the part and check if the following name matches
+		conIdx := strings.Index(upperPart, " CONSTRAINT ")
+		if conIdx >= 0 {
+			rest := strings.TrimSpace(part[conIdx+11:]) // after " CONSTRAINT "
+			restUpper := strings.ToUpper(rest)
+			if strings.HasPrefix(restUpper, upperName) || strings.HasPrefix(restUpper, upperQuotedName) {
+				// Column-level constraint match — remove from CONSTRAINT to end
+				// Keep only the column name and type, removing all constraints
+				part = strings.TrimSpace(part[:conIdx])
 			}
 		}
 		keptParts = append(keptParts, part)
@@ -5096,6 +5536,49 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 		buf.WriteString(trailingSQL)
 	}
 	return buf.String()
+}
+
+// addColumnToCreateTableSQL adds a new column definition to a CREATE TABLE SQL string.
+func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
+	upper := strings.ToUpper(strings.TrimSpace(origSQL))
+	if !strings.HasPrefix(upper, "CREATE TABLE") {
+		return ""
+	}
+
+	// Find the closing paren of the table definition
+	parenStart := strings.Index(origSQL, "(")
+	if parenStart < 0 {
+		return ""
+	}
+	depth := 0
+	parenEnd := -1
+	for i := parenStart; i < len(origSQL); i++ {
+		switch origSQL[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				parenEnd = i
+				break
+			}
+		}
+	}
+	if parenEnd < 0 {
+		return ""
+	}
+
+	// Build the column definition text
+	var colBuf strings.Builder
+	formatColumnDef(&colBuf, colDef)
+	colText := colBuf.String()
+	if colText == "" {
+		return origSQL
+	}
+
+	// Insert the new column definition before the closing paren
+	result := origSQL[:parenEnd] + ", " + colText + origSQL[parenEnd:]
+	return result
 }
 
 func (e *Engine) isVirtualTable(entry *schema.Entry) bool {
@@ -6373,6 +6856,11 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 func toBool(v interface{}) bool {
 	if v == nil {
 		return false
+	}
+	// Unwrap ColumnValue so HAVING, WHERE, and boolean filters
+	// correctly evaluate scalar values from the database.
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
 	}
 	switch x := v.(type) {
 	case bool:

@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10",
-          "expect": "10"
+          "sql": "CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10"
         }
       ]
     },
@@ -54,8 +53,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  WITH tmp AS ( SELECT * FROM t1 ) SELECT x FROM tmp;",
-          "expect": "1 2"
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  WITH tmp AS ( SELECT * FROM t1 ) SELECT x FROM tmp;"
         }
       ]
     },
@@ -64,8 +62,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;",
-          "expect": "1 2"
+          "sql": "WITH tmp(a) AS ( SELECT * FROM t1 ) SELECT a FROM tmp;"
         }
       ]
     },
@@ -84,8 +81,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH tmp1(a) AS ( SELECT * FROM t1 ),\n       tmp2(x) AS ( SELECT * FROM tmp1)\n  SELECT * FROM tmp2;",
-          "expect": "1 2"
+          "sql": "WITH tmp1(a) AS ( SELECT * FROM t1 ),\n       tmp2(x) AS ( SELECT * FROM tmp1)\n  SELECT * FROM tmp2;"
         }
       ]
     },
@@ -94,8 +90,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1),\n       tmp1(a) AS ( SELECT * FROM t1 )\n  SELECT * FROM tmp2;",
-          "expect": "1 2"
+          "sql": "WITH tmp2(x) AS ( SELECT * FROM tmp1),\n       tmp1(a) AS ( SELECT * FROM t1 )\n  SELECT * FROM tmp2;"
         }
       ]
     },
@@ -124,8 +119,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  INSERT INTO t3 VALUES('T3');\n  INSERT INTO t4 VALUES('T4');\n\n  WITH t3(a) AS (SELECT * FROM t4)\n  SELECT * FROM t3;",
-          "expect": "T4"
+          "sql": "CREATE TABLE t3(x);\n  CREATE TABLE t4(x);\n\n  INSERT INTO t3 VALUES('T3');\n  INSERT INTO t4 VALUES('T4');\n\n  WITH t3(a) AS (SELECT * FROM t4)\n  SELECT * FROM t3;"
         }
       ]
     },
@@ -134,8 +128,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH tmp  AS ( SELECT * FROM t3 ),\n       tmp2 AS ( WITH tmp AS ( SELECT * FROM t4 ) SELECT * FROM tmp )\n  SELECT * FROM tmp2;",
-          "expect": "T4"
+          "sql": "WITH tmp  AS ( SELECT * FROM t3 ),\n       tmp2 AS ( WITH tmp AS ( SELECT * FROM t4 ) SELECT * FROM tmp )\n  SELECT * FROM tmp2;"
         }
       ]
     },
@@ -144,8 +137,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH tmp  AS ( SELECT * FROM t3 ),\n       tmp2 AS ( WITH xxxx AS ( SELECT * FROM t4 ) SELECT * FROM tmp )\n  SELECT * FROM tmp2;",
-          "expect": "T3"
+          "sql": "WITH tmp  AS ( SELECT * FROM t3 ),\n       tmp2 AS ( WITH xxxx AS ( SELECT * FROM t4 ) SELECT * FROM tmp )\n  SELECT * FROM tmp2;"
         }
       ]
     },
@@ -194,8 +186,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i)\n  SELECT x FROM i LIMIT 10;",
-          "expect": "1 2 3 4 5 6 7 8 9 10"
+          "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM i)\n  SELECT x FROM i LIMIT 10;"
         }
       ]
     },
@@ -214,8 +205,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;",
-          "expect": "0 0 1 10 2 20 3 30 4 40 5 50 6 60 7 70 8 80 9 90"
+          "sql": "CREATE TABLE edge(xfrom, xto, seq, PRIMARY KEY(xfrom, xto)) WITHOUT ROWID;\n  INSERT INTO edge VALUES(0, 1, 10);\n  INSERT INTO edge VALUES(1, 2, 20);\n  INSERT INTO edge VALUES(0, 3, 30);\n  INSERT INTO edge VALUES(2, 4, 40);\n  INSERT INTO edge VALUES(3, 4, 40);\n  INSERT INTO edge VALUES(2, 5, 50);\n  INSERT INTO edge VALUES(3, 6, 60);\n  INSERT INTO edge VALUES(5, 7, 70);\n  INSERT INTO edge VALUES(3, 7, 70);\n  INSERT INTO edge VALUES(4, 8, 80);\n  INSERT INTO edge VALUES(7, 8, 80);\n  INSERT INTO edge VALUES(8, 9, 90);\n  \n  WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;"
         }
       ]
     },
@@ -224,8 +214,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;",
-          "expect": "0 0 1 10 2 20 3 30 4 40 4 40 5 50 6 60 7 70 7 70 8 80 8 80 8 80 8 80 9 90 9 90 9 90 9 90"
+          "sql": "WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2\n      )\n  SELECT * FROM ancest;"
         }
       ]
     },
@@ -234,8 +223,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2 LIMIT 4 OFFSET 2\n      )\n  SELECT * FROM ancest;",
-          "expect": "2 20 3 30 4 40 4 40"
+          "sql": "WITH RECURSIVE\n    ancest(id, mtime) AS\n      (VALUES(0, 0)\n       UNION ALL\n       SELECT edge.xto, edge.seq FROM edge, ancest\n        WHERE edge.xfrom=ancest.id\n        ORDER BY 2 LIMIT 4 OFFSET 2\n      )\n  SELECT * FROM ancest;"
         }
       ]
     },
@@ -254,8 +242,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;",
-          "expect": "1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0"
+          "sql": "WITH i(x) AS ( VALUES(1) UNION ALL SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;"
         }
       ]
     },
@@ -264,8 +251,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH i(x) AS ( VALUES(1) UNION SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;",
-          "expect": "1 2 3 4 5 6 7 8 9 0"
+          "sql": "WITH i(x) AS ( VALUES(1) UNION SELECT (x+1)%10 FROM i)\n  SELECT x FROM i LIMIT 20;"
         }
       ]
     },
@@ -353,8 +339,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;",
-          "expect": "/bin \n  /bin/false /bin/grep /bin/ls /bin/true \n  /etc \n  /etc/rc.d \n  /etc/rc.d/rc.apache /etc/rc.d/rc.samba \n  /home \n  /home/dan \n  /home/dan/public_html \n  /home/dan/public_html/index.html \n  /home/dan/public_html/index.html/logo.gif"
+          "sql": "WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT fpath FROM flat WHERE fpath!='' ORDER BY 1;"
         }
       ]
     },
@@ -363,8 +348,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT count(*) FROM flat;",
-          "expect": "15"
+          "sql": "WITH flat(fid, fpath) AS (\n    SELECT id, '' FROM f WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, fpath || '/' || name FROM f, flat WHERE parentid=fid\n  )\n  SELECT count(*) FROM flat;"
         }
       ]
     },
@@ -373,8 +357,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH x(i) AS (\n    SELECT 1\n    UNION ALL\n    SELECT i+1 FROM x WHERE i<10\n  )\n  SELECT count(*) FROM x",
-          "expect": "10"
+          "sql": "WITH x(i) AS (\n    SELECT 1\n    UNION ALL\n    SELECT i+1 FROM x WHERE i<10\n  )\n  SELECT count(*) FROM x"
         }
       ]
     },
@@ -392,8 +375,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t(id, path) AS (\n    SELECT i, '' FROM tree WHERE p IS NULL\n    UNION ALL\n    SELECT i, path || '/' || i FROM tree, t WHERE p = id\n  ) \n  SELECT path FROM t;",
-          "expect": "{} /2 /3 /2/4 /2/4/5"
+          "sql": "WITH t(id, path) AS (\n    SELECT i, '' FROM tree WHERE p IS NULL\n    UNION ALL\n    SELECT i, path || '/' || i FROM tree, t WHERE p = id\n  ) \n  SELECT path FROM t;"
         }
       ]
     },
@@ -402,8 +384,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;",
-          "expect": "2 4 5"
+          "sql": "WITH t(id) AS (\n    VALUES(2)\n    UNION ALL\n    SELECT i FROM tree, t WHERE p = id\n  ) \n  SELECT id FROM t;"
         }
       ]
     },
@@ -442,8 +423,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    xaxis(x) AS (VALUES(-2.0) UNION ALL SELECT x+0.05 FROM xaxis WHERE x<1.2),\n    yaxis(y) AS (VALUES(-1.0) UNION ALL SELECT y+0.1 FROM yaxis WHERE y<1.0),\n    m(iter, cx, cy, x, y) AS (\n      SELECT 0, x, y, 0.0, 0.0 FROM xaxis, yaxis\n      UNION ALL\n      SELECT iter+1, cx, cy, x*x-y*y + cx, 2.0*x*y + cy FROM m \n       WHERE (x*x + y*y) < 4.0 AND iter<28\n    ),\n    m2(iter, cx, cy) AS (\n      SELECT max(iter), cx, cy FROM m GROUP BY cx, cy\n    ),\n    a(t) AS (\n      SELECT group_concat( substr(' .+*#', 1+min(iter/7,4), 1), '') \n      FROM m2 GROUP BY cy\n    )\n  SELECT group_concat(rtrim(t),x'0a') FROM a;",
-          "expect": "{                                    ....#\n                                   ..#*..\n                                 ..+####+.\n                            .......+####....   +\n                           ..##+*##########+.++++\n                          .+.##################+.\n              .............+###################+.+\n              ..++..#.....*#####################+.\n             ...+#######++#######################.\n          ....+*################################.\n #############################################...\n          ....+*################################.\n             ...+#######++#######################.\n              ..++..#.....*#####################+.\n              .............+###################+.+\n                          .+.##################+.\n                           ..##+*##########+.++++\n                            .......+####....   +\n                                 ..+####+.\n                                   ..#*..\n                                    ....#\n                                    +.}"
+          "sql": "WITH RECURSIVE\n    xaxis(x) AS (VALUES(-2.0) UNION ALL SELECT x+0.05 FROM xaxis WHERE x<1.2),\n    yaxis(y) AS (VALUES(-1.0) UNION ALL SELECT y+0.1 FROM yaxis WHERE y<1.0),\n    m(iter, cx, cy, x, y) AS (\n      SELECT 0, x, y, 0.0, 0.0 FROM xaxis, yaxis\n      UNION ALL\n      SELECT iter+1, cx, cy, x*x-y*y + cx, 2.0*x*y + cy FROM m \n       WHERE (x*x + y*y) < 4.0 AND iter<28\n    ),\n    m2(iter, cx, cy) AS (\n      SELECT max(iter), cx, cy FROM m GROUP BY cx, cy\n    ),\n    a(t) AS (\n      SELECT group_concat( substr(' .+*#', 1+min(iter/7,4), 1), '') \n      FROM m2 GROUP BY cy\n    )\n  SELECT group_concat(rtrim(t),x'0a') FROM a;"
         }
       ]
     },
@@ -452,8 +432,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;",
-          "expect": "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
+          "sql": "WITH RECURSIVE\n    input(sud) AS (\n      VALUES('53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79')\n    ),\n  \n    /* A table filled with digits 1..9, inclusive. */\n    digits(z, lp) AS (\n      VALUES('1', 1)\n      UNION ALL SELECT\n      CAST(lp+1 AS TEXT), lp+1 FROM digits WHERE lp<9\n    ),\n  \n    /* The tricky bit. */\n    x(s, ind) AS (\n      SELECT sud, instr(sud, '.') FROM input\n      UNION ALL\n      SELECT\n        substr(s, 1, ind-1) || z || substr(s, ind+1),\n        instr( substr(s, 1, ind-1) || z || substr(s, ind+1), '.' )\n       FROM x, digits AS z\n      WHERE ind>0\n        AND NOT EXISTS (\n              SELECT 1\n                FROM digits AS lp\n               WHERE z.z = substr(s, ((ind-1)/9)*9 + lp, 1)\n                  OR z.z = substr(s, ((ind-1)%9) + (lp-1)*9 + 1, 1)\n                  OR z.z = substr(s, (((ind-1)/3) % 3) * 3\n                          + ((ind-1)/27) * 27 + lp\n                          + ((lp-1) / 3) * 6, 1)\n           )\n    )\n  SELECT s FROM x WHERE ind=0;"
         }
       ]
     },
@@ -475,8 +454,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH flat(fid, p) AS (\n    SELECT id, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, p || '/' || payload FROM flat, tree WHERE parentid=fid\n  )\n  SELECT p FROM flat ORDER BY p;",
-          "expect": "/a /a/a /a/a/a \n     /a/b /a/b/c /a/b/c/d\n          /a/b/d"
+          "sql": "WITH flat(fid, p) AS (\n    SELECT id, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, p || '/' || payload FROM flat, tree WHERE parentid=fid\n  )\n  SELECT p FROM flat ORDER BY p;"
         }
       ]
     },
@@ -495,8 +473,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t",
-          "expect": "1 2 3 4 5"
+          "sql": "WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY b\n  ) \n  SELECT * FROM t"
         }
       ]
     },
@@ -505,8 +482,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY c\n  ) \n  SELECT * FROM t",
-          "expect": "1 2 3 4 5"
+          "sql": "WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY c\n  ) \n  SELECT * FROM t"
         }
       ]
     },
@@ -515,8 +491,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH flat(fid, depth, p) AS (\n    SELECT id, 1, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, depth+1, p||'/'||payload FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3 COLLATE nocase\n  )\n  SELECT p FROM flat;",
-          "expect": "/a /B /c\n  /a/b /a/C /a/d /B/e /B/F /B/g /c/h /c/I /c/j"
+          "sql": "WITH flat(fid, depth, p) AS (\n    SELECT id, 1, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, depth+1, p||'/'||payload FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3 COLLATE nocase\n  )\n  SELECT p FROM flat;"
         }
       ]
     },
@@ -525,8 +500,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH flat(fid, depth, p) AS (\n      SELECT id, 1, ('/' || payload) COLLATE nocase \n      FROM tree WHERE parentid IS NULL\n    UNION ALL\n      SELECT id, depth+1, (p||'/'||payload)\n      FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3\n  )\n  SELECT p FROM flat;",
-          "expect": "/a /B /c\n  /a/b /a/C /a/d /B/e /B/F /B/g /c/h /c/I /c/j"
+          "sql": "WITH flat(fid, depth, p) AS (\n      SELECT id, 1, ('/' || payload) COLLATE nocase \n      FROM tree WHERE parentid IS NULL\n    UNION ALL\n      SELECT id, depth+1, (p||'/'||payload)\n      FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3\n  )\n  SELECT p FROM flat;"
         }
       ]
     },
@@ -535,8 +509,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH flat(fid, depth, p) AS (\n      SELECT id, 1, ('/' || payload)\n      FROM tree WHERE parentid IS NULL\n    UNION ALL\n      SELECT id, depth+1, (p||'/'||payload) COLLATE nocase \n      FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3\n  )\n  SELECT p FROM flat;",
-          "expect": "/a /B /c\n  /a/b /a/C /a/d /B/e /B/F /B/g /c/h /c/I /c/j"
+          "sql": "WITH flat(fid, depth, p) AS (\n      SELECT id, 1, ('/' || payload)\n      FROM tree WHERE parentid IS NULL\n    UNION ALL\n      SELECT id, depth+1, (p||'/'||payload) COLLATE nocase \n      FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3\n  )\n  SELECT p FROM flat;"
         }
       ]
     },
@@ -575,8 +548,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;",
-          "expect": "{Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia}"
+          "sql": "CREATE TABLE org(\n    name TEXT PRIMARY KEY,\n    boss TEXT REFERENCES org\n  ) WITHOUT ROWID;\n  INSERT INTO org VALUES('Alice',NULL);\n  INSERT INTO org VALUES('Bob','Alice');\n  INSERT INTO org VALUES('Cindy','Alice');\n  INSERT INTO org VALUES('Dave','Bob');\n  INSERT INTO org VALUES('Emma','Bob');\n  INSERT INTO org VALUES('Fred','Cindy');\n  INSERT INTO org VALUES('Gail','Cindy');\n  INSERT INTO org VALUES('Harry','Dave');\n  INSERT INTO org VALUES('Ingrid','Dave');\n  INSERT INTO org VALUES('Jim','Emma');\n  INSERT INTO org VALUES('Kate','Emma');\n  INSERT INTO org VALUES('Lanny','Fred');\n  INSERT INTO org VALUES('Mary','Fred');\n  INSERT INTO org VALUES('Noland','Gail');\n  INSERT INTO org VALUES('Olivia','Gail');\n  -- The above are all under Alice.  Add a few more records for people\n  -- not in Alice's group, just to prove that they won't be selected.\n  INSERT INTO org VALUES('Xaviar',NULL);\n  INSERT INTO org VALUES('Xia','Xaviar');\n  INSERT INTO org VALUES('Xerxes','Xaviar');\n  INSERT INTO org VALUES('Xena','Xia');\n  -- Find all members of Alice's group, breath-first order  \n  WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;"
         }
       ]
     },
@@ -585,8 +557,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;",
-          "expect": "{Alice\n...Bob\n......Dave\n.........Harry\n.........Ingrid\n......Emma\n.........Jim\n.........Kate\n...Cindy\n......Fred\n.........Lanny\n.........Mary\n......Gail\n.........Noland\n.........Olivia}"
+          "sql": "WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n        ORDER BY 2 DESC\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;"
         }
       ]
     },
@@ -595,8 +566,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;",
-          "expect": "{Alice\n...Bob\n...Cindy\n......Dave\n......Emma\n......Fred\n......Gail\n.........Harry\n.........Ingrid\n.........Jim\n.........Kate\n.........Lanny\n.........Mary\n.........Noland\n.........Olivia}"
+          "sql": "WITH RECURSIVE\n    under_alice(name,level) AS (\n       VALUES('Alice','0')\n       UNION ALL\n       SELECT org.name, under_alice.level+1\n         FROM org, under_alice\n        WHERE org.boss=under_alice.name\n    )\n  SELECT group_concat(substr('...............',1,level*3) || name,x'0a')\n    FROM under_alice;"
         }
       ]
     },
@@ -605,8 +575,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n  t1(x) AS (VALUES(2) UNION ALL SELECT x+2 FROM t1 WHERE x<20),\n  t2(y) AS (VALUES(3) UNION ALL SELECT y+3 FROM t2 WHERE y<20)\nSELECT x FROM t1 EXCEPT SELECT y FROM t2 ORDER BY 1;",
-          "expect": "2 4 8 10 14 16 20"
+          "sql": "WITH RECURSIVE\n  t1(x) AS (VALUES(2) UNION ALL SELECT x+2 FROM t1 WHERE x<20),\n  t2(y) AS (VALUES(3) UNION ALL SELECT y+3 FROM t2 WHERE y<20)\nSELECT x FROM t1 EXCEPT SELECT y FROM t2 ORDER BY 1;"
         }
       ]
     },
@@ -674,8 +643,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x",
-          "expect": "9 10"
+          "sql": "WITH x(a) AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT 9 UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x"
         }
       ]
     },
@@ -684,8 +652,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH x AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT * FROM y UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x",
-          "expect": "10 10"
+          "sql": "WITH x AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT * FROM y UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x"
         },
         {
           "type": "exec",
@@ -718,8 +685,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x2\n  )\n  SELECT * FROM x3;",
-          "expect": "10 10"
+          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x2\n  )\n  SELECT * FROM x3;"
         }
       ]
     },
@@ -728,8 +694,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;",
-          "expect": "10 11"
+          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH x1 AS (SELECT 11)\n    SELECT * FROM x2 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;"
         }
       ]
     },
@@ -738,8 +703,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;",
-          "expect": "10 11"
+          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;"
         }
       ]
     },
@@ -748,8 +712,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;",
-          "expect": "10 11"
+          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT * FROM x1),\n  x3 AS (\n    WITH \n      x1 AS ( SELECT 11 ),\n      x4 AS ( SELECT * FROM x2 )\n    SELECT * FROM x4 UNION ALL SELECT * FROM x1\n  )\n  SELECT * FROM x3;"
         }
       ]
     },
@@ -758,8 +721,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT 11),\n  x3 AS (\n    SELECT * FROM x1 UNION ALL SELECT * FROM x2\n  ),\n  x4 AS (\n    WITH \n    x1 AS (SELECT 12),\n    x2 AS (SELECT 13)\n    SELECT * FROM x3\n  )\n  SELECT * FROM x4;",
-          "expect": "10 11"
+          "sql": "WITH \n  x1 AS (SELECT 10),\n  x2 AS (SELECT 11),\n  x3 AS (\n    SELECT * FROM x1 UNION ALL SELECT * FROM x2\n  ),\n  x4 AS (\n    WITH \n    x1 AS (SELECT 12),\n    x2 AS (SELECT 13)\n    SELECT * FROM x3\n  )\n  SELECT * FROM x4;"
         }
       ]
     },
@@ -768,8 +730,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;",
-          "expect": "NULL"
+          "sql": "WITH xyz(x) AS (VALUES(NULL) UNION SELECT round(1<x) FROM xyz ORDER BY 1)\n  SELECT quote(x) FROM xyz;"
         }
       ]
     },
@@ -796,8 +757,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;",
-          "expect": "0"
+          "sql": "WITH c(i)AS(VALUES(9)UNION SELECT~i FROM c)SELECT max(5)>i fROM c;"
         }
       ]
     },
@@ -806,8 +766,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(i)AS(VALUES(5)UNIoN SELECT 0)SELECT min(1)-i fROM c;",
-          "expect": "1"
+          "sql": "WITH c(i)AS(VALUES(5)UNIoN SELECT 0)SELECT min(1)-i fROM c;"
         }
       ]
     },
@@ -816,8 +775,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB",
-          "expect": "1 1 1 1"
+          "sql": "WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB"
         }
       ]
     },
@@ -826,8 +784,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "/* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB",
-          "expect": "1 1 1 1"
+          "sql": "/* This variant from chromium bug 922312 on 2019-01-16 */\n   WITH RECURSIVE t21(a,b) AS (\n    WITH t21(x) AS (VALUES(1))\n    SELECT x, x FROM t21 ORDER BY 1 LIMIT 5\n  )\n  SELECT * FROM t21 AS tA, t21 AS tB"
         }
       ]
     },
@@ -915,8 +872,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;",
-          "expect": "a 1 a 2 a 3 b 1 b 2 b 3"
+          "sql": "CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;"
         }
       ]
     },
@@ -925,8 +881,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;",
-          "expect": "a 1 a 2 a 3 b 1 b 2 b 3"
+          "sql": "WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;"
         }
       ]
     },
@@ -935,8 +890,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;",
-          "expect": "a 1 a 2 a 3 b 1 b 2 b 3"
+          "sql": "CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;"
         }
       ]
     },

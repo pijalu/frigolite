@@ -91,8 +91,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;",
-          "expect": "1 1 one 1 1 ONE 2 2 two 2 2 TWO 3 3 three 3 3 THREE"
+          "sql": "WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<3\n  )\n  SELECT * FROM (\n    SELECT 0 AS i UNION ALL SELECT i FROM s UNION ALL SELECT 0\n  ), t1 WHERE x=i;"
         }
       ]
     },
@@ -284,6 +283,26 @@
       "steps": [
         {
           "type": "query",
+          "sql": "SELECT * FROM (SELECT * FROM t1, t3), (\n    SELECT max(a) OVER () FROM t1\n      UNION ALL\n    SELECT min(a) OVER () FROM t1\n  )\n  ORDER BY k;",
+          "expect": "123 t1_a 456 t3_a 123\n  123 t1_a 456 t3_a 123"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (SELECT * FROM t1, t3), (\n    SELECT group_concat(a) OVER (ORDER BY a), \n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a),\n           group_concat(a) OVER (ORDER BY a)\n    FROM t1\n  )\n  ORDER BY k;",
+          "expect": "123 t1_a 456 t3_a 123 123 123 123 123 123 123 123 123"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT * FROM (SELECT * FROM t1, t3) AS o, (\n    SELECT * FROM t1 LEFT JOIN t3 ON a=k\n  );",
           "expect": "123 t1_a 456 t3_a 123 t1_a {} {}"
         }
@@ -358,8 +377,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;",
-          "expect": "9 10 1000 100     9 10 1000 400\n  9 10 800 100      9 10 800 400"
+          "sql": "WITH x(c) AS (\n    SELECT 1000 FROM t1 UNION ALL SELECT 800 FROM t2\n  ),\n  y(d) AS (\n    SELECT  100 FROM t3 UNION ALL SELECT 400 FROM t4\n  )\n  SELECT * FROM t5, x, y;"
         }
       ]
     },
@@ -376,8 +394,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;",
-          "expect": "0 1 | 0 101 | 0 102 | 1 1 | 1 101 | 1 102 | 100 1 | 100 101 | 100 102 | 101 1 | 101 101 | 101 102 |"
+          "sql": "WITH c1(x) AS (VALUES(0) UNION ALL SELECT 100+x FROM c1 WHERE x<100 UNION ALL SELECT 1+x FROM c1 WHERE x<1)\n  SELECT x, y, '|'\n    FROM c1 AS x1, (SELECT x+1 AS y FROM c1 WHERE x<1 UNION ALL SELECT 1+x FROM c1 WHERE 1<x) AS x2\n   ORDER BY x, y;"
         }
       ]
     },

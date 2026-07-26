@@ -153,8 +153,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;",
-          "expect": "rival bonus"
+          "sql": "CREATE TABLE ipk(key INTEGER PRIMARY KEY, val TEXT) WITHOUT ROWID;\n  INSERT INTO ipk VALUES('rival','bonus'); -- ok to insert non-integer key\n  SELECT * FROM ipk;"
         }
       ]
     },

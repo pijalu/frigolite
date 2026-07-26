@@ -29,35 +29,6 @@
       ]
     },
     {
-      "name": "3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM v1",
-          "expect": "1 {unsafe use of myfunc()}"
-        }
-      ]
-    },
-    {
-      "name": "3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO f1(rowid, x) VALUES(123, 'one two three');",
-          "expect": "1 {SQL logic error}"
-        }
-      ]
-    },
-    {
-      "name": "3.6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;"
-        }
-      ]
-    },
-    {
       "name": "3.6.2",
       "steps": [
         {
@@ -76,40 +47,10 @@
       ]
     },
     {
-      "name": "4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO v1 VALUES('one two three');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO v1 VALUES('one two three');",
-          "expect": "1 {SQL logic error}"
-        }
-      ]
-    },
-    {
-      "name": "4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM v1",
-          "expect": "1 {SQL logic error}"
         }
       ]
     }

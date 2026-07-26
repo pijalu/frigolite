@@ -8,6 +8,46 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT row_number() OVER win,\n           rank() OVER win,\n           dense_rank() OVER win,\n           ntile(2) OVER win,\n           first_value(d) OVER win,\n           last_value(d) OVER win,\n           nth_value(d,2) OVER win,\n           lead(d) OVER win,\n           lag(d) OVER win,\n           max(d) OVER win,\n           min(d) OVER win\n    FROM t1\n    WINDOW win AS (ORDER BY a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT row_number() OVER win,\n           rank() OVER win,\n           dense_rank() OVER win\n    FROM t1\n    WINDOW win AS (PARTITION BY c<7 ORDER BY a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ntile(105) \n    OVER ( RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW ) \n    FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(percent_rank() OVER win, 2),\n           round(cume_dist() OVER win, 2)\n    FROM t1\n    WINDOW win AS (ORDER BY a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT min(d) OVER win, max(d) OVER win\n    FROM t1\n    WINDOW win AS (ORDER BY a RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW aaa AS\n    SELECT min(d) OVER w, max(d) OVER w\n    FROM t1\n    WINDOW w AS (ORDER BY a RANGE BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING);\n    SELECT * FROM aaa;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT last_value(a) OVER win1,\n           last_value(a) OVER win2\n    FROM t1\n    WINDOW win1 AS (ORDER BY a ROWS BETWEEN CURRENT ROW AND 1 FOLLOWING),\n           win2 AS (ORDER BY a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT percent_rank() OVER (), cume_dist() OVER () FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT percent_rank() OVER (), cume_dist() OVER () FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER win1 FROM t1\n      WINDOW win1 AS (PARTITION BY a ),\n             win2 AS (PARTITION BY b )\n    ORDER BY a;"
         }
       ]
     },
@@ -25,6 +65,10 @@
         {
           "type": "exec",
           "sql": "SELECT 0.0 FROM t"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) OVER win FROM t\n    WINDOW win AS (\n      ORDER BY x ROWS BETWEEN UNBOUNDED PRECEDING AND 1800 FOLLOWING\n    )"
         }
       ]
     },
@@ -42,6 +86,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT row_number() OVER win\n    FROM t1\n    WINDOW win AS (\n      ORDER BY (\n        SELECT percent_rank() OVER win2 FROM t2\n        WINDOW win2 AS (ORDER BY a)\n      )\n    )"
         }
       ]
     },
@@ -63,6 +111,10 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t0 WHERE \n      (0, t0.c0) IN (SELECT DENSE_RANK() OVER(), LAG(0) OVER() FROM t0);"
+        },
+        {
+          "type": "exec",
+          "sql": "VALUES(false),(current_date collate binary) \n    intersect \n    values(count() not like group_concat(cast(cast(0e00 as text) as integer) <= NULL || 0.4e-0 || 0x8 & true ) over () collate rtrim);"
         }
       ]
     },
@@ -80,6 +132,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH v(a, b, row_number) AS (\n      SELECT a, b, row_number() OVER (PARTITION BY a COLLATE nocase ORDER BY b) FROM t1\n    )\n    SELECT * FROM v WHERE a=2"
         }
       ]
     },
@@ -97,6 +153,19 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(a, b) OVER (\n    ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(a, b) OVER (\n        ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM t1"
         }
       ]
     }

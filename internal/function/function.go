@@ -657,6 +657,10 @@ func toString(v interface{}) string {
 	if v == nil {
 		return ""
 	}
+	// Unwrap ColumnValue if present
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
 	if s, ok := v.(string); ok {
 		return s
 	}
@@ -691,6 +695,10 @@ func toInt64(v interface{}) int64 {
 }
 
 func toFloat64(v interface{}) (float64, error) {
+	// Unwrap ColumnValue if present
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = cv.Value
+	}
 	switch x := v.(type) {
 	case float64:
 		return x, nil
@@ -708,6 +716,13 @@ func toFloat64(v interface{}) (float64, error) {
 }
 
 func less(a, b interface{}) bool {
+	// Unwrap ColumnValue if present
+	if cv, ok := a.(*util.ColumnValue); ok {
+		a = cv.Value
+	}
+	if cv, ok := b.(*util.ColumnValue); ok {
+		b = cv.Value
+	}
 	// Simple comparison for aggregates
 	switch x := a.(type) {
 	case int64:

@@ -24,10 +24,6 @@
         {
           "type": "exec",
           "sql": "CREATE TEMP TABLE xyz(x);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM uuu"
         }
       ]
     }

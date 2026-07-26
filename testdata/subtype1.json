@@ -64,8 +64,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
-          "expect": "0"
+          "sql": "WITH t4(a) AS MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;"
         }
       ]
     },
@@ -74,8 +73,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t4(a) AS NOT MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;",
-          "expect": "0"
+          "sql": "WITH t4(a) AS NOT MATERIALIZED (SELECT json(1)) SELECT subtype(a) FROM t4;"
         }
       ]
     },

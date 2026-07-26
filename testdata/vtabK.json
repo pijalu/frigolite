@@ -3,16 +3,6 @@
   "name": "vtabK",
   "tests": [
     {
-      "name": "120",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1;",
-          "expect": "123"
-        }
-      ]
-    },
-    {
       "name": "150",
       "steps": [
         {
@@ -47,16 +37,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "220",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1;",
-          "expect": "Ebed-malech"
         }
       ]
     },

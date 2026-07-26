@@ -24,8 +24,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN DEFERRED TRANSACTION",
-          "expect": "1 2"
+          "sql": "BEGIN DEFERRED TRANSACTION"
         },
         {
           "type": "exec",
@@ -50,8 +49,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN IMMEDIATE TRANSACTION",
-          "expect": "0 {1 2}"
+          "sql": "BEGIN IMMEDIATE TRANSACTION"
         },
         {
           "type": "exec",
@@ -87,8 +85,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN EXCLUSIVE TRANSACTION",
-          "expect": "1 {database is locked}"
+          "sql": "BEGIN EXCLUSIVE TRANSACTION"
         },
         {
           "type": "exec",

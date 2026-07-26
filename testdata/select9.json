@@ -46,8 +46,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a)",
-          "expect": "1 2 3 4 5 6 7 8 9 10 nosort"
+          "sql": "CREATE INDEX i1 ON t1(a)"
         },
         {
           "type": "exec",
@@ -60,8 +59,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i2 ON t2(d)",
-          "expect": "1 1 2 2 3 nosort"
+          "sql": "CREATE INDEX i2 ON t2(d)"
         },
         {
           "type": "exec",
@@ -74,8 +72,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIEW v1 AS SELECT a FROM t1 UNION ALL SELECT d FROM t2",
-          "expect": "1 1 2 2 3 nosort"
+          "sql": "CREATE VIEW v1 AS SELECT a FROM t1 UNION ALL SELECT d FROM t2"
         },
         {
           "type": "exec",
@@ -101,8 +98,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a)",
-          "expect": "1 2 3 4 5 6 7 8 9 10 nosort"
+          "sql": "CREATE INDEX i1 ON t1(a)"
         },
         {
           "type": "exec",
@@ -115,8 +111,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i2 ON t2(d)",
-          "expect": "1 2 3 4 5 nosort"
+          "sql": "CREATE INDEX i2 ON t2(d)"
         },
         {
           "type": "exec",
@@ -129,8 +124,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE VIEW v1 AS SELECT a FROM t1 UNION SELECT d FROM t2",
-          "expect": "1 2 3 4 5 nosort"
+          "sql": "CREATE VIEW v1 AS SELECT a FROM t1 UNION SELECT d FROM t2"
         },
         {
           "type": "exec",

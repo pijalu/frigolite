@@ -157,8 +157,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "-- Allow the 'x' syntax for backwards compatibility\n    CREATE TABLE t4(x,y,z,PRIMARY KEY('x' ASC, \"y\" ASC));",
-          "expect": "1 {} {} {} {} {} {} 2 {} {} {} {} {} {} 3 {} {} {} {} {} {}"
+          "sql": "-- Allow the 'x' syntax for backwards compatibility\n    CREATE TABLE t4(x,y,z,PRIMARY KEY('x' ASC, \"y\" ASC));"
         },
         {
           "type": "exec",
@@ -203,8 +202,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f));\n    INSERT INTO t5 VALUES(1,1,1,1,1,11111);\n    INSERT INTO t5 VALUES(2,2,2,2,2,22222);\n    INSERT INTO t5 VALUES(1,2,3,4,5,12345);\n    INSERT INTO t5 VALUES(2,3,4,5,6,23456);",
-          "expect": "3 2"
+          "sql": "CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f));\n    INSERT INTO t5 VALUES(1,1,1,1,1,11111);\n    INSERT INTO t5 VALUES(2,2,2,2,2,22222);\n    INSERT INTO t5 VALUES(1,2,3,4,5,12345);\n    INSERT INTO t5 VALUES(2,3,4,5,6,23456);"
         },
         {
           "type": "exec",

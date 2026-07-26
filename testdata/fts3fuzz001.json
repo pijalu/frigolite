@@ -64,15 +64,6 @@
       "name": "220",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO x1(x1) VALUES('merge=10,2')"
-        }
-      ]
-    },
-    {
-      "name": "220",
-      "steps": [
-        {
           "type": "query",
           "sql": "PRAGMA integrity_check;",
           "expect": "ok"

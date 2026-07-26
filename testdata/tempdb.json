@@ -15,8 +15,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('hello');\n    INSERT INTO t2 VALUES(NULL);",
-          "expect": "1 oops"
+          "sql": "BEGIN;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('hello');\n    INSERT INTO t2 VALUES(NULL);"
         },
         {
           "type": "exec",

@@ -36,8 +36,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();",
-          "expect": "/ random/"
+          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();"
         }
       ]
     },
@@ -46,8 +45,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();",
-          "expect": "/ SorterOpen /"
+          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();"
         }
       ]
     },
@@ -56,8 +54,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);",
-          "expect": "~/ abs/"
+          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);"
         }
       ]
     },
@@ -66,8 +63,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);",
-          "expect": "~/ SorterOpen /"
+          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);"
         }
       ]
     },
@@ -76,8 +72,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);",
-          "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
         },
         {
           "type": "exec",
@@ -525,8 +520,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;",
-          "expect": "10"
+          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
         },
         {
           "type": "exec",

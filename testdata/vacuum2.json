@@ -50,8 +50,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');",
-          "expect": "3"
+          "sql": "INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');"
         },
         {
           "type": "exec",
@@ -64,8 +63,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;",
-          "expect": "4"
+          "sql": "PRAGMA auto_vacuum=FULL;\n      VACUUM;"
         },
         {
           "type": "exec",
@@ -106,8 +104,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;",
-          "expect": "3"
+          "sql": "PRAGMA auto_vacuum=NONE;\n    VACUUM;"
         },
         {
           "type": "exec",

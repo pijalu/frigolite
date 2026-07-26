@@ -157,8 +157,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a",
-          "expect": "2 2 2"
+          "sql": "WITH t2(b) AS (\n    SELECT DISTINCT y FROM t5 ORDER BY y\n  )\n  SELECT * FROM \n    t4 CROSS JOIN t3 CROSS JOIN t1 \n  WHERE (t1.a=t3.a) AND (SELECT count(*) FROM t2 AS y WHERE t4.x!='abc')=t1.a"
         }
       ]
     },

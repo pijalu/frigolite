@@ -110,8 +110,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE tclvar SET value = var.v FROM var WHERE name = var.k;",
-          "expect": "10 20 30"
+          "sql": "UPDATE tclvar SET value = var.v FROM var WHERE name = var.k;"
         },
         {
           "type": "exec",
@@ -124,8 +123,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE nam(k TEXT, v TEXT);\n    INSERT INTO nam VALUES('testvar1', 'tv1');\n    INSERT INTO nam VALUES('testvar2', 'tv2');\n    INSERT INTO nam VALUES('testvar3', 'tv3');\n    UPDATE tclvar SET fullname = nam.v FROM nam WHERE name = nam.k;",
-          "expect": "10 20 30"
+          "sql": "CREATE TABLE nam(k TEXT, v TEXT);\n    INSERT INTO nam VALUES('testvar1', 'tv1');\n    INSERT INTO nam VALUES('testvar2', 'tv2');\n    INSERT INTO nam VALUES('testvar3', 'tv3');\n    UPDATE tclvar SET fullname = nam.v FROM nam WHERE name = nam.k;"
         },
         {
           "type": "exec",

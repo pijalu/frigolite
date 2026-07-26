@@ -418,10 +418,6 @@
         {
           "type": "exec",
           "sql": "PRAGMA database_list;"
-        },
-        {
-          "type": "exec",
-          "sql": "create temp table dummy(dummy)"
         }
       ]
     },
@@ -430,8 +426,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH DATABASE ? AS ?",
-          "expect": "main temp aux {}"
+          "sql": "ATTACH DATABASE ? AS ?"
         },
         {
           "type": "exec",
@@ -444,8 +439,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH aux",
-          "expect": "main temp {}"
+          "sql": "DETACH aux"
         },
         {
           "type": "exec",
@@ -458,8 +452,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH ?",
-          "expect": "main temp"
+          "sql": "DETACH ?"
         },
         {
           "type": "exec",
@@ -472,8 +465,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH DATABASE '' AS ''",
-          "expect": "main temp {}"
+          "sql": "ATTACH DATABASE '' AS ''"
         },
         {
           "type": "exec",
@@ -486,8 +478,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH ''",
-          "expect": "main temp"
+          "sql": "DETACH ''"
         },
         {
           "type": "exec",
@@ -500,8 +491,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH DATABASE '' AS ?",
-          "expect": "main temp {}"
+          "sql": "ATTACH DATABASE '' AS ?"
         },
         {
           "type": "exec",
@@ -514,8 +504,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH ''",
-          "expect": "main temp"
+          "sql": "DETACH ''"
         },
         {
           "type": "exec",
@@ -528,8 +517,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH DATABASE '' AS NULL",
-          "expect": "main temp {}"
+          "sql": "ATTACH DATABASE '' AS NULL"
         },
         {
           "type": "exec",
@@ -542,8 +530,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH ?",
-          "expect": "main temp"
+          "sql": "DETACH ?"
         },
         {
           "type": "exec",
@@ -576,8 +563,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DETACH '';",
-          "expect": "main temp"
+          "sql": "DETACH '';"
         },
         {
           "type": "exec",

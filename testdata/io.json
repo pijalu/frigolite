@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE abc(a,b);",
-          "expect": "2"
+          "sql": "PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE abc(a,b);"
         },
         {
           "type": "exec",
@@ -21,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(1,randstr(230,230));",
-          "expect": "2 2 2 2"
+          "sql": "INSERT INTO abc VALUES(1,randstr(230,230));"
         },
         {
           "type": "exec",
@@ -47,8 +45,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(5,randstr(230,230));",
-          "expect": "4"
+          "sql": "INSERT INTO abc VALUES(5,randstr(230,230));"
         },
         {
           "type": "exec",
@@ -61,8 +58,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(6,randstr(230,230));",
-          "expect": "2 2 2"
+          "sql": "INSERT INTO abc VALUES(6,randstr(230,230));"
         },
         {
           "type": "exec",
@@ -83,8 +79,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(9,randstr(230,230));",
-          "expect": "3"
+          "sql": "INSERT INTO abc VALUES(9,randstr(230,230));"
         },
         {
           "type": "exec",
@@ -110,8 +105,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(1, 2)",
-          "expect": "2 4"
+          "sql": "INSERT INTO abc VALUES(1, 2)"
         },
         {
           "type": "exec",
@@ -124,8 +118,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(3, 4)",
-          "expect": "2 1"
+          "sql": "INSERT INTO abc VALUES(3, 4)"
         },
         {
           "type": "exec",
@@ -138,8 +131,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO abc VALUES(5, 6);",
-          "expect": "1 2 3 4"
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(5, 6);"
         },
         {
           "type": "exec",
@@ -156,8 +148,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "1 2 3 4 5 6"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -174,8 +165,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE def(d, e)",
-          "expect": "0"
+          "sql": "CREATE TABLE def(d, e)"
         },
         {
           "type": "exec",
@@ -192,8 +182,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO def VALUES('a', 'b');",
-          "expect": "1"
+          "sql": "INSERT INTO def VALUES('a', 'b');"
         },
         {
           "type": "exec",
@@ -206,8 +195,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "3 4"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -220,8 +208,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN IMMEDIATE;\n    -- INSERT INTO abc VALUES(9, randstr(1000,1000));",
-          "expect": "0"
+          "sql": "BEGIN IMMEDIATE;\n    -- INSERT INTO abc VALUES(9, randstr(1000,1000));"
         },
         {
           "type": "exec",
@@ -268,8 +255,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_size = 1024;\n      CREATE TABLE aux.abc2(a, b);\n      BEGIN;\n      INSERT INTO abc VALUES(9, 10);",
-          "expect": "0"
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_size = 1024;\n      CREATE TABLE aux.abc2(a, b);\n      BEGIN;\n      INSERT INTO abc VALUES(9, 10);"
         },
         {
           "type": "exec",
@@ -282,8 +268,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc2 SELECT * FROM abc",
-          "expect": "0"
+          "sql": "INSERT INTO abc2 SELECT * FROM abc"
         },
         {
           "type": "exec",
@@ -344,8 +329,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM abc;",
-          "expect": "0"
+          "sql": "BEGIN;\n    DELETE FROM abc;"
         },
         {
           "type": "exec",
@@ -385,8 +369,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO abc VALUES(9, 10);",
-          "expect": "1"
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(9, 10);"
         }
       ]
     },
@@ -412,8 +395,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK;",
-          "expect": "0"
+          "sql": "ROLLBACK;"
         },
         {
           "type": "exec",
@@ -447,8 +429,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO abc VALUES(11, 12);",
-          "expect": "1"
+          "sql": "BEGIN;\n    INSERT INTO abc VALUES(11, 12);"
         },
         {
           "type": "exec",
@@ -461,8 +442,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK",
-          "expect": "0"
+          "sql": "ROLLBACK"
         },
         {
           "type": "exec",
@@ -492,8 +472,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc VALUES(11, 12);",
-          "expect": "0"
+          "sql": "INSERT INTO abc VALUES(11, 12);"
         },
         {
           "type": "exec",
@@ -510,8 +489,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE abc(a, b)",
-          "expect": "1 0"
+          "sql": "CREATE TABLE abc(a, b)"
         },
         {
           "type": "exec",
@@ -558,8 +536,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN",
-          "expect": "1"
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
@@ -589,8 +566,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;",
-          "expect": "43"
+          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
         },
         {
           "type": "exec",
@@ -617,8 +593,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE abc SET a = 'x';",
-          "expect": "1"
+          "sql": "BEGIN;\n    UPDATE abc SET a = 'x';"
         },
         {
           "type": "exec",

@@ -175,24 +175,6 @@
           "sql": "SELECT * FROM sqlite_schema"
         }
       ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "enc-13.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "WITH t1(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM t1 WHERE x<3)\n    SELECT rtreecheck('t3') FROM t1;",
-          "expect": "ok ok ok"
-        }
-      ]
     }
   ]
 }

@@ -3,6 +3,15 @@
   "name": "windowD",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0, c1) \n    AS SELECT CUME_DIST() OVER (PARTITION BY t0.c0), TRUE FROM t0;\n  INSERT INTO t0 VALUES ('x');"
+        }
+      ]
+    },
+    {
       "name": "1.1",
       "steps": [
         {
@@ -94,6 +103,15 @@
         {
           "type": "query",
           "sql": "SELECT * FROM v1 WHERE 500 IS d;"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2 AS SELECT max(x) OVER () AS a, TRUE AS c FROM t1;"
         }
       ]
     },

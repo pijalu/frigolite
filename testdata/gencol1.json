@@ -551,8 +551,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;",
-          "expect": "2001-01-01 0 0 0 {}"
+          "sql": "CREATE TEMPORARY TABLE tab (\n    prim DATE PRIMARY KEY,\n    a INTEGER,\n    comp INTEGER AS (a),\n    b INTEGER,\n    x INTEGER\n  );\n  -- Add some data\n  INSERT INTO tab (prim, a, b) VALUES ('2001-01-01', 0, 0);\n  -- Check that each column is 0 like I expect\n  SELECT * FROM tab;"
         }
       ]
     },

@@ -220,6 +220,8 @@ func (p *Parser) parseKeywordStmtTail() Stmt {
 		return p.parseAnalyze()
 	case "END":
 		return p.parseEndAsCommit()
+	case "VALUES":
+		return p.parseValuesSubquery()
 	default:
 		p.setErr("unexpected keyword: %s", p.cur.Value)
 		return nil
@@ -524,21 +526,71 @@ func (p *Parser) parseReturningClause(col *SelectColumn, hasReturning *bool) {
 	}
 }
 
+func (p *Parser) parseOneWindowDef() WindowDef {
+	wd := WindowDef{}
+	// Window name
+	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		wd.Name = p.cur.Value
+		p.next()
+	}
+	// AS keyword
+	if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
+		p.next()
+	}
+	// Window spec in parentheses
+	if p.cur.Type == TokenLParen {
+		p.next()
+		var partitions []Expr
+		for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
+			if p.cur.Type == TokenKeyword && p.cur.Value == "PARTITION" {
+				p.next()
+				if p.cur.Type == TokenKeyword && p.cur.Value == "BY" {
+					p.next()
+				}
+				// Parse partition expressions until ORDER or frame keyword
+				for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
+					if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
+						break
+					}
+					if p.cur.Type == TokenKeyword &&
+						(p.cur.Value == "RANGE" || p.cur.Value == "ROWS" || p.cur.Value == "GROUPS") {
+						break
+					}
+					expr := p.parseExpr()
+					partitions = append(partitions, expr)
+					if p.cur.Type == TokenComma {
+						p.next()
+					} else {
+						break
+					}
+				}
+				wd.Partitions = partitions
+			} else if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
+				wd.OrderBy = p.parseOrderBy()
+			} else if p.cur.Type == TokenKeyword &&
+				(p.cur.Value == "RANGE" || p.cur.Value == "ROWS" || p.cur.Value == "GROUPS") {
+				p.skipFrameSpec()
+			} else if p.cur.Type == TokenComma {
+				p.next()
+			} else {
+				// Parse expressions (handles function calls like percent_rank() OVER w1)
+				p.parseExpr()
+			}
+		}
+		if p.cur.Type == TokenRParen {
+			p.next()
+		}
+	}
+	return wd
+}
+
 func (p *Parser) parseSelectWindow(s *SelectStmt) {
 	// WINDOW name AS (window_spec), ...
 	if p.cur.Type == TokenKeyword && p.cur.Value == "WINDOW" {
 		p.next()
 		for {
-			// Window name
-			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				p.next()
-			}
-			if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
-				p.next()
-			}
-			if p.cur.Type == TokenLParen {
-				p.skipInlineWindowSpec()
-			}
+			wd := p.parseOneWindowDef()
+			s.Windows = append(s.Windows, wd)
 			if p.cur.Type == TokenComma {
 				p.next()
 			} else {
@@ -609,7 +661,8 @@ func isJoinKeyword(v string) bool {
 	switch v {
 	case "ON", "JOIN", "WHERE", "ORDER", "GROUP", "LIMIT", "HAVING",
 		"CROSS", "INNER", "LEFT", "RIGHT", "NATURAL", "OUTER", "FULL",
-		"USING", "SET", "RETURNING", "EXCEPT", "INTERSECT", "UNION":
+		"USING", "SET", "RETURNING", "EXCEPT", "INTERSECT", "UNION",
+		"WINDOW":
 		return true
 	}
 	return false
@@ -1211,6 +1264,7 @@ func (p *Parser) parseParenthesizedUpdateAssignments(s *UpdateStmt) {
 		if p.cur.Type == TokenRParen {
 			p.next()
 		}
+		s.SetParenColumns = cols
 	}
 }
 
@@ -2162,7 +2216,13 @@ func (p *Parser) dispatchColumnConstraint(col *ColumnDef) bool {
 	case "COLLATE":
 		p.parseCollateColumnConstraint(col)
 	case "CONSTRAINT":
-		p.skipConstraintName()
+		p.next()
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
+			col.ConstraintName = p.cur.Value
+			p.next()
+		}
+		// Parse the constraint that follows the name using the proper handler
+		p.dispatchColumnConstraint(col)
 	case "AS":
 		p.skipGeneratedColumnAs()
 	default:
@@ -2229,7 +2289,21 @@ func (p *Parser) parseReferencesConstraint(col *ColumnDef) {
 	}
 	// Optional parenthesized column list: REFERENCES t1(col1, col2)
 	if p.cur.Type == TokenLParen {
-		p.skipParenExprList()
+		p.next()
+		var cols []string
+		for p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+			cols = append(cols, p.cur.Value)
+			p.next()
+			if p.cur.Type == TokenComma {
+				p.next()
+			} else {
+				break
+			}
+		}
+		if p.cur.Type == TokenRParen {
+			p.next()
+		}
+		col.References += "(" + strings.Join(cols, ", ") + ")"
 	}
 	// Optional ON DELETE/UPDATE clauses
 	for p.cur.Type == TokenKeyword && p.cur.Value == "ON" {

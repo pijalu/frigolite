@@ -20,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 SELECT * FROM t1",
-          "expect": "4"
+          "sql": "INSERT INTO t2 SELECT * FROM t1"
         },
         {
           "type": "exec",

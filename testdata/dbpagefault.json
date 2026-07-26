@@ -76,12 +76,8 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "setup_6",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);"
-        },
         {
           "type": "exec",
           "sql": "ATTACH 'test.db2' AS aux;"

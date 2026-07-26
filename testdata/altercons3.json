@@ -115,7 +115,7 @@
         {
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema",
-          "expect": "{CREATE TABLE x1(a, b }"
+          "expect": "{CREATE TABLE x1(a, b)}"
         }
       ]
     }

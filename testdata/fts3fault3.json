@@ -3,19 +3,6 @@
   "name": "fts3fault3",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid=2;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -24,7 +11,7 @@
       ]
     },
     {
-      "name": "setup_2",
+      "name": "setup_1",
       "steps": [
         {
           "type": "exec",

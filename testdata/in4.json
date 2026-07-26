@@ -492,8 +492,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "#  EXPLAIN\n#  SELECT * FROM t3 WHERE x IN (10);\n#",
-          "expect": "~/OpenEphemeral/"
+          "sql": "#  EXPLAIN\n#  SELECT * FROM t3 WHERE x IN (10);\n#"
         }
       ]
     },
@@ -746,16 +745,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t2 LEFT JOIN t1 ON c = d AND b IN (10,10,10);",
-          "expect": "{} 1 {} {} {}"
-        }
-      ]
-    },
-    {
-      "name": "7.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t2 LEFT JOIN t1 ON c IN (d) AND b IN (10,10,10);",
           "expect": "{} 1 {} {} {}"
         }
       ]

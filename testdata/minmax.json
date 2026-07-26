@@ -49,8 +49,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX t1i1 ON t1(x)",
-          "expect": "1"
+          "sql": "CREATE INDEX t1i1 ON t1(x)"
         },
         {
           "type": "exec",
@@ -151,8 +150,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;",
-          "expect": "1"
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;"
         },
         {
           "type": "exec",
@@ -183,8 +181,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)",
-          "expect": "21"
+          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)"
         },
         {
           "type": "exec",
@@ -209,8 +206,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)",
-          "expect": "999"
+          "sql": "INSERT INTO t2 VALUES((SELECT max(a) FROM t2)+1,999)"
         },
         {
           "type": "exec",

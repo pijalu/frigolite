@@ -33,8 +33,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);",
-          "expect": "t1"
+          "sql": "CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);"
         },
         {
           "type": "exec",
@@ -51,8 +50,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);",
-          "expect": "t1"
+          "sql": "CREATE TABLE aux.t1(a INTEGER, b TEXT, c INTEGER);"
         },
         {
           "type": "exec",

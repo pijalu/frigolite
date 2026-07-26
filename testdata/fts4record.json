@@ -77,16 +77,6 @@
           "sql": "UPDATE t1_segdir SET root = \n  X'00057465726D61050102030300040162040105FF00010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010100'"
         }
       ]
-    },
-    {
-      "name": "1.5.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(t1) VALUES('integrity-check');",
-          "expect": "1 {database disk image is malformed}"
-        }
-      ]
     }
   ]
 }

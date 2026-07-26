@@ -20,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');",
-          "expect": "3072"
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');"
         },
         {
           "type": "exec",
@@ -70,8 +69,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);",
-          "expect": "2048 2048"
+          "sql": "PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);"
         },
         {
           "type": "exec",

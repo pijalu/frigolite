@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a, b)",
-          "expect": "xOpen test.db-journal xClose test.db-journal xDelete test.db-journal"
+          "sql": "CREATE TABLE t1(a, b)"
         },
         {
           "type": "exec",
@@ -21,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);",
-          "expect": "xOpen test.db-journal"
+          "sql": "PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);"
         },
         {
           "type": "exec",
@@ -121,8 +119,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64",
-          "expect": "0"
+          "sql": "CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES(a_string(200), a_string(300));\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  2\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  4\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  --  8\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 16\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 32\n    INSERT INTO t2 SELECT a_string(200), a_string(300) FROM t2;  -- 64"
         },
         {
           "type": "exec",
@@ -192,8 +189,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);",
-          "expect": "xOpen test.db-journal"
+          "sql": "CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);"
         },
         {
           "type": "exec",

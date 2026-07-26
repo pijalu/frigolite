@@ -21,8 +21,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t1;",
-          "expect": "2048"
+          "sql": "DROP TABLE t1;"
         },
         {
           "type": "exec",
@@ -35,8 +34,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "VACUUM;",
-          "expect": "1024"
+          "sql": "VACUUM;"
         },
         {
           "type": "exec",

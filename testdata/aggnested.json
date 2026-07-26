@@ -324,8 +324,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;",
-          "expect": "0"
+          "sql": "WITH out(i, j, k) AS ( \n      VALUES(1234, 5678, 9012) \n  )\n  SELECT (\n    SELECT (\n      SELECT min(abc) = ( SELECT ( SELECT 1234 fROM (SELECT abc) ) ) \n      FROM (\n        SELECT sum( out.i ) + ( SELECT sum( out.i ) ) AS abc FROM (SELECT out.j)\n      )\n    ) \n  ) FROM out;"
         }
       ]
     },

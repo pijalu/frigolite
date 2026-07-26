@@ -20,42 +20,6 @@
           "expect": "cc"
         }
       ]
-    },
-    {
-      "name": "2.x",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        }
-      ]
-    },
-    {
-      "name": "3.x",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2"
-        }
-      ]
-    },
-    {
-      "name": "4.x",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2"
-        }
-      ]
-    },
-    {
-      "name": "5.x",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2"
-        }
-      ]
     }
   ]
 }

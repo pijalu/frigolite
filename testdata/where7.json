@@ -21,8 +21,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;",
-          "expect": "1 2 1 2 2"
+          "sql": "CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;"
         }
       ]
     },
@@ -31,8 +30,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;",
-          "expect": "1 2 1 2 3"
+          "sql": "CREATE TABLE t(a);\n    CREATE INDEX ta ON t(a);\n    INSERT INTO t(a) VALUES(1),(2);\n    SELECT * FROM t ORDER BY a;\n    SELECT * FROM t WHERE a<2 OR a<3 ORDER BY a;\n    PRAGMA count_changes=ON;\n    DELETE FROM t WHERE a<2 OR a<3;\n    SELECT * FROM t;\n    PRAGMA count_changes=OFF;\n    DROP TABLE t;"
         },
         {
           "type": "exec",

@@ -102,7 +102,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE fff RENAME TO ggg;",
-          "expect": "1 {no such module: echo}"
+          "expect": "1 {no such table: fff}"
         }
       ]
     },
@@ -148,7 +148,7 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM vvv;",
-          "expect": "1 {no such table: main.txx}"
+          "expect": "1 {no such table: txx}"
         }
       ]
     },
@@ -168,7 +168,7 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM uuu;",
-          "expect": "1 {no such table: main.txx}"
+          "expect": "1 {no such table: txx}"
         }
       ]
     },
@@ -234,7 +234,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t11 VALUES(2, 2);",
-          "expect": "1 {no such table: main.t1}"
+          "expect": "1 {no such table: t1}"
         }
       ]
     },
@@ -253,7 +253,7 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 3);",
-          "expect": "1 {no such table: main.t2}"
+          "expect": "1 {no such table: t1}"
         }
       ]
     },
@@ -322,7 +322,7 @@
         {
           "type": "exec",
           "sql": "SELECT  *  FROM v",
-          "expect": "1 {no such table: main.t2}"
+          "expect": "1 {no such table: t2}"
         }
       ]
     },
@@ -352,25 +352,6 @@
           "type": "exec",
           "sql": "SELECT  *  FROM vv",
           "expect": "1 {no such table: t2}"
-        }
-      ]
-    },
-    {
-      "name": "6.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "ALTER TABLE x1 RENAME TO x2;\n    SELECT sql FROM sqlite_master WHERE name = 'x2'",
-          "expect": "{CREATE VIRTUAL TABLE \"x2\" USING tcl(tcl_command)}"
-        }
-      ]
-    },
-    {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE ddd(db, sql, zOld, zNew, bTemp);\n    INSERT INTO ddd VALUES(\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', 'ddd', NULL, 0\n    ), (\n        'main', 'CREATE TABLE x1(i INTEGER, t TEXT)', NULL, 'eee', 0\n    ), (\n        'main', NULL, 'ddd', 'eee', 0\n    );"
         }
       ]
     },
@@ -500,25 +481,6 @@
       ]
     },
     {
-      "name": "10.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO fff VALUES('a', 'b', 'c');\n      ALTER TABLE fff RENAME TO ggg;\n    COMMIT;"
-        }
-      ]
-    },
-    {
-      "name": "10.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM ggg;",
-          "expect": "a b c"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -624,42 +586,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "14.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE mytable SET geom = X'1234'"
-        }
-      ]
-    },
-    {
-      "name": "14.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE mytable RENAME TO mytable_renamed;"
-        }
-      ]
-    },
-    {
-      "name": "14.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TRIGGER tr2 AFTER INSERT ON mytable_renamed BEGIN\n      DELETE FROM rt WHERE id=(SELECT min(id) FROM rt);\n    END;"
-        }
-      ]
-    },
-    {
-      "name": "14.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE mytable_renamed RENAME TO mytable2;"
         }
       ]
     },

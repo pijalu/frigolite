@@ -130,8 +130,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "o t t f f s s e"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -169,8 +168,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('b', 'c');",
-          "expect": "1"
+          "sql": "INSERT INTO t1 VALUES('b', 'c');"
         },
         {
           "type": "exec",
@@ -187,8 +185,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);",
-          "expect": "wal"
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);"
         },
         {
           "type": "exec",
@@ -254,8 +251,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');",
-          "expect": "wal"
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');"
         },
         {
           "type": "exec",

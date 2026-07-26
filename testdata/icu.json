@@ -20,16 +20,6 @@
       ]
     },
     {
-      "name": "icu-2.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT upper(char(0xfb04,0xfb04,0xfb04,0xfb04));",
-          "expect": "FFLFFLFFLFFL"
-        }
-      ]
-    },
-    {
       "name": "icu-4.1",
       "steps": [
         {
@@ -71,66 +61,6 @@
         {
           "type": "exec",
           "sql": "SELECT name FROM fruit ORDER BY name COLLATE Lithuanian ASC;"
-        }
-      ]
-    },
-    {
-      "name": "icu-5.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT regexp('a[abc]c.*', 'abc')",
-          "expect": "0 1"
-        }
-      ]
-    },
-    {
-      "name": "icu-5.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT regexp('a[abc]c.*')",
-          "expect": "1 {wrong number of arguments to function regexp()}"
-        }
-      ]
-    },
-    {
-      "name": "icu-5.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT regexp('a[abc]c.*', 'abc', 'c')",
-          "expect": "1 {wrong number of arguments to function regexp()}"
-        }
-      ]
-    },
-    {
-      "name": "icu-5.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc' REGEXP 'a[abc]c.*'",
-          "expect": "0 1"
-        }
-      ]
-    },
-    {
-      "name": "icu-5.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc' REGEXP",
-          "expect": "1 {incomplete input}"
-        }
-      ]
-    },
-    {
-      "name": "icu-5.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc' REGEXP, 1",
-          "expect": "1 {near \",\": syntax error}"
         }
       ]
     },

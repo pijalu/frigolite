@@ -11706,8 +11706,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n  UPDATE v1 SET c=c+1000 WHERE y BETWEEN 30 and 40;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;\n  ROLLBACK;",
-          "expect": "30 130 1230 330 130 30 1230 30 330 30\n   -   -    -   -   -  -  233 33   -  -\n  36 136 1236 336 136 36 1236 36   -  -\n   -   -    -   -   -  -  239 39   -  -"
+          "sql": "BEGIN;\n  UPDATE v1 SET c=c+1000 WHERE y BETWEEN 30 and 40;\n  SELECT * FROM v1 WHERE y BETWEEN 30 AND 40 ORDER BY y;\n  ROLLBACK;"
         }
       ]
     }

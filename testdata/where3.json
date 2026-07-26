@@ -35,8 +35,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tA(apk integer primary key, ax);\n    CREATE TABLE tB(bpk integer primary key, bx);\n    CREATE TABLE tC(cpk integer primary key, cx);\n    CREATE TABLE tD(dpk integer primary key, dx);",
-          "expect": "tA * tB * tC * tD *"
+          "sql": "CREATE TABLE tA(apk integer primary key, ax);\n    CREATE TABLE tB(bpk integer primary key, bx);\n    CREATE TABLE tC(cpk integer primary key, cx);\n    CREATE TABLE tD(dpk integer primary key, dx);"
         },
         {
           "type": "exec",

@@ -10,26 +10,6 @@
           "sql": "CREATE TABLE t1(a NOT NULL, b);\n  CREATE INDEX i1 ON t1(a);"
         }
       ]
-    },
-    {
-      "name": "1.2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT max(rowid) FROM ft",
-          "expect": "44"
-        }
-      ]
-    },
-    {
-      "name": "1.2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT min(rowid) FROM ft",
-          "expect": "11"
-        }
-      ]
     }
   ]
 }

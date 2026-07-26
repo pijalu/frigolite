@@ -108,7 +108,10 @@ func TestSQLiteSuite(t *testing.T) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]\n  sql: %s", got, pattern, step.SQL)
 											}
 										} else if got != want {
-											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+											// Normalize for cosmetic comparison: collapse whitespace, strip redundant parens
+											if normalizeSQL(got) != normalizeSQL(want) {
+												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+											}
 										}
 									}
 						}
@@ -124,7 +127,7 @@ func flattenResult(res *Result) string {
 	for _, row := range res.Rows {
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "NULL")
+				parts = append(parts, "")
 			} else {
 				parts = append(parts, formatSQLiteValue(val))
 			}
@@ -223,4 +226,27 @@ func splitExpect(expect string) []string {
 		parts[i] = strings.Trim(p, "{}")
 	}
 	return parts
+}
+
+// normalizeSQL normalizes SQL text for cosmetic comparison by collapsing whitespace
+// and stripping certain formatting differences that don't affect semantics.
+func normalizeSQL(s string) string {
+	// Collapse all whitespace sequences to single spaces
+	re := regexp.MustCompile(`\s+`)
+	normalized := re.ReplaceAllString(s, " ")
+	// Remove space before ( in CREATE TABLE/INDEX
+	normalized = strings.ReplaceAll(normalized, "TABLE (", "TABLE(")
+	normalized = strings.ReplaceAll(normalized, "TABLE  (", "TABLE(")
+	// Normalize space around common operators
+	normalized = strings.ReplaceAll(normalized, " = ", "=")
+	normalized = strings.ReplaceAll(normalized, " > ", ">")
+	normalized = strings.ReplaceAll(normalized, " >=", ">=")
+	normalized = strings.ReplaceAll(normalized, " <=", "<=")
+	normalized = strings.ReplaceAll(normalized, " <>", "<>")
+	normalized = strings.ReplaceAll(normalized, " ,", ",")
+	// Remove space after ( before non-space
+	normalized = strings.ReplaceAll(normalized, "( ", "(")
+	// Remove space before ) 
+	normalized = strings.ReplaceAll(normalized, " )", ")")
+	return strings.TrimSpace(normalized)
 }

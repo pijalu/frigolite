@@ -21,8 +21,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test VALUES('a', 9000, 10500);",
-          "expect": "a 9000 11000"
+          "sql": "INSERT INTO test VALUES('a', 9000, 10500);"
         },
         {
           "type": "exec",
@@ -39,8 +38,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test VALUES('a', 10000, 12000);",
-          "expect": "a 9000 12000"
+          "sql": "INSERT INTO test VALUES('a', 10000, 12000);"
         },
         {
           "type": "exec",

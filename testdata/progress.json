@@ -64,8 +64,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(11)",
-          "expect": "1 {cannot commit - no transaction is active}"
+          "sql": "INSERT INTO t1 VALUES(11)"
         },
         {
           "type": "exec",
@@ -112,8 +111,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);",
-          "expect": "1 2 3 interrupted 4 5 6 interrupted 7 8 9 interrupted"
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);"
         },
         {
           "type": "exec",

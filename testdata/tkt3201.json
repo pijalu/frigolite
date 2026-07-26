@@ -34,8 +34,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t2 VALUES(2, 'two');",
-          "expect": "1 2"
+          "sql": "CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t2 VALUES(2, 'two');"
         },
         {
           "type": "exec",
@@ -52,8 +51,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 2;",
-          "expect": "1 2"
+          "sql": "DELETE FROM t1 WHERE a = 2;"
         },
         {
           "type": "exec",
@@ -70,8 +68,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 WHERE a = 2;",
-          "expect": "1 one 2 two"
+          "sql": "DELETE FROM t1 WHERE a = 2;"
         },
         {
           "type": "exec",
@@ -88,8 +85,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(c INTEGER PRIMARY KEY, d TEXT);\n    INSERT INTO t3 VALUES(2, 'two');",
-          "expect": "1 one 2 two"
+          "sql": "CREATE TABLE t3(c INTEGER PRIMARY KEY, d TEXT);\n    INSERT INTO t3 VALUES(2, 'two');"
         },
         {
           "type": "exec",

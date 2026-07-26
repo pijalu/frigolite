@@ -728,8 +728,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tkt2526(a,b,c PRIMARY KEY);\n    INSERT INTO tkt2526 VALUES('x','y',NULL);\n    INSERT INTO tkt2526 VALUES('x','z',NULL);",
-          "expect": "1 {misuse of aliased aggregate cn}"
+          "sql": "CREATE TABLE tkt2526(a,b,c PRIMARY KEY);\n    INSERT INTO tkt2526 VALUES('x','y',NULL);\n    INSERT INTO tkt2526 VALUES('x','z',NULL);"
         },
         {
           "type": "exec",
@@ -1736,8 +1735,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);",
-          "expect": "0"
+          "sql": "BEGIN;\n      create TABLE abc(a, b, c, PRIMARY KEY(a, b));\n      INSERT INTO abc VALUES(1, 1, 1);"
         },
         {
           "type": "exec",

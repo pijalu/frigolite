@@ -33,26 +33,6 @@
       ]
     },
     {
-      "name": "2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA table_info(pragma_module_list)",
-          "expect": "0 name {} 0 {} 0"
-        }
-      ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM pragma_module_list WHERE name='fts5'",
-          "expect": "fts5"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {

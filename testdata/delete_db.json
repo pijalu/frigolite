@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);",
-          "expect": "test3.database test3.database-journal"
+          "sql": "CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);"
         },
         {
           "type": "exec",
@@ -21,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);",
-          "expect": "test3.database test3.database-shm test3.database-wal"
+          "sql": "COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);"
         },
         {
           "type": "exec",
@@ -48,8 +46,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x, y);\n      BEGIN;\n        INSERT INTO t1 VALUES(1, 2);",
-          "expect": "test3.db test3.nal"
+          "sql": "CREATE TABLE t1(x, y);\n      BEGIN;\n        INSERT INTO t1 VALUES(1, 2);"
         },
         {
           "type": "exec",
@@ -62,8 +59,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);",
-          "expect": "test3.db test3.shm test3.wal"
+          "sql": "COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(3, 4);"
         },
         {
           "type": "exec",

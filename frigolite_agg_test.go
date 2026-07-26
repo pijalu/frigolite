@@ -4,6 +4,17 @@ import (
 	"testing"
 )
 
+// aggIntEqual checks if a value equals an expected int64 or float64 value.
+func aggIntEqual(got interface{}, expected int64) bool {
+	switch v := got.(type) {
+	case int64:
+		return v == expected
+	case float64:
+		return int64(v) == expected
+	}
+	return false
+}
+
 func TestAggregateCount(t *testing.T) {
 	db := setupDB(t)
 	defer db.Close()
@@ -38,8 +49,8 @@ func TestAggregateSum(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("SUM: %v", res.Error)
 	}
-	if res.Rows[0][0] != float64(60) {
-		t.Errorf("expected 60, got %v", res.Rows[0][0])
+	if !aggIntEqual(res.Rows[0][0], 60) {
+		t.Errorf("expected 60, got %v (type: %T)", res.Rows[0][0], res.Rows[0][0])
 	}
 }
 
@@ -141,8 +152,6 @@ func TestAggregateTotal(t *testing.T) {
 	}
 
 	// TOTAL on empty table returns 0.0 per SQLite spec
-	// Note: current implementation returns nil for no rows (same as SUM)
-	// This matches the evalAggregatesEmpty behavior
 	db2 := setupDB(t)
 	defer db2.Close()
 	db2.Exec("CREATE TABLE empty (val INTEGER)")
@@ -150,7 +159,9 @@ func TestAggregateTotal(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("TOTAL empty: %v", res.Error)
 	}
-	t.Logf("TOTAL empty result: %v (type: %T)", res.Rows[0][0], res.Rows[0][0])
+	if !aggIntEqual(res.Rows[0][0], 0) {
+		t.Errorf("expected TOTAL empty=0.0, got %v (type: %T)", res.Rows[0][0], res.Rows[0][0])
+	}
 }
 
 // TestAggregateGroupConcat tests GROUP_CONCAT function (mirrors func.test patterns)
@@ -187,10 +198,10 @@ func TestAggregateWithWhere(t *testing.T) {
 	if res.Error != nil {
 		t.Fatalf("aggregate with WHERE: %v", res.Error)
 	}
-	if res.Rows[0][0] != int64(2) {
-		t.Errorf("expected COUNT=2, got %v", res.Rows[0][0])
+	if !aggIntEqual(res.Rows[0][0], 2) {
+		t.Errorf("expected COUNT=2, got %v (type: %T)", res.Rows[0][0], res.Rows[0][0])
 	}
-	if res.Rows[0][1] != float64(70) {
-		t.Errorf("expected SUM=70, got %v", res.Rows[0][1])
+	if !aggIntEqual(res.Rows[0][1], 70) {
+		t.Errorf("expected SUM=70, got %v (type: %T)", res.Rows[0][1], res.Rows[0][1])
 	}
 }

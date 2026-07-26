@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);",
-          "expect": "1.0"
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);"
         },
         {
           "type": "exec",
@@ -594,6 +593,16 @@
       ]
     },
     {
+      "name": "percentile-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT VendorId, ProductId, /* ProductName,*/ Price,\n         avg(price) OVER (PARTITION BY vendorId) AS \"Average\",\n         median(price) OVER (PARTITION BY vendorId) AS \"Median\"\n    FROM products\n   ORDER BY vendorId, productId;",
+          "expect": "1001      17         25.99  19.68    20.37 \n  1001      31         11.99  19.68    20.37 \n  1001      49         25.99  19.68    20.37 \n  1001      216        14.75  19.68    20.37 \n  1002      37         33.49  33.49    33.49 \n  1003      7          245.0  104.0    55.99 \n  1003      8          55.99  104.0    55.99 \n  1003      12         11.01  104.0    55.99 \n  1004      113        12.45  11.22    11.22 \n  1004      117        9.99   11.22    11.22"
+        }
+      ]
+    },
+    {
       "name": "percentile-4.2",
       "steps": [
         {
@@ -609,6 +618,16 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE user(name TEXT, class TEXT, cost REAL);\n  INSERT INTO user VALUES\n    ('Alice', 'Y',  3578.27),\n    ('Bob',   'X',  3399.99),\n    ('Cindy', 'Z',  699.10),\n    ('Dave',  'Y',  3078.27),\n    ('Emma',  'Z',  2319.99),\n    ('Fred',  'Y',  539.99),\n    ('Gina',  'X',  2320.49),\n    ('Hank',  'W',  24.99),\n    ('Irma',  'W',  24.99),\n    ('Jake',  'X',  2234.99),\n    ('Kim',   'Y',  4319.99),\n    ('Liam',  'X',  4968.59),\n    ('Mia',   'W',  59.53),\n    ('Nate',  'W',  23.50);"
+        }
+      ]
+    },
+    {
+      "name": "percentile-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, class, cost,\n    percentile(cost,   0) OVER w1 AS 'P0',\n    percentile(cost,  25) OVER w1 AS 'P1',\n    percentile(cost,  50) OVER w1 AS 'P2',\n    percentile(cost,  75) OVER w1 AS 'P3',\n    percentile(cost, 100) OVER w1 AS 'P4'\n  FROM user\n  WINDOW w1 AS (PARTITION BY class)\n  ORDER BY class, cost;",
+          "expect": "Nate   W  23.5     23.5     24.6175    24.99     33.625     59.53  \n  Hank   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Irma   W  24.99    23.5     24.6175    24.99     33.625     59.53  \n  Mia    W  59.53    23.5     24.6175    24.99     33.625     59.53  \n  Jake   X  2234.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Gina   X  2320.49  2234.99  2299.115   2860.24   3792.14    4968.59\n  Bob    X  3399.99  2234.99  2299.115   2860.24   3792.14    4968.59\n  Liam   X  4968.59  2234.99  2299.115   2860.24   3792.14    4968.59\n  Fred   Y  539.99   539.99   2443.7     3328.27   3763.7     4319.99\n  Dave   Y  3078.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Alice  Y  3578.27  539.99   2443.7     3328.27   3763.7     4319.99\n  Kim    Y  4319.99  539.99   2443.7     3328.27   3763.7     4319.99\n  Cindy  Z  699.1    699.1    1104.3225  1509.545  1914.7675  2319.99\n  Emma   Z  2319.99  699.1    1104.3225  1509.545  1914.7675  2319.99"
         }
       ]
     },

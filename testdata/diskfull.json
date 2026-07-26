@@ -48,8 +48,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "#     PRAGMA default_cache_size = 10;\n#     CREATE TABLE t3(a, b, UNIQUE(a, b));\n#     INSERT INTO t3 VALUES( randstr(100, 100), randstr(100, 100) );\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     UPDATE t3 \n#     SET b = (SELECT a FROM t3 WHERE rowid = (SELECT max(rowid)-1 FROM t3))\n#     WHERE rowid = (SELECT max(rowid) FROM t3);\n#     PRAGMA cache_size;\n#",
-          "expect": "10"
+          "sql": "#     PRAGMA default_cache_size = 10;\n#     CREATE TABLE t3(a, b, UNIQUE(a, b));\n#     INSERT INTO t3 VALUES( randstr(100, 100), randstr(100, 100) );\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     INSERT INTO t3 SELECT randstr(100, 100), randstr(100, 100) FROM t3;\n#     UPDATE t3 \n#     SET b = (SELECT a FROM t3 WHERE rowid = (SELECT max(rowid)-1 FROM t3))\n#     WHERE rowid = (SELECT max(rowid) FROM t3);\n#     PRAGMA cache_size;\n#"
         },
         {
           "type": "exec",

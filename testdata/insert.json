@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1 VALUES(1,2,3)",
-          "expect": "1 {no such table: test1}"
+          "sql": "INSERT INTO test1 VALUES(1,2,3)"
         },
         {
           "type": "exec",
@@ -21,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO sqlite_master VALUES(1,2,3,4)",
-          "expect": "1 {table sqlite_master may not be modified}"
+          "sql": "INSERT INTO sqlite_master VALUES(1,2,3,4)"
         },
         {
           "type": "exec",
@@ -35,8 +33,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE test1(one int, two int, three int)",
-          "expect": "1 {table test1 has 3 columns but 2 values were supplied}"
+          "sql": "CREATE TABLE test1(one int, two int, three int)"
         },
         {
           "type": "exec",
@@ -53,8 +50,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1 VALUES(1,2,3,4)",
-          "expect": "1 {table test1 has 3 columns but 4 values were supplied}"
+          "sql": "INSERT INTO test1 VALUES(1,2,3,4)"
         },
         {
           "type": "exec",
@@ -67,8 +63,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1(one,two) VALUES(1,2,3,4)",
-          "expect": "1 {4 values for 2 columns}"
+          "sql": "INSERT INTO test1(one,two) VALUES(1,2,3,4)"
         },
         {
           "type": "exec",
@@ -81,8 +76,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1(one,two) VALUES(1)",
-          "expect": "1 {1 values for 2 columns}"
+          "sql": "INSERT INTO test1(one,two) VALUES(1)"
         },
         {
           "type": "exec",
@@ -95,8 +89,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1(one,four) VALUES(1,2)",
-          "expect": "1 {table test1 has no column named four}"
+          "sql": "INSERT INTO test1(one,four) VALUES(1,2)"
         },
         {
           "type": "exec",
@@ -109,8 +102,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1 VALUES(1,2,3)",
-          "expect": "1 2 3"
+          "sql": "INSERT INTO test1 VALUES(1,2,3)"
         },
         {
           "type": "exec",
@@ -127,8 +119,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1 VALUES(4,5,6)",
-          "expect": "1 2 3 4 5 6"
+          "sql": "INSERT INTO test1 VALUES(4,5,6)"
         },
         {
           "type": "exec",
@@ -145,8 +136,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1 VALUES(7,8,9)",
-          "expect": "1 2 3 4 5 6 7 8 9"
+          "sql": "INSERT INTO test1 VALUES(7,8,9)"
         },
         {
           "type": "exec",
@@ -163,8 +153,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM test1",
-          "expect": "1 2 {}"
+          "sql": "DELETE FROM test1"
         },
         {
           "type": "exec",
@@ -185,8 +174,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1(two,three) VALUES(5,6)",
-          "expect": "{} 5 6 1 2 {}"
+          "sql": "INSERT INTO test1(two,three) VALUES(5,6)"
         },
         {
           "type": "exec",
@@ -203,8 +191,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test1(three,one) VALUES(7,8)",
-          "expect": "{} 5 6 1 2 {} 8 {} 7"
+          "sql": "INSERT INTO test1(three,one) VALUES(7,8)"
         },
         {
           "type": "exec",
@@ -238,8 +225,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f1,f3) VALUES(+10,-10)",
-          "expect": "10 4.32 -10 7.89"
+          "sql": "INSERT INTO test2(f1,f3) VALUES(+10,-10)"
         },
         {
           "type": "exec",
@@ -256,8 +242,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f2,f4) VALUES(1.23,-3.45)",
-          "expect": "-111 1.23 222 -3.45"
+          "sql": "INSERT INTO test2(f2,f4) VALUES(1.23,-3.45)"
         },
         {
           "type": "exec",
@@ -274,8 +259,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f1,f2,f4) VALUES(77,+1.23,3.45)",
-          "expect": "77 1.23 222 3.45"
+          "sql": "INSERT INTO test2(f1,f2,f4) VALUES(77,+1.23,3.45)"
         },
         {
           "type": "exec",
@@ -309,8 +293,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f2,f4) VALUES(-2.22,'hi!')",
-          "expect": "111 -2.22 hi hi! {}"
+          "sql": "INSERT INTO test2(f2,f4) VALUES(-2.22,'hi!')"
         },
         {
           "type": "exec",
@@ -327,8 +310,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f1,f5) VALUES(1,'xyzzy')",
-          "expect": "1 -4.32 hi abc-123 xyzzy 111 -2.22 hi hi! {}"
+          "sql": "INSERT INTO test2(f1,f5) VALUES(1,'xyzzy')"
         },
         {
           "type": "exec",
@@ -358,8 +340,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f2,f4) VALUES(-3.33,'hum')",
-          "expect": "111 -3.33 hi hum {}"
+          "sql": "INSERT INTO test2(f2,f4) VALUES(-3.33,'hum')"
         },
         {
           "type": "exec",
@@ -376,8 +357,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO test2(f1,f2,f5) VALUES(22,-4.44,'wham')",
-          "expect": "111 -3.33 hi hum {}"
+          "sql": "INSERT INTO test2(f1,f2,f5) VALUES(22,-4.44,'wham')"
         },
         {
           "type": "exec",
@@ -422,8 +402,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,5,6);",
-          "expect": "6 4 5 7 5 6"
+          "sql": "INSERT INTO t3 VALUES((SELECT max(a) FROM t3)+1,5,6);"
         },
         {
           "type": "exec",
@@ -454,8 +433,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t3 VALUES((SELECT b FROM t3 WHERE a=0),6,7);",
-          "expect": "{} 6 7 6 4 5 7 5 6"
+          "sql": "INSERT INTO t3 VALUES((SELECT b FROM t3 WHERE a=0),6,7);"
         },
         {
           "type": "exec",

@@ -597,8 +597,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "#   SELECT round(log(2),7), log(-2);\n#",
-          "expect": "0.6931472 NULL"
+          "sql": "#   SELECT round(log(2),7), log(-2);\n#"
         }
       ]
     },

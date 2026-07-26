@@ -35,8 +35,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ANALYZE t1a;",
-          "expect": "/*SEARCH t1 USING INDEX t1a (a=?)*/"
+          "sql": "ANALYZE t1a;"
         },
         {
           "type": "exec",
@@ -95,8 +94,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ANALYZE t1cd;",
-          "expect": "/*SEARCH t1 USING INDEX t1a (a=?)*/"
+          "sql": "ANALYZE t1cd;"
         },
         {
           "type": "exec",

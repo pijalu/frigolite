@@ -349,8 +349,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create bogus",
-          "expect": "1 {near \"bogus\": syntax error}"
+          "sql": "create bogus"
         },
         {
           "type": "exec",
@@ -363,8 +362,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create",
-          "expect": "1 {incomplete input}"
+          "sql": "create"
         },
         {
           "type": "exec",

@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
-          "expect": "4 10"
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);"
         },
         {
           "type": "exec",
@@ -43,8 +42,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);",
-          "expect": "4 10"
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);"
         },
         {
           "type": "exec",
@@ -87,8 +85,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);",
-          "expect": "1"
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);"
         },
         {
           "type": "exec",
@@ -459,8 +456,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);",
-          "expect": "4096"
+          "sql": "PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);"
         },
         {
           "type": "exec",
@@ -495,8 +491,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');",
-          "expect": "Barton Deakin Watson"
+          "sql": "PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');"
         },
         {
           "type": "exec",

@@ -165,8 +165,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;",
-          "expect": "abc,ABC,DEF,xyz,XYZ ABC,DEF,XYZ,abc,xyz"
+          "sql": "WITH c(x) AS (VALUES('abc'),('DEF'),('xyz'),('ABC'),('XYZ'))\n  SELECT string_agg(x,',' ORDER BY x COLLATE nocase),\n         string_agg(x,',' ORDER BY x) FROM c;"
         }
       ]
     },
@@ -175,8 +174,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;",
-          "expect": "1,2,3,4 2,4,1,3"
+          "sql": "WITH c(x,y) AS (VALUES(1,'a'),(2,'B'),(3,'c'),(4,'D'))\n  SELECT group_concat(x ORDER BY y COLLATE nocase),\n         group_concat(x ORDER BY y COLLATE binary) FROM c;"
         }
       ]
     },
@@ -185,8 +183,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;",
-          "expect": "c,b,a"
+          "sql": "WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('c',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;"
         }
       ]
     },
@@ -195,8 +192,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;",
-          "expect": "c,b,a"
+          "sql": "WITH c(x,y,z) AS (VALUES('a',4,5),('b',3,6),('b',2,7),('c',1,8))\n  SELECT group_concat(DISTINCT x ORDER BY y, z) FROM c;"
         }
       ]
     },

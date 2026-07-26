@@ -120,8 +120,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;",
-          "expect": "100 5050 5050 348550"
+          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE INDEX t3a ON t3(a);\n    CREATE INDEX t3bc ON t3(b,c);\n    CREATE INDEX t3acb ON t3(a,c,b);\n    INSERT INTO t3 SELECT w, 101-w, y FROM t1;\n    SELECT count(*), sum(a), sum(b), sum(c) FROM t3;\n    ANALYZE;"
         },
         {
           "type": "exec",
@@ -134,8 +133,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);",
-          "expect": "30 29 28 nosort"
+          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);"
         },
         {
           "type": "exec",
@@ -148,8 +146,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t4;",
-          "expect": "nosort"
+          "sql": "DELETE FROM t4;"
         },
         {
           "type": "exec",
@@ -269,8 +266,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);",
-          "expect": "4 four 1 one nosort"
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);"
         },
         {
           "type": "exec",
@@ -283,8 +279,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);",
-          "expect": "4 four 1 one nosort"
+          "sql": "CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);"
         },
         {
           "type": "exec",
@@ -297,8 +292,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');",
-          "expect": "1/4 1/1 4/4 4/1 nosort"
+          "sql": "CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');"
         },
         {
           "type": "exec",

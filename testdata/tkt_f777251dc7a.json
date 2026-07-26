@@ -47,8 +47,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN IMMEDIATE;\n    CREATE TEMP TABLE t3(w, z);",
-          "expect": "1 {abort due to ROLLBACK}"
+          "sql": "BEGIN IMMEDIATE;\n    CREATE TEMP TABLE t3(w, z);"
         },
         {
           "type": "exec",

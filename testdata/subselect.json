@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a int, b int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);",
-          "expect": "3 4"
+          "sql": "CREATE TABLE t1(a int, b int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);"
         },
         {
           "type": "exec",
@@ -122,8 +121,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(x int, y int);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 VALUES(3,8);\n    INSERT INTO t2 VALUES(4,16);",
-          "expect": "8"
+          "sql": "CREATE TABLE t2(x int, y int);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 VALUES(3,8);\n    INSERT INTO t2 VALUES(4,16);"
         },
         {
           "type": "exec",
@@ -140,8 +138,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t2 WHERE x < 0.5*(SELECT max(x) FROM t2)",
-          "expect": "2 3 4"
+          "sql": "DELETE FROM t2 WHERE x < 0.5*(SELECT max(x) FROM t2)"
         },
         {
           "type": "exec",

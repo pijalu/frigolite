@@ -12,6 +12,15 @@
       ]
     },
     {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,'The quick fox jumps over the lazy brown dog.');"
+        }
+      ]
+    },
+    {
       "name": "2.30",
       "steps": [
         {

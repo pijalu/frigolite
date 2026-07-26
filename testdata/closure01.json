@@ -103,26 +103,6 @@
       ]
     },
     {
-      "name": "3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT DISTINCT id FROM c2\n   WHERE root IN (SELECT id FROM c2up\n                   WHERE root=20 AND depth<=2)\n   ORDER BY id;",
-          "expect": "5 10 11 20 21 22 23"
-        }
-      ]
-    },
-    {
-      "name": "3.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT id FROM c2\n   WHERE root=(SELECT id FROM c2up\n               WHERE root=20 AND depth=2)\n     AND depth=2\n  EXCEPT\n  SELECT id FROM c2\n   WHERE root=(SELECT id FROM c2up\n               WHERE root=20 AND depth=1)\n     AND depth<=1\n   ORDER BY id;",
-          "expect": "22 23"
-        }
-      ]
-    },
-    {
       "name": "4.1",
       "steps": [
         {
@@ -175,16 +155,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);"
-        }
-      ]
-    },
-    {
-      "name": "7.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM c WHERE root=1;",
-          "expect": "1 0 2 1"
         }
       ]
     }

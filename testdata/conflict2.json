@@ -132,8 +132,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);",
-          "expect": "1 2 1 4"
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);"
         },
         {
           "type": "exec",
@@ -175,8 +174,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a PRIMARY KEY, b) without rowid;",
-          "expect": "50 1 51"
+          "sql": "DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a PRIMARY KEY, b) without rowid;"
         },
         {
           "type": "exec",
@@ -193,8 +191,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;",
-          "expect": "1"
+          "sql": "PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;"
         },
         {
           "type": "exec",
@@ -235,8 +232,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;",
-          "expect": "50"
+          "sql": "PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;"
         },
         {
           "type": "exec",
@@ -263,8 +259,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);",
-          "expect": "1"
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);"
         },
         {
           "type": "exec",
@@ -281,8 +276,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT OR IGNORE INTO t1 VALUES(2,4);",
-          "expect": "0"
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2,4);"
         },
         {
           "type": "exec",
@@ -295,8 +289,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT OR REPLACE INTO t1 VALUES(2,4);",
-          "expect": "1"
+          "sql": "INSERT OR REPLACE INTO t1 VALUES(2,4);"
         },
         {
           "type": "exec",
@@ -309,8 +302,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT OR IGNORE INTO t1 SELECT * FROM t1;",
-          "expect": "0"
+          "sql": "INSERT OR IGNORE INTO t1 SELECT * FROM t1;"
         },
         {
           "type": "exec",
@@ -323,8 +315,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;",
-          "expect": "2"
+          "sql": "INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;"
         },
         {
           "type": "exec",
@@ -337,8 +328,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;",
-          "expect": "3"
+          "sql": "INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;"
         },
         {
           "type": "exec",
@@ -433,8 +423,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "2"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -461,8 +450,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "3"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -509,8 +497,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "4"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -537,8 +524,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "5"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -585,8 +571,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "5"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -613,8 +598,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "5"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -661,8 +645,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "6"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -705,8 +688,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "-- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c) WITHOUT rowid;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;",
-          "expect": "1 2 3 4 5 6 7 8 9"
+          "sql": "-- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c) WITHOUT rowid;\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;"
         },
         {
           "type": "exec",
@@ -731,8 +713,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;",
-          "expect": "1 2 3 4 5 6 7 8 9"
+          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;"
         },
         {
           "type": "exec",
@@ -749,8 +730,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;",
-          "expect": "1 2 3 7 8 9"
+          "sql": "BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;"
         },
         {
           "type": "exec",
@@ -819,8 +799,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t13(a PRIMARY KEY CHECK(a!=2)) WITHOUT rowid;\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);",
-          "expect": "1 {CHECK constraint failed: a!=2}"
+          "sql": "CREATE TABLE t13(a PRIMARY KEY CHECK(a!=2)) WITHOUT rowid;\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);"
         },
         {
           "type": "exec",

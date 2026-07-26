@@ -24,8 +24,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(x)",
-          "expect": "V 9"
+          "sql": "CREATE INDEX i1 ON t1(x)"
         },
         {
           "type": "exec",
@@ -38,8 +37,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(x,y)",
-          "expect": "V 1"
+          "sql": "CREATE INDEX i2 ON t1(x,y)"
         },
         {
           "type": "exec",
@@ -52,8 +50,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)",
-          "expect": "V 1"
+          "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)"
         },
         {
           "type": "exec",
@@ -66,8 +63,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1 ; DROP INDEX i2",
-          "expect": "II 5"
+          "sql": "DROP INDEX i1 ; DROP INDEX i2"
         },
         {
           "type": "exec",
@@ -80,8 +76,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(x)",
-          "expect": "II 9"
+          "sql": "CREATE INDEX i1 ON t1(x)"
         },
         {
           "type": "exec",
@@ -94,8 +89,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i2 ON t1(x,y)",
-          "expect": "II 1"
+          "sql": "CREATE INDEX i2 ON t1(x,y)"
         },
         {
           "type": "exec",
@@ -108,8 +102,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)",
-          "expect": "II 1"
+          "sql": "DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC)"
         },
         {
           "type": "exec",
@@ -122,8 +115,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1 ; DROP INDEX i2",
-          "expect": "I 5"
+          "sql": "DROP INDEX i1 ; DROP INDEX i2"
         },
         {
           "type": "exec",
@@ -136,8 +128,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(y)",
-          "expect": "I 1"
+          "sql": "CREATE INDEX i1 ON t1(y)"
         },
         {
           "type": "exec",
@@ -150,8 +141,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)",
-          "expect": "I 1"
+          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)"
         },
         {
           "type": "exec",
@@ -164,8 +154,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1",
-          "expect": "VI 5"
+          "sql": "DROP INDEX i1"
         },
         {
           "type": "exec",
@@ -178,8 +167,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(y)",
-          "expect": "VI 0"
+          "sql": "CREATE INDEX i1 ON t1(y)"
         },
         {
           "type": "exec",
@@ -192,8 +180,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)",
-          "expect": "VI 0"
+          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC)"
         },
         {
           "type": "exec",

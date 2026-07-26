@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);",
-          "expect": "wal"
+          "sql": "PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);"
         }
       ]
     },
@@ -17,8 +16,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES( randstr(900,1100) )",
-          "expect": "131072"
+          "sql": "INSERT INTO t1 VALUES( randstr(900,1100) )"
         },
         {
           "type": "exec",

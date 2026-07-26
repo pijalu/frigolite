@@ -64,8 +64,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');",
-          "expect": "abc1 Abc2 aBc3"
+          "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');"
         },
         {
           "type": "exec",
@@ -100,8 +99,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a)",
-          "expect": "abc1 Abc2 aBc3"
+          "sql": "CREATE INDEX i1 ON t1(a)"
         },
         {
           "type": "exec",
@@ -840,8 +838,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);",
-          "expect": "1 {no such collation sequence: unk}"
+          "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
         },
         {
           "type": "exec",

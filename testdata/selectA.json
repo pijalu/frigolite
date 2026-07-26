@@ -2807,8 +2807,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;",
-          "expect": "MAD MAD+ MAD++"
+          "sql": "WITH RECURSIVE\n    xyz(n) AS (\n      SELECT upper((SELECT x FROM (\n        SELECT x,y,z FROM t2\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        INTERSECT SELECT a,b,c FROM t3\n        EXCEPT SELECT c,b,a FROM t1\n        UNION SELECT a,b,c FROM t3\n        ORDER BY y COLLATE NOCASE DESC,x,z)))\n      UNION ALL\n      SELECT n || '+' FROM xyz WHERE length(n)<5\n    )\n  SELECT n FROM xyz ORDER BY +n;"
         }
       ]
     },

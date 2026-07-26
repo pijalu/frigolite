@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');",
-          "expect": "2 two 2 niban ok"
+          "sql": "create temp table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create temp table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
         },
         {
           "type": "exec",
@@ -25,8 +24,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');",
-          "expect": "2 two 2 niban ok"
+          "sql": "create table t1(a integer, b varchar(10));\n      insert into t1 values(1,'one');\n      insert into t1 values(2,'two');\n      insert into t1 values(3,'three');\n      insert into t1 values(4,'four');\n  \n      create table t2(x integer, y varchar(10), z varchar(10));\n      insert into t2 values(2,'niban','ok');\n      insert into t2 values(4,'yonban','err');"
         },
         {
           "type": "exec",
@@ -57,8 +55,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create index i2 on t2(z);",
-          "expect": "2 two 2 niban ok"
+          "sql": "create index i2 on t2(z);"
         },
         {
           "type": "exec",

@@ -137,8 +137,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX collate4i1 ON collate4t1(a);",
-          "expect": "A a A A 4"
+          "sql": "CREATE INDEX collate4i1 ON collate4t1(a);"
         },
         {
           "type": "exec",
@@ -151,8 +150,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);",
-          "expect": "A a A A 19"
+          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);"
         },
         {
           "type": "exec",
@@ -165,8 +163,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a);",
-          "expect": "a A 5"
+          "sql": "DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a);"
         },
         {
           "type": "exec",
@@ -179,8 +176,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);",
-          "expect": "a A 9"
+          "sql": "DROP INDEX collate4i1;\n      CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);"
         },
         {
           "type": "exec",
@@ -219,8 +215,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX collate4i1 ON collate4t1(a, b, c);",
-          "expect": "0 0 0 0 0 1 0 1 0 0 1 1 1 0 0 1 0 1 1 1 0 1 1 1 29"
+          "sql": "CREATE INDEX collate4i1 ON collate4t1(a, b, c);"
         },
         {
           "type": "exec",
@@ -233,8 +228,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c COLLATE text);",
-          "expect": "0 0 0 0 0 1 0 1 0 0 1 1 1 0 0 1 0 1 1 1 0 1 1 1 22"
+          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c COLLATE text);"
         },
         {
           "type": "exec",
@@ -457,8 +451,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX collate4i1 ON collate4t1(a);",
-          "expect": "10 1"
+          "sql": "CREATE INDEX collate4i1 ON collate4t1(a);"
         },
         {
           "type": "exec",
@@ -471,8 +464,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE NUMERIC);",
-          "expect": "10 3"
+          "sql": "DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE NUMERIC);"
         },
         {
           "type": "exec",

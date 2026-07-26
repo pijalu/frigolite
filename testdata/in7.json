@@ -94,8 +94,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2",
-          "expect": "1 2 3 4 5 6"
+          "sql": "WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2"
         }
       ]
     },

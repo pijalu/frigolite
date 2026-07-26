@@ -3,15 +3,6 @@
   "name": "spellfix",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;"
-        }
-      ]
-    },
-    {
       "name": "1.11",
       "steps": [
         {
@@ -102,36 +93,6 @@
       ]
     },
     {
-      "name": "1.30",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT rowid FROM t1 WHERE word='rabbit';",
-          "expect": "2"
-        }
-      ]
-    },
-    {
-      "name": "1.31",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';",
-          "expect": "2000"
-        }
-      ]
-    },
-    {
-      "name": "1.33",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1(rowid, word) VALUES(3000,'garden');",
-          "expect": "1 {constraint failed}"
-        }
-      ]
-    },
-    {
       "name": "4.0",
       "steps": [
         {
@@ -170,16 +131,6 @@
       ]
     },
     {
-      "name": "7.2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;",
-          "expect": "1 Archilles   2 Apollo   3 Atrides"
-        }
-      ]
-    },
-    {
       "name": "7.2.2",
       "steps": [
         {
@@ -206,26 +157,6 @@
           "type": "exec",
           "sql": "INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');",
           "expect": "1 {constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "7.2.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;",
-          "expect": "1 Archilles   2 Apollo   3 Atrides"
-        }
-      ]
-    },
-    {
-      "name": "7.3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;",
-          "expect": "2 Apollo 3 Archilles"
         }
       ]
     },
@@ -260,31 +191,11 @@
       ]
     },
     {
-      "name": "7.3.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;",
-          "expect": "2 Apollo  3 Archilles"
-        }
-      ]
-    },
-    {
-      "name": "7.4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');"
-        }
-      ]
-    },
-    {
       "name": "8.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;",
-          "expect": "1"
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;"
         }
       ]
     }

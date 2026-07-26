@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ANALYZE;",
-          "expect": "2"
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ANALYZE;"
         },
         {
           "type": "exec",

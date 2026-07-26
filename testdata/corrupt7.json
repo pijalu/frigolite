@@ -28,8 +28,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "#    DROP TABLE t1;\n#    CREATE TABLE t1(a, b);\n#    INSERT INTO t1 VALUES(1, 'one');\n#    INSERT INTO t1 VALUES(100, 'one hundred');\n#    INSERT INTO t1 VALUES(100000, 'one hundred thousand');\n#    CREATE INDEX i1 ON t1(b);\n#",
-          "expect": "1 {database disk image is malformed}"
+          "sql": "#    DROP TABLE t1;\n#    CREATE TABLE t1(a, b);\n#    INSERT INTO t1 VALUES(1, 'one');\n#    INSERT INTO t1 VALUES(100, 'one hundred');\n#    INSERT INTO t1 VALUES(100000, 'one hundred thousand');\n#    CREATE INDEX i1 ON t1(b);\n#"
         },
         {
           "type": "exec",

@@ -3,19 +3,6 @@
   "name": "tkt3810",
   "tests": [
     {
-      "name": "tkt3810-1.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n    SELECT * FROM t1;\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);"
-        }
-      ]
-    },
-    {
       "name": "tkt3810-2",
       "steps": [
         {
@@ -33,16 +20,11 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE t1",
-          "expect": "0 {}"
-        },
-        {
-          "type": "exec",
           "sql": "DROP TABLE t1"
         },
         {
           "type": "exec",
-          "sql": "CREATE TEMP TRIGGER r1 AFTER INSERT ON t1 BEGIN\n       INSERT INTO t2 VALUES(new.rowid);\n     END;"
+          "sql": "DROP TABLE t1"
         }
       ]
     },
@@ -100,7 +82,7 @@
       ]
     },
     {
-      "name": "setup_7",
+      "name": "setup_6",
       "steps": [
         {
           "type": "exec",

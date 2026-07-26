@@ -354,8 +354,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);",
-          "expect": "{CREATE TABLE t0(c0)}"
+          "sql": "COMMIT;\n  SELECT sql FROM sqlite_master WHERE tbl_name = 't0';\n  CREATE INDEX i0 ON t0(c0);"
         }
       ]
     },

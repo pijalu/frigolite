@@ -10,88 +10,137 @@ Implement multi-database support via ATTACH and DETACH statements.
 
 ## Current State
 ```go
-// AttachStmt is parsed but Attach case in Engine.Exec returns empty result
 case *sql.AttachStmt:
-    // no-op
+    return &Result{}  // no-op
+case *sql.DetachStmt:
+    return &Result{}  // no-op
 ```
 
-## Implementation Approach
-SQLite ATTACH opens an additional database file and associates it with a schema name (like "aux", "db2", etc.). Tables can be referenced as `schema.table`.
+## Implementation Architecture
 
-### Design: Multi-DB Engine
-The Engine needs to support multiple database contexts, each with its own:
-- Pager (file access)
-- Schema Manager (tables, indexes, views, triggers)
-- B-Tree trees
+### DatabaseContext
+Create a struct that holds all per-database state:
 
-### Implementation Steps
+```go
+type DatabaseContext struct {
+    Name       string          // schema name ("main", "aux", etc.)
+    Pager      *pager.Pager    // file access for this database
+    Schema     *schema.Manager // tables, indexes, views for this db
+    RootPages  map[string]uint32 // table → root page mapping
+    FilePath   string          // path to .db file
+    IsMemory   bool            // in-memory database
+    IsTemp     bool            // temp database
+}
+```
 
-#### Step 1: Create Multi-DB Engine Architecture
-1. Design `DatabaseContext` struct holding { pager, schema, rootPages }
-2. Modify `Engine` to hold a map of schema_name → DatabaseContext
-3. Default "main" context is the primary database
-4. Add `Attach(path string, schema string)` method that:
-   - Opens/creates the database file via pager
-   - Initializes schema manager
-   - Validates schema name doesn't conflict with existing
-   - Stores in the context map
+Modify Engine:
+```go
+type Engine struct {
+    // ... existing fields ...
+    databases map[string]*DatabaseContext // schema_name → context
+    mainDB    *DatabaseContext            // shortcut for "main"
+}
+```
 
-#### Step 2: Implement ATTACH execution
-1. In `execAttach` (to be created), parse the path and schema name
-2. Open the target database file using pager
-3. Initialize its schema
-4. Add to engine's database contexts
-5. Handle `:memory:` paths for in-memory attached databases
-6. Handle `file:` URI paths for SQLite-compatible attachment
-7. Validate schema name (no duplicates, no reserved names)
+## Implementation Steps
 
-#### Step 3: Implement DETACH execution
-1. Parse DETACH DATABASE schema_name
-2. Remove the database context
-3. Close the associated pager
-4. Validate that main cannot be detached
+### Step 1: Multi-DB Engine Architecture
+**Files:** `internal/exec/engine.go`, `internal/schema/schema.go`
 
-#### Step 4: Support schema-qualified table references
-1. Update table name resolution to handle `schema.table` syntax
-2. When a table is referenced as `schema.table`:
-   - Look up the schema in engine's database contexts
-   - Look up the table in that schema's schema manager
-3. When a table is referenced without schema:
-   - Search "main" first, then attach databases in order
-4. Schema - name mapping should use CaseInsensitive comparison
+**Changes:**
+1. Create `DatabaseContext` struct with pager, schema, root pages
+2. Modify `Engine` to hold `map[string]*DatabaseContext`
+3. Refactor `NewEngine` to create default "main" context
+4. All existing table lookups go through `mainDB` initially
+5. Add `getDB(name string) *DatabaseContext` helper that's case-insensitive
 
-#### Step 5: Handle cross-database operations
-1. SELECT from tables in different databases (cross-db joins)
-2. INSERT INTO schema.table
-3. CREATE TABLE schema.table
-4. CREATE INDEX schema.index ON schema.table
-5. DROP TABLE schema.table
-6. PRAGMA schema.pragma_name
-7. sqlite_schema/sqlite_master views for each database
+### Step 2: Implement ATTACH execution
+**File:** `internal/exec/engine.go`
 
-#### Step 6: Handle attached database transactions
-1. BEGIN/COMMIT/ROLLBACK should apply to ALL attached databases
-2. Two-phase commit? (SQLite uses a super-journal for multi-db transactions)
-3. For now: simple per-database transactions (may not be fully atomic)
+1. Create `execAttach(s *sql.AttachStmt)` method:
+   - Resolve path (handle `:memory:`, file: URI)
+   - Open database file via pager
+   - Initialize schema manager
+   - Validate schema name (no "main", "temp", duplicates)
+   - Add to databases map
+2. Handle errors: file not found (attach3-11.0 expects error)
 
-#### Step 7: Handle edge cases
-1. ATTACH the same database twice (should fail)
-2. ATTACH a database that doesn't exist (with appropriate flags?)
-3. DETACH while in transaction
-4. DETACH a database with active prepared statements
-5. Schema name conflicts with "main", "temp", "sqlite_master"
+### Step 3: Implement DETACH execution
+**File:** `internal/exec/engine.go`
+
+1. Create `execDetach(s *sql.DetachStmt)` method:
+   - Validate schema exists and is not "main"
+   - Close pager
+   - Remove from databases map
+2. Handle edge cases: DETACH NULL (attach3-12.11 expects error)
+
+### Step 4: Schema-qualified table references
+**Files:** `internal/exec/engine.go`, `internal/schema/schema.go`
+
+1. Update `FindTable(name string)` to handle `schema.table` format
+2. When schema is specified: look up schema in databases map, then table
+3. When schema is not specified: search main first, then attached databases
+4. Update `CreateTable`, `DropTable`, `CreateIndex`, etc. to accept schema parameter
+
+### Step 5: Cross-database operations
+**File:** `internal/exec/engine.go`
+
+- SELECT from `schema.table` — resolve schema context
+- INSERT INTO `schema.table` — resolve schema context
+- CREATE TABLE `schema.table` — create in specific schema
+- CREATE INDEX `schema.index` ON `schema.table` — resolve schema
+- DROP TABLE `schema.table` — check schema
+- PRAGMA `schema.pragma` — run pragma on specific schema
+
+### Step 6: Per-database sqlite_master
+**File:** `internal/schema/schema.go`
+
+Each database should have its own `sqlite_master` table that lists tables in that database.
+- `main.sqlite_master` — tables in main database
+- `aux.sqlite_master` — tables in aux database
+- `temp.sqlite_master` — temp tables
+
+### Step 7: Transactions across databases
+**File:** `internal/exec/engine.go`
+
+- BEGIN applies to all attached databases
+- COMMIT applies to all attached databases
+- ROLLBACK applies to all attached databases
+- For now: simple per-database transactions (no cross-db atomicity)
 
 ## Verification
+
 ```bash
 go test -v -run "TestSQLiteSuite/attach3" . 2>&1 | grep -E "PASS|FAIL"
 ```
 
 ## Completion Check
+
 ```bash
-go test -v -run "TestSQLiteSuite/attach3" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+cd /Users/muaddib/dev/frigolite && go test -v -run "TestSQLiteSuite/attach3" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
 ```
 
 ## Key Files
-- `internal/exec/engine.go` — ATTACH/DETACH execution, schema. prefix resolution
-- `internal/pager/pager.go` — multiple pager instances
-- `internal/schema/schema.go` — multi-db schema management
+
+| File | Changes |
+|------|---------|
+| `internal/exec/engine.go` | New struct fields, ATTACH/DETACH impl, schema prefix resolution |
+| `internal/pager/pager.go` | Multiple pager instances (already supports file open) |
+| `internal/schema/schema.go` | Multi-db schema management, qualified name resolution |
+| `internal/sql/ast.go` | AttachStmt/DetachStmt already defined |
+
+## SQLite Reference
+
+```sql
+-- ATTACH syntax
+ATTACH DATABASE 'file.db' AS aux;
+
+-- Schema-qualified references
+SELECT * FROM aux.t1;
+
+-- Per-database sqlite_master
+SELECT * FROM aux.sqlite_master;
+
+-- DETACH
+DETACH DATABASE aux;
+```

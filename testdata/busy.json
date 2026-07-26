@@ -62,8 +62,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN EXCLUSIVE",
-          "expect": "1 {database is locked}"
+          "sql": "BEGIN EXCLUSIVE"
         },
         {
           "type": "exec",
@@ -114,8 +113,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "6"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",

@@ -113,8 +113,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE UNIQUE INDEX t3_i2 ON t3(b)",
-          "expect": "0 none numeric real text"
+          "sql": "CREATE UNIQUE INDEX t3_i2 ON t3(b)"
         },
         {
           "type": "exec",

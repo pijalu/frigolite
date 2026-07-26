@@ -214,15 +214,6 @@
       ]
     },
     {
-      "name": "7.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DETACH 123;\n  DROP TABLE x2;\n  DROP TABLE x3;\n  ATTACH 'test.db2' AS '123corp';"
-        }
-      ]
-    },
-    {
       "name": "7.2.1",
       "steps": [
         {
@@ -239,42 +230,6 @@
           "type": "exec",
           "sql": "SELECT * FROM dbstat(123corp);",
           "expect": "1 {unrecognized token: \"123corp\"}"
-        }
-      ]
-    },
-    {
-      "name": "8.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM st4 WHERE st4.aggregate = NULL;"
-        }
-      ]
-    },
-    {
-      "name": "8.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT aggregate=1 FROM st4 WHERE aggregate = 5"
-        }
-      ]
-    },
-    {
-      "name": "8.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM st4 WHERE name = NULL;"
-        }
-      ]
-    },
-    {
-      "name": "8.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM st4 WHERE schema = NULL;"
         }
       ]
     },

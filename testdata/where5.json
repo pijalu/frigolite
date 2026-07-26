@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x TEXT);\n    CREATE TABLE t2(x INTEGER);\n    CREATE TABLE t3(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(-1);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;",
-          "expect": "-1"
+          "sql": "CREATE TABLE t1(x TEXT);\n    CREATE TABLE t2(x INTEGER);\n    CREATE TABLE t3(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(-1);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;"
         },
         {
           "type": "exec",

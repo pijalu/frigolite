@@ -157,8 +157,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;",
-          "expect": "(1,one)->(xyz,one)\n  (3,three)->(xyz,three)"
+          "sql": "UPDATE v1 SET a='xyz' WHERE k IN ('a', 'c');\n  SELECT * FROM log;\n  DELETE FROM log;"
         }
       ]
     },
@@ -167,8 +166,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;",
-          "expect": "(2,two)->(twelve,two)\n  (4,four)->(fourteen,four)"
+          "sql": "CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;"
         }
       ]
     }

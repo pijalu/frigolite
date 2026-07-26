@@ -76,8 +76,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE ab(a,b);\n    INSERT INTO \"ab\" VALUES(1,2);\n    INSERT INTO \"ab\" VALUES(3,NULL);\n\n    CREATE TABLE xy(x,y);\n    INSERT INTO \"xy\" VALUES(2,3);\n    INSERT INTO \"xy\" VALUES(NULL,1);",
-          "expect": "2 3 {} {} {} 1 {} {}"
+          "sql": "CREATE TABLE ab(a,b);\n    INSERT INTO \"ab\" VALUES(1,2);\n    INSERT INTO \"ab\" VALUES(3,NULL);\n\n    CREATE TABLE xy(x,y);\n    INSERT INTO \"xy\" VALUES(2,3);\n    INSERT INTO \"xy\" VALUES(NULL,1);"
         },
         {
           "type": "exec",

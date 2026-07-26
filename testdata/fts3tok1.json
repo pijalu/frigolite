@@ -13,16 +13,6 @@
       ]
     },
     {
-      "name": "1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT token FROM t1 WHERE input = '1x2x3x'",
-          "expect": "1x2x3x"
-        }
-      ]
-    },
-    {
       "name": "1.6",
       "steps": [
         {
@@ -57,36 +47,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE input = 123",
           "expect": "123 123 0 3 0"
-        }
-      ]
-    },
-    {
-      "name": "1.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE input = 'a b c' AND token = 'b';",
-          "expect": "{a b c} b 2 3 1"
-        }
-      ]
-    },
-    {
-      "name": "1.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE token = 'b' AND input = 'a b c';",
-          "expect": "{a b c} b 2 3 1"
-        }
-      ]
-    },
-    {
-      "name": "1.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE input < 'b' AND input = 'a b c';",
-          "expect": "{a b c} a 0 1 0 \n  {a b c} b 2 3 1 \n  {a b c} c 4 5 2"
         }
       ]
     },

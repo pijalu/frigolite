@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(n int, log int);\n    BEGIN;",
-          "expect": "0 1 2 3 4 5"
+          "sql": "CREATE TABLE t1(n int, log int);\n    BEGIN;"
         },
         {
           "type": "exec",

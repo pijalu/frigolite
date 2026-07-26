@@ -165,8 +165,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX idxt1 ON t1(rowid)",
-          "expect": "1 {table t1 has no column named rowid}"
+          "sql": "CREATE INDEX idxt1 ON t1(rowid)"
         },
         {
           "type": "exec",
@@ -179,8 +178,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX idxt1 ON t1(_rowid_)",
-          "expect": "1 {table t1 has no column named _rowid_}"
+          "sql": "CREATE INDEX idxt1 ON t1(_rowid_)"
         },
         {
           "type": "exec",
@@ -193,8 +191,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX idxt1 ON t1(oid)",
-          "expect": "1 {table t1 has no column named oid}"
+          "sql": "CREATE INDEX idxt1 ON t1(oid)"
         },
         {
           "type": "exec",
@@ -207,8 +204,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX idxt1 ON t1(x, rowid)",
-          "expect": "1 {table t1 has no column named rowid}"
+          "sql": "CREATE INDEX idxt1 ON t1(x, rowid)"
         },
         {
           "type": "exec",
@@ -285,8 +281,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1;\n    DELETE FROM t2;",
-          "expect": "256"
+          "sql": "DELETE FROM t1;\n    DELETE FROM t2;"
         },
         {
           "type": "exec",
@@ -419,8 +414,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX idxt1 ON t1(x)",
-          "expect": "256"
+          "sql": "CREATE INDEX idxt1 ON t1(x)"
         },
         {
           "type": "exec",
@@ -507,8 +501,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX idxt2 ON t2(y)",
-          "expect": "4 3"
+          "sql": "CREATE INDEX idxt2 ON t2(y)"
         },
         {
           "type": "exec",

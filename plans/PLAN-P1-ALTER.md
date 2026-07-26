@@ -3,17 +3,34 @@
 ## Scope
 Fix ALL ALTER TABLE operations to match SQLite behavior exactly, including error messages.
 
-## Current Failures (128+)
+## Prerequisites
+P1B (Parser/Engine Fixes) and P1A (Prerequisite Fixes) must be completed first:
+1. P1B fixes error messages, SQL formatting, parser edge cases
+2. P1A adds WINDOW clause, CTE+VALUES, multi-col SET, keyword fallthrough
+
+**After P1B + P1A, remaining failures should be ~50 (down from 128+).**
+
+## Current Failures (before prerequisites)
 | Suite | Failures | Primary Issue |
 |-------|----------|--------------|
-| altertab3 | 41 | RENAME COLUMN doesn't actually rename; error messages don't match; trigger/view SQL not updated properly |
-| alterlegacy | 33 | Legacy mode behavior; column rename without COLUMN keyword; schema updates |
-| altertab2 | 22 | Various rename/add scenarios; error messages |
-| altercons2 | 18 | Constraint handling during ALTER; add/drop constraint |
-| alterdropcol | 8 | DROP COLUMN validation errors; edge cases |
+| altertab3 | 33 | RENAME COLUMN doesn't actually rename; error messages don't match; trigger/view SQL not updated properly |
+| alterlegacy | 17 | Legacy mode behavior; column rename without COLUMN keyword; schema updates |
+| altertab2 | 14 | Various rename/add scenarios; error messages |
+| alterdropcol | 4 | DROP COLUMN validation errors; edge cases |
 | altercons3 | 4 | More constraint edge cases |
-| altercorrupt | 3 | Corruption handling during ALTER |
-| altermalloc2 | 2 | Out-of-memory / error handling |
+| altercorrupt | 1 | Corruption handling during ALTER |
+| altermalloc2 | 3 | Out-of-memory / error handling |
+
+## Expected After P1B+P1A Completion
+| Suite | Expected Failures | Notes |
+|-------|-------------------|-------|
+| altertab3 | ~15 | Remaining: RENAME COLUMN, trigger SQL update, rename validation |
+| alterlegacy | ~10 | Remaining: legacy_alter_table pragma, error msgs |
+| altertab2 | ~8 | Remaining: ALTER TABLE RENAME validation, view updates |
+| alterdropcol | ~8 | Remaining: DROP COLUMN validation, FK handling |
+| altercons3 | ~4 | Remaining: constraint add/drop |
+| altercorrupt | ~1 | Remaining: corruption detection |
+| altermalloc2 | ~2 | Remaining: OOM handling |
 
 ## Implementation Steps
 

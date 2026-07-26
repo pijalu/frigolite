@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);",
-          "expect": "memory"
+          "sql": "PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);"
         }
       ]
     },

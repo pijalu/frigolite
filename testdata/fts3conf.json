@@ -8,20 +8,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE fts3check;\n    DROP TABLE temp.fts3check2;\n    DROP TABLE temp.fts3check3;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');"
-        }
-      ]
-    },
-    {
-      "name": "2.2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');",
-          "expect": "1 {datatype mismatch}"
         }
       ]
     },
@@ -31,26 +17,6 @@
         {
           "type": "exec",
           "sql": "COMMIT"
-        }
-      ]
-    },
-    {
-      "name": "2.2.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1",
-          "expect": "{a b c} {a b c}"
-        }
-      ]
-    },
-    {
-      "name": "3.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;",
-          "expect": "3 4 5"
         }
       ]
     },

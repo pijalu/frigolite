@@ -35,19 +35,7 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO ft(ft) VALUES('rebuild')"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft VALUES('the quick brown fox');"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO ft VALUES(\n       'theunusuallylongtokenthatjustdragsonandonandonandthendragsonsomemoreeof'\n      );"
         }
       ]
     },
@@ -81,19 +69,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t8 VALUES('one two three')"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t8 RENAME TO t8ii"
         }
       ]
     },

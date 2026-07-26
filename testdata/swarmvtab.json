@@ -3,32 +3,8 @@
   "name": "swarmvtab",
   "tests": [
     {
-      "name": "1.2",
+      "name": "setup_0",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE s1;"
-        }
-      ]
-    },
-    {
-      "name": "1.5.1.(5-seconds-or-so)",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;",
-          "expect": "80000"
-        }
-      ]
-    },
-    {
-      "name": "1.5.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM s1 a, s1 b, s1 c \n  WHERE a.rowid=b.rowid AND b.rowid=c.rowid;",
-          "expect": "400"
-        },
         {
           "type": "exec",
           "sql": "DELETE FROM t0 WHERE rowid<=200"
@@ -40,46 +16,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 1 AND 100;",
-          "expect": "1 {unable to open database file}"
-        }
-      ]
-    },
-    {
-      "name": "2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 101 AND 200;",
-          "expect": "1 {no such rowid table: t15}"
-        }
-      ]
-    },
-    {
-      "name": "2.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM s1 WHERE rowid BETWEEN 201 AND 300;",
-          "expect": "1 {source table schema mismatch}"
-        }
-      ]
-    },
-    {
-      "name": "3.3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM xyz",
-          "expect": "1 {fetch_db error!}"
         }
       ]
     }

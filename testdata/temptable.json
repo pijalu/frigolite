@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c);",
-          "expect": "1 2 3"
+          "sql": "CREATE TABLE t1(a,b,c);"
         },
         {
           "type": "exec",
@@ -81,8 +80,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ROLLBACK",
-          "expect": "1 {no such table: t2}"
+          "sql": "ROLLBACK"
         },
         {
           "type": "exec",
@@ -109,8 +107,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT",
-          "expect": "0 {1 2}"
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -164,8 +161,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE INDEX i2 ON t2(x);\n    DROP TABLE t2;",
-          "expect": "1 {no such index: i2}"
+          "sql": "CREATE INDEX i2 ON t2(x);\n    DROP TABLE t2;"
         },
         {
           "type": "exec",
@@ -430,8 +426,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMP TABLE mask(a,b,c)",
-          "expect": "3 4"
+          "sql": "CREATE TEMP TABLE mask(a,b,c)"
         },
         {
           "type": "exec",
@@ -658,8 +653,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMP TABLE tbl2(a, b);",
-          "expect": "1 2"
+          "sql": "CREATE TEMP TABLE tbl2(a, b);"
         },
         {
           "type": "exec",

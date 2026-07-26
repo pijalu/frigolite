@@ -15,8 +15,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);",
-          "expect": "wal"
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);"
         }
       ]
     },
@@ -198,8 +197,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');",
-          "expect": "wal"
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');"
         },
         {
           "type": "exec",

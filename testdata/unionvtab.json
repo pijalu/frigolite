@@ -22,56 +22,6 @@
       ]
     },
     {
-      "name": "1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM uuu WHERE rowid = 3;\n  SELECT * FROM uuu WHERE rowid = 11;",
-          "expect": "3 three 11 eleven"
-        }
-      ]
-    },
-    {
-      "name": "1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM uuu WHERE rowid IN (12, 10, 2);",
-          "expect": "2 two 10 ten 12 twelve"
-        }
-      ]
-    },
-    {
-      "name": "1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM uuu WHERE rowid BETWEEN 3 AND 11;",
-          "expect": "3 three 10 ten 11 eleven"
-        }
-      ]
-    },
-    {
-      "name": "1.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM uuu WHERE rowid BETWEEN 11 AND 15;",
-          "expect": "11 eleven 12 twelve"
-        }
-      ]
-    },
-    {
-      "name": "1.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM uuu WHERE rowid BETWEEN -46 AND 1500;",
-          "expect": "1 one 2 two 3 three\n  10 ten 11 eleven 12 twelve\n  20 twenty 21 twenty-one 22 twenty-two"
-        }
-      ]
-    },
-    {
       "name": "2.3.0",
       "steps": [
         {

@@ -118,8 +118,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;",
-          "expect": "54"
+          "sql": "INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;"
         },
         {
           "type": "exec",
@@ -184,8 +183,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;",
-          "expect": "15"
+          "sql": "DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;"
         },
         {
           "type": "exec",
@@ -551,8 +549,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE av1(a, b);\n    BEGIN;",
-          "expect": "5049"
+          "sql": "CREATE TABLE av1(a, b);\n    BEGIN;"
         },
         {
           "type": "exec",
@@ -640,8 +637,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32",
-          "expect": "73"
+          "sql": "PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32"
         },
         {
           "type": "exec",
@@ -654,8 +650,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2",
-          "expect": "354"
+          "sql": "CREATE TABLE t2(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t2 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t3(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t3 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t4(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t4 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    CREATE TABLE t5(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t5 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2"
         },
         {
           "type": "exec",

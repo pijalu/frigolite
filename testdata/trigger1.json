@@ -176,8 +176,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;",
-          "expect": "2 b 4 d"
+          "sql": "create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after delete on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    delete from t1 where a=1 OR a=3;\n    select * from t1;\n    drop table t1;"
         },
         {
           "type": "exec",
@@ -190,8 +189,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;",
-          "expect": "1 x-a 2 b 4 d"
+          "sql": "create table t1(a,b);\n    insert into t1 values(1,'a');\n    insert into t1 values(2,'b');\n    insert into t1 values(3,'c');\n    insert into t1 values(4,'d');\n    create trigger r1 after update on t1 for each row begin\n      delete from t1 WHERE a=old.a+2;\n    end;\n    update t1 set b='x-' || b where a=1 OR a=3;\n    select * from t1;\n    drop table t1;"
         },
         {
           "type": "exec",
@@ -254,8 +252,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TEMP TABLE t2(x,y);",
-          "expect": "0 {}"
+          "sql": "CREATE TEMP TABLE t2(x,y);"
         },
         {
           "type": "exec",
@@ -427,8 +424,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(9,10);",
-          "expect": "3 4 7 8"
+          "sql": "INSERT INTO t1 VALUES(9,10);"
         },
         {
           "type": "exec",
@@ -908,8 +904,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE tA(a INTEGER PRIMARY KEY, b, c);\n    CREATE TRIGGER tA_trigger BEFORE UPDATE ON \"tA\" BEGIN SELECT 1; END;\n    INSERT INTO tA VALUES(1, 2, 3);",
-          "expect": "1 {datatype mismatch}"
+          "sql": "CREATE TABLE tA(a INTEGER PRIMARY KEY, b, c);\n    CREATE TRIGGER tA_trigger BEFORE UPDATE ON \"tA\" BEGIN SELECT 1; END;\n    INSERT INTO tA VALUES(1, 2, 3);"
         },
         {
           "type": "exec",

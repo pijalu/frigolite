@@ -26,6 +26,7 @@ type SelectStmt struct {
 	SetOp    SetOp          // UNION / INTERSECT / EXCEPT
 	UnionAll bool           // UNION ALL vs UNION
 	CTEs     []CTEDef       // WITH clause CTE definitions
+	Windows  []WindowDef    // WINDOW clause definitions
 }
 
 // CTEDef represents a Common Table Expression definition.
@@ -44,6 +45,14 @@ const (
 	SetIntersect          // INTERSECT
 	SetExcept             // EXCEPT
 )
+
+// WindowDef represents a named window definition in a WINDOW clause.
+type WindowDef struct {
+	Name       string        // window name
+	Partitions []Expr        // PARTITION BY expressions
+	OrderBy    []OrderByTerm // ORDER BY terms
+	FrameSpec  string        // frame spec text (ROWS/RANGE/GROUPS BETWEEN ...)
+}
 
 func (s *SelectStmt) stmt() {}
 
@@ -106,14 +115,15 @@ const (
 
 // UpdateStmt represents an UPDATE statement.
 type UpdateStmt struct {
-	Table        string
-	Assignments  []Assignment
-	Where        Expr
-	OrderBy      []OrderByTerm
-	Limit        Expr
-	Offset       Expr
-	Returning    SelectColumn
-	HasReturning bool
+	Table          string
+	Assignments    []Assignment
+	SetParenColumns []string // when set, indicates SET (col1,col2)=(val1,val2) format
+	Where          Expr
+	OrderBy        []OrderByTerm
+	Limit          Expr
+	Offset         Expr
+	Returning      SelectColumn
+	HasReturning   bool
 }
 
 func (s *UpdateStmt) stmt() {}
@@ -176,18 +186,19 @@ func (s *CreateTableStmt) stmt() {}
 
 // ColumnDef represents a column definition in CREATE TABLE.
 type ColumnDef struct {
-	Name       string
-	Type       string
-	NotNull    bool
-	PrimaryKey bool
-	AutoInc    bool
-	Unique     bool
-	OnConflict string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE
-	Collate    string
-	References string
-	Default    Expr
-	Check      Expr
-	Dropped    bool  // column has been dropped via ALTER TABLE DROP COLUMN
+	Name         string
+	Type         string
+	NotNull      bool
+	PrimaryKey   bool
+	AutoInc      bool
+	Unique       bool
+	OnConflict   string // optional: REPLACE, ABORT, FAIL, ROLLBACK, IGNORE
+	Collate      string
+	ConstraintName string // optional: CONSTRAINT name before constraint clause
+	References     string
+	Default      Expr
+	Check        Expr
+	Dropped      bool  // column has been dropped via ALTER TABLE DROP COLUMN
 }
 
 // CreateIndexStmt represents a CREATE INDEX statement.

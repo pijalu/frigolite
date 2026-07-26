@@ -7,8 +7,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);",
-          "expect": "512"
+          "sql": "CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);"
         },
         {
           "type": "exec",

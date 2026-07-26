@@ -173,8 +173,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP INDEX idx1",
-          "expect": "29999"
+          "sql": "DROP INDEX idx1"
         },
         {
           "type": "exec",

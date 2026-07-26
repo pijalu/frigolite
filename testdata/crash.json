@@ -20,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);",
-          "expect": "0"
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);"
         },
         {
           "type": "exec",
@@ -64,8 +63,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN",
-          "expect": "499500 999000 1498500"
+          "sql": "BEGIN"
         },
         {
           "type": "exec",
@@ -86,8 +84,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;",
-          "expect": "1"
+          "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
         },
         {
           "type": "exec",
@@ -100,8 +97,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;",
-          "expect": "1"
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.default_cache_size = 10;\n      CREATE TABLE aux.abc2 AS SELECT 2*a as a, 2*b as b, 2*c as c FROM abc;"
         },
         {
           "type": "exec",

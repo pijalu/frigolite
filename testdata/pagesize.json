@@ -103,6 +103,10 @@
         {
           "type": "exec",
           "sql": "PRAGMA page_size=1234;\n      PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;"
         }
       ]
     },
@@ -123,39 +127,6 @@
         },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x UNIQUE, y UNIQUE, z UNIQUE)"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2,3);\n        INSERT INTO t1 VALUES(2,3,4);\n        SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size"
-        },
-        {
-          "type": "exec",
           "sql": "VACUUM"
         }
       ]
@@ -169,7 +140,7 @@
       ]
     },
     {
-      "name": "setup_13",
+      "name": "setup_11",
       "steps": [
         {
           "type": "exec",
@@ -194,7 +165,7 @@
       ]
     },
     {
-      "name": "setup_15",
+      "name": "setup_13",
       "steps": [
         {
           "type": "exec",

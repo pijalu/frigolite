@@ -76,8 +76,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE abc(b);\n    INSERT INTO abc VALUES('ABCDE');",
-          "expect": "1"
+          "sql": "CREATE TABLE abc(b);\n    INSERT INTO abc VALUES('ABCDE');"
         },
         {
           "type": "exec",
@@ -121,8 +120,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(123, 456, 789);",
-          "expect": "1"
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(123, 456, 789);"
         },
         {
           "type": "exec",
@@ -208,8 +206,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(a)",
-          "expect": "1 {1st ORDER BY term out of range - should be between 1 and 1}"
+          "sql": "CREATE TABLE t1(a)"
         },
         {
           "type": "exec",

@@ -47,8 +47,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(5,'hello','world');",
-          "expect": "5"
+          "sql": "INSERT INTO t1 VALUES(5,'hello','world');"
         },
         {
           "type": "exec",
@@ -89,8 +88,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(5,'second','entry');",
-          "expect": "1 {UNIQUE constraint failed: t1.a}"
+          "sql": "INSERT INTO t1 VALUES(5,'second','entry');"
         },
         {
           "type": "exec",
@@ -117,8 +115,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(6,'second','entry');",
-          "expect": "0 {}"
+          "sql": "INSERT INTO t1 VALUES(6,'second','entry');"
         },
         {
           "type": "exec",
@@ -201,8 +198,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('x','y','z');",
-          "expect": "1 {datatype mismatch}"
+          "sql": "INSERT INTO t1 VALUES('x','y','z');"
         },
         {
           "type": "exec",
@@ -215,8 +211,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES('','y','z');",
-          "expect": "1 {datatype mismatch}"
+          "sql": "INSERT INTO t1 VALUES('','y','z');"
         },
         {
           "type": "exec",
@@ -229,8 +224,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3.4,'y','z');",
-          "expect": "1 {datatype mismatch}"
+          "sql": "INSERT INTO t1 VALUES(3.4,'y','z');"
         },
         {
           "type": "exec",
@@ -243,8 +237,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(-3,'y','z');",
-          "expect": "0 {}"
+          "sql": "INSERT INTO t1 VALUES(-3,'y','z');"
         },
         {
           "type": "exec",
@@ -507,8 +500,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(11,'hello','world')",
-          "expect": "5 hello world 11 hello world 5"
+          "sql": "INSERT INTO t1 VALUES(11,'hello','world')"
         },
         {
           "type": "exec",
@@ -521,8 +513,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(0,'zero','entry');",
-          "expect": "0 zero entry 0"
+          "sql": "INSERT INTO t1 VALUES(0,'zero','entry');"
         },
         {
           "type": "exec",

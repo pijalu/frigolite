@@ -20,8 +20,7 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t1;",
-          "expect": "0 {}"
+          "sql": "BEGIN;\n    DELETE FROM t1;"
         },
         {
           "type": "exec",
