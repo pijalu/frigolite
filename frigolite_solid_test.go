@@ -23,6 +23,7 @@ import (
 // own layer or lower-numbered layers.
 var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/util":          0, // utilities
+	"github.com/pijalu/frigolite/internal/auth":           0, // authorization (no internal deps)
 	"github.com/pijalu/frigolite/internal/storage":        1, // file format
 	"github.com/pijalu/frigolite/internal/pager":          2, // page cache
 	"github.com/pijalu/frigolite/internal/btree":          3, // B-tree

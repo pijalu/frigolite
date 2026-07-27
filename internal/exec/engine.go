@@ -3175,7 +3175,7 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 	}
 
 	// 	// Apply WHERE filter
-	allRows, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
+	_, allRowMaps = e.filterSubqueryRows(allRows, allRowMaps, s.Where)
 
 	// Handle aggregate functions
 	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
@@ -5845,6 +5845,7 @@ func renameColumnInCreateTableSQL(sqlStr, oldName, newName string) string {
 	}
 	depth := 0
 	parenEnd := -1
+parenLoop:
 	for i := parenStart; i < len(sqlStr); i++ {
 		switch sqlStr[i] {
 		case '(':
@@ -5853,7 +5854,7 @@ func renameColumnInCreateTableSQL(sqlStr, oldName, newName string) string {
 			depth--
 			if depth == 0 {
 				parenEnd = i
-				break
+				break parenLoop
 			}
 		}
 	}
@@ -6585,6 +6586,7 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 	}
 	depth := 0
 	parenEnd := -1
+parenLoop2:
 	for i := parenStart; i < len(origSQL); i++ {
 		switch origSQL[i] {
 		case '(':
@@ -6593,7 +6595,7 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 			depth--
 			if depth == 0 {
 				parenEnd = i
-				break
+				break parenLoop2
 			}
 		}
 	}
@@ -6708,6 +6710,7 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 	}
 	depth := 0
 	parenEnd := -1
+parenLoop3:
 	for i := parenStart; i < len(origSQL); i++ {
 		switch origSQL[i] {
 		case '(':
@@ -6716,7 +6719,7 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 			depth--
 			if depth == 0 {
 				parenEnd = i
-				break
+				break parenLoop3
 			}
 		}
 	}
@@ -6841,6 +6844,7 @@ func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
 	}
 	depth := 0
 	parenEnd := -1
+parenLoop4:
 	for i := parenStart; i < len(origSQL); i++ {
 		switch origSQL[i] {
 		case '(':
@@ -6849,7 +6853,7 @@ func addColumnToCreateTableSQL(origSQL string, colDef sql.ColumnDef) string {
 			depth--
 			if depth == 0 {
 				parenEnd = i
-				break
+				break parenLoop4
 			}
 		}
 	}

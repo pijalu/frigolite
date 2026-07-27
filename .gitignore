@@ -38,3 +38,4 @@ vendor/
 *.bak
 test.db2
 ?
+test.db*

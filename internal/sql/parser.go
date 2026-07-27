@@ -3389,9 +3389,6 @@ func (p *Parser) parseFunctionCall(name string) Expr {
 		fc = &FuncCall{Name: name, Args: args, Distinct: distinct, OrderBy: orderBy}
 	}
 	p.expect(TokenRParen)
-	if fc == nil {
-		fc = &FuncCall{Name: name, Args: args, Distinct: distinct}
-	}
 	fc.Over = p.parseWindowClause()
 	return fc
 }
