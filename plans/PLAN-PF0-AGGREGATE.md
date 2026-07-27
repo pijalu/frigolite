@@ -1,4 +1,4 @@
-# PLAN-PF0-AGGREGATE.md — Aggregate Function Fixes (DONE)
+# PLAN-PF0-AGGREGATE.md — Aggregate Function Fixes (COMPLETE)
 
 ## Status: ✅ COMPLETE
 

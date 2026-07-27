@@ -580,7 +580,7 @@ func (e *Engine) buildCreateTableSQL(s *sql.CreateTableStmt) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
 	buf.WriteString(s.Name)
-	buf.WriteString(" (")
+	buf.WriteString("(")
 	for i, col := range s.Columns {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -2796,6 +2796,13 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	allRows, allRowMaps := e.scanTableRows(cursor, s, colDefs)
 
+	// Filter out internal system tables when querying sqlite_master/sqlite_schema.
+	// SQLite hides sqlite_stat1, sqlite_stat4, and similar internal tables from
+	// direct schema queries while still allowing direct table access by name.
+	if isSchemaTable(tableEntry.Name) && len(allRowMaps) > 0 {
+		allRows, allRowMaps = e.filterSystemTables(allRows, allRowMaps, colDefs)
+	}
+
 	// If outerRows is set (from a parent collapse) and this query has aggregates
 	// referencing only outer columns, evaluate them over all outer rows while
 	// using the first inner row for non-aggregate columns.
@@ -4792,6 +4799,56 @@ func (e *Engine) rowPassesWhere(where sql.Expr, row map[string]interface{}, curs
 	return match
 }
 
+// isSchemaTable returns true if the given table name is the sqlite_master/sqlite_schema table.
+func isSchemaTable(name string) bool {
+	upper := strings.ToUpper(name)
+	return upper == "SQLITE_MASTER" || upper == "SQLITE_SCHEMA" ||
+		upper == "MAIN.SQLITE_MASTER" || upper == "MAIN.SQLITE_SCHEMA"
+}
+
+// isHiddenSystemTable returns true if the table name is an internal system table
+// that should not appear in sqlite_master queries. SQLite hides these tables from
+// direct schema introspection while still allowing direct access by name.
+func isHiddenSystemTable(name string) bool {
+	upper := strings.ToUpper(name)
+	return upper == "SQLITE_STAT1" || upper == "SQLITE_STAT4"
+}
+
+// filterSystemTables removes rows that correspond to internal system tables
+// from query results. This is applied when reading from sqlite_master/sqlite_schema.
+func (e *Engine) filterSystemTables(allRows [][]interface{}, allRowMaps []map[string]interface{}, colDefs []sql.ColumnDef) ([][]interface{}, []map[string]interface{}) {
+	// Find the index of the "name" column in colDefs
+	nameIndex := -1
+	for i, cd := range colDefs {
+		if strings.EqualFold(cd.Name, "name") || strings.EqualFold(cd.Name, "tbl_name") {
+			nameIndex = i
+			break
+		}
+	}
+	if nameIndex < 0 {
+		return allRows, allRowMaps
+	}
+
+	var filteredRows [][]interface{}
+	var filteredMaps []map[string]interface{}
+	for i, rowMap := range allRowMaps {
+		// Get the "name" value from the row map
+		if nameVal, ok := rowMap["name"]; ok {
+			nameStr := util.UnwrapColumnValue(nameVal)
+			if nameStr != nil {
+				if name, ok := nameStr.(string); ok && isHiddenSystemTable(name) {
+					continue // skip system tables
+				}
+			}
+		}
+		if i < len(allRows) {
+			filteredRows = append(filteredRows, allRows[i])
+		}
+		filteredMaps = append(filteredMaps, rowMap)
+	}
+	return filteredRows, filteredMaps
+}
+
 // buildRowMap builds a column-name-to-value map from a record.
 func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) map[string]interface{} {
 	row := make(map[string]interface{})
@@ -5752,7 +5809,15 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 	if newSQL != "" && newSQL != tableEntry.SQL {
 		tableEntry.SQL = newSQL
 		_ = e.schema.RemoveEntry(tableEntry.Name)
-		_ = e.schema.AddEntry(tableEntry)
+		if err := e.schema.AddEntry(tableEntry); err != nil {
+			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+		}
+		// Verify the entry was re-added
+		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+			}
+		}
 	}
 
 	// Update triggers that reference the old column name
@@ -6281,7 +6346,15 @@ func (e *Engine) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		if newSQL != "" && newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
 			_ = e.schema.RemoveEntry(tableEntry.Name)
-			_ = e.schema.AddEntry(tableEntry)
+			if err := e.schema.AddEntry(tableEntry); err != nil {
+			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+		}
+		// Verify the entry was re-added
+		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+			}
+		}
 		}
 	}
 
@@ -6305,11 +6378,19 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 		newSQL := removeConstraintFromSQL(tableEntry.SQL, constraintName)
 		if newSQL != tableEntry.SQL {
 			tableEntry.SQL = newSQL
-			_ = e.schema.RemoveEntry(tableEntry.Name)
-			_ = e.schema.AddEntry(tableEntry)
-		}
-		return &Result{}
+	_ = e.schema.RemoveEntry(tableEntry.Name)
+	if err := e.schema.AddEntry(tableEntry); err != nil {
+		return &Result{Error: fmt.Errorf("failed to re-add entry after DROP CONSTRAINT: %w", err)}
 	}
+	// Verify the entry was re-added
+	if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+		if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+			return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DROP CONSTRAINT", tableEntry.Name)}
+		}
+	}
+}
+return &Result{}
+}
 
 	// Find the table entry first
 	tableEntry, err := e.schema.FindTable(tableName)
@@ -6416,7 +6497,15 @@ func (e *Engine) execAlterTableDrop(s *sql.AlterTableStmt) *Result {
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
 		_ = e.schema.RemoveEntry(tableEntry.Name)
-		_ = e.schema.AddEntry(tableEntry)
+		if err := e.schema.AddEntry(tableEntry); err != nil {
+			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+		}
+		// Verify the entry was re-added
+		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+			}
+		}
 	}
 
 	return &Result{}
@@ -6469,7 +6558,15 @@ func (e *Engine) execAlterTableAlter(s *sql.AlterTableStmt) *Result {
 	if updateSQL != "" {
 		tableEntry.SQL = updateSQL
 		_ = e.schema.RemoveEntry(tableEntry.Name)
-		_ = e.schema.AddEntry(tableEntry)
+		if err := e.schema.AddEntry(tableEntry); err != nil {
+			return &Result{Error: fmt.Errorf("failed to re-add entry after DDL: %w", err)}
+		}
+		// Verify the entry was re-added
+		if _, err := e.schema.FindTable(tableEntry.Name); err != nil {
+			if retryErr := e.schema.AddEntry(tableEntry); retryErr != nil {
+				return &Result{Error: fmt.Errorf("schema consistency check failed: entry %s lost after DDL", tableEntry.Name)}
+			}
+		}
 	}
 
 	return &Result{}
@@ -6576,7 +6673,7 @@ func removeConstraintFromSQL(origSQL, constraintName string) string {
 		}
 		buf.WriteString(part)
 	}
-	buf.WriteString(")")
+	buf.WriteString("\n)")
 	if trailingSQL != "" {
 		buf.WriteString(" ")
 		buf.WriteString(trailingSQL)
@@ -6706,7 +6803,7 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 	var buf strings.Builder
 	buf.WriteString("CREATE TABLE ")
 	buf.WriteString(tableName)
-	buf.WriteString(" (")
+	buf.WriteString("(")
 	for i, col := range colDefs {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -6722,7 +6819,7 @@ func rebuildCreateTableSQL(origSQL string, colDefs []sql.ColumnDef) string {
 		buf.WriteString(", ")
 		buf.WriteString(tc)
 	}
-	buf.WriteString(")")
+	buf.WriteString("\n)")
 	if trailingSQL != "" {
 		buf.WriteString(" ")
 		buf.WriteString(trailingSQL)
@@ -7294,6 +7391,8 @@ func (e *Engine) evalExpr(expr sql.Expr, row map[string]interface{}) (interface{
 		return v.Value, nil
 	case *sql.NullLit:
 		return nil, nil
+	case *sql.ParenExpr:
+		return e.evalExpr(v.Expr, row)
 	case *sql.ColumnRef:
 		return e.evalColumnRef(v, row)
 	case *sql.FuncCall:

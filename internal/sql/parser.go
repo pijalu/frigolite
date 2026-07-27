@@ -2097,11 +2097,19 @@ func (p *Parser) parseCreateIndex() *CreateIndexStmt {
 func (p *Parser) parseColumnDefs() ([]ColumnDef, []TableConstraint) {
 	var cols []ColumnDef
 	var constraints []TableConstraint
+	sawTableConstraint := false
+	hasColumns := false
 	for {
 		// Parse table-level constraints instead of skipping them
 		if p.cur.Type == TokenKeyword && (p.cur.Value == "PRIMARY" || p.cur.Value == "UNIQUE" ||
 			p.cur.Value == "CHECK" || p.cur.Value == "FOREIGN" || p.cur.Value == "CONSTRAINT") {
+			// SQLite rejects table-level constraints before any columns
+			if !hasColumns {
+				p.setErr("near %q: syntax error", p.cur.Value)
+				return nil, nil
+			}
 			constraints = append(constraints, p.parseTableConstraint())
+			sawTableConstraint = true
 			if p.cur.Type == TokenComma {
 				p.next()
 			}
@@ -2115,11 +2123,18 @@ func (p *Parser) parseColumnDefs() ([]ColumnDef, []TableConstraint) {
 		if p.cur.Type != TokenIdentifier && p.cur.Type != TokenKeyword {
 			break
 		}
+		// After a table-level constraint, additional column definitions are invalid.
+		// SQLite rejects: CREATE TABLE t(a, b, CONSTRAINT ck CHECK(a!=b), extra_col)
+		if sawTableConstraint {
+			p.setErr("near %q: syntax error", p.cur.Value)
+			return nil, nil
+		}
 		col := ColumnDef{Name: p.cur.Value}
 		p.next()
 		col.Type = p.parseColumnType()
 		p.parseColumnConstraints(&col)
 		cols = append(cols, col)
+		hasColumns = true
 		if p.cur.Type == TokenComma {
 			p.next()
 		} else {
@@ -2134,7 +2149,7 @@ func (p *Parser) parseColumnDefs() ([]ColumnDef, []TableConstraint) {
 func isConstraintStart(word string) bool {
 	switch word {
 	case "PRIMARY", "NOT", "DEFAULT", "UNIQUE", "CHECK", "REFERENCES",
-		"COLLATE", "CONSTRAINT":
+		"COLLATE", "CONSTRAINT", "NULL":
 		return true
 	}
 	return false
@@ -2215,6 +2230,9 @@ func (p *Parser) dispatchColumnConstraint(col *ColumnDef) bool {
 		p.next()
 	case "CHECK":
 		p.parseCheckConstraint(col)
+	case "NULL":
+		// NULL constraint means nullable (the default, but valid syntax)
+		p.next()
 	case "REFERENCES":
 		p.parseReferencesConstraint(col)
 	case "COLLATE":
@@ -3633,6 +3651,8 @@ func ExprString(e Expr) string {
 			result += ExprString(val)
 		}
 		return result + ")"
+	case *ParenExpr:
+		return "(" + ExprString(v.Expr) + ")"
 	default:
 		return "?"
 	}

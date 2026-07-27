@@ -1,16 +1,17 @@
-# PLAN-P8-MISC.md — Miscellaneous Fixes
+# PLAN-P8-MISC.md — Miscellaneous Fixes (Updated 2026-07-27)
 
 ## Scope
 Fix remaining test failures from small categories: atomic2, affinity2, and the TestUpdateWithExpr manual test.
 
 ## Current Failures
+
 | Test | Failures | Issue |
 |------|----------|-------|
-| atomic2 | 2 | Atomic commit behavior / ROLLBACK specifics |
-| affinity2 | 5 | Column affinity handling, type conversion edge cases |
-| TestUpdateWithExpr | 1 | UPDATE with expression evaluation ordering |
+| TestUpdateWithExpr | 1 | UPDATE expression evaluation ordering |
+| affinity2 | 4 | Column affinity handling, type conversion edge cases (501, 503, 505, 507) |
+| atomic2 | 1 | Atomic commit behavior / ROLLBACK specifics |
 
-## Implementation Steps
+## Implementation Steps (Ordered)
 
 ### Step 1: Fix TestUpdateWithExpr
 **File:** `internal/exec/engine.go`
@@ -25,34 +26,35 @@ Fix remaining test failures from small categories: atomic2, affinity2, and the T
 1. In `execUpdate`, evaluate all SET clause expressions using the pre-update row values
 2. Store evaluated values in a temporary map
 3. Apply all updates to the row simultaneously (not sequentially)
-4. This is the same as how SQL processes UPDATE with column swaps
 
-**Location:** Find the UPDATE execution in engine.go (around the `applyUpdateChanges` area).
+**Verify:** `go test -v -run "TestUpdateWithExpr" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq`
 
 ### Step 2: Fix atomic2 — Transaction handling
 **File:** `internal/exec/engine.go`
 
-**Problem:** `atomic2/setup_1` fails with "no such table: t1". The setup sequence involves:
-1. `SELECT count(*) FROM t1; PRAGMA integrity_check` — multi-statement
-2. The first statement succeeds but the second statement resets something
+**Problem:** `atomic2/setup_1` fails with "no such table: t1". The setup involves multi-statement SQL.
 
 **Fix investigation:**
 1. Trace multi-statement execution — does the converter classify this correctly?
 2. Check if PRAGMA integrity_check resets the schema or cache
 3. The root cause may be in how PRAGMA integrity_check interacts with schema caches
 
-### Step 3: Fix affinity2 — Column affinity
-**File:** `internal/exec/engine.go` or `internal/util/compare.go`
+**Verify:** `go test -v -run "TestSQLiteSuite/atomic2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq`
 
-**Problem:** 5 matching affinity tests fail. These are likely about:
+### Step 3: Fix affinity2 — Column affinity
+**Files:** `internal/exec/engine.go` or `internal/util/compare.go`
+
+**Problem:** 4 affinity tests fail (501, 503, 505, 507). Likely about:
 - Type affinity application on INSERT
 - Comparison with affinity
 - Column type conversion
 
 **Fix:**
-1. Run `go test -v -run "TestSQLiteSuite/affinity2" .` to see exact failures
+1. Run `go test -v -run "TestSQLiteSuite/affinity2/501" .` to see exact failure
 2. For each failure, determine if it's affinity application, comparison, or formatting
 3. Adjust affinity logic in `ApplyColumnAffinity` or comparison logic in `CompareValues`
+
+**Verify:** `go test -v -run "TestSQLiteSuite/affinity2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq`
 
 ### Step 4: PRAGMA integrity_check
 **File:** `internal/exec/engine.go`
@@ -72,23 +74,12 @@ Check for:
 2. `flattenResult` — ensure all column types format identically to SQLite
 3. Multi-statement classification edge cases
 
-## Verification
-
-```bash
-# Individual fixes
-go test -v -run "TestUpdateWithExpr" .
-go test -v -run "TestSQLiteSuite/atomic2" .
-go test -v -run "TestSQLiteSuite/affinity2" .
-```
-
 ## Completion Check
 
 ```bash
-cd /Users/muaddib/dev/frigolite && \
-  go test -v -run "TestUpdateWithExpr" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq && \
-  go test -v -run "TestSQLiteSuite/atomic2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq && \
-  go test -v -run "TestSQLiteSuite/affinity2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq && \
-  echo "All P8 tests pass"
+go test -v -run "TestUpdateWithExpr" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+go test -v -run "TestSQLiteSuite/atomic2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+go test -v -run "TestSQLiteSuite/affinity2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
 ```
 
 ## Key Files
@@ -99,3 +90,13 @@ cd /Users/muaddib/dev/frigolite && \
 | `internal/util/compare.go` | Value comparison with affinity |
 | `frigolite_harness_test.go` | Test harness robustness |
 | `testdata/*.json` | Rebaseline if needed |
+
+## Goal Integration
+
+```json
+{
+  "objective": "Fix remaining misc failures: UPDATE SET expression evaluation ordering (TestUpdateWithExpr), transaction handling (atomic2), column affinity edge cases (affinity2), test harness robustness, and PRAGMA integrity_check",
+  "completionCriterion": "TestUpdateWithExpr passes, atomic2 and affinity2 suites pass with zero FAIL",
+  "verifyCommand": "go test -v -run \"TestUpdateWithExpr\" . 2>&1 | grep -c \"FAIL\" | xargs test 0 -eq && go test -v -run \"TestSQLiteSuite/atomic2\" . 2>&1 | grep -c \"FAIL\" | xargs test 0 -eq && go test -v -run \"TestSQLiteSuite/affinity2\" . 2>&1 | grep -c \"FAIL\" | xargs test 0 -eq"
+}
+```

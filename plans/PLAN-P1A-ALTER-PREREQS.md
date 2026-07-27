@@ -1,4 +1,4 @@
-# PLAN-P1A-ALTER-PREREQS.md — Parser/Engine Prerequisite Fixes (DONE)
+# PLAN-P1A-ALTER-PREREQS.md — Parser/Engine Prerequisite Fixes (COMPLETE)
 
 ## Status: ✅ COMPLETE
 

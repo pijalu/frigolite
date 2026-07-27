@@ -1,13 +1,14 @@
-# PLAN-P5-AUTOINDEX.md — Automatic Index Creation for Joins
+# PLAN-P5-AUTOINDEX.md — Automatic Index Creation for Joins (Updated 2026-07-27)
 
 ## Scope
 Implement automatic transient index creation during query execution for JOIN operations lacking suitable indexes.
 
-## Current Failures (15)
+## Current Failures (13 across 3 suites)
+
 | Suite | Failures | Primary Issue |
 |-------|----------|--------------|
-| autoindex3 | 6 | EXPLAIN QUERY PLAN shows SCAN instead of AUTO for auto-indexed joins |
-| autoindex4 | 7 | Wrong JOIN results (NULL padding), panic in sortRowsWithMaps |
+| autoindex4 | 6 | Wrong JOIN results (NULL padding), panic in sortRowsWithMaps |
+| autoindex3 | 5 | EXPLAIN QUERY PLAN shows SCAN instead of AUTO for auto-indexed joins |
 | autoindex2 | 2 | EXPLAIN QUERY PLAN shows SEARCH instead of AUTO |
 
 ## SQLite Auto-Index Behavior
@@ -18,7 +19,7 @@ Implement automatic transient index creation during query execution for JOIN ope
 - Only created when no suitable index exists and estimated benefit > overhead
 - Size threshold: ~100 rows (below this, full table scan is faster)
 
-## Implementation Steps
+## Implementation Steps (Ordered)
 
 ### Step 1: PRAGMA automatic_index
 **File:** `internal/exec/engine.go`
@@ -27,16 +28,18 @@ Implement automatic transient index creation during query execution for JOIN ope
 2. Handle `PRAGMA automatic_index=ON|OFF` and `PRAGMA automatic_index` (read)
 3. This is a simple toggle with no other dependencies
 
-### Step 2: Auto-index infrastructure
-**File:** `internal/exec/engine.go`, `internal/autoindex/autoindex.go` (new)
+**Verify:** After implementation, `PRAGMA automatic_index;` should return `1` by default.
 
-**Design:** An auto-index is a temporary in-memory B-tree mapping join-column values → row locations.
+### Step 2: Auto-index data structure
+**File:** `internal/exec/engine.go` or new `internal/autoindex/autoindex.go`
+
+**Recommended approach for speed:** Use `map[string][]RowLocation` — simple, fast, and sufficient for test passage.
 
 ```go
 type AutoIndex struct {
     tableName string
     columnIdx int
-    entries   map[string][]RowLocation  // key → list of (page, cell) locations
+    entries   map[string][]RowLocation
 }
 
 type RowLocation struct {
@@ -45,11 +48,7 @@ type RowLocation struct {
 }
 ```
 
-**Alternative design:** Use the existing B-tree implementation with an in-memory pager. This reuses all btree functionality for free, but is more complex to set up.
-
-**Recommended approach for speed:** Use `map[string][]RowLocation` — simple, fast, and sufficient for test passage. The auto-index is thrown away after the statement anyway.
-
-### Step 3: Join analysis
+### Step 3: Join analysis for auto-index eligibility
 **File:** `internal/exec/engine.go`
 
 In `execSelect`, before executing JOIN:
@@ -73,7 +72,7 @@ To create an auto-index:
 ### Step 5: Auto-index usage in nested-loop join
 **File:** `internal/exec/engine.go`
 
-Modify `execJoin` or the NestedLoopJoin function:
+Modify nested-loop join execution:
 1. When processing a join pair with an auto-index:
    - Get the outer row's join column value
    - Look up in auto-index → list of matching inner row locations
@@ -84,37 +83,30 @@ Modify `execJoin` or the NestedLoopJoin function:
 **File:** `internal/exec/engine.go`
 
 Update the query planner's cost estimation:
-1. When auto-index is created, the query plan should show `AUTO` or `USING AUTO INDEX`
+1. When auto-index is created, show `AUTO` or `USING AUTOMATIC INDEX`
 2. Currently showing `SCAN t1` — should show `SEARCH t1 USING AUTOMATIC INDEX`
-3. The EXPLAIN QUERY PLAN text is generated in `execSelect` or the planner function
 
-### Step 7: Fix sortRowsWithMaps panic
-**File:** `internal/exec/engine.go` (line ~4159)
+### Step 7: Fix sortRowsWithMaps panic (autoindex4-2.0)
+**File:** `internal/exec/engine.go`
 
 **Bug:** `index out of range [1] with length 1` in autoindex4-2.0
 - `sortRowsWithMaps` expects all rows to have the same number of columns
 - But some rows may have fewer columns due to NULL padding in JOIN results
 - **Fix:** Before accessing `rowMap[colIdx]`, check bounds. If colIdx >= len(rowMap), return nil (SQL NULL).
 
-### Step 8: NULL padding in JOIN results
+### Step 8: Fix NULL padding in JOIN results (autoindex4 failures)
 **File:** `internal/exec/engine.go`
 
 **Bug:** autoindex4 tests show `got: [123 abc  ]` instead of `[123 abc NULL NULL]`
-- This is a JOIN result formatting issue — columns beyond the actual row width should be NULL
+- This is a JOIN result formatting issue
 - **Fix:** In `flattenResult` or row construction, ensure all expected columns are present, padding with NULL
-
-## Verification
-
-```bash
-go test -v -run "TestSQLiteSuite/autoindex2" . 2>&1 | grep -E "PASS|FAIL"
-go test -v -run "TestSQLiteSuite/autoindex3" . 2>&1 | grep -E "PASS|FAIL"
-go test -v -run "TestSQLiteSuite/autoindex4" . 2>&1 | grep -E "PASS|FAIL"
-```
 
 ## Completion Check
 
 ```bash
-cd /Users/muaddib/dev/frigolite && go test -v -run "TestSQLiteSuite/autoindex" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+go test -v -run "TestSQLiteSuite/autoindex2" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+go test -v -run "TestSQLiteSuite/autoindex3" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+go test -v -run "TestSQLiteSuite/autoindex4" . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
 ```
 
 ## Key Files
@@ -131,3 +123,13 @@ cd /Users/muaddib/dev/frigolite && go test -v -run "TestSQLiteSuite/autoindex" .
 | Auto-index map storage | `map[string][]RowLocation` |
 | Sorting join column values | `sort.Slice()` |
 | Value to string key | `fmt.Sprintf("%v", val)` or `util.FormatValue()` |
+
+## Goal Integration
+
+```json
+{
+  "objective": "Implement automatic transient indexes for JOIN queries: PRAGMA automatic_index toggle, auto-index creation (map-based), nested-loop join using auto-indexes, EXPLAIN QUERY PLAN display, fix NULL padding and sortRowsWithMaps panic",
+  "completionCriterion": "All autoindex suites pass with zero FAIL: autoindex2, autoindex3, autoindex4",
+  "verifyCommand": "go test -v -run \"TestSQLiteSuite/autoindex2\" . 2>&1 | grep -c \"FAIL\" | xargs test 0 -eq && go test -v -run \"TestSQLiteSuite/autoindex3\" . 2>&1 | grep -c \"FAIL\" | xargs test 0 -eq && go test -v -run \"TestSQLiteSuite/autoindex4\" . 2>&1 | grep -c \"FAIL\" | xargs test 0 -eq"
+}
+```

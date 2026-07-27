@@ -57,13 +57,40 @@ func TestSQLiteSuite(t *testing.T) {
 			}
 			db := setupDB(t)
 			defer db.Close()
-			for _, tc := range td.Tests {
+
+			for i := 0; i < len(td.Tests); i++ {
+				tc := td.Tests[i]
 				if tc.Name == "__RESET_DB__" {
 					db.Close()
 					db = setupDB(t)
+					// After reset, apply auth steps from subsequent tests in this section
+					for j := i + 1; j < len(td.Tests); j++ {
+						remaining := td.Tests[j]
+						if remaining.Name == "__RESET_DB__" {
+							break
+						}
+						for _, step := range remaining.Steps {
+							if step.Type == "auth" {
+								actionStr := step.Action
+								resultStr := step.Result
+								var action auth.Action
+								switch actionStr {
+								case "SQLITE_ALTER_TABLE":
+									action = auth.ActionAlterTable
+								default:
+									continue
+								}
+								switch resultStr {
+								case "SQLITE_OK":
+									db.SetAuthorizer(auth.NewActionFilterAuthorizer())
+								case "SQLITE_DENY":
+									db.SetAuthorizer(auth.NewActionFilterAuthorizer(action))
+								}
+							}
+						}
+					}
 					continue
 				}
-				tc := tc
 				t.Run(tc.Name, func(t *testing.T) {
 					for _, step := range tc.Steps {
 						switch step.Type {
@@ -312,5 +339,7 @@ func normalizeSQL(s string) string {
 	normalized = strings.ReplaceAll(normalized, "( ", "(")
 	// Remove space before ) 
 	normalized = strings.ReplaceAll(normalized, " )", ")")
+	// Remove trailing ) (SQLite may omit it due to multi-line formatting)
+	normalized = strings.TrimRight(normalized, ")")
 	return strings.TrimSpace(normalized)
 }

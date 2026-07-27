@@ -325,12 +325,39 @@ def extract_tests(content):
             continue
         entries.append((m.start(), "reset_db", None, None, None))
     
+    # Phase 10: db auth (authorizer setup)
+    # Detect `db auth procname` calls where procname is a TCL proc that
+    # defines which operations to deny/allow.
+    proc_names = re.findall(r'proc\s+(\w+)\s*\{[^}]*\}\s*\{', content)
+    db_auth_calls = re.findall(r'db\s+auth\s+(\w+)', content)
+    for auth_proc in set(db_auth_calls):
+        if auth_proc in proc_names:
+            # Find the proc body and the db auth call position
+            proc_match = re.search(r'proc\s+' + re.escape(auth_proc) + r'\s*\{[^}]*\}\s*\{', content)
+            auth_match = re.search(r'db\s+auth\s+' + re.escape(auth_proc), content)
+            if proc_match and auth_match:
+                auth_pos = auth_match.start()
+                body_start = proc_match.end()
+                body_result = extract_balanced_braces(content, body_start - 1)
+                if body_result:
+                    body, _ = body_result
+                    # Parse simple deny rules: if {$t=="ACTION"} { return "RESULT" }
+                    for rule_match in re.finditer(r'\{\$t=="([^"]*)"\}\s*\{[^}]*return\s+"([^"]*)"[^}]*\}', body):
+                        action = rule_match.group(1)
+                        result = rule_match.group(2)
+                        if result == "SQLITE_DENY":
+                            entries.append((auth_pos, "auth", None, None, None, action, "SQLITE_DENY"))
+                        elif result == "SQLITE_OK":
+                            entries.append((auth_pos, "auth", None, None, None, action, "SQLITE_OK"))
+      
     entries.sort(key=lambda x: x[0])
     
     # Find orphan virtual tables: CREATE VIRTUAL TABLE statements that will be filtered,
     # whose tables are subsequently referenced by other SQL statements.
     orphan_tables = set()
-    for pos, cmd_type, sql, expected, name in entries:
+    for pos, cmd_type, sql, expected, name, *extra in entries:
+        if cmd_type == "auth":
+            continue
         if sql and sql.strip().upper().startswith('CREATE VIRTUAL TABLE'):
             if has_unsupported_features(sql):
                 m = re.search(r'CREATE\s+VIRTUAL\s+TABLE\s+(\S+)\s+USING\s+(\S+)', sql, re.IGNORECASE)
@@ -361,17 +388,25 @@ def extract_tests(content):
                 return True
         return False
     
-    for pos, cmd_type, sql, expected, name in entries:
+    for pos, cmd_type, sql, expected, name, *extra in entries:
         if cmd_type == "reset_db":
             flush()
             tests.append({"name": "__RESET_DB__", "steps": [{"type": "reset_db"}]})
             continue
-        
+          
+        if cmd_type == "auth":
+            # Auth step: extra = [action, result]
+            action = extra[0] if len(extra) > 0 else ""
+            result = extra[1] if len(extra) > 1 else ""
+            if action and result:
+                current_steps.append({"type": "auth", "action": action, "result": result})
+            continue
+  
         if sql and has_unsupported_features(sql):
             continue
         if sql and any(references_table(sql, orphan) for orphan in orphan_tables):
             continue
-        
+          
         if name:
             flush()
             current_name = name

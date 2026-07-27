@@ -1,4 +1,4 @@
-# PLAN-P1B-PARSER-FIXES.md — Close Remaining Parser/Engine Limitations (DONE)
+# PLAN-P1B-PARSER-FIXES.md — Close Remaining Parser/Engine Limitations (COMPLETE)
 
 ## Status: ✅ COMPLETE
 

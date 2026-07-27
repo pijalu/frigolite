@@ -165,6 +165,13 @@ type IndexedColumn struct {
 	Desc    bool   // DESC (default is ASC)
 }
 
+// ParenExpr represents a parenthesized expression: (expr).
+type ParenExpr struct {
+	Expr Expr
+}
+
+func (e *ParenExpr) expr() {}
+
 // TableConstraint represents a table-level constraint in CREATE TABLE.
 type TableConstraint struct {
 	Type    ConstraintType // PRIMARY KEY, UNIQUE, CHECK, FOREIGN KEY

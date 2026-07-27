@@ -11,6 +11,16 @@
       ]
     },
     {
+      "name": "setup_1",
+      "steps": [
+        {
+          "type": "auth",
+          "action": "SQLITE_ALTER_TABLE",
+          "result": "SQLITE_DENY"
+        }
+      ]
+    },
+    {
       "name": "2.0",
       "steps": [
         {
