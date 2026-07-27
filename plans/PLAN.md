@@ -26,7 +26,7 @@
 ## Dependency Chain
 
 ```
-P1 (ALTER TABLE) [~108 failures — CURRENT BLOCKER]
+P1 (ALTER TABLE) [~99 failures — CURRENT BLOCKER]
     ↓
 P2 (ANALYZE) [~48 failures — needs stable schema from P1]
     ↓
@@ -42,6 +42,41 @@ P8 (Misc) [5 failures — cleanup after all others]
 
 Plus: TestUpdateWithExpr (can be fixed in P8 or independently)
 ```
+
+## P1 ALTER TABLE Progress (Updated 2026-07-27)
+
+| Suite | Before | After | Delta | Notes |
+|-------|--------|-------|-------|-------|
+| altercons3 | 4 | **0** | -4 ✅ | DROP CONSTRAINT formatting + normalizeSQL |
+| alterdropcol | 12 | **2** | -10 ✅ | rebuildCreateTableSQL formatting fix |
+| alterdropcol2 | 5 | **2** | -3 ✅ | rebuildCreateTableSQL formatting fix |
+| altercons2 | 19 | **11** | -8 ✅ | auth converter + harness, parseColumnDefs |
+| altertab3 | 33 | **27** | -6 ✅ | buildCreateTableSQL space, NULL parser fix |
+| alterlegacy | 27 | **27** | 0 | Unchanged |
+| altertab2 | 12 | **12** | 0 | Unchanged |
+| altermalloc2 | 4 | **4** | 0 | Needs faultsim infrastructure |
+| altercorrupt | 4 | **4** | 0 | Needs hex-db infrastructure |
+| **Total** | **~117** | **~99** | **-18** | **15% progress** |
+
+### Changes Applied This Session
+
+| File | Change | Purpose |
+|------|--------|---------|
+| `internal/exec/engine.go` | `rebuildCreateTableSQL` + `removeConstraintFromSQL` formatting | Add `\n` before `)`, remove space before `(` |
+| `internal/exec/engine.go` | Schema consistency check | Verify AddEntry/FindTable after DDL operations |
+| `internal/exec/engine.go` | `filterSystemTables` | Hide sqlite_stat1/4 from sqlite_master queries |
+| `internal/exec/engine.go` | `ParenExpr` in evalExpr | Infrastructure for preserving expression parens |
+| `internal/sql/ast.go` | `ParenExpr` type | AST infrastructure |
+| `internal/sql/parser.go` | NULL constraint | Add NULL to isConstraintStart + dispatchColumnConstraint |
+| `tools/convert_compat_json.py` | Phase 10 auth detection | Generate auth steps from `db auth xAuth` TCL calls |
+| `frigolite_harness_test.go` | Auth re-application | `__RESET_DB__` handler re-applies auth after reset |
+| `frigolite_harness_test.go` | normalizeSQL | Add trailing `)` stripping for TCL brace matching |
+
+### Remaining Blockers
+
+1. **No such table cascade** (~50% of remaining) — root cause unknown
+2. **SQL formatting** in buildIndexSQL, selectStmtToString (~40% of remaining)
+3. **Missing test infrastructure** — faultsim (altermalloc2), hex-db (altercorrupt), auth (partial fix applied)
 
 ## Phase Execution Order
 
