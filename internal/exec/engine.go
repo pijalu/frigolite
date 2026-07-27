@@ -5083,6 +5083,9 @@ func (e *Engine) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colI
 		if err != nil {
 			return nil, fmt.Errorf("exec: failed to evaluate SET expression for %s: %w", a.Column, err)
 		}
+		// Unwrap ColumnValue to avoid storing internal wrapper types
+		// in the record — only raw values should be serialized.
+		v = util.UnwrapColumnValue(v)
 		if idx >= 0 && idx < len(values) {
 			values[idx] = v
 		}
