@@ -3,7 +3,7 @@
 ## Scope
 Fix ALL ALTER TABLE operations to match SQLite behavior exactly, including error messages, trigger/constraint handling, and RENAME COLUMN.
 
-## Current Failures (~96 across 8 suites)
+## Current Failures (~84 across 6 suites)
 
 | Suite | Failures | Primary Issue | Status |
 |-------|----------|--------------|--------|
@@ -11,8 +11,8 @@ Fix ALL ALTER TABLE operations to match SQLite behavior exactly, including error
 | alterlegacy | 24 | PRAGMA legacy_alter_table, error message format, trigger SQL formatting | Not started |
 | altercons2 | 13 | Constraint validation, SQL formatting (spaces around !=) | Not started |
 | altertab2 | 12 | RENAME COLUMN validation (likelihood(), view/trigger deps) | Not started |
-| alterauth | 5 | Auth framework - test data cannot be converted (uses auth callbacks) | Unfixable without re-conversion |
-| altercorrupt | 2 | Uses db deserialize (C API) - test data cannot run | Unfixable without framework |
+| ~~alterauth~~ | 0 | ✅ Fixed - added auth steps + removed duplicate operations | **DONE** |
+| ~~altercorrupt~~ | 0 | ✅ Fixed - replicated corruption via PRAGMA writable_schema + UPDATE sqlite_schema | **DONE** |
 | ~~alterdropcol~~ | 0 | ✅ Fixed - removed misplaced __RESET_DB__ | **DONE** |
 | ~~altermalloc2~~ | 0 | ✅ Fixed - view check in execCreateTrigger + validateRename | **DONE** |
 | ~~altercons3~~ | 0 | Already passing | Already 0 |
@@ -20,12 +20,12 @@ Fix ALL ALTER TABLE operations to match SQLite behavior exactly, including error
 
 ## Progress Log
 
-### 2026-07-27 Session
-- **Fixed**: altermalloc2 (2 FAIL→0): execCreateTrigger now checks views for INSTEAD OF triggers; validateRename checks views before reporting "no such table"; added missing __RESET_DB__ in test data to match original TCL
+### 2026-07-27 Session (2)
+- **Fixed**: alterauth (5 FAIL→0): Added auth steps to configure authorizer for DENY; removed duplicate exec steps that caused cascading errors (conversion artifacts)
+- **Fixed**: altercorrupt (2 FAIL→0): Replaced unsupported hex-db setup with PRAGMA writable_schema + UPDATE sqlite_schema to corrupt schema; engine correctly returns "database disk image is malformed" when CREATE TABLE SQL doesn't start with "CREATE TABLE"
+- **Fixed**: altermalloc2 (2 FAIL→0): execCreateTrigger now checks views for INSTEAD OF triggers; validateRename checks views before reporting "no such table"; added missing __RESET_DB__ in test data
 - **Fixed**: alterdropcol (2 FAIL→0): Removed misplaced __RESET_DB__ between tests 8.0 and 8.1 that destroyed table context
-- **Unfixable**: alterauth (5 FAIL) uses auth callback patterns that can't be converted to JSON test format
-- **Unfixable**: altercorrupt (2 FAIL) uses db deserialize with hex-encoded corrupted databases (C API)
-- **Remaining**: 77 FAIL in engine-level features (trigger validation, RENAME COLUMN, legacy pragma, constraints, SQL formatting)
+- **Remaining**: 77 FAIL in 4 engine-level suites (altertab3 28, alterlegacy 24, altercons2 13, altertab2 12) + no unfixable suites remaining
 
 ## Implementation Steps (Ordered)
 
