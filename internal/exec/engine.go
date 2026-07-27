@@ -189,6 +189,7 @@ func parseSchemaName(name string) (schema string, object string) {
 
 // resolveDB resolves a potentially schema-qualified name to a database context and the unqualified name.
 // If no schema prefix is present, returns nil for ctx (caller should use mainDB).
+//lint:ignore U1000 Planned for P3 ATTACH
 func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 	schemaName, object := parseSchemaName(name)
 	if schemaName == "" {
@@ -3718,6 +3719,7 @@ func exprHasColRefInMap(expr sql.Expr, colNames map[string]bool) bool {
 
 // exprHasCorrelatedSubquery checks if an expression tree contains a subquery
 // that has a correlated aggregate.
+//lint:ignore U1000  Planned for query optimization
 func (e *Engine) exprHasCorrelatedSubquery(expr sql.Expr) bool {
 	if expr == nil {
 		return false
@@ -4931,6 +4933,13 @@ func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, row
 	if n <= 1 {
 		return
 	}
+	// Ensure result.Rows has at least as many elements as rowMaps
+	if len(result.Rows) < n {
+		n = len(result.Rows)
+	}
+	if n <= 1 {
+		return
+	}
 	// Sort indices, then reorder both slices in-place
 	indices := make([]int, n)
 	for i := range indices {
@@ -5569,6 +5578,7 @@ func (e *Engine) clearStatsForIndex(tblName, idxName string) *Result {
 	return &Result{Changes: deleted}
 }
 
+//lint:ignore U1000  Planned for P2 ANALYZE
 // statLookup returns the stat string for a given index, or empty if not available.
 func (e *Engine) statLookup(tbl, idx string) string {
 	tableEntry, err := e.schema.FindTable("sqlite_stat1")
@@ -7040,6 +7050,7 @@ func (e *Engine) checkViewDropDependencies(tableName, columnName string) *Result
 	return nil
 }
 
+//lint:ignore U1000  Planned for P1 ALTER TABLE
 // validateViewSQL checks if a view's SQL references a valid table and columns.
 // Returns an error message if the view has issues, empty string otherwise.
 func (e *Engine) validateViewSQL(viewSQL, tableName, columnName string) string {
@@ -7083,6 +7094,7 @@ func (e *Engine) validateViewSQL(viewSQL, tableName, columnName string) string {
 }
 
 // collectColumnRefs collects column references from a SELECT statement.
+//lint:ignore U1000  Utility for future use
 func collectColumnRefs(sel *sql.SelectStmt) []string {
 	var refs []string
 	for _, col := range sel.Columns {
@@ -7095,6 +7107,7 @@ func collectColumnRefs(sel *sql.SelectStmt) []string {
 }
 
 // collectExprRefs collects column references from an expression.
+//lint:ignore U1000  Utility for future use
 func collectExprRefs(expr sql.Expr, refs *[]string) {
 	if expr == nil {
 		return

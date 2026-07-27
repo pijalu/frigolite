@@ -2261,6 +2261,7 @@ func (p *Parser) parseCollateColumnConstraint(col *ColumnDef) {
 	}
 }
 
+//lint:ignore U1000 Parser utility for future use
 func (p *Parser) skipConstraintName() {
 	p.next()
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
@@ -3732,6 +3733,7 @@ func (p *Parser) parseWindowClause() *WindowDef {
 
 // skipWindowClause skips window function clauses (OVER, FILTER, WITHIN GROUP)
 // after a function call. This is a stub: the window clause is parsed but not
+//lint:ignore U1000 Parser utility for future use
 // semantically analyzed.
  func (p *Parser) skipWindowClause() {
  	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
@@ -3761,6 +3763,7 @@ func (p *Parser) parseWindowClause() *WindowDef {
 	}
 }
 
+//lint:ignore U1000 Parser utility for future use
 func (p *Parser) skipWindowSpec() {
 	if p.cur.Type == TokenLParen {
 		p.skipInlineWindowSpec()

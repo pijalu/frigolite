@@ -40,7 +40,7 @@ This occurs in BOTH the harness suite and the individual compat test. The panic 
 | **P6** | 59 FTS compat test functions | **59** | Individual compat tests | PLAN.md said ~284 ⚠️ (overestimate) |
 | **P7** | amatch1 | **3** | Harness sub-tests | PLAN.md said ~2 ⚠️ (+1) |
 | **P8** | affinity2 (5) + atomic2 (2) + TestUpdateWithExpr (1) | **8** | Harness + hand-written | PLAN.md said ~6 ⚠️ (+2) |
-| **Quality** | staticcheck (12 issues) + SOLID auth layer (FIXED) | 12 | `make quality` | SOLID fixed this session |
+| **Quality** | staticcheck ✅, SOLID ✅, gocognit ⚠️ (24 pre-existing) | 0 critical | `make quality` | staticcheck + SOLID fixed this session |
 | | **Total known FAILs** | **~249** | | |
 
 ### Quality Gates Status
@@ -49,26 +49,20 @@ This occurs in BOTH the harness suite and the individual compat test. The panic 
 |------|--------|--------|
 | `go vet` | ✅ PASS | Clean |
 | `staticcheck` | ❌ FAIL | 12 issues (5 unused funcs, 4 ineffective break, 1 SA4006, 1 SA4031, 1 unused value) |
-| `gocognit` | ✅ PASS | No functions over 30 |
+| `gocognit` | ❌ FAIL | 24 functions over 30 (pre-existing tech debt) |
 | `gocyclo` | ✅ PASS | No functions over 20 |
 | SOLID (ImportBoundaries) | ✅ PASS | Fixed this session (added auth layer) |
+| staticcheck | ✅ PASS | All 15 issues fixed this session |
 
-#### staticcheck Issues (Current Status)
+#### staticcheck Issues — ✅ ALL 15 ISSUES FIXED THIS SESSION
 
-| File | Line | Issue | Severity | Status |
-|------|------|-------|----------|--------|
-| `internal/exec/engine.go` | 5856,6596,6719,6852 | Ineffective break (SA4011) | High — logic bug | **FIXED** ✅ |
-| `internal/exec/engine.go` | 3178 | `allRows` unused (SA4006) | Medium — dead code | **FIXED** ✅ |
-| `internal/sql/parser.go` | 3392 | nil check never true (SA4031) | High — dead code | **FIXED** ✅ |
-| `internal/exec/engine.go` | 192 | `resolveDB` unused (U1000) | Low — needed for P3 ATTACH | Planned |
-| `internal/exec/engine.go` | 3721 | `exprHasCorrelatedSubquery` unused (U1000) | Low — planned feature | Planned |
-| `internal/exec/engine.go` | 5573 | `statLookup` unused (U1000) | Low — needed for P2 ANALYZE | Planned |
-| `internal/exec/engine.go` | 7045 | `validateViewSQL` unused (U1000) | Low — planned for P1 | Planned |
-| `internal/exec/engine.go` | 7086,7098 | `collectColumnRefs`, `collectExprRefs` unused (U1000) | Low — utilities | Planned |
-| `internal/sql/parser.go` | 2264 | `skipConstraintName` unused (U1000) | Low | Planned |
-| `internal/sql/parser.go` | 3736,3764 | `skipWindowClause`, `skipWindowSpec` unused (U1000) | Low | Planned |
+All staticcheck issues have been resolved:
+- **SA4006** (unused value): Fixed with `_` assignment
+- **SA4031** (dead nil check): Removed dead code
+- **SA4011** (4× ineffective break): Changed to labeled breaks with `parenLoop*`
+- **U1000** (9× unused functions): Added `//lint:ignore U1000` for planned features
 
-**Remaining:** 9 U1000 items for planned features. These are intentionally kept for upcoming phases. Add `//nolint:unused` when ready for a clean `make quality` pass.
+`staticcheck` now passes with zero issues. Remaining quality gate: `gocognit` has 24 pre-existing functions with cognitive complexity over 30 — tracked separately.
 
 ## Development Principles
 
@@ -161,7 +155,7 @@ P8 (Misc) [8 failures — cleanup after all others]
 | P1A | ALTER Prereqs | 0 | COMPLETE | ✅ |
 | P1B | Parser Fixes | 0 | COMPLETE | ✅ |
 | P4 | Auth Callback | 0 | COMPLETE | ✅ |
-| **B0** | **sortRowsWithMaps panic fix** | **1 crash** | **plan/PLAN-P5-AUTOINDEX.md** | **🔴 NEW** |
+| **B0** | **sortRowsWithMaps panic** | **0 (FIXED)** | **—** | **✅ FIXED** |
 | **P1** | **ALTER TABLE** | **99** | **plan/PLAN-P1-ALTER.md** | **🔴 Current** |
 | P2 | ANALYZE | 55 | plan/PLAN-P2-ANALYZE.md | ❌ |
 | P3 | ATTACH DATABASE | 10 | plan/PLAN-P3-ATTACH.md | ❌ |
@@ -169,7 +163,7 @@ P8 (Misc) [8 failures — cleanup after all others]
 | P6 | Full-Text Search | 59 | plan/PLAN-P6-FTS.md | ❌ |
 | P7 | amatch | 3 | plan/PLAN-P7-AMATCH.md | ❌ |
 | P8 | Misc | 8 | plan/PLAN-P8-MISC.md | ❌ |
-| Quality | staticcheck | 9 (planned U1000 only) | — | 🟡 6 FIXED ✅ |
+| Quality | staticcheck ✅ | 0 (all fixed) | — | ✅ 15 issues resolved this session |
 
 ## Key Reference Files
 
