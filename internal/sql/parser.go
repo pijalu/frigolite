@@ -3608,10 +3608,7 @@ func ExprString(e Expr) string {
 		}
 		return v.Name
 	case *BinaryOp:
-		if v.Operator == "OR" || v.Operator == "AND" {
-			return ExprString(v.Left) + " " + v.Operator + " " + ExprString(v.Right)
-		}
-		return ExprString(v.Left) + v.Operator + ExprString(v.Right)
+		return ExprString(v.Left) + " " + v.Operator + " " + ExprString(v.Right)
 	case *UnaryOp:
 		return v.Operator + " " + ExprString(v.Operand)
 	case *IsNull:

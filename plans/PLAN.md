@@ -1,4 +1,4 @@
-# Frigolite — Master Test Passage Plan (Updated 2026-07-28)
+# Frigolite — Master Test Passage Plan (Updated 2026-07-29)
 
 ## Verified Current State (Comprehensive Audit)
 
@@ -15,17 +15,12 @@ Two parallel test systems exist in `frigolite` package:
    - **~98 test function FAILs** (39 non-FTS + 59 FTS)
 
 3. **Hand-written tests** (`frigolite_*_test.go`)
-   - **1 FAIL: `TestUpdateWithExpr`**
+   - **0 FAIL (TestUpdateWithExpr was fixed this session)**
 
-### Critical Blocking Bug (New Discovery)
-A **panic** in `sortRowsWithMaps` (engine.go:4945) crashes the test binary during `autoindex4`:
-```
-panic: runtime error: index out of range [1] with length 1
-```
-This occurs in BOTH the harness suite and the individual compat test. The panic prevents all tests alphabetically after `autoindex4` from running in a normal `go test .` invocation. This masks the true failure count (especially FTS tests) and must be fixed first to see the complete picture.
+### Critical Blocking Bug — ✅ FIXED THIS SESSION
 
-**Files:** `internal/exec/engine.go:4945` — `sortRowsWithMaps` bounds check
-**Fix:** Before accessing `rowMap[colIdx]`, check bounds. If `colIdx >= len(rowMap)`, return nil (SQL NULL).
+Fixed in commit `c7686c9`: `sortRowsWithMaps` bounds check (engine.go:4945).
+Tests after `autoindex4` now execute normally — no longer blocks test execution.
 
 ### Failure Count Summary (Verified)
 
@@ -39,20 +34,20 @@ This occurs in BOTH the harness suite and the individual compat test. The panic 
 | | B0 panic also in P5 | 1 crash | Blocks test execution | Must fix first |
 | **P6** | 59 FTS compat test functions | **59** | Individual compat tests | PLAN.md said ~284 ⚠️ (overestimate) |
 | **P7** | amatch1 | **3** | Harness sub-tests | PLAN.md said ~2 ⚠️ (+1) |
-| **P8** | affinity2 (5) + atomic2 (2) + TestUpdateWithExpr (1) | **8** | Harness + hand-written | PLAN.md said ~6 ⚠️ (+2) |
-| **Quality** | staticcheck ✅, SOLID ✅, gocognit ⚠️ (24 pre-existing) | 0 critical | `make quality` | staticcheck + SOLID fixed this session |
-| | **Total known FAILs** | **~249** | | |
+| **P8** | affinity2 (5) + atomic2 (2) + ~~TestUpdateWithExpr (1)~~ | **7** | Harness | TestUpdateWithExpr fixed this session ✅ |
+| **Quality** | staticcheck ✅, SOLID ✅, gocognit ⚠️ (24 pre-existing) | 0 critical | `make quality` | staticcheck + SOLID + TestUpdateWithExpr fixed this session |
+| | **Total known FAILs** | **~248** | | |
 
 ### Quality Gates Status
 
 | Gate | Status | Issues |
 |------|--------|--------|
 | `go vet` | ✅ PASS | Clean |
-| `staticcheck` | ❌ FAIL | 12 issues (5 unused funcs, 4 ineffective break, 1 SA4006, 1 SA4031, 1 unused value) |
+| `staticcheck` | ✅ PASS | All 15 issues fixed this session (see below) |
 | `gocognit` | ❌ FAIL | 24 functions over 30 (pre-existing tech debt) |
 | `gocyclo` | ✅ PASS | No functions over 20 |
 | SOLID (ImportBoundaries) | ✅ PASS | Fixed this session (added auth layer) |
-| staticcheck | ✅ PASS | All 15 issues fixed this session |
+| `staticcheck` detail | ✅ PASS | All 15 issues fixed this session (see below) |
 
 #### staticcheck Issues — ✅ ALL 15 ISSUES FIXED THIS SESSION
 
@@ -94,12 +89,13 @@ P6 (Full-Text Search) [59 failures — FTS module implementation]
     ↓
 P7 (amatch) [3 failures — small vtab module]
     ↓
-P8 (Misc) [8 failures — cleanup after all others]
+P8 (Misc) [7 failures — cleanup after all others]
 ```
 
-### Critical Path Change
+### Critical Path — B0 ✅ RESOLVED
 
-**NEW: Phase B0 must execute BEFORE or EARLY IN P5** because the `sortRowsWithMaps` panic blocks test execution after `autoindex4`. This fix is trivial (bounds check) and unblocks visibility into all remaining failures.
+**B0 (`sortRowsWithMaps` panic) is fixed** (commit `c7686c9`). No longer blocking test execution.
+Remaining phases can proceed independently.
 
 ### Phase Details
 
@@ -141,8 +137,8 @@ P8 (Misc) [8 failures — cleanup after all others]
 - **Files:** `internal/vtab/amatch/amatch.go` (new)
 - **Sub-plan:** `plans/PLAN-P7-AMATCH.md`
 
-#### P8 — Misc (8 FAIL)
-- **Current:** 8 failures (affinity2: 5 + atomic2: 2 + TestUpdateWithExpr: 1)
+#### P8 — Misc (7 FAIL)
+- **Current:** 7 failures (affinity2: 5 + atomic2: 2) — TestUpdateWithExpr fixed this session ✅
 - **Primary blockers:** UPDATE expression ordering, column affinity, transaction handling
 - **Files:** `internal/exec/engine.go`, `internal/util/compare.go`
 - **Sub-plan:** `plans/PLAN-P8-MISC.md`
@@ -162,8 +158,8 @@ P8 (Misc) [8 failures — cleanup after all others]
 | P5 | Auto-Index | 15+1 | plan/PLAN-P5-AUTOINDEX.md | ❌ |
 | P6 | Full-Text Search | 59 | plan/PLAN-P6-FTS.md | ❌ |
 | P7 | amatch | 3 | plan/PLAN-P7-AMATCH.md | ❌ |
-| P8 | Misc | 8 | plan/PLAN-P8-MISC.md | ❌ |
-| Quality | staticcheck ✅ | 0 (all fixed) | — | ✅ 15 issues resolved this session |
+| P8 | Misc | 7 | plan/PLAN-P8-MISC.md | ❌ |
+| Quality | staticcheck ✅, gocognit ⚠️ (24 pre-existing) | — | — | ✅ 15 staticcheck issues + TestUpdateWithExpr fixed this session |
 
 ## Key Reference Files
 
@@ -180,10 +176,12 @@ P8 (Misc) [8 failures — cleanup after all others]
 
 ## Next Session Goals
 
-1. **Fix B0:** Fix `sortRowsWithMaps` bounds check to unblock test execution
-2. **Continue P1:** Reduce ALTER TABLE failures from 99 toward 0
-3. **Run quality gates:** Fix staticcheck issues (at minimum SA4006, SA4031, SA4011)
-4. **Commit each step** with conventional commit messages
+1. ✅ **B0:** `sortRowsWithMaps` bounds check — FIXED AND COMMITTED (`c7686c9`)
+2. ✅ **Quality (staticcheck):** All 15 issues resolved — PASS
+3. ✅ **P8 (TestUpdateWithExpr):** `UnwrapColumnValue` fix — FIXED AND COMMITTED (`a9b71a5`)
+4. **Continue P1:** Reduce ALTER TABLE failures from 99 toward 0
+5. **Gocognit refactoring:** Reduce 24 complex functions below threshold 30
+6. **P5 autoindex4:** Fix auto-index failures (result mismatches)
 
 ## Final Verification
 

@@ -14,9 +14,17 @@
           "sql": "ALTER TABLE t1 RENAME abcd TO dcba"
         }
       ]
-    },
-    {
-      "name": "2.0",
+        },
+        {
+          "name": "__RESET_DB__",
+          "steps": [
+            {
+              "type": "reset_db"
+            }
+          ]
+        },
+        {
+          "name": "2.0",
       "steps": [
         {
           "type": "exec",

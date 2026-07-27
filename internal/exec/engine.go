@@ -987,9 +987,12 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 		tableName = tableName[dotIdx+1:]
 	}
 
-	// Check that the table exists
+	// Check that the table or view exists
 	if _, _, err := e.findTable(tableName); err != nil {
-		return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+		// If not a table, check if it's a view (for INSTEAD OF triggers)
+		if _, _, err2 := e.findView(tableName); err2 != nil {
+			return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
+		}
 	}
 	tableUpper := strings.ToUpper(tableName)
 	if tableUpper == "SQLITE_MASTER" || tableUpper == "SQLITE_SCHEMA" || 
@@ -6073,12 +6076,15 @@ func (e *Engine) validateRename(oldName, newName string) error {
 				}
 				_, err := e.schema.FindTable(lookupName)
 				if err != nil {
-					// Format error message: prepend "main." if no schema prefix
-					refName := ref
-					if !strings.Contains(ref, ".") {
-						refName = "main." + ref
+					// Check if it's a view before reporting error
+					if _, err2 := e.schema.FindView(lookupName); err2 != nil {
+						// Format error message: prepend "main." if no schema prefix
+						refName := ref
+						if !strings.Contains(ref, ".") {
+							refName = "main." + ref
+						}
+						return fmt.Errorf("error in trigger %s: no such table: %s", entry.Name, refName)
 					}
-					return fmt.Errorf("error in trigger %s: no such table: %s", entry.Name, refName)
 				}
 			}
 		}
