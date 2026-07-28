@@ -345,6 +345,9 @@ func normalizeSQL(s string) string {
 	normalized = strings.ReplaceAll(normalized, "TABLE  (", "TABLE(")
 	normalized = strings.ReplaceAll(normalized, "INDEX (", "INDEX(")
 	normalized = strings.ReplaceAll(normalized, "TRIGGER (", "TRIGGER(")
+	// Also remove space before ( after a table/index name in DDL
+	normalized = regexp.MustCompile(`(TABLE\s+\w+)\s+\(`).ReplaceAllString(normalized, `$1(`)
+	normalized = regexp.MustCompile(`(\bON\s+\w+)\s+\(`).ReplaceAllString(normalized, `$1(`)
 	// Normalize space around common operators
 	normalized = strings.ReplaceAll(normalized, " = ", "=")
 	normalized = strings.ReplaceAll(normalized, " != ", "!=")
