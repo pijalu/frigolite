@@ -1515,41 +1515,18 @@ func (p *Parser) parseCreateTrigger() *CreateTriggerStmt {
 
 	p.parseTriggerIfNotExists(s)
 
-	// Try to read trigger name. The name might be a keyword that doubles
-	// as a timing keyword (e.g., "BEFORE", "AFTER"), so we need to peek
-	// ahead to disambiguate.
+	// Read trigger name. The name ALWAYS comes right after
+	// CREATE TRIGGER [IF NOT EXISTS], regardless of whether it
+	// could also be a timing keyword (e.g., "AFTER", "BEFORE").
+	// The timing keyword (if any) comes AFTER the name.
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-		name := p.cur.Value
-		// Peek: if next token is a keyword that could be a timing keyword,
-		// then the current token might be the name (as identifier).
-		// If next token is a known event keyword, then current might be timing.
-		if isTimingKeyword(name) && p.peek.Type == TokenKeyword {
-			// name looks like timing; check if peek is an event keyword
-			if isEventKeyword(p.peek.Value) || p.peek.Value == "ON" {
-				// name is actually timing, not the trigger name
-				s.Time = name
-				p.next()
-				p.parseTriggerEvent(s)
-				if !p.expectKeyword("ON") {
-					return nil
-				}
-				if tableName, info := p.readNameWithInfo(); tableName != "" {
-					s.Table = tableName
-					s.TableTok = info
-				}
-				p.parseTriggerWhenForEach(s)
-				p.parseTriggerBody(s)
-				return s
-			}
-		}
-		// Read as trigger name
-		s.Name = name
+		s.Name = p.cur.Value
 		p.next()
 		// Check for schema-qualified name
 		if p.cur.Type == TokenDot {
 			p.next()
 			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				s.Name = name + "." + p.cur.Value
+				s.Name = s.Name + "." + p.cur.Value
 				p.next()
 			}
 		}

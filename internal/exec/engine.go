@@ -6347,11 +6347,11 @@ func (e *Engine) checkTriggerColRefs(entry *schema.Entry) error {
 			continue
 		}
 		// Unqualified column reference - check against ON table's columns
-			if !onColMap[upperName] {
-				return fmt.Errorf("error in trigger %s: no such column: %s", entry.Name, ref.Name)
-			}
+		if !onColMap[upperName] {
+			return fmt.Errorf("error in trigger %s: no such column: %s", entry.Name, ref.Name)
 		}
-		return nil
+	}
+	return nil
 }
 
 // isSQLKeywordOrPseudo checks if a name is a SQL keyword or pseudo-column
