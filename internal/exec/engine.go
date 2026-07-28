@@ -6203,6 +6203,11 @@ func refTableInTrigger(sqlStr, tableName string) bool {
 // no CHECK constraints or index WHERE clauses reference the old table name,
 // and that no views have circular references.
 func (e *Engine) validateRename(oldName, newName string) error {
+	// In legacy mode, skip all validation — just check the table exists.
+	if e.legacyAlterTable {
+		_, err := e.schema.FindTable(oldName)
+		return err
+	}
 	tableEntry, err := e.schema.FindTable(oldName)
 	if err != nil {
 		return err
