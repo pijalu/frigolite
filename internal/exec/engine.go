@@ -6382,8 +6382,12 @@ func collectTriggerColRefs(stmt sql.Stmt, refs *[]*sql.ColumnRef, inSubquery boo
 			collectSelectTriggerColRefs(s.Select, refs, true) // INSERT ... SELECT is a subquery
 		}
 	case *sql.UpdateStmt:
+		// UPDATE SET values can reference columns from the FROM clause
+		// (UPDATE ... SET x=y FROM ...), which frigolite doesn't fully parse.
+		// Treat SET values as being in a subquery scope to avoid false positive
+		// column validation errors.
 		for _, a := range s.Assignments {
-			collectExprTriggerColRefs(a.Value, refs, inSubquery)
+			collectExprTriggerColRefs(a.Value, refs, true) // true = subquery scope
 		}
 		if s.Where != nil {
 			collectExprTriggerColRefs(s.Where, refs, inSubquery)

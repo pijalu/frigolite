@@ -139,7 +139,7 @@ go test -v -count=1 . 2>&1 | grep -c "^    --- FAIL" | xargs test 0 -eq
 | P0 | Test Infrastructure | 🔲 Not started | Unknown | — | Reveals hidden failures |
 | P1 | Type Affinity & NULL | 🔲 Not started | ~7 | — | |
 | P2 | Parser (WINDOW, CTE) | 🔲 Not started | Enabler | — | Unblocks P3 |
-| P3 | ALTER TABLE | 🟡 In progress | ~99 | ~17 (altertab3) | Token-level rename + trigger name fix |
+| P3 | ALTER TABLE | 🟡 In progress | ~99 | ~58 (across suites) | Token-level rename infra + 2 altertab3 fixes |
 | P4 | Query Planner & ANALYZE | 🔲 Not started | ~55 | — | |
 | P5 | Auto-Index & JOIN | 🔲 Not started | ~15 | — | |
 | P6 | ATTACH Database | 🔲 Not started | ~14 | — | Multi-DB architecture |
