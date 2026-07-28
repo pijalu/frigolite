@@ -8,7 +8,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/sql"
 )
-
+ 
 // RenameContext tracks the rename operation state.
 type RenameContext struct {
 	OldName   string // the name being replaced
@@ -329,74 +329,4 @@ func ApplyRenames(sqlText string, ranges []RenameRange, replacement string) stri
 	}
 
 	return result
-}
-
-// quoteNameIfNeeded quotes a name with double quotes if it contains special
-// characters, starts with a digit, or is a reserved keyword. Matches SQLite's
-// sqlite3MaybeQuote behavior.
-func quoteNameIfNeeded(name string) string {
-	if name == "" {
-		return name
-	}
-	// Check if quoting is needed
-	if needsQuoting(name) {
-		return `"` + name + `"`
-	}
-	return name
-}
-
-// needsQuoting checks if a name needs to be double-quoted.
-func needsQuoting(name string) bool {
-	if name == "" {
-		return false
-	}
-	// Check first character
-	if name[0] >= '0' && name[0] <= '9' {
-		return true
-	}
-	// Check for special characters
-	for _, ch := range name {
-		if !isIdentChar(byte(ch)) {
-			return true
-		}
-	}
-	// Check for reserved keywords
-	if isReservedKeyword(strings.ToUpper(name)) {
-		return true
-	}
-	return false
-}
-
-// isIdentChar checks if a byte is a valid unquoted identifier character.
-func isIdentChar(ch byte) bool {
-	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-		(ch >= '0' && ch <= '9') || ch == '_' || ch == '$'
-}
-
-// isReservedKeyword checks if a name is a SQLite reserved keyword that requires quoting.
-func isReservedKeyword(word string) bool {
-	// SQLite 3.x reserved words (subset — the ones that commonly cause issues)
-	switch word {
-	case "ABORT", "ACTION", "ADD", "AFTER", "ALL", "ALTER", "ANALYZE", "AND",
-		"AS", "ASC", "ATTACH", "AUTOINCREMENT", "BEFORE", "BEGIN", "BETWEEN",
-		"BY", "CASCADE", "CASE", "CAST", "CHECK", "COLLATE", "COLUMN", "COMMIT",
-		"CONFLICT", "CONSTRAINT", "CREATE", "CROSS", "CURRENT", "DATABASE",
-		"DEFAULT", "DEFERRABLE", "DEFERRED", "DELETE", "DESC", "DETACH",
-		"DISTINCT", "DO", "DROP", "EACH", "ELSE", "END", "ESCAPE", "EXCEPT",
-		"EXCLUSIVE", "EXISTS", "EXPLAIN", "FAIL", "FILTER", "FOLLOWING",
-		"FOR", "FOREIGN", "FROM", "FULL", "GLOB", "GROUP", "HAVING", "IF",
-		"IGNORE", "IMMEDIATE", "IN", "INDEX", "INDEXED", "INITIALLY", "INNER",
-		"INSERT", "INSTEAD", "INTERSECT", "INTO", "IS", "ISNULL", "JOIN",
-		"KEY", "LEFT", "LIKE", "LIMIT", "MATCH", "NATURAL", "NO", "NOT",
-		"NOTHING", "NOTNULL", "NULL", "OF", "OFFSET", "ON", "OR", "ORDER",
-		"OUTER", "OVER", "PARTITION", "PLAN", "PRAGMA", "PRECEDING", "PRIMARY",
-		"QUERY", "RAISE", "RANGE", "RECURSIVE", "REFERENCES", "REGEXP",
-		"REINDEX", "RELEASE", "RENAME", "REPLACE", "RESTRICT", "RIGHT",
-		"ROLLBACK", "ROW", "ROWS", "SAVEPOINT", "SELECT", "SET", "TABLE",
-		"TEMP", "TEMPORARY", "THEN", "TO", "TRANSACTION", "TRIGGER", "UNBOUNDED",
-		"UNION", "UNIQUE", "UPDATE", "USING", "VACUUM", "VALUES", "VIEW",
-		"VIRTUAL", "WHEN", "WHERE", "WINDOW", "WITH", "WITHOUT":
-		return true
-	}
-	return false
 }

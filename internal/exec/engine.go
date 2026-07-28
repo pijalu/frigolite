@@ -6115,20 +6115,6 @@ func (e *Engine) renameColumnInIndexes(tableName, oldColName, newColName string)
 	e.renameColumnInEntries(schema.TypeIndex, tableName, oldColName, newColName, ctx)
 }
 
-// renameColumnInViews updates view SQL for views that reference the renamed column,
-// replacing old column name references with the new column name.
-func (e *Engine) renameColumnInViews(tableName, oldColName, newColName string) {
-	ctx := &RenameContext{
-		OldName:   oldColName,
-		NewName:   newColName,
-		QuotedNew: newColName,
-		IsTable:   false,
-		TableName: tableName,
-	}
-	// Views can be on any table, not just tableName, so use empty table filter
-	e.renameColumnInEntries(schema.TypeView, "", oldColName, newColName, ctx)
-}
-
 // renameColumnInEntries applies column rename to schema entries of the given type.
 // Uses token-level rename with string-regex as a complementary pass.
 func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName string, oldColName, newColName string, ctx *RenameContext) {
