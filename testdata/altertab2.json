@@ -214,7 +214,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME a TO aaa;",
-          "expect": "1 {error in trigger tr after rename: no such column: a}"
+          "expect": "1 {error in trigger tr: no such column: a}"
         }
       ]
     },
