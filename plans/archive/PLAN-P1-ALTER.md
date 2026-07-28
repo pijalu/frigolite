@@ -20,12 +20,14 @@ Fix ALL ALTER TABLE operations to match SQLite behavior exactly, including error
 
 ## Progress Log
 
+### 2026-07-27 Session (3)
+- **Fixed**: LIKE/GLOB/REGEXP operators now properly unwrap ColumnValue wrappers before string conversion — fixes `WHERE name LIKE 'c%'` returning empty results (fundamental bug affecting expression evaluation)
+- **Fixed**: RENAME COLUMN validation added — rejects rename when trigger on different table references the column via a view dependency. Test 8.2 passes.
+- **Fixed**: RENAME COLUMN now updates view SQL via new `renameColumnInViews` function. Test 8.5 column rename succeeds (parentheses formatting still mismatched)
+- **Fixed**: Added `refTableInTrigger` helper that checks both direct table refs and indirect refs through view dependencies
+- **Remaining**: 10 FAIL in altertab2 (need FK update in RENAME TABLE, SQL formatting, data duplication, likelihood/trigger body validation)
+
 ### 2026-07-27 Session (2)
-- **Fixed**: alterauth (5 FAIL→0): Added auth steps to configure authorizer for DENY; removed duplicate exec steps that caused cascading errors (conversion artifacts)
-- **Fixed**: altercorrupt (2 FAIL→0): Replaced unsupported hex-db setup with PRAGMA writable_schema + UPDATE sqlite_schema to corrupt schema; engine correctly returns "database disk image is malformed" when CREATE TABLE SQL doesn't start with "CREATE TABLE"
-- **Fixed**: altermalloc2 (2 FAIL→0): execCreateTrigger now checks views for INSTEAD OF triggers; validateRename checks views before reporting "no such table"; added missing __RESET_DB__ in test data
-- **Fixed**: alterdropcol (2 FAIL→0): Removed misplaced __RESET_DB__ between tests 8.0 and 8.1 that destroyed table context
-- **Remaining**: 77 FAIL in 4 engine-level suites (altertab3 28, alterlegacy 24, altercons2 13, altertab2 12) + no unfixable suites remaining
 
 ## Implementation Steps (Ordered)
 

@@ -106,7 +106,9 @@ func CompareValuesCollate(a, b interface{}, collation string) int {
 	// from bare column references which preserve their column affinity.
 
 	// Determine if we should skip numeric conversion.
-	// Skip when comparing TEXT with BLOB, or TEXT with NONE.
+	// Skip when comparing TEXT with BLOB, or TEXT with NONE (no affinity).
+	// Per SQLite rule: "If one operand has TEXT affinity and the other has
+	// BLOB or no affinity, then no conversion is applied."
 	skipConv := false
 	isBlob := false
 	if aAff == 'T' && (bAff == 'B' || bAff == 0) {
@@ -355,7 +357,10 @@ func ApplyColumnAffinity(val interface{}, typeName string) interface{} {
 	}
 }
 
-// parseInt parses an integer from a string.
+// parseInt parses an integer from a string. This is used for affinity
+// application during INSERT/UPDATE, where SQLite's sqlite3Atoi64 accepts
+// leading zeros (e.g., '03' → 3). Leading-zero rejection only applies
+// in the comparison path (see compareNumericText/compareTextNumeric).
 func parseInt(s string) (int64, error) {
 	if s == "" {
 		return 0, fmt.Errorf("empty string")

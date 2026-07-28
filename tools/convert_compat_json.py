@@ -7,15 +7,8 @@ OUTPUT_DIR = "/Users/muaddib/dev/frigolite/testdata"
 
 C_API_RE = re.compile(r'sqlite3_(prepare|step|column|finalize|exec\b|limit|db_config|config|enable_shared|initialize|shutdown|malloc|free|realloc|memory_used|memory_highwater|randomness|sleep|strglob|stricmp|strnicmp|strlike|create_function|create_aggregate|connection_pointer|create_collation|create_module|overload|declare_vtab|table_column_metadata|db_filename|db_readonly|db_handle|next_stmt|commit_hook|rollback_hook|update_hook|preupdate|wal_hook|auto_extension|cancel_auto_extension|reset_auto_extension|set_authorizer|trace|progress_handler|file_control|test_control|keyword_|compileoption|db_cacheflush|snapshot|unlock_notify|log|vtab|db_config|txn_state|changes|total_changes|errcode|errstr|threadsafe|serialize|deserialize|hard_heap|soft_heap|release_memory|db_release_memory|db_status|status)')
 
-UNSUPPORTED_FEATURES = re.compile(
-    r'\b(FILTER\s*\(|WAL\s|VACUUM\s|'
-    r'SAVEPOINT\s|RELEASE\s|ROLLBACK\s+TO\s|REINDEX\s|'
-    r'CREATE\s+VIRTUAL\s+TABLE\s|fts\d+\s*\(|rtree\s*\(|'
-    r'WITHOUT\s+ROWID\s|zipfile|writecrash|'
-    r'PRAGMA\s+(wal_|journal_mode=WAL|page_count|cache_flush|locking_mode|'
-    r'schema_version|user_version|application_id|mmap_size|'
-    r'soft_heap_limit|hard_heap_limit|threads|page_size=65536))',
-    re.IGNORECASE)
+# TCL-specific patterns that prevent conversion. Feature filtering is handled by
+# knownUnsupportedPatterns in frgolite_test.go, not here.
 
 
 # ifcapable features that are completely unsupported — entire blocks are skipped
@@ -72,9 +65,8 @@ def is_position_blocked(pos, blocks):
 
 
 def has_unsupported_features(sql):
-    """Check if SQL uses features the engine doesn't support."""
-    if UNSUPPORTED_FEATURES.search(sql):
-        return True
+    """Check if SQL uses TCL-specific patterns that prevent conversion.
+    Feature-based filtering is handled by knownUnsupportedPatterns in Go code."""
     if re.search(r'(?<!\w)\$[a-zA-Z_]\w*', sql):
         return True
     if '${' in sql:
@@ -84,22 +76,6 @@ def has_unsupported_features(sql):
     if re.search(r'\bsql\s*\{', sql):
         return True
     if re.search(r'\btcl\s*\(', sql, re.IGNORECASE) or 'vtab_command' in sql:
-        return True
-    if re.search(r'\bMATCH\b', sql, re.IGNORECASE):
-        return True
-    if re.search(r'\bUSING\s*\(', sql, re.IGNORECASE):
-        return True
-    if re.search(r'\bjson_\w+\s*\(', sql, re.IGNORECASE):
-        return True
-    if re.search(r'\bRAISE\b', sql, re.IGNORECASE):
-        return True
-    if re.search(r'\bRETURNING\b', sql, re.IGNORECASE):
-        return True
-    if re.search(r'ON\s+CONFLICT\s*\(', sql, re.IGNORECASE):
-        return True
-    if re.search(r'\bzeroblob\b', sql, re.IGNORECASE):
-        return True
-    if re.search(r'\brandomblob\b', sql, re.IGNORECASE):
         return True
     return False
 

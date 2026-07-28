@@ -1011,7 +1011,7 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 
 	// Build full trigger SQL including body
 	sqlStr := buildTriggerSQL(triggerName, s.Time, s.Event, tableName, s.When, s.Statements)
-
+	
 	entry := &schema.Entry{
 		Type:     schema.TypeTrigger,
 		Name:     triggerName,
@@ -1487,6 +1487,8 @@ func walkExpr(expr sql.Expr, fn func(sql.Expr)) error {
 	}
 	fn(expr)
 	switch e := expr.(type) {
+	case *sql.ParenExpr:
+		walkExpr(e.Expr, fn)
 	case *sql.BinaryOp:
 		walkExpr(e.Left, fn)
 		walkExpr(e.Right, fn)
@@ -1516,6 +1518,8 @@ func findColAndConst(b *sql.BinaryOp) (*sql.ColumnRef, interface{}) {
 // extractConst extracts a constant value from an expression node.
 func extractConst(e sql.Expr) interface{} {
 	switch v := e.(type) {
+	case *sql.ParenExpr:
+		return extractConst(v.Expr)
 	case *sql.NumericLit:
 		f, err := strconv.ParseFloat(v.Value, 64)
 		if err == nil {
@@ -1877,23 +1881,7 @@ func selectColumnToString(col sql.SelectColumn) string {
 		return ref.Name + aliasClause(col.As)
 	}
 	if fn, ok := col.Expr.(*sql.FuncCall); ok {
-		result := fn.Name + "("
-		for j, arg := range fn.Args {
-			if j > 0 {
-				result += ", "
-			}
-			if ref, ok := arg.(*sql.ColumnRef); ok {
-				if ref.Table != "" {
-					result += ref.Table + "." + ref.Name
-				} else {
-					result += ref.Name
-				}
-			} else {
-				result += exprToString(arg)
-			}
-		}
-		result += ")"
-		return result + aliasClause(col.As)
+		return funcCallToString(fn) + aliasClause(col.As)
 	}
 	return exprToString(col.Expr) + aliasClause(col.As)
 }
@@ -1980,6 +1968,8 @@ func exprToString(expr sql.Expr) string {
 		return exprToString(v.Operand) + " IS NULL"
 	case *sql.IsNotNull:
 		return exprToString(v.Operand) + " IS NOT NULL"
+	case *sql.ParenExpr:
+		return "(" + exprToString(v.Expr) + ")"
 	case *sql.Between:
 		return betweenToString(v)
 	case *sql.InList:
@@ -2019,6 +2009,9 @@ func funcCallToString(v *sql.FuncCall) string {
 		result += exprToString(arg)
 	}
 	result += ")"
+	if v.Filter != nil {
+		result += " FILTER (WHERE " + exprToString(v.Filter) + ")"
+	}
 	if v.Over != nil {
 		result += " OVER " + windowDefToString(v.Over)
 	}
@@ -3010,8 +3003,14 @@ func (e *Engine) execSelectView(entry *schema.Entry) *Result {
 		return &Result{Error: fmt.Errorf("exec: invalid view SQL: %s", sqlStr)}
 	}
 	selectSQL := sqlStr[idx+4:]
-	if !strings.HasPrefix(strings.ToUpper(strings.TrimSpace(selectSQL)), "SELECT") {
+	trimmedUpper := strings.ToUpper(strings.TrimSpace(selectSQL))
+	// Allow SELECT or WITH (CTE) as the start of the view body
+	if !strings.HasPrefix(trimmedUpper, "SELECT") && !strings.HasPrefix(trimmedUpper, "WITH") {
 		return &Result{Error: fmt.Errorf("exec: view does not contain SELECT: %s", sqlStr)}
+	}
+	// Check for circular view references before expanding
+	if hasViewCircularRef(sqlStr, entry.Name) {
+		return &Result{Error: fmt.Errorf("view %s is circularly defined", entry.Name)}
 	}
 	parser := sql.NewParser(selectSQL)
 	stmts := parser.Parse()
@@ -3418,11 +3417,18 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []map[string]interface{},
 
 		// Nested-loop join (for both table and view)
 		var combinedMaps []map[string]interface{}
-		combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefs...)
+		// For USING clause, exclude the merged columns from the right table's
+		// column definitions so that SELECT * expansion does not duplicate them.
+		filteredRightDefs := e.filterUsingColumns(rightDefs, join.On)
+		// Prefix remaining right-table column names when they conflict with
+		// existing left-table column names, so * expansion resolves values
+		// from the combined row map using qualified keys (table.col).
+		rightDefsNamed := e.prefixRightColDefs(filteredRightDefs, currentDefs, tableName)
+		combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefsNamed...)
 
 		for _, leftMap := range currentMaps {
 			matched := e.processJoinRow(leftMap, rightMaps, &combinedMaps, tableName, join, s, rightDefs)
-			if !matched && (join.JoinType == "LEFT" || join.JoinType == "") {
+			if !matched && join.JoinType == "LEFT" {
 				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName))
 			}
 		}
@@ -3457,10 +3463,13 @@ func (e *Engine) processJoinRow(leftMap map[string]interface{}, rightMaps []map[
 }
 
 // buildCombinedRowMap creates a combined row map from left and right join sides.
+// It stores values under both unqualified names and table-prefixed names so that
+// qualified column references (e.g., "data.id") resolve correctly for both sides.
 func (e *Engine) buildCombinedRowMap(leftMap, rightMap map[string]interface{}, tableName, leftTableName string) map[string]interface{} {
 	combined := make(map[string]interface{})
 	for k, v := range leftMap {
 		combined[k] = v
+		combined[leftTableName+"."+k] = v
 	}
 	for k, v := range rightMap {
 		combined[tableName+"."+k] = v
@@ -3479,6 +3488,81 @@ func (e *Engine) evalOnCondition(on sql.Expr, row map[string]interface{}) bool {
 	}
 	match, err := e.evalBool(on, row)
 	return err == nil && match
+}
+
+// filterUsingColumns filters right-side column definitions to exclude columns
+// that are part of a USING clause. The USING clause generates equality conditions
+// in the ON expression, and those columns should appear only once in the result.
+func (e *Engine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr) []sql.ColumnDef {
+	if on == nil {
+		return rightDefs
+	}
+	// Collect column names referenced in USING equality conditions.
+	usingCols := make(map[string]bool)
+	collectUsingColumns(on, usingCols)
+	if len(usingCols) == 0 {
+		return rightDefs
+	}
+	var filtered []sql.ColumnDef
+	for _, cd := range rightDefs {
+		if usingCols[cd.Name] {
+			continue // skip — this column is merged by USING
+		}
+		filtered = append(filtered, cd)
+	}
+	return filtered
+}
+
+// collectUsingColumns recursively walks a USING-generated ON expression and
+// collects column names from equality comparisons (col = col).
+func collectUsingColumns(expr sql.Expr, cols map[string]bool) {
+	switch v := expr.(type) {
+	case *sql.ParenExpr:
+		collectUsingColumns(v.Expr, cols)
+	case *sql.BinaryOp:
+		if v.Operator == "=" {
+			// Both sides should have the same column name in USING
+			if leftRef, ok := v.Left.(*sql.ColumnRef); ok {
+				cols[leftRef.Name] = true
+			}
+			if rightRef, ok := v.Right.(*sql.ColumnRef); ok {
+				cols[rightRef.Name] = true
+			}
+		} else if v.Operator == "AND" {
+			collectUsingColumns(v.Left, cols)
+			collectUsingColumns(v.Right, cols)
+		}
+	}
+}
+
+// prefixRightColDefs prefixes right-table column names with the table name
+// when they conflict with columns already in the left table. This ensures
+// that * expansion resolves values using qualified keys (table.col) from
+// the combined row map, avoiding incorrect resolution to the left table's values.
+func (e *Engine) prefixRightColDefs(rightDefs, leftDefs []sql.ColumnDef, tableName string) []sql.ColumnDef {
+	// Build set of left-column names for quick conflict detection.
+	leftNames := make(map[string]bool)
+	for _, cd := range leftDefs {
+		leftNames[cd.Name] = true
+	}
+	needsPrefix := false
+	for _, cd := range rightDefs {
+		if leftNames[cd.Name] {
+			needsPrefix = true
+			break
+		}
+	}
+	if !needsPrefix {
+		return rightDefs
+	}
+	named := make([]sql.ColumnDef, len(rightDefs))
+	for i, cd := range rightDefs {
+		named[i] = cd
+		if leftNames[cd.Name] {
+			named[i].Name = tableName + "." + cd.Name
+		}
+	}
+	return named
 }
 
 // buildLeftJoinRow creates a row for LEFT JOIN when no match is found.
@@ -4009,7 +4093,7 @@ func (e *Engine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []map[string]i
 			if err != nil {
 				return &Result{Error: err}
 			}
-			outRow = append(outRow, v)
+			outRow = append(outRow, util.UnwrapColumnValue(v))
 		}
 
 		// Apply HAVING filter
@@ -4038,7 +4122,7 @@ func (e *Engine) computeGroupByKey(groupBy []sql.Expr, row map[string]interface{
 		if err != nil || v == nil {
 			parts[i] = "\x00"
 		} else {
-			parts[i] = fmt.Sprintf("%v", v)
+			parts[i] = fmt.Sprintf("%v", util.UnwrapColumnValue(v))
 		}
 	}
 	return strings.Join(parts, "\x00")
@@ -4086,6 +4170,7 @@ func (e *Engine) evalHavingExpr(expr sql.Expr, groupRows []map[string]interface{
 		if err != nil {
 			return nil, err
 		}
+		operand = util.UnwrapColumnValue(operand)
 		return operand == nil, nil
 	case *sql.IsNotNull:
 		return e.evalHavingIsNotNull(v, groupRows)
@@ -4136,6 +4221,7 @@ func (e *Engine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []map[string]in
 	if err != nil {
 		return nil, err
 	}
+	operand = util.UnwrapColumnValue(operand)
 	return operand != nil, nil
 }
 
@@ -4702,7 +4788,7 @@ func (e *Engine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []map[string]int
 			if err != nil {
 				args[i] = nil
 			} else {
-				args[i] = val
+				args[i] = util.UnwrapColumnValue(val)
 			}
 		}
 		agg.Step(args)
@@ -5836,7 +5922,41 @@ func (e *Engine) execAlterTableRenameColumn(s *sql.AlterTableStmt) *Result {
 		}
 	}
 
-	// Update triggers that reference the old column name
+	// Validate: reject if any trigger on a DIFFERENT table references the old column name
+	// in the context of the table being renamed. Triggers on the same table will be
+	// updated by renameColumnInTriggers below.
+	entries, gErr := e.schema.GetEntries("")
+	if gErr == nil {
+		// Collect views that depend on the table being renamed
+		viewNames := make(map[string]bool)
+		for _, entry := range entries {
+			if entry.Type == schema.TypeView && refTableInTrigger(entry.SQL, tableName) {
+				viewNames[entry.Name] = true
+			}
+		}
+		for _, entry := range entries {
+			if entry.Type == schema.TypeTrigger && !strings.EqualFold(entry.TblName, tableName) {
+				// Check if the trigger references BOTH the old column name AND the table
+				// (or a view that depends on the table)
+				newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+				if newSQL != entry.SQL {
+					// The trigger references the column name.
+					// Check if it also references the table or a view of the table.
+					if refTableInTrigger(entry.SQL, tableName) {
+						return &Result{Error: fmt.Errorf("error in trigger %s after rename: no such column: %s", entry.Name, oldColName)}
+					}
+					// Also check if the trigger references any view that depends on the table
+					for vn := range viewNames {
+						if refTableInTrigger(entry.SQL, vn) {
+							return &Result{Error: fmt.Errorf("error in trigger %s after rename: no such column: %s", entry.Name, oldColName)}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Update triggers that reference the old column name (ON the same table)
 	e.renameColumnInTriggers(tableName, oldColName, newColName)
 
 	// Update indexes that reference the old column name
@@ -5970,38 +6090,90 @@ func extractColumnName(def string) string {
 
 // renameColumnInTriggers updates trigger SQL for triggers on the given table,
 // replacing old column name references with the new column name.
+// Uses token-level rename with string-regex complement.
 func (e *Engine) renameColumnInTriggers(tableName, oldColName, newColName string) {
-	entries, err := e.schema.GetEntries("")
-	if err != nil {
-		return
+	ctx := &RenameContext{
+		OldName:   oldColName,
+		NewName:   newColName,
+		QuotedNew: newColName,
+		IsTable:   false,
+		TableName: tableName,
 	}
-	for _, entry := range entries {
-		if entry.Type == schema.TypeTrigger && strings.EqualFold(entry.TblName, tableName) {
-			newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
-			if newSQL != entry.SQL {
-				entry.SQL = newSQL
-				_ = e.schema.RemoveEntry(entry.Name)
-				_ = e.schema.AddEntry(entry)
-			}
-		}
-	}
+	e.renameColumnInEntries(schema.TypeTrigger, tableName, oldColName, newColName, ctx)
 }
 
 // renameColumnInIndexes updates index SQL for indexes on the given table,
 // replacing old column name references with the new column name.
 func (e *Engine) renameColumnInIndexes(tableName, oldColName, newColName string) {
+	ctx := &RenameContext{
+		OldName:   oldColName,
+		NewName:   newColName,
+		QuotedNew: newColName,
+		IsTable:   false,
+		TableName: tableName,
+	}
+	e.renameColumnInEntries(schema.TypeIndex, tableName, oldColName, newColName, ctx)
+}
+
+// renameColumnInViews updates view SQL for views that reference the renamed column,
+// replacing old column name references with the new column name.
+func (e *Engine) renameColumnInViews(tableName, oldColName, newColName string) {
+	ctx := &RenameContext{
+		OldName:   oldColName,
+		NewName:   newColName,
+		QuotedNew: newColName,
+		IsTable:   false,
+		TableName: tableName,
+	}
+	// Views can be on any table, not just tableName, so use empty table filter
+	e.renameColumnInEntries(schema.TypeView, "", oldColName, newColName, ctx)
+}
+
+// renameColumnInEntries applies column rename to schema entries of the given type.
+// Uses token-level rename with string-regex as a complementary pass.
+func (e *Engine) renameColumnInEntries(entryType schema.SchemaType, tblName string, oldColName, newColName string, ctx *RenameContext) {
 	entries, err := e.schema.GetEntries("")
 	if err != nil {
 		return
 	}
 	for _, entry := range entries {
-		if entry.Type == schema.TypeIndex && strings.EqualFold(entry.TblName, tableName) {
-			newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
-			if newSQL != entry.SQL {
-				entry.SQL = newSQL
-				_ = e.schema.RemoveEntry(entry.Name)
-				_ = e.schema.AddEntry(entry)
+		if entry.Type != entryType {
+			continue
+		}
+		if tblName != "" && !strings.EqualFold(entry.TblName, tblName) {
+			continue
+		}
+		if entry.SQL == "" {
+			continue
+		}
+		// Skip entries that don't contain the old column name
+		if !strings.Contains(entry.SQL, oldColName) &&
+			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldColName)) {
+			continue
+		}
+
+		// Try token-level rename first
+		ranges, rErr := FindRenameTokens(entry.SQL, ctx)
+		if rErr == nil && len(ranges) > 0 {
+			newSQL := ApplyRenames(entry.SQL, ranges, newColName)
+			if newSQL != entry.SQL && newSQL != "" {
+				// Apply string-regex as a complementary pass
+				newSQL = replaceColumnNameInSQL(newSQL, oldColName, newColName)
+				if newSQL != entry.SQL {
+					entry.SQL = newSQL
+					_ = e.schema.RemoveEntry(entry.Name)
+					_ = e.schema.AddEntry(entry)
+					continue
+				}
 			}
+		}
+
+		// Fallback: string-regex alone
+		newSQL := replaceColumnNameInSQL(entry.SQL, oldColName, newColName)
+		if newSQL != entry.SQL && newSQL != "" {
+			entry.SQL = newSQL
+			_ = e.schema.RemoveEntry(entry.Name)
+			_ = e.schema.AddEntry(entry)
 		}
 	}
 }
@@ -6022,6 +6194,23 @@ func replaceColumnNameInSQL(sqlStr, oldColName, newColName string) string {
 	re := regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + quotedOld + `([^a-zA-Z0-9_]|$)`)
 	result := re.ReplaceAllString(sqlStr, "${1}"+newColName+"${2}")
 	return result
+}
+
+// refTableInTrigger checks if a trigger's SQL references the given table name.
+// Uses word-boundary matching to avoid partial matches.
+func refTableInTrigger(sqlStr, tableName string) bool {
+	if sqlStr == "" || tableName == "" {
+		return false
+	}
+	// Check for quoted table name "tablename"
+	quoted := regexp.QuoteMeta(tableName)
+	re := regexp.MustCompile(`(?i)"` + quoted + `"`)
+	if re.MatchString(sqlStr) {
+		return true
+	}
+	// Check for unquoted table name with word boundaries
+	re = regexp.MustCompile(`(?i)(^|[^a-zA-Z0-9_])` + quoted + `([^a-zA-Z0-9_]|$)`)
+	return re.MatchString(sqlStr)
 }
 
 // validateRename checks if the table can be renamed by verifying that
@@ -6099,7 +6288,259 @@ func (e *Engine) validateRename(oldName, newName string) error {
 			}
 		}
 	}
+	// Check all triggers for column references that don't exist in their ON table.
+	// SQLite does this during ALTER TABLE RENAME to catch broken trigger definitions.
+	for _, entry := range entries {
+		if entry.Type == schema.TypeTrigger {
+			if err := e.checkTriggerColRefs(entry); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
+}
+
+// checkTriggerColRefs checks that all column references in a trigger's SQL
+// exist in the trigger's ON table or in tables referenced by its body.
+// Returns an error formatted to match SQLite's "error in trigger %s: ..." pattern.
+func (e *Engine) checkTriggerColRefs(entry *schema.Entry) error {
+	// Parse the trigger SQL to get its AST
+	parser := sql.NewParser(entry.SQL)
+	stmts := parser.Parse()
+	if parser.Err() != nil || len(stmts) == 0 {
+		return nil // Can't validate if we can't parse
+	}
+
+	// Get the ON table for this trigger
+	onTableName := entry.TblName
+
+	// Walk all statements looking for unqualified ColumnRefs at the top level
+	// (not inside subqueries, which have their own table scope)
+	colRefs := findTriggerColRefs(stmts)
+
+	// Get column names for the ON table
+	onTableEntry, err := e.schema.FindTable(onTableName)
+	if err != nil {
+		return nil // If the table doesn't exist, can't validate columns
+	}
+	onTableCols := e.parseColumnDefs(onTableEntry.Name, onTableEntry.SQL)
+	onColMap := make(map[string]bool)
+	for _, c := range onTableCols {
+		onColMap[strings.ToUpper(c.Name)] = true
+	}
+
+	// Check each column reference
+	for _, ref := range colRefs {
+		upperName := strings.ToUpper(ref.Name)
+		// Skip special pseudo-columns and keywords
+		if ref.Table != "" {
+			upperTable := strings.ToUpper(ref.Table)
+			if upperTable == "NEW" || upperTable == "OLD" {
+				continue
+			}
+			// Qualified reference to a non-pseudo table - just skip for now
+			// as proper validation would require resolving the table
+			continue
+		}
+		// Skip SQL keywords and special names that might be parsed as column refs
+		if isSQLKeywordOrPseudo(upperName) {
+			continue
+		}
+		// Unqualified column reference - check against ON table's columns
+			if !onColMap[upperName] {
+				return fmt.Errorf("error in trigger %s: no such column: %s", entry.Name, ref.Name)
+			}
+		}
+		return nil
+}
+
+// isSQLKeywordOrPseudo checks if a name is a SQL keyword or pseudo-column
+// that should be skipped during column reference validation.
+func isSQLKeywordOrPseudo(name string) bool {
+	switch name {
+	case "*", "TRUE", "FALSE", "NULL", "ROWID", "_ROWID_", "OID",
+		"ROW", "ROWS", "RANGE", "GROUPS", "UNBOUNDED", "PRECEDING", "FOLLOWING",
+		"CURRENT", "RECURSIVE", "EXCLUDE", "TIES", "OTHERS",
+		// Window function names (common ones that might appear as identifiers)
+		"RANK", "DENSE_RANK", "PERCENT_RANK", "ROW_NUMBER", "NTILE",
+		"LEAD", "LAG", "FIRST_VALUE", "LAST_VALUE", "NTH_VALUE",
+		"CUME_DIST":
+		return true
+	}
+	return false
+}
+
+// findTriggerColRefs extracts unqualified ColumnRef nodes from the top-level
+// statements in a trigger body (not inside subqueries).
+func findTriggerColRefs(stmts []sql.Stmt) []*sql.ColumnRef {
+	var refs []*sql.ColumnRef
+	for _, stmt := range stmts {
+		collectTriggerColRefs(stmt, &refs, false) // false = not in subquery initially
+	}
+	return refs
+}
+
+// collectTriggerColRefs walks a statement and collects ColumnRefs, tracking
+// whether we're inside a subquery (which has its own table scope).
+func collectTriggerColRefs(stmt sql.Stmt, refs *[]*sql.ColumnRef, inSubquery bool) {
+	switch s := stmt.(type) {
+	case *sql.SelectStmt:
+		collectSelectTriggerColRefs(s, refs, inSubquery)
+	case *sql.InsertStmt:
+		if s.Select != nil {
+			collectSelectTriggerColRefs(s.Select, refs, true) // INSERT ... SELECT is a subquery
+		}
+	case *sql.UpdateStmt:
+		for _, a := range s.Assignments {
+			collectExprTriggerColRefs(a.Value, refs, inSubquery)
+		}
+		if s.Where != nil {
+			collectExprTriggerColRefs(s.Where, refs, inSubquery)
+		}
+	case *sql.DeleteStmt:
+		if s.Where != nil {
+			collectExprTriggerColRefs(s.Where, refs, inSubquery)
+		}
+	case *sql.CreateTriggerStmt:
+		for _, bodyStmt := range s.Statements {
+			collectTriggerColRefs(bodyStmt, refs, false)
+		}
+	}
+}
+
+// collectSelectTriggerColRefs walks a SELECT and collects ColumnRefs.
+func collectSelectTriggerColRefs(sel *sql.SelectStmt, refs *[]*sql.ColumnRef, inSubquery bool) {
+	if sel == nil {
+		return
+	}
+	// Column refs in SELECT columns are in the current scope
+	for _, col := range sel.Columns {
+		collectExprTriggerColRefs(col.Expr, refs, inSubquery)
+	}
+	// WHERE, HAVING, GROUP BY, ORDER BY are in the current scope
+	if sel.Where != nil {
+		collectExprTriggerColRefs(sel.Where, refs, inSubquery)
+	}
+	if sel.Having != nil {
+		collectExprTriggerColRefs(sel.Having, refs, inSubquery)
+	}
+	for _, expr := range sel.GroupBy {
+		collectExprTriggerColRefs(expr, refs, inSubquery)
+	}
+	for _, ob := range sel.OrderBy {
+		collectExprTriggerColRefs(ob.Expr, refs, inSubquery)
+	}
+	// JOIN conditions are in the current scope
+	for _, join := range sel.Joins {
+		if join.On != nil {
+			collectExprTriggerColRefs(join.On, refs, inSubquery)
+		}
+	}
+	// UNION subqueries have their own scope
+	if sel.Union != nil {
+		collectSelectTriggerColRefs(sel.Union, refs, true)
+	}
+	// CTE subqueries have their own scope
+	for _, cte := range sel.CTEs {
+		if cte.Select != nil {
+			collectSelectTriggerColRefs(cte.Select, refs, true)
+		}
+	}
+	// Window definitions contain PARTITION BY and ORDER BY expressions
+	// that may reference columns of the current scope
+	for _, w := range sel.Windows {
+		collectWindowDefTriggerColRefs(&w, refs, inSubquery)
+	}
+}
+
+// collectWindowDefTriggerColRefs walks a WindowDef and collects ColumnRefs
+// from PARTITION BY and ORDER BY clauses.
+func collectWindowDefTriggerColRefs(w *sql.WindowDef, refs *[]*sql.ColumnRef, inSubquery bool) {
+	if w == nil {
+		return
+	}
+	for _, p := range w.Partitions {
+		collectExprTriggerColRefs(p, refs, inSubquery)
+	}
+	for _, ob := range w.OrderBy {
+		collectExprTriggerColRefs(ob.Expr, refs, inSubquery)
+	}
+}
+
+// collectExprTriggerColRefs walks an expression tree and collects ColumnRefs,
+// marking when we enter a subquery (which has its own table scope).
+func collectExprTriggerColRefs(expr sql.Expr, refs *[]*sql.ColumnRef, inSubquery bool) {
+	if expr == nil {
+		return
+	}
+	switch e := expr.(type) {
+	case *sql.ColumnRef:
+		// Only collect qualified refs or top-level unqualified refs
+		if !inSubquery {
+			*refs = append(*refs, e)
+		}
+	case *sql.BinaryOp:
+		collectExprTriggerColRefs(e.Left, refs, inSubquery)
+		collectExprTriggerColRefs(e.Right, refs, inSubquery)
+	case *sql.UnaryOp:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+	case *sql.FuncCall:
+		for _, arg := range e.Args {
+			collectExprTriggerColRefs(arg, refs, inSubquery)
+		}
+		if e.Filter != nil {
+			collectExprTriggerColRefs(e.Filter, refs, inSubquery)
+		}
+		if e.Over != nil {
+			collectWindowDefTriggerColRefs(e.Over, refs, inSubquery)
+		}
+	case *sql.ParenExpr:
+		collectExprTriggerColRefs(e.Expr, refs, inSubquery)
+	case *sql.CaseExpr:
+		if e.Operand != nil {
+			collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+		}
+		for _, w := range e.Whens {
+			collectExprTriggerColRefs(w.When, refs, inSubquery)
+			collectExprTriggerColRefs(w.Then, refs, inSubquery)
+		}
+		if e.Else != nil {
+			collectExprTriggerColRefs(e.Else, refs, inSubquery)
+		}
+	case *sql.CastExpr:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+	case *sql.IsNull:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+	case *sql.IsNotNull:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+	case *sql.IsTrue:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+	case *sql.IsFalse:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+	case *sql.Between:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+		collectExprTriggerColRefs(e.Low, refs, inSubquery)
+		collectExprTriggerColRefs(e.High, refs, inSubquery)
+	case *sql.InList:
+		collectExprTriggerColRefs(e.Operand, refs, inSubquery)
+		for _, item := range e.List {
+			collectExprTriggerColRefs(item, refs, inSubquery)
+		}
+	case *sql.Subquery:
+		// Subquery expressions have their own scope - don't collect refs inside
+		// but still recurse to find any nested refs (marked with inSubquery=true)
+		if e.Select != nil {
+			collectSelectTriggerColRefs(e.Select, refs, true)
+		}
+	case *sql.ExistsExpr:
+		if e.Select != nil {
+			collectSelectTriggerColRefs(e.Select, refs, true)
+		}
+	case *sql.RowValue:
+		for _, v := range e.Values {
+			collectExprTriggerColRefs(v, refs, inSubquery)
+		}
+	}
 }
 
 // findTableRefsInTrigger extracts table references from a trigger body.
@@ -6166,6 +6607,21 @@ func findTableRefsInTrigger(triggerSQL string) []string {
 		if !isCTE(m[1]) {
 			refs = append(refs, m[1])
 		}
+	}
+
+	// Find "JOIN tablename" patterns (case-insensitive) — captures table names
+	// in JOIN clauses like "FROM t1 JOIN t2 ON ..." or "t1 INNER JOIN t2 ..."
+	re = regexp.MustCompile(`(?i)\bJOIN\s+([a-zA-Z_]\w*)`)
+	matches = re.FindAllStringSubmatch(triggerSQL, -1)
+	for _, m := range matches {
+		t := m[1]
+		if strings.EqualFold(t, "NEW") || strings.EqualFold(t, "OLD") {
+			continue
+		}
+		if isCTE(t) {
+			continue
+		}
+		refs = append(refs, t)
 	}
 
 	return refs
@@ -6257,44 +6713,84 @@ func isCTEReferencedInMain(sel *sql.SelectStmt, cteName string) bool {
 
 // renameUpdateRelatedEntries updates views, triggers, and indexes that
 // reference the old table name to use the new table name.
-// renameUpdateRelatedEntries updates views, triggers, and indexes that
-// reference the old table name to use the new table name.
+// Uses token-level rename (FindRenameTokens + ApplyRenames) to avoid
+// string-regex issues with aliases, string literals, and partial matches.
+// Falls back to string-regex when the SQL cannot be parsed.
 func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 	entries, err := e.schema.GetEntries("")
 	if err != nil {
 		return
 	}
+
+	// Always quote the new name with double quotes, matching SQLite's behavior
+	// in ALTER TABLE RENAME (the replacement text is always quoted).
+	quotedNew := `"` + newName + `"`
+	ctx := &RenameContext{
+		OldName:   oldName,
+		NewName:   newName,
+		QuotedNew: quotedNew,
+		IsTable:   true,
+	}
+
 	for _, entry := range entries {
+		if entry.SQL == "" {
+			continue
+		}
+
+		// Skip entries that don't reference the old table name
+		if !strings.Contains(entry.SQL, oldName) &&
+			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldName)) {
+			continue
+		}
+
 		switch entry.Type {
 		case schema.TypeView:
 			if e.legacyAlterTable {
 				// In legacy mode, views are NOT updated — they keep old references
 				continue
 			}
-			if strings.Contains(entry.SQL, oldName) || strings.Contains(entry.SQL, strings.ToUpper(oldName)) {
-				newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
-				if newSQL != entry.SQL {
-					_ = e.schema.RemoveEntry(entry.Name)
-					entry.SQL = newSQL
-					_ = e.schema.AddEntry(entry)
-				}
-			}
 		case schema.TypeTrigger:
-				if strings.EqualFold(entry.TblName, oldName) {
-					entry.TblName = newName
-					if !e.legacyAlterTable {
-						entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
-					}
-					_ = e.schema.RemoveEntry(entry.Name)
-					_ = e.schema.AddEntry(entry)
-				}
+			if strings.EqualFold(entry.TblName, oldName) {
+				entry.TblName = newName
+			}
+			if e.legacyAlterTable {
+				continue
+			}
 		case schema.TypeIndex:
 			if strings.EqualFold(entry.TblName, oldName) {
 				entry.TblName = newName
-				entry.SQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
-				_ = e.schema.RemoveEntry(entry.Name)
-				_ = e.schema.AddEntry(entry)
 			}
+		case schema.TypeTable:
+			// Update child tables that reference the old table name via FOREIGN KEY
+			// Also update the table's own CREATE TABLE SQL
+		default:
+			continue
+		}
+
+		// Try token-level rename first, then apply string-regex as a complementary
+		// pass to catch any occurrences the token walker missed (e.g., table names
+		// in UPDATE statements inside trigger bodies, unparseable SQL).
+		ranges, rErr := FindRenameTokens(entry.SQL, ctx)
+		if rErr == nil && len(ranges) > 0 {
+			newSQL := ApplyRenames(entry.SQL, ranges, quotedNew)
+			if newSQL != entry.SQL && newSQL != "" {
+				// Apply string-regex as a complementary pass to catch remaining occurrences
+				newSQL = replaceTableNameInSQL(newSQL, oldName, newName)
+				if newSQL != entry.SQL {
+					entry.SQL = newSQL
+					_ = e.schema.RemoveEntry(entry.Name)
+					_ = e.schema.AddEntry(entry)
+					continue
+				}
+			}
+		}
+
+		// Fallback: use string-regex alone when token-level rename fails or finds nothing
+		newSQL := replaceTableNameInSQL(entry.SQL, oldName, newName)
+		if newSQL != entry.SQL && newSQL != "" {
+			entry.SQL = newSQL
+			_ = e.schema.RemoveEntry(entry.Name)
+			_ = e.schema.AddEntry(entry)
 		}
 	}
 }
@@ -7122,6 +7618,8 @@ func collectExprRefs(expr sql.Expr, refs *[]string) {
 		return
 	}
 	switch e := expr.(type) {
+	case *sql.ParenExpr:
+		collectExprRefs(e.Expr, refs)
 	case *sql.ColumnRef:
 		*refs = append(*refs, e.Name)
 	case *sql.BinaryOp:
@@ -7444,6 +7942,8 @@ func (e *Engine) evalExpr(expr sql.Expr, row map[string]interface{}) (interface{
 
 func (e *Engine) evalComplexExpr(expr sql.Expr, row map[string]interface{}) (interface{}, error) {
 	switch v := expr.(type) {
+	case *sql.ParenExpr:
+		return e.evalExpr(v.Expr, row)
 	case *sql.BinaryOp:
 		return e.evalBinaryOp(v, row)
 	case *sql.UnaryOp:
@@ -7712,8 +8212,19 @@ func evalBinaryOpValues(op string, left, right interface{}) (interface{}, error)
 	left, right = extractCollatedValues(op, left, right)
 	switch op {
 	case "=":
+		// When comparing a TEXT column value with a value that has no
+		// column affinity (expression result, view value) and the actual
+		// types differ (TEXT vs numeric), SQLite treats them as not equal.
+		// The standard comparison path's NONE string comparison would
+		// incorrectly report them as equal after converting numeric to text.
+		if !typesMatchForEquality(left, right) {
+			return int64(0), nil
+		}
 		return boolToInt(compareValuesWithCollate(left, right) == 0), nil
 	case "<>", "!=":
+		if !typesMatchForEquality(left, right) {
+			return int64(1), nil
+		}
 		return boolToInt(compareValuesWithCollate(left, right) != 0), nil
 	case "<":
 		return boolToInt(compareValuesWithCollate(left, right) < 0), nil
@@ -7765,15 +8276,58 @@ func boolToInt(b bool) int64 {
 	return 0
 }
 
+// typesMatchForEquality checks whether two values should be considered for
+// equality comparison. Returns false when one value has TEXT column affinity
+// and the other has no column affinity, with different actual storage types
+// (TEXT vs numeric). In this case SQLite treats them as not equal for = and !=.
+func typesMatchForEquality(left, right interface{}) bool {
+	lAff := util.ColumnAffinity(left)
+	rAff := util.ColumnAffinity(right)
+	// Only applies when one side has TEXT affinity and the other has none
+	if !((lAff == 'T' && rAff == 0) || (rAff == 'T' && lAff == 0)) {
+		return true
+	}
+	lv := util.UnwrapColumnValue(left)
+	rv := util.UnwrapColumnValue(right)
+	// Check if one is TEXT and the other is numeric (INTEGER or REAL)
+	_, lStr := lv.(string)
+	_, rStr := rv.(string)
+	_, lInt := lv.(int64)
+	_, rInt := rv.(int64)
+	_, lFloat := lv.(float64)
+	_, rFloat := rv.(float64)
+	lNum := lInt || lFloat
+	rNum := rInt || rFloat
+	// TEXT vs numeric → check if the string can be converted to a number.
+	// If it can (e.g., '1' vs 1), allow the comparison so that
+	// compareValuesWithCollate handles the numeric conversion normally.
+	// If it cannot (e.g., 'abc' vs 1), treat as not a type match.
+	if (lStr && rNum) || (rStr && lNum) {
+		// Try to parse the string as a number.
+		var str string
+		if lStr {
+			str = lv.(string)
+		} else {
+			str = rv.(string)
+		}
+		str = strings.TrimSpace(str)
+		if _, err := strconv.ParseFloat(str, 64); err != nil {
+			return false // non-numeric string vs numeric → not a match
+		}
+		// Numeric string → allow comparison
+	}
+	return true
+}
+
 func globValues(str, pattern interface{}) bool {
-	s := fmt.Sprintf("%v", str)
-	p := fmt.Sprintf("%v", pattern)
+	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
+	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
 	return function.GlobMatch(s, p)
 }
 
 func regexpValues(str, pattern interface{}) bool {
-	s := fmt.Sprintf("%v", str)
-	p := fmt.Sprintf("%v", pattern)
+	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
+	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
 	re, err := regexp.Compile(p)
 	if err != nil {
 		return false
@@ -7923,6 +8477,8 @@ func (e *Engine) evalIsNull(v *sql.IsNull, row map[string]interface{}) (interfac
 	if err != nil {
 		return nil, err
 	}
+	// Unwrap ColumnValue so we check for actual NULL, not just wrapper nil
+	operand = util.UnwrapColumnValue(operand)
 	return operand == nil, nil
 }
 
@@ -7931,6 +8487,8 @@ func (e *Engine) evalIsNotNull(v *sql.IsNotNull, row map[string]interface{}) (in
 	if err != nil {
 		return nil, err
 	}
+	// Unwrap ColumnValue so we check for actual NULL, not just wrapper nil
+	operand = util.UnwrapColumnValue(operand)
 	return operand != nil, nil
 }
 
@@ -8333,15 +8891,15 @@ func numericValue(v interface{}) (interface{}, error) {
 }
 
 func likeValues(str, pattern interface{}) bool {
-	s := fmt.Sprintf("%v", str)
-	p := fmt.Sprintf("%v", pattern)
+	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
+	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
 	return likeMatch(s, p)
 }
 
 // likeValuesWithEscape performs LIKE matching with an escape character.
 func likeValuesWithEscape(str, pattern interface{}, escape string) bool {
-	s := fmt.Sprintf("%v", str)
-	p := fmt.Sprintf("%v", pattern)
+	s := fmt.Sprintf("%v", util.UnwrapColumnValue(str))
+	p := fmt.Sprintf("%v", util.UnwrapColumnValue(pattern))
 	return likeMatchEscaped(s, p, escape)
 }
 

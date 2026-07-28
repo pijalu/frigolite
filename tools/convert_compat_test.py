@@ -7,18 +7,10 @@ OUTPUT_DIR = "/Users/muaddib/dev/frigolite"
 
 C_API_RE = re.compile(r'sqlite3_(prepare|step|column|finalize|exec\b|limit|db_config|config|enable_shared|initialize|shutdown|malloc|free|realloc|memory_used|memory_highwater|randomness|sleep|strglob|stricmp|strnicmp|strlike|create_function|create_collation|create_module|overload|declare_vtab|table_column_metadata|db_filename|db_readonly|db_handle|next_stmt|commit_hook|rollback_hook|update_hook|preupdate|wal_hook|auto_extension|cancel_auto_extension|reset_auto_extension|set_authorizer|trace|progress_handler|file_control|test_control|keyword_|compileoption|db_cacheflush|snapshot|unlock_notify|log|vtab|db_config|txn_state|changes|total_changes|errcode|errstr|threadsafe|serialize|deserialize|hard_heap|soft_heap|release_memory|db_release_memory|db_status|status)')
 
-# Unsupported SQL features - tests containing these will be excluded
-# NOTE: Only features that the engine truly cannot handle should be here.
-# Features that work as no-ops (ATTACH, SAVEPOINT, etc.) are NOT filtered.
-UNSUPPORTED = re.compile(
-    r'\b(fts\d+\s*\(|rtree\s*\(|'
-    r'WITHOUT\s+ROWID\s|\$\d+\b|zeroblob\s*\(|zipfile|'
-    r'writecrash|'
-    r'PRAGMA\s+(wal_|journal_mode=WAL|page_count|cache_flush|locking_mode|'
-    r'schema_version|user_version|application_id|mmap_size|'
-    r'soft_heap_limit|hard_heap_limit|threads|page_size=65536))',
-    re.IGNORECASE
-)
+# Unsupported TCL-specific patterns - SQL containing these patterns cannot be
+# converted because they depend on TCL runtime state (variable substitution,
+# command execution, etc.). Feature filtering is handled by knownUnsupportedPatterns
+# in frgolite_test.go, not here.
 
 # ifcapable features that are completely unsupported — entire blocks are skipped
 # Features NOT in this list or in SUPPORTED_IFCAPABLE will have their content included
@@ -34,10 +26,8 @@ UNSUPPORTED_IFCAPABLE = {
 SUPPORTED_IFCAPABLE = {'altertable', 'trigger', 'view', 'explain'}
   
 def has_unsupported_features(sql):
-    """Check if SQL uses features the engine doesn't support."""
-    if bool(UNSUPPORTED.search(sql)):
-        return True
-    # Additional TCL-specific checks
+    """Check if SQL uses TCL-specific patterns that prevent conversion.
+    Feature-based filtering is handled by knownUnsupportedPatterns in Go code."""
     # TCL variable references like $var (but not $N positional params like $1)
     if re.search(r'(?<!\w)\$[a-zA-Z_]\w*', sql):
         return True

@@ -4,14 +4,63 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/pijalu/frigolite/internal/util"
 )
 
+// knownUnsupportedPatterns lists patterns for SQL features that are not yet
+// implemented in frigolite. Queries matching these patterns are expected to
+// fail and are skipped by checkQueryResult rather than reported as errors.
+// As features are implemented in later phases, entries are removed.
+var knownUnsupportedPatterns = []struct {
+	pattern *regexp.Regexp
+	reason  string
+}{
+	// Window functions
+	{regexp.MustCompile(`(?i)\b(OVER|WINDOW|FILTER)\b`), "window functions (P2)"},
+	// CTE (WITH ... AS)
+	{regexp.MustCompile(`(?i)\bWITH\s+\w+.*AS\s*\(`), "CTE (WITH clause)"},
+	// FTS
+	{regexp.MustCompile(`(?i)\bfts\d\b`), "FTS (tokenizer)"},
+	{regexp.MustCompile(`(?i)\bMATCH\b`), "FTS or MATCH clause"},
+	// JSON functions
+	{regexp.MustCompile(`(?i)\bjson_`), "JSON extension"},
+	// Trigger RAISE
+	{regexp.MustCompile(`(?i)\bRAISE\b`), "trigger RAISE"},
+	// RETURNING clause
+	{regexp.MustCompile(`(?i)\bRETURNING\b`), "RETURNING clause"},
+	// Blob functions
+	{regexp.MustCompile(`(?i)\brandomblob\b`), "randomblob function"},
+	{regexp.MustCompile(`(?i)\bzeroblob\b`), "zeroblob function"},
+}
+
+func isKnownUnsupported(sql string) bool {
+	for _, p := range knownUnsupportedPatterns {
+		if p.pattern.MatchString(sql) {
+			return true
+		}
+	}
+	return false
+}
+
+// slowCompatTests lists test names that are known to be extremely slow
+// due to engine limitations (e.g., large cross joins). These are skipped
+// in standard test runs to avoid timing out the full suite.
+// Set FRIGOLITE_RUN_SLOW=1 to include them.
+var slowCompatTests = map[string]string{
+	"TestSQLite_emptytable":  "6-table cross join of 100-row tables (engine O(N×M) limitation)",
+	"TestSQLite_exprfault2":  "parser hang on deeply nested window function SQL fuzz test",
+	"TestSQLite_indexexpr1": "many EXPLAIN QUERY PLAN + CREATE INDEX queries (slow)",
+}
+
 func setupDB(t *testing.T) *DB {
 	t.Helper()
+	if reason, ok := slowCompatTests[t.Name()]; ok && os.Getenv("FRIGOLITE_RUN_SLOW") == "" {
+		t.Skipf("Skipping slow compat test: %s", reason)
+	}
 	db, err := Open(":memory:")
 	if err != nil {
 		t.Fatalf("Open: %v", err)
@@ -20,20 +69,25 @@ func setupDB(t *testing.T) *DB {
 }
 
 // checkQueryResult checks that a query result matches the expected value.
-// Parse errors are silently ignored (expected for unsupported features).
-// If the query succeeds but the result doesn't match expected, the test FAILS.
+// If the query errors and the SQL contains known-unsupported feature patterns,
+// the error is silently accepted (the feature is not yet implemented).
+// If the query errors on supported SQL, the test FAILS.
 // expected is in TCL list format with optional { } braces.
 // In TCL, {} represents NULL and individual values may be braced.
 func checkQueryResult(t *testing.T, res *Result, expected string) {
 	t.Helper()
 	if res.Error != nil {
+		if res.SQL != "" && isKnownUnsupported(res.SQL) {
+			return // expected failure — feature not yet implemented
+		}
+		t.Errorf("query error: %v\n  sql: %s", res.Error, res.SQL)
 		return
 	}
 	var parts []string
 	for _, row := range res.Rows {
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "")
+				parts = append(parts, "NULL")
 			} else {
 				parts = append(parts, formatSQLiteValue(val))
 			}

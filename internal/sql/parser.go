@@ -64,6 +64,61 @@ func (p *Parser) readName() string {
 	return name
 }
 
+// readNameWithInfo reads an identifier like readName but also returns the byte
+// position of the last name token in the original SQL text. For schema-qualified
+// names (schema.table), the TokenInfo covers only the last part (the table name),
+// not the schema prefix. This is used by ALTER TABLE RENAME for token-level replacement.
+func (p *Parser) readNameWithInfo() (string, TokenInfo) {
+	if p.cur.Type != TokenIdentifier && p.cur.Type != TokenKeyword && p.cur.Type != TokenString {
+		return "", TokenInfo{}
+	}
+
+	var name string
+	if p.cur.Type == TokenString {
+		name = p.cur.Value
+	} else {
+		name = p.cur.Value
+	}
+
+	// Compute end of current token. For quoted identifiers, the actual text in the
+	// source includes the quoting characters; the Value only has the content.
+	start, end := p.computeTokenBounds()
+	p.next()
+
+	// Handle dot (schema.table) — for qualified names, position covers just the LAST part
+	if p.cur.Type == TokenDot {
+		p.next() // consume dot
+		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenStar || p.cur.Type == TokenString {
+			start = p.cur.Pos
+			end = p.cur.Pos + len(p.cur.Value)
+			if p.cur.Type == TokenIdentifier && start < len(p.tokens.input) && (p.tokens.input[start] == '"' || p.tokens.input[start] == '`' || p.tokens.input[start] == '[') {
+				end += 2 // account for opening and closing quote/backtick/bracket
+			}
+			name = name + "." + p.cur.Value
+			p.next()
+		}
+		// else: dot without following identifier — return position of first name only
+	}
+
+	return name, TokenInfo{Start: start, End: end}
+}
+
+// computeTokenBounds returns the byte range of the current token in the original SQL text.
+// It accounts for quoted identifiers where the Value doesn't include the quoting chars.
+func (p *Parser) computeTokenBounds() (int, int) {
+	start := p.cur.Pos
+	end := start + len(p.cur.Value)
+	// For quoted identifiers, the source text includes opening and closing quotes.
+	// Check the first character of the token in the source to determine quoting.
+	if p.cur.Type == TokenIdentifier && start < len(p.tokens.input) {
+		ch := p.tokens.input[start]
+		if ch == '"' || ch == '`' || ch == '[' {
+			end += 2 // opening and closing quote/backtick/bracket
+		}
+	}
+	return start, end
+}
+
 func (p *Parser) expect(typ TokenType) bool {
 	if p.cur.Type != typ {
 		p.setErr("expected %s but got %s", tokenName(typ, ""), tokenName(p.cur.Type, p.cur.Value))
@@ -577,9 +632,12 @@ func (p *Parser) parseOneWindowDef() WindowDef {
 			} else if p.cur.Type == TokenComma {
 				p.next()
 			} else {
-				// Parse expressions (handles function calls like percent_rank() OVER w1)
-				p.parseExpr()
-			}
+					// Parse expressions (handles function calls like percent_rank() OVER w1)
+					expr := p.parseExpr()
+					if expr != nil {
+						partitions = append(partitions, expr)
+					}
+				}
 		}
 		if p.cur.Type == TokenRParen {
 			p.next()
@@ -648,7 +706,7 @@ func (p *Parser) parseTableRef() TableRef {
 	}
 
 	// Regular table name
-	ref.Name = p.readName()
+	ref.Name, ref.NameTok = p.readNameWithInfo()
 
 	// Table-valued function arguments: FROM tablename(args)
 	// SQLite supports table-valued functions like pragma_table_info('t2')
@@ -1413,8 +1471,9 @@ func (p *Parser) parseCreateView() *CreateViewStmt {
 		// IF NOT EXISTS for views
 	}
 
-	if name := p.readName(); name != "" {
+	if name, info := p.readNameWithInfo(); name != "" {
 		s.Name = name
+		s.NameTok = info
 	}
 
 	// Optional parenthesized column list: CREATE VIEW name (col1, col2) AS ...
@@ -1474,8 +1533,9 @@ func (p *Parser) parseCreateTrigger() *CreateTriggerStmt {
 				if !p.expectKeyword("ON") {
 					return nil
 				}
-				if tableName := p.readName(); tableName != "" {
+				if tableName, info := p.readNameWithInfo(); tableName != "" {
 					s.Table = tableName
+					s.TableTok = info
 				}
 				p.parseTriggerWhenForEach(s)
 				p.parseTriggerBody(s)
@@ -1502,8 +1562,9 @@ func (p *Parser) parseCreateTrigger() *CreateTriggerStmt {
 		return nil
 	}
 
-	if tableName := p.readName(); tableName != "" {
+	if tableName, info := p.readNameWithInfo(); tableName != "" {
 		s.Table = tableName
+		s.TableTok = info
 	}
 
 	p.parseTriggerWhenForEach(s)
@@ -1613,8 +1674,9 @@ func (p *Parser) parseCreateTable() *CreateTableStmt {
 		s.IfNotExists = true
 	}
 
-	if name := p.readName(); name != "" {
+	if name, info := p.readNameWithInfo(); name != "" {
 		s.Name = name
+		s.NameTok = info
 	}
 
 	if p.cur.Type == TokenLParen {
@@ -2073,8 +2135,9 @@ func (p *Parser) parseCreateIndex() *CreateIndexStmt {
 		return nil
 	}
 
-	if tableName := p.readName(); tableName != "" {
+	if tableName, info := p.readNameWithInfo(); tableName != "" {
 		s.Table = tableName
+		s.TableTok = info
 	}
 
 	if p.cur.Type == TokenLParen {
@@ -2635,8 +2698,9 @@ func (p *Parser) parseAlter() *AlterTableStmt {
 	if !p.expectKeyword("TABLE") {
 		return nil
 	}
-	if name := p.readName(); name != "" {
+	if name, info := p.readNameWithInfo(); name != "" {
 		s.Table = name
+		s.TableTok = info
 	}
 	if p.cur.Type == TokenKeyword {
 		s.Action = p.cur.Value
@@ -2724,7 +2788,9 @@ func (p *Parser) parseAlterAdd(s *AlterTableStmt) {
 
 	// Column name: can be identifier or keyword
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+		start, end := p.computeTokenBounds()
 		s.Column = p.cur.Value
+		s.ColumnTok = TokenInfo{Start: start, End: end}
 		p.next()
 	}
 	// Column type (optional): use parseColumnType which already handles
@@ -3258,42 +3324,50 @@ func (p *Parser) parsePrimaryExprInner() Expr {
 		return lit
 
 	case TokenIdentifier:
-		name := p.cur.Value
+		nameVal := p.cur.Value
+		nameStart, nameEnd := p.computeTokenBounds()
 		p.next()
 
 		// Function call
 		if p.cur.Type == TokenLParen {
-			return p.parseFunctionCall(name)
+			return p.parseFunctionCall(nameVal)
 		}
 
 		// Handle dot (table.column or schema.table.column or table.*)
 		tableName := ""
+		var tableTok TokenInfo
 		for p.cur.Type == TokenDot {
-			p.next()
+			p.next() // consume dot
 			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenStar {
 				if tableName == "" {
-					tableName = name
-					name = p.cur.Value
+					tableName = nameVal
+					tableTok = TokenInfo{Start: nameStart, End: nameEnd}
+					nameVal = p.cur.Value
+					nameStart, nameEnd = p.computeTokenBounds()
 				} else {
 					// Three-part name: schema.table.column
-					// Combine first two as table name
 					if p.cur.Type == TokenStar {
-						// schema.table.* - not common but handle
-						return &ColumnRef{Table: tableName + "." + name, Name: p.cur.Value}
+						return &ColumnRef{
+							Table:    tableName + "." + nameVal,
+							Name:     p.cur.Value,
+							TableTok: tableTok,
+							NameTok:  TokenInfo{Start: nameStart, End: nameEnd},
+						}
 					}
 					// For three-part name, table becomes "schema.table" and name becomes "column"
-					tableName = tableName + "." + name
-					name = p.cur.Value
+					tableName = tableName + "." + nameVal
+					nameVal = p.cur.Value
+					nameStart, nameEnd = p.computeTokenBounds()
 				}
 				p.next()
 			} else {
-				return &ColumnRef{Name: name}
+				return &ColumnRef{Name: nameVal, NameTok: TokenInfo{Start: nameStart, End: nameEnd}}
 			}
 		}
-		if tableName != "" && name == "*" {
-			return &ColumnRef{Table: tableName, Name: "*"}
+		if tableName != "" && nameVal == "*" {
+			return &ColumnRef{Table: tableName, Name: "*", TableTok: tableTok}
 		}
-		return &ColumnRef{Table: tableName, Name: name}
+		return &ColumnRef{Table: tableName, Name: nameVal, TableTok: tableTok, NameTok: TokenInfo{Start: nameStart, End: nameEnd}}
 
 	case TokenLParen:
 		p.next()
@@ -3350,7 +3424,7 @@ func (p *Parser) parseParenExpr() Expr {
 		return &RowValue{Values: values}
 	}
 	p.expect(TokenRParen)
-	return expr
+	return &ParenExpr{Expr: expr}
 }
 
 func (p *Parser) parseFunctionCall(name string) Expr {
@@ -3370,7 +3444,7 @@ func (p *Parser) parseFunctionCall(name string) Expr {
 		p.next()
 		p.expect(TokenRParen)
 		fc := &FuncCall{Name: name, Args: args, Distinct: distinct}
-		fc.Over = p.parseWindowClause()
+		fc.Over, fc.Filter = p.parseWindowClause()
 		return fc
 	}
 	// Handle empty argument list with ORDER BY: count(ORDER BY x)
@@ -3390,7 +3464,7 @@ func (p *Parser) parseFunctionCall(name string) Expr {
 		fc = &FuncCall{Name: name, Args: args, Distinct: distinct, OrderBy: orderBy}
 	}
 	p.expect(TokenRParen)
-	fc.Over = p.parseWindowClause()
+	fc.Over, fc.Filter = p.parseWindowClause()
 	return fc
 }
 
@@ -3430,6 +3504,7 @@ func (p *Parser) parseFunctionOrderBy() []OrderByTerm {
 
 func (p *Parser) parseKeywordExpr() Expr {
 	kw := p.cur.Value
+	start, end := p.computeTokenBounds()
 	p.next()
 
 	switch kw {
@@ -3453,7 +3528,7 @@ func (p *Parser) parseKeywordExpr() Expr {
 			p.expect(TokenRParen)
 			return &FuncCall{Name: kw, Args: args}
 		}
-		return &ColumnRef{Name: kw}
+		return &ColumnRef{Name: kw, NameTok: TokenInfo{Start: start, End: end}}
 	}
 }
 
@@ -3631,6 +3706,20 @@ func ExprString(e Expr) string {
 		return ExprString(v.Operand) + " IS FALSE"
 	case *BlobLit:
 		return "x'" + hex.EncodeToString(v.Value) + "'"
+	case *Subquery:
+		if v.Select != nil {
+			return "(" + selectStmtToString(v.Select) + ")"
+		}
+		return "(?)"
+	case *ExistsExpr:
+		s := "EXISTS "
+		if v.Negated {
+			s = "NOT EXISTS "
+		}
+		if v.Select != nil {
+			return s + "(" + selectStmtToString(v.Select) + ")"
+		}
+		return s + "(?)"
 	case *Between:
 		return formatBetween(v)
 	case *InList:
@@ -3651,6 +3740,135 @@ func ExprString(e Expr) string {
 	default:
 		return "?"
 	}
+}
+
+// selectStmtToString converts a SelectStmt back to SQL text for use in ExprString.
+// This is a simplified serialization that handles common patterns needed for
+// trigger body serialization. It is intentionally kept in the sql package to
+// avoid circular dependencies with exec.selectStmtToString.
+func selectStmtToString(s *SelectStmt) string {
+	if s == nil {
+		return ""
+	}
+	var b strings.Builder
+
+	// CTEs
+	if len(s.CTEs) > 0 {
+		b.WriteString("WITH ")
+		for i, cte := range s.CTEs {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(cte.Name)
+			if len(cte.Columns) > 0 {
+				b.WriteString("(")
+				for j, col := range cte.Columns {
+					if j > 0 {
+						b.WriteString(", ")
+					}
+					b.WriteString(col)
+				}
+				b.WriteString(")")
+			}
+			b.WriteString(" AS (")
+			if cte.Select != nil {
+				b.WriteString(selectStmtToString(cte.Select))
+			}
+			b.WriteString(")")
+		}
+		b.WriteString(" ")
+	}
+
+	b.WriteString("SELECT ")
+	if s.Distinct {
+		b.WriteString("DISTINCT ")
+	}
+	for i, col := range s.Columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+		b.WriteString(ExprString(col.Expr))
+		if col.As != "" {
+			b.WriteString(" AS ")
+			b.WriteString(col.As)
+		}
+	}
+	if s.From.Name != "" {
+		b.WriteString(" FROM ")
+		b.WriteString(s.From.Name)
+		if s.From.As != "" {
+			b.WriteString(" AS ")
+			b.WriteString(s.From.As)
+		}
+	}
+	// JOINs
+	for _, join := range s.Joins {
+		b.WriteString(" ")
+		b.WriteString(join.JoinType)
+		b.WriteString(" JOIN ")
+		b.WriteString(join.Table.Name)
+		if join.Table.As != "" {
+			b.WriteString(" AS ")
+			b.WriteString(join.Table.As)
+		}
+		if join.On != nil {
+			b.WriteString(" ON ")
+			b.WriteString(ExprString(join.On))
+		}
+	}
+	if s.Where != nil {
+		b.WriteString(" WHERE ")
+		b.WriteString(ExprString(s.Where))
+	}
+	if len(s.GroupBy) > 0 {
+		b.WriteString(" GROUP BY ")
+		for i, gb := range s.GroupBy {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(ExprString(gb))
+		}
+	}
+	if s.Having != nil {
+		b.WriteString(" HAVING ")
+		b.WriteString(ExprString(s.Having))
+	}
+	if len(s.OrderBy) > 0 {
+		b.WriteString(" ORDER BY ")
+		for i, ob := range s.OrderBy {
+			if i > 0 {
+				b.WriteString(", ")
+			}
+			b.WriteString(ExprString(ob.Expr))
+			if ob.Desc {
+				b.WriteString(" DESC")
+			}
+		}
+	}
+	if s.Limit != nil {
+		b.WriteString(" LIMIT ")
+		b.WriteString(ExprString(s.Limit))
+	}
+	if s.Offset != nil {
+		b.WriteString(" OFFSET ")
+		b.WriteString(ExprString(s.Offset))
+	}
+	// UNION / INTERSECT / EXCEPT
+	if s.Union != nil {
+		switch s.SetOp {
+		case SetUnion:
+			b.WriteString(" UNION ")
+			if s.UnionAll {
+				b.WriteString("ALL ")
+			}
+		case SetIntersect:
+			b.WriteString(" INTERSECT ")
+		case SetExcept:
+			b.WriteString(" EXCEPT ")
+		}
+		b.WriteString(selectStmtToString(s.Union))
+	}
+	return b.String()
 }
 
 func formatBetween(v *Between) string {
@@ -3681,51 +3899,63 @@ func formatFuncCall(v *FuncCall) string {
 	for _, arg := range v.Args {
 		args = append(args, ExprString(arg))
 	}
-	return v.Name + "(" + strings.Join(args, ", ") + ")"
+	result := v.Name + "(" + strings.Join(args, ", ") + ")"
+	if v.Filter != nil {
+		result += " FILTER (WHERE " + ExprString(v.Filter) + ")"
+	}
+	if v.Over != nil {
+		result += " OVER " + v.Over.String()
+	}
+	return result
 }
 
-// parseWindowClause parses an OVER clause after a function call, returning a WindowDef.
-// For named windows (OVER name), stores the name and returns a WindowDef.
-// For inline specs (OVER (...)), skips them entirely to avoid complex frame spec parsing
-// (can cause regressions like altertab3/12.1).
-// Also handles FILTER and WITHIN GROUP clauses (skipped).
-func (p *Parser) parseWindowClause() *WindowDef {
-	var over *WindowDef
-	if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" {
-		p.next() // skip OVER
-		// Named window: OVER windowName
-		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-			over = &WindowDef{Name: p.cur.Value}
-			p.next()
-		} else if p.cur.Type == TokenLParen {
-			// Inline window spec: too complex to safely parse (can cause 12.1 regression)
-			// Use skip to consume tokens without storing
-			p.skipInlineWindowSpec()
-		}
-		// If neither, OVER was incomplete (e.g., "OVER ," in 12.1) — just skip
-	}
-	if p.cur.Type == TokenKeyword && p.cur.Value == "FILTER" {
-		p.next() // skip FILTER
-		if p.cur.Type == TokenLParen {
-			p.next()
-			if p.cur.Type == TokenKeyword && p.cur.Value == "WHERE" {
+// parseWindowClause parses OVER and FILTER clauses after a function call.
+// Returns the OVER clause WindowDef and an optional FILTER expression.
+// Handles both orderings: FILTER (...) OVER (...) and OVER (...) FILTER (...).
+func (p *Parser) parseWindowClause() (over *WindowDef, filter Expr) {
+	var ov *WindowDef
+	var flt Expr
+	// Loop to handle both orderings: FILTER...OVER or OVER...FILTER
+	for {
+		if p.cur.Type == TokenKeyword && p.cur.Value == "OVER" && ov == nil {
+			p.next() // skip OVER
+			// Named window: OVER windowName
+			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
+				ov = &WindowDef{Name: p.cur.Value}
 				p.next()
-				p.parseExpr()
+			} else if p.cur.Type == TokenLParen {
+				// Inline window spec: parse and store
+				ov = p.parseInlineWindowSpec()
 			}
-			p.expect(TokenRParen)
+			// If neither, OVER was incomplete (e.g., "OVER ,") — just skip
+			continue
 		}
-	}
-	if p.cur.Type == TokenKeyword && p.cur.Value == "WITHIN" {
-		p.next()
-		if p.cur.Type == TokenKeyword && p.cur.Value == "GROUP" {
-			p.next()
-			if p.expect(TokenLParen) {
-				p.parseOrderBy()
+		if p.cur.Type == TokenKeyword && p.cur.Value == "FILTER" && flt == nil {
+			p.next() // skip FILTER
+			if p.cur.Type == TokenLParen {
+				p.next()
+				if p.cur.Type == TokenKeyword && p.cur.Value == "WHERE" {
+					p.next()
+					flt = p.parseExpr()
+				}
 				p.expect(TokenRParen)
 			}
+			continue
 		}
+		if p.cur.Type == TokenKeyword && p.cur.Value == "WITHIN" {
+			p.next()
+			if p.cur.Type == TokenKeyword && p.cur.Value == "GROUP" {
+				p.next()
+				if p.expect(TokenLParen) {
+					p.parseOrderBy()
+					p.expect(TokenRParen)
+				}
+			}
+			continue
+		}
+		break
 	}
-	return over
+	return ov, flt
 }
 
 // skipWindowClause skips window function clauses (OVER, FILTER, WITHIN GROUP)
@@ -3770,6 +4000,59 @@ func (p *Parser) skipWindowSpec() {
 	}
 }
 
+// parseInlineWindowSpec parses an inline window specification
+// (PARTITION BY ... ORDER BY ... frame_spec) inside parentheses
+// and returns a populated *WindowDef. Unlike skipInlineWindowSpec,
+// this function stores the parsed results rather than discarding them.
+func (p *Parser) parseInlineWindowSpec() *WindowDef {
+	wd := &WindowDef{}
+	p.next() // skip (
+	for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
+		if p.cur.Type == TokenKeyword && p.cur.Value == "PARTITION" {
+			p.next()
+			if p.cur.Type == TokenKeyword && p.cur.Value == "BY" {
+				p.next()
+			}
+			var partitions []Expr
+			for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
+				if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
+					break
+				}
+				if p.cur.Type == TokenKeyword &&
+					(p.cur.Value == "RANGE" || p.cur.Value == "ROWS" || p.cur.Value == "GROUPS") {
+					break
+				}
+				expr := p.parseExpr()
+				partitions = append(partitions, expr)
+				if p.cur.Type == TokenComma {
+					p.next()
+				} else {
+					break
+				}
+			}
+			wd.Partitions = partitions
+		} else if p.cur.Type == TokenKeyword && p.cur.Value == "ORDER" {
+			p.next() // consume ORDER
+			if p.cur.Type == TokenKeyword && p.cur.Value == "BY" {
+				p.next() // consume BY
+			}
+			wd.OrderBy = p.parseOrderBy()
+		} else if p.cur.Type == TokenKeyword &&
+			(p.cur.Value == "RANGE" || p.cur.Value == "ROWS" || p.cur.Value == "GROUPS") {
+			p.skipFrameSpec()
+		} else if p.cur.Type == TokenComma {
+			p.next()
+		} else {
+			// Parse expressions (handles function calls, identifiers, etc.)
+			p.parseExpr()
+		}
+	}
+	if p.cur.Type == TokenRParen {
+		p.next()
+	}
+	return wd
+}
+
 func (p *Parser) skipInlineWindowSpec() {
 	// Inline window specification: OVER (PARTITION BY ... ORDER BY ...)
 	p.next()
@@ -3807,11 +4090,21 @@ func (p *Parser) skipFrameSpec() {
 }
 
 func (p *Parser) skipBetweenFrame() {
-	p.next()
+	p.next() // skip BETWEEN
+	depth := 0
 	// UNBOUNDED PRECEDING, expr PRECEDING, CURRENT ROW
-	for p.cur.Type != TokenKeyword || p.cur.Value != "AND" {
-		if p.cur.Type == TokenEOF || p.cur.Type == TokenRParen {
+	for p.cur.Type != TokenKeyword || p.cur.Value != "AND" || depth > 0 {
+		if p.cur.Type == TokenEOF {
 			return
+		}
+		if p.cur.Type == TokenLParen {
+			depth++
+		} else if p.cur.Type == TokenRParen {
+			if depth == 0 {
+				// No matching open paren — this ')' closes the frame spec
+				return
+			}
+			depth--
 		}
 		p.next()
 	}
@@ -3826,10 +4119,24 @@ func (p *Parser) skipSimpleFrame() {
 }
 
 func (p *Parser) skipUntilFrameEnd() {
-	for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
+	depth := 0
+	for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF || depth > 0 {
+		if p.cur.Type == TokenEOF {
+			return
+		}
 		if p.cur.Type == TokenKeyword &&
 			(p.cur.Value == "ORDER" || p.cur.Value == "PARTITION" || p.cur.Value == "BY") {
-			return
+			if depth == 0 {
+				return
+			}
+		}
+		if p.cur.Type == TokenLParen {
+			depth++
+		} else if p.cur.Type == TokenRParen {
+			if depth == 0 {
+				return
+			}
+			depth--
 		}
 		p.next()
 	}

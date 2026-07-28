@@ -41,6 +41,7 @@ type Result struct {
 	Changes        int64
 	Error          error
 	LastInsertRowID int64
+	SQL            string // The SQL statement that produced this result
 }
 
 // LastInsertRowID returns the rowid of the last inserted row.
@@ -155,16 +156,16 @@ func (db *DB) Exec(sqlStr string) *Result {
 // concatenated, matching SQLite's behavior for multi-statement queries.
 func (db *DB) Query(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
-		return &Result{Error: fmt.Errorf("frigolite: database not initialized")}
+		return &Result{Error: fmt.Errorf("frigolite: database not initialized"), SQL: sqlStr}
 	}
 	parser := sql.NewParser(sqlStr)
 	stmts := parser.Parse()
 	if parser.Err() != nil {
-		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", parser.Err())}
+		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", parser.Err()), SQL: sqlStr}
 	}
 
 	if len(stmts) == 0 {
-		return &Result{}
+		return &Result{SQL: sqlStr}
 	}
 
 	var allRows [][]interface{}
@@ -172,7 +173,9 @@ func (db *DB) Query(sqlStr string) *Result {
 	for _, stmt := range stmts {
 		res := db.engine.Exec(stmt)
 		if res.Error != nil {
-			return execResult(res)
+			r := execResult(res)
+			r.SQL = sqlStr
+			return r
 		}
 		allRows = append(allRows, res.Rows...)
 		if allColumns == nil {
@@ -186,6 +189,7 @@ func (db *DB) Query(sqlStr string) *Result {
 	return &Result{
 		Columns: allColumns,
 		Rows:    allRows,
+		SQL:     sqlStr,
 	}
 }
 

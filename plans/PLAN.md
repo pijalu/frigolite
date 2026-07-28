@@ -1,202 +1,154 @@
-# Frigolite — Master Test Passage Plan (Updated 2026-07-29)
+# Frigolite — Master Plan: All Tests Green
 
-## Verified Current State (Comprehensive Audit)
+> **Status**: PLANNING — detailed plan for sub-agent sequential execution.
+> **Goal**: Zero FAIL across all three test systems (harness JSON, compat Go, hand-written).
+> **Constraint**: Functional scope preserved. Setup/teardown may change. C API tests use Go recreation.
 
-### Test Architecture
-Two parallel test systems exist in `frigolite` package:
+## What This Plan Fixes (The Root Complexities)
 
-1. **`TestSQLiteSuite`** — JSON-driven harness (`frigolite_harness_test.go`)
-   - Reads 696 JSON files from `testdata/*.json`
-   - Runs as sub-tests under `TestSQLiteSuite/<suite_name>/<test_name>`
-   - **189 sub-test FAILs across 20+ suites**
+The previous plan treated every failure as an engine bug. Investigation reveals **five
+structural problems** that must be addressed first — fixing them reorders and shrinks
+the remaining work:
 
-2. **`TestSQLite_*`** — Auto-generated compat tests (`frigolite_sqlite_compat_test.go`)
-   - 1088 individual test functions converted from SQLite TCL tests
-   - **~98 test function FAILs** (39 non-FTS + 59 FTS)
+| # | Complexity | Impact | Phase |
+|---|-----------|--------|-------|
+| C1 | **Test helpers silently swallow errors.** `checkQueryResult` returns immediately on `res.Error != nil` — 6 657 compat-test queries are never verified. `flattenResult` emits `""` for NULL while `cleanExpected` emits `NULL`. | Every compat test with an erroring query reports false PASS. | P0 |
+| C2 | **The TCL→test converters are lossy and aggressive.** They deduplicate SQL (losing `foreach`-loop cases), filter out `MATCH`, `FILTER(`, `USING(`, `json_`, `RAISE`, `randomblob`, etc., and skip all 123 files that mention any `sqlite3_*` C-API symbol. | Tests for real features never exist; C-API tests are entirely absent. | P0 + P7 |
+| C3 | **ALTER TABLE RENAME must use token-level processing**, not AST rewriting. SQLite re-parses trigger/view bodies (which contain window functions, CTEs, FILTER) and walks the parse tree to find/replace name tokens. Frigolite's current string-regex approach fails on any unsupported syntax in trigger bodies. | ~99 ALTER TABLE failures; many need window-function parsing to even create the trigger. | P2 → P3 |
+| C4 | **EXPLAIN QUERY PLAN requires a real cost-based planner.** `analyze7` expects `SEARCH t1 USING INDEX t1b (b=?)` but frigolite always reports `SCAN t1`. No ANALYZE statistics are consumed. | ~55 ANALYZE failures, ~15 auto-index failures. | P4 |
+| C5 | **ATTACH needs a multi-database connection.** `aux.t1`, `main.t4`, `temp.sqlite_master` — frigolite has schema-prefix parsing but no attached-database dispatch. | ~14 ATTACH failures. | P6 |
 
-3. **Hand-written tests** (`frigolite_*_test.go`)
-   - **0 FAIL (TestUpdateWithExpr was fixed this session)**
+**Bottom line:** the true failure count is **unknown** until P0 lands, because the
+error-swallowing helper hides an unknown number of broken queries behind false PASSes.
+P0 must run first to reveal the real surface.
 
-### Critical Blocking Bug — ✅ FIXED THIS SESSION
-
-Fixed in commit `c7686c9`: `sortRowsWithMaps` bounds check (engine.go:4945).
-Tests after `autoindex4` now execute normally — no longer blocks test execution.
-
-### Failure Count Summary (Verified)
-
-| Phase | Suite | Count | Source | Notes |
-|-------|-------|-------|--------|-------|
-| **B0** | `sortRowsWithMaps` panic | 1 bug | Blocks all post-autoindex tests | **CRITICAL: fix first** |
-| **P1** | altertab3 + alterlegacy + altertab2 + altercons2 + alterauth + altermalloc2 + alterdropcol2 + alterdropcol + altercorrupt | **99** | Harness sub-tests | PLAN.md accurate ✅ |
-| **P2** | analyze7 + analyzeE + autoanalyze1 + analyzeC + analyze6 + analyze8 + analyzeD | **55** | Harness sub-tests | PLAN.md said ~48 ⚠️ (+7) |
-| **P3** | attach3 | **10** | Harness sub-tests | PLAN.md accurate ✅ |
-| **P5** | autoindex4 + autoindex3 + autoindex2 | **15** | Harness sub-tests | PLAN.md said ~13 ⚠️ (+2) |
-| | B0 panic also in P5 | 1 crash | Blocks test execution | Must fix first |
-| **P6** | 59 FTS compat test functions | **59** | Individual compat tests | PLAN.md said ~284 ⚠️ (overestimate) |
-| **P7** | amatch1 | **3** | Harness sub-tests | PLAN.md said ~2 ⚠️ (+1) |
-| **P8** | affinity2 (5) + atomic2 (2) + ~~TestUpdateWithExpr (1)~~ | **7** | Harness | TestUpdateWithExpr fixed this session ✅ |
-| **Quality** | staticcheck ✅, SOLID ✅, gocognit ⚠️ (24 pre-existing) | 0 critical | `make quality` | staticcheck + SOLID + TestUpdateWithExpr fixed this session |
-| | **Total known FAILs** | **~248** | | |
-
-### Quality Gates Status
-
-| Gate | Status | Issues |
-|------|--------|--------|
-| `go vet` | ✅ PASS | Clean |
-| `staticcheck` | ✅ PASS | All 15 issues fixed this session (see below) |
-| `gocognit` | ❌ FAIL | 24 functions over 30 (pre-existing tech debt) |
-| `gocyclo` | ✅ PASS | No functions over 20 |
-| SOLID (ImportBoundaries) | ✅ PASS | Fixed this session (added auth layer) |
-| `staticcheck` detail | ✅ PASS | All 15 issues fixed this session (see below) |
-
-#### staticcheck Issues — ✅ ALL 15 ISSUES FIXED THIS SESSION
-
-All staticcheck issues have been resolved:
-- **SA4006** (unused value): Fixed with `_` assignment
-- **SA4031** (dead nil check): Removed dead code
-- **SA4011** (4× ineffective break): Changed to labeled breaks with `parenLoop*`
-- **U1000** (9× unused functions): Added `//lint:ignore U1000` for planned features
-
-`staticcheck` now passes with zero issues. Remaining quality gate: `gocognit` has 24 pre-existing functions with cognitive complexity over 30 — tracked separately.
-
-## Development Principles
-
-1. **Test surface is sacred** — never modify tests except for setup/teardown issues
-2. **Go stdlib first** — always prefer Go standard library
-3. **SOLID design** — single responsibility per package, clean interfaces, dependency inversion
-4. **C API → Go interface** — reimplement C-style callbacks as Go interfaces
-5. **No CGO, no external dependencies** — pure Go only
-6. **Sequential execution** — categories ordered for optimal context reuse
-7. **Regression prevention** — after each phase, run `make quality` + `go test -run TestSOLID_ ./...`
-8. **Verification** — each sub-plan has explicit completion checks
-
-## Execution Plan (Updated)
-
-### Phase Order (Dependency Chain)
+## Phase Dependency Chain
 
 ```
-B0 (sortRowsWithMaps panic fix) [unblocks all later tests]
-    ↓
-P1 (ALTER TABLE) [99 failures — current work]
-    ↓
-P5 (Auto-Index) [15 failures + B0 fix incorporated]
-    ↓
-P2 (ANALYZE) [55 failures — needs stable schema from P1]
-    ↓
-P3 (ATTACH DATABASE) [10 failures — needs multi-db architecture]
-    ↓
-P6 (Full-Text Search) [59 failures — FTS module implementation]
-    ↓
-P7 (amatch) [3 failures — small vtab module]
-    ↓
-P8 (Misc) [7 failures — cleanup after all others]
+P0  Test Infrastructure          ← reveals true failure surface; MUST be first
+ │
+ ├── P1  Type System & Affinity   ← small, foundational, unblocks many tests
+ │
+ ├── P2  SQL Parser Completeness  ← WINDOW, CTE, FILTER, RETURNING; unblocks P3
+ │       │
+ │       └── P3  ALTER TABLE      ← token-level rename; needs full parser
+ │
+ ├── P4  Query Planner & ANALYZE  ← index selection, EXPLAIN QUERY PLAN
+ │       │
+ │       └── P5  Auto-Index & JOIN ← automatic indexes, NULL padding
+ │
+ ├── P6  ATTACH Database          ← multi-database; independent architecture
+ │
+ ├── P7  C API Go Layer           ← Stmt/Step/Column/Bind; unblocks 123 test files
+ │
+ ├── P8  FTS3/4/5                 ← full-text search; largest single effort
+ │       │
+ │       └── P9  amatch & vtab    ← builds on vtab framework hardened by P8
+ │
+ └── P10 Quality & Final          ← gocognit, SOLID, full green verification
 ```
 
-### Critical Path — B0 ✅ RESOLVED
+**P1, P2, P6, P7, P8** can start in parallel after P0 (they touch different subsystems).
+The arrows show hard dependencies. The recommended **sequential** order for a single
+sub-agent stream is:
 
-**B0 (`sortRowsWithMaps` panic) is fixed** (commit `c7686c9`). No longer blocking test execution.
-Remaining phases can proceed independently.
+**P0 → P1 → P2 → P3 → P4 → P5 → P6 → P7 → P8 → P9 → P10**
 
-### Phase Details
+## Sub-Plan Files
 
-#### P1 — ALTER TABLE (99 FAIL)
-- **Current:** ~99 failures across 9 suites
-- **Progress:** ~15% (18 failures fixed in last session)
-- **Primary blockers:** "No such table" cascade (~50%), SQL formatting (~40%), test infrastructure (~10%)
-- **Files:** `internal/exec/engine.go`, `internal/sql/parser.go`, `internal/sql/ast.go`
-- **Sub-plans:** `plans/PLAN-P1-ALTER.md`
+| Phase | File | Topic | Estimated FAIL impact |
+|-------|------|-------|----------------------|
+| P0 | `PLAN-00-TEST-INFRA.md` | Test infrastructure overhaul | Reveals hidden failures; fixes ~15 infra-only FAILs |
+| P1 | `PLAN-01-AFFINITY.md` | Type affinity, NULL, blob comparison | ~7 (affinity2, atomic2) |
+| P2 | `PLAN-02-PARSER.md` | Window functions, CTE, FILTER, RETURNING | Enabler for P3; fixes parse-only FAILs |
+| P3 | `PLAN-03-ALTER.md` | ALTER TABLE token-level rename | ~99 (altertab3, alterlegacy, altercons2, altertab2) |
+| P4 | `PLAN-04-PLANNER.md` | Query planner, ANALYZE, EXPLAIN QUERY PLAN | ~55 (analyze*) |
+| P5 | `PLAN-05-AUTOINDEX.md` | Auto-index, JOIN NULL handling | ~15 (autoindex*) |
+| P6 | `PLAN-06-ATTACH.md` | Multi-database ATTACH/DETACH | ~14 (attach3) |
+| P7 | `PLAN-07-CAPI.md` | Go recreation of SQLite C API | Unblocks 123 test files |
+| P8 | `PLAN-08-FTS.md` | FTS3/4/5 full-text search | ~59+ |
+| P9 | `PLAN-09-VTAB.md` | amatch virtual table | ~3 (amatch1) |
+| P10 | `PLAN-10-QUALITY.md` | gocognit, SOLID, final verification | Quality gates |
 
-#### P2 — ANALYZE (55 FAIL)
-- **Current:** ~55 failures across 7 suites (plan said 48 — updated)
-- **Primary blockers:** ANALYZE is a no-op, needs sqlite_stat1 table, scan logic, query planner integration
-- **Files:** `internal/exec/engine.go`, `internal/schema/schema.go`, `internal/btree/btree.go`
-- **Sub-plan:** `plans/PLAN-P2-ANALYZE.md`
+## Development Principles (Binding)
 
-#### P3 — ATTACH DATABASE (10 FAIL)
-- **Current:** 10 failures in attach3
-- **Primary blockers:** ATTACH/DETACH are no-ops, needs multi-db architecture
-- **Files:** `internal/exec/engine.go`, `internal/pager/pager.go`, `internal/schema/schema.go`
-- **Sub-plan:** `plans/PLAN-P3-ATTACH.md`
+1. **Test surface is sacred** — never weaken an assertion or delete a test to make it
+   pass. Setup/teardown (DB init, cleanup, state reset) MAY change; functional scope
+   MAY NOT.
+2. **Go stdlib first** — no CGO, no external Go modules, no `sqlite3` CLI at runtime.
+3. **SOLID design** — new subsystems get their own `internal/` package; check
+   `internalLayers` in `frigolite_solid_test.go` and update it.
+4. **SQLite is the oracle** — `sqlite3` v3.51.0 is available on this machine and MAY be
+   used **at test-generation time** (never at test-run time) to capture expected output.
+5. **Regression prevention** — after each phase: `make quality` + `go test -run TestSOLID_ ./...` + the phase's verify command.
+6. **Each sub-plan is self-contained** — a sub-agent with no prior context must be able
+   to implement it from the file alone. Every plan includes: context, current state,
+   SQLite reference, step-by-step instructions, files to touch, and a verify command.
 
-#### P5 — Auto-Index (15 FAIL + 1 crash)
-- **Current:** 15 failures + 1 crash across 3 suites
-- **Primary blockers:** `sortRowsWithMaps` panic (B0 fix), NULL padding in JOIN results, EXPLAIN QUERY PLAN
-- **Files:** `internal/exec/engine.go`
-- **Sub-plan:** `plans/PLAN-P5-AUTOINDEX.md`
+## Verification Strategy
 
-#### P6 — Full-Text Search (59 FAIL)
-- **Current:** 59 failing compat test functions (plan said 284 — revised down)
-- **Primary blockers:** FTS3/4/5 modules are NoopModules, need full implementation
-- **New package:** `internal/fts/`
-- **Files:** `internal/fts/fts3.go`, `internal/fts/tokenizer.go`, `internal/fts/storage.go`
-- **Sub-plan:** `plans/PLAN-P6-FTS.md`
+### Per-phase verification
+Each sub-plan ends with a phase-specific `go test -run` command that MUST exit 0.
 
-#### P7 — amatch (3 FAIL)
-- **Current:** 3 failures across 1 suite
-- **Primary blockers:** No amatch vtab implementation
-- **Files:** `internal/vtab/amatch/amatch.go` (new)
-- **Sub-plan:** `plans/PLAN-P7-AMATCH.md`
-
-#### P8 — Misc (7 FAIL)
-- **Current:** 7 failures (affinity2: 5 + atomic2: 2) — TestUpdateWithExpr fixed this session ✅
-- **Primary blockers:** UPDATE expression ordering, column affinity, transaction handling
-- **Files:** `internal/exec/engine.go`, `internal/util/compare.go`
-- **Sub-plan:** `plans/PLAN-P8-MISC.md`
-
-## Progress Tracking
-
-| Phase | Description | Failures | Sub-plan | Status |
-|-------|-------------|----------|----------|--------|
-| PF0 | Aggregate Fixes | 0 | COMPLETE | ✅ |
-| P1A | ALTER Prereqs | 0 | COMPLETE | ✅ |
-| P1B | Parser Fixes | 0 | COMPLETE | ✅ |
-| P4 | Auth Callback | 0 | COMPLETE | ✅ |
-| **B0** | **sortRowsWithMaps panic** | **0 (FIXED)** | **—** | **✅ FIXED** |
-| **P1** | **ALTER TABLE** | **99** | **plan/PLAN-P1-ALTER.md** | **🔴 Current** |
-| P2 | ANALYZE | 55 | plan/PLAN-P2-ANALYZE.md | ❌ |
-| P3 | ATTACH DATABASE | 10 | plan/PLAN-P3-ATTACH.md | ❌ |
-| P5 | Auto-Index | 15+1 | plan/PLAN-P5-AUTOINDEX.md | ❌ |
-| P6 | Full-Text Search | 59 | plan/PLAN-P6-FTS.md | ❌ |
-| P7 | amatch | 3 | plan/PLAN-P7-AMATCH.md | ❌ |
-| P8 | Misc | 7 | plan/PLAN-P8-MISC.md | ❌ |
-| Quality | staticcheck ✅, gocognit ⚠️ (24 pre-existing) | — | — | ✅ 15 staticcheck issues + TestUpdateWithExpr fixed this session |
-
-## Key Reference Files
-
-| Resource | Location |
-|----------|----------|
-| Original SQLite C source | `/Users/muaddib/dev/sqlite/src/` |
-| Original SQLite tests | `/Users/muaddib/dev/sqlite/test/` |
-| JSON test data | `/Users/muaddib/dev/frigolite/testdata/` |
-| Handover doc | `/Users/muaddib/dev/frigolite/HANDOVER.md` |
-| Sub-plan directory | `plans/` |
-| SOLID architecture tests | `frigolite_solid_test.go` |
-| Test harness | `frigolite_harness_test.go` |
-| Compat tests (1088) | `frigolite_sqlite_compat_test.go` |
-
-## Next Session Goals
-
-1. ✅ **B0:** `sortRowsWithMaps` bounds check — FIXED AND COMMITTED (`c7686c9`)
-2. ✅ **Quality (staticcheck):** All 15 issues resolved — PASS
-3. ✅ **P8 (TestUpdateWithExpr):** `UnwrapColumnValue` fix — FIXED AND COMMITTED (`a9b71a5`)
-4. **Continue P1:** Reduce ALTER TABLE failures from 99 toward 0
-5. **Gocognit refactoring:** Reduce 24 complex functions below threshold 30
-6. **P5 autoindex4:** Fix auto-index failures (result mismatches)
-
-## Final Verification
-
-After all phases:
-
+### Global verification (after P10)
 ```bash
-# 1. Run all tests (no crash)
-go test -count=1 ./... 2>&1
+# 1. Full test suite — zero FAIL
+go test -count=1 ./... 2>&1 | tee /tmp/frigolite_full.log
+! grep -q "FAIL" /tmp/frigolite_full.log
 
 # 2. Quality gates
 make quality
 
-# 3. SOLID architecture checks
+# 3. SOLID architecture
 go test -run TestSOLID_ ./...
 
-# 4. Count remaining failures (should be 0)
-go test -v -count=1 . 2>&1 | grep -c "FAIL" | xargs test 0 -eq
+# 4. Count remaining sub-test FAILs (must be 0)
+go test -v -count=1 . 2>&1 | grep -c "^    --- FAIL" | xargs test 0 -eq
 ```
+
+## Key Reference Paths
+
+| Resource | Path |
+|----------|------|
+| SQLite C source | `/Users/muaddib/dev/sqlite/src/` |
+| SQLite FTS3 source | `/Users/muaddib/dev/sqlite/ext/fts3/` |
+| SQLite FTS5 source | `/Users/muaddib/dev/sqlite/ext/fts5/` |
+| SQLite TCL tests | `/Users/muaddib/dev/frigolite/ori/sqlite/test/` |
+| Frigolite test data (JSON) | `testdata/*.json` (696 files) |
+| Frigolite compat tests | `frigolite_sqlite_compat_test.go` (1 088 functions) |
+| Frigolite harness | `frigolite_harness_test.go` |
+| Frigolite test helpers | `frigolite_test.go` (`setupDB`, `checkQueryResult`, `checkExecOK`) |
+| Converters | `tools/convert_compat_test.py`, `tools/convert_compat_json.py` |
+| sqlite3 binary (oracle) | `/usr/bin/sqlite3` (v3.51.0) |
+| SOLID tests | `frigolite_solid_test.go` |
+
+## How to Use This Plan (For Sub-Agents)
+
+1. **Read the master plan** (this file) for context and dependency ordering.
+2. **Read your assigned sub-plan** in full before touching any code.
+3. **Read the referenced SQLite C source** sections — they are the behavioural spec.
+4. **Implement steps in order** — each step builds on the previous.
+5. **Run the verify command** after each step, not just at the end.
+6. **Run `make quality` + SOLID tests** before declaring the phase complete.
+7. **Update the progress table** below when done.
+
+## Progress Tracking
+
+| Phase | Description | Status | FAIL before | FAIL after | Notes |
+|-------|-------------|--------|-------------|------------|-------|
+| P0 | Test Infrastructure | 🔲 Not started | Unknown | — | Reveals hidden failures |
+| P1 | Type Affinity & NULL | 🔲 Not started | ~7 | — | |
+| P2 | Parser (WINDOW, CTE) | 🔲 Not started | Enabler | — | Unblocks P3 |
+| P3 | ALTER TABLE | 🔲 Not started | ~99 | — | Token-level rename |
+| P4 | Query Planner & ANALYZE | 🔲 Not started | ~55 | — | |
+| P5 | Auto-Index & JOIN | 🔲 Not started | ~15 | — | |
+| P6 | ATTACH Database | 🔲 Not started | ~14 | — | Multi-DB architecture |
+| P7 | C API Go Layer | 🔲 Not started | Unblocks 123 files | — | |
+| P8 | FTS3/4/5 | 🔲 Not started | ~59+ | — | Largest effort |
+| P9 | amatch & vtab | 🔲 Not started | ~3 | — | |
+| P10 | Quality & Final | 🔲 Not started | — | — | gocognit + full green |
+
+## Archived Plans
+
+The original plan files (PLAN-P1-ALTER.md, PLAN-P2-ANALYZE.md, etc.) are in
+`plans/archive/`. They are superseded by the new plans but preserved for reference.

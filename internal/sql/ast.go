@@ -1,5 +1,12 @@
 package sql
 
+// TokenInfo records the byte position of a token in the original SQL text.
+// Used by ALTER TABLE RENAME to find and replace identifier tokens.
+type TokenInfo struct {
+	Start int // byte offset of the first character
+	End   int // byte offset after the last character (exclusive)
+}
+
 // Stmt is the common interface for all SQL statements.
 type Stmt interface {
 	stmt()
@@ -54,6 +61,48 @@ type WindowDef struct {
 	FrameSpec  string        // frame spec text (ROWS/RANGE/GROUPS BETWEEN ...)
 }
 
+// String returns the SQL representation of the WindowDef.
+// For a named window reference (no specs), returns just the name.
+// For inline specs, returns "(PARTITION BY ... ORDER BY ...)".
+func (w *WindowDef) String() string {
+	if w == nil {
+		return ""
+	}
+	// Named window reference (no PARTITION BY/ORDER BY specs)
+	if len(w.Partitions) == 0 && len(w.OrderBy) == 0 && w.FrameSpec == "" {
+		return w.Name
+	}
+	result := "("
+	// PARTITION BY
+	if len(w.Partitions) > 0 {
+		result += "PARTITION BY "
+		for j, p := range w.Partitions {
+			if j > 0 {
+				result += ", "
+			}
+			result += ExprString(p)
+		}
+	}
+	// ORDER BY inside window
+	if len(w.OrderBy) > 0 {
+		if len(w.Partitions) > 0 {
+			result += " "
+		}
+		result += "ORDER BY "
+		for j, ob := range w.OrderBy {
+			if j > 0 {
+				result += ", "
+			}
+			result += ExprString(ob.Expr)
+			if ob.Desc {
+				result += " DESC"
+			}
+		}
+	}
+	result += ")"
+	return result
+}
+
 func (s *SelectStmt) stmt() {}
 
 // JoinClause represents a JOIN clause.
@@ -74,6 +123,7 @@ type SelectColumn struct {
 type TableRef struct {
 	Name     string
 	As       string
+	NameTok  TokenInfo // byte position of the Name token in original SQL
 	Subquery *SelectStmt // subquery in FROM clause (optional)
 }
 
@@ -182,6 +232,7 @@ type TableConstraint struct {
 
 type CreateTableStmt struct {
 	Name        string
+	NameTok     TokenInfo // byte position of the table name in original SQL
 	Columns     []ColumnDef
 	IfNotExists bool
 	AsSelect    *SelectStmt // CREATE TABLE ... AS SELECT
@@ -210,11 +261,12 @@ type ColumnDef struct {
 
 // CreateIndexStmt represents a CREATE INDEX statement.
 type CreateIndexStmt struct {
-	Name       string
-	Table      string
-	Columns    []IndexColumn
-	Unique     bool
-	Where      Expr // optional WHERE clause for partial indexes
+	Name    string
+	Table   string
+	TableTok TokenInfo // byte position of the Table name in original SQL
+	Columns []IndexColumn
+	Unique  bool
+	Where   Expr // optional WHERE clause for partial indexes
 }
 
 func (s *CreateIndexStmt) stmt() {}
@@ -244,6 +296,7 @@ func (s *DropIndexStmt) stmt() {}
 // CreateViewStmt represents a CREATE VIEW statement.
 type CreateViewStmt struct {
 	Name   string
+	NameTok TokenInfo // byte position of the view name in original SQL
 	Select *SelectStmt
 }
 
@@ -261,6 +314,7 @@ func (s *DropViewStmt) stmt() {}
 type CreateTriggerStmt struct {
 	Name       string
 	Table      string
+	TableTok   TokenInfo // byte position of the Table name in original SQL
 	Event      string // INSERT, UPDATE, DELETE
 	Time       string // BEFORE, AFTER, INSTEAD OF
 	When       Expr   // WHEN clause (optional)
@@ -320,11 +374,13 @@ func (s *PragmaStmt) stmt() {}
 
 // AlterTableStmt represents an ALTER TABLE statement.
 type AlterTableStmt struct {
-	Table   string
-	Action  string // "RENAME", "ADD", "DROP", "ALTER"
-	NewName string // for RENAME
-	Column  string // for ADD/DROP columns
-	ColDef  ColumnDef // for ADD
+	Table     string
+	TableTok  TokenInfo // byte position of the Table name in original SQL
+	Action    string // "RENAME", "ADD", "DROP", "ALTER"
+	NewName   string // for RENAME
+	Column    string // for ADD/DROP columns
+	ColumnTok TokenInfo // byte position of the Column name in original SQL (for RENAME COLUMN)
+	ColDef    ColumnDef // for ADD
 	AlterColAction string // "SET NOT NULL" or "DROP NOT NULL" for ALTER COLUMN
 }
 
@@ -388,8 +444,10 @@ func (e *UnaryOp) expr() {}
 
 // ColumnRef represents a reference to a column.
 type ColumnRef struct {
-	Table string
-	Name  string
+	Table    string
+	Name     string
+	TableTok TokenInfo // byte position of the Table qualifier (if present)
+	NameTok  TokenInfo // byte position of the Name token
 }
 
 func (e *ColumnRef) expr() {}
@@ -426,6 +484,7 @@ type FuncCall struct {
 	Args     []Expr
 	Distinct bool         // DISTINCT keyword inside function, e.g. COUNT(DISTINCT x)
 	OrderBy  []OrderByTerm // ORDER BY inside aggregate function call
+	Filter   Expr          // FILTER (WHERE condition) — nil if no FILTER
 	Over     *WindowDef    // OVER clause for window functions (nil if not a window function)
 }
 
