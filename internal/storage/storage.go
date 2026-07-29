@@ -475,8 +475,13 @@ func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices ma
 	pos += n
 	hdrEnd := int(hdrSize)
 
-	// Decode serial type codes
+	// Decode serial type codes. Use a stack-allocated array for common
+	// column counts (≤16) to avoid heap allocation per row.
+	var stackSerialTypes [16]uint64
 	var serialTypes []uint64
+	if hdrEnd-pos <= len(stackSerialTypes)*9 { // rough upper bound: each varint ≤ 9 bytes
+		serialTypes = stackSerialTypes[:0]
+	}
 	for pos < hdrEnd {
 		st, n := util.GetVarint(data[pos:])
 		pos += n
@@ -553,27 +558,30 @@ func decodeValue(serialType uint64, data []byte) interface{} {
 
 // EncodeRecord encodes a record from a slice of Go values.
 func EncodeRecord(values []interface{}) ([]byte, error) {
-	// First pass: compute serial types and sizes
-	type entry struct {
-		serialType uint64
-		data       []byte
-	}
-	entries := make([]entry, len(values))
+	// Optimized: avoid per-value byte slice allocations by computing sizes
+	// first, then writing directly into a single output buffer.
 
-	for i, v := range values {
-		e := &entries[i]
-		e.serialType, e.data = encodeValue(v)
+	// First pass: compute serial types and data sizes
+	// Use stack arrays for common column counts
+	var stackSerialTypes [16]uint64
+	var stackDataLens [16]int
+	serialTypes := stackSerialTypes[:0]
+	dataLens := stackDataLens[:0]
+
+	for _, v := range values {
+		st, dl := encodeValueSize(v)
+		serialTypes = append(serialTypes, st)
+		dataLens = append(dataLens, dl)
 	}
 
 	// Compute serial type varint total length
 	var serialTypesLen int
-	for _, e := range entries {
-		serialTypesLen += util.VarintLen(e.serialType)
+	for _, st := range serialTypes {
+		serialTypesLen += util.VarintLen(st)
 	}
 
 	// Header size = size of header-size varint + sum of serial-type varints
-	// We need to compute this iteratively since header-size includes itself
-	hdrSize := serialTypesLen + 1 // initial estimate (1 byte for header-size varint)
+	hdrSize := serialTypesLen + 1
 	for {
 		hdrSizeLen := util.VarintLen(uint64(hdrSize))
 		newHdrSize := serialTypesLen + hdrSizeLen
@@ -585,8 +593,8 @@ func EncodeRecord(values []interface{}) ([]byte, error) {
 
 	// Total data length
 	var totalDataLen int
-	for _, e := range entries {
-		totalDataLen += len(e.data)
+	for _, dl := range dataLens {
+		totalDataLen += dl
 	}
 
 	// Build the record
@@ -597,17 +605,108 @@ func EncodeRecord(values []interface{}) ([]byte, error) {
 	pos += util.PutVarint(buf[pos:], uint64(hdrSize))
 
 	// Serial types
-	for _, e := range entries {
-		pos += util.PutVarint(buf[pos:], e.serialType)
+	for _, st := range serialTypes {
+		pos += util.PutVarint(buf[pos:], st)
 	}
 
-	// Values
-	for _, e := range entries {
-		copy(buf[pos:], e.data)
-		pos += len(e.data)
+	// Values — write directly into the buffer
+	for i, v := range values {
+		encodeValueInto(v, buf[pos:pos+dataLens[i]])
+		pos += dataLens[i]
 	}
 
 	return buf, nil
+}
+
+// encodeValueSize returns the serial type and data length for a value
+// without allocating any byte slices.
+func encodeValueSize(v interface{}) (uint64, int) {
+	switch val := v.(type) {
+	case nil:
+		return SerialNull, 0
+	case int64:
+		return encodeInt64Size(val)
+	case float64:
+		return SerialFloat, 8
+	case string:
+		return uint64(13 + len(val)*2), len(val)
+	case []byte:
+		return uint64(12 + len(val)*2), len(val)
+	default:
+		s := fmt.Sprintf("%v", v)
+		return uint64(13 + len(s)*2), len(s)
+	}
+}
+
+// encodeInt64Size returns the serial type and data length for an int64
+// without allocating.
+func encodeInt64Size(val int64) (uint64, int) {
+	switch {
+	case val == 0:
+		return SerialZero, 0
+	case val == 1:
+		return SerialOne, 0
+	case val >= -128 && val <= 127:
+		return SerialInt8, 1
+	case val >= -32768 && val <= 32767:
+		return SerialInt16, 2
+	case val >= -8388608 && val <= 8388607:
+		return SerialInt24, 3
+	case val >= -2147483648 && val <= 2147483647:
+		return SerialInt32, 4
+	case val >= -140737488355328 && val <= 140737488355327:
+		return SerialInt48, 6
+	default:
+		return SerialInt64, 8
+	}
+}
+
+// encodeValueInto writes a value's data directly into the given buffer.
+// The buffer must be pre-sized correctly (use encodeValueSize to compute).
+func encodeValueInto(v interface{}, buf []byte) {
+	switch val := v.(type) {
+	case nil:
+		// no data
+	case int64:
+		encodeInt64Into(val, buf)
+	case float64:
+		binary.BigEndian.PutUint64(buf, math.Float64bits(val))
+	case string:
+		copy(buf, val)
+	case []byte:
+		copy(buf, val)
+	default:
+		s := fmt.Sprintf("%v", v)
+		copy(buf, s)
+	}
+}
+
+func encodeInt64Into(val int64, buf []byte) {
+	switch {
+	case val == 0, val == 1:
+		// no data
+	case val >= -128 && val <= 127:
+		buf[0] = byte(int8(val))
+	case val >= -32768 && val <= 32767:
+		binary.BigEndian.PutUint16(buf, uint16(int16(val)))
+	case val >= -8388608 && val <= 8388607:
+		v := uint32(int32(val))
+		buf[0] = byte(v >> 16)
+		buf[1] = byte(v >> 8)
+		buf[2] = byte(v)
+	case val >= -2147483648 && val <= 2147483647:
+		binary.BigEndian.PutUint32(buf, uint32(int32(val)))
+	case val >= -140737488355328 && val <= 140737488355327:
+		v := uint64(val)
+		buf[0] = byte(v >> 40)
+		buf[1] = byte(v >> 32)
+		buf[2] = byte(v >> 24)
+		buf[3] = byte(v >> 16)
+		buf[4] = byte(v >> 8)
+		buf[5] = byte(v)
+	default:
+		binary.BigEndian.PutUint64(buf, uint64(val))
+	}
 }
 
 func encodeValue(v interface{}) (uint64, []byte) {

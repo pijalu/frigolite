@@ -215,26 +215,35 @@ func (t *Tokenizer) trySingleCharToken(ch byte, pos int) *Token {
 
 func (t *Tokenizer) simpleSingleCharToken(ch byte, pos int) *Token {
 	typ := TokenError
+	var val string
 	switch ch {
 	case '+':
 		typ = TokenPlus
+		val = "+"
 	case '-':
 		typ = TokenMinus
+		val = "-"
 	case '*':
 		typ = TokenStar
+		val = "*"
 	case '/':
 		typ = TokenSlash
+		val = "/"
 	case '(':
 		typ = TokenLParen
+		val = "("
 	case ')':
 		typ = TokenRParen
+		val = ")"
 	case ',':
 		typ = TokenComma
+		val = ","
 	case ';':
 		typ = TokenSemicolon
+		val = ";"
 	}
 	t.pos++
-	t.last = Token{Type: typ, Value: string(ch), Pos: pos}
+	t.last = Token{Type: typ, Value: val, Pos: pos}
 	return &t.last
 }
 
@@ -339,32 +348,80 @@ func (t *Tokenizer) skipBlockComment() {
 func (t *Tokenizer) readString() Token {
 	pos := t.pos
 	t.pos++ // skip opening quote
-	var buf []byte
+	strStart := t.pos
+	// Fast path: scan for closing quote without escaped quotes
 	for t.pos < len(t.input) {
 		ch := t.input[t.pos]
 		if ch == '\'' {
 			// Check for escaped quote ''
 			if t.pos+1 < len(t.input) && t.input[t.pos+1] == '\'' {
-				buf = append(buf, '\'')
-				t.pos += 2
-				continue
+				// Slow path: has escaped quotes, fall back to byte buffer
+				break
 			}
+			// Simple string — use direct slice (no allocation)
+			result := t.input[strStart:t.pos]
 			t.pos++ // skip closing quote
-			t.last = Token{Type: TokenString, Value: string(buf), Pos: pos}
+			t.last = Token{Type: TokenString, Value: result, Pos: pos}
 			return t.last
 		}
-		buf = append(buf, ch)
 		t.pos++
 	}
-	t.last = Token{Type: TokenError, Value: string(buf), Pos: pos}
+
+	// Slow path: string with escaped quotes
+	if t.pos < len(t.input) {
+		// We broke out of the fast path loop because of an escaped quote
+		// Reset and use byte buffer
+		t.pos = strStart
+		var buf []byte
+		for t.pos < len(t.input) {
+			ch := t.input[t.pos]
+			if ch == '\'' {
+				if t.pos+1 < len(t.input) && t.input[t.pos+1] == '\'' {
+					buf = append(buf, '\'')
+					t.pos += 2
+					continue
+				}
+				t.pos++
+				t.last = Token{Type: TokenString, Value: string(buf), Pos: pos}
+				return t.last
+			}
+			buf = append(buf, ch)
+			t.pos++
+		}
+		t.last = Token{Type: TokenError, Value: string(buf), Pos: pos}
+		return t.last
+	}
+	t.last = Token{Type: TokenError, Value: "", Pos: pos}
 	return t.last
 }
 
 func (t *Tokenizer) readNumber() Token {
 	pos := t.pos
-	var buf []byte
 
-	// Integer part
+	// Fast path: read consecutive digits first
+	digitStart := t.pos
+	for t.pos < len(t.input) {
+		ch := t.input[t.pos]
+		if ch >= '0' && ch <= '9' {
+			t.pos++
+		} else {
+			break
+		}
+	}
+
+	// Check if this is a simple integer (no hex, fraction, exponent, underscore)
+	if t.pos == len(t.input) || (t.input[t.pos] != 'x' && t.input[t.pos] != 'X' &&
+		t.input[t.pos] != '.' && t.input[t.pos] != 'e' && t.input[t.pos] != 'E' &&
+		t.input[t.pos] != '_') {
+		// Simple integer — use direct string slice (no allocation for the digit scan)
+		t.last = Token{Type: TokenNumber, Value: t.input[digitStart:t.pos], Pos: pos}
+		return t.last
+	}
+
+	// Slow path: complex number (hex, float, exponent, or underscore separator)
+	// Reset position and use the full readDigits path
+	t.pos = pos
+	var buf []byte
 	buf = t.readDigits(buf)
 
 	// Hex literal: 0x... or 0X...
@@ -374,9 +431,16 @@ func (t *Tokenizer) readNumber() Token {
 		t.pos++ // skip x
 		if t.pos < len(t.input) && isHexDigit(t.input[t.pos]) {
 			buf = append(buf, t.input[savePos]) // add the x/X
-			for t.pos < len(t.input) && isHexDigit(t.input[t.pos]) {
-				buf = append(buf, t.input[t.pos])
-				t.pos++
+			for t.pos < len(t.input) {
+				ch := t.input[t.pos]
+				if isHexDigit(ch) {
+					buf = append(buf, ch)
+					t.pos++
+				} else if ch == '_' && t.pos+1 < len(t.input) && isHexDigit(t.input[t.pos+1]) {
+					t.pos++ // skip underscore separator
+				} else {
+					break
+				}
 			}
 			t.last = Token{Type: TokenNumber, Value: string(buf), Pos: pos}
 			return t.last
@@ -408,21 +472,30 @@ func (t *Tokenizer) readNumber() Token {
 }
 
 func (t *Tokenizer) readDigits(buf []byte) []byte {
-	for t.pos < len(t.input) && t.input[t.pos] >= '0' && t.input[t.pos] <= '9' {
-		buf = append(buf, t.input[t.pos])
-		t.pos++
+	for t.pos < len(t.input) {
+		ch := t.input[t.pos]
+		if ch >= '0' && ch <= '9' {
+			buf = append(buf, ch)
+			t.pos++
+		} else if ch == '_' && t.pos+1 < len(t.input) && t.input[t.pos+1] >= '0' && t.input[t.pos+1] <= '9' {
+			// SQL2017 underscore digit separator: skip the underscore
+			// (only valid between digits, not at start/end of number)
+			t.pos++
+		} else {
+			break
+		}
 	}
 	return buf
 }
 
 func (t *Tokenizer) readIdent() Token {
 	pos := t.pos
-	var buf []byte
+	// Fast path: scan identifier characters directly
+	identStart := t.pos
 	for t.pos < len(t.input) && isIdentPart(t.input[t.pos]) {
-		buf = append(buf, t.input[t.pos])
 		t.pos++
 	}
-	word := string(buf)
+	word := t.input[identStart:t.pos]
 
 	// Hex blob literal: X'...' or x'...'
 	if len(word) == 1 && (word == "x" || word == "X") && t.pos < len(t.input) && t.input[t.pos] == '\'' {

@@ -135,7 +135,7 @@ func (p *Pager) AllocatePage() *Page {
 // ReadPage reads a page. Data is always pageSize bytes.
 func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	if pageNum == 0 {
-		return nil, fmt.Errorf("pager: page 0 invalid")
+		return nil, fmt.Errorf("database disk image is malformed")
 	}
 	p.mu.RLock()
 	if pg, ok := p.pages[pageNum]; ok {
@@ -150,7 +150,7 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 		return pg, nil
 	}
 	if pageNum > p.numPages {
-		return nil, fmt.Errorf("pager: page %d out of range (max %d)", pageNum, p.numPages)
+		return nil, fmt.Errorf("database disk image is malformed")
 	}
 
 	pg := &Page{

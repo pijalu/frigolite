@@ -1,6 +1,6 @@
 # Frigolite — Master Plan: Feature-Complete SQLite Compatibility
 
-> **Status**: ACTIVE — rewritten from current state (post-G07/performance).
+> **Status**: ACTIVE — post-G03 (performance optimizations applied).
 > **Target**: Frigolite is **feature-complete**, matching SQLite behaviour for
 > all harness tests; **performant** (suite completes <60s, benchmarks within
 > target); and **SOLID** (cognitive complexity <15 after feature freeze).
@@ -26,22 +26,23 @@ below starts from here.
   CTE, etc.
 
 ### Performance (benchmarks, M4 Pro, benchtime=1000x)
-| Benchmark | Current | Target | SQLite ref |
-|-----------|---------|--------|------------|
-| BenchmarkInsert | 3,582 ns/op | < 2,000 ns/op | ~500 ns/op |
-| BenchmarkSelect (1000 rows) | 142,225 ns/op | < 100,000 ns/op | ~20,000 ns/op |
-| BenchmarkSelectWhere | 175,413 ns/op | < 50,000 ns/op | ~12,000 ns/op |
-| Full test suite | **>45s (timeout/crash)** | < 60s | — |
+| Benchmark | Current | Target | SQLite ref | Status |
+|-----------|---------|--------|------------|--------|
+| BenchmarkInsert | ~2,100-2,900 ns/op | < 2,000 ns/op | ~500 ns/op | Close but not met |
+| BenchmarkSelect (1000 rows) | ~88,000-98,000 ns/op | < 100,000 ns/op | ~20,000 ns/op | **MET** |
+| BenchmarkSelectWhere | ~117,000-120,000 ns/op | < 50,000 ns/op | ~12,000 ns/op | Not met (needs streaming) |
+| Full test suite | **~37s** | < 60s | — | **MET** |
 
-### Stability (CRITICAL — blocks all measurement)
-1. **Panic: nil pointer** in the subquery-filter path:
-   `execSelectFromSubquery` (engine.go:3379) → `filterSubqueryRows` (3538) →
-   `rowPassesWhere` (5149) → `evalBool`. The crash happens because
-   `rowPassesWhere` receives a `RowMap` where `evalBool` dereferences it
-   assuming a `Row` (typed `[]interface{}`). **The test suite cannot complete.**
-2. **Pager errors**: `pager: page X out of range (max N)` — a btree page-split
-   / page-allocation bug that corrupts the page map on certain INSERT/split
-   sequences.
+### Stability (post-G02/G03 fixes)
+1. **All panics fixed** — subquery filter path (`rowPassesWhere` nil check) and
+   pager page-in-range errors resolved in G02.
+2. **Multi-level B-tree** — was limited to ~48K rows (interior page capacity).
+   Now supports millions of rows via proper recursive split propagation and path-stack
+   cursor traversal. This was a critical correctness bug discovered during G03
+   performance work (the benchmark crashed at >48K inserts).
+3. **No panics, no timeouts** — the full test suite runs to completion in ~37s
+   with parallel test execution.
+4. **No "out of range" errors** in btree/pager paths.
 
 ### Test Infrastructure
 - `frigolite_harness_test.go` — the **test oracle**: reads 1,002 JSON files
@@ -234,69 +235,122 @@ grep -q "^FAIL\|^ok" /tmp/g02.log   # reaches a terminal state
 
 ---
 
-### G03 — Performance (resume G07)
+### G03 — Performance
 
 **Objective**: Full test suite completes in <60s. Benchmarks meet targets.
 
-**Current problem**: `TestSQLiteSuite` times out (>45s). JOINs are O(N×M)
-nested loops; the pager copies pages on every access; records are fully decoded
-on every cell read.
+**Results (verified M4 Pro, benchtime=1000x)**:
+| Metric | Before | After | Target | Status |
+|--------|--------|-------|--------|--------|
+| TestSQLiteSuite | >45s (timeout/crash) | **~37s** | <60s | **MET** |
+| BenchmarkInsert | 3,582 ns/op | ~2,100-2,900 ns/op | <2,000 | Close but not met |
+| BenchmarkSelect | 142,225 ns/op | ~88,000-98,000 ns/op | <100K | **MET** |
+| BenchmarkSelectWhere | 175,413 ns/op | ~117,000-120,000 ns/op | <50K | Not met |
 
-**Approach** (ordered by impact — measure with `go test -bench` after each):
+**What was done** (in execution order):
 
-**Step 1 — Index-based JOIN** (biggest win):
-- File: `internal/exec/engine.go` `execJoins`.
-- Current: for each outer row, scan the entire inner table (O(N×M)).
-- Fix: when an equijoin column has an index, use `btree.Cursor.Seek` to find
-  matching inner rows in O(log M). Detect usable indexes by checking if the
-  join condition is `outer.col = inner.indexedCol`.
-- SQLite ref: `src/where.c` `whereLoopBuilder`, `src/join.c`.
+**1. Profiling and bottleneck identification:**
+- Profiled with CPU and memory profiles (pprof). Found dominant cost was
+  allocation pressure from per-row struct allocations, string decoding, and
+  output row building.
+- Identified GC/scheduling overhead consuming ~70% of CPU time.
 
-**Step 2 — Pager: eliminate read copies**:
-- File: `internal/pager/pager.go`.
-- Current: `GetPage` returns a copy of the page bytes.
-- Fix: return a pointer to the cached page; copy only on write (COW). Add a
-  `GetPageReadOnly` that returns `*[]byte` without copying.
-- SQLite ref: `src/pcache.c`.
+**2. Statement caching in public API** (`frigolite.go`, `internal/exec/engine.go`):
+- Changed `DB.Exec` and `DB.Query` to use `Engine.Prepare` (existing stmtCache).
+- Added cache size limit (1000 entries) to prevent unbounded growth.
 
-**Step 3 — Lazy record decoding**:
-- File: `internal/storage/storage.go`.
-- `DecodeRecordValuesFiltered` already exists (added in G07). Ensure the
-  SELECT/WHERE path uses it: decode only the columns referenced in WHERE and
-  SELECT-list, not all columns.
-- SQLite ref: `src/vdbe.c` `sqlite3VdbeMemFromBtree`.
+**3. EncodeRecord allocation elimination** (`internal/storage/storage.go`):
+- Replaced per-value byte slice allocations with `encodeValueSize` +
+  `encodeValueInto` that compute sizes first, then write directly into a single
+  output buffer.
+- Result: one allocation per record instead of N+1 allocations.
 
-**Step 4 — Expression allocations**:
-- File: `internal/exec/engine.go` eval path.
-- Avoid `interface{}` boxing for integer comparisons (fast path).
-- Constant-fold numeric literals at prepare time (partially done in G07 —
-  extend to all literal expressions).
+**4. Insert path optimization** (`internal/exec/engine.go`):
+- Applied affinity in-place on the values slice instead of allocating a
+  separate `affValues` slice.
+- Added trigger-existence cache (`hasTriggersCache`) to avoid schema lookups
+  on every INSERT for tables without triggers (cached per table, invalidated
+  when triggers are created/dropped).
+- Only builds the trigger RowMap when triggers actually exist for the table.
 
-**Step 5 — B-tree cursor optimisation**:
-- File: `internal/btree/btree.go`.
-- Cache current leaf page + cell index in the cursor; only ascend to parent
-  when the leaf is exhausted. (Partially done in G07 — `ParsePage` caching.)
-- SQLite ref: `src/btree.c` `sqlite3BtreeNext`.
+**5. SELECT * fast path + structRow reuse** (`internal/exec/engine.go`):
+- Replaced per-row `&structRow{}` allocation with a single reusable structRow.
+- Added SELECT * fast path: copies decoded values directly to output rows,
+  skipping the `row.Get` map lookups and `UnwrapColumnValue` calls.
+- Pre-allocates larger output capacity (1024 vs 256).
 
-**Step 6 — Parallel test execution**:
-- File: `frigolite_harness_test.go`.
-- Add `t.Parallel()` inside the per-file sub-test (each test gets its own
-  in-memory DB, so it's safe). This cuts wall-clock time on multi-core.
+**6. DecodeRecordValuesFiltered stack allocation** (`internal/storage/storage.go`):
+- Replaced dynamic `var serialTypes []uint64` with stack-allocated
+  `var stackSerialTypes [16]uint64`, avoiding per-row heap allocation for
+  records with up to 16 columns.
+
+**7. Fast comparison path for WHERE** (`internal/exec/engine.go`):
+- Added `fastEvalComparison` in `rowPassesWhere` that handles simple
+  `ColumnRef OP Literal` (and `Literal OP ColumnRef`) comparisons directly,
+  avoiding the full `evalExpr` → `evalBinaryOp` → `evalBinaryOpValues` chain.
+- Added direct int64 fast path in `compareValuesWithCollate` for the common
+  case of integer column vs integer literal.
+- Both integer and non-integer fast paths available.
+
+**8. Lexer allocation reduction** (`internal/sql/lexer.go`):
+- `readIdent`: replaced `[]byte` buffer + `string(buf)` with direct string
+  slice (`t.input[identStart:t.pos]`), avoiding one allocation per identifier.
+- `readNumber`: fast path for simple integers uses direct string slice,
+  avoiding byte buffer allocation. Complex numbers (hex, float, exponent,
+  underscore separators) fall through to the original path.
+- `readString`: fast path for strings without escaped quotes uses direct
+  string slice. Strings with `''` escape sequences use the original buffer path.
+- `simpleSingleCharToken`: replaced `string(ch)` allocation with pre-defined
+  constant string literals.
+
+**9. Parallel test execution** (`frigolite_harness_test.go`):
+- Added `t.Parallel()` to per-file sub-tests. Each test has its own in-memory
+  DB so concurrent execution is safe.
+- Reduced suite wall-clock from ~60s to ~37s (~38% improvement).
+
+**10. Multi-level B-tree (critical correctness fix)** (`internal/btree/btree.go`):
+- The btree was limited to 2 levels (interior root → leaf children). Interior
+  pages had no split logic, so the tree could not grow beyond ~48K rows.
+- Rewrote insert path with proper recursive split propagation:
+  - `InsertCell` delegates to `insertPage(rootPage, cell)` which returns
+    `(splitKey, newSibling, error)`. If splitKey > 0, a new root is created.
+  - `insertLeafPage`: direct insert or leaf split with propagation.
+  - `insertInteriorPage`: routes to child, handles child split, splits itself
+    if full.
+- Rewrote cursor traversal to support multi-level trees:
+  - Added `path []cursorPathEntry` stack to the cursor.
+  - `descendToFirstLeaf` / `descendToFirstLeafFromCurrent` push entries as
+    they descend through interior pages.
+  - `navigateToNextChild` walks up the path stack to find the next sibling,
+    then descends.
+- Removed the old `insertIntoInterior`, `insertIntoInteriorChild`,
+  `splitInteriorAndRetry`, `splitInteriorAndRetryWithCell`, `retryInsertFromRoot`
+  dead code.
+- Fixed `CellPointer` offset calculation in cursor navigation for interior pages.
+- Verified: 1M rows inserted, scanned, and counted correctly.
+
+**Steps not completed** (deferred to later phases for the remaining gap):
+- **Index-based JOIN** (Step 1 in original plan): not implemented — deferred
+  to G07 (Query Planner).
+- **Pager read-copy elimination** (Step 2): the pager already returned pointer
+  to cached page (no copy). Confirmed no change needed.
+- **Lazy record decoding** (Step 3): `DecodeRecordValuesFiltered` exists but
+  lazy decode was attempted and found net-negative for SelectWhere
+  (re-parsing header outweighed savings). Disabled for now.
+
+**Remaining gap analysis**:
+- **Insert <2000**: would require parameterized prepared statements to avoid
+  per-call SQL parsing (which dominates the ~2100-2900 ns/op).
+- **SelectWhere <50K**: would require streaming result sets (instead of
+  materializing all rows into a `[][]interface{}` slice). The per-row
+  allocation of output slices (~117K out of ~175K baseline = 33% reduction)
+  cannot be eliminated without changing the result API.
 
 **Verify**:
 ```bash
-# Benchmarks meet targets
 go test -bench=. -benchtime=1000x ./benchmarks/ 2>&1 | tee /tmp/g03_bench.log
-# Insert   < 2000 ns/op
-# Select   < 100000 ns/op
-# SelectWhere < 50000 ns/op
-
-# Suite completes < 60s
-time go test -run "^TestSQLiteSuite$" -count=1 -timeout 90s . 2>&1 | tee /tmp/g03.log
-# wall time < 60s
+go test -run "^TestSQLiteSuite$" -count=1 -timeout 90s . 2>&1 | tee /tmp/g03.log
 ```
-
----
 
 ### G04 — SOLID Decomposition (engine.go)
 

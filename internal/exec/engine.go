@@ -61,6 +61,7 @@ type Engine struct {
 	triggerDepth int                    // prevents recursive trigger firing
 	triggerNewRow Row   // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow Row   // old row values for trigger execution (keyed as "old.colname")
+	hasTriggersCache map[string]bool   // cached trigger existence per table name
 	inTransaction bool                  // tracks if we're inside a BEGIN/COMMIT block
 	ddlBuffer    []func()               // DDL undo operations for transaction rollback
 	outerRow     Row   // outer query row for correlated subquery resolution
@@ -159,10 +160,20 @@ func (e *Engine) tableBTreePg(pg *pager.Pager, tableName string, schemaRoot uint
 	return btree.NewBTree(pg, e.rootPage(tableName, schemaRoot), isTable)
 }
 
-// Prepare parses and caches a SQL statement.
+// maxStmtCacheSize limits the prepared statement cache to avoid unbounded
+// memory growth when many unique SQL strings are executed (e.g. INSERT with
+// fmt.Sprintf). When the limit is reached, the cache is cleared and rebuilt.
+const maxStmtCacheSize = 1000
+
+// Prepare parses and caches a SQL statement. Repeated calls with the same SQL
+// string return the cached parsed statements without re-parsing.
 func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
 	if cached, ok := e.stmtCache[sqlStr]; ok {
 		return cached, nil
+	}
+	if len(e.stmtCache) >= maxStmtCacheSize {
+		// Clear cache to prevent unbounded growth
+		e.stmtCache = make(map[string][]sql.Stmt)
 	}
 	parser := sql.NewParser(sqlStr)
 	stmts := parser.Parse()
@@ -198,6 +209,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		stmtCache: make(map[string][]sql.Stmt),
 		tableRootPages: make(map[string]uint32),
 		nextRowIDCache: make(map[uint32]int64),
+		hasTriggersCache: make(map[string]bool),
 		encoding:  "UTF-8",
 		ftsTables: make(map[string]*fts.FTS3Table),
 	}
@@ -765,9 +777,16 @@ func (e *Engine) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	if err != nil {
 		return &Result{Error: err}
 	}
-	// The index must be in the same database as the table, or use the explicitly specified schema
+	// If the index has an explicit schema prefix, the table must be resolved
+	// in that same schema (matching SQLite behaviour: CREATE INDEX aux.i4 ON t4
+	// resolves t4 within the aux database). Otherwise tableEntry.RootPage would
+	// belong to a different database than tableCtx.Pager, causing "page out of
+	// range" errors.
 	if ctx != e.mainDB && ctx != tableCtx {
-		// Use the explicitly specified schema
+		_, objName := parseSchemaName(s.Table)
+		if entry, findErr := ctx.Schema.FindTable(objName); findErr == nil {
+			tableEntry = entry
+		}
 		tableCtx = ctx
 	}
 
@@ -918,6 +937,8 @@ func (e *Engine) execDropTrigger(s *sql.DropTriggerStmt) *Result {
 	if err := ctx.Schema.RemoveEntry(s.Name); err != nil && !s.IfExists {
 		return &Result{Error: err}
 	}
+	// Invalidate trigger existence cache
+	e.hasTriggersCache = make(map[string]bool)
 	// If in a transaction, buffer the undo operation (re-add the entry on rollback)
 	if e.inTransaction {
 		entryCopy := *entry
@@ -1071,6 +1092,9 @@ func (e *Engine) execCreateTrigger(s *sql.CreateTriggerStmt) *Result {
 	if err := ctx.Schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
+
+	// Invalidate trigger existence cache
+	e.hasTriggersCache = make(map[string]bool)
 
 	// If in a transaction, buffer the undo operation
 	if e.inTransaction {
@@ -2315,27 +2339,25 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	nextRowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
 	e.lastRowID = nextRowID
 
-	// Apply type affinity to each value based on column type
-	affValues := make([]interface{}, len(values))
+	// Apply type affinity to each value based on column type.
+	// Apply in-place to avoid allocating a separate affValues slice.
 	for i, v := range values {
 		if i < len(colDefs) {
-			affValues[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
-		} else {
-			affValues[i] = v
+			values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
 		}
 	}
 
-	record, err := storage.EncodeRecord(affValues)
+	record, err := storage.EncodeRecord(values)
 	if err != nil {
 		return &Result{Error: err}
 	}
 
+	tree := e.tableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
 	cell := &storage.Cell{
 		Type:    storage.CellTableLeaf,
 		RowID:   nextRowID,
 		Payload: record,
 	}
-	tree := e.tableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}
@@ -2343,17 +2365,42 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	if tree.RootPage() != e.rootPage(tableEntry.Name, tableEntry.RootPage) {
 		e.updateRootPage(tableEntry.Name, tree.RootPage())
 	}
-	// Fire AFTER INSERT triggers
-	newRow := make(RowMap)
-	for i, v := range affValues {
-		if i < len(colDefs) {
-			newRow[colDefs[i].Name] = v
+
+	// Fire AFTER INSERT triggers — but only if triggers exist for this table.
+	// The trigger check is cheap (cached schema lookup) but building the RowMap
+	// and calling fireTriggers is wasteful when no triggers are registered.
+	if e.hasTriggersForTable(tableEntry.Name) {
+		newRow := make(RowMap)
+		for i, v := range values {
+			if i < len(colDefs) {
+				newRow[colDefs[i].Name] = v
+			}
+		}
+		if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+			return trigResult
 		}
 	}
-	if trigResult := e.fireAfterInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
-		return trigResult
-	}
 	return &Result{Changes: 1, LastInsertRowID: nextRowID}
+}
+
+// hasTriggersForTable returns true if any AFTER INSERT/UPDATE/DELETE triggers
+// exist for the given table across all databases. This is a fast check to avoid
+// building trigger row maps when no triggers are registered.
+func (e *Engine) hasTriggersForTable(tableName string) bool {
+	// Check cache first
+	if has, ok := e.hasTriggersCache[tableName]; ok {
+		return has
+	}
+	has := false
+	for _, ctx := range e.databases {
+		triggers, err := ctx.Schema.FindTriggersForTable(tableName)
+		if err == nil && len(triggers) > 0 {
+			has = true
+			break
+		}
+	}
+	e.hasTriggersCache[tableName] = has
+	return has
 }
 
 // checkConstraints validates NOT NULL, CHECK, UNIQUE, and PRIMARY KEY
@@ -3068,6 +3115,9 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps)
 	}
 	if len(s.OrderBy) > 0 {
+		if err := validateOrderBy(s.OrderBy, len(result.Columns)); err != nil {
+			return &Result{Error: err}
+		}
 		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
 	}
 	result.Rows = applyLimitOffset(result.Rows, s.Limit, s.Offset)
@@ -3264,6 +3314,13 @@ func (e *Engine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *schema.En
 func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 	columns := e.buildColumnNames(s.Columns, nil)
 
+	// Validate positional ORDER BY terms against the number of result columns.
+	if len(s.OrderBy) > 0 {
+		if err := validateOrderBy(s.OrderBy, len(columns)); err != nil {
+			return &Result{Error: err}
+		}
+	}
+
 	// Apply WHERE filter for FROM-less SELECT
 	if s.Where != nil {
 		// Use nil row since there are no columns to reference
@@ -3398,6 +3455,9 @@ func (e *Engine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 
 	// Apply ORDER BY
 	if len(s.OrderBy) > 0 {
+		if err := validateOrderBy(s.OrderBy, len(result.Columns)); err != nil {
+			return &Result{Error: err}
+		}
 		e.sortRowsWithMaps(result, s.OrderBy, allRowMaps)
 	}
 
@@ -5078,10 +5138,10 @@ func selectNeedsRowMaps(e *Engine, s *sql.SelectStmt, tableName string) bool {
 
 // scanTableRows iterates over all cells, applies WHERE, builds output rows.
 func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap) {
-	allRows := make([][]interface{}, 0, 256)
+	allRows := make([][]interface{}, 0, 1024)
 	var allRowMaps []RowMap
 	hasJoins := len(s.Joins) > 0
-	
+
 	// Determine which columns need affinity wrappers by collecting column
 	// references from expressions (WHERE, ORDER BY, etc.). Columns not referenced
 	// in comparisons can skip the ColumnValue wrapper for faster row building.
@@ -5114,23 +5174,118 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 	// Reusable values buffer to avoid per-row slice allocation in buildStructRow
 	reuseValues := make([]interface{}, len(colDefs))
 
+	// Determine if this is a simple "SELECT *" (single star column, no joins).
+	// If so, use the fast path that copies decoded values directly to output rows,
+	// skipping the per-column row.Get / UnwrapColumnValue overhead in buildOutputRow.
+	isSelectStar := !hasJoins && len(s.Columns) == 1
+	if isSelectStar {
+		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); !ok || ref.Name != "*" {
+			isSelectStar = false
+		}
+	}
+
+	// Compute WHERE column indices for lazy decoding.
+	// When there's a WHERE clause and no joins, we decode only the WHERE-referenced
+	// columns first, evaluate the predicate, and only decode remaining columns if
+	// the row passes. This avoids decoding expensive string/blob columns for rows
+	// that are filtered out.
+	var whereDecodeIndices map[int]bool
+	var remainingDecodeIndices map[int]bool
+	useLazyDecode := false // disabled: net negative for selectivity < 75%
+	if useLazyDecode {
+		whereDecodeIndices = make(map[int]bool, len(affinityCols))
+		for name := range affinityCols {
+			if idx, ok := colIndex[name]; ok {
+				whereDecodeIndices[idx] = true
+			}
+		}
+		// Pre-compute the complement set for phase 2 decoding (avoids per-row map allocation)
+		remainingDecodeIndices = make(map[int]bool, len(colDefs)-len(whereDecodeIndices))
+		for i := range colDefs {
+			if !whereDecodeIndices[i] {
+				remainingDecodeIndices[i] = true
+			}
+		}
+	}
+
+	// Reuse a single structRow across all rows to avoid per-row allocation.
+	reuseSRow := &structRow{values: reuseValues, index: colIndex, rowID: 0}
+
+	// Count active (non-dropped) column definitions for SELECT * fast path.
+	activeColCount := 0
+	for _, cd := range colDefs {
+		if !cd.Dropped {
+			activeColCount++
+		}
+	}
+
 	for {
 		payload, rowID, err := cursor.ReadCellData()
 		if err != nil {
 			break
 		}
 
-		// Build lightweight structRow for WHERE evaluation (no map allocation).
-		// Decodes values directly from the cell payload, bypassing DecodeRecord.
-		sRow := e.buildStructRow(payload, colDefs, rowID, colIndex, affinityCols, reuseValues, nil)
+		passesWhere := true
+		if useLazyDecode {
+			// Phase 1: decode only WHERE-referenced columns
+			e.fillStructRow(reuseSRow, payload, colDefs, rowID, affinityCols, whereDecodeIndices)
+			passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+			if !passesWhere {
+				// Row filtered out — skip decoding remaining columns
+				if ok, err := cursor.Next(); err != nil || !ok {
+					break
+				}
+				continue
+			}
+			// Phase 2: decode remaining columns into the same buffer
+			e.fillStructRowRemaining(reuseSRow, payload, colDefs, remainingDecodeIndices)
+		} else {
+			// Decode all columns at once
+			e.fillStructRow(reuseSRow, payload, colDefs, rowID, affinityCols, nil)
+			if !hasJoins && s.Where != nil {
+				passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+			}
+		}
 
-		if hasJoins || e.rowPassesWhere(s.Where, sRow, cursor) {
-			outRow := e.buildOutputRow(s.Columns, colDefs, sRow)
-			allRows = append(allRows, outRow)
+		// For joins, always build output (WHERE applied later in join processing).
+		// For non-joins, only build output if WHERE passes.
+		if hasJoins || passesWhere {
+			// Build output row
+			if isSelectStar {
+				// Fast path: copy values directly
+				outRow := make([]interface{}, activeColCount)
+				if affinityCols != nil {
+					// Need to unwrap ColumnValue wrappers
+					idx := 0
+					for i, cd := range colDefs {
+						if cd.Dropped {
+							continue
+						}
+						if idx < len(outRow) {
+							outRow[idx] = util.UnwrapColumnValue(reuseSRow.values[i])
+						}
+						idx++
+					}
+				} else {
+					// No affinity wrappers — values are already raw
+					idx := 0
+					for i, cd := range colDefs {
+						if cd.Dropped {
+							continue
+						}
+						if idx < len(outRow) {
+							outRow[idx] = reuseSRow.values[i]
+						}
+						idx++
+					}
+				}
+				allRows = append(allRows, outRow)
+			} else {
+				outRow := e.buildOutputRow(s.Columns, colDefs, reuseSRow)
+				allRows = append(allRows, outRow)
+			}
 			if needMaps {
-				// Convert structRow to map, reusing the already-allocated
-				// ColumnValue wrappers (avoids double allocation).
-				allRowMaps = append(allRowMaps, structRowToMap(sRow))
+				allRowMaps = append(allRowMaps, structRowToMap(reuseSRow))
 			}
 		}
 
@@ -5146,11 +5301,140 @@ func (e *Engine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cursor) b
 	if where == nil {
 		return true
 	}
+	// Fast path: simple comparison ColumnRef OP Literal
+	if bop, ok := where.(*sql.BinaryOp); ok && row != nil {
+		if result, ok := e.fastEvalComparison(bop, row); ok {
+			return result
+		}
+	}
 	match, err := e.evalBool(where, row)
 	if err != nil {
 		return false
 	}
 	return match
+}
+
+// fastEvalComparison attempts to evaluate a simple BinaryOp comparison
+// (ColumnRef OP Literal or Literal OP ColumnRef) without going through the
+// full evalExpr → evalComplexExpr → evalBinaryOp chain. Returns (result, true)
+// if the fast path was taken, or (false, false) to fall through to the slow path.
+func (e *Engine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
+	// Only handle simple comparison operators
+	switch bop.Operator {
+	case ">", "<", ">=", "<=", "=", "<>", "!=":
+		// OK
+	default:
+		return false, false
+	}
+
+	// Try ColumnRef OP Literal
+	if colRef, ok := bop.Left.(*sql.ColumnRef); ok {
+		val, exists := row.Get(colRef.Name)
+		if !exists || val == nil {
+			return false, false // let slow path handle NULL
+		}
+		litVal, ok := e.evalLiteralFast(bop.Right)
+		if !ok {
+			return false, false
+		}
+		if litVal == nil {
+			return false, false
+		}
+		// Fast path: both int64 — direct comparison without CompareValuesCollate
+		if a, ok := util.UnwrapColumnValue(val).(int64); ok {
+			if b, ok := litVal.(int64); ok {
+				return applyIntComparison(bop.Operator, a, b), true
+			}
+		}
+		cmp := compareValuesWithCollate(val, litVal)
+		return applyComparisonOp(bop.Operator, cmp), true
+	}
+
+	// Try Literal OP ColumnRef
+	if colRef, ok := bop.Right.(*sql.ColumnRef); ok {
+		val, exists := row.Get(colRef.Name)
+		if !exists || val == nil {
+			return false, false
+		}
+		litVal, ok := e.evalLiteralFast(bop.Left)
+		if !ok {
+			return false, false
+		}
+		if litVal == nil {
+			return false, false
+		}
+		// Fast path: both int64
+		if b, ok := util.UnwrapColumnValue(val).(int64); ok {
+			if a, ok := litVal.(int64); ok {
+				return applyIntComparison(bop.Operator, a, b), true
+			}
+		}
+		cmp := compareValuesWithCollate(litVal, val)
+		return applyComparisonOp(bop.Operator, cmp), true
+	}
+
+	return false, false
+}
+
+// evalLiteralFast evaluates a literal expression (NumericLit, StringLit, etc.)
+// without error handling overhead.
+func (e *Engine) evalLiteralFast(expr sql.Expr) (interface{}, bool) {
+	switch v := expr.(type) {
+	case *sql.NumericLit:
+		if v.Cached() != nil {
+			return v.Cached(), true
+		}
+		// Fall through to full eval for uncached (complex) numbers
+		return nil, false
+	case *sql.StringLit:
+		return v.Value, true
+	case *sql.ParenExpr:
+		return e.evalLiteralFast(v.Expr)
+	default:
+		return nil, false
+	}
+}
+
+// applyComparisonOp maps a comparison result to a boolean for the given operator.
+func applyComparisonOp(op string, cmp int) bool {
+	switch op {
+	case ">":
+		return cmp > 0
+	case "<":
+		return cmp < 0
+	case ">=":
+		return cmp >= 0
+	case "<=":
+		return cmp <= 0
+	case "=":
+		return cmp == 0
+	case "<>", "!=":
+		return cmp != 0
+	default:
+		return false
+	}
+}
+
+// applyIntComparison evaluates a comparison operator directly on two int64
+// values, avoiding the overhead of CompareValuesCollate for the common case
+// of integer column vs integer literal comparisons.
+func applyIntComparison(op string, a, b int64) bool {
+	switch op {
+	case ">":
+		return a > b
+	case "<":
+		return a < b
+	case ">=":
+		return a >= b
+	case "<=":
+		return a <= b
+	case "=":
+		return a == b
+	case "<>", "!=":
+		return a != b
+	default:
+		return false
+	}
 }
 
 // isSchemaTable returns true if the given table name is the sqlite_master/sqlite_schema table.
@@ -5284,6 +5568,68 @@ func (e *Engine) buildStructRow(payload []byte, colDefs []sql.ColumnDef, rowID i
 	return &structRow{values: values, index: colIndex, rowID: rowID}
 }
 
+// fillStructRow fills a pre-existing structRow by decoding values from the
+// given payload. It avoids per-row allocation by reusing the structRow's values
+// buffer. When decodeIndices is non-nil, only the specified column indices are
+// decoded; others are left at nil.
+func (e *Engine) fillStructRow(sr *structRow, payload []byte, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool, decodeIndices map[int]bool) {
+	values := sr.values
+	// Clear previous values
+	for i := range values {
+		values[i] = nil
+	}
+	sr.rowID = rowID
+
+	if decodeIndices != nil {
+		storage.DecodeRecordValuesFiltered(payload, values, decodeIndices)
+	} else {
+		storage.DecodeRecordValuesInto(payload, values)
+	}
+
+	// Apply affinity wrappers only for columns specified in affinityCols.
+	if affinityCols != nil {
+		for i := 0; i < len(values); i++ {
+			if values[i] != nil && affinityCols[colDefs[i].Name] {
+				aff := util.Affinity(colDefs[i].Type)
+				if aff != 'I' && aff != 'R' {
+					values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
+				}
+			}
+		}
+		// Handle rowid and PRIMARY KEY for affinity columns
+		for i, cd := range colDefs {
+			if cd.PrimaryKey && values[i] == nil && affinityCols[cd.Name] {
+				aff := util.Affinity(cd.Type)
+				if aff != 'I' && aff != 'R' {
+					values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
+				} else {
+					values[i] = rowID
+				}
+			}
+		}
+	}
+}
+
+// fillStructRowRemaining decodes the specified column indices into the structRow.
+// This is the second phase of lazy decoding: after WHERE evaluation passes,
+// decode the remaining columns that were skipped in the first phase.
+// The indices parameter specifies which columns to decode (the complement of
+// the WHERE-referenced columns).
+func (e *Engine) fillStructRowRemaining(sr *structRow, payload []byte, colDefs []sql.ColumnDef, indices map[int]bool) {
+	values := sr.values
+	storage.DecodeRecordValuesFiltered(payload, values, indices)
+
+	// Apply affinity wrappers for newly-decoded columns that need them.
+	for i := range colDefs {
+		if indices[i] && values[i] != nil {
+			aff := util.Affinity(colDefs[i].Type)
+			if aff != 'I' && aff != 'R' {
+				values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
+			}
+		}
+	}
+}
+
 // structRowToMap converts a structRow to a RowMap, reusing the already-allocated
 // ColumnValue wrappers from the structRow's values slice.
 func structRowToMap(sr *structRow) RowMap {
@@ -5353,6 +5699,57 @@ func (e *Engine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.Colu
 		}
 	}
 	return names
+}
+
+// validateOrderBy checks that any positional ORDER BY terms (integer literals)
+// fall within the range of result columns. Returns an error matching SQLite's
+// message format when a term is out of range.
+func validateOrderBy(orderBy []sql.OrderByTerm, numCols int) error {
+	for i, ob := range orderBy {
+		if nl, ok := ob.Expr.(*sql.NumericLit); ok {
+			// Parse the positional reference
+			n, ok := parsePositiveInt(nl.Value)
+			if !ok || n < 1 {
+				continue // not a valid positional reference
+			}
+			if n > numCols {
+				return fmt.Errorf("%d%s ORDER BY term out of range - should be between 1 and %d",
+					i+1, ordinalSuffix(i+1), numCols)
+			}
+		}
+	}
+	return nil
+}
+
+func parsePositiveInt(s string) (int, bool) {
+	n := 0
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return 0, false
+		}
+		n = n*10 + int(c-'0')
+		if n > 1000000 {
+			return 0, false
+		}
+	}
+	return n, n > 0
+}
+
+func ordinalSuffix(n int) string {
+	switch n % 100 {
+	case 11, 12, 13:
+		return "th"
+	}
+	switch n % 10 {
+	case 1:
+		return "st"
+	case 2:
+		return "nd"
+	case 3:
+		return "rd"
+	default:
+		return "th"
+	}
 }
 
 // sortRowsWithMaps sorts result rows using the original row maps.

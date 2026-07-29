@@ -22,7 +22,6 @@ import (
 	"github.com/pijalu/frigolite/internal/exec"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
-	"github.com/pijalu/frigolite/internal/sql"
 )
 
 // DB is an open database connection.
@@ -127,10 +126,9 @@ func (db *DB) Exec(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized")}
 	}
-	parser := sql.NewParser(sqlStr)
-	stmts := parser.Parse()
-	if parser.Err() != nil {
-		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", parser.Err())}
+	stmts, err := db.engine.Prepare(sqlStr)
+	if err != nil {
+		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err)}
 	}
 
 	var lastResult *exec.Result
@@ -158,10 +156,9 @@ func (db *DB) Query(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized"), SQL: sqlStr}
 	}
-	parser := sql.NewParser(sqlStr)
-	stmts := parser.Parse()
-	if parser.Err() != nil {
-		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", parser.Err()), SQL: sqlStr}
+	stmts, err := db.engine.Prepare(sqlStr)
+	if err != nil {
+		return &Result{Error: fmt.Errorf("frigolite: parse error: %w", err), SQL: sqlStr}
 	}
 
 	if len(stmts) == 0 {

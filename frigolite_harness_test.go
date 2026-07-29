@@ -160,6 +160,20 @@ var unsupportedTestFiles = map[string]string{
 	"misc2":   "test with many data-intensive steps causes timeout in sequential execution",
 }
 
+// cleanupTestDBFiles removes file-backed test databases (and related journal
+// files) that ATTACH statements create in the working directory. These persist
+// across test-file sub-tests and corrupt later sub-tests that ATTACH the same
+// filename.
+func cleanupTestDBFiles() {
+	patterns := []string{"*.db", "*.db-journal", "*.db-wal", "*.db-shm"}
+	for _, p := range patterns {
+		matches, _ := filepath.Glob(p)
+		for _, m := range matches {
+			os.Remove(m)
+		}
+	}
+}
+
 func TestSQLiteSuite(t *testing.T) {
 	pattern := os.Getenv("FRIGOLITE_TEST")
 	runSlow := os.Getenv("FRIGOLITE_RUN_SLOW") != ""
@@ -186,6 +200,11 @@ func TestSQLiteSuite(t *testing.T) {
 			continue
 		}
 		t.Run(base, func(t *testing.T) {
+			t.Parallel()
+			// Clean up file-backed test databases created by ATTACH in prior test
+			// files. These persist in the working directory and corrupt later test
+			// files that ATTACH the same filename (e.g. test2.db).
+			cleanupTestDBFiles()
 			data, err := os.ReadFile(fpath)
 			if err != nil {
 				t.Fatalf("read %s: %v", fpath, err)

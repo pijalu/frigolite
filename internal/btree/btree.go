@@ -23,15 +23,24 @@ func contentOffset(pageNum uint32) int {
 // Cursor provides sequential access to b-tree entries.
 type Cursor struct {
 	tx          *BTree
-	pageNum     uint32
+	pageNum     uint32 // current leaf page
 	cellIdx     int
 	endOfBTree  bool
-	interiorRoot uint32 // root page number if interior, 0 if leaf root
-	childIdx     int    // current child index in the interior root
+
+	// Path stack for multi-level tree traversal. Each entry records an
+	// interior page and the child index within it that we descended through.
+	// The stack grows as we descend and shrinks as we ascend.
+	path []cursorPathEntry
 
 	// Cache for current page to avoid repeated ParsePage calls
 	currentPg    *pager.Page
 	currentPage  *storage.BTreePage
+}
+
+// cursorPathEntry records one level of the traversal path.
+type cursorPathEntry struct {
+	pageNum  uint32 // interior page number
+	childIdx int    // which child we are currently visiting
 }
 
 // cachePage caches the parsed page for the current pageNum.
@@ -84,57 +93,118 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 		pageNum: t.rootPage,
 		cellIdx: 0,
 	}
-	// If root is interior, navigate to the first leaf
-	pg, err := t.pager.ReadPage(t.rootPage)
-	if err != nil {
+	// Descend from root to the leftmost leaf, building the path stack
+	if err := c.descendToFirstLeaf(); err != nil {
 		return nil, err
-	}
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
-	if err != nil {
-		return nil, err
-	}
-	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
-		c.interiorRoot = t.rootPage
-		c.childIdx = -1 // will be incremented to 0 by navigateToNextChild
-		c.navigateToNextChild()
 	}
 	return c, nil
 }
 
-// navigateToNextChild advances the cursor to the next child of the interior root.
-// Used when the current leaf is exhausted (leaf tree) or for initial positioning.
+// descendToFirstLeaf navigates from the current page to the leftmost leaf,
+// pushing interior pages onto the path stack. Used during OpenCursor.
+func (c *Cursor) descendToFirstLeaf() error {
+	for {
+		pg, err := c.tx.pager.ReadPage(c.pageNum)
+		if err != nil {
+			c.endOfBTree = true
+			return err
+		}
+		coff := contentOffset(pg.PageNum)
+		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+		if err != nil {
+			c.endOfBTree = true
+			return err
+		}
+		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+			// Leaf page — done
+			c.cellIdx = 0
+			c.endOfBTree = false
+			return nil
+		}
+		// Interior page — descend to first child (child index 0)
+		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: 0})
+		if page.CellCount > 0 {
+			// CellPointer adds 8 to the offset parameter. For interior pages
+			// (cellPtrOffset=12), pass coff+4 to get coff+12.
+			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0))
+			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		} else {
+			c.pageNum = page.RightmostPtr
+		}
+	}
+}
+
+// navigateToNextChild advances the cursor to the next leaf in sequence.
+// This handles multi-level trees by walking up the path stack to find the
+// next sibling, then descending to its leftmost leaf.
 func (c *Cursor) navigateToNextChild() {
-	if c.interiorRoot == 0 {
-		c.endOfBTree = true
-		return
-	}
-	c.childIdx++
+	// Walk up the path stack to find the next child to visit
+	for len(c.path) > 0 {
+		top := &c.path[len(c.path)-1]
 
-	pg, err := c.tx.pager.ReadPage(c.interiorRoot)
-	if err != nil {
-		c.endOfBTree = true
-		return
-	}
-	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
-	if err != nil {
-		c.endOfBTree = true
-		return
-	}
+		pg, err := c.tx.pager.ReadPage(top.pageNum)
+		if err != nil {
+			c.endOfBTree = true
+			return
+		}
+		coff := contentOffset(pg.PageNum)
+		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+		if err != nil {
+			c.endOfBTree = true
+			return
+		}
 
-	if c.childIdx < int(page.CellCount) {
-		// Navigate to cell[c.childIdx].leftChild
-		cellOff := int(storage.CellPointer(pg.Data, coff+4, c.childIdx))
-		c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		c.cellIdx = 0
-		c.endOfBTree = false
-	} else if c.childIdx == int(page.CellCount) {
-		// Navigate to the rightmost pointer (last child)
-		c.pageNum = page.RightmostPtr
-		c.cellIdx = 0
-		c.endOfBTree = false
-	} else {
-		c.endOfBTree = true
+		top.childIdx++
+		if top.childIdx < int(page.CellCount) {
+			// Navigate to cell[top.childIdx].leftChild
+			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, top.childIdx))
+			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+			c.cellIdx = 0
+			c.endOfBTree = false
+			// Descend to leftmost leaf from here
+			c.descendToFirstLeafFromCurrent()
+			return
+		} else if top.childIdx == int(page.CellCount) {
+			// Navigate to the rightmost pointer
+			c.pageNum = page.RightmostPtr
+			c.cellIdx = 0
+			c.endOfBTree = false
+			c.descendToFirstLeafFromCurrent()
+			return
+		}
+		// This interior page is exhausted — pop and try parent
+		c.path = c.path[:len(c.path)-1]
+	}
+	c.endOfBTree = true
+}
+
+// descendToFirstLeafFromCurrent descends from the current page to the leftmost
+// leaf, pushing interior pages onto the path stack. The current page may be
+// a leaf or interior.
+func (c *Cursor) descendToFirstLeafFromCurrent() {
+	for {
+		pg, err := c.tx.pager.ReadPage(c.pageNum)
+		if err != nil {
+			c.endOfBTree = true
+			return
+		}
+		coff := contentOffset(pg.PageNum)
+		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+		if err != nil {
+			c.endOfBTree = true
+			return
+		}
+		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+			return // leaf
+		}
+		// Interior — descend to first child
+		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: 0})
+		if page.CellCount > 0 {
+			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0))
+			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		} else {
+			c.pageNum = page.RightmostPtr
+		}
 	}
 }
 
@@ -435,76 +505,171 @@ func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff 
 }
 
 // InsertCell inserts a cell into the b-tree.
-// If the root is a leaf and is full, it splits into an interior root with two leaves.
-// If the root is an interior page, it descends recursively, splitting children as needed.
+// Uses a recursive insert with proper split propagation for multi-level trees.
+// When a page splits, the split key and new sibling propagate up to the parent.
 func (t *BTree) InsertCell(newCell *storage.Cell) error {
-	pg, err := t.pager.ReadPage(t.rootPage)
+	splitKey, newSibling, err := t.insertPage(t.rootPage, newCell)
 	if err != nil {
 		return err
+	}
+	if splitKey > 0 {
+		// Root page split — create a new root one level up
+		rootPg, err := t.createInteriorRoot(t.rootPage, splitKey, newSibling)
+		if err != nil {
+			return err
+		}
+		t.rootPage = rootPg.PageNum
+	}
+	return nil
+}
+
+// insertPage inserts a cell into the page at pageNum.
+// Returns (splitKey, newSiblingPageNum, error). If splitKey > 0, the page
+// was split: the original page contains keys < splitKey, the new sibling
+// contains keys >= splitKey. The caller must add (pageNum, splitKey, newSibling)
+// to the parent interior page.
+func (t *BTree) insertPage(pageNum uint32, newCell *storage.Cell) (uint64, uint32, error) {
+	pg, err := t.pager.ReadPage(pageNum)
+	if err != nil {
+		return 0, 0, err
 	}
 	coff := contentOffset(pg.PageNum)
 	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 
 	switch page.PageType {
 	case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
-		return t.insertIntoLeafRoot(pg, page, newCell)
+		return t.insertLeafPage(pg, page, newCell)
 	case storage.PageTypeInteriorTable, storage.PageTypeInteriorIndex:
-		return t.insertIntoInterior(pg, page, newCell)
+		return t.insertInteriorPage(pg, page, newCell)
 	default:
-		return fmt.Errorf("btree: unknown page type 0x%02x", page.PageType)
+		return 0, 0, fmt.Errorf("btree: unknown page type 0x%02x", page.PageType)
 	}
 }
 
-// insertIntoLeafRoot handles insert when the root is a leaf.
-func (t *BTree) insertIntoLeafRoot(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell) error {
+// insertLeafPage inserts a cell into a leaf page. If the leaf is full, it splits.
+func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell) (uint64, uint32, error) {
 	coff := contentOffset(pg.PageNum)
 	cellData := storage.EncodeCell(newCell)
 
 	if leafHasRoom(pg, page, cellData, coff, t.pageSize) {
 		// There is room — insert directly.
-		return t.writeLeafCell(pg, page, newCell, cellData, coff)
+		if err := t.writeLeafCell(pg, page, newCell, cellData, coff); err != nil {
+			return 0, 0, err
+		}
+		return 0, 0, nil
 	}
 
-	// Root leaf is full. If the page is empty, the cell is too large.
+	// Leaf is full. If empty, the cell is too large.
 	if page.CellCount == 0 {
-		return fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
+		return 0, 0, fmt.Errorf("btree: cell too large for page (size=%d, pageSize=%d)", len(cellData), t.pageSize)
 	}
 
-	// Split it into an interior root with two leaves.
+	// Split the leaf
 	newLeafNum, medianKey, err := t.splitLeaf(pg, page)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
-
-	// Write both leaves
 	if err := t.pager.WritePage(pg); err != nil {
-		return err
+		return 0, 0, err
 	}
 	newPg, err := t.pager.ReadPage(newLeafNum)
 	if err != nil {
-		return err
+		return 0, 0, err
 	}
 	if err := t.pager.WritePage(newPg); err != nil {
-		return err
+		return 0, 0, err
 	}
 
-	// Create interior root pointing to both leaves
-	rootPg, err := t.createInteriorRoot(pg.PageNum, medianKey, newLeafNum)
-	if err != nil {
-		return err
-	}
-	t.rootPage = rootPg.PageNum
-
-	// Insert the new cell into the correct child
+	// Insert the new cell into the correct half
 	if t.isTable && newCell.RowID >= int64(medianKey) {
-		return t.writeLeafCell(newPg, nil, newCell, cellData, contentOffset(newPg.PageNum))
+		if err := t.writeLeafCell(newPg, nil, newCell, cellData, contentOffset(newPg.PageNum)); err != nil {
+			return 0, 0, err
+		}
 	} else if !t.isTable && util.CompareValues(newCell.Payload, cellData) >= 0 {
-		return t.writeLeafCell(newPg, nil, newCell, cellData, contentOffset(newPg.PageNum))
+		if err := t.writeLeafCell(newPg, nil, newCell, cellData, contentOffset(newPg.PageNum)); err != nil {
+			return 0, 0, err
+		}
+	} else {
+		if err := t.writeLeafCell(pg, nil, newCell, cellData, coff); err != nil {
+			return 0, 0, err
+		}
 	}
-	return t.writeLeafCell(pg, nil, newCell, cellData, coff)
+
+	return medianKey, newLeafNum, nil
+}
+
+// insertInteriorPage inserts a cell into an interior page by routing to the
+// correct child. If the child splits, adds a new pointer. If this interior
+// page is then full, splits it too.
+func (t *BTree) insertInteriorPage(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell) (uint64, uint32, error) {
+	// Find the child page that should receive the new cell
+	childPageNum := t.findChildPageForInsert(pg, page, newCell)
+
+	// Recursively insert into the child
+	childSplitKey, childNewSibling, err := t.insertPage(childPageNum, newCell)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if childSplitKey == 0 {
+		// No split occurred — done
+		return 0, 0, nil
+	}
+
+	// Child split occurred. Add new child pointer to this interior page.
+	err = t.addInteriorCell(pg, page, childPageNum, childSplitKey, childNewSibling)
+	if err == nil {
+		return 0, 0, nil
+	}
+
+	// addInteriorCell failed — check if it's because this page is full
+	if err.Error() != "btree: interior page full, cannot add child pointer" {
+		return 0, 0, err
+	}
+
+	// This interior page is full. Split it.
+	newInteriorNum, splitKey, err := t.splitInteriorPage(pg, page)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	// Now add the child pointer to the correct half.
+	// After the split, the original page has keys < splitKey,
+	// the new sibling has keys >= splitKey.
+	if t.isTable {
+		if int64(childSplitKey) >= int64(splitKey) {
+			// Goes to the new sibling
+			newPg, err := t.pager.ReadPage(newInteriorNum)
+			if err != nil {
+				return 0, 0, err
+			}
+			newPage, err := storage.ParsePage(newPg.Data, int(t.pageSize), contentOffset(newPg.PageNum))
+			if err != nil {
+				return 0, 0, err
+			}
+			if err := t.addInteriorCell(newPg, newPage, childPageNum, childSplitKey, childNewSibling); err != nil {
+				return 0, 0, err
+			}
+		} else {
+			// Goes to the original page
+			origPg, err := t.pager.ReadPage(pg.PageNum)
+			if err != nil {
+				return 0, 0, err
+			}
+			origPage, err := storage.ParsePage(origPg.Data, int(t.pageSize), contentOffset(origPg.PageNum))
+			if err != nil {
+				return 0, 0, err
+			}
+			if err := t.addInteriorCell(origPg, origPage, childPageNum, childSplitKey, childNewSibling); err != nil {
+				return 0, 0, err
+			}
+		}
+	}
+
+	return splitKey, newInteriorNum, nil
 }
 
 // writeLeafCell inserts a cell at the correct position in a leaf page.
@@ -708,65 +873,102 @@ func (t *BTree) encodeInteriorCell(leftChild uint32, rowID uint64) []byte {
 	return buf
 }
 
-// insertIntoInterior navigates an interior page to find the correct leaf,
-// splitting children as needed.
-func (t *BTree) insertIntoInterior(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell) error {
-	cellData := storage.EncodeCell(newCell)
+// splitInteriorPage splits a full interior page into two pages.
+// Returns (newPageNum, splitKey, error) where splitKey is the median key
+// that goes into the parent.
+func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage) (uint32, uint64, error) {
+	coff := contentOffset(pg.PageNum)
+	ptroff := cellPtrOffset(page.PageType)
+	// CellPointer adds 8 to the given offset. For interior pages (ptroff=12),
+	// we pass coff+4 so it computes coff+4+8+i*2 = coff+12+i*2.
+	ptrBase := coff + ptroff - 8
 
-	// Find the child page
-	childPage := t.findChildPageForInsert(pg, page, newCell)
+	// Collect all interior cells (leftChild, key pairs) and the rightmost pointer
+	type interiorEntry struct {
+		leftChild uint32
+		key       uint64
+	}
+	var entries []interiorEntry
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i))
+		leftChild := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		key, _ := util.GetVarint(pg.Data[cellOff+4:])
+		entries = append(entries, interiorEntry{leftChild, key})
+	}
+	rightmostChild := page.RightmostPtr
 
-	// Read the child
-	childPg, err := t.pager.ReadPage(childPage)
-	if err != nil {
-		return err
-	}
-	childCoff := contentOffset(childPg.PageNum)
-	childPageType, err := storage.ParsePage(childPg.Data, int(t.pageSize), childCoff)
-	if err != nil {
-		return err
+	// Split at midpoint
+	splitIdx := len(entries) / 2
+
+	// The key at splitIdx goes up to the parent (it's the separator between the two halves)
+	splitKey := entries[splitIdx].key
+
+	// Left page keeps entries[0..splitIdx) and its rightmost child becomes entries[splitIdx].leftChild
+	// Right page keeps entries[splitIdx+1..) and the original rightmostChild
+
+	// Allocate new interior page
+	newPg := t.pager.AllocatePage()
+	newCoff := contentOffset(newPg.PageNum)
+	newPg.Data[newCoff] = page.PageType // same interior type
+
+	// Clear original interior page content (except page type)
+	for i := coff + 1; i < int(t.pageSize); i++ {
+		pg.Data[i] = 0
 	}
 
-	switch childPageType.PageType {
-	case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
-		// Check if child has room
-		if leafHasRoom(childPg, childPageType, cellData, childCoff, t.pageSize) {
-			// Just insert into the child
-			return t.writeLeafCell(childPg, childPageType, newCell, cellData, childCoff)
+	// Rewrite left page: entries[0..splitIdx), rightmost = entries[splitIdx].leftChild
+	leftRightmost := entries[splitIdx].leftChild
+	leftCellContentEnd := int(t.pageSize) // track content end in local var
+	for i := 0; i < splitIdx; i++ {
+		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
+		cellPtrEnd := coff + ptroff + i*2 + 2
+		cellStart := leftCellContentEnd - len(cellData)
+		if cellStart < cellPtrEnd {
+			return 0, 0, fmt.Errorf("btree: interior split failed: left page overflow")
 		}
-		// Child is full. If empty, the cell is too large.
-		if childPageType.CellCount == 0 {
-			return fmt.Errorf("btree: cell too large for leaf child (size=%d, pageSize=%d)", len(cellData), t.pageSize)
-		}
-		// Split it (without the new cell)
-		newLeafNum, medianKey, err := t.splitLeaf(childPg, childPageType)
-		if err != nil {
-			return err
-		}
-		// Write the original leaf
-		if err := t.pager.WritePage(childPg); err != nil {
-			return err
-		}
-		// Write the new leaf
-		newLeafPg, err := t.pager.ReadPage(newLeafNum)
-		if err != nil {
-			return err
-		}
-		if err := t.pager.WritePage(newLeafPg); err != nil {
-			return err
-		}
-		// Add new child pointer to this interior page
-		if err := t.addInteriorCell(pg, page, childPage, medianKey, newLeafNum); err != nil {
-			return err
-		}
-		// Insert the new cell into the correct half
-		if t.isTable && int64(medianKey) <= newCell.RowID {
-			return t.writeLeafCell(newLeafPg, nil, newCell, cellData, contentOffset(newLeafPg.PageNum))
-		}
-		return t.writeLeafCell(childPg, nil, newCell, cellData, childCoff)
-	default:
-		return fmt.Errorf("btree: unexpected child page type 0x%02x", childPageType.PageType)
+		copy(pg.Data[cellStart:], cellData)
+		binary.BigEndian.PutUint16(pg.Data[coff+ptroff+i*2:], uint16(cellStart))
+		leftCellContentEnd = cellStart
 	}
+	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(splitIdx))
+	if splitIdx > 0 {
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(leftCellContentEnd))
+	} else {
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], 0)
+	}
+	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], leftRightmost)
+
+	// Write right page: entries[splitIdx+1..), rightmost = original rightmostChild
+	rightCount := 0
+	rightCellContentEnd := int(t.pageSize)
+	for i := splitIdx + 1; i < len(entries); i++ {
+		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
+		cellPtrEnd := newCoff + ptroff + rightCount*2 + 2
+		cellStart := rightCellContentEnd - len(cellData)
+		if cellStart < cellPtrEnd {
+			return 0, 0, fmt.Errorf("btree: interior split failed: right page overflow")
+		}
+		copy(newPg.Data[cellStart:], cellData)
+		binary.BigEndian.PutUint16(newPg.Data[newCoff+ptroff+rightCount*2:], uint16(cellStart))
+		rightCellContentEnd = cellStart
+		rightCount++
+	}
+	binary.BigEndian.PutUint16(newPg.Data[newCoff+3:newCoff+5], uint16(rightCount))
+	if rightCount > 0 {
+		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], uint16(rightCellContentEnd))
+	} else {
+		binary.BigEndian.PutUint16(newPg.Data[newCoff+5:newCoff+7], 0)
+	}
+	binary.BigEndian.PutUint32(newPg.Data[newCoff+8:newCoff+12], rightmostChild)
+
+	if err := t.pager.WritePage(pg); err != nil {
+		return 0, 0, err
+	}
+	if err := t.pager.WritePage(newPg); err != nil {
+		return 0, 0, err
+	}
+
+	return newPg.PageNum, splitKey, nil
 }
 
 // findChildPageForInsert returns the child page that should receive the new cell.
