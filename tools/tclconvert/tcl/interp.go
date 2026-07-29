@@ -7,10 +7,10 @@ package tcl
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // Stmt represents a captured SQL statement with its expected result.
@@ -54,6 +54,151 @@ func (i *Interp) Execute(src string) error {
 	return i.execScript(src, nil)
 }
 
+// evalWord evaluates a single word, performing variable ($var) and command
+// ([cmd]) substitution if needed. Braced words are returned as-is.
+func (i *Interp) evalWord(rw rawWord, localVars map[string]string) (string, error) {
+	if rw.braced {
+		return rw.text, nil
+	}
+	return i.substitute(rw.text, localVars), nil
+}
+
+// substitute performs $var and [cmd] substitution in a string.
+// $varname → variable value (or empty string if unset)
+// ${varname} → variable value (braced name form)
+// [cmd args] → result of executing command
+// \n, \t, \\ → escape sequences
+func (i *Interp) substitute(s string, localVars map[string]string) string {
+	var result strings.Builder
+	pos := 0
+	for pos < len(s) {
+		ch := s[pos]
+
+		if ch == '\\' && pos+1 < len(s) {
+			// Escape sequence
+			next := s[pos+1]
+			switch next {
+			case 'n':
+				result.WriteByte('\n')
+			case 't':
+				result.WriteByte('\t')
+			case 'r':
+				result.WriteByte('\r')
+			case '\\':
+				result.WriteByte('\\')
+			case '$':
+				result.WriteByte('$')
+			case '[':
+				result.WriteByte('[')
+			case ']':
+				result.WriteByte(']')
+			case '{':
+				result.WriteByte('{')
+			case '}':
+				result.WriteByte('}')
+			case '"':
+				result.WriteByte('"')
+			default:
+				result.WriteByte(next)
+			}
+			pos += 2
+			continue
+		}
+
+		if ch == '$' {
+			// Variable substitution
+			pos++
+			if pos >= len(s) {
+				result.WriteByte('$')
+				break
+			}
+
+			if s[pos] == '{' {
+				// ${varname} — braced variable name
+				pos++
+				start := pos
+				for pos < len(s) && s[pos] != '}' {
+					pos++
+				}
+				varName := s[start:pos]
+				if pos < len(s) {
+					pos++ // skip closing }
+				}
+				if val, ok := i.getVar(varName, localVars); ok {
+					result.WriteString(val)
+				}
+			} else if unicode.IsLetter(rune(s[pos])) || s[pos] == '_' {
+				// $varname — alphanumeric variable name
+				start := pos
+				for pos < len(s) && (unicode.IsLetter(rune(s[pos])) || unicode.IsDigit(rune(s[pos])) || s[pos] == '_' || s[pos] == ':') {
+					pos++
+				}
+				varName := s[start:pos]
+				// Handle array element: $var(arr)
+				if pos < len(s) && s[pos] == '(' {
+					end := strings.IndexByte(s[pos:], ')')
+					if end > 0 {
+						varName += s[pos : pos+end+1]
+						pos += end + 1
+					}
+				}
+				if val, ok := i.getVar(varName, localVars); ok {
+					result.WriteString(val)
+				}
+			} else {
+				result.WriteByte('$')
+			}
+			continue
+		}
+
+		if ch == '[' {
+			// Command substitution — parse balanced [...] and execute
+			depth := 1
+			start := pos + 1
+			pos++
+			for pos < len(s) && depth > 0 {
+				if s[pos] == '\\' {
+					pos += 2
+					continue
+				}
+				if s[pos] == '[' {
+					depth++
+				} else if s[pos] == ']' {
+					depth--
+				}
+				if depth > 0 {
+					pos++
+				}
+			}
+			cmdText := s[start:pos]
+			if pos < len(s) {
+				pos++ // skip closing ]
+			}
+			// Execute the command and capture the result (from i.vars[""])
+			i.execScript(cmdText, localVars)
+			result.WriteString(i.vars[""])
+			continue
+		}
+
+		result.WriteByte(ch)
+		pos++
+	}
+	return result.String()
+}
+
+// evalAllWords substitutes all words in a rawWord slice.
+func (i *Interp) evalAllWords(words []rawWord, localVars map[string]string) ([]string, error) {
+	result := make([]string, 0, len(words))
+	for _, rw := range words {
+		val, err := i.evalWord(rw, localVars)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, val)
+	}
+	return result, nil
+}
+
 // execScript executes a script (sequence of commands).
 func (i *Interp) execScript(src string, localVars map[string]string) error {
 	cmds := parseCommands(src)
@@ -61,8 +206,8 @@ func (i *Interp) execScript(src string, localVars map[string]string) error {
 		if len(cmd) == 0 {
 			continue
 		}
-		// Skip comments
-		if strings.HasPrefix(cmd[0], "#") {
+		// Skip comments (parser already handles most, but double-check)
+		if len(cmd[0].text) > 0 && cmd[0].text[0] == '#' && !cmd[0].braced && !cmd[0].quoted {
 			continue
 		}
 		err := i.execCommand(cmd, localVars)
@@ -777,7 +922,7 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 
 // cmdDoExecSQL handles do_execsql_test [-db db] name { SQL } { expected }
 func (i *Interp) cmdDoExecSQL(rawWords []rawWord, localVars map[string]string) error {
-	words := i.evalAllWords(rawWords[1:], localVars)
+	words, _ := i.evalAllWords(rawWords[1:], localVars)
 	// Skip optional -db flag
 	idx := 0
 	if idx < len(words) && words[idx] == "-db" {
@@ -817,7 +962,7 @@ func (i *Interp) cmdDoExecSQL(rawWords []rawWord, localVars map[string]string) e
 
 // cmdDoCatchSQL handles do_catchsql_test name { SQL } { expected_error }
 func (i *Interp) cmdDoCatchSQL(rawWords []rawWord, localVars map[string]string) error {
-	words := i.evalAllWords(rawWords[1:], localVars)
+	words, _ := i.evalAllWords(rawWords[1:], localVars)
 	if len(words) < 2 {
 		return nil
 	}
@@ -976,59 +1121,4 @@ func min(a, b int) int {
 		return a
 	}
 	return b
-}
-
-// EvalExpr evaluates a TCL expression string.
-// Supports: arithmetic (+,-,*,/,%), comparison (<,>,<=,>=,==,!=),
-// logical (&&,||,!), string comparison (eq, ne), parentheses,
-// functions (abs, double, int, etc.), and variable references.
-func EvalExpr(expr string, interp *Interp, localVars map[string]string) (string, error) {
-	expr = strings.TrimSpace(expr)
-	if expr == "" {
-		return "", nil
-	}
-	// Substitute TCL variables first ($var)
-	substituted := interp.substitute(expr, localVars)
-	// Convert TCL expression to a Python-evaluatable form
-	result, err := evalExprString(substituted)
-	if err != nil {
-		return substituted, nil // fallback: return as-is
-	}
-	return result, nil
-}
-
-// evalExprString evaluates a numeric/logical expression.
-func evalExprString(s string) (string, error) {
-	s = strings.TrimSpace(s)
-	if s == "" {
-		return "", nil
-	}
-	// Simple recursive descent parser for expressions
-	p := &exprParser{input: s, pos: 0}
-	result, err := p.parseExpr()
-	if err != nil {
-		return s, nil
-	}
-	return formatExprResult(result), nil
-}
-
-func formatExprResult(v interface{}) string {
-	switch x := v.(type) {
-	case float64:
-		if x == math.Trunc(x) && math.Abs(x) < 1e15 {
-			return strconv.FormatInt(int64(x), 10)
-		}
-		return strconv.FormatFloat(x, 'g', -1, 64)
-	case int64:
-		return strconv.FormatInt(x, 10)
-	case bool:
-		if x {
-			return "1"
-		}
-		return "0"
-	case string:
-		return x
-	default:
-		return fmt.Sprintf("%v", v)
-	}
 }
