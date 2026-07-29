@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -221,6 +222,41 @@ func extractSection(name string) int {
 	return n
 }
 
+// extractSectionTuple extracts the full numeric section as a tuple of ints
+// for proper numeric sorting (e.g., "1.10" > "1.2"). Returns (section, subsection).
+func extractSectionTuple(name string) (int, int) {
+	if name == "" || strings.HasPrefix(name, "__") {
+		return 0, 0
+	}
+	parts := strings.Split(name, "-")
+	if len(parts) < 2 {
+		return 0, 0
+	}
+	subParts := strings.Split(parts[1], ".")
+	section, _ := strconv.Atoi(subParts[0])
+	subsection := 0
+	if len(subParts) > 1 {
+		subsection, _ = strconv.Atoi(subParts[1])
+	}
+	return section, subsection
+}
+
+// sortTestsBySection sorts test cases by their numeric section/subsection
+// to restore the original TCL file order. The JSON converter sorts tests
+// alphabetically, which reverses sections (e.g., "10.0" before "2.0").
+// Tests with no numeric section (section=0) are kept in their original
+// relative order (stable sort).
+func sortTestsBySection(tests []TestCase) {
+	sort.SliceStable(tests, func(i, j int) bool {
+		si, ssi := extractSectionTuple(tests[i].Name)
+		sj, ssj := extractSectionTuple(tests[j].Name)
+		if si != sj {
+			return si < sj
+		}
+		return ssi < ssj
+	})
+}
+
 func TestSQLiteSuite(t *testing.T) {
 	pattern := os.Getenv("FRIGOLITE_TEST")
 	runSlow := os.Getenv("FRIGOLITE_RUN_SLOW") != ""
@@ -267,6 +303,13 @@ func TestSQLiteSuite(t *testing.T) {
 			// reordered tests within this file. Reset for each test file
 			// to avoid data races across parallel goroutines.
 			var lastSection int
+
+			// Sort tests by section/subsection to fix JSON alphabetical ordering.
+			// The converter sorts tests alphabetically, which reverses the original
+			// TCL file order. This causes setup steps (CREATE TABLE, etc.) to run
+			// after queries that reference those tables. Sorting by numeric section
+			// restores the intended execution order.
+			sortTestsBySection(td.Tests)
 
 			for i := 0; i < len(td.Tests); i++ {
 				tc := td.Tests[i]
