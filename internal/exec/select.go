@@ -831,7 +831,11 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			autoIndex = make(map[interface{}][]RowMap)
 			for _, rm := range rightMaps {
 				if val, ok := rm[rightColName]; ok {
-					autoIndex[val] = append(autoIndex[val], rm)
+					// Unwrap *ColumnValue so the map key compares by value,
+					// not by pointer identity. Without this, two rows with
+					// equal column values but different *ColumnValue pointers
+					// never match in the hash lookup.
+					autoIndex[util.UnwrapColumnValue(val)] = append(autoIndex[util.UnwrapColumnValue(val)], rm)
 				}
 			}
 		}
@@ -873,7 +877,8 @@ func (e *Engine) processJoinRow(leftMap RowMap, rightMaps []RowMap, combinedMaps
 		// Use hash index: extract the left column value and look up matching right rows
 		leftColName, _ := extractEquiJoinCols(join.On, s.From.Name, tableName)
 		if leftColVal, ok := leftMap[leftColName]; ok {
-			if rightRows, ok := autoIndex[leftColVal]; ok {
+			// Unwrap *ColumnValue to match the unwrapped keys in the autoIndex.
+			if rightRows, ok := autoIndex[util.UnwrapColumnValue(leftColVal)]; ok {
 				for _, rightMap := range rightRows {
 					combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name)
 					if e.evalOnCondition(join.On, combinedMap) {
@@ -990,18 +995,23 @@ func (e *Engine) filterUsingColumns(rightDefs []sql.ColumnDef, on sql.Expr) []sq
 
 // collectUsingColumns recursively walks a USING-generated ON expression and
 // collects column names from equality comparisons (col = col).
+// A USING clause is converted by the parser to "col = col" where both sides
+// have the SAME name and NO table qualifier. Regular ON conditions like
+// "t1.a = t2.c" have table qualifiers or different names, so they are excluded.
 func collectUsingColumns(expr sql.Expr, cols map[string]bool) {
 	switch v := expr.(type) {
 	case *sql.ParenExpr:
 		collectUsingColumns(v.Expr, cols)
 	case *sql.BinaryOp:
 		if v.Operator == "=" {
-			// Both sides should have the same column name in USING
-			if leftRef, ok := v.Left.(*sql.ColumnRef); ok {
+			leftRef, leftOK := v.Left.(*sql.ColumnRef)
+			rightRef, rightOK := v.Right.(*sql.ColumnRef)
+			// Only treat as USING if both sides are unqualified column refs
+			// with the same name — this is the signature of a USING clause.
+			if leftOK && rightOK &&
+				leftRef.Table == "" && rightRef.Table == "" &&
+				leftRef.Name == rightRef.Name {
 				cols[leftRef.Name] = true
-			}
-			if rightRef, ok := v.Right.(*sql.ColumnRef); ok {
-				cols[rightRef.Name] = true
 			}
 		} else if v.Operator == "AND" {
 			collectUsingColumns(v.Left, cols)
