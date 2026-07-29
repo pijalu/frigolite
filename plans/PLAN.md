@@ -1,710 +1,157 @@
-# Frigolite — Master Plan: Feature-Complete SQLite Compatibility
+# Frigolite — Master Plan: Complete SQLite Feature Parity
 
-> **Status**: ACTIVE — post-G04 (engine.go decomposed, ATTACH/DETACH in progress).
-> **Target**: Frigolite is **feature-complete**, matching SQLite behaviour for
-> all harness tests; **performant** (suite completes <60s, benchmarks within
-> target); and **SOLID** (cognitive complexity <15 after feature freeze).
-> **Execution**: Sequential, one phase = one goal, autonomous simple-execution
-> model. Each phase is self-contained — an agent with no prior context must be
-> able to implement it from this document plus the referenced source files.
+> **Status**: ACTIVE — rewriting from ground-truth measurements.
+> **Goal**: **ALL 1002 harness test files green** (1002/1002), with SOLID
+> architecture and good performance. No skip-list entries remain.
+> **Execution**: Sequential — one phase = one goa goal. Each phase is
+> self-contained: an agent with no prior context can implement it from this
+> document plus the referenced SQLite C source.
 
 ---
 
-## Current State Assessment (verified)
+## Verified Ground Truth (measured before rewrite)
 
-This section records the verified ground truth as of the rewrite. Every phase
-below starts from here.
+### Test Results (the real numbers)
+| Metric | Count | % |
+|--------|-------|---|
+| Total test files | 1002 | 100% |
+| Skipped (unsupported) | 134 | 13.4% |
+| Skipped (slow) | 3 | 0.3% |
+| Active test files | 865 | 86.3% |
+| **PASS (file-level)** | **213** | **24.6%** |
+| **FAIL (file-level)** | **656** | **75.4%** |
 
-### Architecture
-- **13 internal packages**, correctly layered (SOLID import-boundary test passes).
-- Layer order: `util`/`value`/`auth`(0) → `storage`(1) → `pager`(2) →
-  `btree`(3) → `sql`/`rename`(4) → `schema`/`function`/`vtab`/`fts`(5) →
-  `exec`(6).
-- **`internal/exec/engine.go` = 9,472 lines** in a single file. This is the
-  dominant SOLID violation. It contains ALL execution logic: SELECT, INSERT,
-  UPDATE, DELETE, all DDL, all PRAGMA handling, joins, subqueries, aggregates,
-  CTE, etc.
+### Failure Reasons (by frequency across all sub-tests)
+| Reason | Count | Notes |
+|--------|-------|-------|
+| result mismatch | 4980 | Query returns wrong data |
+| query error | 2875 | Most are "no such table" |
+| expected error but got success | 1357 | Wrong data accepted |
+| exec error | 1105 | Execution fails unexpectedly |
+| error mismatch | 594 | Wrong error message |
 
-### Performance (benchmarks, M4 Pro, benchtime=1000x)
-| Benchmark | Current | Target | SQLite ref | Status |
-|-----------|---------|--------|------------|--------|
-| BenchmarkInsert | ~2,100-2,900 ns/op | < 2,000 ns/op | ~500 ns/op | Close but not met |
-| BenchmarkSelect (1000 rows) | ~88,000-98,000 ns/op | < 100,000 ns/op | ~20,000 ns/op | **MET** |
-| BenchmarkSelectWhere | ~117,000-120,000 ns/op | < 50,000 ns/op | ~12,000 ns/op | Not met (needs streaming) |
-| Full test suite | **~37s** | < 60s | — | **MET** |
+### Top Error Patterns (the blockers)
+| Pattern | Count | Root cause |
+|---------|-------|------------|
+| "no such table: t1" | 1305 | JOIN bugs, subquery bugs, expected errors |
+| "no such table" (other) | 1342 | Same + temp tables, views |
+| "unknown function" | 307 | Missing SQL functions |
+| "database disk image is malformed" | 76 | Corruption / format bugs |
+| "btree" errors | 63 | B-tree bugs |
+| UNIQUE constraint failures | ~57 | Constraint handling bugs |
+| "attached databases must use same text encoding" | 47 | ATTACH bug |
+| "unrecognized date/time" | 14 | Date/time function bugs |
 
-### Stability (post-G02/G03 fixes)
-1. **All panics fixed** — subquery filter path (`rowPassesWhere` nil check) and
-   pager page-in-range errors resolved in G02.
-2. **Multi-level B-tree** — was limited to ~48K rows (interior page capacity).
-   Now supports millions of rows via proper recursive split propagation and path-stack
-   cursor traversal. This was a critical correctness bug discovered during G03
-   performance work (the benchmark crashed at >48K inserts).
-3. **No panics, no timeouts** — the full test suite runs to completion in ~37s
-   with parallel test execution.
-4. **No "out of range" errors** in btree/pager paths.
+### Known Broken Features (verified by isolated testing)
+| Feature | Status | Example |
+|---------|--------|---------|
+| `JOIN ... USING` | **BROKEN** — returns empty | `SELECT * FROM t1 JOIN t2 USING(a)` → [] |
+| `LEFT JOIN` | **BROKEN** — returns NULLs instead of matches | `SELECT * FROM t1 LEFT JOIN t2 ON ...` → all NULLs |
+| `RIGHT JOIN` | **BROKEN** — returns empty | |
+| `FULL JOIN` | **BROKEN** — returns empty | |
+| `NATURAL JOIN` | **BROKEN** — returns cross-join | |
+| Scalar subquery | **BROKEN** — returns NULL | `SELECT a, (SELECT d FROM t2 WHERE c=t1.a) FROM t1` |
+| `EXISTS` subquery | **BROKEN** — returns empty | |
+| Comma-join with derived table | **BROKEN** — "no such table: " | `SELECT * FROM t1, (SELECT ...)` |
+| Window functions | **BROKEN** — returns NULL | `row_number() OVER (...)` |
+| FTS3/4/5 | **NOT IMPLEMENTED** | 55+ fts test files fail |
+| RIGHT/FULL JOIN execution | **NOT IMPLEMENTED** | Parsed but not executed |
+| JSON functions (partial) | **MISSING** | json_valid, json_remove, json_type |
+| WAL mode | **NOT IMPLEMENTED** | Rollback journal only |
 
-### Test Infrastructure
-- `frigolite_harness_test.go` — the **test oracle**: reads 1,002 JSON files
-  from `testdata/`, each converted from an SQLite TCL test.
-- **Skip lists** in the harness:
-  - `slowTestFiles`: 3 files (joinD, emptytable, indexexpr1) — too slow.
-  - `unsupportedTestFiles`: ~121 files — features not yet implemented.
-- Net: ~878 test files actively run (but crash before finishing).
-- **DELETED**: `frigolite_sqlite_compat_test.go` (1,088 tests, 3 MB) —
-  superseded by the JSON harness. Removed in this rewrite.
+### Architecture (verified)
+- **13 internal packages**, correctly layered (SOLID test passes).
+- `internal/exec/` has 13 files, 10,481 total lines. Biggest: `select.go`
+  (2999), `alter.go` (2188), `ddl.go` (1398), `expression.go` (1195).
+- No panics, no timeouts in the full suite (~13s).
 
-### Committed-File Review (G07 commit `d3827ec`)
-Found and **removed**:
-- `cannot-read` (0-byte junk — test artifact)
-- `file:test.db2?vfs=tvfs2` (0-byte junk — ATTACH test artifact)
-- `file:test2.db?8_3_names=1` (0-byte junk — filename test artifact)
-- `.gitignore` updated to prevent recurrence (`cannot-read`, `file:*`).
+### Performance (M4 Pro, benchtime=1000x)
+| Benchmark | Current | Target | Status |
+|-----------|---------|--------|--------|
+| TestSQLiteSuite | ~13s | <60s | **MET** |
+| BenchmarkInsert | ~2100-2900 ns/op | <2000 | Close |
+| BenchmarkSelect | ~88-98K ns/op | <100K | **MET** |
 
-### Features Already Implemented
-- **Parser**: DDL (CREATE/DROP TABLE/INDEX/VIEW/TRIGGER/VIRTUAL TABLE),
-  DML (INSERT/UPDATE/DELETE with conflict clauses), SELECT (WHERE, JOIN,
-  GROUP BY, ORDER BY, LIMIT/OFFSET, DISTINCT, UNION, subqueries, CASE, CAST,
-  EXISTS, IN, BETWEEN, LIKE, GLOB), EXPLAIN/EQP, PRAGMA, ATTACH/DETACH (parse),
-  SAVEPOINT, VACUUM, REINDEX, ANALYZE (parse).
-- **CTE**: `WITH` and `WITH RECURSIVE` (`execSelectCTE`, `execRecursiveCTE`).
-- **Window**: `WindowDef` AST node exists (PARTITION BY); execution is partial.
-- **RETURNING**: AST fields exist; execution partial.
-- **Functions**: 90+ scalar/aggregate (incl. JSON_ARRAY, JSON_OBJECT, JSONB,
-  trig, COMPRESS/UNCOMPRESS, CRC32, PRINTF, etc.).
-- **FTS**: tokenizer, inverted index, MATCH query parser (skeleton).
-- **vtab**: `generate_series` module.
-- **rename**: extracted token-level rename package.
-- **ATTACH**: `findTable` searches attached DBs (partial dispatch).
+---
+
+## Development Principles (Binding)
+
+1. **1002/1002 is the goal** — the "unsupported" skip list is a tracking
+   mechanism, never an acceptable end state. Every test that passes on SQLite
+   must pass on Frigolite.
+2. **Test surface is sacred** — never weaken an assertion or delete a test to
+   pass. Setup/teardown MAY change; functional scope MAY NOT.
+3. **Go stdlib first** — no CGO, no external Go modules, no `sqlite3` at runtime.
+4. **SQLite is the oracle** — `/usr/bin/sqlite3` (v3.51.0) MAY be used at
+   *test-generation time* to capture expected output; never at *test-run time*.
+   The SQLite C source at `/Users/muaddib/dev/sqlite/src/` is the behavioural
+   spec.
+5. **SOLID design** — new subsystems get their own `internal/` package; update
+   `internalLayers` in `frigolite_solid_test.go` when adding packages. One
+   responsibility per package.
+6. **Complexity gate** — target cognitive complexity **<15** per function.
+   Gate stays at 90 during feature work (G01–G12); enforced in G13.
+7. **Regression prevention** — after each step: `go build ./...` + the step's
+   verify command. After each phase: `go test -run TestSOLID_ ./...` + full suite.
+8. **Commit after every step** — see "Per-Step Protocol" below.
+
+### Per-Step Protocol (MANDATORY for every step in every phase)
+
+After completing each numbered step within a phase:
+
+1. **Run the verify command** for that step (from the `Verify` section).
+2. **Run `go build ./...`** — must compile.
+3. **Commit** with message: `G<NN>.<step>: <description of what changed>`.
+4. **Update this plan** — mark the step done (change `[ ]` to `[x]`), update
+   the "Live Metrics" table with the new pass count, and note any findings or
+   deviations in the step's "Notes" line. This is how the next agent (or
+   continuation turn) knows exactly where things stand.
+
+This ensures: every step is independently verifiable, every change is
+recoverable, and the plan always reflects ground truth.
 
 ---
 
 ## Phase Dependency Chain
 
 ```
-G01  Cleanup & Hygiene          ← quick; removes junk + dead tests
+G01  JOIN & Subquery Engine Fix     ← highest impact: flips hundreds of tests
  │
-G02  Engine Stabilization       ← fix panics; suite must complete
+ ├── G02  Expression & Type Affinity  ← fixes e_* and expr* tests
  │
-G03  Performance                ← suite <60s; benchmarks meet targets
+ ├── G03  SQL Functions Completion    ← fixes json1, func, date/time
  │
-G04  SOLID Decomposition        ← split engine.go; behaviour-preserving
+ ├── G04  Constraint Enforcement      ← fixes UNIQUE/NOT NULL/CHECK/FK
  │
- ├── G05  Parser Completeness   ← WINDOW exec, FILTER, RETURNING
- │        │
- │        └── G06  ALTER TABLE  ← token-level rename (needs full parser)
+ ├── G05  Window Functions            ← fixes window* (17 skipped + 3 active)
  │
- ├── G07  Query Planner         ← ANALYZE, cost-based, EQP, auto-index
+ ├── G06  ALTER TABLE Completeness    ← fixes altertab* (3 skipped + active)
  │
- ├── G08  ATTACH/DETACH         ← multi-database dispatch
+ ├── G07  Query Planner & ANALYZE     ← fixes where*, analyze*, eqp*
  │
- ├── G09  FTS3/4/5             ← shadow tables, segment merge
+ ├── G08  ATTACH / DETACH             ← fixes attach* (many skipped)
  │
- └── G10  Feature Completeness  ← remove skip-list entries one-by-one
-      │
-      G11  Quality & Final      ← complexity <15, full green
+ ├── G09  FTS3/4/5                   ← fixes fts3*/fts4*/fts5* (~76 files)
+ │
+ ├── G10  Virtual Tables & Remaining  ← fixes vtab*, bestindex*, misc
+ │
+ ├── G11  Corruption & Edge Cases     ← fixes corrupt*, tkt*, bigfile*
+ │
+ ├── G12  Remove All Skip-List Entries ← zero skips, fix remaining
+ │
+ └── G13  Quality & SOLID Final       ← complexity <15, full green, perf
 ```
 
-**Sequential order for a single agent stream:**
-**G01 → G02 → G03 → G04 → G05 → G06 → G07 → G08 → G09 → G10 → G11**
-
-G05/G06, G07, G08, G09 are independent after G04 but run sequentially to avoid
-merge conflicts in the shared `engine.go`/exec package.
+**Sequential order**: G01 → G02 → G03 → G04 → G05 → G06 → G07 → G08 →
+G09 → G10 → G11 → G12 → G13
 
 ---
 
-## Development Principles (Binding)
-
-1. **Test surface is sacred** — never weaken an assertion or delete a test to
-   pass. Setup/teardown MAY change; functional scope MAY NOT.
-2. **Go stdlib first** — no CGO, no external Go modules, no `sqlite3` at
-   runtime.
-3. **SQLite is the oracle** — `/usr/bin/sqlite3` (v3.51.0) MAY be used at
-   *test-generation time* to capture expected output; never at *test-run time*.
-4. **SOLID design** — new subsystems get their own `internal/` package; update
-   `internalLayers` in `frigolite_solid_test.go` when adding packages.
-5. **Complexity gate** — target cognitive complexity **<15** per function. This
-   is **deferred until after feature freeze** (G11). During G01–G10 the existing
-   gate (90) stays so feature work is not blocked.
-6. **Regression prevention** — after each phase: `go build ./...` +
-   `go test -run TestSOLID_ ./...` + the phase's verify command.
-
----
-
-## Phase Detail
-
-Each phase below is self-contained: objective, current problem, step-by-step
-instructions, files to touch, SQLite reference, and a verify command.
-
----
-
-### G01 — Cleanup & Repository Hygiene
-
-**Objective**: Remove dead tests and junk files; commit a clean baseline.
-
-**Status**: ✅ DONE in this rewrite (staged, pending commit).
-
-**Steps**:
-1. `git rm -f frigolite_sqlite_compat_test.go` — deprecated compat tests.
-2. `git rm` the 3 junk files: `cannot-read`, `file:test.db2?vfs=tvfs2`,
-   `file:test2.db?8_3_names=1`.
-3. Add `cannot-read` and `file:*` to `.gitignore`.
-4. Update `AGENTS.md` test count and remove compat-test references.
-5. Commit: `chore: remove deprecated compat tests and junk files`.
-
-**Verify**:
-```bash
-go build ./... && echo "build OK"
-go test -run TestSOLID_ -count=1 ./... && echo "SOLID OK"
-git status --porcelain   # should be clean after commit
-```
-
----
-
-### G02 — Engine Stabilization (fix crashes)
-
-**Objective**: The test suite (`TestSQLiteSuite`) must run to completion
-without panicking, even if some sub-tests fail. No timeouts.
-
-**Current problem**: Two crash classes prevent the suite from completing:
-
-**Bug A — nil-pointer panic in subquery WHERE**:
-`execSelectFromSubquery` (engine.go:~3379) calls `filterSubqueryRows`
-(line ~3531), which calls `rowPassesWhere(where, rowMap, nil)` (line ~3538).
-But `rowPassesWhere` (line ~5145) calls `e.evalBool(where, row)` where `row`
-is typed `Row` but receives a `RowMap`. The `evalBool` path then dereferences
-the wrong type → nil pointer panic.
-
-**Fix A**: Make the WHERE evaluation for subquery materialisation use the same
-row/column-resolution mechanism as normal table scans. Two options:
-- **Option 1 (preferred)**: Convert `filterSubqueryRows` to build a synthetic
-  `Row` (or pass `colDefs`) so `evalBool` resolves column references the same
-  way it does for base-table scans. The function already has `colDefs`
-  available in the caller (engine.go:~3370 builds `rowMap[colDefs[j].Name]`).
-- **Option 2**: Add a dedicated `evalBoolRowMap(where, rowMap)` that resolves
-  `ColumnRef` lookups against the map. Simpler but duplicates logic.
-
-**Bug B — pager "page out of range"**:
-During certain INSERT sequences (multi-row insert, large records, or
-WITHOUT ROWID tables), the btree page-split allocates a page number beyond the
-pager's known page count. Symptom: `pager: page 261 out of range (max 20)`.
-
-**Fix B**: Trace the split path in `internal/btree/btree.go`. The issue is in
-page allocation during `splitLeaf`/`splitInterior`. The new page number must be
-`pager.PageCount()` (append), and the pager's page count must be incremented
-atomically. Check:
-- `btree.go` `splitNode` / `splitPage` — verify the new page number comes from
-  `pager.AllocatePage()` not from a stale cached count.
-- `pager.go` `AllocatePage()` — verify it increments the file header's page
-  count and grows the cache map.
-
-**SQLite reference**:
-- Bug A: `/Users/muaddib/dev/sqlite/src/where.c` — SQLite evaluates WHERE on
-  materialised subquery results using the same `WhereInfo` machinery as base
-  tables; there is no separate "RowMap" code path.
-- Bug B: `/Users/muaddib/dev/sqlite/src/btree.c` functions
-  `allocateBtreePage()` and `balance()` — page allocation during splits.
-
-**Files to modify**:
-- `internal/exec/engine.go` — `filterSubqueryRows`, `rowPassesWhere`,
-  `execSelectFromSubquery` (lines ~3370–3545, ~5145).
-- `internal/btree/btree.go` — split/allocation path.
-- `internal/pager/pager.go` — `AllocatePage` if needed.
-
-**Steps**:
-1. Reproduce Bug A: find a test case in `testdata/` that triggers
-   `execSelectFromSubquery` with a WHERE clause (search for `SELECT * FROM
-   (SELECT ...) WHERE`). Create a minimal hand-written test that reproduces the
-   panic (test-first / RED).
-2. Fix `filterSubqueryRows` to pass column definitions so `evalBool` can
-   resolve references. Run the minimal test → GREEN.
-3. Reproduce Bug B: search `testdata/` for the INSERT pattern that triggers
-   "page out of range" (the error appears in the sample log). Create a minimal
-   test that inserts enough rows to trigger a page split.
-4. Fix the page-allocation path. Run the test → GREEN.
-5. Run the full harness with a timeout: it must complete (even with failures).
-
-**Verify**:
-```bash
-# Suite completes without panic (failures are OK in this phase)
-go test -run "^TestSQLiteSuite$" -count=1 -timeout 120s . 2>&1 | tee /tmp/g02.log
-! grep -q "panic:" /tmp/g02.log
-! grep -q "out of range" /tmp/g02.log
-grep -q "^FAIL\|^ok" /tmp/g02.log   # reaches a terminal state
-```
-
----
-
-### G03 — Performance
-
-**Objective**: Full test suite completes in <60s. Benchmarks meet targets.
-
-**Results (verified M4 Pro, benchtime=1000x)**:
-| Metric | Before | After | Target | Status |
-|--------|--------|-------|--------|--------|
-| TestSQLiteSuite | >45s (timeout/crash) | **~37s** | <60s | **MET** |
-| BenchmarkInsert | 3,582 ns/op | ~2,100-2,900 ns/op | <2,000 | Close but not met |
-| BenchmarkSelect | 142,225 ns/op | ~88,000-98,000 ns/op | <100K | **MET** |
-| BenchmarkSelectWhere | 175,413 ns/op | ~117,000-120,000 ns/op | <50K | Not met |
-
-**What was done** (in execution order):
-
-**1. Profiling and bottleneck identification:**
-- Profiled with CPU and memory profiles (pprof). Found dominant cost was
-  allocation pressure from per-row struct allocations, string decoding, and
-  output row building.
-- Identified GC/scheduling overhead consuming ~70% of CPU time.
-
-**2. Statement caching in public API** (`frigolite.go`, `internal/exec/engine.go`):
-- Changed `DB.Exec` and `DB.Query` to use `Engine.Prepare` (existing stmtCache).
-- Added cache size limit (1000 entries) to prevent unbounded growth.
-
-**3. EncodeRecord allocation elimination** (`internal/storage/storage.go`):
-- Replaced per-value byte slice allocations with `encodeValueSize` +
-  `encodeValueInto` that compute sizes first, then write directly into a single
-  output buffer.
-- Result: one allocation per record instead of N+1 allocations.
-
-**4. Insert path optimization** (`internal/exec/engine.go`):
-- Applied affinity in-place on the values slice instead of allocating a
-  separate `affValues` slice.
-- Added trigger-existence cache (`hasTriggersCache`) to avoid schema lookups
-  on every INSERT for tables without triggers (cached per table, invalidated
-  when triggers are created/dropped).
-- Only builds the trigger RowMap when triggers actually exist for the table.
-
-**5. SELECT * fast path + structRow reuse** (`internal/exec/engine.go`):
-- Replaced per-row `&structRow{}` allocation with a single reusable structRow.
-- Added SELECT * fast path: copies decoded values directly to output rows,
-  skipping the `row.Get` map lookups and `UnwrapColumnValue` calls.
-- Pre-allocates larger output capacity (1024 vs 256).
-
-**6. DecodeRecordValuesFiltered stack allocation** (`internal/storage/storage.go`):
-- Replaced dynamic `var serialTypes []uint64` with stack-allocated
-  `var stackSerialTypes [16]uint64`, avoiding per-row heap allocation for
-  records with up to 16 columns.
-
-**7. Fast comparison path for WHERE** (`internal/exec/engine.go`):
-- Added `fastEvalComparison` in `rowPassesWhere` that handles simple
-  `ColumnRef OP Literal` (and `Literal OP ColumnRef`) comparisons directly,
-  avoiding the full `evalExpr` → `evalBinaryOp` → `evalBinaryOpValues` chain.
-- Added direct int64 fast path in `compareValuesWithCollate` for the common
-  case of integer column vs integer literal.
-- Both integer and non-integer fast paths available.
-
-**8. Lexer allocation reduction** (`internal/sql/lexer.go`):
-- `readIdent`: replaced `[]byte` buffer + `string(buf)` with direct string
-  slice (`t.input[identStart:t.pos]`), avoiding one allocation per identifier.
-- `readNumber`: fast path for simple integers uses direct string slice,
-  avoiding byte buffer allocation. Complex numbers (hex, float, exponent,
-  underscore separators) fall through to the original path.
-- `readString`: fast path for strings without escaped quotes uses direct
-  string slice. Strings with `''` escape sequences use the original buffer path.
-- `simpleSingleCharToken`: replaced `string(ch)` allocation with pre-defined
-  constant string literals.
-
-**9. Parallel test execution** (`frigolite_harness_test.go`):
-- Added `t.Parallel()` to per-file sub-tests. Each test has its own in-memory
-  DB so concurrent execution is safe.
-- Reduced suite wall-clock from ~60s to ~37s (~38% improvement).
-
-**10. Multi-level B-tree (critical correctness fix)** (`internal/btree/btree.go`):
-- The btree was limited to 2 levels (interior root → leaf children). Interior
-  pages had no split logic, so the tree could not grow beyond ~48K rows.
-- Rewrote insert path with proper recursive split propagation:
-  - `InsertCell` delegates to `insertPage(rootPage, cell)` which returns
-    `(splitKey, newSibling, error)`. If splitKey > 0, a new root is created.
-  - `insertLeafPage`: direct insert or leaf split with propagation.
-  - `insertInteriorPage`: routes to child, handles child split, splits itself
-    if full.
-- Rewrote cursor traversal to support multi-level trees:
-  - Added `path []cursorPathEntry` stack to the cursor.
-  - `descendToFirstLeaf` / `descendToFirstLeafFromCurrent` push entries as
-    they descend through interior pages.
-  - `navigateToNextChild` walks up the path stack to find the next sibling,
-    then descends.
-- Removed the old `insertIntoInterior`, `insertIntoInteriorChild`,
-  `splitInteriorAndRetry`, `splitInteriorAndRetryWithCell`, `retryInsertFromRoot`
-  dead code.
-- Fixed `CellPointer` offset calculation in cursor navigation for interior pages.
-- Verified: 1M rows inserted, scanned, and counted correctly.
-
-**Steps not completed** (deferred to later phases for the remaining gap):
-- **Index-based JOIN** (Step 1 in original plan): not implemented — deferred
-  to G07 (Query Planner).
-- **Pager read-copy elimination** (Step 2): the pager already returned pointer
-  to cached page (no copy). Confirmed no change needed.
-- **Lazy record decoding** (Step 3): `DecodeRecordValuesFiltered` exists but
-  lazy decode was attempted and found net-negative for SelectWhere
-  (re-parsing header outweighed savings). Disabled for now.
-
-**Remaining gap analysis**:
-- **Insert <2000**: would require parameterized prepared statements to avoid
-  per-call SQL parsing (which dominates the ~2100-2900 ns/op).
-- **SelectWhere <50K**: would require streaming result sets (instead of
-  materializing all rows into a `[][]interface{}` slice). The per-row
-  allocation of output slices (~117K out of ~175K baseline = 33% reduction)
-  cannot be eliminated without changing the result API.
-
-**Verify**:
-```bash
-go test -bench=. -benchtime=1000x ./benchmarks/ 2>&1 | tee /tmp/g03_bench.log
-go test -run "^TestSQLiteSuite$" -count=1 -timeout 90s . 2>&1 | tee /tmp/g03.log
-```
-
-### G04 — SOLID Decomposition (engine.go)
-
-**Objective**: Split `engine.go` (9,472 lines) into focused files. No
-behaviour change. All tests still pass.
-
-**Current problem**: One file holds ALL execution logic. Cognitive complexity
-of individual functions is manageable (gate passes at 90), but the file is
-unmaintainable and violates Single Responsibility.
-
-**Rules**:
-- **Behaviour-preserving** — move code, do not rewrite logic. No new features.
-- One file per major responsibility. Target: no file > ~1,500 lines.
-- Keep everything in `package exec` (no new package needed yet — extraction to
-  sub-packages can happen later if import boundaries require it).
-- Run the full test suite after EACH file split to catch regressions.
-
-**Target file structure**:
-| New file | Content moved from engine.go | Approx lines |
-|----------|------------------------------|--------------|
-| `engine.go` | `Engine` struct, `NewEngine`, `Exec` dispatch, shared helpers | ~800 |
-| `select.go` | `execSelect`, `execSelectFrom*`, `execJoins`, `finalizeSelectResult`, aggregate handling | ~2,500 |
-| `insert.go` | `execInsert`, `execInsertSelect`, `execInsertDefault`, `execInsertOnConflict` | ~1,200 |
-| `update.go` | `execUpdate` | ~800 |
-| `delete.go` | `execDelete`, FTS delete helpers | ~600 |
-| `ddl.go` | `execCreateTable`, `execCreateTableAsSelect`, `execCreateIndex`, `execCreateView`, `execCreateTrigger`, `execCreateVirtualTable`, `execDrop*`, `execAlterTable*`, `execOtherDDL` | ~1,500 |
-| `pragma.go` | `execPragma`, all PRAGMA case handling | ~800 |
-| `subquery.go` | `execSelectFromSubquery`, `filterSubqueryRows`, `rowPassesWhere` | ~400 |
-| `cte.go` | `execSelectCTE`, `execRecursiveCTE` | ~500 |
-| `explain.go` | `execExplain`, `execExplainQueryPlan` | ~400 |
-| `transaction.go` | `execBegin`, `execCommit`, `execRollback`, `execAttach`, `execDetach`, `execSavepoint`, `execAnalyze`, `execReindex`, `execVacuum` | ~600 |
-
-**Steps**:
-1. Create each new file with `package exec` and the relevant `import` block.
-2. Move functions one group at a time (start with the most self-contained:
-   `pragma.go`, then `transaction.go`, then `explain.go`).
-3. After each move: `go build ./...` then run a fast test subset.
-4. Move the big ones last: `select.go`, `insert.go`, `ddl.go`.
-5. Resolve any duplicate helper functions (move shared helpers to `engine.go`
-   or a new `helpers.go`).
-6. Final: full test suite + SOLID test.
-
-**SQLite reference**: `src/vdbe.c` is SQLite's giant opcode executor, but the
-C is split across `insert.c`, `delete.c`, `update.c`, `select.c`, `trigger.c`,
-`pragma.c`, etc. Frigolite mirrors this structure.
-
-**Verify**:
-```bash
-go build ./... && echo "build OK"
-go test -run TestSOLID_ -count=1 ./... && echo "SOLID OK"
-go test -run "^TestSQLiteSuite$" -count=1 -timeout 120s . 2>&1 | tee /tmp/g04.log
-# Same pass/fail count as end of G03 (no regressions)
-make quality
-```
-
----
-
-### G05 — Parser Completeness (WINDOW, FILTER, RETURNING)
-
-**Objective**: Window functions, FILTER clause, and RETURNING execute
-correctly. `window*` and `with*` harness tests pass.
-
-**Current problem**: `WindowDef` AST node exists but execution is partial.
-`FILTER (WHERE ...)` for aggregates is not executed. `RETURNING` AST fields
-exist but rows are not returned.
-
-**Step 1 — Window function execution**:
-- File: `internal/exec/engine.go` (→ `select.go` after G04).
-- Implement the standard window-function pipeline:
-  1. Partition rows by PARTITION BY expressions.
-  2. Sort each partition by ORDER BY expressions.
-  3. Compute window-frame bounds (default: UNBOUNDED PRECEDING to CURRENT ROW
-     for ordered; whole partition for unordered).
-  4. Evaluate window aggregate over the frame.
-- Built-in window functions: `ROW_NUMBER()`, `RANK()`, `DENSE_RANK()`,
-  `LAG()`, `LEAD()`, `FIRST_VALUE()`, `LAST_VALUE()`, `NTH_VALUE()`, plus
-  aggregates used as window functions (`SUM`, `AVG`, `COUNT`, `MIN`, `MAX`).
-- SQLite ref: `src/window.c` — the canonical implementation. Key functions:
-  `sqlite3WindowCodeStep()`, `windowAggFinal()`.
-- Test data: `testdata/window1.json`–`windowE.json`, `windowerr.json`.
-
-**Step 2 — FILTER clause**:
-- Syntax: `aggregate_func(...) FILTER (WHERE expr)`.
-- File: parser (`internal/sql/parser.go`) — parse `FILTER` after an aggregate
-  call in the SELECT list.
-- Execution: when evaluating the aggregate, skip rows where the FILTER expr is
-  false (applied *before* aggregation, not to the result).
-- SQLite ref: `src/func.c` — `FILTER` is applied in the aggregate step.
-
-**Step 3 — RETURNING clause**:
-- Syntax: `INSERT/UPDATE/DELETE ... RETURNING col1, col2, *`.
-- File: `internal/sql/ast.go` (fields exist), `internal/exec/insert.go` /
-  `update.go` / `delete.go` (after G04).
-- Execution: after modifying each row, evaluate the RETURNING column list
-  against the row and yield it as a result row.
-- SQLite ref: `src/upsert.c`, `src/update.c` — `RETURNING` uses an ephemeral
-  table to collect rows.
-
-**Verify**:
-```bash
-FRIGOLITE_TEST=window go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s . 2>&1 | tee /tmp/g05_window.log
-FRIGOLITE_TEST=with go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s . 2>&1 | tee /tmp/g05_with.log
-go test -run TestSOLID_ -count=1 ./...
-```
-
----
-
-### G06 — ALTER TABLE (token-level rename)
-
-**Objective**: `ALTER TABLE ... RENAME TO` correctly updates all references in
-triggers, views, and indexes. `altertab*` harness tests pass.
-
-**Current problem**: String-regex rename fails when trigger/view bodies contain
-unsupported syntax (window functions, CTEs, FILTER). Partial work done (P3 in
-the old plan) — 5 tests fixed, ~55 remaining.
-
-**Approach**: Use the `internal/rename` package's token-level processing.
-SQLite re-parses the trigger/view SQL and replaces identifier *tokens*, not
-substrings. This is robust against any syntax in the body.
-
-**Steps**:
-1. When `ALTER TABLE old RENAME TO new`:
-   - For each trigger/view that references `old`, re-tokenize its stored SQL.
-   - Use `rename.FindRenameTokens(sql, "old", "new")` to find identifier tokens
-     matching `old` and replace with `new`.
-   - Re-store the modified SQL.
-2. Validate: `old` must not be a reserved keyword in the new name.
-3. Update `sqlite_schema` rows for the table, its indexes, and referencing
-   triggers/views.
-4. Handle `legacy_alter_table` PRAGMA (string-only rename, no token walk).
-
-**SQLite reference**: `src/alter.c` functions `sqlite3AlterRenameTable()`,
-`reloadTableSchema()`, and `renameTokenFind()`. The token walk uses the parser
-to find all `Token` objects equal to the old name.
-
-**Test data**: `testdata/altertab.json`, `altertab2.json`, `altertab3.json`,
-`alterlegacy.json`, `alterauth.json`, `altercorrupt.json`.
-
-**Verify**:
-```bash
-FRIGOLITE_TEST=altertab go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s . 2>&1 | tee /tmp/g06.log
-FRIGOLITE_TEST=alter go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s .
-```
-
----
-
-### G07 — Query Planner & ANALYZE (cost-based)
-
-**Objective**: Index selection uses statistics. `EXPLAIN QUERY PLAN` reports
-`SEARCH ... USING INDEX` when appropriate. `analyze*` tests pass.
-
-**Current problem**: The planner always does `SCAN t1` (full table scan). No
-ANALYZE statistics are consumed. Auto-indexes for joins are not created.
-
-**Step 1 — ANALYZE**:
-- File: `internal/exec/engine.go` (→ a new `internal/stats` concept or
-  `exec/analyze.go` after G04).
-- `ANALYZE` creates/updates `sqlite_stat1` (and optionally `sqlite_stat4`).
-  Store per-index: row count, distinct-value estimate, and histogram.
-- SQLite ref: `src/analyze.c`.
-
-**Step 2 — Cost-based index selection**:
-- For a WHERE clause `col = ?`, if an index covers `col`, estimate cost as
-  `estimatedRows / distinctValues` vs full-scan cost `estimatedRows`.
-- Choose the cheaper plan.
-- SQLite ref: `src/where.c` `whereLoopBuilder`, `src/wherecode.c`.
-
-**Step 3 — EXPLAIN QUERY PLAN**:
-- Output `SEARCH t1 USING INDEX idx (col=?)` when an index is used, `SCAN t1`
-  for full scan. Match SQLite's exact output format.
-- Test data: `testdata/eqp*.json`, `testdata/analyze*.json`.
-
-**Step 4 — Automatic indexes (auto-index)**:
-- For a join with no index on the join column, create a temporary ephemeral
-  index. This turns O(N×M) into O(N log M).
-- SQLite ref: `src/where.c` `whereLoopAddVirtualOne()` — automatic indexes.
-
-**Verify**:
-```bash
-FRIGOLITE_TEST=analyze go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s . 2>&1 | tee /tmp/g07.log
-FRIGOLITE_TEST=eqp go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s .
-FRIGOLITE_TEST=autoindex go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s .
-```
-
----
-
-### G08 — ATTACH / DETACH (multi-database)
-
-**Objective**: `ATTACH 'file.db' AS aux` makes `aux.t1` resolve to a table in
-the attached database. `attach*` tests pass.
-
-**Current state**: ATTACH/DETACH partially implemented. Core mechanisms work
-(multi-statement exec, schema resolution, encoding compatibility, case
-sensitivity in error messages). **93 of 181 attach* harness tests pass** with
-these fixes applied:
-
-**Fixes delivered:**
-1. **Case sensitivity fix** (`internal/sql/parser.go`) — `parseAttach()`/
-   `parseDetach()` preserve original case from input for keyword schema names via
-   `p.tokens.input[p.cur.Pos : p.cur.Pos+len(p.cur.Value)]`. Fixes 4 tests:
-   attach-1.15, 1.16, 1.17, 1.27.
-2. **Encoding mismatch check** (`internal/exec/ddl.go`) — `execAttach()` reads
-   attached database header TextEncoding and compares with main encoding. Returns
-   `"attached databases must use the same text encoding as main database"` on
-   mismatch.
-3. **Section-based attachment cleanup** (`frigolite_harness_test.go`) — Detects
-   JSON ordering reversals (alphabetical vs TCL order) via numeric section
-   comparison (`extractSection()`) and detaches stale attachments. Fixes 8 tests:
-   attach-1.11, 1.13, 1.14, 1.19, 1.21, 1.22, 1.28, 2.4.
-4. **DetachAll() method** — Added to Engine and DB types for targeted cleanup
-   of all non-main/non-temp attachments.
-
-**Remaining blockers (88 failures):**
-- **JSON test ordering** — The converter sorts tests alphabetically instead of
-  preserving TCL file order. Late-file tests (attach-11.1, attach-12.1 at lines
-  889/902 in TCL) run before early tests (attach-1.1 at line 31) in the JSON,
-  causing stale attachment conflicts.
-- **Missing TCL setup** — TCL commands like `sqlite3 db2 test2.db` (which
-  create auxiliary database connections) are not captured by the converter. The
-  `} db2` suffix on `execsql` blocks (indicating evaluation against a different
-  database handle) is lost. This means tables that should exist in test2.db
-  don't exist when ATTACH opens it.
-
-**To unblock**: Either (a) fix the JSON converter (`tools/convert_compat_json.py`)
-to preserve TCL file order and extract `sqlite3` setup commands, or (b) modify
-the test harness to reorder tests using source-line metadata.
-
-**SQLite reference**: `src/attach.c` functions `sqlite3AttachDatabase()`,
-`sqlite3DetachDatabase()`. Schema resolution in `src/build.c`
-`sqlite3LocateTable()`.
-
-**Test data**: `testdata/attach*.json`.
-
-**Verify**:
-```bash
-FRIGOLITE_TEST=attach go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s . 2>&1 | tee /tmp/g08.log
-```
-
----
-
-### G09 — FTS3/4/5 (full-text search)
-
-**Objective**: `CREATE VIRTUAL TABLE ft USING fts3/4/5(col)` creates a
-searchable full-text index. `MATCH` queries return ranked results.
-`fts3*`/`fts5*` tests pass.
-
-**Current problem**: Tokenizer and inverted index exist (`internal/fts/`) but
-there is no shadow-table architecture (the persistent segment store), no
-segment merge, and limited query support.
-
-**Steps**:
-1. **Shadow tables**: an FTS table `ft` creates `<ft>_content`, `<ft>_segdir`,
-   `<ft>_segments`, `<ft>_stat` shadow tables. These store the inverted index
-   persistently in the same DB file.
-2. **Insert path**: tokenize each row's text, write postings to the current
-   segment. Update `<ft>_content` with the rowid and column values.
-3. **MATCH query**: parse the MATCH expression (AND/OR/NOT/phrase/prefix),
-   look up postings in the segments, intersect/union doclists, return matching
-   rowids ranked by BM25 (FTS5) or the older FTS3 ranking.
-4. **Segment merge**: merge small segments into larger ones (the b-tree-style
-   merge in `fts3_write.c`).
-5. **FTS5-specific**: enhanced query syntax, column filters, `rank` function.
-
-**SQLite reference**: `ext/fts3/` (FTS3/4 source), `ext/fts5/` (FTS5 source).
-Key files: `fts3_write.c` (index write), `fts3.c` (query), `fts5_index.c`.
-
-**Test data**: `testdata/fts3*.json`, `testdata/fts5*.json`. Note: many FTS
-tests are currently in `unsupportedTestFiles` — remove entries as features land.
-
-**Verify**:
-```bash
-FRIGOLITE_TEST=fts3 go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 90s . 2>&1 | tee /tmp/g09.log
-FRIGOLITE_TEST=fts5 go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 90s .
-```
-
----
-
-### G10 — Feature Completeness (remove skip-list entries)
-
-**Objective**: Zero entries in `unsupportedTestFiles` and `slowTestFiles`. All
-1,002 harness test files run and the failing ones are fixed.
-
-**Current problem**: ~121 files are skipped because they need unimplemented
-features. Each skip entry names the missing feature.
-
-**Approach**: Work through `unsupportedTestFiles` in `frigolite_harness_test.go`
-grouped by feature category. For each group:
-1. Remove the skip entries for that group.
-2. Run the tests — capture failures.
-3. Implement the missing feature.
-4. Re-run until green.
-5. Move to the next group.
-
-**Categories** (grouped for efficiency):
-
-| Category | Files (examples) | Missing feature |
-|----------|------------------|-----------------|
-| WAL | `wal*` (3) | WAL journal mode. Decision: implement rollback-only is acceptable if tests are marked; else basic WAL. |
-| Threads | `thread*` (5) | Concurrent access / locking. |
-| Large data | `bigfile*`, `bigmmap`, `bigrow*`, `bigsort`, `zeroblob` (7) | Performance/correctness on large data. |
-| Tickets | `tkt*` (~55) | Various isolated bugs — fix case-by-case. |
-| Misc | `misc2`, `tempdb*`, `temptable*`, `unionall`, `affinity2`, `speed3`, `table*` (~10) | Various. |
-
-**SQLite reference**: Each `tkt*` file references a SQLite ticket number; the
-fix is documented in the SQLite commit that closed the ticket. Search
-`src/` changelog or the test file header.
-
-**Verify**:
-```bash
-# Count skip-list entries (must be 0)
-grep -cE '^\s+"[a-z]' frigolite_harness_test.go   # adjust after refactor
-go test -run "^TestSQLiteSuite$" -count=1 -timeout 120s . 2>&1 | tee /tmp/g10.log
-! grep -q "FAIL" /tmp/g10.log
-```
-
----
-
-### G11 — Quality & Final Verification
-
-**Objective**: Cognitive complexity <15 everywhere. Full green. SOLID enforced.
-
-**Current problem**: Complexity gate is 90 (deferred during feature work).
-`engine.go` and other files contain many complex functions that must be
-refactored.
-
-**Steps**:
-1. **Lower the gate**: change `make quality` threshold from 90 to 15:
-   - Edit `Makefile`: `gocognit -over 90` → `gocognit -over 15`.
-   - Edit `Makefile`: `gocyclo -over 40` → `gocyclo -over 15`.
-2. **Run the gate** — capture all offenders:
-   ```bash
-   gocognit -over 15 $(find . -name '*.go' ! -name '*_test.go' -not -path './cmd/*' -not -path './third_party/*')
-   ```
-3. **Refactor each offender** — split into smaller functions, extract helpers,
-   use early returns, replace nested conditionals with guard clauses. Run
-   tests after each refactor to ensure no behaviour change.
-4. **Run staticcheck** — fix all warnings.
-5. **Final full-green verification** (see below).
-
-**Verify**:
-```bash
-# 1. Complexity gate < 15
-make quality
-
-# 2. SOLID architecture
-go test -run TestSOLID_ -count=1 ./...
-
-# 3. Full test suite — zero FAIL
-go test -count=1 -timeout 120s ./... 2>&1 | tee /tmp/g11_full.log
-! grep -q "FAIL" /tmp/g11_full.log
-
-# 4. Benchmarks still meet targets (no perf regression from refactoring)
-go test -bench=. -benchtime=1000x ./benchmarks/
-```
+## Live Metrics (updated after each step)
+
+| Phase | Step | Description | PASS/Total | Delta | Notes |
+|-------|------|-------------|------------|-------|-------|
+| (start) | — | Baseline measurement | 213/865 | — | 75.4% failure rate |
 
 ---
 
@@ -713,46 +160,870 @@ go test -bench=. -benchtime=1000x ./benchmarks/
 | Resource | Path |
 |----------|------|
 | SQLite C source | `/Users/muaddib/dev/sqlite/src/` |
-| SQLite FTS3 source | `/Users/muaddib/dev/sqlite/ext/fts3/` |
+| SQLite FTS3/4 source | `/Users/muaddib/dev/sqlite/ext/fts3/` |
 | SQLite FTS5 source | `/Users/muaddib/dev/sqlite/ext/fts5/` |
 | SQLite TCL tests (source) | `ori/sqlite/test/` |
-| Frigolite test data (JSON) | `testdata/*.json` (1,002 files) |
+| Frigolite test data (JSON) | `testdata/*.json` (1002 files) |
 | Frigolite harness | `frigolite_harness_test.go` |
 | Frigolite test helpers | `frigolite_test.go` |
-| Converters | `tools/convert_compat_json.py` |
-| sqlite3 binary (oracle) | `/usr/bin/sqlite3` (v3.51.0) |
 | SOLID tests | `frigolite_solid_test.go` |
 | Quality gates | `Makefile` (`make quality`) |
+| sqlite3 binary (oracle) | `/usr/bin/sqlite3` (v3.51.0) |
 | Internal packages | `internal/` (13 packages) |
-| Exec engine (to decompose) | `internal/exec/engine.go` (9,472 lines) |
+| Exec engine (main) | `internal/exec/select.go` (2999 lines), `internal/exec/engine.go` (703) |
+| JOIN execution | `internal/exec/select.go` — `execJoins` (~line 800) |
+| Parser | `internal/sql/parser.go`, `internal/sql/ast.go` |
+| Expression eval | `internal/exec/expression.go` |
+
+---
+
+## Common Verify Commands
+
+```bash
+# Full harness suite (file-level results)
+go test -run "^TestSQLiteSuite$" -count=1 -timeout 120s -v . 2>&1 | \
+  grep -E "^    --- (PASS|FAIL): TestSQLiteSuite/[^/]+$" | \
+  awk '/PASS/{p++} /FAIL/{f++} END{printf "PASS=%d FAIL=%d TOTAL=%d\n",p,f,p+f}'
+
+# Filtered harness (specific test file)
+FRIGOLITE_TEST=<pattern> go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 60s . 2>&1 | tail -30
+
+# SOLID architecture
+go test -run TestSOLID_ -count=1 ./...
+
+# Quality gate
+make quality
+
+# Build
+go build ./...
+
+# Specific sub-test (e.g. select1-17.1)
+FRIGOLITE_TEST=select1 go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | grep "17.1"
+```
+
+---
+
+## G01 — JOIN & Subquery Engine Fix (HIGHEST IMPACT)
+
+> **goa goal**: `G01: JOIN & subquery engine fix — USING/LEFT/RIGHT/FULL/NATURAL joins, scalar subqueries, EXISTS, derived tables in comma-joins`
+>
+> **Objective**: Fix the 7 known-broken JOIN/subquery patterns. This is the
+> single highest-impact phase: these bugs cascade into "no such table" and
+> "result mismatch" errors across hundreds of tests.
+>
+> **Completion criterion**: At least 350/865 tests pass (up from 213). No new
+> regressions. `go build ./...` passes. SOLID test passes.
+>
+> **SQLite reference**: `src/where.c` (WHERE-loop builder, join planning),
+> `src/select.c` (SELECT statement compilation, aggregate handling, subquery
+> flattening), `src/expr.c` (expression evaluation, subquery resolution).
+
+### Problem Analysis (verified by isolated tests)
+
+Seven patterns are broken:
+
+1. **`JOIN ... USING`** — returns empty result set. The executor's
+   `buildJoinedRow`/`execJoins` doesn't apply USING conditions correctly.
+2. **`LEFT JOIN`** — returns NULLs for rows that should match. The ON condition
+   evaluation for correlation (e.g., `t1.a = t2.c`) doesn't resolve correlated
+   column references between the two join sides.
+3. **`RIGHT JOIN`** — returns empty. Not implemented in executor.
+4. **`FULL JOIN`** — returns empty. Not implemented in executor.
+5. **`NATURAL JOIN`** — returns cross-join result (no join condition applied).
+6. **Scalar subquery** — `SELECT a, (SELECT d FROM t2 WHERE c=t1.a) FROM t1`
+   returns NULL for the subquery column. Correlated column resolution fails.
+7. **Comma-join with derived table** — `SELECT * FROM t1, (SELECT ...)` fails
+   with "no such table: " (empty name).
+
+### Step G01.1 — Map the current JOIN execution code
+
+**Objective**: Read and document the current join execution path before making changes.
+
+- [ ] Read `internal/exec/select.go` — locate `execJoins`, `buildJoinedRow`,
+      `collectUsingColumns`, `buildLeftJoinRow`. Document line numbers and data flow.
+- [ ] Read `internal/sql/ast.go` — `JoinClause`, `JoinType`, `CommaJoin`,
+      `Using` fields. Document the AST shape.
+- [ ] Read `internal/sql/parser.go` — `parseJoinClause`, `parseJoinType`,
+      `parseNaturalJoinType`. Confirm what's parsed vs what's executed.
+- [ ] Write a debug test that exercises each of the 7 broken patterns and
+      records the current (wrong) output. Keep it as a regression baseline.
+
+**Verify**:
+```bash
+go test -run TestDebugJoins -v -count=1 -timeout 10s . 2>&1
+```
+**Commit + update plan**: Commit the debug test. Update Live Metrics. Mark step done.
+
+### Step G01.2 — Fix comma-join with derived table (empty "no such table")
+
+**Objective**: `SELECT * FROM t1, (SELECT * FROM t2)` must work.
+
+- [ ] **Reproduce**: Create a focused test: `SELECT * FROM t1, (SELECT * FROM t2 WHERE y=2)`.
+- [ ] **Localize**: In `execJoins` (select.go), find where `CommaJoin: true` is
+      handled. The derived table (subquery in FROM) is likely not recognized as
+      a table source — it's being looked up as a regular table by name, and the
+      subquery's alias/name is empty → "no such table: ".
+- [ ] **Fix**: In the comma-join path, check if `join.Table` is a subquery
+      (`Subquery` field in the AST). If so, materialize it (like the main FROM
+      subquery path) and use the result as the right side of the join.
+- [ ] **Test**: The reproduction test must return correct results.
+
+**SQLite ref**: `src/select.c` `sqlite3SrcListLookup()` — SQLite treats
+subqueries in FROM as virtual tables that are materialized.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=select1 go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | grep -E "17\.[0-9]"
+go build ./...
+```
+**Commit + update plan**: `G01.2: fix comma-join with derived table`. Update Live Metrics.
+
+### Step G01.3 — Fix JOIN USING
+
+**Objective**: `SELECT * FROM t1 JOIN t2 USING(a)` returns matched rows.
+
+- [ ] **Reproduce**: `SELECT * FROM t1 JOIN t2 USING(a)` with t1(a,b), t2(a,c).
+- [ ] **Localize**: `execJoins` → `collectUsingColumns` → the ON condition
+      generated for USING. The join condition for USING(a) is `t1.a = t2.a`. But
+      the executor likely fails to evaluate this, OR the column name resolution
+      fails because both tables have a column named "a".
+- [ ] **Fix**: Ensure USING generates a proper join condition and that column
+      resolution distinguishes `t1.a` from `t2.a` by table qualifier, not just
+      by column name.
+- [ ] **Verify**: USING join returns the correct matched rows, with the USING
+      column appearing once in the output.
+
+**SQLite ref**: `src/select.c` — USING clause adds equality predicates and
+collapses the joined columns.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=select1 go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | tail -10
+go build ./...
+```
+**Commit + update plan**: `G01.3: fix JOIN USING`. Update Live Metrics.
+
+### Step G01.4 — Fix LEFT JOIN (correlation)
+
+**Objective**: `SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.c` matches correctly.
+
+- [ ] **Reproduce**: `SELECT * FROM t1 LEFT JOIN t2 ON t1.a=t2.c` with data
+      where matches exist. Current: returns NULLs. Expected: matched rows.
+- [ ] **Localize**: The LEFT JOIN path evaluates the ON condition. The ON
+      condition references columns from BOTH tables (e.g., `t1.a = t2.c`). The
+      current evaluator likely can't resolve correlated column references across
+      the two row sources during the join condition check.
+- [ ] **Fix**: The join condition evaluation must have access to BOTH the left
+      row and the right row simultaneously. Create a combined row context
+      (column map) that includes columns from both tables, then evaluate the ON
+      expression against it.
+- [ ] **Verify**: LEFT JOIN returns matched rows + unmatched left rows with NULLs.
+
+**SQLite ref**: `src/where.c` — join condition is a WHERE-like filter applied
+per row-pair. `src/select.c` — LEFT JOIN NULL-padding.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=join go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | tail -20
+go build ./...
+```
+**Commit + update plan**: `G01.4: fix LEFT JOIN correlation`. Update Live Metrics.
+
+### Step G01.5 — Implement RIGHT JOIN and FULL JOIN
+
+**Objective**: `RIGHT JOIN` and `FULL JOIN` work correctly.
+
+- [ ] **Reproduce**: `SELECT * FROM t1 RIGHT JOIN t2 ON t1.a=t2.c` and
+      `SELECT * FROM t1 FULL JOIN t2 ON t1.a=t2.c`.
+- [ ] **Approach**: RIGHT JOIN = LEFT JOIN with swapped operands. FULL JOIN =
+      LEFT JOIN + unmatched right rows. Implement both by reusing the fixed
+      LEFT JOIN logic from G01.4.
+- [ ] **Implementation**:
+  - RIGHT JOIN: swap left/right tables, do LEFT JOIN, swap columns back.
+  - FULL JOIN: do LEFT JOIN, then iterate the right table for unmatched rows
+    (right rows where no left match exists), pad left with NULLs.
+- [ ] **Verify**: Both return correct results matching SQLite.
+
+**SQLite ref**: SQLite added RIGHT/FULL JOIN in 3.39.0.
+`src/where.c` — `WHERE_RIGHT_JOIN` handling.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=join go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | tail -20
+go build ./...
+```
+**Commit + update plan**: `G01.5: implement RIGHT/FULL JOIN`. Update Live Metrics.
+
+### Step G01.6 — Fix NATURAL JOIN
+
+**Objective**: `SELECT * FROM t1 NATURAL JOIN t2` matches on common columns.
+
+- [ ] **Reproduce**: `SELECT * FROM t1 NATURAL JOIN t2` with t1(a,b), t2(a,c).
+      Current: cross-join. Expected: match on column `a`.
+- [ ] **Fix**: NATURAL JOIN = INNER JOIN with USING on all common column names.
+      When `JoinType == "NATURAL"`, auto-generate USING conditions for columns
+      that exist in both tables.
+- [ ] **Verify**: Returns matched rows, common columns collapsed.
+
+**SQLite ref**: `src/select.c` — NATURAL JOIN converts to USING on all common
+columns during parsing.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=join go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | tail -20
+go build ./...
+```
+**Commit + update plan**: `G01.6: fix NATURAL JOIN`. Update Live Metrics.
+
+### Step G01.7 — Fix scalar subqueries (correlated)
+
+**Objective**: `SELECT a, (SELECT d FROM t2 WHERE c=t1.a) FROM t1` works.
+
+- [ ] **Reproduce**: Scalar correlated subquery returns NULL instead of value.
+- [ ] **Localize**: In `evalExpr` / `evalScalarSubquery` (expression.go or
+      select.go). The subquery is evaluated, but the correlated column `t1.a`
+      from the outer query is not passed into the subquery's context. The
+      subquery executes against a fresh context without the outer row.
+- [ ] **Fix**: Implement correlated subquery context: when evaluating a scalar
+      subquery, pass the outer row's column map into the subquery's evaluation
+      context so `t1.a` resolves to the outer row's value.
+- [ ] **Verify**: Scalar subquery returns correct correlated values.
+
+**SQLite ref**: `src/select.c` — correlated subqueries are not flattened; they
+execute with access to the outer query's row via `pParse->pEList` resolution.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=select go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | tail -20
+go build ./...
+```
+**Commit + update plan**: `G01.7: fix scalar subquery correlation`. Update Live Metrics.
+
+### Step G01.8 — Fix EXISTS subqueries
+
+**Objective**: `SELECT a FROM t1 WHERE EXISTS(SELECT 1 FROM t2 WHERE c=t1.a)` works.
+
+- [ ] **Reproduce**: EXISTS subquery returns empty result.
+- [ ] **Localize**: The WHERE clause evaluation path. EXISTS is a boolean
+      expression — it should be true if the subquery returns at least one row.
+      The current path likely treats EXISTS as a table name lookup or fails to
+      evaluate the subquery.
+- [ ] **Fix**: Implement EXISTS evaluation in `evalExpr`: execute the subquery
+      (with correlated context from G01.7), return true if ≥1 row, false otherwise.
+- [ ] **Verify**: EXISTS returns correct boolean filtering.
+
+**SQLite ref**: `src/expr.c` — `sqlite3ExprIfTrue` / EXISTS handling.
+
+**Verify**:
+```bash
+FRIGOLITE_TEST=existsexpr go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 30s . 2>&1 | tail -20
+go build ./...
+```
+**Commit + update plan**: `G01.8: fix EXISTS subquery`. Update Live Metrics.
+
+### Step G01.9 — Run full suite, measure impact, fix regressions
+
+- [ ] Run the full harness suite, count PASS/FAIL.
+- [ ] For any regressions (previously passing tests now failing), bisect and fix.
+- [ ] Target: **≥350/865 PASS** (was 213). If not met, investigate remaining
+      JOIN-related failures.
+
+**Verify**:
+```bash
+go test -run "^TestSQLiteSuite$" -count=1 -timeout 120s -v . 2>&1 | \
+  grep -E "^    --- (PASS|FAIL): TestSQLiteSuite/[^/]+$" | \
+  awk '/PASS/{p++} /FAIL/{f++} END{printf "PASS=%d FAIL=%d TOTAL=%d\n",p,f,p+f}'
+go test -run TestSOLID_ -count=1 ./...
+go build ./...
+```
+**Commit + update plan**: `G01.9: full suite measurement + regression fixes`. Update Live Metrics with final count.
+
+---
+
+## G02 — Expression & Type Affinity
+
+> **goa goal**: `G02: expression evaluation and type affinity — fix e_* tests, expr*, type coercion, COLLATE, comparison`
+>
+> **Objective**: Fix expression evaluation bugs causing "result mismatch" in
+> the e_* and expr* test files. Correct type affinity, comparison semantics,
+> COLLATE, and edge cases.
+>
+> **Completion criterion**: At least 400/865 tests pass. No new regressions.
+>
+> **SQLite reference**: `src/expr.c` (expression evaluation), `src/resolve.c`
+> (name resolution), `src/vdbeapi.c` (affinity application).
+
+### Step G02.1 — Baseline e_* and expr* failures
+
+- [ ] Run `FRIGOLITE_TEST=e_ go test ...` and `FRIGOLITE_TEST=expr go test ...`
+- [ ] Categorize failures: type affinity, comparison, COLLATE, arithmetic, CAST.
+- [ ] Document top 5 failure patterns.
+- [ ] **Commit + update plan**.
+
+### Step G02.2 — Fix type affinity in expressions
+
+**Problem**: SQLite applies type affinity (TEXT, NUMERIC, INTEGER, REAL, BLOB)
+to values before comparison and arithmetic. Frigolite may not apply affinity
+correctly in all cases.
+
+- [ ] Identify affinity bugs by comparing with SQLite output.
+- [ ] Fix `applyAffinity` / column affinity application in `expression.go`.
+- [ ] **Verify**: `FRIGOLITE_TEST=affinity go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G02.3 — Fix comparison semantics (NULL ordering, type coercion)
+
+**Problem**: NULL handling in comparisons, numeric vs text comparison ordering.
+
+- [ ] Test NULL comparison: `NULL = NULL` → NULL, `NULL IS NULL` → true.
+- [ ] Test numeric/text comparison: `'1' < '2'` vs `1 < 2`.
+- [ ] Fix `compareValues` / `evalBinaryOp` in expression.go.
+- [ ] **Verify**: `FRIGOLITE_TEST=expr go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G02.4 — Fix COLLATE clause support
+
+- [ ] **Verify**: `FRIGOLITE_TEST=collate go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G02.5 — Fix CAST expression
+
+- [ ] Ensure CAST applies affinity and type conversion correctly.
+- [ ] **Verify**: `FRIGOLITE_TEST=cast go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G02.6 — Full suite measurement
+
+- [ ] Run full suite, measure PASS count, fix regressions.
+- [ ] Target: **≥400/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G03 — SQL Functions Completion
+
+> **goa goal**: `G03: complete SQL function library — JSON functions, date/time, missing scalar functions`
+>
+> **Objective**: Implement all missing SQL functions that harness tests require.
+> 307 "unknown function" errors across ~10 function families.
+>
+> **Completion criterion**: Zero "unknown function" errors in the harness. At
+> least 450/865 tests pass.
+>
+> **SQLite reference**: `src/func.c` (built-in functions), `ext/misc/json.c`
+> (JSON1 extension), `src/date.c` (date/time functions).
+
+### Step G03.1 — Audit missing functions
+
+- [ ] Run full suite, extract all "unknown function" errors.
+- [ ] Build a list: function name, type (scalar/aggregate/window), count.
+- [ ] **Commit + update plan** with the complete list.
+
+### Step G03.2 — Implement JSON functions (json_valid, json_remove, json_type, json_extract, json_array_length, json_array_insert, json_quote, json_error_position)
+
+- [ ] Create/extend `internal/function/json.go` (or `json1.go`).
+- [ ] Reference: `/Users/muaddib/dev/sqlite/ext/misc/json.c`.
+- [ ] Implement each: json_valid, json_remove, json_type, json_extract,
+      json_array_length, json_array_insert, json_quote, json_error_position,
+      and any others in the JSON1 family found in Step G03.1.
+- [ ] **Verify**: `FRIGOLITE_TEST=json1 go test ...`
+- [ ] **Commit + update plan** after each function or family.
+
+### Step G03.3 — Fix date/time functions
+
+- [ ] Fix "unrecognized date/time" errors (14 occurrences).
+- [ ] Review `internal/function/` date functions against `src/date.c`.
+- [ ] **Verify**: `FRIGOLITE_TEST=date go test ...` and
+      `FRIGOLITE_TEST=strftime go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G03.4 — Implement remaining missing scalar functions
+
+- [ ] `changes()`, `octet_length()`, `intreal()`, `sqlite_compileoption_used()`,
+      and others found in G03.1.
+- [ ] **Verify**: full suite — zero "unknown function" errors.
+- [ ] **Commit + update plan**.
+
+### Step G03.5 — Full suite measurement
+
+- [ ] Target: **≥450/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G04 — Constraint Enforcement
+
+> **goa goal**: `G04: constraint enforcement — UNIQUE, NOT NULL, CHECK, FOREIGN KEY correctness`
+>
+> **Objective**: Fix constraint handling causing UNIQUE/NOT NULL/CHECK failures
+> (~57 UNIQUE, 6 NOT NULL, 8 CHECK errors) and "expected error but got success"
+> (1357 occurrences — many are constraint violations that should fail but succeed).
+>
+> **Completion criterion**: At least 500/865 tests pass.
+>
+> **SQLite reference**: `src/insert.c` (UNIQUE/NOT NULL checks),
+> `src/update.c` (constraint checks during UPDATE), `src/fkey.c` (foreign keys).
+
+### Step G04.1 — Audit constraint failures
+
+- [ ] Run full suite, extract all constraint-related errors.
+- [ ] Categorize: UNIQUE (expected vs unexpected), NOT NULL, CHECK, FK.
+- [ ] **Commit + update plan**.
+
+### Step G04.2 — Fix UNIQUE constraint enforcement
+
+- [ ] Ensure INSERT/UPDATE with duplicate key in UNIQUE column fails with the
+      correct error message format.
+- [ ] Handle multi-column UNIQUE constraints.
+- [ ] Handle UNIQUE with NULL (multiple NULLs allowed).
+- [ ] **Verify**: `FRIGOLITE_TEST=unique go test ...` and
+      `FRIGOLITE_TEST=conflict go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G04.3 — Fix NOT NULL constraint enforcement
+
+- [ ] **Verify**: `FRIGOLITE_TEST=notnull go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G04.4 — Fix CHECK constraint enforcement
+
+- [ ] Implement CHECK constraint evaluation during INSERT/UPDATE.
+- [ ] **Verify**: `FRIGOLITE_TEST=check go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G04.5 — Fix FOREIGN KEY enforcement
+
+- [ ] Implement FK constraint checks (if tests require it).
+- [ ] **Verify**: `FRIGOLITE_TEST=fkey go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G04.6 — Full suite measurement
+
+- [ ] Target: **≥500/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G05 — Window Functions
+
+> **goa goal**: `G05: window functions — ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, FIRST_VALUE, LAST_VALUE, NTH_VALUE, aggregate windows, FILTER`
+>
+> **Objective**: Implement full window function support. Remove all 17 window
+> test files from the skip list and make them pass. Fix the 3 active window
+> test files (win3*).
+>
+> **Completion criterion**: All window* test files pass. At least 520/865 tests pass.
+>
+> **SQLite reference**: `src/window.c` (canonical implementation).
+> Key functions: `sqlite3WindowCodeStep()`, `windowAggFinal()`,
+> `windowAggValue()`.
+>
+> **Test data**: `testdata/window1.json`–`windowE.json`, `windowerr.json`,
+> `windowfault.json`, `windowpushd.json`, `win3*.json`.
+
+### Step G05.1 — Remove window tests from skip list
+
+- [ ] Remove all `window*` entries from `unsupportedTestFiles` in
+      `frigolite_harness_test.go`.
+- [ ] Run the window tests, capture all failures.
+- [ ] **Commit + update plan**.
+
+### Step G05.2 — Implement window function execution pipeline
+
+- [ ] Create `internal/exec/window.go`.
+- [ ] Implement the standard pipeline:
+      1. Partition rows by PARTITION BY expressions.
+      2. Sort each partition by ORDER BY expressions.
+      3. Compute window-frame bounds.
+      4. Evaluate window aggregate over the frame.
+- [ ] **Verify**: `FRIGOLITE_TEST=window1 go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G05.3 — Implement built-in window functions
+
+- [ ] ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, FIRST_VALUE, LAST_VALUE, NTH_VALUE.
+- [ ] **Verify**: `FRIGOLITE_TEST=window go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G05.4 — Implement aggregates-as-windows
+
+- [ ] SUM, AVG, COUNT, MIN, MAX as window functions.
+- [ ] **Verify**: window tests.
+- [ ] **Commit + update plan**.
+
+### Step G05.5 — Full suite measurement
+
+- [ ] Target: **≥520/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G06 — ALTER TABLE Completeness
+
+> **goa goal**: `G06: ALTER TABLE — RENAME correctness, ADD/DROP COLUMN, token-level rename in triggers/views`
+>
+> **Objective**: All altertab* test files pass (3 skipped + active failures).
+>
+> **Completion criterion**: All alter* tests pass. At least 540/865 tests pass.
+>
+> **SQLite reference**: `src/alter.c` — `sqlite3AlterRenameTable()`,
+> `reloadTableSchema()`, `renameTokenFind()`.
+>
+> **Test data**: `testdata/altertab.json`, `altertab2.json`, `altertab3.json`,
+> `alterlegacy.json`, `alterauth.json`, `altercorrupt.json`, `altercol*.json`.
+
+### Step G06.1 — Remove alter tests from skip list
+
+- [ ] Remove `altercorrupt`, `altertab2`, `altertab3` from `unsupportedTestFiles`.
+- [ ] Run alter tests, capture failures.
+- [ ] **Commit + update plan**.
+
+### Step G06.2 — Fix token-level rename
+
+- [ ] Use `internal/rename` package for token-level identifier replacement in
+      trigger/view SQL.
+- [ ] **Verify**: `FRIGOLITE_TEST=altertab go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G06.3 — Fix ADD/DROP COLUMN
+
+- [ ] **Verify**: `FRIGOLITE_TEST=altercol go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G06.4 — Full suite measurement
+
+- [ ] Target: **≥540/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G07 — Query Planner & ANALYZE
+
+> **goa goal**: `G07: query planner — ANALYZE, cost-based index selection, EXPLAIN QUERY PLAN, auto-index`
+>
+> **Objective**: Index selection uses statistics. EQP reports correct plans.
+> `analyze*`, `where*`, `eqp*` tests pass.
+>
+> **Completion criterion**: All analyze*, eqp* tests pass. At least 580/865 tests pass.
+>
+> **SQLite reference**: `src/analyze.c`, `src/where.c` (`whereLoopBuilder`),
+> `src/wherecode.c`.
+
+### Step G07.1 — Implement ANALYZE
+
+- [ ] Create `sqlite_stat1` table, store per-index statistics.
+- [ ] **Verify**: `FRIGOLITE_TEST=analyze go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G07.2 — Cost-based index selection
+
+- [ ] Use stats to choose between full-scan and index lookup.
+- [ ] **Verify**: `FRIGOLITE_TEST=where go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G07.3 — EXPLAIN QUERY PLAN
+
+- [ ] Output `SEARCH ... USING INDEX` / `SCAN` correctly.
+- [ ] **Verify**: `FRIGOLITE_TEST=eqp go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G07.4 — Auto-index for joins
+
+- [ ] Create temporary ephemeral indexes for join columns without an index.
+- [ ] **Verify**: `FRIGOLITE_TEST=autoindex go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G07.5 — Full suite measurement
+
+- [ ] Target: **≥580/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G08 — ATTACH / DETACH
+
+> **goa goal**: `G08: ATTACH/DETACH — multi-database dispatch, schema resolution, file-backed attached databases`
+>
+> **Objective**: All attach* tests pass (currently 93/181 pass).
+>
+> **Completion criterion**: All attach* tests pass. At least 620/865 tests pass.
+>
+> **SQLite reference**: `src/attach.c`, `src/build.c` (`sqlite3LocateTable`).
+>
+> **Test data**: `testdata/attach*.json`.
+
+### Step G08.1 — Fix ATTACH encoding check
+
+- [ ] Fix false positive "attached databases must use the same text encoding" (47 occurrences).
+- [ ] **Verify**: `FRIGOLITE_TEST=attach go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G08.2 — Fix multi-database schema resolution
+
+- [ ] `db.table` notation resolves to the correct attached database.
+- [ ] **Verify**: `FRIGOLITE_TEST=attach go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G08.3 — Fix harness test ordering (if needed)
+
+- [ ] Fix JSON test ordering or harness cleanup to handle section reordering.
+- [ ] **Commit + update plan**.
+
+### Step G08.4 — Full suite measurement
+
+- [ ] Target: **≥620/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G09 — FTS3/4/5 (Full-Text Search)
+
+> **goa goal**: `G09: FTS3/4/5 — shadow tables, segment store, MATCH query, BM25 ranking`
+>
+> **Objective**: Implement FTS3/4/5 virtual table module. All fts3*/fts4*/fts5*
+> tests pass (~76 files total — the single largest feature gap).
+>
+> **Completion criterion**: All FTS test files pass. At least 700/865 tests pass.
+>
+> **SQLite reference**: `ext/fts3/` (FTS3/4 source), `ext/fts5/` (FTS5 source).
+> Key files: `fts3_write.c` (index write), `fts3.c` (query), `fts5_index.c`.
+>
+> **Test data**: `testdata/fts3*.json`, `testdata/fts4*.json`, `testdata/fts5*.json`.
+
+### Step G09.1 — Remove FTS tests from skip list, audit
+
+- [ ] Remove all `fts3*`, `fts4*` entries from `unsupportedTestFiles`.
+- [ ] Run FTS tests, capture all failures.
+- [ ] **Commit + update plan**.
+
+### Step G09.2 — Implement FTS shadow table architecture
+
+- [ ] `CREATE VIRTUAL TABLE ft USING fts3(col)` creates `<ft>_content`,
+      `<ft>_segdir`, `<ft>_segments`, `<ft>_stat` shadow tables.
+- [ ] **Verify**: shadow tables created on FTS table creation.
+- [ ] **Commit + update plan**.
+
+### Step G09.3 — Implement FTS insert path (tokenize + write postings)
+
+- [ ] Tokenize each row's text, write postings to the current segment.
+- [ ] Update `<ft>_content` with rowid and column values.
+- [ ] **Verify**: `FRIGOLITE_TEST=fts3aa go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G09.4 — Implement MATCH query
+
+- [ ] Parse MATCH expression (AND/OR/NOT/phrase/prefix).
+- [ ] Look up postings, intersect/union doclists, return matching rowids.
+- [ ] Rank by BM25 (FTS5) or older FTS3 ranking.
+- [ ] **Verify**: `FRIGOLITE_TEST=fts3aa go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G09.5 — Implement segment merge
+
+- [ ] Merge small segments into larger ones (b-tree-style merge).
+- [ ] **Verify**: `FRIGOLITE_TEST=fts3sort go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G09.6 — FTS5-specific features
+
+- [ ] Enhanced query syntax, column filters, `rank` function.
+- [ ] **Verify**: `FRIGOLITE_TEST=fts5 go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G09.7 — Full suite measurement
+
+- [ ] Target: **≥700/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G10 — Virtual Tables & Remaining Features
+
+> **goa goal**: `G10: virtual tables and remaining features — vtab modules, bestindex, WITHOUT ROWID, remaining missing features`
+>
+> **Objective**: Fix vtab*, bestindex*, without* tests. Implement remaining
+> virtual table features and fix miscellaneous failures.
+>
+> **Completion criterion**: At least 750/865 tests pass.
+>
+> **SQLite reference**: `src/vtab.c`, `src/loadext.c`.
+
+### Step G10.1 — Fix virtual table xBestIndex
+
+- [ ] **Verify**: `FRIGOLITE_TEST=bestindex go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G10.2 — Fix WITHOUT ROWID tables
+
+- [ ] **Verify**: `FRIGOLITE_TEST=without go test ...`
+- [ ] Fix WITHOUT ROWID execution.
+- [ ] **Commit + update plan**.
+
+### Step G10.3 — Implement remaining vtab modules
+
+- [ ] `zipfile`, `dbstat`, `fsdir`, `json_each`, `json_tree` (if tests require).
+- [ ] **Commit + update plan**.
+
+### Step G10.4 — Full suite measurement
+
+- [ ] Target: **≥750/865 PASS**.
+- [ ] **Commit + update plan**.
+
+### Step G10.5 — Implement missing features from the failing set
+
+- [ ] Review all remaining "result mismatch" failures and fix them.
+- [ ] **Commit + update plan**.
+
+---
+
+## G11 — Corruption & Edge Cases
+
+> **goa goal**: `G11: corruption handling, edge cases, ticket tests`
+>
+> **Objective**: Fix corrupt* tests (14 files), tkt* tests (~73 files total),
+> bigfile*/bigrow* tests. These require robust error handling, precise error
+> messages, and edge-case correctness.
+>
+> **Completion criterion**: At least 850/865 tests pass.
+>
+> **SQLite reference**: Each `tkt*` file references a SQLite ticket number; the
+> fix is documented in the SQLite commit that closed the ticket.
+
+### Step G11.1 — Fix corruption handling (corrupt* tests)
+
+- [ ] **Verify**: `FRIGOLITE_TEST=corrupt go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G11.1b — Fix corruption message format
+
+- [ ] Match SQLite's exact error messages for corrupt databases.
+- "database disk image is malformed" (76 occurrences) — verify these are
+  expected vs actual.
+- [ ] **Commit + update plan**.
+
+### Step G11.2 — Fix ticket tests (tkt*)
+
+- [ ] Remove all `tkt*` entries from `unsupportedTestFiles`.
+- [ ] Run tkt* tests, fix each one (they are isolated bug fixes).
+- [ ] **Commit + update plan** after each batch of fixes.
+
+### Step G11.3 — Fix bigfile/bigrow/bigsort tests
+
+- [ ] **Verify**: `FRIGOLITE_TEST=big go test ...`
+- [ ] **Commit + update plan**.
+
+### Step G11.4 — Full suite measurement
+
+- [ ] Target: **≥850/865 PASS**.
+- [ ] **Commit + update plan**.
+
+---
+
+## G12 — Remove All Skip-List Entries
+
+> **goa goal**: `G12: zero skip-list entries — all 1002 test files active and green`
+>
+> **Objective**: Remove ALL remaining entries from `unsupportedTestFiles` and
+> `slowTestFiles`. Every one of the 1002 test files runs and passes.
+>
+> **Completion criterion**: 1002/1002 test files PASS. Zero skip-list entries.
+
+### Step G12.1 — Remove remaining unsupported entries
+
+- [ ] List all remaining entries in `unsupportedTestFiles`.
+- [ ] Remove them one category at a time: threads, WAL, misc.
+- [ ] Run tests for each category, fix failures.
+- [ ] **Commit + update plan** after each category.
+
+### Step G12.2 — Remove slow test entries
+
+- [ ] Remove `emptytable`, `indexexpr1`, `joinD` from `slowTestFiles`.
+- [ ] Ensure they complete within timeout.
+- [ ] **Commit + update plan**.
+
+### Step G12.3 — Final 1002/1002 verification
+
+- [ ] Count: `grep -c` entries in skip lists → must be 0.
+- [ ] Run full suite: all 1002 files PASS.
+- [ ] **Commit + update plan**.
+
+---
+
+## G13 — Quality & SOLID Final
+
+> **goa goal**: `G13: quality gate — complexity <15, full green, SOLID, performance`
+>
+> **Objective**: Enforce cognitive complexity <15 everywhere. Full green suite.
+> SOLID architecture. Performance targets met.
+>
+> **Completion criterion**: `make quality` passes with threshold 15. `go test
+> -count=1 ./...` all green. SOLID test passes. Benchmarks meet targets.
+
+### Step G13.1 — Lower the complexity gate
+
+- [ ] Edit `Makefile`: `gocognit -over 90` → `gocognit -over 15`,
+      `gocyclo -over 40` → `gocyclo -over 15`.
+- [ ] Run `make quality`, capture all offenders.
+- [ ] **Commit + update plan**.
+
+### Step G13.2 — Refactor each complexity offender
+
+- [ ] For each function over complexity 15: split into smaller functions,
+      extract helpers, use early returns, replace nested conditionals with
+      guard clauses.
+- [ ] Run tests after each refactor to ensure no behaviour change.
+- [ ] **Commit + update plan** after each batch.
+
+### Step G13.2b — SOLID import boundary verification
+
+- [ ] `go test -run TestSOLID_ -count=1 ./...`
+- [ ] **Commit + update plan**.
+
+### Step G13.3 — Run staticcheck
+
+- [ ] Fix all staticcheck warnings.
+- [ ] **Commit + update plan**.
+
+### Step G13.4 — Final full-green verification
+
+- [ ] Full suite: `go test -count=1 -timeout 120s ./...`
+- [ ] Benchmarks: `go test -bench=. -benchtime=1000x ./benchmarks/`
+- [ ] **Commit + update plan**.
 
 ---
 
 ## Progress Tracking
 
-| Phase | Description | Status | Notes |
-|-------|-------------|--------|-------|
-| G01 | Cleanup & Hygiene | ✅ Done | Removed compat tests + 3 junk files |
-| G02 | Engine Stabilization | ✅ Done | Fixed nil-pointer panic + pager page-out-of-range |
-| G03 | Performance | ✅ Done (partial) | Suite <60s (**37s**). Insert ~2100-2900 (target <2000), Select **MET** (<100K), SelectWhere ~117-120K (target <50K — needs streaming API change). See G03 section for details. |
-| G04 | SOLID Decomposition | ✅ Done | Split engine.go (9,472 lines) into ~11 focused files. |
-| G05 | Parser (WINDOW, FILTER, RETURNING) | 🔲 Not started | |
-| G06 | ALTER TABLE | 🔲 Not started | Token-level rename |
-| G07 | Query Planner & ANALYZE | 🔲 Not started | Cost-based, EQP, auto-index. Also covers index-based JOIN from G03 step 1. |
-| G08 | ATTACH/DETACH | ⏳ In progress | Core ATTACH/DETACH works. 93/181 tests pass. Case sensitivity fix, encoding check, DetachAll, section-based cleanup implemented. Blocked on JSON test ordering (alphabetical vs TCL order) and missing TCL setup steps. |
-| G09 | FTS3/4/5 | 🔲 Not started | Shadow tables, segment merge |
-| G10 | Feature Completeness | 🔲 Not started | Remove skip-list entries |
-| G11 | Quality & Final | 🔲 Not started | Complexity <15, full green |
+| Phase | Description | Status | PASS/Total | Notes |
+|-------|-------------|--------|------------|-------|
+| (start) | Baseline | — | 213/865 | 75.4% failure rate |
+| G01 | JOIN & Subquery Engine Fix | 🔲 Not started | | Highest impact |
+| G02 | Expression & Type Affinity | 🔲 Not started | | |
+| G03 | SQL Functions Completion | 🔲 Not started | | |
+| G04 | Constraint Enforcement | 🔲 Not started | | |
+| G05 | Window Functions | 🔲 Not started | | |
+| G06 | ALTER TABLE Completeness | 🔲 Not started | | |
+| G07 | Query Planner & ANALYZE | 🔲 Not started | | |
+| G08 | ATTACH/DETACH | 🔲 Not started | | |
+| G09 | FTS3/4/5 | 🔲 Not started | | Biggest feature gap |
+| G10 | Virtual Tables & Remaining | 🔲 Not started | | |
+| G11 | Corruption & Edge Cases | 🔲 Not started | | |
+| G12 | Remove All Skip-List Entries | 🔲 Not started | | |
+| G13 | Quality & SOLID Final | 🔲 Not started | | |
 
 ---
 
 ## How to Use This Plan (for the execution agent)
 
-1. **Read the master plan** (this file) — focus on the Dependency Chain and
-   your assigned phase.
+1. **Read the master plan** (this file) — focus on the Phase Dependency Chain
+   and your assigned phase.
 2. **Read the referenced SQLite C source** — it is the behavioural spec.
 3. **Implement steps in order** — each step builds on the previous.
 4. **Run the verify command after each step**, not just at the end.
-5. **Run `make quality` + SOLID tests** before declaring the phase complete.
-6. **Update the Progress Tracking table** when done.
-7. **Commit with message** `GNN: <phase description>` to maintain the history.
+5. **MANDATORY: Commit + update this plan after every step.**
+   - Commit message: `G<NN>.<step>: <description>`.
+   - Update the step's checkbox (`[ ]` → `[x]`).
+   - Update the "Live Metrics" table with the new PASS count.
+   - Note any findings or deviations.
+6. **Run `make quality` + SOLID tests** before declaring the phase complete.
+7. **Update the Progress Tracking table** when done.
