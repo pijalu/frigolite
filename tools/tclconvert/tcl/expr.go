@@ -19,6 +19,10 @@ func EvalExpr(expr string, interp *Interp, localVars map[string]string) (string,
 	if expr == "" {
 		return "", nil
 	}
+	// Substitute TCL variables ($var) and commands ([cmd]) before evaluating
+	if interp != nil {
+		expr = interp.substitute(expr, localVars)
+	}
 	p := &exprParser{input: expr, pos: 0}
 	result, err := p.parseExpr()
 	if err != nil {

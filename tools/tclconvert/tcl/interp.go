@@ -385,9 +385,9 @@ func (i *Interp) execCommand(rawWords []rawWord, localVars map[string]string) er
 
 	// SQL-related commands
 	case "execsql":
-		return i.cmdSQL(rawWords, args, "exec")
+		return i.cmdSQL(rawWords, args, "exec", localVars)
 	case "catchsql":
-		return i.cmdSQL(rawWords, args, "catch")
+		return i.cmdSQL(rawWords, args, "catch", localVars)
 	case "db":
 		return i.cmdDB(rawWords, args, localVars)
 	case "do_execsql_test":
@@ -841,11 +841,11 @@ func (i *Interp) cmdRegsub(args []string) error {
 }
 
 // cmdSQL handles execsql/catchsql commands.
-func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string) error {
+func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, localVars map[string]string) error {
 	// execsql { SQL } [db] or execsql [subst { SQL }] [db]
 	for _, rw := range rawWords[1:] {
 		if rw.braced && len(rw.text) > 0 {
-			sql := i.substitute(rw.text, nil)
+			sql := i.substitute(rw.text, localVars)
 			if strings.TrimSpace(sql) != "" {
 				i.stmts = append(i.stmts, Stmt{
 					Type:     sqlType,
@@ -881,7 +881,13 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 	case "eval":
 		// db eval { SQL } ?script?
 		if len(args) >= 2 {
+			// The SQL may be a braced word containing $var references.
+			// We need to substitute variables before capturing.
 			sql := args[1]
+			if len(rawWords) >= 3 {
+				// Re-substitute from the raw word to handle $var in braced SQL
+				sql = i.substitute(rawWords[2].text, localVars)
+			}
 			if strings.TrimSpace(sql) != "" {
 				i.stmts = append(i.stmts, Stmt{
 					Type:     "exec",
@@ -889,8 +895,6 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 					TestName: i.curTest,
 				})
 			}
-			// If there's a per-row script, we can't execute it (no actual DB)
-			// but any SQL inside it should be captured. Skip for now.
 		}
 	case "onecolumn":
 		if len(args) >= 2 {
