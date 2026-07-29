@@ -484,7 +484,7 @@ func (i *Interp) cmdFor(rawWords []rawWord, localVars map[string]string) error {
 		i.execScript(start.text, localVars)
 	}
 
-	maxIter := 1000000 // safety limit
+	maxIter := 50000 // safety limit for for loops
 	for iter := 0; iter < maxIter; iter++ {
 		// Evaluate condition
 		condVal, err := i.evalWord(cond, localVars)
@@ -578,7 +578,7 @@ func (i *Interp) cmdWhile(rawWords []rawWord, localVars map[string]string) error
 	cond := rawWords[1]
 	body := rawWords[2]
 
-	for iter := 0; iter < 1000000; iter++ {
+	for iter := 0; iter < 50000; iter++ {
 		condVal, err := i.evalWord(cond, localVars)
 		if err != nil {
 			return err
@@ -727,10 +727,36 @@ func (i *Interp) cmdLappend(args []string, localVars map[string]string) error {
 	}
 	name := args[0]
 	cur, _ := i.getVar(name, localVars)
-	items := splitList(cur)
-	items = append(items, args[1:]...)
-	i.setVar(name, tclList(items), localVars)
-	i.vars[""] = tclList(items)
+	
+	// Fast path: when all appended elements are simple (no spaces, braces,
+	// quotes, or semicolons), we can append directly without splitting/joining.
+	// This avoids O(n²) behavior for large loops like lappend 70000 times.
+	allSimple := true
+	for _, item := range args[1:] {
+		if needsBracing(item) {
+			allSimple = false
+			break
+		}
+	}
+	
+	if allSimple && len(args) >= 2 {
+		// Simple append: no split/join needed
+		if cur == "" {
+			i.setVar(name, strings.Join(args[1:], " "), localVars)
+			i.vars[""] = strings.Join(args[1:], " ")
+		} else {
+			result := cur + " " + strings.Join(args[1:], " ")
+			i.setVar(name, result, localVars)
+			i.vars[""] = result
+		}
+	} else {
+		// Full path: handle elements that need bracing
+		items := splitList(cur)
+		items = append(items, args[1:]...)
+		result := tclList(items)
+		i.setVar(name, result, localVars)
+		i.vars[""] = result
+	}
 	return nil
 }
 

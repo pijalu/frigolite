@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
@@ -63,27 +64,72 @@ func main() {
 	}
 
 	processed := 0
+	skipped := 0
+	errors := 0
 	for _, testFile := range files {
 		base := strings.TrimSuffix(filepath.Base(testFile), ".test")
+		
+		// Skip runner files (they source other .test files, not standalone)
+		if base == "all" || base == "tester" || base == "shared" || base == "qtp" {
+			if *verbose {
+				fmt.Fprintf(os.Stderr, "skip %s: runner file\n", base)
+			}
+			skipped++
+			continue
+		}
+		
 		src, err := os.ReadFile(testFile)
 		if err != nil {
 			if *verbose {
 				fmt.Fprintf(os.Stderr, "skip %s: %v\n", base, err)
 			}
+			skipped++
 			continue
 		}
 
-		// Execute TCL test file through the interpreter
-		interp := tcl.NewInterp()
-		interp.Execute(string(src))
-		stmts := interp.Stmts()
+		// Execute TCL test file through the interpreter (with timeout)
+		type result struct {
+			stmts []tcl.Stmt
+			err   error
+		}
+		ch := make(chan result, 1)
+		go func() {
+			interp := tcl.NewInterp()
+			defer func() {
+				if r := recover(); r != nil {
+					ch <- result{nil, fmt.Errorf("panic: %v", r)}
+				}
+			}()
+			interp.Execute(string(src))
+			ch <- result{interp.Stmts(), nil}
+		}()
+		
+		var stmts []tcl.Stmt
+		select {
+		case r := <-ch:
+			if r.err != nil {
+				if *verbose {
+					fmt.Fprintf(os.Stderr, "error %s: %v\n", base, r.err)
+				}
+				errors++
+				continue
+			}
+			stmts = r.stmts
+		case <-time.After(30 * time.Second):
+			if *verbose {
+				fmt.Fprintf(os.Stderr, "timeout %s\n", base)
+			}
+			errors++
+			continue
+		}
 
 		// Convert captured statements to JSON
 		td := convertToJSON(base, stmts)
 		if len(td.Tests) == 0 {
 			if *verbose {
-				fmt.Fprintf(os.Stderr, "skip %s: no tests captured\n", base)
+				fmt.Fprintf(os.Stderr, "skip %s: no tests captured (%d stmts)\n", base, len(stmts))
 			}
+			skipped++
 			continue
 		}
 
