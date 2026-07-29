@@ -8,10 +8,15 @@
         {
           "type": "query",
           "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;"
-        },
+        }
+      ]
+    },
+    {
+      "name": "tkt35xx-1.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;"
+          "sql": "PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));"
         }
       ]
     },
@@ -32,10 +37,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t3",
           "expect": "4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t3"
         }
       ]
     },
@@ -46,6 +47,22 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t3",
           "expect": "5"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX i1 ON t1(c);\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    DELETE FROM t1;\n    BEGIN;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n    ROLLBACK;\n    INSERT INTO t1 VALUES(0, 0, zeroblob(676));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1, zeroblob(676));"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3"
         },
         {
           "type": "exec",

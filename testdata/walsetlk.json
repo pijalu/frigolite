@@ -30,31 +30,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
@@ -85,6 +60,46 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint=RESTART"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint=RESTART"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint=RESTART"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint=RESTART"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint=RESTART"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

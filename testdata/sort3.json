@@ -1,0 +1,29 @@
+{
+  "file": "sort3.test",
+  "name": "sort3",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t11(a, b);\n  INSERT INTO t11 VALUES(randomblob(5000), NULL);\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --2\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --3\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --4\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --5\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --6\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --7\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --8\n  INSERT INTO t11 SELECT randomblob(5000), NULL FROM t11; --9\n  UPDATE t11 SET b = cksum(a);"
+        }
+      ]
+    },
+    {
+      "name": "3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t11 ORDER BY b"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

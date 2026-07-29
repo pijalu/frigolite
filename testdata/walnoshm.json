@@ -22,11 +22,31 @@
       ]
     },
     {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = exclusive;\n  PRAGMA journal_mode = WAL;\n  SELECT * FROM t1;",
+          "expect": "exclusive wal 1 2"
+        }
+      ]
+    },
+    {
       "name": "1.6",
       "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 4)"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = normal;",
+          "expect": "exclusive"
         }
       ]
     },
@@ -37,6 +57,16 @@
           "type": "query",
           "sql": "PRAGMA journal_mode = delete;\n  PRAGMA main.locking_mode;",
           "expect": "delete exclusive"
+        }
+      ]
+    },
+    {
+      "name": "1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = normal;",
+          "expect": "normal"
         }
       ]
     },
@@ -56,6 +86,15 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');"
+        }
+      ]
+    },
+    {
+      "name": "2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = exclusive;\n  PRAGMA journal_mode = WAL;\n  INSERT INTO t2 VALUES('e', 'f');\n  INSERT INTO t2 VALUES('g', 'h');"
         }
       ]
     },
@@ -80,16 +119,32 @@
       ]
     },
     {
+      "name": "2.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = exclusive; \n    PRAGMA journal_mode = delete;\n    SELECT * FROM t2;",
+          "expect": "exclusive delete a b c d e f g h"
+        }
+      ]
+    },
+    {
       "name": "2.2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t2",
           "expect": "a b c d e f g h"
-        },
+        }
+      ]
+    },
+    {
+      "name": "2.2.2",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
+          "type": "query",
+          "sql": "PRAGMA locking_mode = exclusive",
+          "expect": "1 {database is locked}"
         }
       ]
     },
@@ -100,10 +155,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2",
           "expect": "a b c d e f g h"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
         }
       ]
     },
@@ -124,10 +175,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2",
           "expect": "a b c d e f g h"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
         }
       ]
     },
@@ -138,6 +185,28 @@
           "type": "query",
           "sql": "SELECT * FROM t2",
           "expect": "a b c d e f g h"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = exclusive; \n    PRAGMA journal_mode = delete;\n    SELECT * FROM t2;"
         },
         {
           "type": "exec",
@@ -145,7 +214,31 @@
         },
         {
           "type": "exec",
+          "sql": "PRAGMA locking_mode = exclusive"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);"
         }
       ]
     }

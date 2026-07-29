@@ -8,20 +8,12 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES('1');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES('1');"
         }
       ]
     },
     {
       "name": "1.2",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(x INTEGER);\n    INSERT INTO t2 VALUES(1);"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(x INTEGER);\n    INSERT INTO t2 VALUES(1);"
@@ -34,10 +26,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(x REAL);\n    INSERT INTO t3 VALUES(1.0);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(x REAL);\n    INSERT INTO t3 VALUES(1.0);"
         }
       ]
     },
@@ -47,20 +35,12 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(x REAL);\n    INSERT INTO t4 VALUES(1.11);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(x REAL);\n    INSERT INTO t4 VALUES(1.11);"
         }
       ]
     },
     {
       "name": "1.5",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(x, y);\n    INSERT INTO t5 VALUES('1', 'one');\n    INSERT INTO t5 VALUES(1, 'two');\n    INSERT INTO t5 VALUES('1.0', 'three');\n    INSERT INTO t5 VALUES(1.0, 'four');"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t5(x, y);\n    INSERT INTO t5 VALUES('1', 'one');\n    INSERT INTO t5 VALUES(1, 'two');\n    INSERT INTO t5 VALUES('1.0', 'three');\n    INSERT INTO t5 VALUES(1.0, 'four');"
@@ -74,10 +54,6 @@
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE x IN (1);",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x IN (1);"
         }
       ]
     },
@@ -86,10 +62,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t1 WHERE x IN (1.0);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t1 WHERE x IN (1.0);"
         }
       ]
@@ -101,10 +73,6 @@
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE x IN ('1');",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE x IN ('1');"
         }
       ]
     },
@@ -113,10 +81,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t1 WHERE x IN ('1.0');"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t1 WHERE x IN ('1.0');"
         }
       ]
@@ -127,10 +91,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE 1 IN (x);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE 1 IN (x);"
         }
       ]
     },
@@ -139,10 +99,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t1 WHERE 1.0 IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t1 WHERE 1.0 IN (x);"
         }
       ]
@@ -154,10 +110,6 @@
           "type": "query",
           "sql": "SELECT x FROM t1 WHERE '1' IN (x);",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE '1' IN (x);"
         }
       ]
     },
@@ -166,10 +118,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t1 WHERE '1.0' IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t1 WHERE '1.0' IN (x);"
         }
       ]
@@ -181,10 +129,6 @@
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE x IN (1);",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x IN (1);"
         }
       ]
     },
@@ -195,10 +139,6 @@
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE x IN (1.0);",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x IN (1.0);"
         }
       ]
     },
@@ -209,10 +149,6 @@
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE x IN ('1');",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x IN ('1');"
         }
       ]
     },
@@ -223,10 +159,6 @@
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE x IN ('1.0');",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE x IN ('1.0');"
         }
       ]
     },
@@ -237,10 +169,6 @@
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE 1 IN (x);",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE 1 IN (x);"
         }
       ]
     },
@@ -251,10 +179,6 @@
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE 1.0 IN (x);",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE 1.0 IN (x);"
         }
       ]
     },
@@ -264,10 +188,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t2 WHERE '1' IN (x);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t2 WHERE '1' IN (x);"
         }
       ]
     },
@@ -276,10 +196,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t2 WHERE '1.0' IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t2 WHERE '1.0' IN (x);"
         }
       ]
@@ -291,10 +207,6 @@
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE x IN (1);",
           "expect": "1.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x IN (1);"
         }
       ]
     },
@@ -305,10 +217,6 @@
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE x IN (1.0);",
           "expect": "1.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x IN (1.0);"
         }
       ]
     },
@@ -319,10 +227,6 @@
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE x IN ('1');",
           "expect": "1.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x IN ('1');"
         }
       ]
     },
@@ -333,10 +237,6 @@
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE x IN ('1.0');",
           "expect": "1.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE x IN ('1.0');"
         }
       ]
     },
@@ -347,10 +247,6 @@
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE 1 IN (x);",
           "expect": "1.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE 1 IN (x);"
         }
       ]
     },
@@ -361,10 +257,6 @@
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE 1.0 IN (x);",
           "expect": "1.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE 1.0 IN (x);"
         }
       ]
     },
@@ -373,10 +265,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t3 WHERE '1' IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t3 WHERE '1' IN (x);"
         }
       ]
@@ -387,10 +275,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t3 WHERE '1.0' IN (x);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t3 WHERE '1.0' IN (x);"
         }
       ]
     },
@@ -399,10 +283,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE x IN (1);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE x IN (1);"
         }
       ]
@@ -413,10 +293,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE x IN (1.0);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE x IN (1.0);"
         }
       ]
     },
@@ -426,10 +302,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE x IN ('1');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE x IN ('1');"
         }
       ]
     },
@@ -438,10 +310,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE x IN ('1.0');"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE x IN ('1.0');"
         }
       ]
@@ -453,10 +321,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE x IN (1.11);",
           "expect": "1.11"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE x IN (1.11);"
         }
       ]
     },
@@ -467,10 +331,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE x IN ('1.11');",
           "expect": "1.11"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE x IN ('1.11');"
         }
       ]
     },
@@ -479,10 +339,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE 1 IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE 1 IN (x);"
         }
       ]
@@ -493,10 +349,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE 1.0 IN (x);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE 1.0 IN (x);"
         }
       ]
     },
@@ -506,10 +358,6 @@
         {
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE '1' IN (x);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE '1' IN (x);"
         }
       ]
     },
@@ -518,10 +366,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE '1.0' IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE '1.0' IN (x);"
         }
       ]
@@ -533,10 +377,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE 1.11 IN (x);",
           "expect": "1.11"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE 1.11 IN (x);"
         }
       ]
     },
@@ -545,10 +385,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE '1.11' IN (x);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE '1.11' IN (x);"
         }
       ]
@@ -560,10 +396,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE x IN (1);",
           "expect": "1 two 1.0 four"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE x IN (1);"
         }
       ]
     },
@@ -574,10 +406,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE x IN (1.0);",
           "expect": "1 two 1.0 four"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE x IN (1.0);"
         }
       ]
     },
@@ -588,10 +416,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE x IN ('1');",
           "expect": "1 one"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE x IN ('1');"
         }
       ]
     },
@@ -602,10 +426,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE x IN ('1.0');",
           "expect": "1.0 three"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE x IN ('1.0');"
         }
       ]
     },
@@ -616,10 +436,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE 1 IN (x);",
           "expect": "1 two 1.0 four"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE 1 IN (x);"
         }
       ]
     },
@@ -630,10 +446,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE 1.0 IN (x);",
           "expect": "1 two 1.0 four"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE 1.0 IN (x);"
         }
       ]
     },
@@ -644,10 +456,6 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE '1' IN (x);",
           "expect": "1 one"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t5 WHERE '1' IN (x);"
         }
       ]
     },
@@ -658,6 +466,198 @@
           "type": "query",
           "sql": "SELECT x, y FROM t5 WHERE '1.0' IN (x);",
           "expect": "1.0 three"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER);\n    INSERT INTO t2 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x REAL);\n    INSERT INTO t3 VALUES(1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x REAL);\n    INSERT INTO t4 VALUES(1.11);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x, y);\n    INSERT INTO t5 VALUES('1', 'one');\n    INSERT INTO t5 VALUES(1, 'two');\n    INSERT INTO t5 VALUES('1.0', 'three');\n    INSERT INTO t5 VALUES(1.0, 'four');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN (1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN (1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN ('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE x IN ('1.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE 1 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE 1.0 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE '1' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE '1.0' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN (1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN (1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN ('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE x IN ('1.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE 1 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE 1.0 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE '1' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE '1.0' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN (1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN (1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN ('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE x IN ('1.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE 1 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE 1.0 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE '1' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t3 WHERE '1.0' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN (1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN (1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN ('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN ('1.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN (1.11);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE x IN ('1.11');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE 1 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE 1.0 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE '1' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE '1.0' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE 1.11 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE '1.11' IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN (1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN (1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN ('1');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE x IN ('1.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE 1 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE 1.0 IN (x);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t5 WHERE '1' IN (x);"
         },
         {
           "type": "exec",

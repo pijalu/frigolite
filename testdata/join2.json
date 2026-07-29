@@ -3,132 +3,6 @@
   "name": "join2",
   "tests": [
     {
-      "name": "join2-1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;",
-          "expect": "1 11 2 22 3 33"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;",
-          "expect": "11 111 33 333 44 444"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;",
-          "expect": "111 1111 444 4444 555 5555"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3",
-          "expect": "1 11 111 1111"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3",
-          "expect": "1 11 111 1111 3 33 333 {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3",
-          "expect": "1 11 111 1111"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.6-rj",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3",
-          "expect": "11 111 1 1111"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)",
-          "expect": "1 11 111 1111 2 22 {} {} 3 33 {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)"
-        }
-      ]
-    },
-    {
-      "name": "join2-1.7-rj",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1",
-          "expect": "1 11 111 1111 2 22 {} {} 3 33 {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
@@ -164,14 +38,6 @@
           "type": "exec",
           "sql": "SELECT * FROM aa JOIN cc ON (a=b) JOIN bb ON (b=c);",
           "expect": "0 {one one one}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -320,28 +186,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "7.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a,b);  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t2(c,d);  INSERT INTO t2 VALUES(2,4),(3,6);\n  CREATE TABLE t3(x);    INSERT INTO t3 VALUES(9);\n  CREATE VIEW test AS\n    SELECT *, 'x'\n      FROM t1 LEFT JOIN (SELECT * FROM t2, t3) ON (c=b AND x=9)\n      WHERE c IS NULL;\n  SELECT * FROM test;",
           "expect": "3 4 {} {} {} x 5 6 {} {} {} x"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -360,14 +210,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t0 LEFT JOIN t1 \n  WHERE (t1.c0 BETWEEN 0 AND 0) > ('' AND t0.c0);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -451,14 +293,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "10.1",
       "steps": [
         {
@@ -514,14 +348,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "13.0",
       "steps": [
         {
@@ -537,6 +363,180 @@
           "type": "query",
           "sql": "SELECT t1.a1, t2.d2\n    FROM (t1 LEFT JOIN t3 ON t3.e3=t1.b1) JOIN t2 ON t2.c2=t1.a1\n   WHERE t1.a1=33\n   ORDER BY t2.d2 DESC;",
           "expect": "33 2 33 1"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;",
+          "expect": "1 11 2 22 3 33"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;",
+          "expect": "11 111 33 333 44 444"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;",
+          "expect": "111 1111 444 4444 555 5555"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3",
+          "expect": "1 11 111 1111"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3",
+          "expect": "1 11 111 1111 3 33 333 {}"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3",
+          "expect": "1 11 111 1111"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.6-rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3",
+          "expect": "11 111 1 1111"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)",
+          "expect": "1 11 111 1111 2 22 {} {} 3 33 {} {}"
+        }
+      ]
+    },
+    {
+      "name": "join2-1.7-rj",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1",
+          "expect": "1 11 111 1111 2 22 {} {} 3 33 {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(b,c);\n    INSERT INTO t2 VALUES(11,111);\n    INSERT INTO t2 VALUES(33,333);\n    INSERT INTO t2 VALUES(44,444);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(c,d);\n    INSERT INTO t3 VALUES(111,1111);\n    INSERT INTO t3 VALUES(444,4444);\n    INSERT INTO t3 VALUES(555,5555);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t1 NATURAL JOIN t2 NATURAL LEFT OUTER JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t1 NATURAL LEFT OUTER JOIN t2 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n      t2 NATURAL RIGHT OUTER JOIN t1 NATURAL JOIN t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM\n        t1 NATURAL LEFT OUTER JOIN (t2 NATURAL JOIN t3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c, d FROM\n        t2 NATURAL JOIN t3 NATURAL RIGHT JOIN t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

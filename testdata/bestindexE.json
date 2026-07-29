@@ -3,31 +3,6 @@
   "name": "bestindexE",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_schema"
-        }
-      ]
-    },
-    {
       "name": "3.1.0",
       "steps": [
         {
@@ -48,11 +23,42 @@
       ]
     },
     {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tcl VALUES('i', 'ii') RETURNING *;"
+        }
+      ]
+    },
+    {
       "name": "3.1.4",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(x);"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tcl VALUES('i', 'ii') RETURNING *;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_schema"
         }
       ]
     },
@@ -65,11 +71,18 @@
       ]
     },
     {
-      "name": "3.2.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT * FROM x1"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

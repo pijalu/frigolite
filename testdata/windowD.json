@@ -62,14 +62,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
@@ -130,6 +122,14 @@
         {
           "type": "query",
           "sql": "SELECT * FROM v2 WHERE 500 IS c;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

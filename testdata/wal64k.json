@@ -12,6 +12,16 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=512;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8200)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(300) FROM c;\n  PRAGMA integrity_check;",
+          "expect": "wal ok"
+        }
+      ]
+    },
+    {
       "name": "1.2",
       "steps": [
         {

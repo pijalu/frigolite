@@ -7,7 +7,15 @@
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+          "sql": "PRAGMA mmap_size=100000;\n    CREATE TABLE t1(x, y);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, randomblob(value) FROM nums\n                    WHERE value BETWEEN 1 and 1000;\n    SELECT sum(x), sum(length(y)) from t1;\n    PRAGMA mmap_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size=50000;\n    CREATE TABLE t2(a,b);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size=250000;\n    DROP TABLE t2;\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;"
         },
         {
           "type": "exec",
@@ -15,11 +23,47 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+          "sql": "PRAGMA mmap_size=150000"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    PRAGMA mmap_size;"
         },
         {
           "type": "exec",
           "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size=0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    PRAGMA mmap_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    PRAGMA mmap_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size(0);\n    CREATE TABLE t3(a,b,c);\n    SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1;\n    PRAGMA quick_check;\n    PRAGMA mmap_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size=75000"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check;\n    PRAGMA mmap_size;"
         }
       ]
     }

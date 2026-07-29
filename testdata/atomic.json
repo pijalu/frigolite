@@ -3,14 +3,6 @@
   "name": "atomic",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.0",
       "steps": [
         {
@@ -25,6 +17,14 @@
         {
           "type": "exec",
           "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

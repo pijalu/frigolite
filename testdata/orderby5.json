@@ -280,14 +280,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.3.2",
       "steps": [
         {
@@ -303,6 +295,14 @@
         {
           "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a);\n  DROP TABLE t2;\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, c INT);\n  SELECT DISTINCT *\n    FROM t1 LEFT JOIN t2 ON b=c AND b=(SELECT a FROM t1)\n   WHERE c>10;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

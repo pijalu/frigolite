@@ -1,0 +1,1234 @@
+{
+  "file": "check.test",
+  "name": "check",
+  "tests": [
+    {
+      "name": "check-4.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA ignore_check_constraints=OFF;\n  PRAGMA integrity_check;",
+          "expect": "{CHECK constraint failed in t4}"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a CHECK (myfunc(a)))"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(9)"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(11)"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t810(a, CHECK( main.t810.a>0 ));\n  CREATE TABLE t811(b, CHECK( xyzzy.t811.b BETWEEN 5 AND 10 ));"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b INTEGER NOT NULL CONSTRAINT 'b-check' CHECK( b>a ),\n    c INTEGER NOT NULL CONSTRAINT 'c-check' CHECK( c>rowid*2 ),\n    d INTEGER NOT NULL CONSTRAINT 'd-check' CHECK( d BETWEEN b AND c )\n  );\n  INSERT INTO t1(a,b,c,d) VALUES(1,2,4,3),(2,4,6,5),(3,10,30,20);"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=0 WHERE a=1;",
+          "expect": "1 {CHECK constraint failed: b-check}"
+        }
+      ]
+    },
+    {
+      "name": "9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET c=a*2 WHERE a=1;",
+          "expect": "1 {CHECK constraint failed: c-check}"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  CREATE VIEW v1(y) AS SELECT x FROM t1;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (Col0 CHECK(1 COLLATE BINARY BETWEEN 1 AND 1) ) ;"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES (NULL);"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT  INTO t1 VALUES (NULL);"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(b, a CHECK(\n      CASE 'abc' COLLATE nocase WHEN a THEN 1 ELSE 0 END)\n  );"
+        }
+      ]
+    },
+    {
+      "name": "11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(a) VALUES('abc');"
+        }
+      ]
+    },
+    {
+      "name": "11.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(b, a) VALUES(1, 'abc'||'');"
+        }
+      ]
+    },
+    {
+      "name": "11.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(b, a) VALUES(2, 'abc');"
+        }
+      ]
+    },
+    {
+      "name": "12.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a TEXT, CHECK(a=+a));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;",
+          "expect": "NULL 'xyz' '5' X'303132' '4.75'"
+        }
+      ]
+    },
+    {
+      "name": "12.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a<>+a));\n  INSERT INTO t1(a) VALUES(NULL);"
+        }
+      ]
+    },
+    {
+      "name": "12.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES('xyz');",
+          "expect": "1 {CHECK constraint failed: a<>+a}"
+        }
+      ]
+    },
+    {
+      "name": "12.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(123);",
+          "expect": "1 {CHECK constraint failed: a<>+a}"
+        }
+      ]
+    },
+    {
+      "name": "12.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a=+a)));\n  INSERT INTO t1(a) VALUES(NULL);"
+        }
+      ]
+    },
+    {
+      "name": "12.31",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES('xyz');",
+          "expect": "1 {CHECK constraint failed: NOT(a=+a)}"
+        }
+      ]
+    },
+    {
+      "name": "12.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(123);",
+          "expect": "1 {CHECK constraint failed: NOT(a=+a)}"
+        }
+      ]
+    },
+    {
+      "name": "12.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(NOT(a<>+a)));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;",
+          "expect": "NULL 'xyz' '5' X'303132' '4.75'"
+        }
+      ]
+    },
+    {
+      "name": "12.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a BETWEEN 0 AND +a));\n  INSERT INTO t1(a) VALUES(NULL),('xyz'),(5),(x'303132'),(4.75);\n  SELECT quote(a) FROM t1 ORDER BY rowid;",
+          "expect": "NULL 'xyz' '5' X'303132' '4.75'"
+        }
+      ]
+    },
+    {
+      "name": "12.60",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a NOT BETWEEN 0 AND +a));\n  INSERT INTO t1(a) VALUES(NULL);\n  SELECT quote(a) FROM t1 ORDER BY rowid;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "12.61",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(456);",
+          "expect": "1 {CHECK constraint failed: a NOT BETWEEN 0 AND +a}"
+        }
+      ]
+    },
+    {
+      "name": "12.70",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a BETWEEN +a AND 999999));\n  INSERT INTO t1(a) VALUES(NULL),(5);\n  SELECT quote(a) FROM t1 ORDER BY rowid;",
+          "expect": "NULL '5'"
+        }
+      ]
+    },
+    {
+      "name": "12.80",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, CHECK(a NOT BETWEEN +a AND 999999));\n  INSERT INTO t1(a) VALUES(NULL);\n  SELECT quote(a) FROM t1 ORDER BY rowid;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "12.81",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(456);",
+          "expect": "1 {CHECK constraint failed: a NOT BETWEEN +a AND 999999}"
+        }
+      ]
+    },
+    {
+      "name": "13.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE Table0 (Col0 , CHECK(Table0.Col0 NOT NULL ) ) ;\n  REPLACE INTO Table0 VALUES (hex(randomblob(100000)));"
+        }
+      ]
+    },
+    {
+      "name": "13.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE Table0 SET Col0 = Table0.Col0 ;"
+        }
+      ]
+    },
+    {
+      "name": "13.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(col0) FROM table0;",
+          "expect": "200000"
+        }
+      ]
+    },
+    {
+      "name": "13.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 (x , CHECK((NOT (x ISNULL) )));\n  REPLACE INTO t2 VALUES (hex(randomblob(100000)));"
+        }
+      ]
+    },
+    {
+      "name": "13.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(x) FROM t2",
+          "expect": "200000"
+        }
+      ]
+    },
+    {
+      "name": "13.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE t2 SET x = x;"
+        }
+      ]
+    },
+    {
+      "name": "13.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length(x) FROM t2",
+          "expect": "200000"
+        }
+      ]
+    },
+    {
+      "name": "check-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      x INTEGER CHECK( x<5 ),\n      y REAL CHECK( y>x )\n    );"
+        }
+      ]
+    },
+    {
+      "name": "check-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;",
+          "expect": "3 4.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6,7);",
+          "expect": "1 {CHECK constraint failed: x<5}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "3 4.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(4,3);",
+          "expect": "1 {CHECK constraint failed: y>x}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "3 4.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(NULL,6);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "3 4.0 {} 6.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,NULL);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "3 4.0 {} 6.0 2 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE x IS NULL OR x!=3;\n    UPDATE t1 SET x=2 WHERE x==3;\n    SELECT * FROM t1;",
+          "expect": "2 4.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=7 WHERE x==2",
+          "expect": "1 {CHECK constraint failed: x<5}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "2 4.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=5 WHERE x==2",
+          "expect": "1 {CHECK constraint failed: x<5}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "2 4.0"
+        }
+      ]
+    },
+    {
+      "name": "check-1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=4, y=11 WHERE x==2",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "4 11.0"
+        }
+      ]
+    },
+    {
+      "name": "check-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema = 1;\n    CREATE TABLE t2(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y REAL CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    CREATE TABLE t2n(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y NUMERIC CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    PRAGMA writable_schema = 0;"
+        }
+      ]
+    },
+    {
+      "name": "check-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;",
+          "expect": "1 2.2 three"
+        }
+      ]
+    },
+    {
+      "name": "check-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;",
+          "expect": "1 2.2 three {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1.1, NULL, NULL);",
+          "expect": "1 {CHECK constraint failed: one}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL, 5, NULL);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.5b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2n VALUES(NULL, 5, NULL);",
+          "expect": "1 {CHECK constraint failed: two}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL, NULL, 3.14159);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2b(\n      x INTEGER CHECK( typeof(coalesce(x,0))=='integer' ) CONSTRAINT one,\n      y TEXT PRIMARY KEY constraint two,\n      z INTEGER,\n      UNIQUE(x,z) constraint three\n    );"
+        }
+      ]
+    },
+    {
+      "name": "check-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2b VALUES('xyzzy','hi',5);",
+          "expect": "1 {CHECK constraint failed: typeof(coalesce(x,0))=='integer'}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2c(\n      x INTEGER CONSTRAINT x_one CONSTRAINT x_two\n          CHECK( typeof(coalesce(x,0))=='integer' )\n          CONSTRAINT x_two CONSTRAINT x_three,\n      y INTEGER, z INTEGER,\n      CONSTRAINT u_one UNIQUE(x,y,z) CONSTRAINT u_two\n    );"
+        }
+      ]
+    },
+    {
+      "name": "check-2.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2c VALUES('xyzzy',7,8);",
+          "expect": "1 {CHECK constraint failed: x_two}"
+        }
+      ]
+    },
+    {
+      "name": "check-2.cleanup",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2b;\n    DROP TABLE IF EXISTS t2c;\n    DROP TABLE IF EXISTS t2n;"
+        }
+      ]
+    },
+    {
+      "name": "check-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n        x, y, z,\n        CHECK( x<(SELECT min(x) FROM t1) )\n      );",
+          "expect": "1 {subqueries prohibited in CHECK constraints}"
+        }
+      ]
+    },
+    {
+      "name": "check-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name",
+          "expect": "t1 t2"
+        }
+      ]
+    },
+    {
+      "name": "check-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      x, y, z,\n      CHECK( q<x )\n    );",
+          "expect": "1 {no such column: q}"
+        }
+      ]
+    },
+    {
+      "name": "check-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name",
+          "expect": "t1 t2"
+        }
+      ]
+    },
+    {
+      "name": "check-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      x, y, z,\n      CHECK( t2.x<x )\n    );",
+          "expect": "1 {no such column: t2.x}"
+        }
+      ]
+    },
+    {
+      "name": "check-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name",
+          "expect": "t1 t2"
+        }
+      ]
+    },
+    {
+      "name": "check-3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      x, y, z,\n      CHECK( t3.x<25 )\n    );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3 VALUES(1,2,3);\n    SELECT * FROM t3;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "check-3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(111,222,333);",
+          "expect": "1 {CHECK constraint failed: t3.x<25}"
+        }
+      ]
+    },
+    {
+      "name": "check-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y,\n      CHECK (\n           x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10\n      )\n    );"
+        }
+      ]
+    },
+    {
+      "name": "check-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t4 VALUES(1,10);\n    SELECT * FROM t4",
+          "expect": "1 10"
+        }
+      ]
+    },
+    {
+      "name": "check-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t4 SET x=4, y=3;\n    SELECT * FROM t4",
+          "expect": "4 3"
+        }
+      ]
+    },
+    {
+      "name": "check-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t4 SET x=12, y=2;\n    SELECT * FROM t4",
+          "expect": "12 2"
+        }
+      ]
+    },
+    {
+      "name": "check-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t4 SET x=12, y=-22;\n    SELECT * FROM t4",
+          "expect": "12 -22"
+        }
+      ]
+    },
+    {
+      "name": "check-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET x=0, y=1;",
+          "expect": "1 {CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10}"
+        }
+      ]
+    },
+    {
+      "name": "check-4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4;",
+          "expect": "12 -22"
+        }
+      ]
+    },
+    {
+      "name": "check-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA ignore_check_constraints=ON;\n    UPDATE t4 SET x=0, y=1;\n    SELECT * FROM t4;\n    PRAGMA integrity_check;",
+          "expect": "0 1 ok"
+        }
+      ]
+    },
+    {
+      "name": "check-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET x=0, y=2;",
+          "expect": "1 {CHECK constraint failed: x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10}"
+        }
+      ]
+    },
+    {
+      "name": "check_4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x, y,\n      CHECK( x*y<:abc )\n    );",
+          "expect": "1 {parameters prohibited in CHECK constraints}"
+        }
+      ]
+    },
+    {
+      "name": "check-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(x, y,\n      CHECK( x*y<? )\n    );",
+          "expect": "1 {parameters prohibited in CHECK constraints}"
+        }
+      ]
+    },
+    {
+      "name": "check-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "4 11.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR IGNORE t1 SET x=5;\n    SELECT * FROM t1;",
+          "expect": "4 11.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;",
+          "expect": "4 11.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;",
+          "expect": "4 11.0 2 20.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR FAIL t1 SET x=7-x, y=y+1;",
+          "expect": "1 {CHECK constraint failed: x<5}"
+        }
+      ]
+    },
+    {
+      "name": "check-6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "3 12.0 2 20.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(1,30.0);\n    INSERT OR ROLLBACK INTO t1 VALUES(8,40.0);",
+          "expect": "1 {CHECK constraint failed: x<5}"
+        }
+      ]
+    },
+    {
+      "name": "check-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "1 {cannot commit - no transaction is active}"
+        }
+      ]
+    },
+    {
+      "name": "check-6.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "3 12.0 2 20.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "3 12.0 2 20.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO t1 VALUES(6,7);",
+          "expect": "1 {CHECK constraint failed: x<5}"
+        }
+      ]
+    },
+    {
+      "name": "check-6.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "3 12.0 2 20.0"
+        }
+      ]
+    },
+    {
+      "name": "check-6.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(6,7);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "check-6.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "3 12.0 2 20.0"
+        }
+      ]
+    },
+    {
+      "name": "7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t6",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(8)",
+          "expect": "1 {unknown function: myfunc()}"
+        }
+      ]
+    },
+    {
+      "name": "7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a CHECK (myfunc(a)))",
+          "expect": "1 {no such function: myfunc}"
+        }
+      ]
+    },
+    {
+      "name": "7.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(8)"
+        }
+      ]
+    },
+    {
+      "name": "7.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(12)",
+          "expect": "1 {CHECK constraint failed: myfunc(a)}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      x INTEGER CHECK( x<5 ),\n      y REAL CHECK( y>x )\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x IS NULL OR x!=3;\n    UPDATE t1 SET x=2 WHERE x==3;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n    CREATE TABLE t2(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y REAL CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    CREATE TABLE t2n(\n      x INTEGER CONSTRAINT one CHECK( typeof(coalesce(x,0))==\"integer\" ),\n      y NUMERIC CONSTRAINT two CHECK( typeof(coalesce(y,0.1))=='real' ),\n      z TEXT CONSTRAINT three CHECK( typeof(coalesce(z,''))=='text' )\n    );\n    PRAGMA writable_schema = 0;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2b(\n      x INTEGER CHECK( typeof(coalesce(x,0))=='integer' ) CONSTRAINT one,\n      y TEXT PRIMARY KEY constraint two,\n      z INTEGER,\n      UNIQUE(x,z) constraint three\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2c(\n      x INTEGER CONSTRAINT x_one CONSTRAINT x_two\n          CHECK( typeof(coalesce(x,0))=='integer' )\n          CONSTRAINT x_two CONSTRAINT x_three,\n      y INTEGER, z INTEGER,\n      CONSTRAINT u_one UNIQUE(x,y,z) CONSTRAINT u_two\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2b;\n    DROP TABLE IF EXISTS t2c;\n    DROP TABLE IF EXISTS t2n;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1,2,3);\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y,\n      CHECK (\n           x+y==11\n        OR x*y==12\n        OR x/y BETWEEN 5 AND 8\n        OR -x==y+10\n      )\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1,10);\n    SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET x=4, y=3;\n    SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET x=12, y=2;\n    SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET x=12, y=-22;\n    SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA ignore_check_constraints=ON;\n    UPDATE t4 SET x=0, y=1;\n    SELECT * FROM t4;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE OR IGNORE t1 SET x=5;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(5,4.0);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR IGNORE INTO t1 VALUES(2,20.0);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t6 VALUES(8)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -3,14 +3,6 @@
   "name": "view3",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.1",
       "steps": [
         {
@@ -27,6 +19,14 @@
           "type": "exec",
           "sql": "SELECT * FROM v32768;",
           "expect": "1 interrupted"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -3,83 +3,6 @@
   "name": "fkey3",
   "tests": [
     {
-      "name": "fkey3-1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;",
-          "expect": "1 100 1 101 2 100 2 101"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
-        }
-      ]
-    },
-    {
-      "name": "fkey3-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=100;",
-          "expect": "1 {FOREIGN KEY constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "fkey3-1.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;",
-          "expect": "1 {FOREIGN KEY constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "fkey3-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t2;"
-        }
-      ]
-    },
-    {
-      "name": "fkey3-1.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;"
-        }
-      ]
-    },
-    {
-      "name": "fkey3-2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
-        }
-      ]
-    },
-    {
       "name": "3.1.1",
       "steps": [
         {
@@ -310,6 +233,83 @@
           "type": "exec",
           "sql": "CREATE TABLE TestTable (\n    id INTEGER PRIMARY KEY,\n    name text,\n    source_id integer not null,\n    parent_id integer,\n\n    foreign key(source_id, parent_id) references TestTable(source_id, id)\n  );\n  CREATE UNIQUE INDEX testindex on TestTable(source_id, id);\n  PRAGMA foreign_keys=1;\n  INSERT INTO TestTable VALUES (1, 'parent', 1, null);\n  INSERT INTO TestTable VALUES (2, 'child', 1, 1);\n  UPDATE TestTable SET parent_id=1000 where id=2;",
           "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;",
+          "expect": "1 100 1 101 2 100 2 101"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=100;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "fkey3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER PRIMARY KEY REFERENCES t1 (x) ON UPDATE SET NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;"
         }
       ]
     }

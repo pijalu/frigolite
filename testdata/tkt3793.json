@@ -1,0 +1,55 @@
+{
+  "file": "tkt3793.test",
+  "name": "tkt3793",
+  "tests": [
+    {
+      "name": "tkt3793-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randstr(50,50), randstr(50,50));\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "tkt3793-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    SELECT count(*) FROM t1;",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "tkt3793-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randstr(50,50), randstr(50,50));\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

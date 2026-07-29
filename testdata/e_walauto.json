@@ -1,0 +1,80 @@
+{
+  "file": "e_walauto.test",
+  "name": "e_walauto",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(100), randomblob(100))"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

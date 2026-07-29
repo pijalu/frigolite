@@ -3,14 +3,6 @@
   "name": "corruptN",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.1",
       "steps": [
         {
@@ -21,27 +13,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY AUTOINCREMENT, y);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_schema \n      SET sql = 'CREATE TABLE sqlite_sequence(name-seq)' \n      WHERE name = 'sqlite_sequence';"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -65,28 +41,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.2",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA writable_schema = 1;\n    REPLACE INTO x1 VALUES(5, 2, 3);",
           "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -100,14 +60,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.1",
       "steps": [
         {
@@ -117,18 +69,30 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "6.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(b) VALUES(zeroblob(300)),(zeroblob(300)),(zeroblob(300)),(zeroblob(300));\n  CREATE TABLE t2(a);\n  CREATE TRIGGER t1tr BEFORE UPDATE ON t1 BEGIN DELETE FROM t2; END;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema SET rootpage=3 WHERE rowid=2;\n  PRAGMA writable_schema=RESET;\n  INSERT INTO t2 VALUES('active'),('boomer'),('atom'),('atomic'),\n         ('alpha channel backup abandon test aback boomer atom alpha active');"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "6.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=zeroblob(299);",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "-- Make \"t1\" a large table. Large enough that the children of the root\n  -- node are interior nodes.\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT zeroblob(300) FROM s;\n  \n  CREATE TABLE t2(y);\n  CREATE TRIGGER tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t2;\n  END;\n  \n  -- Set the root of table t2 to 137 - the leftmost child of the root of t1.\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_schema SET rootpage = 137 WHERE name='t2';\n  PRAGMA writable_schema = RESET;"
         }
       ]
     },
@@ -143,10 +107,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "7.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "BEGIN;\n  CREATE TABLE p1(x PRIMARY KEY);\n  CREATE TABLE c1(y);\n\n  PRAGMA schema_version = 0;\n  PRAGMA writable_schema = RESET;\n\n  INSERT INTO c1 VALUES(1000);\n  ROLLBACK;"
         }
       ]
     },
@@ -177,6 +142,78 @@
           "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

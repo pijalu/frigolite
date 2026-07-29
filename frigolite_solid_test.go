@@ -23,14 +23,17 @@ import (
 // own layer or lower-numbered layers.
 var internalLayers = map[string]int{
 	"github.com/pijalu/frigolite/internal/util":          0, // utilities
+	"github.com/pijalu/frigolite/internal/value":         0, // value comparison
 	"github.com/pijalu/frigolite/internal/auth":           0, // authorization (no internal deps)
 	"github.com/pijalu/frigolite/internal/storage":        1, // file format
 	"github.com/pijalu/frigolite/internal/pager":          2, // page cache
 	"github.com/pijalu/frigolite/internal/btree":          3, // B-tree
 	"github.com/pijalu/frigolite/internal/sql":            4, // parser/lexer
+	"github.com/pijalu/frigolite/internal/rename":         4, // rename utilities
 	"github.com/pijalu/frigolite/internal/schema":         5, // schema
 	"github.com/pijalu/frigolite/internal/function":       5, // functions
 	"github.com/pijalu/frigolite/internal/vtab":           5, // virtual tables
+	"github.com/pijalu/frigolite/internal/fts":            5, // FTS3/4/5 full-text search
 	"github.com/pijalu/frigolite/internal/exec":           6, // execution engine
 }
 

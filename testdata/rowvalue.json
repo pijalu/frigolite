@@ -920,14 +920,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "26.10",
       "steps": [
         {
@@ -978,18 +970,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "27.10",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 CHECK(((0, 0) > (0, c0))));\n  INSERT INTO t0(c0) VALUES(0) ON CONFLICT(c0) DO UPDATE SET c0 = 3;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
         }
       ]
     },
@@ -1010,14 +996,6 @@
           "type": "exec",
           "sql": "SELECT (SELECT 1 WHERE ((SELECT 1 WHERE (2,(2,0)) IS (2,(20))),(2,0)) IS (2,(20))) WHERE (2,(2,0)) IS (2 IN(SELECT 1 WHERE (2,(2,2,0)) IS (2,(20))),(20));",
           "expect": "1 {row value misused}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -1050,27 +1028,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "30.3",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t2(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n\n  UPDATE t2 SET (d,d,a)=(SELECT EXISTS(SELECT 1 IN(SELECT max( 1 IN(SELECT x ORDER BY 1)) OVER(PARTITION BY sum((SELECT y FROM t1 UNION SELECT x ORDER BY 1)))INTERSECT SELECT EXISTS(SELECT 1 FROM t1 UNION SELECT x ORDER BY 1) ORDER BY 1) ORDERa)|9 AS blob, 2, 3) FROM t1 WHERE x<a;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -1111,28 +1073,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "32.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT);\n  CREATE TABLE t2(d INTEGER PRIMARY KEY);\n  INSERT INTO t1(a,b,c) VALUES(500,654,456);\n  INSERT INTO t1(a,b,c) VALUES(501,655,456);\n  INSERT INTO t1(a,b,c) VALUES(502,654,122);\n  INSERT INTO t1(a,b,c) VALUES(503,654,221);\n  INSERT INTO t1(a,b,c) VALUES(601,654,122);\n  INSERT INTO t2(d) VALUES(456);\n  INSERT INTO t2(d) VALUES(122);\n  SELECT a FROM (\n    SELECT t1.a FROM t2, t1 \n    WHERE (987, t1.b) = ( SELECT 987, 654 ) AND t2.d=t1.c\n  ) AS t3\n  WHERE a=1234 OR a<=567;",
           "expect": "500 502"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -1215,14 +1161,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "34.1",
       "steps": [
         {
@@ -1249,6 +1187,25 @@
           "type": "query",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d);\n  CREATE INDEX idx ON t1(b,a,a);\n  INSERT INTO t1(a,b) VALUES (1, 22);\n  SELECT * FROM t1 INDEXED BY idx WHERE (b,a) IN (SELECT b,a FROM t1);",
           "expect": "1 22 NULL NULL"
+        }
+      ]
+    },
+    {
+      "name": "34.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE INDEX t1a ON t1(a,id);  -- index includes PRIMARY KEY\n  CREATE TABLE t2(id INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(id,a) SELECT n, 777 FROM c;\n  INSERT INTO t2 SELECT id FROM t1;\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id>999\n   ORDER BY t1.id;"
+        }
+      ]
+    },
+    {
+      "name": "34.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT *\n    FROM t1 JOIN t2 USING(id)\n   WHERE t1.a=777 AND t2.id>999\n   ORDER BY t1.id;",
+          "expect": "/SEARCH t1 USING COVERING INDEX t1a .a=. AND id>../"
         }
       ]
     },
@@ -1294,6 +1251,78 @@
         {
           "type": "query",
           "sql": "SELECT (max(x),1,23) IN () FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

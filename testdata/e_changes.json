@@ -1,0 +1,237 @@
+{
+  "file": "e_changes.test",
+  "name": "e_changes",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t2(y);"
+        }
+      ]
+    },
+    {
+      "name": "3.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_ai AFTER INSERT ON p1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  CREATE TRIGGER tr_au AFTER UPDATE ON p1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- None of the inserts on table log were counted.\n  SELECT count(*) FROM log"
+        }
+      ]
+    },
+    {
+      "name": "3.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM p1;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n\n  CREATE TABLE c1(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE SET NULL);\n  CREATE TABLE c2(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE SET DEFAULT);\n  CREATE TABLE c3(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE CASCADE);\n  INSERT INTO c1 VALUES('a', 'aaa');\n  INSERT INTO c2 VALUES('b', 'bbb');\n  INSERT INTO c3 VALUES('c', 'ccc');\n\n  INSERT INTO p1 VALUES('d', 'D'), ('e', 'E'), ('f', 'F');\n  CREATE TABLE c4(a, b, FOREIGN KEY(a) REFERENCES p1 ON UPDATE SET NULL);\n  CREATE TABLE c5(a, b, FOREIGN KEY(a) REFERENCES p1 ON UPDATE SET DEFAULT);\n  CREATE TABLE c6(a, b, FOREIGN KEY(a) REFERENCES p1 ON UPDATE CASCADE);\n  INSERT INTO c4 VALUES('d', 'aaa');\n  INSERT INTO c5 VALUES('e', 'bbb');\n  INSERT INTO c6 VALUES('f', 'ccc');\n\n  PRAGMA foreign_keys = ON;"
+        }
+      ]
+    },
+    {
+      "name": "3.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c1;\n  SELECT * FROM c2;\n  SELECT * FROM c3;",
+          "expect": "{} aaa {} bbb"
+        }
+      ]
+    },
+    {
+      "name": "3.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c4;\n  SELECT * FROM c5;\n  SELECT * FROM c6;",
+          "expect": "{} aaa {} bbb i ccc"
+        }
+      ]
+    },
+    {
+      "name": "3.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE r1(a UNIQUE, b UNIQUE);\n  INSERT INTO r1 VALUES('i', 'i');\n  INSERT INTO r1 VALUES('ii', 'ii');\n  INSERT INTO r1 VALUES('iii', 'iii');\n  INSERT INTO r1 VALUES('iv', 'iv');\n  INSERT INTO r1 VALUES('v', 'v');\n  INSERT INTO r1 VALUES('vi', 'vi');\n  INSERT INTO r1 VALUES('vii', 'vii');"
+        }
+      ]
+    },
+    {
+      "name": "3.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM r1 ORDER BY a;",
+          "expect": "i 1   iii v   vii vi"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(log);\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER v1_i INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER v1_u INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update'), ('update');\n  END;\n  CREATE TRIGGER v1_d INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete'), ('delete'), ('delete');\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "5.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(x);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n  CREATE TRIGGER AFTER UPDATE ON t1 BEGIN\n    INSERT INTO t2 VALUES('a'), ('b'), ('c');\n    SELECT my_changes('trigger');\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "5.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES('a'), ('b');\n  UPDATE t1 SET b = my_changes('update');\n  SELECT * FROM t1;",
+          "expect": "1 2 2 2 3 2"
+        }
+      ]
+    },
+    {
+      "name": "5.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE log(x);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 0);\n  INSERT INTO t1 VALUES(3, 0);\n  CREATE TRIGGER t1_a_u AFTER UPDATE ON t1 BEGIN\n    INSERT INTO log VALUES(old.b || ' -> ' || new.b || ' c = ' || changes() );\n  END;\n  CREATE TABLE t2(a);\n  INSERT INTO t2 VALUES(1), (2), (3);\n  UPDATE t1 SET b = changes();"
+        }
+      ]
+    },
+    {
+      "name": "5.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 3 2 3 3 3"
+        }
+      ]
+    },
+    {
+      "name": "5.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM log;",
+          "expect": "{0 -> 3 c = 3} {0 -> 3 c = 3} {0 -> 3 c = 3}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.a, new.b), (new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_u AFTER UPDATE ON t1 BEGIN\n    UPDATE t2 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_u BEFORE UPDATE ON t2 BEGIN\n    UPDATE t3 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_d AFTER DELETE ON t1 BEGIN\n    DELETE FROM t2 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_d BEFORE DELETE ON t2 BEGIN\n    DELETE FROM t3 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE q1(t);\n  CREATE TABLE q2(u, v);\n  CREATE TABLE q3(w);\n\n  CREATE TRIGGER q2_insert BEFORE INSERT ON q2 BEGIN\n\n    /* changes() returns value from previous I/U/D in callers context */\n    INSERT INTO q1 VALUES('1:' || changes());\n\n    /* changes() returns value of previous I/U/D in this context */\n    INSERT INTO q3 VALUES(changes()), (2), (3);\n    INSERT INTO q1 VALUES('2:' || changes());\n    INSERT INTO q3 VALUES(changes() + 3), (changes()+4);\n    SELECT 'this does not affect things!';\n    INSERT INTO q1 VALUES('3:' || changes());\n    UPDATE q3 SET w = w+10 WHERE w%2;\n    INSERT INTO q1 VALUES('4:' || changes());\n    DELETE FROM q3;\n    INSERT INTO q1 VALUES('5:' || changes());\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO q2 VALUES('x', 'y');\n  SELECT * FROM q1;",
+          "expect": "1:0   2:3   3:2   4:3   5:5"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM q1;\n  INSERT INTO q2 VALUES('x', 'y');\n  SELECT * FROM q1;",
+          "expect": "1:5   2:3   3:2   4:3   5:5"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1, -1)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

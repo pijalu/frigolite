@@ -1,0 +1,94 @@
+{
+  "file": "lock6.test",
+  "name": "lock6",
+  "tests": [
+    {
+      "name": "lock6-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma lock_status",
+          "expect": "main unlocked temp closed"
+        }
+      ]
+    },
+    {
+      "name": "lock6-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from sqlite_master",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "lock6-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
+          "expect": "{:auto: (not held)}"
+        }
+      ]
+    },
+    {
+      "name": "lock6-1.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"notmine\";\n      select * from sqlite_master;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "lock6-1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file;",
+          "expect": "notmine"
+        }
+      ]
+    },
+    {
+      "name": "lock6-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"mine\";\n      select * from sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n        select * from sqlite_master;\n        PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        SELECT * FROM sqlite_master;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

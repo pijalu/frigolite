@@ -158,53 +158,11 @@
       ]
     },
     {
-      "name": "2.3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t5 SET b=1 FROM t5;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t5 SET b=1 FROM t5;"
-        }
-      ]
-    },
-    {
-      "name": "2.3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t0(a);\n  CREATE TABLE t1(b);\n  UPDATE t1 SET b=sum(a) FROM t0;\n  SELECT * FROM t0, t1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -229,6 +187,42 @@
       ]
     },
     {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(5);\n  CREATE VIEW t2 AS SELECT a FROM t1 UNION ALL SELECT a FROM t1;\n  CREATE TABLE t3(b,c);\n  INSERT INTO t3(b,c) VALUES(1,2);\n  UPDATE t3 SET (c,b) = (SELECT 3,4) FROM t1, t2;\n  SELECT * FROM t3;",
+          "expect": "4 3"
+        }
+      ]
+    },
+    {
+      "name": "2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b=1 FROM t5;"
+        }
+      ]
+    },
+    {
+      "name": "2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 SET b=1 FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t5 AS apples SET b=1 FROM t5 AS apples;"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -237,12 +231,18 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1(a) VALUES(5);\n  CREATE VIEW t2 AS SELECT a FROM t1 UNION ALL SELECT a FROM t1;\n  CREATE TABLE t3(b,c);\n  INSERT INTO t3(b,c) VALUES(1,2);\n  UPDATE t3 SET (c,b) = (SELECT 3,4) FROM t1, t2;\n  SELECT * FROM t3;",
-          "expect": "4 3"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

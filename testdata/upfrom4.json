@@ -31,14 +31,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "200",
       "steps": [
         {
@@ -71,14 +63,6 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n  SELECT * FROM t1 ORDER BY a;\n  INSERT INTO t2(x) VALUES(1);\n  SELECT * FROM t1 ORDER BY a;\n  ROLLBACK;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -117,6 +101,22 @@
           "type": "query",
           "sql": "SELECT * FROM t1",
           "expect": "789 123 789 123 0 0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

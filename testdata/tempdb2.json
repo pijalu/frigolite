@@ -3,14 +3,6 @@
   "name": "tempdb2",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.1",
       "steps": [
         {
@@ -49,14 +41,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
@@ -80,6 +64,22 @@
         {
           "type": "query",
           "sql": "SELECT b FROM t1 WHERE a = 10001;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

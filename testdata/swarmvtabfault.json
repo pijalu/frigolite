@@ -8,6 +8,14 @@
         {
           "type": "exec",
           "sql": "ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM xyz"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.xyz USING swarmvtab(\n        'VALUES\n        (\"test.db1\", \"t1\", 1, 10),\n        (\"test.db2\", \"t1\", 11, 20)\n        ', 'fetch_db'\n    );"
         }
       ]
     }

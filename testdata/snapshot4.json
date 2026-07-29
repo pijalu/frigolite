@@ -1,0 +1,47 @@
+{
+  "file": "snapshot4.test",
+  "name": "snapshot4",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, randomblob(400));\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 2 UNION ALL SELECT i+1 FROM s WHERE i<100\n  ) \n  INSERT INTO t1 SELECT i, randomblob(400) FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      SELECT count(*) FROM t1;",
+          "expect": "100"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

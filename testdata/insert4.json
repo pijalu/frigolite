@@ -1,0 +1,680 @@
+{
+  "file": "insert4.test",
+  "name": "insert4",
+  "tests": [
+    {
+      "name": "insert4-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(5 COLLATE xyzzy) UNION SELECT 0;",
+          "expect": "1 {no such collation sequence: xyzzy}"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );\n  CREATE TEMP TABLE x(\n    rid INTEGER,\n    pid INTEGER,\n    mid INTEGER,\n    px INTEGER DEFAULT(0) CHECK(px IN(0, 1))\n  );"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t9(a, b, c);\n  CREATE INDEX t9a ON t9(a);\n  CREATE INDEX t9b ON t9(b) WHERE c=0;\n\n  INSERT INTO t9 VALUES(1, 1, 1);\n  INSERT INTO t9 VALUES(2, 2, 2);\n  INSERT INTO t9 VALUES(3, 3, 3);\n\n  CREATE TABLE t10(a, b, c);\n  CREATE INDEX t10a ON t10(a);\n  CREATE INDEX t10b ON t10(b) WHERE c=0;\n\n  INSERT INTO t10 SELECT * FROM t9;\n  SELECT * FROM t10;\n  PRAGMA integrity_check;",
+          "expect": "1 1 1  2 2 2  3 3 3  ok"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE src(x,y,z, CONSTRAINT c1 CHECK(rowid<=5));\n  CREATE TABLE dest(x,y,z, CONSTRAINT c2 CHECK(rowid<=5));\n  INSERT INTO src(x) VALUES(22),(33),(44);\n  UPDATE src SET y=x+100, z=x*100;\n  INSERT INTO dest(x) VALUES(55),(66),(77);\n  UPDATE dest SET y=x+100, z=x*100;\n  PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO dest SELECT * FROM src;",
+          "expect": "1 {CHECK constraint failed: c2}"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, x FROM dest;\n  PRAGMA integrity_check;",
+          "expect": "1 55 2 66 3 77 ok"
+        }
+      ]
+    },
+    {
+      "name": "12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE src DROP CONSTRAINT c1;\n    ALTER TABLE dest DROP CONSTRAINT c2;"
+        }
+      ]
+    },
+    {
+      "name": "12.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO dest SELECT * FROM src;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "12.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, x FROM dest;\n    PRAGMA integrity_check;",
+          "expect": "1 55 2 66 3 77 4 22 5 33 6 44 ok"
+        }
+      ]
+    },
+    {
+      "name": "insert4-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);"
+        }
+      ]
+    },
+    {
+      "name": "insert4-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;",
+          "expect": "4 8"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;",
+          "expect": "0 {1 9}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;",
+          "expect": "9 1"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;",
+          "expect": "1 {CHECK constraint failed: b>a}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;",
+          "expect": "9 1 1 9"
+        }
+      ]
+    },
+    {
+      "name": "insert4-2.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;",
+          "expect": "1 {CHECK constraint failed: b>a}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-4.1a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b, UNIQUE(a,b))"
+        }
+      ]
+    },
+    {
+      "name": "insert4-4.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(NULL,0);\n      INSERT INTO t4 VALUES(NULL,1);\n      INSERT INTO t4 VALUES(NULL,1);\n      VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "insert4-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT a, b FROM nosuchtable",
+          "expect": "1 {no such table: nosuchtable}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c);\n    INSERT INTO t4 SELECT * FROM t5;",
+          "expect": "1 {table t4 has 2 columns but 3 values were supplied}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6a(x CHECK( x<>'abc' ));\n    INSERT INTO t6a VALUES('ABC');\n    SELECT * FROM t6a;",
+          "expect": "ABC"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6b(x CHECK( x<>'abc' COLLATE nocase ));"
+        }
+      ]
+    },
+    {
+      "name": "insert4-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6b;\n    CREATE TABLE t6b(x CHECK( x COLLATE nocase <>'abc' ));"
+        }
+      ]
+    },
+    {
+      "name": "insert4-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7a(x INTEGER PRIMARY KEY); INSERT INTO t7a VALUES(123);\n      CREATE TABLE t7b(y INTEGER REFERENCES t7a);\n      CREATE TABLE t7c(z INT);  INSERT INTO t7c VALUES(234);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;",
+          "expect": "234"
+        }
+      ]
+    },
+    {
+      "name": "insert4-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t7b;\n      PRAGMA foreign_keys=ON;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t7b"
+        }
+      ]
+    },
+    {
+      "name": "insert4-7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t7b; DELETE FROM t7c;\n      INSERT INTO t7c VALUES(123);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "insert4-7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=OFF;\n      DELETE FROM t7b;\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELECT * FROM t1;",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "-99 100 1 2"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELECT * FROM t1;",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELECT * FROM t1;",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 {cannot commit - no transaction is active}"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "insert4-8.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x SELECT * FROM t8"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO dest SELECT * FROM src;\n      SELECT * FROM dest;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE dest;\n    DROP TABLE src;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b, UNIQUE(a,b))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(NULL,0);\n      INSERT INTO t4 VALUES(NULL,1);\n      INSERT INTO t4 VALUES(NULL,1);\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6a(x CHECK( x<>'abc' ));\n    INSERT INTO t6a VALUES('ABC');\n    SELECT * FROM t6a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6b(x CHECK( x<>'abc' COLLATE nocase ));"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t6b;\n    CREATE TABLE t6b(x CHECK( x COLLATE nocase <>'abc' ));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7a(x INTEGER PRIMARY KEY); INSERT INTO t7a VALUES(123);\n      CREATE TABLE t7b(y INTEGER REFERENCES t7a);\n      CREATE TABLE t7c(z INT);  INSERT INTO t7c VALUES(234);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7b;\n      PRAGMA foreign_keys=ON;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t7b"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t7b; DELETE FROM t7c;\n      INSERT INTO t7c VALUES(123);\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=OFF;\n      DELETE FROM t7b;\n      INSERT INTO t7b SELECT * FROM t7c;\n      SELECT * FROM t7b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t2 VALUES(-99,100);\n    INSERT INTO t2 VALUES(1,3);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT REPLACE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT IGNORE, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT IGNORE, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ABORT, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ABORT, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT FAIL, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT FAIL, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, b);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, y);\n    INSERT INTO t2 VALUES(1,3);\n    INSERT INTO t1 SELECT * FROM t2;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x SELECT * FROM t8"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x     SELECT * FROM t8"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x     SELECT * FROM t8  RETURNING *"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

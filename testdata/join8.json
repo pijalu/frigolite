@@ -13,14 +13,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-1000",
       "steps": [
         {
@@ -40,14 +32,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-2000",
       "steps": [
         {
@@ -63,14 +47,6 @@
           "type": "exec",
           "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON c=d JOIN t3 ON f=e;",
           "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -122,28 +98,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-4000",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1,5555,4);\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b ON t1(b);\n  SELECT a FROM t1 NATURAL RIGHT JOIN t1 WHERE a=5555 OR (1,b)==(SELECT 2 IN (2,2),4);",
           "expect": "5555"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -158,14 +118,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-6000",
       "steps": [
         {
@@ -176,10 +128,42 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "join8-6010",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b TEXT, c TEXT, d INT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(15,'xray','baker',42);\n  SELECT value, t1.* FROM json_each('7') NATURAL RIGHT JOIN t1\n   WHERE (a,b) IN (SELECT a, b FROM t1);",
+          "expect": "7 15 xray baker 42"
+        }
+      ]
+    },
+    {
+      "name": "join8-6020",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b);\n  INSERT INTO t1 VALUES(0,NULL),(1,2);\n  SELECT value, t1.* FROM json_each('17') NATURAL RIGHT JOIN t1\n   WHERE (a,b) IN (SELECT rowid, b FROM t1);",
+          "expect": "17 1 2"
+        }
+      ]
+    },
+    {
+      "name": "join8-6021",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value, t1.* FROM json_each('null') NATURAL RIGHT JOIN t1\n   WHERE (a,b) IN (SELECT rowid, b FROM t1);",
+          "expect": "{} 1 2"
+        }
+      ]
+    },
+    {
+      "name": "join8-6022",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE a(key TEXT);\n  INSERT INTO a(key) VALUES('a'),('b');\n  SELECT quote(a.key), b.value\n    FROM a RIGHT JOIN json_each('[\"a\",\"c\"]') AS b ON a.key=b.value;",
+          "expect": "'a' a NULL c"
         }
       ]
     },
@@ -221,14 +205,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-8000",
       "steps": [
         {
@@ -256,28 +232,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-9000",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d REAL);\n  INSERT INTO t1 VALUES(1,'E','bb',NULL),(2,NULL,NULL,NULL);\n  SELECT * FROM t1 NATURAL RIGHT JOIN t1 AS t2 WHERE (a,b) IN (SELECT a+0, b FROM t1);",
           "expect": "1 E bb -"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -371,14 +331,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-11000",
       "steps": [
         {
@@ -425,14 +377,6 @@
           "type": "query",
           "sql": "DROP INDEX i2;\n  CREATE INDEX i2 ON t2((b+0), d) WHERE d IS NOT NULL;\n  SELECT b, d FROM t1 RIGHT JOIN t2 WHERE (b+0)=1 AND d!=4;",
           "expect": "1 not-4"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -486,27 +430,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-13000",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t0(t TEXT, u TEXT);  INSERT INTO t0 VALUES('t', 'u');\n  CREATE TABLE t1(v TEXT, w TEXT);  INSERT INTO t1 VALUES('v', 'w');\n  CREATE TABLE t2(x TEXT, y TEXT);  INSERT INTO t2 VALUES('x', 'y');\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false;\n  SELECT * FROM t0 JOIN t1 ON (t2.x NOTNULL) LEFT JOIN t2 ON false\n   WHERE t2.y ISNULL;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -535,14 +463,6 @@
           "type": "query",
           "sql": "SELECT * FROM y0 RIGHT JOIN y1 ON true INNER JOIN y2 ON true WHERE y2.c!=99 AND y2.c!=98;",
           "expect": "- 1 3\n  - 1 4\n  - 2 3\n  - 2 4"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -599,14 +519,6 @@
           "type": "query",
           "sql": "SELECT * FROM t4 LEFT JOIN t5 ON x=y LEFT JOIN t6 ON (x=z)\n   WHERE t5.y!='x' AND t4.x!='x';",
           "expect": "b b -"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -690,14 +602,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN t3 ON a<>'' WHERE c IS NOT NULL;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -846,14 +750,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-18000",
       "steps": [
         {
@@ -881,14 +777,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-19000",
       "steps": [
         {
@@ -903,14 +791,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true INNER JOIN t3 ON (b IS NOT NULL)=0;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -984,14 +864,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-21000",
       "steps": [
         {
@@ -1049,27 +921,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-22000",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT);\n  CREATE TABLE t3(c TEXT);  INSERT INTO t3 VALUES('x');\n  CREATE TABLE t4(d TEXT);  INSERT INTO t4 VALUES('y');\n  SELECT 99\n    FROM t1\n         LEFT JOIN t2 ON true\n         RIGHT JOIN t3 ON true\n         RIGHT JOIN t4 ON true\n   WHERE a=b;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -1103,27 +959,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "join8-24000",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(b INT, c INT);\n  CREATE TABLE t5(a INT, f INT);\n  INSERT INTO t5 VALUES(1,2);\n  WITH t7(x, y) AS (SELECT 100, 200 FROM t5)\n    SELECT * FROM t4 JOIN t7 ON true RIGHT JOIN (SELECT y AS z FROM t7) AS t6 ON (x=z);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -1157,6 +997,16 @@
       ]
     },
     {
+      "name": "join8-26000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE VIEW t3(d) AS SELECT NULL FROM t2 FULL OUTER JOIN t1 ON c=a UNION ALL SELECT b FROM t2;\n  INSERT INTO t1(a) VALUES (NULL);\n  INSERT INTO t2(b, c) VALUES (99, NULL);\n  SELECT DISTINCT b, c, d FROM t2, t3 WHERE b<>0\n   UNION SELECT DISTINCT b, c, d FROM t2, t3 WHERE b ISNULL;",
+          "expect": "99 - - 99 - 99"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -1165,12 +1015,202 @@
       ]
     },
     {
-      "name": "join8-26000",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a INT);\n  CREATE TABLE t2(b INT, c INT);\n  CREATE VIEW t3(d) AS SELECT NULL FROM t2 FULL OUTER JOIN t1 ON c=a UNION ALL SELECT b FROM t2;\n  INSERT INTO t1(a) VALUES (NULL);\n  INSERT INTO t2(b, c) VALUES (99, NULL);\n  SELECT DISTINCT b, c, d FROM t2, t3 WHERE b<>0\n   UNION SELECT DISTINCT b, c, d FROM t2, t3 WHERE b ISNULL;",
-          "expect": "99 - - 99 - 99"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

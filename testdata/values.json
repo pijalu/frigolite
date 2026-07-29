@@ -1,0 +1,816 @@
+{
+  "file": "values.test",
+  "name": "values",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4);"
+        }
+      ]
+    },
+    {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1;",
+          "expect": "1 1 1\n  2 2 2\n  3 3 3\n  4 4 4"
+        }
+      ]
+    },
+    {
+      "name": "1.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1"
+        }
+      ]
+    },
+    {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3) UNION ALL SELECT 4, 4, 4;\n  SELECT * FROM x1;",
+          "expect": "1 1 1  2 2 2   3 3 3  4 4 4"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5) \n  UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;",
+          "expect": "1 1 1  2 2 2   3 3 3  4 4 4  5 5 5  6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)\n  UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;",
+          "expect": "1 1 1  2 2 2   3 3 3  4 4 4  6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM x1;\n  INSERT INTO x1 VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3) UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;",
+          "expect": "1 1 1\n 2 2 2\n 3 3 3\n 6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1;",
+          "expect": "1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n  5 5 5\n  6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10, 10)",
+          "expect": "1 {all VALUES must have the same number of terms}"
+        }
+      ]
+    },
+    {
+      "name": "2.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)",
+          "expect": "1 {all VALUES must have the same number of terms}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n      UNION ALL \n      SELECT 5, 12, 12\n      ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE y1(x, y);"
+        }
+      ]
+    },
+    {
+      "name": "3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (row_number() OVER (), 5);"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1;",
+          "expect": "1 2  3 4  1 5"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM y1;\n  INSERT INTO y1 VALUES(1, 2), (3, 4), (row_number() OVER (), 6)\n    , (row_number() OVER (), 7)"
+        }
+      ]
+    },
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM y1;",
+          "expect": "1 2  3 4  1 6  1 7"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a PRIMARY KEY, b) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 1 2 a"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, 2),\n        (3, 3),\n        (4, 4),\n        (5, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 1 2 2 3 3 4 4 5 a"
+        }
+      ]
+    },
+    {
+      "name": "4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d'), ('e')) ))"
+        }
+      ]
+    },
+    {
+      "name": "4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 a"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS VALUES(1, 2, 3), (4, 5, 6), (7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM v1",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1), (2);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ( VALUES( x ), ( x ) ) FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('x'), ('y');"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1, (VALUES(1), (2))",
+          "expect": "x 1 x 2 y 1 y 2"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(CAST(44 AS REAL)),(55);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH x1(a, b) AS (\n    VALUES(1, 2), ('a', 'b')\n  )\n  SELECT * FROM x1 one, x1 two"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('d'), (NULL), (123)"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(456), (123), (NULL) UNION ALL SELECT 122 ORDER BY 1"
+        }
+      ]
+    },
+    {
+      "name": "9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES (1, 2), (3, 4), (\n    ( SELECT column1 FROM ( VALUES (5, 6), (7, 8) ) ),\n    ( SELECT max(column2) FROM ( VALUES (5, 1), (7, 6) ) )\n  )"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a2(a, b, c DEFAULT 'xyz');"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a2(a) VALUES(3),(4);"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT 1, 2 UNION ALL VALUES(3, 4), (5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('xyz');\n\n  SELECT (\n      VALUES( (max(substr('abc', 1, 1), x)) ),\n      (123),\n      (456)\n      )\n  FROM t1;",
+          "expect": "xyz"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VALUES(300), (zeroblob(300) OVER win);",
+          "expect": "1 {zeroblob() may not be used as a window function}"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));"
+        }
+      ]
+    },
+    {
+      "name": "15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);"
+        }
+      ]
+    },
+    {
+      "name": "15.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y);"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);"
+        }
+      ]
+    },
+    {
+      "name": "16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6),\n     (7,row_number()OVER()),\n     (9,10), (11,12), (13,14), (15,16);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO t1 VALUES\n     (1,row_number()OVER()),\n     (2,3), (4,5), (6,7);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "16.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  INSERT INTO t1 VALUES\n     (1,2),(3,4),\n     (5,row_number()OVER()),\n     (7,8),(9,10),(11,12),\n     (13,row_number()OVER()),\n     (15,16),(17,18),(19,20),(21,22);\n  SELECT * FROM t1 ORDER BY a, b;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1 AS SELECT * FROM (VALUES(1,2), (3,4 IN (1,2,3)));"
+        }
+      ]
+    },
+    {
+      "name": "17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 0"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(RAISE(IGNORE)),(0);",
+          "expect": "1 {RAISE() may only be used within a trigger-program}"
+        }
+      ]
+    },
+    {
+      "name": "18.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(IGNORE)),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;",
+          "expect": "0 {1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "18.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(RAISE(ABORT,'error 18.3')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);",
+          "expect": "1 {error 18.3}"
+        }
+      ]
+    },
+    {
+      "name": "18.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "18.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),(RAISE(ABORT,'error 18.4')),(0);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);",
+          "expect": "1 {error 18.4}"
+        }
+      ]
+    },
+    {
+      "name": "18.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "18.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t1(y) VALUES(1),\n       (CASE WHEN new.z>7 THEN RAISE(ABORT,'error 18.5') ELSE 2 END);\n  END;\n  INSERT INTO t1 VALUES(1,2,3);\n  SELECT * FROM t1;",
+          "expect": "0 {1 2 3 2 1 {} 3 2 {}}"
+        }
+      ]
+    },
+    {
+      "name": "18.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,13);",
+          "expect": "1 {error 18.5}"
+        }
+      ]
+    },
+    {
+      "name": "18.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(11,22);\n  SELECT * FROM t1 LEFT JOIN (VALUES(33,44),(55,66)) AS t2 ON a=b;",
+          "expect": "11 22 NULL NULL"
+        }
+      ]
+    },
+    {
+      "name": "19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (VALUES(33,44),(55,66)) AS t2 RIGHT JOIN t1 ON a=b;",
+          "expect": "NULL NULL 11 22"
+        }
+      ]
+    },
+    {
+      "name": "19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM t1 FULL JOIN (VALUES(33,44),(55,66)) AS t2 ON a=b\n  ORDER BY +column1",
+          "expect": "11 22 NULL NULL | NULL NULL 33 44 | NULL NULL 55 66 |"
+        }
+      ]
+    },
+    {
+      "name": "19.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM (VALUES(33,44),(55,66)) AS t2 FULL JOIN t1 ON a=b\n  ORDER BY +column1",
+          "expect": "NULL NULL 11 22 | 33 44 NULL NULL | 55 66 NULL NULL |"
+        }
+      ]
+    },
+    {
+      "name": "19.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t1(a,b);              INSERT INTO t1 VALUES(1,2);\n  CREATE TABLE t2(column1,column2);  INSERT INTO t2 VALUES(11,22),(33,44);\n  CREATE TABLE t3(d,e);              INSERT INTO t3 VALUES(3,4);"
+        }
+      ]
+    },
+    {
+      "name": "19.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- output verify using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   ORDER BY +d, +column1;"
+        }
+      ]
+    },
+    {
+      "name": "19.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n    FROM t1 CROSS JOIN (VALUES(11,22),(33,44)) FULL JOIN t3 ON a=d\n   ORDER BY +d, +column1;",
+          "expect": "1 2 11 22 N N\n   1 2 33 44 N N\n   N N  N  N 3 4"
+        }
+      ]
+    },
+    {
+      "name": "19.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- output verified using PG 14.2\n  SELECT *\n    FROM t1 CROSS JOIN t2 FULL JOIN t3 ON a=d\n   WHERE column1 IS NULL;"
+        }
+      ]
+    },
+    {
+      "name": "19.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *\n    FROM t1 CROSS JOIN (VALUES(11,22),(33,44)) FULL JOIN t3 ON a=d\n   WHERE column1 IS NULL;",
+          "expect": "N N  N  N 3 4"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

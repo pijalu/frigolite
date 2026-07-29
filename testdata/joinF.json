@@ -3,15 +3,6 @@
   "name": "joinF",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  CREATE TABLE t4(w INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n  INSERT INTO t4 VALUES(50);"
-        }
-      ]
-    },
-    {
       "name": "joinF-1",
       "steps": [
         {
@@ -520,6 +511,10 @@
           "type": "query",
           "sql": "SELECT *\n  FROM t1 RIGHT JOIN t2 ON true\n  RIGHT JOIN t3 ON t2.y IS NOT NULL\n  RIGHT JOIN t4 ON true\n  WHERE (t3.z!=400 AND t3.z!=500 AND t3.z!=600)\n  ORDER BY coalesce(t1.x,t2.y,t3.z,t4.w,0);",
           "expect": "- - 20 50\n  - - 30 50"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  CREATE TABLE t4(w INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n  INSERT INTO t4 VALUES(50);"
         }
       ]
     }

@@ -1,0 +1,105 @@
+{
+  "file": "orderby7.test",
+  "name": "orderby7",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(rowid,content)\n     VALUES(1,'this is a test of the fts3 virtual'),\n           (2,'table used as part of a join together'),\n           (3,'with the DISTINCT keyword.  There was'),\n           (4,'a bug at one time (2013-06 through 2014-04)'),\n           (5,'that prevented this from working correctly.'),\n           (11,'a row that occurs twice'),\n           (12,'a row that occurs twice');\n \n  CREATE TABLE t1(x TEXT PRIMARY KEY, y);\n  INSERT OR IGNORE INTO t1 SELECT content, rowid+100 FROM fts;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT fts.rowid, t1.y\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY y;",
+          "expect": "11 111 12 111"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT fts.rowid, t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;",
+          "expect": "11 {a row that occurs twice} 12 {a row that occurs twice}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;",
+          "expect": "{a row that occurs twice}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x\n   ORDER BY 1;",
+          "expect": "{a row that occurs twice} {a row that occurs twice}"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x;",
+          "expect": "{a row that occurs twice}"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.x\n    FROM fts, t1\n   WHERE fts MATCH 'that twice'\n     AND content=x;",
+          "expect": "{a row that occurs twice} {a row that occurs twice}"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.x\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;",
+          "expect": "{a row that occurs twice}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY fts.rowid;",
+          "expect": "{a row that occurs twice} 111"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT t1.*\n    FROM fts, t1\n   WHERE fts.rowid=11\n     AND content=x\n   ORDER BY t1.y",
+          "expect": "{a row that occurs twice} 111"
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,35 @@
   "name": "zerodamage",
   "tests": [
     {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=124;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=randomblob(50) WHERE x=124;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL;\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {

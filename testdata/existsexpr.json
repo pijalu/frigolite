@@ -168,14 +168,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.0",
       "steps": [
         {
@@ -203,14 +195,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.0",
       "steps": [
         {
@@ -230,14 +214,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "7.0",
       "steps": [
         {
@@ -248,27 +224,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t0 (c0 INT);  INSERT INTO t0(c0) VALUES (1);\n  CREATE TABLE t1(c0 INT);   INSERT INTO t1(c0) VALUES (2);\n  SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t0 LIMIT 0);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -339,14 +299,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "10.0",
       "steps": [
         {
@@ -393,14 +345,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "12.0",
       "steps": [
         {
@@ -429,14 +373,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "13.0",
       "steps": [
         {
@@ -452,14 +388,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE EXISTS (\n      SELECT 1 FROM t2\n      WHERE EXISTS (\n        SELECT 1 FROM t3 WHERE t3.p=t2.x AND t3.q=t1.b\n      )\n  )",
           "expect": "7 10"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -482,6 +410,16 @@
       ]
     },
     {
+      "name": "14.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 'match' WHERE EXISTS (\n      SELECT 1 FROM t b\n      WHERE (b.parent IS NULL OR b.parent = 99)\n      AND 5 <= +b.n\n  )",
+          "expect": "match"
+        }
+      ]
+    },
+    {
       "name": "14.2.1",
       "steps": [
         {
@@ -497,6 +435,78 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE EXISTS (\n    SELECT 1 FROM t2 WHERE (c=a OR d=a) AND (d+1)>0\n  )",
           "expect": "20 20"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

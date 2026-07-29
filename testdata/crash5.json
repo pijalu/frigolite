@@ -1,0 +1,28 @@
+{
+  "file": "crash5.test",
+  "name": "crash5",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1 ON t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;  -- This will put page 4 on the free list.\n              INSERT INTO t1 VALUES('111111111', '2222222222', '33333333');\n              INSERT INTO t1 SELECT * FROM t1;                     -- 2\n              INSERT INTO t1 SELECT * FROM t1;                     -- 4\n              INSERT INTO t1 SELECT * FROM t1;                     -- 8\n              INSERT INTO t1 SELECT * FROM t1;                     -- 16\n              INSERT INTO t1 SELECT * FROM t1;                     -- 32\n              INSERT INTO t1 SELECT * FROM t1 WHERE rowid%2;       -- 48"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

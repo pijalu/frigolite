@@ -1,0 +1,299 @@
+{
+  "file": "select7.test",
+  "name": "select7",
+  "tests": [
+    {
+      "name": "select7-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);"
+        }
+      ]
+    },
+    {
+      "name": "select7-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);",
+          "expect": "1 {no such column: \"\" - should this be a string literal in single-quotes?}"
+        }
+      ]
+    },
+    {
+      "name": "select7-6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "select7-6.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "select7-6.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t01(x, y);\n  CREATE TABLE t02(x, y);"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (\n    SELECT * FROM t01 UNION SELECT x FROM t02\n  ) WHERE y=1",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v0 as SELECT x, y FROM t01 UNION SELECT x FROM t02;\n  EXPLAIN QUERY PLAN SELECT * FROM v0 WHERE x='0' OR y;",
+          "expect": "1 {SELECTs to the left and right of UNION do not have the same number of result columns}"
+        }
+      ]
+    },
+    {
+      "name": "select7-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select * from t1 where x like '__x';",
+          "expect": "amx"
+        }
+      ]
+    },
+    {
+      "name": "select7-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIEW tv1b AS SELECT x.id, tx.id FROM x JOIN tempx tx on tx.id=x.id;\n    CREATE VIEW tv2 AS SELECT * FROM tv1 UNION SELECT * FROM tv1b;\n    SELECT * FROM tv2;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "select7-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     SELECT * FROM (SELECT * FROM sqlite_master) GROUP BY name\n  #",
+          "expect": "1 {GROUP BY may only be used on aggregate queries}"
+        }
+      ]
+    },
+    {
+      "name": "select7-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (SELECT * FROM sqlite_master) GROUP BY name"
+        }
+      ]
+    },
+    {
+      "name": "select7-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );"
+        }
+      ]
+    },
+    {
+      "name": "select7-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "select7-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n      SELECT 5 IN (SELECT a,b FROM t2);",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "select7-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 5 IN (SELECT * FROM t2);",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "select7-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 5 IN (SELECT a,b FROM t2 UNION SELECT b,a FROM t2);",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "select7-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 5 IN (SELECT * FROM t2 UNION SELECT * FROM t2);",
+          "expect": "1 {sub-select returns 2 columns - expected 1}"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a REAL);\n    INSERT INTO t3 VALUES(44.0);\n    INSERT INTO t3 VALUES(56.0);"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma vdbe_trace = 0;\n    SELECT (CASE WHEN a=0 THEN 0 ELSE (a + 25) / 50 END) AS categ, count(*)\n    FROM t3 GROUP BY categ",
+          "expect": "1.38 1 1.62 1"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a REAL);\n    INSERT INTO t4 VALUES( 2.0 );\n    INSERT INTO t4 VALUES( 3.0 );"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT (CASE WHEN a=0 THEN 'zero' ELSE a/2 END) AS t FROM t4 GROUP BY t;",
+          "expect": "1.0 1.5"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a=0, typeof(a) FROM t4",
+          "expect": "0 real 0 real"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a=0, typeof(a) FROM t4 GROUP BY a",
+          "expect": "0 real 0 real"
+        }
+      ]
+    },
+    {
+      "name": "select7-7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(a TEXT, b INT);\n    INSERT INTO t5 VALUES(123, 456);\n    SELECT typeof(a), a FROM t5 GROUP BY a HAVING a<b;",
+          "expect": "text 123"
+        },
+        {
+          "type": "exec",
+          "sql": "create temp table t1(x);\n      insert into t1 values('amx');\n      insert into t1 values('anx');\n      insert into t1 values('amy');\n      insert into t1 values('bmy');\n      select * from t1 where x like 'a__'\n        intersect select * from t1 where x like '_m_'\n        intersect select * from t1 where x like '__x';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x(id integer primary key, a TEXT NULL);\n    INSERT INTO x (a) VALUES ('first');\n    CREATE TABLE tempx(id integer primary key, a TEXT NULL);\n    INSERT INTO tempx (a) VALUES ('t-first');\n    CREATE VIEW tv1 AS SELECT x.id, tx.id FROM x JOIN tempx tx ON tx.id=x.id;\n    CREATE VIEW tv1b AS SELECT x.id, tx.id FROM x JOIN tempx tx on tx.id=x.id;\n    CREATE VIEW tv2 AS SELECT * FROM tv1 UNION SELECT * FROM tv1b;\n    SELECT * FROM tv2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS photo(pk integer primary key, x);\n      CREATE TABLE IF NOT EXISTS tag(pk integer primary key, fk int, name);\n    \n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO photo VALUES(1,1);\n      INSERT INTO photo VALUES(2,2);\n      INSERT INTO photo VALUES(3,3);\n      INSERT INTO tag VALUES(11,1,'one');\n      INSERT INTO tag VALUES(12,1,'two');\n      INSERT INTO tag VALUES(21,1,'one-b');\n      SELECT P.pk from PHOTO P WHERE NOT EXISTS ( \n           SELECT T2.pk from TAG T2 WHERE T2.fk = P.pk \n           EXCEPT \n           SELECT T3.pk from TAG T3 WHERE T3.fk = P.pk AND T3.name LIKE '%foo%'\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a REAL);\n    INSERT INTO t3 VALUES(44.0);\n    INSERT INTO t3 VALUES(56.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma vdbe_trace = 0;\n    SELECT (CASE WHEN a=0 THEN 0 ELSE (a + 25) / 50 END) AS categ, count(*)\n    FROM t3 GROUP BY categ"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a REAL);\n    INSERT INTO t4 VALUES( 2.0 );\n    INSERT INTO t4 VALUES( 3.0 );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT (CASE WHEN a=0 THEN 'zero' ELSE a/2 END) AS t FROM t4 GROUP BY t;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a=0, typeof(a) FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a=0, typeof(a) FROM t4 GROUP BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a TEXT, b INT);\n    INSERT INTO t5 VALUES(123, 456);\n    SELECT typeof(a), a FROM t5 GROUP BY a HAVING a<b;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

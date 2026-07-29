@@ -3,11 +3,103 @@
   "name": "fts3an",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "fts3an-4.1",
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES(NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft SELECT * FROM ft"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE ft SET x = 'abc' || rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM ft WHERE x MATCH 'abc*'"
+        },
+        {
+          "type": "exec",
           "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'"
         }
       ]
     }

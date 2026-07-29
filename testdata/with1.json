@@ -442,10 +442,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM tree"
         }
       ]
     },
@@ -653,10 +649,6 @@
         {
           "type": "exec",
           "sql": "WITH x AS (\n    WITH y(b) AS (SELECT 10)\n    SELECT * FROM y UNION ALL SELECT * FROM y\n  )\n  SELECT * FROM x"
-        },
-        {
-          "type": "exec",
-          "sql": "WITH x AS (\n        WITH y(b) AS (SELECT 10)\n        SELECT * FROM y UNION ALL SELECT * FROM y\n    )\n    SELECT * FROM x"
         }
       ]
     },
@@ -819,23 +811,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "24.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT max(a), min(b) FROM t1 GROUP BY c;"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc"
         }
       ]
     },
@@ -856,14 +836,6 @@
           "type": "exec",
           "sql": "WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I\u00aci O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i \u00acI,I? 10;",
           "expect": "1 {near \"O\": syntax error}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -895,14 +867,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "27.1",
       "steps": [
         {
@@ -929,6 +893,42 @@
           "type": "exec",
           "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;",
           "expect": "1 {'cte1' is not a function}"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tree"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH x AS (\n        WITH y(b) AS (SELECT 10)\n        SELECT * FROM y UNION ALL SELECT * FROM y\n    )\n    SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

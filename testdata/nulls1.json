@@ -8,22 +8,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t3(a)"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t3(a DESC)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -57,14 +41,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
@@ -80,6 +56,15 @@
           "type": "query",
           "sql": "CREATE TABLE first(nulls, last);\n  INSERT INTO first(last, nulls) VALUES(100,200), (300,400), (200,300);\n  SELECT * FROM first ORDER BY nulls;",
           "expect": "200 100\n  300 200\n  400 300"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);\n    CREATE INDEX i1 ON tx(b);\n    INSERT INTO tx VALUES(1, 1, 1);\n    INSERT INTO tx VALUES(2, NULL, 2);\n    INSERT INTO tx VALUES(3, 3, 3);\n    INSERT INTO tx VALUES(4, NULL, 4);\n    INSERT INTO tx VALUES(5, 5, 5);\n    CREATE VIRTUAL TABLE te USING echo(tx);"
         }
       ]
     },
@@ -168,14 +153,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC"
         }
       ]
     },
@@ -217,14 +194,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "9.0",
       "steps": [
         {
@@ -258,14 +227,6 @@
           "type": "query",
           "sql": "SELECT c1, c2, ifnull(c3, 'NULL') FROM v0 \n  WHERE c2=10 ORDER BY c1, c3 NULLS LAST",
           "expect": "1 10 a 1 10 b 1 10 c 1 10 d 1 10 NULL 1 10 NULL\n  2 10 a 2 10 b 2 10 c 2 10 d 2 10 NULL 2 10 NULL"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -346,6 +307,54 @@
           "type": "query",
           "sql": "SELECT x, c, d, '|' FROM t1 LEFT JOIN t2 ON d=x\n   ORDER BY +d NULLS LAST, +c NULLS LAST;",
           "expect": "X 3 X | X 4 X | X 5 X | X 7 X | X {} X | {} {} {} | Y {} {} |"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t3(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1 ; CREATE INDEX i1 ON t3(a DESC)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

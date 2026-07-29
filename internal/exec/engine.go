@@ -10,6 +10,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -67,6 +68,8 @@ type Engine struct {
 	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable bool                   // PRAGMA legacy_alter_table setting
 	encoding    string                   // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"
+	ftsTables   map[string]*fts.FTS3Table // FTS3/4/5 tables (table name -> instance)
+	currentFTSMatch string               // current FTS table for MATCH evaluation context
 }
 
 // Row provides column value lookup for expression evaluation.
@@ -196,8 +199,14 @@ func NewEngine(pg *pager.Pager) *Engine {
 		tableRootPages: make(map[string]uint32),
 		nextRowIDCache: make(map[uint32]int64),
 		encoding:  "UTF-8",
+		ftsTables: make(map[string]*fts.FTS3Table),
 	}
 	e.vtabs.RegisterDefaults()
+	// Register FTS modules (overrides NoopModule defaults)
+	ftsMod := fts.NewFTS3Module("fts3")
+	e.vtabs.Register("fts3", ftsMod)
+	e.vtabs.Register("fts4", fts.NewFTS3Module("fts4"))
+	e.vtabs.Register("fts5", fts.NewFTS3Module("fts5"))
 	return e
 }
 
@@ -858,6 +867,13 @@ func (e *Engine) execDropTable(s *sql.DropTableStmt) *Result {
 	// Remove from schema
 	if err := ctx.Schema.RemoveEntry(s.Name); err != nil {
 		return &Result{Error: err}
+	}
+
+	// Clean up FTS virtual table if applicable
+	tableName := entry.Name
+	if ftsMod := e.getFTSModuleForTable(tableName); ftsMod != nil {
+		ftsMod.DropTable(tableName)
+		delete(e.ftsTables, tableName)
 	}
 
 	return &Result{}
@@ -1730,6 +1746,18 @@ func (e *Engine) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Result {
 	if err := e.schema.AddEntry(entry); err != nil {
 		return &Result{Error: err}
 	}
+
+	// If this is an FTS module, create and store the FTS table
+	if ftsMod := e.getFTSModule(s.Module); ftsMod != nil {
+		// Parse args to get column definitions (the CREATE VIRTUAL TABLE args
+		// become FTS column names)
+		ftsTable, err := ftsMod.GetOrCreateTable(tableName, s.Module, s.Args)
+		if err != nil {
+			return &Result{Error: fmt.Errorf("fts: failed to create table: %w", err)}
+		}
+		e.ftsTables[tableName] = ftsTable
+	}
+
 	return &Result{}
 }
 
@@ -1775,6 +1803,89 @@ func (e *Engine) virtualTableRows(entry *schema.Entry) ([][]interface{}, error) 
 		rows = append(rows, []interface{}{val})
 	}
 	return rows, nil
+}
+
+// execFTSSelect handles SELECT from an FTS virtual table with full processing
+// (WHERE filtering including MATCH, ORDER BY, LIMIT).
+func (e *Engine) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef) *Result {
+	// Set current FTS match context for MATCH evaluation
+	e.currentFTSMatch = tableEntry.Name
+	defer func() { e.currentFTSMatch = "" }()
+
+	// Get all rows from FTS table and build RowMaps
+	docIDs := ftsTable.AllRowsMap()
+	var allRowMaps []RowMap
+	for _, docID := range docIDs {
+		doc := ftsTable.GetDoc(docID)
+		if doc == nil {
+			continue
+		}
+		rowMap := make(RowMap)
+		rowMap["rowid"] = docID
+		rowMap["docid"] = docID
+		for i, col := range doc.Columns {
+			if i < len(colDefs) {
+				rowMap[colDefs[i].Name] = col
+			}
+		}
+		allRowMaps = append(allRowMaps, rowMap)
+	}
+
+	// Apply WHERE clause
+	if s.Where != nil {
+		var filtered []RowMap
+		for _, rowMap := range allRowMaps {
+			match, err := e.evalBool(s.Where, rowMap)
+			if err == nil && match {
+				filtered = append(filtered, rowMap)
+			}
+		}
+		allRowMaps = filtered
+	}
+
+	// Handle aggregates (after WHERE filtering)
+	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+		return result
+	}
+
+	// Build output rows from RowMaps
+	allRows := make([][]interface{}, len(allRowMaps))
+	for i, rowMap := range allRowMaps {
+		allRows[i] = e.buildOutputRow(s.Columns, colDefs, rowMap)
+	}
+
+	// Build column names
+	columns := e.buildColumnNames(s.Columns, colDefs)
+	result := &Result{Columns: columns, Rows: allRows}
+
+	// Apply DISTINCT, ORDER BY, LIMIT
+	return e.finalizeSelectResult(result, s, allRowMaps)
+}
+
+// execFTSDelete handles DELETE from an FTS virtual table.
+func (e *Engine) execFTSDelete(ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, s *sql.DeleteStmt) *Result {
+	e.currentFTSMatch = ""
+	docIDs := ftsTable.AllRowsMap()
+	deleted := int64(0)
+	for _, docID := range docIDs {
+		shouldDelete := true
+		if s.Where != nil {
+			rowMap := make(RowMap)
+			rowMap["rowid"] = docID
+			for _, name := range colDefs {
+				rowMap[name.Name] = ""
+			}
+			match, err := e.evalBool(s.Where, rowMap)
+			if err != nil || !match {
+				shouldDelete = false
+			}
+		}
+		if shouldDelete {
+			ftsTable.Delete(docID)
+			deleted++
+		}
+	}
+	return &Result{Changes: deleted}
 }
 
 func selectStmtToString(s *sql.SelectStmt) string {
@@ -2186,6 +2297,13 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 }
 
 func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) *Result {
+	// Route FTS virtual table inserts directly to the FTS table
+	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
+		nextRowID := ftsTable.Insert(values)
+		e.lastRowID = nextRowID
+		return &Result{Changes: 1, LastInsertRowID: nextRowID}
+	}
+
 	// Validate constraints before inserting
 	if err := e.checkConstraints(tableEntry, colDefs, values); err != nil {
 		return &Result{Error: err}
@@ -2241,6 +2359,31 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 // checkConstraints validates NOT NULL, CHECK, UNIQUE, and PRIMARY KEY
 // constraints for a row being inserted.
 func (e *Engine) checkConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) error {
+	// Fast path: if there are no constraints at all, skip allocation entirely
+	hasConstraints := false
+	for _, cd := range colDefs {
+		if cd.NotNull || cd.Check != nil || cd.PrimaryKey {
+			hasConstraints = true
+			break
+		}
+	}
+
+	// Check for UNIQUE constraints (defined separately from column defs)
+	// by looking for indexes with unique=true for this table
+	if !hasConstraints {
+		// Quick scan for any constraint — including UNIQUE via unique indices
+		for _, cd := range colDefs {
+			if cd.Unique {
+				hasConstraints = true
+				break
+			}
+		}
+	}
+
+	if !hasConstraints {
+		return nil
+	}
+
 	row := buildRowMapFromValues(values, colDefs, 0)
 
 	for _, cd := range colDefs {
@@ -2819,6 +2962,11 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 
 	// Check if this is a virtual table (RootPage = 0)
 	if tableEntry.RootPage == 0 {
+		// For FTS virtual tables, use full SELECT processing (WHERE, ORDER BY, LIMIT)
+		if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
+			return e.execFTSSelect(s, tableEntry, ftsTable, colDefs)
+		}
+		// Non-FTS virtual tables: return all rows directly (no WHERE/ORDER BY)
 		rows, err := e.virtualTableRows(tableEntry)
 		if err != nil {
 			return &Result{Error: err}
@@ -4901,36 +5049,80 @@ func (e *Engine) distinctRows(rows [][]interface{}, rowMaps []RowMap) ([][]inter
 // selectNeedsRowMaps returns true if the query requires per-row RowMap
 // allocations for expression evaluation, sorting, filtering, or combining.
 func selectNeedsRowMaps(e *Engine, s *sql.SelectStmt, tableName string) bool {
-	return s.Where != nil ||
-		len(s.OrderBy) > 0 ||
-		s.Distinct ||
-		s.Union != nil ||
-		isSchemaTable(tableName) ||
-		len(s.Joins) > 0 ||
-		e.hasAggregates(s.Columns)
+	// RowMaps are only needed for operations that require looking up values
+	// by name in a map: JOINs evaluate expressions across row maps, ORDER BY
+	// and DISTINCT need map-based comparison, UNIONS combine results, aggregates
+	// group rows by map, and schema tables need filtering by name.
+	// A simple WHERE clause without the above works fine with the structRow's
+	// index-based lookup and doesn't need per-row map allocation.
+	if len(s.Joins) > 0 {
+		return true
+	}
+	if len(s.OrderBy) > 0 {
+		return true
+	}
+	if s.Distinct {
+		return true
+	}
+	if s.Union != nil {
+		return true
+	}
+	if isSchemaTable(tableName) {
+		return true
+	}
+	if e.hasAggregates(s.Columns) {
+		return true
+	}
+	return false
 }
 
 // scanTableRows iterates over all cells, applies WHERE, builds output rows.
 func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap) {
-	var allRows [][]interface{}
+	allRows := make([][]interface{}, 0, 256)
 	var allRowMaps []RowMap
 	hasJoins := len(s.Joins) > 0
-
+	
+	// Determine which columns need affinity wrappers by collecting column
+	// references from expressions (WHERE, ORDER BY, etc.). Columns not referenced
+	// in comparisons can skip the ColumnValue wrapper for faster row building.
+	var affinityCols map[string]bool
+	if s.Where != nil {
+		// Collect column references from WHERE clause — only these need affinity
+		affinityCols = make(map[string]bool)
+		var refs []string
+		collectExprRefs(s.Where, &refs)
+		for _, name := range refs {
+			affinityCols[name] = true
+		}
+	} else if needMaps {
+		// When needMaps is true but no WHERE, all columns need affinity since
+		// maps may be used in expression evaluation downstream.
+		affinityCols = make(map[string]bool)
+		for _, cd := range colDefs {
+			affinityCols[cd.Name] = true
+		}
+	} else {
+		// No WHERE and no needMaps: no affinity wrappers needed at all.
+		affinityCols = nil
+	}
 	// Build shared column index for structRow lookups (avoids per-row map allocation).
 	colIndex := make(map[string]int, len(colDefs))
 	for i, cd := range colDefs {
 		colIndex[cd.Name] = i
 	}
 
+	// Reusable values buffer to avoid per-row slice allocation in buildStructRow
+	reuseValues := make([]interface{}, len(colDefs))
+
 	for {
-		cell, err := cursor.ReadCell()
+		payload, rowID, err := cursor.ReadCellData()
 		if err != nil {
 			break
 		}
 
 		// Build lightweight structRow for WHERE evaluation (no map allocation).
 		// Decodes values directly from the cell payload, bypassing DecodeRecord.
-		sRow := e.buildStructRow(cell.Payload, colDefs, cell.RowID, colIndex)
+		sRow := e.buildStructRow(payload, colDefs, rowID, colIndex, affinityCols, reuseValues, nil)
 
 		if hasJoins || e.rowPassesWhere(s.Where, sRow, cursor) {
 			outRow := e.buildOutputRow(s.Columns, colDefs, sRow)
@@ -5037,29 +5229,55 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 // ColumnValue affinity wrappers. Uses a shared column index for fast lookups
 // and avoids per-row map allocation. Decodes values directly from the payload
 // into the pre-allocated values slice, bypassing the intermediate Record allocation.
-func (e *Engine) buildStructRow(payload []byte, colDefs []sql.ColumnDef, rowID int64, colIndex map[string]int) *structRow {
-	values := make([]interface{}, len(colDefs))
-	if _, err := storage.DecodeRecordValuesInto(payload, values); err != nil {
-		// On decode error, return empty structRow (caller should skip row).
-		return &structRow{values: values, index: colIndex, rowID: rowID}
+// buildStructRow creates a structRow from a record payload, wrapping values with
+// ColumnValue affinity wrappers for columns that need them. The affinityCols set
+// lists which columns require affinity wrappers (typically those referenced in
+// WHERE clause comparisons). When nil, no columns get wrapped (optimization for
+// queries without WHERE clauses or joins).
+// When reuseValues is non-nil and sufficiently sized, it is reused instead of
+// allocating a new slice (saves per-row allocations in tight loops).
+// When decodeIndices is non-nil, only the specified column indices are decoded;
+// other columns are left at nil. This enables lazy decoding: decode only WHERE
+// columns first, then decode remaining columns after WHERE passes.
+func (e *Engine) buildStructRow(payload []byte, colDefs []sql.ColumnDef, rowID int64, colIndex map[string]int, affinityCols map[string]bool, reuseValues []interface{}, decodeIndices map[int]bool) *structRow {
+	var values []interface{}
+	if len(reuseValues) >= len(colDefs) {
+		values = reuseValues[:len(colDefs)]
+		// Clear any leftover pointers from previous iteration
+		for i := range values {
+			values[i] = nil
+		}
+	} else {
+		values = make([]interface{}, len(colDefs))
 	}
-	for i := 0; i < len(values); i++ {
-		if values[i] != nil {
-			aff := util.Affinity(colDefs[i].Type)
-			// Skip ColumnValue wrapper for INTEGER/REAL (no effect on numeric comparisons).
-			if aff != 'I' && aff != 'R' {
-				values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
-			}
+	if decodeIndices != nil {
+		if _, err := storage.DecodeRecordValuesFiltered(payload, values, decodeIndices); err != nil {
+			return &structRow{values: values, index: colIndex, rowID: rowID}
+		}
+	} else {
+		if _, err := storage.DecodeRecordValuesInto(payload, values); err != nil {
+			return &structRow{values: values, index: colIndex, rowID: rowID}
 		}
 	}
-	// Handle rowid and PRIMARY KEY
-	for i, cd := range colDefs {
-		if cd.PrimaryKey && values[i] == nil {
-			aff := util.Affinity(cd.Type)
-			if aff != 'I' && aff != 'R' {
-				values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
-			} else {
-				values[i] = rowID
+	// Apply affinity wrappers only for columns specified in affinityCols.
+	if affinityCols != nil {
+		for i := 0; i < len(values); i++ {
+			if values[i] != nil && affinityCols[colDefs[i].Name] {
+				aff := util.Affinity(colDefs[i].Type)
+				if aff != 'I' && aff != 'R' {
+					values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
+				}
+			}
+		}
+		// Handle rowid and PRIMARY KEY for affinity columns
+		for i, cd := range colDefs {
+			if cd.PrimaryKey && values[i] == nil && affinityCols[cd.Name] {
+				aff := util.Affinity(cd.Type)
+				if aff != 'I' && aff != 'R' {
+					values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
+				} else {
+					values[i] = rowID
+				}
 			}
 		}
 	}
@@ -5081,7 +5299,20 @@ func structRowToMap(sr *structRow) RowMap {
 
 // buildOutputRow builds the output row from the SELECT columns.
 func (e *Engine) buildOutputRow(columns []sql.SelectColumn, colDefs []sql.ColumnDef, row Row) []interface{} {
-	var outRow []interface{}
+	// Count expected columns for pre-allocation
+	colCount := 0
+	for _, col := range columns {
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+			for _, cd := range colDefs {
+				if !cd.Dropped {
+					colCount++
+				}
+			}
+		} else {
+			colCount++
+		}
+	}
+	outRow := make([]interface{}, 0, colCount)
 	for _, col := range columns {
 		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
 			for _, cd := range colDefs {
@@ -5350,6 +5581,11 @@ func (e *Engine) execDelete(s *sql.DeleteStmt) *Result {
 		return &Result{Error: err}
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+
+	// Route FTS virtual table deletes
+	if ftsTable, ok := e.ftsTables[tableEntry.Name]; ok {
+		return e.execFTSDelete(ftsTable, colDefs, s)
+	}
 
 	tree := e.tableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 
@@ -5950,8 +6186,26 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	// Rename in schema
-	if err := e.schema.RenameEntry(oldName, newName); err != nil {
+	// Pre-process: apply token-level rename to the table's own CREATE SQL
+	entry, err := e.schema.FindTable(oldName)
+	if err != nil {
+		return &Result{Error: err}
+	}
+
+	ctx := &RenameContext{
+		OldName:   oldName,
+		NewName:   newName,
+		QuotedNew: `"` + newName + `"`,
+		IsTable:   true,
+	}
+	ranges, rErr := FindRenameTokens(entry.SQL, ctx)
+	newSQL := ""
+	if rErr == nil && len(ranges) > 0 {
+		newSQL = ApplyRenames(entry.SQL, ranges, `"`+newName+`"`)
+	}
+
+	// Rename in schema with pre-processed SQL (empty = fallback to internal rename logic)
+	if err := e.schema.RenameEntryWithSQL(oldName, newName, newSQL); err != nil {
 		return &Result{Error: err}
 	}
 
@@ -7511,6 +7765,33 @@ func (e *Engine) isVirtualTable(entry *schema.Entry) bool {
 	return false
 }
 
+// getFTSModule finds and returns the FTS3Module for a given module name.
+// Returns nil if the module is not found or is not an FTS module.
+func (e *Engine) getFTSModule(moduleName string) *fts.FTS3Module {
+	m, ok := e.vtabs.Find(moduleName)
+	if !ok {
+		return nil
+	}
+	ftsMod, ok := m.(*fts.FTS3Module)
+	if !ok {
+		return nil
+	}
+	return ftsMod
+}
+
+// getFTSModuleForTable finds the FTS module that owns the given table.
+func (e *Engine) getFTSModuleForTable(tableName string) *fts.FTS3Module {
+	for _, modName := range []string{"fts3", "fts4", "fts5"} {
+		ftsMod := e.getFTSModule(modName)
+		if ftsMod != nil {
+			if _, ok := ftsMod.GetTable(tableName); ok {
+				return ftsMod
+			}
+		}
+	}
+	return nil
+}
+
 // checkIndexDependencies checks if any indexes reference the given column and returns
 // an error if so. This prevents dropping columns that are used by indexes.
 func (e *Engine) checkIndexDependencies(tableName, columnName string) *Result {
@@ -8204,13 +8485,19 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 }
 
 func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
+	if v.Cached() != nil {
+		return v.Cached(), nil
+	}
 	// Try base 0 first (auto-detect for hex literals like 0x...)
 	if i, err := strconv.ParseInt(v.Value, 0, 64); err == nil {
+		v.SetCached(i)
 		return i, nil
 	}
 	if f, err := strconv.ParseFloat(v.Value, 64); err == nil {
+		v.SetCached(f)
 		return f, nil
 	}
+	v.SetCached(v.Value)
 	return v.Value, nil
 }
 
@@ -8260,6 +8547,11 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 }
 
 func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
+	// Handle MATCH and NOT MATCH for FTS virtual tables
+	if v.Operator == "MATCH" || v.Operator == "NOT MATCH" {
+		return e.evalMatchOp(v, row)
+	}
+
 	left, err := e.evalExpr(v.Left, row)
 	if err != nil {
 		return nil, err
@@ -8279,6 +8571,79 @@ func (e *Engine) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error) {
 		return likeValuesWithEscape(left, right, v.Escape), nil
 	}
 	return evalBinaryOpValues(v.Operator, left, right)
+}
+
+// evalMatchOp evaluates a MATCH or NOT MATCH expression for FTS virtual tables.
+func (e *Engine) evalMatchOp(v *sql.BinaryOp, row Row) (interface{}, error) {
+	// Evaluate the right side (query string) normally
+	right, err := e.evalExpr(v.Right, row)
+	if err != nil {
+		return nil, err
+	}
+	if right == nil {
+		return nil, nil
+	}
+	queryStr, ok := right.(string)
+	if !ok {
+		return int64(0), nil
+	}
+
+	// Look up the FTS table context
+	tableName := e.currentFTSMatch
+	if tableName == "" {
+		// Try to infer the table from the left side ColumnRef
+		if colRef, ok := v.Left.(*sql.ColumnRef); ok && colRef.Table != "" {
+			tableName = colRef.Table
+		}
+		if tableName == "" {
+			return int64(0), nil
+		}
+	}
+
+	ftsTable, ok := e.ftsTables[tableName]
+	if !ok {
+		return int64(0), nil
+	}
+
+	// Get the rowid from the current row
+	rowidVal := getRowID(row)
+	if rowidVal == 0 {
+		// Try to get rowid from row
+		if v, ok := row.Get("rowid"); ok {
+			if r, ok := v.(int64); ok {
+				rowidVal = r
+			}
+		}
+	}
+
+	if rowidVal <= 0 {
+		return int64(0), nil
+	}
+
+	// Evaluate the match against the FTS index
+	matched, err := ftsTable.MatchQuery(rowidVal, queryStr)
+	if err != nil {
+		// If query parsing fails, treat as no match (matches SQLite behavior)
+		return int64(0), nil
+	}
+
+	if v.Operator == "NOT MATCH" {
+		return boolToInt(!matched), nil
+	}
+	return boolToInt(matched), nil
+}
+
+// getRowID extracts the rowid from a Row value.
+func getRowID(row Row) int64 {
+	if row == nil {
+		return 0
+	}
+	if v, ok := row.Get("rowid"); ok {
+		if r, ok := v.(int64); ok {
+			return r
+		}
+	}
+	return 0
 }
 
 // collatedValue wraps a value with a collation name for COLLATE support.
@@ -8833,12 +9198,21 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 		return nil
 	}
 	ct, ok := stmts[0].(*sql.CreateTableStmt)
-	if !ok || ct == nil {
-		return nil
+	if ok && ct != nil {
+		// Cache for future use
+		e.colCache[tableName] = ct.Columns
+		return ct.Columns
 	}
-	// Cache for future use
-	e.colCache[tableName] = ct.Columns
-	return ct.Columns
+	// For virtual tables, check if we have an FTS table registered
+	if ftsTable, ok := e.ftsTables[tableName]; ok {
+		colDefs := make([]sql.ColumnDef, len(ftsTable.ColumnNames()))
+		for i, name := range ftsTable.ColumnNames() {
+			colDefs[i] = sql.ColumnDef{Name: name, Type: ""}
+		}
+		e.colCache[tableName] = colDefs
+		return colDefs
+	}
+	return nil
 }
 
 // --- Value arithmetic helpers ---

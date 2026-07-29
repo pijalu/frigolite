@@ -23,9 +23,6 @@ var knownUnsupportedPatterns = []struct {
 	{regexp.MustCompile(`(?i)\b(OVER|WINDOW|FILTER)\b`), "window functions (P2)"},
 	// CTE (WITH ... AS)
 	{regexp.MustCompile(`(?i)\bWITH\s+\w+.*AS\s*\(`), "CTE (WITH clause)"},
-	// FTS
-	{regexp.MustCompile(`(?i)\bfts\d\b`), "FTS (tokenizer)"},
-	{regexp.MustCompile(`(?i)\bMATCH\b`), "FTS or MATCH clause"},
 	// JSON functions
 	{regexp.MustCompile(`(?i)\bjson_`), "JSON extension"},
 	// Trigger RAISE

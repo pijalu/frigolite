@@ -1,0 +1,1132 @@
+{
+  "file": "sort.test",
+  "name": "sort",
+  "tests": [
+    {
+      "name": "sort-13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "sort-13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t10 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "sort-13.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 5;\n  SELECT a, b FROM t10 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);",
+          "expect": "1 {UNIQUE constraint failed: t1.b, t1.a, t1.c}"
+        }
+      ]
+    },
+    {
+      "name": "17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master ORDER BY sql;"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;"
+        }
+      ]
+    },
+    {
+      "name": "18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 JOIN t2\n   WHERE a IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)\n     AND a=CASE WHEN d IS NOT NULL THEN e ELSE f END\n   ORDER BY a;",
+          "expect": "/.*SCAN t2.*SEARCH t1.*/"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INTO t1 VALUES(4,'four',2,'IV',-0.0013442);\n    INSERT INTO t1 VALUES(5,'five',2,'V',-11);\n    INSERT INTO t1 VALUES(6,'six',2,'VI',0.123);\n    INSERT INTO t1 VALUES(7,'seven',2,'VII',123.0);\n    INSERT INTO t1 VALUES(8,'eight',3,'VIII',-1.6);"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY n",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY n ASC",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT ALL n FROM t1 ORDER BY n ASC",
+          "expect": "1 2 3 4 5 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY n DESC",
+          "expect": "8 7 6 5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.3a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY v",
+          "expect": "eight five four one seven six three two"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.3b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY v",
+          "expect": "8 5 4 1 7 6 3 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY v DESC",
+          "expect": "2 3 6 7 1 4 5 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT flt FROM t1 ORDER BY flt",
+          "expect": "-11.0 -1.6 -0.0013442 0.123 2.15 3.141592653 123.0 4221.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT flt FROM t1 ORDER BY flt DESC",
+          "expect": "4221.0 123.0 3.141592653 2.15 0.123 -0.0013442 -1.6 -11.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT roman FROM t1 ORDER BY roman",
+          "expect": "I II III IV V VI VII VIII"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log, flt",
+          "expect": "1 2 3 5 4 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log asc, flt",
+          "expect": "1 2 3 5 4 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log, flt ASC",
+          "expect": "1 2 3 5 4 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log ASC, flt asc",
+          "expect": "1 2 3 5 4 6 7 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log, flt DESC",
+          "expect": "1 3 2 7 6 4 5 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log ASC, flt DESC",
+          "expect": "1 3 2 7 6 4 5 8"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log DESC, flt",
+          "expect": "8 5 4 6 7 2 3 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n FROM t1 ORDER BY log DESC, flt DESC",
+          "expect": "8 7 6 4 5 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET v='x' || -flt;\n    UPDATE t1 SET v='x-2b' where v=='x-0.123';\n    SELECT v FROM t1 ORDER BY v;",
+          "expect": "x-123.0 x-2.15 x-2b x-3.141592653 x-4221.0 x0.0013442 x1.6 x11.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-2.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999);",
+          "expect": "x-123.0 x-2.15 x-2b x-3.141592653 x-4221.0 x0.0013442 x1.6 x11.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-2.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0;",
+          "expect": "x-4221.0 x-123.0 x-3.141592653 x-2.15 x-2b x0.0013442 x1.6 x11.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-2.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999) DESC;",
+          "expect": "x11.0 x1.6 x0.0013442 x-4221.0 x-3.141592653 x-2b x-2.15 x-123.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-2.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0 DESC;",
+          "expect": "x11.0 x1.6 x0.0013442 x-2b x-2.15 x-3.141592653 x-123.0 x-4221.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES('AGLIENTU',1);\n    INSERT INTO t2 VALUES('AGLIE`',2);\n    INSERT INTO t2 VALUES('AGNA',3);\n    SELECT a, b FROM t2 ORDER BY a;",
+          "expect": "AGLIENTU 1 AGLIE` 2 AGNA 3"
+        }
+      ]
+    },
+    {
+      "name": "sort-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t2 ORDER BY a DESC;",
+          "expect": "AGNA 3 AGLIE` 2 AGLIENTU 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2 VALUES('aglientu',1);\n    INSERT INTO t2 VALUES('aglie`',2);\n    INSERT INTO t2 VALUES('agna',3);\n    SELECT a, b FROM t2 ORDER BY a;",
+          "expect": "aglie` 2 aglientu 1 agna 3"
+        }
+      ]
+    },
+    {
+      "name": "sort-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t2 ORDER BY a DESC;",
+          "expect": "agna 3 aglientu 1 aglie` 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(9,'x2.7',3,'IX',4.0e5);\n    INSERT INTO t1 VALUES(10,'x5.0e10',3,'X',-4.0e5);\n    INSERT INTO t1 VALUES(11,'x-4.0e9',3,'XI',4.1e4);\n    INSERT INTO t1 VALUES(12,'x01234567890123456789',3,'XII',-4.2e3);\n    SELECT n FROM t1 ORDER BY n;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n||'' FROM t1 ORDER BY 1;",
+          "expect": "1 10 11 12 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n+0 FROM t1 ORDER BY 1;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n||'' FROM t1 ORDER BY 1 DESC;",
+          "expect": "9 8 7 6 5 4 3 2 12 11 10 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT n+0 FROM t1 ORDER BY 1 DESC;",
+          "expect": "12 11 10 9 8 7 6 5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY 1;",
+          "expect": "x-123.0 x-2.15 x-2b x-3.141592653 x-4.0e9 x-4221.0 x0.0013442 x01234567890123456789 x1.6 x11.0 x2.7 x5.0e10"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT v FROM t1 ORDER BY 1 DESC;",
+          "expect": "x5.0e10 x2.7 x11.0 x1.6 x01234567890123456789 x0.0013442 x-4221.0 x-4.0e9 x-3.141592653 x-2b x-2.15 x-123.0"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT substr(v,2,99) FROM t1 ORDER BY 1;",
+          "expect": "-123.0 -2.15 -2b -3.141592653 -4.0e9 -4221.0 0.0013442 01234567890123456789 1.6 11.0 2.7 5.0e10"
+        }
+      ]
+    },
+    {
+      "name": "sort-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT substr(v,2,99)+0.0 FROM t1 ORDER BY 1;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "create table t3(a,b);\n    insert into t3 values(5,NULL);\n    insert into t3 values(6,NULL);\n    insert into t3 values(3,NULL);\n    insert into t3 values(4,'cd');\n    insert into t3 values(1,'ab');\n    insert into t3 values(2,NULL);\n    select a from t3 order by b, a;",
+          "expect": "2 3 5 6 1 4"
+        }
+      ]
+    },
+    {
+      "name": "sort-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from t3 order by b, a desc;",
+          "expect": "6 5 3 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "sort-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from t3 order by b desc, a;",
+          "expect": "4 1 2 3 5 6"
+        }
+      ]
+    },
+    {
+      "name": "sort-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from t3 order by b desc, a desc;",
+          "expect": "4 1 6 5 3 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "create index i3 on t3(b,a);\n    select a from t3 order by b, a;",
+          "expect": "2 3 5 6 1 4"
+        }
+      ]
+    },
+    {
+      "name": "sort-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from t3 order by b, a desc;",
+          "expect": "6 5 3 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "sort-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from t3 order by b desc, a;",
+          "expect": "4 1 2 3 5 6"
+        }
+      ]
+    },
+    {
+      "name": "sort-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select a from t3 order by b desc, a desc;",
+          "expect": "4 1 6 5 3 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(\n      a INTEGER,\n      b VARCHAR(30)\n    );\n    INSERT INTO t4 VALUES(1,1);\n    INSERT INTO t4 VALUES(2,2);\n    INSERT INTO t4 VALUES(11,11);\n    INSERT INTO t4 VALUES(12,12);\n    SELECT a FROM t4 ORDER BY 1;",
+          "expect": "1 2 11 12"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t4 ORDER BY 1",
+          "expect": "1 11 12 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;",
+          "expect": "1 2 11 12"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM v4 ORDER BY 1;",
+          "expect": "1 11 12 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;",
+          "expect": "1 2 11 12"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;",
+          "expect": "1 2 11 12 1 11 12 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;",
+          "expect": "1 2 11 12 1 11 12 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;",
+          "expect": "1 11 12 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE numeric;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE integer;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE text;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE blob;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE clob;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-7.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE varchar;\n#"
+        }
+      ]
+    },
+    {
+      "name": "sort-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;",
+          "expect": "100.0 A1 100.0 A2"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;",
+          "expect": "4 1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 ORDER BY y DESC;",
+          "expect": "3 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 WHERE y<1"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 WHERE y<'1'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 WHERE y<x'31'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 WHERE y>1",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "sort-9.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t6 WHERE y>'1'",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "sort-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(c INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(1);\n    INSERT INTO t7 VALUES(2);\n    INSERT INTO t7 VALUES(3);\n    INSERT INTO t7 VALUES(4);"
+        }
+      ]
+    },
+    {
+      "name": "sort-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t7 WHERE c<=3 ORDER BY c DESC;",
+          "expect": "3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t7 WHERE c<3 ORDER BY c DESC;",
+          "expect": "2 1"
+        }
+      ]
+    },
+    {
+      "name": "sort-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "sort-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "create table a (id integer primary key);\n    create table b (id integer primary key, aId integer, text);\n    insert into a values (1);\n    insert into b values (2, 1, 'xxx');\n    insert into b values (1, 1, 'zzz');\n    insert into b values (3, 1, 'yyy');\n    select a.id, b.id, b.text from a join b on (a.id = b.aId)\n      order by a.id, b.text;",
+          "expect": "1 2 xxx 1 3 yyy 1 1 zzz"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INTO t1 VALUES(4,'four',2,'IV',-0.0013442);\n    INSERT INTO t1 VALUES(5,'five',2,'V',-11);\n    INSERT INTO t1 VALUES(6,'six',2,'VI',0.123);\n    INSERT INTO t1 VALUES(7,'seven',2,'VII',123.0);\n    INSERT INTO t1 VALUES(8,'eight',3,'VIII',-1.6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY n"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY n ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ALL n FROM t1 ORDER BY n ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY n DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY v"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY v"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY v DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT flt FROM t1 ORDER BY flt"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT flt FROM t1 ORDER BY flt DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT roman FROM t1 ORDER BY roman"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log, flt"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log asc, flt"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log, flt ASC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log ASC, flt asc"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log, flt DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log ASC, flt DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log DESC, flt"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n FROM t1 ORDER BY log DESC, flt DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET v='x' || -flt;\n    UPDATE t1 SET v='x-2b' where v=='x-0.123';\n    SELECT v FROM t1 ORDER BY v;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999) DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY substr(v,2,999)+0.0 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES('AGLIENTU',1);\n    INSERT INTO t2 VALUES('AGLIE`',2);\n    INSERT INTO t2 VALUES('AGNA',3);\n    SELECT a, b FROM t2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t2 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    INSERT INTO t2 VALUES('aglientu',1);\n    INSERT INTO t2 VALUES('aglie`',2);\n    INSERT INTO t2 VALUES('agna',3);\n    SELECT a, b FROM t2 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t2 ORDER BY a DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9,'x2.7',3,'IX',4.0e5);\n    INSERT INTO t1 VALUES(10,'x5.0e10',3,'X',-4.0e5);\n    INSERT INTO t1 VALUES(11,'x-4.0e9',3,'XI',4.1e4);\n    INSERT INTO t1 VALUES(12,'x01234567890123456789',3,'XII',-4.2e3);\n    SELECT n FROM t1 ORDER BY n;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n||'' FROM t1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n+0 FROM t1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n||'' FROM t1 ORDER BY 1 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT n+0 FROM t1 ORDER BY 1 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT v FROM t1 ORDER BY 1 DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT substr(v,2,99) FROM t1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT substr(v,2,99)+0.0 FROM t1 ORDER BY 1;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t3(a,b);\n    insert into t3 values(5,NULL);\n    insert into t3 values(6,NULL);\n    insert into t3 values(3,NULL);\n    insert into t3 values(4,'cd');\n    insert into t3 values(1,'ab');\n    insert into t3 values(2,NULL);\n    select a from t3 order by b, a;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t3 order by b, a desc;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t3 order by b desc, a;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t3 order by b desc, a desc;"
+        },
+        {
+          "type": "exec",
+          "sql": "create index i3 on t3(b,a);\n    select a from t3 order by b, a;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t3 order by b, a desc;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t3 order by b desc, a;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t3 order by b desc, a desc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(\n      a INTEGER,\n      b VARCHAR(30)\n    );\n    INSERT INTO t4 VALUES(1,1);\n    INSERT INTO t4 VALUES(2,2);\n    INSERT INTO t4 VALUES(11,11);\n    INSERT INTO t4 VALUES(12,12);\n    SELECT a FROM t4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t4 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v4 AS SELECT * FROM t4;\n    SELECT a FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 UNION SELECT a FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t4 UNION SELECT a FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 UNION SELECT b FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE numeric;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE integer;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE text;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE blob;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE clob;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "#    SELECT b FROM t4 UNION SELECT b FROM v4 ORDER BY 1 COLLATE varchar;\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a real, b text);\n    INSERT INTO t5 VALUES(100,'A1');\n    INSERT INTO t5 VALUES(100.0,'A2');\n    SELECT * FROM t5 ORDER BY a, b;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(x, y);\n    INSERT INTO t6 VALUES(1,1);\n    INSERT INTO t6 VALUES(2,'1');\n    INSERT INTO t6 VALUES(3,x'31');\n    INSERT INTO t6 VALUES(4,NULL);\n    SELECT x FROM t6 ORDER BY y;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t6 ORDER BY y DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t6 WHERE y<1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t6 WHERE y<'1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t6 WHERE y<x'31'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t6 WHERE y>1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t6 WHERE y>'1'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(c INTEGER PRIMARY KEY);\n    INSERT INTO t7 VALUES(1);\n    INSERT INTO t7 VALUES(2);\n    INSERT INTO t7 VALUES(3);\n    INSERT INTO t7 VALUES(4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t7 WHERE c<=3 ORDER BY c DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t7 WHERE c<3 ORDER BY c DESC;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table a (id integer primary key);\n    create table b (id integer primary key, aId integer, text);\n    insert into a values (1);\n    insert into b values (2, 1, 'xxx');\n    insert into b values (1, 1, 'zzz');\n    insert into b values (3, 1, 'yyy');\n    select a.id, b.id, b.text from a join b on (a.id = b.aId)\n      order by a.id, b.text;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 20"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t10 ORDER BY a, b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t10 ORDER BY a, b"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

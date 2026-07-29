@@ -3,6 +3,44 @@
   "name": "fts3fuzz001",
   "tests": [
     {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(x);\n\n  INSERT INTO x1 VALUES('braes brag bragged bragger bragging');\n  INSERT INTO x1 VALUES('brags braid braided braiding braids');\n  INSERT INTO x1 VALUES('brain brainchild brained braining brains');\n  INSERT INTO x1 VALUES('brainstem brainstems brainstorm brainstorms');\n  INSERT INTO x1(x1) VALUES('nodesize=24');"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(x1) VALUES('merge=10,2')"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
       "name": "fts3fuzz001-100",
       "steps": [
         {
@@ -47,26 +85,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "210",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check;",
-          "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "220",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check;",
-          "expect": "ok"
         }
       ]
     }

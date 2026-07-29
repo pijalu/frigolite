@@ -1,0 +1,36 @@
+{
+  "file": "fts3corrupt2.test",
+  "name": "fts3corrupt2",
+  "tests": [
+    {
+      "name": "fts3corrupt2-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING FTS3(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING FTS3(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(t2) VALUES('nodesize=32')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2_segments"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, length(block), block FROM t2_segments"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, length(root), root FROM t2_segdir"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

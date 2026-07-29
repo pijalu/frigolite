@@ -8,18 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE d NOT NULL"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -32,7 +20,19 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE d NOT NULL"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT dense_rank() OVER win FROM t2\n    WINDOW win AS (ORDER BY c IS NULL)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

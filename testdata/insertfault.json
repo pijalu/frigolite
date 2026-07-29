@@ -12,11 +12,11 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM sqlite_master"
+          "sql": "SELECT * FROM t1"
         },
         {
           "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "sql": "SELECT * FROM sqlite_master"
         }
       ]
     }

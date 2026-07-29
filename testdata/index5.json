@@ -9,6 +9,15 @@
           "type": "query",
           "sql": "PRAGMA auto_vacuum = 0;",
           "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x)"
         },
         {
           "type": "exec",
@@ -25,15 +34,6 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(x);\n    DROP INDEX I1;\n    PRAGMA main.page_size;"
-        }
-      ]
-    },
-    {
-      "name": "1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(x)"
         },
         {
           "type": "exec",

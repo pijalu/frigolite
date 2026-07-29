@@ -8,10 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(c1 UNIQUE);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE collate3t1(c1 UNIQUE);"
         }
       ]
     },
@@ -52,10 +48,6 @@
           "type": "exec",
           "sql": "CREATE INDEX collate3i1 ON collate3t1(c1 COLLATE garbage);",
           "expect": "1 {no such collation sequence: garbage}"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE collate3t1;"
         }
       ]
     },
@@ -65,14 +57,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY a"
         }
       ]
     },
@@ -87,27 +71,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.6.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(a)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1 ON t1(a)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 ORDER BY a"
         }
       ]
     },
@@ -122,28 +90,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.6.3",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {no such collation sequence: caseless}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -158,24 +110,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.7.1",
       "steps": [
         {
           "type": "query",
           "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;",
           "expect": "abc1 Abc2 aBc3"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;"
         }
       ]
     },
@@ -190,28 +130,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.7.4",
       "steps": [
         {
           "type": "exec",
           "sql": "REINDEX",
           "expect": "1 {no such collation sequence: caseless}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -226,28 +150,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.7.4",
       "steps": [
         {
           "type": "exec",
           "sql": "REINDEX",
           "expect": "1 {no such collation sequence: caseless}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -262,14 +170,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.7.6",
       "steps": [
         {
@@ -280,20 +180,8 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "collate3-1.8",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
-        },
         {
           "type": "exec",
           "sql": "DROP TABLE t1"
@@ -306,18 +194,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -517,27 +393,6 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_52",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "select * from collate3t1"
         }
       ]
     },
@@ -677,20 +532,12 @@
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE collate3t1;"
         }
       ]
     },
     {
       "name": "collate3-4.6",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
@@ -704,14 +551,6 @@
           "type": "exec",
           "sql": "SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;",
           "expect": "1 {no such collation sequence: user_defined}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -731,10 +570,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE collate3t1;"
         }
       ]
     },
@@ -745,10 +580,6 @@
           "type": "query",
           "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;",
           "expect": "2 {} 12 {} 101 {}"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;"
         }
       ]
     },
@@ -759,14 +590,6 @@
           "type": "exec",
           "sql": "SELECT * FROM collate3v1;",
           "expect": "1 {no such collation sequence: user_defined}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -783,10 +606,6 @@
     {
       "name": "collate3-4.12",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE collate3t1;"
-        },
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;"
@@ -839,18 +658,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -873,7 +680,195 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE collate3t1(c1 UNIQUE);"
+        },
+        {
+          "type": "exec",
           "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE caseless); \n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a COLLATE caseless);\n    INSERT INTO t1 VALUES('Abc2');\n    INSERT INTO t1 VALUES('abc1');\n    INSERT INTO t1 VALUES('aBc3');\n    SELECT * FROM t1 ORDER BY a COLLATE caseless;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('hello', NULL);\n    CREATE INDEX collate3i1 ON collate3t1(a COLLATE user_defined);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE collate3t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from collate3t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -1,0 +1,66 @@
+{
+  "file": "fts4incr.test",
+  "name": "fts4incr",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT min(docid), max(docid) FROM t1;",
+          "expect": "1001001 1050026"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2 WHERE t2 MATCH '\"never zero\"'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2 WHERE t2 MATCH '\"two zero\"'",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(words)"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(words)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2(t2) VALUES('optimize')"
+        }
+      ]
+    }
+  ]
+}

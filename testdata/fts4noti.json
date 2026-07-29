@@ -20,6 +20,292 @@
           "expect": "cc"
         }
       ]
+    },
+    {
+      "name": "2.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(x, y, notindexed=x);"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t2 WHERE t2 MATCH '2'"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t2 WHERE t2 MATCH '1'",
+          "expect": "2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t2 WHERE t2 MATCH 'x'",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t2 WHERE t2 MATCH 'x 1'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "3.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(poi, addr, notindexed=poi);\n  INSERT INTO t2 VALUES(114, 'x x x');\n  INSERT INTO t2 VALUES(X'1234', 'y y y');\n  INSERT INTO t2 VALUES(NULL, 'z z z');\n  INSERT INTO t2 VALUES(113.2, 'w w w');\n  INSERT INTO t2 VALUES('poi', 'v v v');"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(poi) FROM t2 WHERE t2 MATCH 'x'",
+          "expect": "integer"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(poi) FROM t2 WHERE t2 MATCH 'y'",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(poi) FROM t2 WHERE t2 MATCH 'z'",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(poi) FROM t2 WHERE t2 MATCH 'w'",
+          "expect": "real"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(poi) FROM t2 WHERE t2 MATCH 'v'",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "4.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(\n      notindexed=\"three\", one, two, three, notindexed=\"one\",\n  );\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n  INSERT INTO t2 VALUES('c', 'a', 'b');\n  INSERT INTO t2 VALUES('b', 'c', 'a');"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t2 WHERE t2 MATCH 'a'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t2 WHERE t2 MATCH 'b'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t2 WHERE t2 MATCH 'c'",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "5.x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        }
+      ]
+    },
+    {
+      "name": "6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategoryId\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);"
+        }
+      ]
+    },
+    {
+      "name": "6.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'restaurant';",
+          "expect": "Restaurant 6021"
+        }
+      ]
+    },
+    {
+      "name": "6.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 're*';",
+          "expect": "Restaurant 6021"
+        }
+      ]
+    },
+    {
+      "name": "6.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH '6021';"
+        }
+      ]
+    },
+    {
+      "name": "6.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH '60*';"
+        }
+      ]
+    },
+    {
+      "name": "6.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(\n    poiCategory, poiCategoryId, notindexed=poiCategory\n  );\n  INSERT INTO t1(poiCategory, poiCategoryId) values ('Restaurant', 6021);"
+        }
+      ]
+    },
+    {
+      "name": "6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'restaurant';"
+        }
+      ]
+    },
+    {
+      "name": "6.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 're*';"
+        }
+      ]
+    },
+    {
+      "name": "6.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH '6021';",
+          "expect": "Restaurant 6021"
+        }
+      ]
+    },
+    {
+      "name": "6.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH '60*';",
+          "expect": "Restaurant 6021"
+        }
+      ]
+    },
+    {
+      "name": "6.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(abc, ab, a, notindexed=abc);\n  CREATE VIRTUAL TABLE t2 USING fts4(a, ab, abc, notindexed=abc);\n\n  INSERT INTO t1 VALUES('no', 'yes', 'yep');\n  INSERT INTO t2 VALUES('yep', 'yes', 'no');\n\n  SELECT count(*) FROM t1 WHERE t1 MATCH 'no';\n  SELECT count(*) FROM t1 WHERE t1 MATCH 'yes';\n  SELECT count(*) FROM t1 WHERE t1 MATCH 'yep';\n\n  SELECT count(*) FROM t2 WHERE t2 MATCH 'no';\n  SELECT count(*) FROM t2 WHERE t2 MATCH 'yes';\n  SELECT count(*) FROM t2 WHERE t2 MATCH 'yep';",
+          "expect": "0 1 1 0 1 1"
+        }
+      ]
     }
   ]
 }

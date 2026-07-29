@@ -122,14 +122,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "300",
       "steps": [
         {
@@ -144,6 +136,14 @@
         {
           "type": "exec",
           "sql": "WITH RECURSIVE tt(ii) AS (\n      VALUES(1) UNION ALL SELECT id FROM tree, tt WHERE parent=ii ORDER BY id\n  )\n  SELECT * FROM tt ORDER BY ii;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

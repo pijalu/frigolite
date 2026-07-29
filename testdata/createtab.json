@@ -1,0 +1,62 @@
+{
+  "file": "createtab.test",
+  "name": "createtab",
+  "tests": [
+    {
+      "name": "createtab-4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c UNIQUE);\n  CREATE INDEX x1 ON t1(a);\n  CREATE VIEW v1 AS SELECT a+b AS x FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "createtab-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN SELECT true; END;",
+          "expect": "1 {too many schema objects}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n      INSERT INTO t1 VALUES(1, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(2, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(3, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(4, hex(randomblob(200)));\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n      INSERT INTO t2 VALUES(1,2);\n      SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b);\n      INSERT INTO t3 VALUES(4,5);\n      SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b);\n      INSERT INTO t4 VALUES('abc','xyz');\n      SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

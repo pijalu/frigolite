@@ -1,0 +1,27 @@
+{
+  "file": "sqllog.test",
+  "name": "sqllog",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(4, 5);\n  SELECT * FROM t1;",
+          "expect": "1 2 a b 4 5"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(6, 7);\n  SELECT * FROM t1;",
+          "expect": "1 2 a b 4 5 6 7"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

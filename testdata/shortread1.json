@@ -1,0 +1,63 @@
+{
+  "file": "shortread1.test",
+  "name": "shortread1",
+  "tests": [
+    {
+      "name": "shortread1-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a TEXT);\n    BEGIN;\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    INSERT INTO t1 VALUES(hex(randomblob(100)));\n    PRAGMA freelist_count;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "shortread1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE rowid=1;\n    PRAGMA freelist_count;",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "shortread1-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "shortread1-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n    SELECT count(*) FROM t1;",
+          "expect": "2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT);\n    BEGIN;\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    INSERT INTO t1 VALUES(hex(randomblob(100)));\n    PRAGMA freelist_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid=1;\n    PRAGMA freelist_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT count(*) FROM t1;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

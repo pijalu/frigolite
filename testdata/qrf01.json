@@ -36,10 +36,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,unistr('abc\\u001b[1;31m123\\u001b[0mxyz'));"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;"
         }
       ]
     },
@@ -58,6 +54,10 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t7(a,b);\n  INSERT INTO t7 VALUES('abcdefghijklmnop',\n    'abc\u3041def\u304bghi\u306ejkl\u306fmnop');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c,d,e);\n    WITH v(x) AS (SELECT 'abcdefghijklmnopqrstuvwxyz')\n    INSERT INTO t2 SELECT x,x,x,x,x FROM v;"
         },
         {
           "type": "exec",

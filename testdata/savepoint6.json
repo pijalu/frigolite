@@ -3,19 +3,6 @@
   "name": "savepoint6",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT x, y FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        }
-      ]
-    },
-    {
       "name": "savepoint6-1.2",
       "steps": [
         {
@@ -30,6 +17,14 @@
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, y FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
         }
       ]
     }

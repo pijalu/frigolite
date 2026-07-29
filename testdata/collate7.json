@@ -1,0 +1,54 @@
+{
+  "file": "collate7.test",
+  "name": "collate7",
+  "tests": [
+    {
+      "name": "collate7-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a COLLATE CASELESS, b, c);",
+          "expect": "1 {no such collation sequence: CASELESS}"
+        }
+      ]
+    },
+    {
+      "name": "collate7-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "collate7-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM abc16 WHERE a < 'abc';",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "collate7-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc16 WHERE a < 'abc';",
+          "expect": "1 {no such collation sequence: CASELESS}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc16 WHERE a < 'abc';"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

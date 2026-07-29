@@ -3,6 +3,25 @@
   "name": "upsert4",
   "tests": [
     {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE w1(a INT PRIMARY KEY, x, y);\n  CREATE UNIQUE INDEX w1expr ON w1(('x' || x));\n  INSERT INTO w1 VALUES(2, 'one', NULL)\n    ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v(x INTEGER);\n  CREATE TABLE hist(x INTEGER PRIMARY KEY, cnt INTEGER);\n  CREATE TRIGGER vt AFTER INSERT ON v BEGIN\n    INSERT INTO hist VALUES(new.x, 1) ON CONFLICT(x) DO\n      UPDATE SET cnt=cnt+1;\n  END;"
+        }
+      ]
+    },
+    {
       "name": "9.1",
       "steps": [
         {

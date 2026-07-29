@@ -1,0 +1,57 @@
+{
+  "file": "tkt4018.test",
+  "name": "tkt4018",
+  "tests": [
+    {
+      "name": "tkt4018-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n    BEGIN;\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt4018-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "tkt4018-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tkt4018-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 6)",
+          "expect": "1 {attempt to write a readonly database}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    BEGIN;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t1 ORDER BY a;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

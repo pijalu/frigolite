@@ -28,6 +28,35 @@ type Cursor struct {
 	endOfBTree  bool
 	interiorRoot uint32 // root page number if interior, 0 if leaf root
 	childIdx     int    // current child index in the interior root
+
+	// Cache for current page to avoid repeated ParsePage calls
+	currentPg    *pager.Page
+	currentPage  *storage.BTreePage
+}
+
+// cachePage caches the parsed page for the current pageNum.
+// If the pageNum has changed since last call, re-reads and re-parses.
+func (c *Cursor) cachePage() error {
+	if c.currentPg != nil && c.currentPg.PageNum == c.pageNum {
+		return nil // cache hit
+	}
+	pg, err := c.tx.pager.ReadPage(c.pageNum)
+	if err != nil {
+		return err
+	}
+	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+	if err != nil {
+		return err
+	}
+	c.currentPg = pg
+	c.currentPage = page
+	return nil
+}
+
+// clearPageCache invalidates the page cache. Used when pageNum changes.
+func (c *Cursor) clearPageCache() {
+	c.currentPg = nil
+	c.currentPage = nil
 }
 
 // BTree represents a single b-tree (table or index).
@@ -284,14 +313,10 @@ func (c *Cursor) Next() (bool, error) {
 		return false, nil
 	}
 
-	pg, err := c.tx.pager.ReadPage(c.pageNum)
-	if err != nil {
+	if err := c.cachePage(); err != nil {
 		return false, err
 	}
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
-	if err != nil {
-		return false, err
-	}
+	page := c.currentPage
 
 	c.cellIdx++
 	if c.cellIdx < int(page.CellCount) {
@@ -299,6 +324,7 @@ func (c *Cursor) Next() (bool, error) {
 	}
 
 	// Reached end of current leaf — move to next child of interior root.
+	c.clearPageCache()
 	c.navigateToNextChild()
 	return !c.endOfBTree, nil
 }
@@ -318,14 +344,11 @@ func (c *Cursor) ReadCell() (*storage.Cell, error) {
 		return nil, fmt.Errorf("btree: cursor at end")
 	}
 
-	pg, err := c.tx.pager.ReadPage(c.pageNum)
-	if err != nil {
+	if err := c.cachePage(); err != nil {
 		return nil, err
 	}
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
-	if err != nil {
-		return nil, err
-	}
+	pg := c.currentPg
+	page := c.currentPage
 
 	if c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
 		return nil, fmt.Errorf("btree: cell index %d out of range (count %d)", c.cellIdx, page.CellCount)
@@ -347,6 +370,55 @@ func (c *Cursor) ReadCell() (*storage.Cell, error) {
 
 	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx))
 	return storage.DecodeCell(pg.Data, cellOff, cellType, int(c.tx.pageSize))
+}
+
+// ReadCellData reads the current cell's payload data and rowID for table leaf
+// cells without allocating a Cell struct. This is the fast path for table scans.
+// For non-table-leaf pages, it falls back to ReadCell.
+func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
+	if c.endOfBTree {
+		return nil, 0, fmt.Errorf("btree: cursor at end")
+	}
+
+	if err := c.cachePage(); err != nil {
+		return nil, 0, err
+	}
+	pg := c.currentPg
+	page := c.currentPage
+
+	if c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
+		return nil, 0, fmt.Errorf("btree: cell index %d out of range (count %d)", c.cellIdx, page.CellCount)
+	}
+
+	if page.PageType != storage.PageTypeLeafTable {
+		// Fall back to full cell decode for other page types
+		cell, err := c.ReadCell()
+		if err != nil {
+			return nil, 0, err
+		}
+		return cell.Payload, cell.RowID, nil
+	}
+
+	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx))
+	data := pg.Data[cellOff:]
+
+	// Skip payload length varint
+	plen, n := util.GetVarint(data)
+	pos := cellOff + n
+
+	// Read rowID varint
+	rowid, n := util.GetVarint(pg.Data[pos:])
+	pos += n
+	rowID = int64(rowid)
+
+	// Slice the payload from the page data (no copy)
+	payloadLen := int(plen)
+	if pos+payloadLen > len(pg.Data) {
+		payloadLen = len(pg.Data) - pos
+	}
+	payload = pg.Data[pos : pos+payloadLen]
+
+	return payload, rowID, nil
 }
 
 // leafHasRoom checks if a leaf page has enough room for the given cell data.

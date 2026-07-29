@@ -1,0 +1,353 @@
+{
+  "file": "printf.test",
+  "name": "printf",
+  "tests": [
+    {
+      "name": "printf-16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT printf('%.*g',2147483647,0.01);",
+          "expect": "0.01"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%!.20g', 13.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.3e', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.3f', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.3g', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.4e', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.4f', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.4g', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.5e', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.5f', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.5g', 199990000.0);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%.30f',1.0000000000000000076e-50);"
+        }
+      ]
+    },
+    {
+      "name": "printf-17.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%!.0e',-1e100);"
+        }
+      ]
+    },
+    {
+      "name": "printf-18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT length( format('%,.249f', -5.0e-300) );",
+          "expect": "252"
+        }
+      ]
+    },
+    {
+      "name": "printf-19.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%0.0f %0.0g %0.0g', 0.9, 0.09, 1.9);",
+          "expect": "{1 0.09 2}"
+        }
+      ]
+    },
+    {
+      "name": "printf-19.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%0.0f %#0.0f',0.0, 0.0);",
+          "expect": "{0 0.}"
+        }
+      ]
+    },
+    {
+      "name": "printf-19.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('%,.0f %,.0f',12345e+10, 12345e+11);",
+          "expect": "{123,450,000,000,000 1,234,500,000,000,000}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('1-%j-2-%J-3',null,null);",
+          "expect": "1--2-null-3"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%6J>','\u3044\u3061');",
+          "expect": "<\\\"\u3044\u3061\\\">"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!6J>','\u3044\u3061');",
+          "expect": "{<  \"\u3044\u3061\">}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!-6J>','\u3044\u3061');",
+          "expect": "{<\"\u3044\u3061\"  >}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%6.8J>','\u3044\u3061, \u306b, \u3055\u3093');",
+          "expect": "{<\"\u3044\u3061, \">}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!6.2J>','\u3044\u3061, \u306b, \u3055\u3093');",
+          "expect": "{<  \"\u3044\u3061\">}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!-6.2J>','\u3044\u3061, \u306b, \u3055\u3093');",
+          "expect": "{<\"\u3044\u3061\"  >}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%6j>','\u3044\u3061');",
+          "expect": "{<\u3044\u3061>}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!6j>','\u3044\u3061');",
+          "expect": "{<    \u3044\u3061>}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!-6j>','\u3044\u3061');",
+          "expect": "{<\u3044\u3061    >}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%6.8j>','\u3044\u3061, \u306b, \u3055\u3093');",
+          "expect": "{<\u3044\u3061,   >}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!6.2j>','\u3044\u3061, \u306b, \u3055\u3093');",
+          "expect": "{<    \u3044\u3061>}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%!-6.2j>','\u3044\u3061, \u306b, \u3055\u3093');",
+          "expect": "{<\u3044\u3061    >}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%.7j>','abc\"\"\"def');",
+          "expect": "{<abc\\\"\\\"\\\"d>}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%j>','abc'||char(0x1f)||'def');",
+          "expect": "{<abc\\u001fdef>}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%.4j>','a\"b\"c');",
+          "expect": "{<a\\\"b\\\">}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%.1J>','abcdef');",
+          "expect": "{<\"a\">}"
+        }
+      ]
+    },
+    {
+      "name": "printf-20.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('<%.0J>','abcdef');",
+          "expect": "{<\"\">}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,54 @@
+{
+  "file": "tkt1667.test",
+  "name": "tkt1667",
+  "tests": [
+    {
+      "name": "tkt1667-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "tkt1667-3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "tkt1667-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

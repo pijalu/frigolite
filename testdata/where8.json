@@ -1,0 +1,143 @@
+{
+  "file": "where8.test",
+  "name": "where8",
+  "tests": [
+    {
+      "name": "where8-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t600(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE INDEX t600b ON t600(b);\n  INSERT INTO t600 VALUES('state','screen'),('exact','dolphin'),('green','mercury');\n  SELECT a, b, '|' FROM t600 WHERE a=='state' OR b='mercury' ORDER BY +a;",
+          "expect": "green mercury | state screen |"
+        }
+      ]
+    },
+    {
+      "name": "where8-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b TEXT, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1,  'one',   'I');\n    INSERT INTO t1 VALUES(2,  'two',   'II');\n    INSERT INTO t1 VALUES(3,  'three', 'III');\n    INSERT INTO t1 VALUES(4,  'four',  'IV');\n    INSERT INTO t1 VALUES(5,  'five',  'V');\n    INSERT INTO t1 VALUES(6,  'six',   'VI');\n    INSERT INTO t1 VALUES(7,  'seven', 'VII');\n    INSERT INTO t1 VALUES(8,  'eight', 'VIII');\n    INSERT INTO t1 VALUES(9,  'nine',  'IX');\n    INSERT INTO t1 VALUES(10, 'ten',   'X');"
+        }
+      ]
+    },
+    {
+      "name": "where8-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE e1 USING echo(t1);\n      SELECT b FROM e1;",
+          "expect": "one two three four five six seven eight nine ten"
+        }
+      ]
+    },
+    {
+      "name": "where8-2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM e1 WHERE a=1 OR b='three';",
+          "expect": "I III"
+        }
+      ]
+    },
+    {
+      "name": "where8-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(d, e, f);\n    CREATE INDEX i3 ON t2(d);\n    CREATE INDEX i4 ON t2(e);\n\n    INSERT INTO t2 VALUES(1,  NULL,         'I');\n    INSERT INTO t2 VALUES(2,  'four',       'IV');\n    INSERT INTO t2 VALUES(3,  NULL,         'IX');\n    INSERT INTO t2 VALUES(4,  'sixteen',    'XVI');\n    INSERT INTO t2 VALUES(5,  NULL,         'XXV');\n    INSERT INTO t2 VALUES(6,  'thirtysix',  'XXXVI');\n    INSERT INTO t2 VALUES(7,  'fortynine',  'XLIX');\n    INSERT INTO t2 VALUES(8,  'sixtyeight', 'LXIV');\n    INSERT INTO t2 VALUES(9,  'eightyone',  'LXXXIX');\n    INSERT INTO t2 VALUES(10, NULL,         'C');"
+        }
+      ]
+    },
+    {
+      "name": "where8-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(a INTEGER, b REAL, c TEXT);\n    CREATE TABLE t4(f INTEGER, g REAL, h TEXT);\n    INSERT INTO t3 VALUES('hills', NULL, 1415926535);\n    INSERT INTO t3 VALUES('and', 'of', NULL);\n    INSERT INTO t3 VALUES('have', 'towering', 53594.08128);\n    INSERT INTO t3 VALUES(NULL, 45.64856692, 'Not');\n    INSERT INTO t3 VALUES('same', 5028841971, NULL);\n    INSERT INTO t3 VALUES('onlookers', 'in', 8214808651);\n    INSERT INTO t3 VALUES(346.0348610, 2643383279, NULL);\n    INSERT INTO t3 VALUES(1415926535, 'of', 'are');\n    INSERT INTO t3 VALUES(NULL, 0.4811174502, 'snapshots');\n    INSERT INTO t3 VALUES('over', 'the', 8628034825);\n    INSERT INTO t3 VALUES(8628034825, 66.59334461, 2847564.823);\n    INSERT INTO t3 VALUES('onlookers', 'same', 'and');\n    INSERT INTO t3 VALUES(NULL, 'light', 6939937510);\n    INSERT INTO t3 VALUES('from', 'their', 'viewed');\n    INSERT INTO t3 VALUES('from', 'Alpine', 'snapshots');\n    INSERT INTO t3 VALUES('from', 'sometimes', 'unalike');\n    INSERT INTO t3 VALUES(1339.360726, 'light', 'have');\n    INSERT INTO t3 VALUES(6939937510, 3282306647, 'other');\n    INSERT INTO t3 VALUES('paintings', 8628034825, 'all');\n    INSERT INTO t3 VALUES('paintings', NULL, 'same');\n    INSERT INTO t3 VALUES('Alpine', 378678316.5, 'unalike');\n    INSERT INTO t3 VALUES('Alpine', NULL, 'same');\n    INSERT INTO t3 VALUES(1339.360726, 2847564.823, 'over');\n    INSERT INTO t3 VALUES('villages', 'their', 'have');\n    INSERT INTO t3 VALUES('unalike', 'remarkably', 'in');\n    INSERT INTO t3 VALUES('and', 8979323846, 'and');\n    INSERT INTO t3 VALUES(NULL, 1415926535, 'an');\n    INSERT INTO t3 VALUES(271.2019091, 8628034825, 0.4811174502);\n    INSERT INTO t3 VALUES('all', 3421170679, 'the');\n    INSERT INTO t3 VALUES('Not', 'and', 1415926535);\n    INSERT INTO t3 VALUES('of', 'other', 'light');\n    INSERT INTO t3 VALUES(NULL, 'towering', 'Not');\n    INSERT INTO t3 VALUES(346.0348610, NULL, 'other');\n    INSERT INTO t3 VALUES('Not', 378678316.5, NULL);\n    INSERT INTO t3 VALUES('snapshots', 8628034825, 'of');\n    INSERT INTO t3 VALUES(3282306647, 271.2019091, 'and');\n    INSERT INTO t3 VALUES(50.58223172, 378678316.5, 5028841971);\n    INSERT INTO t3 VALUES(50.58223172, 2643383279, 'snapshots');\n    INSERT INTO t3 VALUES('writings', 8979323846, 8979323846);\n    INSERT INTO t3 VALUES('onlookers', 'his', 'in');\n    INSERT INTO t3 VALUES('unalike', 8628034825, 1339.360726);\n    INSERT INTO t3 VALUES('of', 'Alpine', 'and');\n    INSERT INTO t3 VALUES('onlookers', NULL, 'from');\n    INSERT INTO t3 VALUES('writings', 'it', 1339.360726);\n    INSERT INTO t3 VALUES('it', 'and', 'villages');\n    INSERT INTO t3 VALUES('an', 'the', 'villages');\n    INSERT INTO t3 VALUES(8214808651, 8214808651, 'same');\n    INSERT INTO t3 VALUES(346.0348610, 'light', 1415926535);\n    INSERT INTO t3 VALUES(NULL, 8979323846, 'and');\n    INSERT INTO t3 VALUES(NULL, 'same', 1339.360726);\n    INSERT INTO t4 VALUES('his', 'from', 'an');\n    INSERT INTO t4 VALUES('snapshots', 'or', NULL);\n    INSERT INTO t4 VALUES('Alpine', 'have', 'it');\n    INSERT INTO t4 VALUES('have', 'peak', 'remarkably');\n    INSERT INTO t4 VALUES('hills', NULL, 'Not');\n    INSERT INTO t4 VALUES('same', 'from', 2643383279);\n    INSERT INTO t4 VALUES('have', 'angle', 8628034825);\n    INSERT INTO t4 VALUES('sometimes', 'it', 2847564.823);\n    INSERT INTO t4 VALUES(0938446095, 'peak', 'of');\n    INSERT INTO t4 VALUES(8628034825, 'and', 'same');\n    INSERT INTO t4 VALUES('and', 271.2019091, 'their');\n    INSERT INTO t4 VALUES('the', 'of', 'remarkably');\n    INSERT INTO t4 VALUES('and', 3421170679, 1415926535);\n    INSERT INTO t4 VALUES('and', 'in', 'all');\n    INSERT INTO t4 VALUES(378678316.5, 0.4811174502, 'snapshots');\n    INSERT INTO t4 VALUES('it', 'are', 'have');\n    INSERT INTO t4 VALUES('angle', 'snapshots', 378678316.5);\n    INSERT INTO t4 VALUES('from', 1415926535, 8628034825);\n    INSERT INTO t4 VALUES('snapshots', 'angle', 'have');\n    INSERT INTO t4 VALUES(3421170679, 0938446095, 'Not');\n    INSERT INTO t4 VALUES('peak', NULL, 0.4811174502);\n    INSERT INTO t4 VALUES('same', 'have', 'Alpine');\n    INSERT INTO t4 VALUES(271.2019091, 66.59334461, 0938446095);\n    INSERT INTO t4 VALUES(8979323846, 'his', 'an');\n    INSERT INTO t4 VALUES(NULL, 'and', 3282306647);\n    INSERT INTO t4 VALUES('remarkably', NULL, 'Not');\n    INSERT INTO t4 VALUES('villages', 4543.266482, 'his');\n    INSERT INTO t4 VALUES(2643383279, 'paintings', 'onlookers');\n    INSERT INTO t4 VALUES(1339.360726, 'of', 'the');\n    INSERT INTO t4 VALUES('peak', 'other', 'peak');\n    INSERT INTO t4 VALUES('it', 'or', 8979323846);\n    INSERT INTO t4 VALUES('onlookers', 'Not', 'towering');\n    INSERT INTO t4 VALUES(NULL, 'peak', 'Not');\n    INSERT INTO t4 VALUES('of', 'have', 6939937510);\n    INSERT INTO t4 VALUES('light', 'hills', 0.4811174502);\n    INSERT INTO t4 VALUES(5028841971, 'Not', 'it');\n    INSERT INTO t4 VALUES('and', 'Not', NULL);\n    INSERT INTO t4 VALUES(346.0348610, 'villages', NULL);\n    INSERT INTO t4 VALUES(8979323846, NULL, 6939937510);\n    INSERT INTO t4 VALUES('an', 'light', 'peak');\n    INSERT INTO t4 VALUES(5028841971, 6939937510, 'light');\n    INSERT INTO t4 VALUES('sometimes', 'peak', 'peak');\n    INSERT INTO t4 VALUES(378678316.5, 5028841971, 'an');\n    INSERT INTO t4 VALUES(378678316.5, 'his', 'Alpine');\n    INSERT INTO t4 VALUES('from', 'of', 'all');\n    INSERT INTO t4 VALUES(0938446095, 'same', NULL);\n    INSERT INTO t4 VALUES(0938446095, 'Alpine', NULL);\n    INSERT INTO t4 VALUES('his', 'of', 378678316.5);\n    INSERT INTO t4 VALUES(271.2019091, 'viewed', 3282306647);\n    INSERT INTO t4 VALUES('hills', 'all', 'peak');\n    CREATE TABLE t5(s);\n    INSERT INTO t5 VALUES('tab-t5');\n    CREATE TABLE t6(t);\n    INSERT INTO t6 VALUES(123456);\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "where8-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );"
+        }
+      ]
+    },
+    {
+      "name": "where8-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tA WHERE\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND\n      (p = 1 OR p = 2 OR p = 3) AND n=6 AND o=7"
+        }
+      ]
+    },
+    {
+      "name": "where8-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tA VALUES(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8); \n    CREATE UNIQUE INDEX tAI ON tA(p);\n    CREATE TABLE tB(x);\n    INSERT INTO tB VALUES('x');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b TEXT, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n\n    INSERT INTO t1 VALUES(1,  'one',   'I');\n    INSERT INTO t1 VALUES(2,  'two',   'II');\n    INSERT INTO t1 VALUES(3,  'three', 'III');\n    INSERT INTO t1 VALUES(4,  'four',  'IV');\n    INSERT INTO t1 VALUES(5,  'five',  'V');\n    INSERT INTO t1 VALUES(6,  'six',   'VI');\n    INSERT INTO t1 VALUES(7,  'seven', 'VII');\n    INSERT INTO t1 VALUES(8,  'eight', 'VIII');\n    INSERT INTO t1 VALUES(9,  'nine',  'IX');\n    INSERT INTO t1 VALUES(10, 'ten',   'X');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE e1 USING echo(t1);\n      SELECT b FROM e1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM e1 WHERE a=1 OR b='three';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(d, e, f);\n    CREATE INDEX i3 ON t2(d);\n    CREATE INDEX i4 ON t2(e);\n\n    INSERT INTO t2 VALUES(1,  NULL,         'I');\n    INSERT INTO t2 VALUES(2,  'four',       'IV');\n    INSERT INTO t2 VALUES(3,  NULL,         'IX');\n    INSERT INTO t2 VALUES(4,  'sixteen',    'XVI');\n    INSERT INTO t2 VALUES(5,  NULL,         'XXV');\n    INSERT INTO t2 VALUES(6,  'thirtysix',  'XXXVI');\n    INSERT INTO t2 VALUES(7,  'fortynine',  'XLIX');\n    INSERT INTO t2 VALUES(8,  'sixtyeight', 'LXIV');\n    INSERT INTO t2 VALUES(9,  'eightyone',  'LXXXIX');\n    INSERT INTO t2 VALUES(10, NULL,         'C');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(a INTEGER, b REAL, c TEXT);\n    CREATE TABLE t4(f INTEGER, g REAL, h TEXT);\n    INSERT INTO t3 VALUES('hills', NULL, 1415926535);\n    INSERT INTO t3 VALUES('and', 'of', NULL);\n    INSERT INTO t3 VALUES('have', 'towering', 53594.08128);\n    INSERT INTO t3 VALUES(NULL, 45.64856692, 'Not');\n    INSERT INTO t3 VALUES('same', 5028841971, NULL);\n    INSERT INTO t3 VALUES('onlookers', 'in', 8214808651);\n    INSERT INTO t3 VALUES(346.0348610, 2643383279, NULL);\n    INSERT INTO t3 VALUES(1415926535, 'of', 'are');\n    INSERT INTO t3 VALUES(NULL, 0.4811174502, 'snapshots');\n    INSERT INTO t3 VALUES('over', 'the', 8628034825);\n    INSERT INTO t3 VALUES(8628034825, 66.59334461, 2847564.823);\n    INSERT INTO t3 VALUES('onlookers', 'same', 'and');\n    INSERT INTO t3 VALUES(NULL, 'light', 6939937510);\n    INSERT INTO t3 VALUES('from', 'their', 'viewed');\n    INSERT INTO t3 VALUES('from', 'Alpine', 'snapshots');\n    INSERT INTO t3 VALUES('from', 'sometimes', 'unalike');\n    INSERT INTO t3 VALUES(1339.360726, 'light', 'have');\n    INSERT INTO t3 VALUES(6939937510, 3282306647, 'other');\n    INSERT INTO t3 VALUES('paintings', 8628034825, 'all');\n    INSERT INTO t3 VALUES('paintings', NULL, 'same');\n    INSERT INTO t3 VALUES('Alpine', 378678316.5, 'unalike');\n    INSERT INTO t3 VALUES('Alpine', NULL, 'same');\n    INSERT INTO t3 VALUES(1339.360726, 2847564.823, 'over');\n    INSERT INTO t3 VALUES('villages', 'their', 'have');\n    INSERT INTO t3 VALUES('unalike', 'remarkably', 'in');\n    INSERT INTO t3 VALUES('and', 8979323846, 'and');\n    INSERT INTO t3 VALUES(NULL, 1415926535, 'an');\n    INSERT INTO t3 VALUES(271.2019091, 8628034825, 0.4811174502);\n    INSERT INTO t3 VALUES('all', 3421170679, 'the');\n    INSERT INTO t3 VALUES('Not', 'and', 1415926535);\n    INSERT INTO t3 VALUES('of', 'other', 'light');\n    INSERT INTO t3 VALUES(NULL, 'towering', 'Not');\n    INSERT INTO t3 VALUES(346.0348610, NULL, 'other');\n    INSERT INTO t3 VALUES('Not', 378678316.5, NULL);\n    INSERT INTO t3 VALUES('snapshots', 8628034825, 'of');\n    INSERT INTO t3 VALUES(3282306647, 271.2019091, 'and');\n    INSERT INTO t3 VALUES(50.58223172, 378678316.5, 5028841971);\n    INSERT INTO t3 VALUES(50.58223172, 2643383279, 'snapshots');\n    INSERT INTO t3 VALUES('writings', 8979323846, 8979323846);\n    INSERT INTO t3 VALUES('onlookers', 'his', 'in');\n    INSERT INTO t3 VALUES('unalike', 8628034825, 1339.360726);\n    INSERT INTO t3 VALUES('of', 'Alpine', 'and');\n    INSERT INTO t3 VALUES('onlookers', NULL, 'from');\n    INSERT INTO t3 VALUES('writings', 'it', 1339.360726);\n    INSERT INTO t3 VALUES('it', 'and', 'villages');\n    INSERT INTO t3 VALUES('an', 'the', 'villages');\n    INSERT INTO t3 VALUES(8214808651, 8214808651, 'same');\n    INSERT INTO t3 VALUES(346.0348610, 'light', 1415926535);\n    INSERT INTO t3 VALUES(NULL, 8979323846, 'and');\n    INSERT INTO t3 VALUES(NULL, 'same', 1339.360726);\n    INSERT INTO t4 VALUES('his', 'from', 'an');\n    INSERT INTO t4 VALUES('snapshots', 'or', NULL);\n    INSERT INTO t4 VALUES('Alpine', 'have', 'it');\n    INSERT INTO t4 VALUES('have', 'peak', 'remarkably');\n    INSERT INTO t4 VALUES('hills', NULL, 'Not');\n    INSERT INTO t4 VALUES('same', 'from', 2643383279);\n    INSERT INTO t4 VALUES('have', 'angle', 8628034825);\n    INSERT INTO t4 VALUES('sometimes', 'it', 2847564.823);\n    INSERT INTO t4 VALUES(0938446095, 'peak', 'of');\n    INSERT INTO t4 VALUES(8628034825, 'and', 'same');\n    INSERT INTO t4 VALUES('and', 271.2019091, 'their');\n    INSERT INTO t4 VALUES('the', 'of', 'remarkably');\n    INSERT INTO t4 VALUES('and', 3421170679, 1415926535);\n    INSERT INTO t4 VALUES('and', 'in', 'all');\n    INSERT INTO t4 VALUES(378678316.5, 0.4811174502, 'snapshots');\n    INSERT INTO t4 VALUES('it', 'are', 'have');\n    INSERT INTO t4 VALUES('angle', 'snapshots', 378678316.5);\n    INSERT INTO t4 VALUES('from', 1415926535, 8628034825);\n    INSERT INTO t4 VALUES('snapshots', 'angle', 'have');\n    INSERT INTO t4 VALUES(3421170679, 0938446095, 'Not');\n    INSERT INTO t4 VALUES('peak', NULL, 0.4811174502);\n    INSERT INTO t4 VALUES('same', 'have', 'Alpine');\n    INSERT INTO t4 VALUES(271.2019091, 66.59334461, 0938446095);\n    INSERT INTO t4 VALUES(8979323846, 'his', 'an');\n    INSERT INTO t4 VALUES(NULL, 'and', 3282306647);\n    INSERT INTO t4 VALUES('remarkably', NULL, 'Not');\n    INSERT INTO t4 VALUES('villages', 4543.266482, 'his');\n    INSERT INTO t4 VALUES(2643383279, 'paintings', 'onlookers');\n    INSERT INTO t4 VALUES(1339.360726, 'of', 'the');\n    INSERT INTO t4 VALUES('peak', 'other', 'peak');\n    INSERT INTO t4 VALUES('it', 'or', 8979323846);\n    INSERT INTO t4 VALUES('onlookers', 'Not', 'towering');\n    INSERT INTO t4 VALUES(NULL, 'peak', 'Not');\n    INSERT INTO t4 VALUES('of', 'have', 6939937510);\n    INSERT INTO t4 VALUES('light', 'hills', 0.4811174502);\n    INSERT INTO t4 VALUES(5028841971, 'Not', 'it');\n    INSERT INTO t4 VALUES('and', 'Not', NULL);\n    INSERT INTO t4 VALUES(346.0348610, 'villages', NULL);\n    INSERT INTO t4 VALUES(8979323846, NULL, 6939937510);\n    INSERT INTO t4 VALUES('an', 'light', 'peak');\n    INSERT INTO t4 VALUES(5028841971, 6939937510, 'light');\n    INSERT INTO t4 VALUES('sometimes', 'peak', 'peak');\n    INSERT INTO t4 VALUES(378678316.5, 5028841971, 'an');\n    INSERT INTO t4 VALUES(378678316.5, 'his', 'Alpine');\n    INSERT INTO t4 VALUES('from', 'of', 'all');\n    INSERT INTO t4 VALUES(0938446095, 'same', NULL);\n    INSERT INTO t4 VALUES(0938446095, 'Alpine', NULL);\n    INSERT INTO t4 VALUES('his', 'of', 378678316.5);\n    INSERT INTO t4 VALUES(271.2019091, 'viewed', 3282306647);\n    INSERT INTO t4 VALUES('hills', 'all', 'peak');\n    CREATE TABLE t5(s);\n    INSERT INTO t5 VALUES('tab-t5');\n    CREATE TABLE t6(t);\n    INSERT INTO t6 VALUES(123456);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i5;\n    DROP INDEX IF EXISTS i6;\n    DROP INDEX IF EXISTS i7;\n    DROP INDEX IF EXISTS i8;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tA WHERE\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND n=6 AND o=7 AND\n      (p = 1 OR p = 2 OR p = 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tA WHERE\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND\n      (p = 1 OR p = 2 OR p = 3) AND n=6 AND o=7"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tA VALUES(1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8); \n    CREATE UNIQUE INDEX tAI ON tA(p);\n    CREATE TABLE tB(x);\n    INSERT INTO tB VALUES('x');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, x FROM tA LEFT JOIN tB ON (\n      a=1 AND b=2 AND c=3 AND d=4 AND e=5 AND f=6 AND g=7 AND h=8 AND\n      i=1 AND j=2 AND k=3 AND l=4 AND m=5 AND n=6 AND o=7 AND\n      (p = 1 OR p = 2 OR p = 3)\n    )"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

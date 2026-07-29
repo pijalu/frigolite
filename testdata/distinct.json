@@ -3,15 +3,6 @@
   "name": "distinct",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "EXPLAIN [set sql]"
-        }
-      ]
-    },
-    {
       "name": "1.0",
       "steps": [
         {
@@ -36,14 +27,16 @@
           "type": "query",
           "sql": "SELECT (SELECT DISTINCT o.a FROM t1 AS i) FROM t1 AS o ORDER BY rowid;",
           "expect": "a A a A"
-        },
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;"
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(1);\n  CREATE TABLE t2(x);\n  INSERT INTO t2\n    SELECT DISTINCT\n      CASE a WHEN 1 THEN x'0000000000'\n             WHEN 2 THEN zeroblob(5)\n             ELSE 'xyzzy' END\n      FROM t1;\n  SELECT quote(x) FROM t2 ORDER BY 1;",
+          "expect": "'xyzzy' X'0000000000'"
         }
       ]
     },
@@ -108,14 +101,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.1",
       "steps": [
         {
@@ -132,14 +117,6 @@
           "type": "query",
           "sql": "CREATE TABLE nnn(x);\n  SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1) \n    FROM sqlite_master;",
           "expect": "mmm"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -162,14 +139,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
@@ -180,23 +149,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "9.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('a', 'b');\n  INSERT INTO t1 VALUES('a', 'c');\n\n  INSERT INTO t1 VALUES('b', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('b', 'c');\n\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n\n  INSERT INTO t1 VALUES('A', 'A');\n  INSERT INTO t1 VALUES('B', 'B');"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i1"
         }
       ]
     },
@@ -247,6 +204,54 @@
           "type": "query",
           "sql": "DROP TABLE IF EXISTS t2;\n  CREATE  TABLE t2 AS  SELECT  DISTINCT ':memory:', 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 0.0*7/0, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 ORDER  BY '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', '%J%j%w%s', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 'unixepoch', 42e-300, 'unixepoch', 'unixepoch', 'unixepoch' LIMIT 0xda;\n  SELECT count(*) FROM t2;",
           "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a INTEGER, b INTEGER, c, UNIQUE(a,b));\n    INSERT INTO t3 VALUES\n        (null, null, 1),\n        (null, null, 2),\n        (null, 3, 4),\n        (null, 3, 5),\n        (6, null, 7),\n        (6, null, 8);\n    SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN SELECT DISTINCT a, b FROM t3 ORDER BY +a, +b;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN [set sql]"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -1,0 +1,100 @@
+{
+  "file": "tkt2409.test",
+  "name": "tkt2409",
+  "tests": [
+    {
+      "name": "tkt2409-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    BEGIN;\n    INSERT INTO t1 VALUES($::zShort, $::zLong);\n    COMMIT;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);"
+        }
+      ]
+    },
+    {
+      "name": "tkt2409-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO t1 VALUES($::zShort, $::zLong);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=10;\n    DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

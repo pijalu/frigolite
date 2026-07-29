@@ -3,8 +3,16 @@
   "name": "speed2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "speed2-1.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA cache_size=8192;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA cache_size=8192;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(a INTEGER, b INTEGER, c TEXT);\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);"
+        },
         {
           "type": "exec",
           "sql": "SELECT name FROM sqlite_master ORDER BY 1;"

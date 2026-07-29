@@ -3,6 +3,158 @@
   "name": "fts4aa",
   "tests": [
     {
+      "name": "fts4aa-5.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, d, e,f,g,h,i,j,k,l,m,n,o,p,q,r);\n  INSERT INTO t1 VALUES('X Y', '2', '3', '4', '5', '6', '7', '8', '9', '0',\n                        'a','b','c','d','e','f','g','h');\n  UPDATE t1_docsize SET size=x'88' WHERE docid=1;"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-5.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(matchinfo(t1, 'l')) FROM t1 WHERE t1 MATCH 'X Y';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-5.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4(a,b,c,d);\n  INSERT INTO t1 VALUES('one two','three four','five six','seven eight');"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-5.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_stat SET value=x'01010101' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-5.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_stat SET value=x'010101' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-5.60",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_stat SET value=x'01' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-5.70",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_stat SET value=x'' WHERE id=0;\n  SELECT quote(matchinfo(t1,'a')) FROM t1 WHERE t1 MATCH 'one two';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts4();\n  INSERT INTO f_segdir VALUES (77,91,0,0,'255 77',x'0001308000004d5c4ddddddd4d4d7b4d4d4d614d8019ff4d05000001204d4d2e4d6e4d4d4d4b4d6c4d004d4d4d4d4d4d3d000000004d5d4d4d645d4d004d4d4d4d4d4d4d4d4d454d6910004d05ffff054d646c4d004d5d4d4d4d4d3d000000004d4d4d4d4d4d4d4d4d4d4d69624d4d4d04004d4d4d4d4d604d4ce1404d554d45');\n  INSERT INTO f_segdir VALUES (77,108,0,0,'255 77',x'0001310000fa64004d4d4d3c5d4d654d4d4d614d8000ff4d05000001204d4d2e4d6e4d4d4dff4d4d4d4d4d4d00104d4d4d4d000000004d4d4d0400311d4d4d4d4d4d4d4d4d4d684d6910004d05ffff054d4d6c4d004d4d4d4d4d4d3d000000004d4d4d4d644d4d4d4d4d4d69624d4d4d03ed4d4d4d4d4d604d4ce1404d550080');\n  INSERT INTO f_stat VALUES (0,x'80808080100000000064004d4d4d3c4d4d654d4d4d614d8000ff4df6ff1a00204d4d2e4d6e4d4d4d104d4d4d4d4d4d00104d4d4d4d4d4d69574d4d4d000031044d4d4d3e4d4d4c4d05004d6910');\n  SELECT quote(matchinfo(f,'pnax')) from f where f match '0 1';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "fts4aa-7.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts4();\n  INSERT INTO f_segdir VALUES (63,60,60,60,'60 60',x'3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c483c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c20003c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c283c3c3c3c3c3c3c3c3c3c3c223c3c3c3c3c3c3c3c3c');\n  INSERT INTO f_segments VALUES (60,x'3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c5a3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c2a3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c5e3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c803c3c3c3c3c3c233c3c3c3c1c3c3c3c3c3c3c3c3c3c3c3c1b3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c273c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c1a3c3c3c3c3c3c000200003c3c3c3c3c3c3c3c3c3c3c3c3c383c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d898d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d3c3c3c3c3c3c3c3c3c3cba3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c1c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c00023c3c3c3c3c3c383c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3cbc3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c2c3c3c3c403c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c16161616161616163c3c3c3c3c3c3c3c3c3c3c3c3c583c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c2b3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c1c013c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c20003c3c3c3c3c3c3c3c3c3c3c800000003c3c3c3c3c3c3c2c3c3c3c3c3c3c353c08080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808f4080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808083c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c323c3c3c3c3c3c3c3c3c3c3c4f3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3cfcfcfcfcfcfcfcfcfcfcfc10fcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfd02fcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfcfc03e8fcfcfcfc3c3c3c3c3c3c8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d8d3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c553c3c3c3c3c3c3c3c3c3c3c3c3c573c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c000000803c3c4dd5d5a6d52cf3d5d5d5d5d5d5d5d5d5d5d5d5d5d53c3c3c3c3f3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c2d3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c013c3c3c3c00643c3c3c3ce93c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c263c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c363c3c3c3c3c3c3c3c3c3c3c3c3c3c543c3c3c3c3c3c3c3c3c3c273c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c330000003c3c3c3c3c3c3c3c3c3c3c3c3c3c4d3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c000010003c3c3c3c3c3c413c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c1c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c403c3c3c3c3c3c3c3c3c3c3c3cec0000fa3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c2d3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c4c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c5e3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c1b3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c593c3c3c3c3c3c243c3c373c3c3c3c3cff3c3c3c3c3c3c3c3c3c3c3c3c3c000080003c3c3c3c3c3c3c3c3c3c353c3c3c3c3c3d3c3c3c3c3c3c3c3c3c3c3c3c4d3c3c3c3c3c3c3c3c3c3c3c3c3c40003c3c3c3c3c293c3c3c3c3c3c3c3c3c3d3c3c3c3c3c3c3c3c353c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c4f3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3f3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3cff7f3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c2d3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3ca43c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3cbf3c3c3c3c3c3c3c3c3c008000003c3c3c3c3c3c3c3c343c3c373c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c593c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c');\n  SELECT * from f where f match '0';",
+          "expect": "1 {database disk image is malformed}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1 WHERE t1 MATCH 'melchizedek';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'spake hebrew'\n     ORDER BY docid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n     WHERE t1 MATCH 'laban overtook jacob'\n     ORDER BY docid;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE docid!=1050026;\n    SELECT hex(size) FROM t1_docsize;\n    SELECT hex(value) FROM t1_stat;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 EXCEPT SELECT docid FROM t1_docsize"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1_docsize EXCEPT SELECT docid FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid, mit(matchinfo(t1, 'pcxnal')) FROM t1\n       WHERE t1 MATCH 'joseph died in egypt'\n       ORDER BY docid;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(words, tokenize porter);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=65536;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE words MATCH $::q ORDER BY docid"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {

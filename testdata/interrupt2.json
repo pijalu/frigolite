@@ -1,0 +1,90 @@
+{
+  "file": "interrupt2.test",
+  "name": "interrupt2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  PRAGMA journal_mode = wal;\n\n  WITH ii(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM ii WHERE i<1000 )\n  INSERT INTO t1 SELECT i, i FROM ii;"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE z1(a, b);\n  INSERT INTO z1 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1\n  UNION ALL\n  SELECT count(*) FROM z1",
+          "expect": "1000 1000"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_autocheckpoint = 10"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y)"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_autocheckpoint = 10"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x, y)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(x, y)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM z1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,1344 @@
+{
+  "file": "tabfunc01.test",
+  "name": "tabfunc01",
+  "tests": [
+    {
+      "name": "tabfunc01-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM generate_series WHERE start=1 AND stop=9 AND step=2;",
+          "expect": "1 | 3 | 5 | 7 | 9 |"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_xinfo(generate_series);",
+          "expect": "0 value {} 0 {} 0 0 1 start {} 0 {} 0 1 2 stop {} 0 {} 0 1 3 step {} 0 {} 0 1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM generate_series(0) LIMIT 5;",
+          "expect": "0 | 1 | 2 | 3 | 4 |"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *, '|' FROM generate_series LIMIT 5;",
+          "expect": "1 {first argument to \"generate_series()\" missing or unusable}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.2c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *, '|' FROM generate_series(value) LIMIT 5;",
+          "expect": "1 {first argument to \"generate_series()\" missing or unusable}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING generate_series;",
+          "expect": "1 {no such module: generate_series}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,9,2);",
+          "expect": "1 3 5 7 9"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,9);",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,10) WHERE step=3;",
+          "expect": "1 4 7 10"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM generate_series(1,9,2,11);",
+          "expect": "1 {too many arguments on generate_series() - max 3}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,32,5) ORDER BY rowid DESC;",
+          "expect": "30 25 20 15 10 5 0"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM generate_series(0,32,5) ORDER BY value DESC;",
+          "expect": "30 30 25 25 20 20 15 15 10 10 5 5 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, * FROM generate_series(0,32,5) ORDER BY +value DESC;",
+          "expect": "30 30 25 25 20 20 15 15 10 10 5 5 0 0"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIEW v1(a,b) AS VALUES(1,2),(3,4);\n  SELECT * FROM v1;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v1(55);",
+          "expect": "1 {'v1' is not a function}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v1();",
+          "expect": "1 {'v1' is not a function}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIEW v2(x) AS SELECT value FROM generate_series(1,5);\n  SELECT * FROM v2;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v2(55);",
+          "expect": "1 {'v2' is not a function}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.23.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v2();",
+          "expect": "1 {'v2' is not a function}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(x);\n  INSERT INTO t0(x) VALUES(123),(456),(789);\n  SELECT * FROM t0 ORDER BY x;",
+          "expect": "123 456 789"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.25",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t0(55) ORDER BY x;",
+          "expect": "1 {'t0' is not a function}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-1.26",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH w0 AS (SELECT * FROM t0)\n  INSERT INTO t0(x) SELECT * FROM w0()",
+          "expect": "1 {'w0' is not a function}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES(2),(3);\n  SELECT *, '|' FROM t1, generate_series(1,x) ORDER BY 1, 2",
+          "expect": "2 1 | 2 2 | 3 1 | 3 2 | 3 3 |"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, '|' FROM (SELECT x FROM t1) AS y, generate_series(1,y.x)\n  ORDER BY 1, 2;",
+          "expect": "2 1 | 2 2 | 3 1 | 3 2 | 3 3 |"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-2.50",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0) LIMIT 5;",
+          "expect": "0 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT value FROM generate_series(1,x), t1 ORDER BY 1;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM main.generate_series(1,4)",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM temp.generate_series(1,4)",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH ':memory:' AS aux1;\n  CREATE TABLE aux1.t1(a,b,c);\n  SELECT * FROM aux1.generate_series(1,4)",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (generate_series(1,5,2)) AS x LIMIT 10;",
+          "expect": "1 3 5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(60,73,6)\n   WHERE value=66;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(73,60,-6)\n   WHERE value=67;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value<5.5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value<5.0;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value<=5.5;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value<=5.0;",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value>5.5;",
+          "expect": "6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value>5.0;",
+          "expect": "6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value>=5.5;",
+          "expect": "6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value>=5.0;",
+          "expect": "5 6 7 8 9 10"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<5.5;",
+          "expect": "5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<5.0;",
+          "expect": "4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<=5.5;",
+          "expect": "5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value<=5.0;",
+          "expect": "5 4 3 2 1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>5.5;",
+          "expect": "10 9 8 7 6"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>5.0;",
+          "expect": "10 9 8 7 6"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>=5.5;",
+          "expect": "10 9 8 7 6"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(10,1,-1) WHERE value>=5.0;",
+          "expect": "10 9 8 7 6 5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value==5.5;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-6.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE value==5.0;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series WHERE start IN (1,7) AND stop=20 AND step=10\n  ORDER BY +1;",
+          "expect": "1 7 11 17"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t600(a INTEGER PRIMARY KEY, b TEXT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t600(a,b) SELECT x, printf('(%03d)',x) FROM c;\n  SELECT b FROM t600 WHERE a IN generate_series(2,52,10);",
+          "expect": "(002) (012) (022) (032) (042) (052)"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-900",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT 10 OFFSET 5;",
+          "expect": "6 7 8 9 10 101 102 103 104"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-910",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT -1 OFFSET 5;",
+          "expect": "6 7 8 9 10 101 102 103 104"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-920",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (\n    SELECT * FROM generate_series(1,10)\n    UNION ALL\n    SELECT * FROM generate_series(101,104)\n  ) LIMIT -1 OFFSET 0;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 101 102 103 104"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-930",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808);",
+          "expect": "9223372036854775807 -1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-931",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 1;",
+          "expect": "-1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-932",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 2;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-933",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(9223372036854775807,\n                                -9223372036854775808,\n                                -9223372036854775808)\n   LIMIT 100 OFFSET 9223372036854775807;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-940",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2);",
+          "expect": "1 3 5 7 9 11"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-941",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 4;",
+          "expect": "9 11"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-942",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 5;",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-943",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 6;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-944",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 7;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-945",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-950",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,1) LIMIT 100 OFFSET 10;",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-951",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,2) LIMIT 100 OFFSET 9223372036854775807;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-952",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(11,1,-1) LIMIT 100 OFFSET 10;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-953",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(11,1,-1) LIMIT 100 OFFSET 9223372036854775807;"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-954",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(1,11,1) LIMIT 3 OFFSET 3;",
+          "expect": "4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "1100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select 1 as c_0\n    from        \n    generate_series(1, 1) as ref_3\n    where (ref_3.value) in (select 1);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(value INT);\n  INSERT INTO t1 VALUES (1),(2),(3);\n  SELECT t1.value, t2.value\n    FROM t1 RIGHT JOIN generate_series(1,3,1) AS t2 USING(value);",
+          "expect": "1 1 2 2 3 3"
+        }
+      ]
+    },
+    {
+      "name": "1300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 1 AND 5;",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "1301",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0 AND 6;",
+          "expect": "0 2 4 6"
+        }
+      ]
+    },
+    {
+      "name": "1302",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0.5 AND 6.25;",
+          "expect": "2 4 6"
+        }
+      ]
+    },
+    {
+      "name": "1303",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807",
+          "expect": "9223372036854775804 9223372036854775806"
+        }
+      ]
+    },
+    {
+      "name": "1304",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n   ORDER BY value DESC;",
+          "expect": "9223372036854775806 9223372036854775804"
+        }
+      ]
+    },
+    {
+      "name": "1310",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(0) LIMIT 5;",
+          "expect": "0 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "1311",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(5) LIMIT 5;",
+          "expect": "5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "1312",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(0) WHERE stop=6;",
+          "expect": "0 1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "1313",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,10) WHERE step IS NULL;"
+        }
+      ]
+    },
+    {
+      "name": "1314",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(0xfffffffd);",
+          "expect": "4294967293 4294967294 4294967295"
+        }
+      ]
+    },
+    {
+      "name": "1315",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(4,3,1);"
+        }
+      ]
+    },
+    {
+      "name": "1316",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(3,4,-1);"
+        }
+      ]
+    },
+    {
+      "name": "1320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;"
+        }
+      ]
+    },
+    {
+      "name": "1321",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;"
+        }
+      ]
+    },
+    {
+      "name": "1322",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;"
+        }
+      ]
+    },
+    {
+      "name": "1323",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775806;",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "1324",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>=9223372036854775807;",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "1330",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;"
+        }
+      ]
+    },
+    {
+      "name": "1331",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<=-9223372036854775808;",
+          "expect": "-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "1332",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775807;",
+          "expect": "-9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "1333",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;"
+        }
+      ]
+    },
+    {
+      "name": "1340",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 66;",
+          "expect": "60 50 40"
+        }
+      ]
+    },
+    {
+      "name": "1341",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 60;",
+          "expect": "60 50 40"
+        }
+      ]
+    },
+    {
+      "name": "1342",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 59;",
+          "expect": "50 40"
+        }
+      ]
+    },
+    {
+      "name": "1343",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000);",
+          "expect": "-9223372036854760000 -9223372036854770000"
+        }
+      ]
+    },
+    {
+      "name": "1344",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;"
+        }
+      ]
+    },
+    {
+      "name": "1345",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000);",
+          "expect": "9223372036854760000 9223372036854770000"
+        }
+      ]
+    },
+    {
+      "name": "1346",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;"
+        }
+      ]
+    },
+    {
+      "name": "1350",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;"
+        }
+      ]
+    },
+    {
+      "name": "1351",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;"
+        }
+      ]
+    },
+    {
+      "name": "1360",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808);",
+          "expect": "0 -9223372036854775808"
+        }
+      ]
+    },
+    {
+      "name": "1361",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n  LIMIT 1 OFFSET 0;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1362",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC;",
+          "expect": "-9223372036854775808 0"
+        }
+      ]
+    },
+    {
+      "name": "1363",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 1;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "1364",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;"
+        }
+      ]
+    },
+    {
+      "name": "1370",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM generate_series(0,0,0);"
+        }
+      ]
+    },
+    {
+      "name": "1400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);"
+        }
+      ]
+    },
+    {
+      "name": "1410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;",
+          "expect": "1 {table-function argument references tables to its right}"
+        }
+      ]
+    },
+    {
+      "name": "1420",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value)",
+          "expect": "1 {no such column: t2.y}"
+        }
+      ]
+    },
+    {
+      "name": "1500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;"
+        }
+      ]
+    },
+    {
+      "name": "1501",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;"
+        }
+      ]
+    },
+    {
+      "name": "1502",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;"
+        }
+      ]
+    },
+    {
+      "name": "1503",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;"
+        }
+      ]
+    },
+    {
+      "name": "1504",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775807.0\n   LIMIT 3;",
+          "expect": "9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "1505",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;"
+        }
+      ]
+    },
+    {
+      "name": "1506",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 9223372036854774784 = 9223372036854775000.0;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1507",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775000.0\n   LIMIT 3;",
+          "expect": "9223372036854774784 9223372036854774785 9223372036854774786"
+        }
+      ]
+    },
+    {
+      "name": "1508",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775000.0\n   LIMIT 3;",
+          "expect": "9223372036854774785 9223372036854774786 9223372036854774787"
+        }
+      ]
+    },
+    {
+      "name": "1510",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>=-9223372036854775000.0\n   LIMIT 3;",
+          "expect": "-9223372036854774784 -9223372036854774783 -9223372036854774782"
+        }
+      ]
+    },
+    {
+      "name": "1511",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>-9223372036854775000.0\n   LIMIT 3;",
+          "expect": "-9223372036854774783 -9223372036854774782 -9223372036854774781"
+        }
+      ]
+    },
+    {
+      "name": "1520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<=9223372036854775000.0\n   LIMIT 3;",
+          "expect": "9223372036854774784"
+        }
+      ]
+    },
+    {
+      "name": "1521",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;"
+        }
+      ]
+    },
+    {
+      "name": "1522",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<=9223372036854775807.0\n   LIMIT 3;",
+          "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "1522ck",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<=9223372036854775807.0\n   LIMIT 3;",
+          "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "1523",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<9223372036854775807.0\n   LIMIT 3;",
+          "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "1523ck",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<9223372036854775807.0\n   LIMIT 3;",
+          "expect": "9223372036854775805 9223372036854775806 9223372036854775807"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-800",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE generate_series ADD COLUMN col2;",
+          "expect": "1 {virtual tables may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-810",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE generate_series RENAME TO flubber;",
+          "expect": "1 {table generate_series may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-820",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE generate_series RENAME  start TO flubber;",
+          "expect": "1 {table generate_series may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-830",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE generate_series DROP COLUMN start;",
+          "expect": "1 {table generate_series may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-900",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE pragma_compile_options ADD COLUMN col2;",
+          "expect": "1 {virtual tables may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-910",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE pragma_compile_options RENAME TO flubber;",
+          "expect": "1 {table pragma_compile_options may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-920",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE pragma_compile_options RENAME  start TO flubber;",
+          "expect": "1 {table pragma_compile_options may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "tabfunc01-930",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE pragma_compile_options DROP COLUMN start;",
+          "expect": "1 {table pragma_compile_options may not be altered}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,43 @@
+{
+  "file": "mmapcorrupt.test",
+  "name": "mmapcorrupt",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 16384;\n  CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t0(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('B');"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA mmap_size = 1000000;\n  SELECT sql FROM sqlite_schema LIMIT 1;\n  SELECT * FROM t0;",
+          "expect": "1000000 {CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t0 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

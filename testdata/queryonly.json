@@ -33,6 +33,56 @@
       ]
     },
     {
+      "name": "queryonly-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 ORDER BY a;",
+          "expect": "123 456"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA query_only;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA query_only=OFF;\n  PRAGMA query_only;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(789);\n  SELECT a FROM t1 ORDER BY a;",
+          "expect": "123 456 789"
+        }
+      ]
+    },
+    {
+      "name": "queryonly-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=a+1;\n  SELECT a FROM t1 ORDER BY a;",
+          "expect": "124 457 790"
+        }
+      ]
+    },
+    {
       "name": "queryonly-1.4",
       "steps": [
         {
@@ -99,56 +149,6 @@
           "type": "exec",
           "sql": "ANALYZE;",
           "expect": "1 {attempt to write a readonly database}"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-1.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1 ORDER BY a;",
-          "expect": "123 456"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA query_only;",
-          "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-2.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA query_only=OFF;\n  PRAGMA query_only;",
-          "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-2.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "INSERT INTO t1 VALUES(789);\n  SELECT a FROM t1 ORDER BY a;",
-          "expect": "123 456 789"
-        }
-      ]
-    },
-    {
-      "name": "queryonly-2.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE t1 SET a=a+1;\n  SELECT a FROM t1 ORDER BY a;",
-          "expect": "124 457 790"
         }
       ]
     }

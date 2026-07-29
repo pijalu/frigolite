@@ -1,0 +1,36 @@
+{
+  "file": "incrvacuum_ioerr.test",
+  "name": "incrvacuum_ioerr",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#     PRAGMA auto_vacuum = 'full';\n#     PRAGMA cache_size = 10;\n#     BEGIN;\n#     CREATE TABLE abc(a, UNIQUE(a));\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(randstr(1500,1500))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'full';\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a, UNIQUE(a));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(randstr(1500,1500))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'incremental';\n    BEGIN;\n    CREATE TABLE a(i integer, b blob);\n    INSERT INTO a VALUES(1, randstr(1500,1500));\n    INSERT INTO a VALUES(2, randstr(1500,1500));"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM a WHERE oid"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

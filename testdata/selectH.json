@@ -92,14 +92,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
@@ -125,6 +117,14 @@
           "type": "query",
           "sql": "SELECT count(1234) FROM (\n    SELECT DISTINCT val1 FROM t1 UNION ALL SELECT val2 FROM t2\n  )",
           "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

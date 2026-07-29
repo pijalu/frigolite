@@ -1,0 +1,21 @@
+{
+  "file": "oserror.test",
+  "name": "oserror",
+  "tests": [
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "1 {disk I/O error}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

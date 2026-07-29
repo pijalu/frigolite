@@ -3,24 +3,12 @@
   "name": "bestindex8",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM vt1 LIMIT 10",
           "expect": "10"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM vt1 LIMIT 10"
         }
       ]
     },
@@ -31,10 +19,6 @@
           "type": "query",
           "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50",
           "expect": "{50 5}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50"
         }
       ]
     },
@@ -45,10 +29,6 @@
           "type": "query",
           "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1",
           "expect": "{1 1}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1"
         }
       ]
     },
@@ -62,7 +42,27 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM vt1 LIMIT 10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM vt1 LIMIT 5 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },

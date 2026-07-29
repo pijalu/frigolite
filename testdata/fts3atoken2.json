@@ -1,0 +1,72 @@
+{
+  "file": "fts3atoken2.test",
+  "name": "fts3atoken2",
+  "tests": [
+    {
+      "name": "1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( fts3_tokenizer('simple') );",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);",
+          "expect": "1 {unknown tokenizer: mytok}"
+        }
+      ]
+    },
+    {
+      "name": "1.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts3(col, tokenize=mytok);"
+        }
+      ]
+    },
+    {
+      "name": "1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof( fts3_tokenizer('simple') );",
+          "expect": "blob"
+        }
+      ]
+    },
+    {
+      "name": "1.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x2 USING fts3(col, tokenize=mytok2);"
+        }
+      ]
+    },
+    {
+      "name": "1.4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x3 USING fts3(col, tokenize=mytok3);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

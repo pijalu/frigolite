@@ -12,14 +12,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
@@ -34,14 +26,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM (SELECT a, b FROM t1) LEFT JOIN t3 ON a IS NULL;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -61,14 +45,6 @@
           "type": "query",
           "sql": "SELECT * FROM t0 WHERE ((c0 NOT NULL) AND 1) OR (c0 == NULL);",
           "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -93,6 +69,16 @@
       ]
     },
     {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT NOT NULL);\n  SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;",
+          "expect": "1 0 0"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -101,12 +87,26 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a INT NOT NULL);\n  SELECT a IS NULL, a IS NOT NULL, count(*) FROM t1;",
-          "expect": "1 0 0"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

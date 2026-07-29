@@ -1,0 +1,56 @@
+{
+  "file": "json105.test",
+  "name": "json105",
+  "tests": [
+    {
+      "name": "json105-6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_extract(j, '$.b[#-]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#-]'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_extract(j, '$.b[#9]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#9]'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.30",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_extract(j, '$.b[#+2]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#+2]'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.40",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_extract(j, '$.b[#-1') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#-1'}"
+        }
+      ]
+    },
+    {
+      "name": "json105-6.50",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_extract(j, '$.b[#-1x]') FROM t1;",
+          "expect": "1 {bad JSON path: '$.b[#-1x]'}"
+        }
+      ]
+    }
+  ]
+}

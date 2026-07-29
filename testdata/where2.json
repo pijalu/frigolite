@@ -3,35 +3,6 @@
   "name": "where2",
   "tests": [
     {
-      "name": "where2-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);"
-        }
-      ]
-    },
-    {
       "name": "where2-2.5",
       "steps": [
         {
@@ -64,19 +35,6 @@
         {
           "type": "exec",
           "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);"
-        }
-      ]
-    },
-    {
-      "name": "where2-6.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
         }
       ]
     },
@@ -217,342 +175,11 @@
       ]
     },
     {
-      "name": "where2-8.1",
+      "name": "where2-6.17.3",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tx AS SELECT * FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)",
-          "expect": "12 13 14"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
-          "expect": "12 13 14"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
-          "expect": "10 11 12 13 14 15"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
-          "expect": "10 11 12 13 14 15 16 17 18 19 20"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.13",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.15",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.16",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.17",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.18",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.19",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.20",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-9.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;",
-          "expect": "3 9"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);",
-          "expect": "4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;",
-          "expect": "4 8 10"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;"
+          "sql": "SELECT * FROM t617 JOIN t617 USING(a,a,b) WHERE (b=0) OR a=10;"
         }
       ]
     },
@@ -582,14 +209,6 @@
           "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b INT);\n  INSERT INTO t1 VALUES(12,34),(56,78),(90,12);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x INT UNIQUE);\n  INSERT INTO t2 VALUES(78),(12);\n  SELECT a,b,quote(x),'|'\n    FROM t1 LEFT JOIN (SELECT x FROM t2) AS s1 ON t1.b=s1.x\n   ORDER BY a,EXISTS(SELECT 1 FROM t1 LEFT JOIN (SELECT x AS y FROM t2) AS s2 ON t1.b=s2.y),x;",
           "expect": "12 34 NULL | 56 78 78 | 90 12 12 |"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -639,6 +258,396 @@
           "type": "query",
           "sql": "CREATE INDEX t1_a ON t1(a);\n  SELECT * FROM t1 WHERE (a='a' COLLATE nocase) OR a='b' ORDER BY +a;",
           "expect": "A b"
+        }
+      ]
+    },
+    {
+      "name": "where2-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)",
+          "expect": "12 13 14"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
+          "expect": "12 13 14"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
+          "expect": "10 11 12 13 14 15"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
+          "expect": "10 11 12 13 14 15 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;",
+          "expect": "3 9"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;",
+          "expect": "4 8 10"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx AS SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

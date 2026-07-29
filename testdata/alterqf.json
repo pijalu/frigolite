@@ -1,0 +1,43 @@
+{
+  "file": "alterqf.test",
+  "name": "alterqf",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;",
+          "expect": "{CREATE TABLE x1(\n      one, \"four\", three, PRIMARY KEY(one), \n      CHECK (three!='xyz'), CHECK (\"four\"!=\"one\")\n  ) WITHOUT ROWID}\n  {CREATE INDEX x1i ON x1(one+\"four\"+'four') WHERE 'five'}\n  {CREATE TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET \"four\"=new.three || 'new' WHERE one=new.one||'';\n  END}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

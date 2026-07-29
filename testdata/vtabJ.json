@@ -3,37 +3,12 @@
   "name": "vtabJ",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;"
-        }
-      ]
-    },
-    {
       "name": "110",
       "steps": [
         {
           "type": "query",
           "sql": "INSERT INTO tclvar(fullname, value)\n    VALUES('vtabJ(4)',4),('vtabJ(five)',555);\n  SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;",
           "expect": "vtabJ(1) this vtabJ(3) {a test} vtabJ(4) 4 vtabJ(five) 555 vtabJ(two) is"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',444);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',NULL);"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE tclvar SET value=55 WHERE fullname='vtabJ(five)';"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE tclvar SET fullname='vtabJ(5)' WHERE fullname='vtabJ(five)';"
         }
       ]
     },
@@ -111,10 +86,6 @@
         {
           "type": "exec",
           "sql": "UPDATE tclvar SET value = var.v FROM var WHERE name = var.k;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE tclvar SET value = var.v FROM var WHERE name = var.k;"
         }
       ]
     },
@@ -127,7 +98,31 @@
         },
         {
           "type": "exec",
+          "sql": "UPDATE tclvar SET value = var.v FROM var WHERE name = var.k;"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE nam(k TEXT, v TEXT);\n    INSERT INTO nam VALUES('testvar1', 'tv1');\n    INSERT INTO nam VALUES('testvar2', 'tv2');\n    INSERT INTO nam VALUES('testvar3', 'tv3');\n    UPDATE tclvar SET fullname = nam.v FROM nam WHERE name = nam.k;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',444);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tclvar(fullname, value) VALUES('vtabJ(4)',NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE tclvar SET value=55 WHERE fullname='vtabJ(five)';"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE tclvar SET fullname='vtabJ(5)' WHERE fullname='vtabJ(five)';"
         }
       ]
     }

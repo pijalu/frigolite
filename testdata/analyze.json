@@ -1,0 +1,619 @@
+{
+  "file": "analyze.test",
+  "name": "analyze",
+  "tests": [
+    {
+      "name": "analyze-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tbl FROM sqlite_stat1 WHERE idx IS NULL ORDER BY tbl;",
+          "expect": "SQLiteDemo2 sqliteDemo t1"
+        }
+      ]
+    },
+    {
+      "name": "analyze-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n    INSERT INTO t1 VALUES(1, 7223372036854775);\n    INSERT INTO t1 VALUES(2, 7223372036854776);\n    INSERT INTO t1 VALUES(3, 7223372036854777);\n    CREATE INDEX i1 ON t1(b);\n    ANALYZE;\n    UPDATE sqlite_stat4 SET sample = substr(sample, 0, 4);\n    ANALYZE sqlite_schema;\n    SELECT * FROM t1 WHERE b>7223372036854775",
+          "expect": "2 7223372036854776 3 7223372036854777"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE no_such_table",
+          "expect": "1 {no such table: no_such_table}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE no_such_db.no_such_table",
+          "expect": "1 {unknown database no_such_db}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA empty_result_callbacks=1;\n    ANALYZE",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX stat1idx ON sqlite_stat1(idx);",
+          "expect": "1 {table sqlite_stat1 may not be indexed}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX main.stat1idx ON SQLite_stat1(idx);",
+          "expect": "1 {table sqlite_stat1 may not be indexed}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_stat1 WHERE idx NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE main",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_stat1 WHERE idx NOT NULL"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    ANALYZE main.t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_stat1"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_stat1"
+        }
+      ]
+    },
+    {
+      "name": "analyze-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"
+        }
+      ]
+    },
+    {
+      "name": "analyze-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"
+        }
+      ]
+    },
+    {
+      "name": "analyze-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {2 2} t1i2 {2 1} t1i3 {2 2 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {4 4} t1i2 {4 1} t1i3 {4 4 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {5 3} t1i2 {5 2} t1i3 {5 3 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {5 3} t1i2 {5 2} t1i3 {5 3 1} t2i1 {5 3} t2i2 {5 2} t2i3 {5 3 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {5 3} t1i2 {5 2} t1i3 {5 3 1} t2i1 {5 3} t2i2 {5 2}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {5 3} t1i2 {5 2} t1i3 {5 3 1} t2i1 {5 3} t2i2 {5 2}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t1i1 {5 3} t1i2 {5 2} t1i3 {5 3 1} t2i1 {5 3}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "{another foolish ' name} {2 1} {foolish ' name} {2 1 1} t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "{another foolish ' name} {2 1} t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;",
+          "expect": "t3i1 {5 3} t3i2 {5 3 1 1 1} t3i3 {5 5 2 1 1} t4i1 {5 3} t4i2 {5 2}"
+        }
+      ]
+    },
+    {
+      "name": "analyze-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;"
+        }
+      ]
+    },
+    {
+      "name": "analyze-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;"
+        }
+      ]
+    },
+    {
+      "name": "analyze-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;",
+          "expect": "t3i1 t3i2 t3i3 t4i1 t4i2 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;",
+          "expect": "t3i1 t3i2 t3i3 t4i1 t4i2 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;",
+          "expect": "t3i1 t3i3 t4i1 t4i2 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;",
+          "expect": "t3i1 t3i3 t4i1 t4i2 t3 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;",
+          "expect": "t4i1 t4i2 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;",
+          "expect": "t4i1 t4i2 t4"
+        }
+      ]
+    },
+    {
+      "name": "analyze-5.99",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master WHERE name='sqlite_stat1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_stat1 WHERE idx NOT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_stat1 WHERE idx NOT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_stat1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_stat1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1i1 ON t1(a);\n    ANALYZE main.t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1i2 ON t1(b);\n    ANALYZE t1;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1i3 ON t1(a,b);\n    ANALYZE main;\n    SELECT * FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(1,3);\n    ANALYZE main.t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,4);\n    INSERT INTO t1 VALUES(1,5);\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2,5);\n    ANALYZE main;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE INDEX t2i1 ON t2(a);\n    CREATE INDEX t2i2 ON t2(b);\n    CREATE INDEX t2i3 ON t2(a,b);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2i3;\n    ANALYZE t1;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t2i2;\n    ANALYZE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3 AS SELECT a, b, rowid AS c, 'hi' AS d FROM t1;\n    CREATE INDEX t3i1 ON t3(a);\n    CREATE INDEX t3i2 ON t3(a,b,c,d);\n    CREATE INDEX t3i3 ON t3(d,b,c,a);\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE [silly \" name](a, b, c);\n    CREATE INDEX 'foolish '' name' ON [silly \" name](a, b);\n    CREATE INDEX 'another foolish '' name' ON [silly \" name](c);\n    INSERT INTO [silly \" name] VALUES(1, 2, 3);\n    INSERT INTO [silly \" name] VALUES(4, 5, 6);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX \"foolish ' name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE \"silly \"\" name\";\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE x=1234;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE x=1234;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4 WHERE x=1234;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3;\n    DELETE FROM t4;\n    INSERT INTO t3 VALUES(1,2,3,4);\n    INSERT INTO t3 VALUES(5,6,7,8);\n    INSERT INTO t3 SELECT a+8, b+8, c+8, d+8 FROM t3;\n    INSERT INTO t3 SELECT a+16, b+16, c+16, d+16 FROM t3;\n    INSERT INTO t3 SELECT a+32, b+32, c+32, d+32 FROM t3;\n    INSERT INTO t3 SELECT a+64, b+64, c+64, d+64 FROM t3;\n    INSERT INTO t4 SELECT a, b, c FROM t3;\n    ANALYZE;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t3i2;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t3;\n    SELECT DISTINCT idx FROM sqlite_stat1 ORDER BY 1;\n    SELECT DISTINCT tbl FROM sqlite_stat1 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT idx FROM sqlite_stat4 ORDER BY 1;\n      SELECT DISTINCT tbl FROM sqlite_stat4 ORDER BY 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

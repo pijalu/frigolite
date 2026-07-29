@@ -3,19 +3,19 @@
   "name": "numcast",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_1",
+      "name": "setup_0",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA encoding"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

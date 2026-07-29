@@ -9,10 +9,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM sqlite_stmt WHERE NOT busy;",
           "expect": "6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT mem, sql FROM sqlite_stmt"
         }
       ]
     },
@@ -32,6 +28,10 @@
         {
           "type": "query",
           "sql": "SELECT * FROM sqlite_stmt WHERE NOT busy;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT mem, sql FROM sqlite_stmt"
         }
       ]
     }

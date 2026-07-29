@@ -3,15 +3,29 @@
   "name": "fuzzerfault",
   "tests": [
     {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1_a(a INTEFDR PRIMARY KEY, b TEXT);\n  CREATE TABLE t3_a(k FnTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t3_b(k INTE\u00c05R PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;"
+        }
+      ]
+    },
+    {
       "name": "1-pre1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "2-pre1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"
+          "sql": "CREATE TABLE x2_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x2_rules VALUES(0, 'a', 'x', 1);\n    INSERT INTO x2_rules VALUES(0, 'b', 'x', 2);\n    INSERT INTO x2_rules VALUES(0, 'c', 'x', 3);\n    CREATE VIRTUAL TABLE x2 USING fuzzer(x2_rules);"
         }
       ]
     },
@@ -24,7 +38,31 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n    SELECT word FROM x1 WHERE word MATCH 'xax';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x2_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x2_rules VALUES(0, 'a', 'x', 1);\n    INSERT INTO x2_rules VALUES(0, 'b', 'x', 2);\n    INSERT INTO x2_rules VALUES(0, 'c', 'x', 3);\n    CREATE VIRTUAL TABLE x2 USING fuzzer(x2_rules);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM x2 WHERE word MATCH 'abc';"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n    SELECT count(*) FROM (SELECT * FROM x1 WHERE word MATCH 'a' LIMIT 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM t1_a LEFT JOIN t3 ON ((1+1) AND k=1)"
         }
       ]
     },
@@ -33,19 +71,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "4.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1_a(a INTEFDR PRIMARY KEY, b TEXT);\n  CREATE TABLE t3_a(k FnTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t3_b(k INTE\u00c05R PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1 FROM t1_a LEFT JOIN t3 ON ((1+1) AND k=1)"
         }
       ]
     }

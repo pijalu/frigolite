@@ -7,7 +7,15 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    CREATE TABLE t2(x,y,z);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SAVEPOINT x1;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2; RELEASE x1"
         },
         {
           "type": "exec",
@@ -35,7 +43,15 @@
         },
         {
           "type": "exec",
+          "sql": "DELETE FROM t2; SAVEPOINT x1; CREATE TABLE t4(abc);"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "RELEASE x1"
         },
         {
           "type": "exec",
@@ -52,6 +68,10 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n      PRAGMA temp_store=MEMORY;\n      BEGIN;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n      WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<$::i)\n      INSERT INTO t1(x,y) SELECT x*10, printf('%04d%.800c',x,'*') FROM c;\n      SAVEPOINT one;\n        SELECT count(*) FROM t1;\n        WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<$::i)\n        INSERT INTO t1(x,y) SELECT x*10+1, printf('%04d%.800c',x,'*') FROM c;\n      ROLLBACK TO one;\n        SELECT count(*) FROM t1;\n        SAVEPOINT twoB;\n          WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<10)\n          INSERT INTO t1(x,y) SELECT x*10+2, printf('%04d%.800c',x,'*') FROM c;\n        ROLLBACK TO twoB;\n      RELEASE one;\n      COMMIT;"
         }
       ]
     }

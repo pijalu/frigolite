@@ -196,40 +196,6 @@
       ]
     },
     {
-      "name": "5.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
-        }
-      ]
-    },
-    {
-      "name": "5.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.0",
       "steps": [
         {
@@ -282,6 +248,40 @@
           "type": "query",
           "sql": "SELECT * FROM t1;",
           "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
+        }
+      ]
+    },
+    {
+      "name": "5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

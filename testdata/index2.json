@@ -8,10 +8,6 @@
         {
           "type": "query",
           "sql": "SELECT c123 FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT c123 FROM t1"
         }
       ]
     },
@@ -20,10 +16,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT count(*) FROM t1"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT count(*) FROM t1"
         }
       ]
@@ -35,10 +27,6 @@
           "type": "query",
           "sql": "SELECT round(sum(c1000)) FROM t1",
           "expect": "50601000.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT round(sum(c1000)) FROM t1"
         }
       ]
     },
@@ -49,6 +37,18 @@
           "type": "query",
           "sql": "EXPLAIN SELECT c9 FROM t1 ORDER BY c1, c2, c3, c4, c5",
           "expect": "9 10009 20009 30009 40009"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c123 FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT round(sum(c1000)) FROM t1"
         },
         {
           "type": "exec",

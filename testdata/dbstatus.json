@@ -1,0 +1,44 @@
+{
+  "file": "dbstatus.test",
+  "name": "dbstatus",
+  "tests": [
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(y);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(zeroblob(9000));"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

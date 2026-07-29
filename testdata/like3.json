@@ -307,10 +307,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(path TEXT,x,y,z);\n  CREATE INDEX t2path ON t2(path COLLATE nocase);\n  CREATE INDEX t2path2 ON t2(path);"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA case_sensitive_like=ON"
         }
       ]
     },
@@ -350,6 +346,10 @@
           "type": "query",
           "sql": "SELECT * FROM Example WHERE word >= char(0x307F) AND word < char(0x3080);",
           "expect": "\u307f"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA case_sensitive_like=ON"
         }
       ]
     },

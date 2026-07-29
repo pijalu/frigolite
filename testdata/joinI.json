@@ -12,28 +12,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t0(c0 INT, c1 INT);\n  CREATE TABLE t1 (c0 INT);\n\n  CREATE VIEW v1(c0) AS SELECT t0.c0 FROM t0 NATURAL RIGHT JOIN t1;\n  CREATE VIEW v2(c0) AS SELECT 0 FROM v1;\n\n  INSERT INTO t0(c0, c1) VALUES (-1, 0);\n  INSERT INTO t1(c0) VALUES (NULL);\n\n  SELECT * FROM v1 INNER JOIN (v2 CROSS JOIN t0) ON (t0.c0 < t0.c1);",
           "expect": "{} 0 -1 0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -103,14 +87,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.0",
       "steps": [
         {
@@ -130,14 +106,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
@@ -152,14 +120,6 @@
         {
           "type": "query",
           "sql": "SELECT parent1.parent1key, child1.value, child2.value\n    FROM parent1\n    LEFT OUTER JOIN child1 ON child1.child1key = parent1.child1key\n    INNER JOIN child2 ON child2.child2key = parent1.child2key;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -233,14 +193,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "7.0",
       "steps": [
         {
@@ -256,14 +208,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 RIGHT JOIN t2 ON ( a=d ) WHERE (t2.e+1)!=4;",
           "expect": "{} 2 555"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -293,6 +237,134 @@
           "type": "query",
           "sql": "SELECT count(*) FROM (\n      SELECT DISTINCT * FROM rt0 LEFT JOIN t1 ON rt0.c0=t1.c1\n      WHERE ((rt0.c1 OR t1.c4)) IS NOT (+ t1.c2)\n      UNION\n      SELECT DISTINCT * FROM rt0 RIGHT JOIN t1 ON rt0.c0=t1.c1\n      WHERE ((rt0.c1 OR t1.c4)) IS NOT (+ t1.c2)\n  );",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x REAL);\n  CREATE TABLE t2(x REAL);\n  INSERT INTO t1 VALUES(2.5);\n  INSERT INTO t2 VALUES(2.5);\n  SELECT x FROM t1 JOIN t2 USING(x) WHERE x='2.5';"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 LEFT JOIN t2 USING(x) WHERE x='2.5';"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 RIGHT JOIN t2 USING(x) WHERE x='2.5';"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t1 FULL JOIN t2 USING(x) WHERE x='2.5';"
+        }
+      ]
+    },
+    {
+      "name": "8.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3(x TEXT COLLATE nocase);\n  CREATE TABLE t4(x TEXT COLLATE nocase);\n  INSERT INTO t3 VALUES('abc');\n  INSERT INTO t4 VALUES('ABC');\n  SELECT lower(x) FROM t3 JOIN t4 USING(x) WHERE x='Abc';"
+        }
+      ]
+    },
+    {
+      "name": "8.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT lower(x) FROM t3 LEFT JOIN t4 USING(x) WHERE x='Abc';"
+        }
+      ]
+    },
+    {
+      "name": "8.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT lower(x) FROM t3 RIGHT JOIN t4 USING(x) WHERE x='Abc';"
+        }
+      ]
+    },
+    {
+      "name": "8.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT lower(x) FROM t3 FULL JOIN t4 USING(x) WHERE x='Abc';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },

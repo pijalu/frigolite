@@ -1,0 +1,115 @@
+{
+  "file": "mmap1.test",
+  "name": "mmap1",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n    PRAGMA mmap_size = 67108864;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(rblob(500), rblob(500));\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   16\n    INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --   32\n    PRAGMA wal_checkpoint;"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum;\n    SELECT count(*) FROM t1;",
+          "expect": "1 32"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA wal_checkpoint;",
+          "expect": "0 24 24"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 1;\n\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(rblob(500), rblob(500));\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    2\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    4\n  INSERT INTO t1 SELECT rblob(500), rblob(500) FROM t1; --    8\n\n  CREATE TABLE t2(a, b, UNIQUE(a, b));\n  INSERT INTO t2 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 67108864;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 67108864;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 67108864;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 ORDER BY a, b"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

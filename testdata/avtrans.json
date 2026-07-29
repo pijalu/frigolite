@@ -1,0 +1,1380 @@
+{
+  "file": "avtrans.test",
+  "name": "avtrans",
+  "tests": [
+    {
+      "name": "avtrans-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=full",
+          "expect": "one two three"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-1.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE two(a int PRIMARY KEY, b text);\n    INSERT INTO two VALUES(1,'I');\n    INSERT INTO two VALUES(5,'V');\n    INSERT INTO two VALUES(10,'X');\n    SELECT b FROM two ORDER BY a;",
+          "expect": "I V X"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM one ORDER BY a",
+          "expect": "one two three"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM two ORDER BY a",
+          "expect": "I V X"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "END"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION 'foo'"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TRANSACTION 'foo'"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO one VALUES(4,'four');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO two VALUES(4,'IV');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "END TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-3.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    UPDATE two SET a = 0 WHERE 0;\n    SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    SELECT a FROM one ORDER BY a;",
+          "expect": "1 {cannot start a transaction within a transaction}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "END TRANSACTION;\n    SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM two ORDER BY a;",
+          "expect": "0 {1 4 5 10}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM one ORDER BY a;",
+          "expect": "0 {1 2 3 4}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-4.98",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE one;\n    DROP TABLE two;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(a text, b int)"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b FROM one ORDER BY b"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO one(a,b) VALUES('hello', 1)"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b FROM one ORDER BY b",
+          "expect": "1 {no such table: one}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t1(a int, b int, c int);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i1 ON t1(a);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i1 t1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i1 t1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t2(a int, b int, c int);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n    DROP TABLE t1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i2a i2b t2"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i1 t1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "t1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i1 t1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE TABLE t2(x int, y int, z int);\n    CREATE INDEX i2x ON t2(x);\n    CREATE INDEX i2y ON t2(y);\n    INSERT INTO t2 VALUES(1,2,3);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i2x i2y t1 t2"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i2x i2y t1 t2"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.19",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT x FROM t2 WHERE y=2;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {no such table: t2}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;",
+          "expect": "i2x i2y t1 t2"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-5.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM t1;",
+          "expect": "1 {no such table: t1}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM t1;",
+          "expect": "1 {no such table: t1}"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a integer primary key,b,c);\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.26",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE c<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.27",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.28",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE c<1;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a int unique,b,c);\n    COMMIT;\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1 ORDER BY a;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.31",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.32",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.33",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.34",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.35",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.36",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE c<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.37",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP INDEX i1;\n    SELECT * FROM t1 WHERE c<1;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.38",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;",
+          "expect": "4 -5 -6 1 -2 -3"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-6.39",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE c<1;",
+          "expect": "1 -2 -3 4 -5 -6"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(x,y,z) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-7.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(x,y,z) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "avtrans-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size=10;",
+          "expect": "1024"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=full"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE two(a int PRIMARY KEY, b text);\n    INSERT INTO two VALUES(1,'I');\n    INSERT INTO two VALUES(5,'V');\n    INSERT INTO two VALUES(10,'X');\n    SELECT b FROM two ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM one ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM two ORDER BY a"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "END"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION 'foo'"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TRANSACTION 'foo'"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT a FROM one ORDER BY a;\n    SELECT a FROM two ORDER BY a;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "END TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "END TRANSACTION;\n    SELECT a FROM two ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM two ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM one ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE one;\n    DROP TABLE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(a text, b int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b FROM one ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO one(a,b) VALUES('hello', 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b FROM one ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a,b FROM one ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t1(a int, b int, c int);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    CREATE TABLE t2(a int, b int, c int);\n    CREATE INDEX i2a ON t2(a);\n    CREATE INDEX i2b ON t2(b);\n    DROP TABLE t1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE TABLE t2(x int, y int, z int);\n    CREATE INDEX i2x ON t2(x);\n    CREATE INDEX i2y ON t2(y);\n    INSERT INTO t2 VALUES(1,2,3);\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t2 WHERE y=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    DROP TABLE t2;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a integer primary key,b,c);\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE c<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE c<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    CREATE TABLE t1(a int unique,b,c);\n    COMMIT;\n    INSERT INTO t1 VALUES(1,-2,-3);\n    INSERT INTO t1 VALUES(4,-5,-6);\n    SELECT * FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    SELECT * FROM t1 WHERE b<1;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP TABLE t1;\n    ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN TRANSACTION;\n    DROP INDEX i1;\n    CREATE INDEX i1 ON t1(c);\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE c<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;\n    SELECT * FROM t1 WHERE c<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    SELECT * FROM t1 WHERE b<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE c<1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x,y,z) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x,y,z) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 SELECT * FROM t2;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t3;\n    ROLLBACK;\n    SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TEMP TABLE t3 AS SELECT * FROM t2;\n      INSERT INTO t2 SELECT * FROM t3;\n      DROP INDEX i2x;\n      DROP INDEX i2y;\n      CREATE INDEX i3a ON t3(x);\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE t2;\n      ROLLBACK;\n      SELECT md5sum(x,y,z) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x,y,z) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA default_cache_size=10;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=ON"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA fullfsync=OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA default_cache_size=20;\n    BEGIN;\n    CREATE TABLE t3 AS SELECT * FROM t2;\n    DELETE FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(x) FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

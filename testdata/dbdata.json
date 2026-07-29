@@ -3,15 +3,6 @@
   "name": "dbdata",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT load_extension('../dbdata')"
-        }
-      ]
-    },
-    {
       "name": "1.0",
       "steps": [
         {
@@ -41,32 +32,20 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "1.4",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;"
-        },
-        {
           "type": "exec",
-          "sql": "SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;"
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(NULL, randomblob(5050));"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_6",
+      "name": "2.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT load_extension('../dbdata')"
+          "sql": "CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT randomblob(900) FROM s;"
         }
       ]
     },
@@ -97,6 +76,35 @@
           "type": "query",
           "sql": "SELECT * FROM sqlite_dbptr",
           "expect": "2 25   2 6   2 7   2 9   2 11   2 13   2 15   2 17   2 19   2 21\n  3 24   3 23"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(value) FROM sqlite_dbdata WHERE pgno=2 AND cell=0 AND field=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT load_extension('../dbdata')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT load_extension('../dbdata')"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -1,0 +1,75 @@
+{
+  "file": "spellfix2.test",
+  "name": "spellfix2",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance, matchlen FROM demo \n  WHERE word MATCH 'amstedam*' AND top=3\n  ORDER BY +word;",
+          "expect": "amsterdam      100 9\n   amsterdamania  100 9\n   amsterdammetje 100 9"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance, matchlen FROM demo WHERE \n  word MATCH 'amstedam*' AND top=3 AND distance <= 100\n  ORDER BY +word;",
+          "expect": "amsterdam      100 9\n   amsterdamania  100 9\n   amsterdammetje 100 9"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance, matchlen FROM demo WHERE \n  word MATCH 'amstedam*' AND distance <= 100\n  ORDER BY +word;",
+          "expect": "amsterdam         100 9\n   amsterdamania     100 9\n   amsterdamlaan     100 9\n   amsterdammetje    100 9\n   amsterdamsestraat 100 9\n   amsterdamweg      100 9"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM demo WHERE word MATCH 'amstedam*' AND distance <= 100;\n  SELECT count(*) FROM demo \n  WHERE word MATCH 'amstedam*' AND distance <= 100 AND top=20;",
+          "expect": "32 20"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance, matchlen FROM demo \n  WHERE word MATCH 'amstedam*' AND distance <= 100\n  ORDER BY distance, word;",
+          "expect": "amsterdam         100 9        amsterdama        100 9\n  amsterdamania     100 9        amsterdamb        100 9\n  amsterdamc        100 9        amsterdamd        100 9\n  amsterdame        100 9        amsterdamf        100 9\n  amsterdamg        100 9        amsterdamh        100 9\n  amsterdami        100 9        amsterdamj        100 9\n  amsterdamk        100 9        amsterdaml        100 9\n  amsterdamlaan     100 9        amsterdamm        100 9\n  amsterdammetje    100 9        amsterdamn        100 9\n  amsterdamo        100 9        amsterdamp        100 9\n  amsterdamq        100 9        amsterdamr        100 9\n  amsterdams        100 9        amsterdamsestraat 100 9\n  amsterdamt        100 9        amsterdamu        100 9\n  amsterdamv        100 9        amsterdamw        100 9\n  amsterdamweg      100 9        amsterdamx        100 9\n  amsterdamy        100 9        amsterdamz        100 9"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT word, distance, matchlen FROM demo \n  WHERE word MATCH 'amstedam*' AND distance <= 100 AND top=20\n  ORDER BY distance, word;",
+          "expect": "amsterdam         100 9        amsterdama        100 9\n  amsterdamania     100 9        amsterdamb        100 9\n  amsterdamc        100 9        amsterdame        100 9\n  amsterdamf        100 9        amsterdamg        100 9\n  amsterdamh        100 9        amsterdami        100 9\n  amsterdamm        100 9        amsterdammetje    100 9\n  amsterdamn        100 9        amsterdamo        100 9\n  amsterdamp        100 9        amsterdamu        100 9\n  amsterdamv        100 9        amsterdamw        100 9\n  amsterdamweg      100 9        amsterdamy        100 9"
+        }
+      ]
+    }
+  ]
+}

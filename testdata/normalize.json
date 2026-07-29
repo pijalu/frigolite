@@ -1,0 +1,46 @@
+{
+  "file": "normalize.test",
+  "name": "normalize",
+  "tests": [
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);"
+        }
+      ]
+    },
+    {
+      "name": "297",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "298",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,\"col f\",w,x,y,z);\n    CREATE TABLE t2(x,\"col y\");"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

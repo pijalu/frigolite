@@ -112,14 +112,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.11.3",
       "steps": [
         {
@@ -195,6 +187,15 @@
       ]
     },
     {
+      "name": "1.20.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.synchronous"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -203,11 +204,10 @@
       ]
     },
     {
-      "name": "1.20.3",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA main.synchronous"
+          "type": "reset_db"
         }
       ]
     }

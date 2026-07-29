@@ -1,0 +1,33 @@
+{
+  "file": "lock4.test",
+  "name": "lock4",
+  "tests": [
+    {
+      "name": "lock4-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1)",
+          "expect": "1 {database is locked}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n     INSERT INTO t1 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

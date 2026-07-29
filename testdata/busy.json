@@ -3,14 +3,20 @@
   "name": "busy",
   "tests": [
     {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
       "name": "busy-1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
           "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
         }
       ]
@@ -32,28 +38,6 @@
           "type": "exec",
           "sql": "BEGIN IMMEDIATE",
           "expect": "0 1 2 3"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN; INSERT INTO t1 VALUES(5)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  CREATE TABLE t3(z);\n\n  CREATE INDEX i1 ON t1(x);\n  CREATE INDEX i2 ON t2(y);\n\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t2 VALUES(1);\n  ANALYZE;\n\n  SELECT * FROM t1 WHERE x=1;\n  SELECT * FROM t2 WHERE y=1;",
-          "expect": "1 1"
         }
       ]
     },
@@ -63,14 +47,6 @@
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
         }
       ]
     },
@@ -91,10 +67,6 @@
           "type": "query",
           "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;",
           "expect": "6"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;"
         }
       ]
     },
@@ -114,6 +86,42 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA optimize",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA optimize",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;"
         },
         {
           "type": "exec",
@@ -126,30 +134,22 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    SELECT count(*) FROM sqlite_master;"
-        }
-      ]
-    },
-    {
-      "name": "3.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA optimize",
-          "expect": "1 {database is locked}"
         },
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN; INSERT INTO t1 VALUES(5)"
         }
       ]
     },
     {
-      "name": "3.8",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA optimize",
-          "expect": "0 {}"
+          "type": "reset_db"
         }
       ]
     }

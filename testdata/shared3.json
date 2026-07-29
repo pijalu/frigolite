@@ -1,0 +1,171 @@
+{
+  "file": "shared3.test",
+  "name": "shared3",
+  "tests": [
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(randomblob(500), randomblob(500));\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE 1;\n    PRAGMA incremental_vacuum;"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size = 10;"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.cache_size",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select count(*) from sqlite_master",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))"
+        }
+      ]
+    },
+    {
+      "name": "shared3-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10, randomblob(10000))"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_master",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.cache_size"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(10, randomblob(5000))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10, randomblob(10000))"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

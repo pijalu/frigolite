@@ -1,0 +1,1630 @@
+{
+  "file": "fts3corrupt4.test",
+  "name": "fts3corrupt4",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('aback');\n    INSERT INTO ft VALUES('abaft');\n    INSERT INTO ft VALUES('abandon');\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(root) FROM ft_segdir;",
+          "expect": "X'0005616261636B03010200030266740302020003046E646F6E03030200'"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ft_segdir SET root = blob(\n    '0005616261636B03010200 FFFFFFFF0702 66740302020003046E646F6E03030200'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ft WHERE ft MATCH 'abandon';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.0.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');\n  SELECT count(*) FROM ft_segdir;\n  SELECT count(*) FROM ft_segments;",
+          "expect": "12 3"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(block) FROM ft_segments WHERE blockid=2",
+          "expect": "X'00056162633130031F0200'"
+        }
+      ]
+    },
+    {
+      "name": "2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 FFFFFFFF07FF55 66740302020003046E646F6E03030200')\n    WHERE blockid=2;"
+        }
+      ]
+    },
+    {
+      "name": "2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 02FFFFFFFF07 66740302020003046E646F6E03030200')\n    WHERE blockid=2;"
+        }
+      ]
+    },
+    {
+      "name": "2.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ft_segments SET block = \n    blob('00056162633130031F0200 0202 6674 FFFFFF070302020003046E646F6E030200')\n    WHERE blockid=2;"
+        }
+      ]
+    },
+    {
+      "name": "2.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft(ft) VALUES('merge=1,4');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "3.0.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3;\n  INSERT INTO ft(ft) VALUES('nodesize=32');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(root) FROM ft_segdir",
+          "expect": "X'0101056162633132040136030132030136'"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ft_segdir \n  SET root = blob('0101056162633132FFFFFFFF070236030132030136');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ft WHERE ft MATCH 'abc20'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3();\n  INSERT INTO t1 VALUES('one two three');\n  UPDATE t1_segdir SET start_block = 1;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'one';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'two';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'three';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE t1 MATCH 'abandon';",
+          "expect": "1 {malformed database schema (sqlite_autoindey_t1_segdir_1) - orphan index}"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE Table0 USING fts3();\n  INSERT INTO Table0_segdir VALUES(1,NULL,1,NULL,NULL,NULL);"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM Table0 WHERE Table0 MATCH 'a';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO Table0(Table0) VALUES('optimize');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT matchinfo(t1,'y') FROM t1 WHERE t1 MATCH 'e*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT matchinfo(t1,'x') FROM t1 WHERE t1 MATCH 'e*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE t1 MATCH '\"json1 enable\"';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT OR IGNORE INTO t1(a,c) SELECT x,null FROM c\n    UNION ALL SELECT 180-x,printf('[%,d]',x*-5844627) FROM c;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, quote(matchinfo(t1,'pcxybs')) FROM t1 WHERE t1 MATCH 'e*'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid, quote(matchinfo(t1,'pcxybspcxybs')) \n  FROM t1 WHERE t1 MATCH 'e*e*'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "15.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a, content=\"\");\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 665',X'000261640303040002086970697363696e670301080001056c6971756103020c00050269700304040001036d65740301060001036e6a6d03080900010375746503050300000663696c6c756d0306020001066f6d6d6f646f0304070002096e736563746574757203010700050471756174030408000104756c7061030804000207706964617461740307050000086465736572756e740308070001016f0302030002036c6f720601040004050005016506020a00040300010375697303050200000265610304060001066975736d6f640302040001036c69740301090001036e696d13030300010373736503050b0002017403080b0001017403020900010175030604000101780304050002076365707465757203070100020a65726369746174696f6e030309000006667567696174030605000002696403080a0001016e070506040003030002086369646964756e740302060001047073756d030103000104727572650305040000066c61626f7265030208000502697303030b000502756d03080c0001046f72656d0301020000056d61676e6103020b000104696e696d0303050001056f6c6c69740308080000046e6973690304020001026f6e0307060002057374727564030308000104756c6c610306060000086f636361656361740307040001066666696369610308060000087061726961747572030607000107726f6964656e740307070000037175690308050003017303030700000d726570726568656e6465726974030507000003736564030202000103696e7403070300020174030105000103756e7403080200000674656d706f72030205000007756c6c616d636f03030a0001017409020700010200010300000576656c697403050a0002046e69616d0303060001086f6c75707461746503050900');"
+        }
+      ]
+    },
+    {
+      "name": "15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(matchinfo(t1, t1 ))==0 FROM t1 WHERE t1 MATCH 'e*';",
+          "expect": "0 0 0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1(t1) SELECT x FROM t2;\n    UPDATE t1 SET b=quote(zeroblob(200)) WHERE a MATCH 'thread*';"
+        }
+      ]
+    },
+    {
+      "name": "17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');"
+        }
+      ]
+    },
+    {
+      "name": "17.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(matchinfo(t1,'pcxybs'))==0 FROM t1 WHERE b MATCH 'e*';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  SELECT rowid,a,c,snippet(t1,85101090932165,-1,10) FROM t1 WHERE a MATCH 'rtree';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  BEGIN;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) VALUES('optimize');"
+        }
+      ]
+    },
+    {
+      "name": "21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'R*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  SELECT snippet(t1,'', '', '--',-1,01)==0\n    FROM t1 WHERE a MATCH 'rtree OR json1rtree OR json1';",
+          "expect": "0 {0 0 0 0 0 0 0}"
+        }
+      ]
+    },
+    {
+      "name": "23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  SELECT 'FyzLy'FROM t1 WHERE t1 MATCH 'j';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT '4hE'+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "24.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "24.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "24.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT null<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "24.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "24.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "25.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "25.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x +x FROM c WHERE 72<x)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "25.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE 599237<x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "25.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "25.6a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "25.6b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "25.6a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "25.6b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "26.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA writable_schema = 1;\n  SELECT count(*) FROM (\n    SELECT t1, (t1) FROM t1 WHERE b MATCH 'x'\n  )"
+        }
+      ]
+    },
+    {
+      "name": "27.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x GLOB 2.16770 FROM x)\n    INSERT INTO t1(a) SELECT randomblob(3000) FROM t2 ;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "27.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<2.653)\n    INSERT INTO t1(a) SELECT randomblob(-current_time) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "27.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h*h*';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "27.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<2.653)\n    INSERT INTO t1(a) SELECT randomblob(-current_time) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "27.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "27.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "28.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "28.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=quote((true) ) WHERE t1 MATCH 'h';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "28.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "28.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "28.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT 3+x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "28.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(1) UNION ALL SELECT 3<<x FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "28.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+3 FROM c WHERE x<72)\n    INSERT INTO t1(a) SELECT randomblob(2829) FROM c;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "28.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  INSERT INTO t1(a) SELECT X'819192E578DE3F';\n  UPDATE t1 SET b=quote(zeroblob(current_date)) WHERE t1 MATCH 't*';\n  INSERT INTO t1(b) VALUES(x'78');\n  INSERT INTO t1(t1) SELECT x FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "30.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=a;"
+        }
+      ]
+    },
+    {
+      "name": "30.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (matchinfo(null)) FROM t1 WHERE t1 MATCH 'ee*e*e*e*e*e*e*Re*e*e*e**'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "31.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\nINSERT INTO t1_segdir VALUES(0,0,0,0,'0 592',X'00016dcb048ce6fbd3b2d68bfebf0101020200808080808080808020010202008080808080808080100102020080808080808080800801020200808080808080808004010202008080808080808080020102020080808080808080800101020200808080808080804001020200808080808080802001020200808080808080801001020200808080808080800801020200808080808080800401020200808080808080800201020200808080808080800101020200808080808080400102020080808080808020010202008080808080801001020200808080808080080102020080808080808004010202008080808080800201020200808080808080010102020080808080804001020200808080808020010202008080808080100102020080808080800801020200808080808004010202008080808080020102020080808080800101020200808080804001020200808080802001020200808080801001020200808080800801020200808080800401020200808080800201020200808080800101020200808080400102020080808020010202008080801001020200808080080102020080808004010202008080800201020200808080010102020080804001020200808020010202008080100102020080800801020200808004010202008080020102020080800101020200804001020200802001020200801001020200800801020200800401020200800201020200800101020200400102020020010202001001020200080102020004010202000201020200010102020001010202008080808080808080800101020200');\nINSERT INTO t1_segdir VALUES(0,1,0,0,'0 18',X'00026d6d0d8ee6fbd3b2d68bfe7f01020200');"
+        }
+      ]
+    },
+    {
+      "name": "31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT (matchinfo(t1, c ) ) FROM t1 WHERE t1 MATCH 'M*M*M*M*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "32.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=quote(zeroblob(6.51158946e+5)) WHERE a MATCH '*t*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "32.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#  UPDATE t1 SET b=((- '' )) WHERE a MATCH '0*t';\n#",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "34.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f VALUES (1, '1234');\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'00');\n  UPDATE f_segdir SET level = 0 WHERE level IN (\n    SELECT level FROM f_segdir LIMIT 1 OFFSET 1\n  );\n  INSERT INTO f_segdir VALUES (255,249,0,121,'0 0',x'00');\n  INSERT INTO f_content VALUES (255,0,x'ff');\n  INSERT INTO f_segdir VALUES (1,255,16,0,'1 255',x'00');"
+        }
+      ]
+    },
+    {
+      "name": "34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE f SET b = x'00' WHERE b IN (SELECT b FROM f LIMIT 1 OFFSET 0);",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "35.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (1,255,0,0,'1 255',x'0001ff000001ff000001ff000001ff000001ff00c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5bec5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5c5');"
+        }
+      ]
+    },
+    {
+      "name": "35.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f(f) VALUES ('integrity-check');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "35.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "{malformed inverted index for FTS3 table main.f}"
+        }
+      ]
+    },
+    {
+      "name": "36.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,tokenize=porter);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f VALUES (1);\n  INSERT INTO f_stat VALUES (1,x'00000000000101010119013d00ffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a601f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d010101010101010101010101190000000000000000fa83717b71a69201f63d010101f63d01010101010101010101010119013d00ffffff0400fa83717b71a6929797010101010101010101010119013d00ffff01f63d01010101010101010101010119013d00ffffff0400fa83717b71a69297979701f63d00fa03ffffffa69297979701f63d010101000000000101010101197e9797976567656565ffa63535354e');\n  INSERT INTO f(f) VALUES ('merge=53,216');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "36.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,b);\n  CREATE TABLE 'f_stat'(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_stat VALUES (1,x'11014101000101c5c5014b010164c5014b010101c50101c5c5010201010101014101000101c5c5014b010101c5014b010101c50101c5c501010100c50101c5c5010101010101e40201010101014101000201010101014101000101010201010101014101000101c5c503b5fefefe3afeffffc5c5c5c50101010101010201010101014101adadadadadadadadadadadad91adadadadadadadad0101c50101c5c501f9ffffffffffffffff0001010102010101010140f5000101c5c5014b010101c50101c5c501010101e6010201010101014101000101c5c5014b010101c50101c5c5010101114b0101c5c50101010a0101020101e60101');"
+        }
+      ]
+    },
+    {
+      "name": "36.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f(f) VALUES ('merge=59,59');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "37.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (28,0,0,0,'0 0',x'00');\n  INSERT INTO f_segdir VALUES (0,241,0,0,'0 0',x'0001000030310000f1');"
+        }
+      ]
+    },
+    {
+      "name": "37.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f VALUES (0,x'00');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "38.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=a;"
+        }
+      ]
+    },
+    {
+      "name": "38.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a MATCH 'e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "39.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t0 USING fts3(\n    col0 INTEGER PRIMARY KEY,\n    col1 VARCHAR(8),\n    col2 BINARY,\n    col3 BINARY\n  );\n  INSERT INTO t0_content VALUES(1,1,'1234','aaaa','bbbb');\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030782000103323334050101010200000461616161050101020200000462626262050101030200');"
+        }
+      ]
+    },
+    {
+      "name": "40.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY, col1, col2 ,col3 );\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',\n      X'0001310301020001033233340500010102000004616161bc050101020200000462626262050101030200'\n  );"
+        }
+      ]
+    },
+    {
+      "name": "40.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0==matchinfo(t0,'sx') FROM t0 WHERE t0 MATCH '1* 2 3 4 5 6 OR 1';"
+        }
+      ]
+    },
+    {
+      "name": "41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);\n  INSERT INTO t1_segdir VALUES(0,0,0,0,'0 835',X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f3870696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001030001010002020001020001020001020001120001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010400030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c010102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');"
+        }
+      ]
+    },
+    {
+      "name": "41.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree ner \"json1^enable\"';"
+        }
+      ]
+    },
+    {
+      "name": "42.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "42.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f_segdir VALUES(0,2,1111,0,0,X'00');\n  INSERT INTO f_segdir VALUES(0,3,0   ,0,0,X'00013003010200');"
+        }
+      ]
+    },
+    {
+      "name": "42.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f(f) VALUES ('merge=107,2');"
+        }
+      ]
+    },
+    {
+      "name": "43.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE def USING fts3(xyz);\n  INSERT INTO def_segdir VALUES(0,0,0,0,0, X'0001310301c9000103323334050d81');"
+        }
+      ]
+    },
+    {
+      "name": "43.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM def WHERE def MATCH '1 NEAR 1'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "44.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'00013103010200010332333405010201ba00000461616161050101020200000462626262050101030200');"
+        }
+      ]
+    },
+    {
+      "name": "44.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT matchinfo(t0, t0) IS NULL FROM t0 WHERE t0 MATCH '1*'",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "45.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(x1) VALUES( 'merge=1' )",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "46.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t0 USING fts3(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'0001310301c9000103323334050d8000f200000461616161050101020200000462626262050101030200');"
+        }
+      ]
+    },
+    {
+      "name": "46.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t0\n    WHERE t0 MATCH x'2b0a312b0a312a312a2a0b5d0a0b0b0a312a0a0b0b0a312a0b310a392a0b0a27312a2a0b5d0a312a0b310a31315d0b310a312a316d2a0b313b15bceaa50a312a0b0a27312a2a0b5d0a312a0b310a312b0b2a310a312a0b2a0b2a0b2e5d0a0bff313336e34a2a312a0b0a3c310b0a0b4b4b0b4b2a4bec40322b2a0b310a0a312a0a0a0a0a0a0a0a0a0b310a312a2a2a0b5d0a0b0b0a312a0b310a312a0b0a4e4541530b310a5df5ced70a0a0a0a0a4f520a0a0a0a0a0a0a312a0b0a4e4541520b310a5d616161610a0a0a0a4f520a0a0a0a0a0a312b0a312a312a0a0a0a0a0a0a004a0b0a310b220a0b0a310a4a22310a0b0a7e6fe0e0e030e0e0e0e0e01176e02000e0e0e0e0e01131320226310a0b0a310a4a22310a0b0a310a766f8b8b4ee0e0300ae0090909090909090909090909090909090909090909090909090909090909090947aaaa540b09090909090909090909090909090909090909090909090909090909090909fae0e0f2f22164e0e0f273e07fefefef7d6dfafafafa6d6d6d6d';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "47.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a,b,c);"
+        }
+      ]
+    },
+    {
+      "name": "47.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1_segdir VALUES(0,0,0,0,0,X'000130120106000106000106001f030001030001030000083230313630363039090107000107000107000001340901050001050001050000013509010400010400010400010730303030303030091c0400010400010400000662696e6172793c0301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000008636f6d70696c657209010200010200010200000664627374617409070300010300010300010465627567090402000102000102000006656e61626c653f07020001020001020001020001020001020001020001020001020001020001020001020001010001020001020001020001020001020001020001020001020001087874656e73696f6e091f0400010400010400000466747334090a0300010300010300030135090d03000103000103000003676363090103000103000103000106656f706f6c790910030001030001030000056a736f6e310913030001030001030000046c6f6164091f030001030001030000036d6178091c02000102000102000105656d6f7279091c03000103000103000304737973350916030001030001030000066e6f636173653c02010202000301020200030102020003010202000301020200030102020003010202000301020200030102020003010202000301020200030102020000046f6d6974091f020001020001020000057274726565091903000103000103000302696d3c01010202000301020200030102020003010202000301020200030102020003010202000301a202000301020200030102020003010202000301020200000a746872656164736166650922020001020001020000047674616209070400010400010400000178b401010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200010101020001010102000101010200');\n  INSERT INTO t1_segdir VALUES(0,1,0,0,0,X'0001300425061b000008323031363036303903250700000134032505000001350325040001073030303030303003251a000008636f6d70696c657203250200000664627374617403250a00010465627567032508000006656e61626c650925090504040404040001087874656e73696f6e03251d0000046674733403250d0003013503250f000003676363032503000106656f706f6c790325110000056a736f6e310325130000046c6f616403251c0000036d6178032518000105656d6f7279032519000304737973350325150000046f6d697403251b000005727472656503251700000a7468726561647361666503251e0000047674616333250b00');"
+        }
+      ]
+    },
+    {
+      "name": "47.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT matchinfo(t1) FROM t1 WHERE t1 MATCH '\"json1 enable\"';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "48.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1(x1) VALUES('nodesize=24'),('merge=3,4');\n  INSERT INTO x1(x1) VALUES( 'merge=3,4' ),('merge=3,4');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "49.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one;\n  DELETE FROM t1 WHERE t1 MATCH 'c*';\n  SELECT matchinfo(t1,'pcx') IS NULL FROM t1 WHERE t1 MATCH 'f*e*';",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "50.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT NULL FROM t1 WHERE t1 MATCH '\"^enable\"'",
+          "expect": "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "51.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'xyzzy',offsets(t1) FROM t1 WHERE t1 MATCH 'rtree OR json1''rtree NEAR \"json1 enable\"';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "52.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1, t2;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "53.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT*FROM t1 WHERE t1 MATCH'ATE\"0\"OR\"2D:P\"\"\"ATE\"0\"OR\"2:P\"\"\"';",
+          "expect": "0 {ATE 2:P}"
+        }
+      ]
+    },
+    {
+      "name": "54.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, quote(matchinfo(t1,'pcxybspcxybs')) FROM t1 WHERE t1 MATCH'ATE\"0\"OR\"2:P\"\"\"';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT count(*) FROM ft_segdir;\n    SELECT count(*) FROM ft_segments;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t0 WHERE t0 MATCH '1 NEAR 1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT matchinfo(t0,'yxy') FROM t0 WHERE t0 MATCH x'2b0a312b0a312a312a2a0b5d0a0b0b0a312a0a0b0b0a312a0b310a392a0b0a27312a2a0b5d0a312a0b310a31315d0b310a312a316d2a0b313b15bceaa50a312a0b0a27312a2a0b5d0a312a0b310a312b0b2a310a312a0b2a0b2a0b2e5d0a0bff313336e34a2a312a0b0a3c310b0a0b4b4b0b4b2a4bec40322b2a0b310a0a312a0a0a0a0a0a0a0a0a0b310a312a2a2a0b5d0a0b0b0a312a0b310a312a0b0a4e4541530b310a5df5ced70a0a0a0a0a4f520a0a0a0a0a0a0a312a0b0a4e4541520b310a5d616161610a0a0a0a4f520a0a0a0a0a0a312b0a312a312a0a0a0a0a0a0a004a0b0a310b220a0b0a310a4a22310a0b0a7e6fe0e0e030e0e0e0e0e01176e02000e0e0e0e0e01131320226310a0b0a310a4a22310a0b0a310a766f8b8b4ee0e0300ae0090909090909090909090909090909090909090909090909090909090909090947aaaa540b09090909090909090909090909090909090909090909090909090909090909fae0e0f2f22164e0e0f273e07fefefef7d6dfafafafa6d6d6d6d';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

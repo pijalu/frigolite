@@ -13,20 +13,22 @@
       ]
     },
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(content=\"t1\", c);\n  INSERT INTO t2(t2) VALUES('rebuild');\n  SELECT docid FROM t2 WHERE t2 MATCH 'deh';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
       "name": "1.2",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA integrity_check(t2);",
           "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -61,18 +63,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "3.0",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('one', 'two');\n  INSERT INTO x1 VALUES('three', 'four');"
         }
       ]
     },
@@ -83,6 +78,30 @@
           "type": "query",
           "sql": "PRAGMA integrity_check;",
           "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

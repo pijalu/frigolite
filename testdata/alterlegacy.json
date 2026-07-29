@@ -71,10 +71,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "2.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "PRAGMA legacy_alter_table = 1;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    CREATE VIRTUAL TABLE eee USING echo('abc');\n    SELECT * FROM eee;",
+          "expect": "1 2 3"
         }
       ]
     },
@@ -89,28 +91,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.2",
       "steps": [
         {
           "type": "exec",
           "sql": "ALTER TABLE fff RENAME TO ggg;",
           "expect": "1 {no such module: echo}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -203,14 +189,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.0",
       "steps": [
         {
@@ -254,27 +232,6 @@
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(3, 3);",
           "expect": "1 {no such table: main.t2}"
-        }
-      ]
-    },
-    {
-      "name": "4.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -356,14 +313,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.1",
       "steps": [
         {
@@ -388,14 +337,6 @@
           "type": "query",
           "sql": "INSERT INTO aux.c1 VALUES(NULL, 1);\n  SELECT sql FROM aux.sqlite_master WHERE name = 'c1';",
           "expect": "{CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -473,22 +414,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "11.0",
       "steps": [
         {
@@ -546,14 +471,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "12.0",
       "steps": [
         {
@@ -582,22 +499,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "14.5",
       "steps": [
         {
@@ -612,6 +513,115 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO tt1;"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

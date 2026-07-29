@@ -105,14 +105,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "300",
       "steps": [
         {
@@ -122,6 +114,37 @@
       ]
     },
     {
+      "name": "310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t23 AS MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+        }
+      ]
+    },
+    {
+      "name": "320",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t23 AS NOT MATERIALIZED (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+        }
+      ]
+    },
+    {
+      "name": "330",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH t23 AS (SELECT * FROM t2 FULL JOIN t3 USING(b))\n  SELECT * FROM t23;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -130,11 +153,10 @@
       ]
     },
     {
-      "name": "setup_14",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));"
+          "type": "reset_db"
         }
       ]
     }

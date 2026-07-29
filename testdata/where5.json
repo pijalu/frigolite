@@ -8,14 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x TEXT);\n    CREATE TABLE t2(x INTEGER);\n    CREATE TABLE t3(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(-1);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x TEXT);\n    CREATE TABLE t2(x INTEGER);\n    CREATE TABLE t3(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(-1);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x<0"
         }
       ]
     },
@@ -26,10 +18,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x<=0",
           "expect": "-1 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x<=0"
         }
       ]
     },
@@ -40,10 +28,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x=0",
           "expect": "0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x=0"
         }
       ]
     },
@@ -54,10 +38,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x>=0",
           "expect": "0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x>=0"
         }
       ]
     },
@@ -68,10 +48,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x>0",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x>0"
         }
       ]
     },
@@ -82,10 +58,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x<>0",
           "expect": "-1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x<>0"
         }
       ]
     },
@@ -94,10 +66,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x<NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t1 WHERE x<NULL"
         }
       ]
@@ -108,10 +76,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x<=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x<=NULL"
         }
       ]
     },
@@ -120,10 +84,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x=NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t1 WHERE x=NULL"
         }
       ]
@@ -134,10 +94,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x>=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x>=NULL"
         }
       ]
     },
@@ -146,10 +102,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x>NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t1 WHERE x>NULL"
         }
       ]
@@ -160,10 +112,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x!=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x!=NULL"
         }
       ]
     },
@@ -172,10 +120,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x IS NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t1 WHERE x IS NULL"
         }
       ]
@@ -187,10 +131,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE x IS NOT NULL",
           "expect": "-1 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x IS NOT NULL"
         }
       ]
     },
@@ -201,10 +141,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x<0",
           "expect": "-1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x<0"
         }
       ]
     },
@@ -215,10 +151,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x<=0",
           "expect": "-1 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x<=0"
         }
       ]
     },
@@ -229,10 +161,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x=0",
           "expect": "0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x=0"
         }
       ]
     },
@@ -243,10 +171,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x>=0",
           "expect": "0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x>=0"
         }
       ]
     },
@@ -257,10 +181,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x>0",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x>0"
         }
       ]
     },
@@ -271,10 +191,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x<>0",
           "expect": "-1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x<>0"
         }
       ]
     },
@@ -283,10 +199,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2 WHERE x<NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t2 WHERE x<NULL"
         }
       ]
@@ -297,10 +209,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x<=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x<=NULL"
         }
       ]
     },
@@ -309,10 +217,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2 WHERE x=NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t2 WHERE x=NULL"
         }
       ]
@@ -323,10 +227,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x>=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x>=NULL"
         }
       ]
     },
@@ -335,10 +235,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2 WHERE x>NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t2 WHERE x>NULL"
         }
       ]
@@ -349,10 +245,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x!=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x!=NULL"
         }
       ]
     },
@@ -361,10 +253,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2 WHERE x IS NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t2 WHERE x IS NULL"
         }
       ]
@@ -376,10 +264,6 @@
           "type": "query",
           "sql": "SELECT * FROM t2 WHERE x IS NOT NULL",
           "expect": "-1 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2 WHERE x IS NOT NULL"
         }
       ]
     },
@@ -390,10 +274,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x<0",
           "expect": "-1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x<0"
         }
       ]
     },
@@ -404,10 +284,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x<=0",
           "expect": "-1 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x<=0"
         }
       ]
     },
@@ -418,10 +294,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x=0",
           "expect": "0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x=0"
         }
       ]
     },
@@ -432,10 +304,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x>=0",
           "expect": "0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x>=0"
         }
       ]
     },
@@ -446,10 +314,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x>0",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x>0"
         }
       ]
     },
@@ -460,10 +324,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x<>0",
           "expect": "-1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x<>0"
         }
       ]
     },
@@ -472,10 +332,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t3 WHERE x<NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t3 WHERE x<NULL"
         }
       ]
@@ -486,10 +342,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x<=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x<=NULL"
         }
       ]
     },
@@ -498,10 +350,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t3 WHERE x=NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t3 WHERE x=NULL"
         }
       ]
@@ -512,10 +360,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x>=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x>=NULL"
         }
       ]
     },
@@ -524,10 +368,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t3 WHERE x>NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t3 WHERE x>NULL"
         }
       ]
@@ -538,10 +378,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x!=NULL"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x!=NULL"
         }
       ]
     },
@@ -550,10 +386,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t3 WHERE x IS NULL"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t3 WHERE x IS NULL"
         }
       ]
@@ -565,10 +397,6 @@
           "type": "query",
           "sql": "SELECT * FROM t3 WHERE x IS NOT NULL",
           "expect": "-1 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t3 WHERE x IS NOT NULL"
         }
       ]
     },
@@ -579,10 +407,6 @@
           "type": "query",
           "sql": "SELECT x<NULL FROM t3",
           "expect": "{} {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x<NULL FROM t3"
         }
       ]
     },
@@ -593,10 +417,6 @@
           "type": "query",
           "sql": "SELECT x<=NULL FROM t3",
           "expect": "{} {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x<=NULL FROM t3"
         }
       ]
     },
@@ -607,10 +427,6 @@
           "type": "query",
           "sql": "SELECT x==NULL FROM t3",
           "expect": "{} {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x==NULL FROM t3"
         }
       ]
     },
@@ -621,10 +437,6 @@
           "type": "query",
           "sql": "SELECT x>NULL FROM t3",
           "expect": "{} {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x>NULL FROM t3"
         }
       ]
     },
@@ -635,10 +447,6 @@
           "type": "query",
           "sql": "SELECT x>=NULL FROM t3",
           "expect": "{} {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x>=NULL FROM t3"
         }
       ]
     },
@@ -649,10 +457,6 @@
           "type": "query",
           "sql": "SELECT x!=NULL FROM t3",
           "expect": "{} {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x!=NULL FROM t3"
         }
       ]
     },
@@ -663,10 +467,6 @@
           "type": "query",
           "sql": "SELECT x IS NULL FROM t3",
           "expect": "0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x IS NULL FROM t3"
         }
       ]
     },
@@ -677,6 +477,206 @@
           "type": "query",
           "sql": "SELECT x IS NOT NULL FROM t3",
           "expect": "1 1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT);\n    CREATE TABLE t2(x INTEGER);\n    CREATE TABLE t3(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(-1);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x<=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x>=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x<>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x<NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x<=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x>=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x>NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x!=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IS NOT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x<=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x>=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x<>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x<NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x<=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x>=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x>NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x!=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2 WHERE x IS NOT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x<0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x<=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x>=0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x<>0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x<NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x<=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x>=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x>NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x!=NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3 WHERE x IS NOT NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x<NULL FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x<=NULL FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x==NULL FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x>NULL FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x>=NULL FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x!=NULL FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x IS NULL FROM t3"
         },
         {
           "type": "exec",

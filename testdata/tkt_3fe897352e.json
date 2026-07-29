@@ -3,15 +3,7 @@
   "name": "tkt_3fe897352e",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_1",
+      "name": "setup_0",
       "steps": [
         {
           "type": "exec",
@@ -28,6 +20,14 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES(hex_to_utf16le('FFDF'));\n    SELECT hex(x) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

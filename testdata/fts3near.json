@@ -1,0 +1,637 @@
+{
+  "file": "fts3near.test",
+  "name": "fts3near",
+  "tests": [
+    {
+      "name": "fts3near-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE x USING fts4(y,z);\n  INSERT INTO x VALUES('aaa bbb ccc ddd', 'bbb ddd aaa ccc');\n  SELECT * FROM x where y MATCH 'bbb NEAR/6 aaa';",
+          "expect": "{aaa bbb ccc ddd} {bbb ddd aaa ccc}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(a, b);\n  INSERT INTO t2 VALUES('A B C', 'A D E');\n  SELECT * FROM t2 where t2 MATCH 'a:A NEAR E'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR/0 three'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR/1 two'",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR/1 three'",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'three NEAR/1 one'",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"one two\" NEAR/1 five'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"one two\" NEAR/2 five'",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR four'",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'four NEAR three'",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/0 three'",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/2 one'",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/1 one'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'five NEAR/1 \"two three\"'",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR five'",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'four NEAR four'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR two NEAR one'",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"one three\" NEAR/0 \"four five\"'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/0 \"one three\"'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR/0 B'",
+          "expect": "{0 0 10 1 0 1 12 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'B NEAR/0 A'",
+          "expect": "{0 1 10 1 0 0 12 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH '\"C D\" NEAR/0 A'",
+          "expect": "{0 0 6 1 0 1 8 1 0 2 10 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR/0 \"C D\"'",
+          "expect": "{0 1 6 1 0 2 8 1 0 0 10 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR A'",
+          "expect": "{0 0 0 1 0 1 0 1 0 0 10 1 0 1 10 1}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('A A A');\n    SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR/2 A';"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('A A A A');\n    SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR A NEAR A';"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/1 one'",
+          "expect": "{0 1 0 3 0 0 8 5}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'one NEAR/1 three'",
+          "expect": "{0 0 0 3 0 1 8 5}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/1 two'",
+          "expect": "{0 1 4 3 0 0 8 5 0 1 14 3}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/2 two'",
+          "expect": "{0 1 4 3 0 0 8 5 0 1 14 3 0 0 27 5}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'two NEAR/2 three'",
+          "expect": "{0 0 4 3 0 1 8 5 0 0 14 3 0 1 27 5}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/0 \"two four\"'",
+          "expect": "{0 0 8 5 0 1 14 3 0 2 18 4}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH '\"two four\" NEAR/0 three'",
+          "expect": "{0 2 8 5 0 0 14 3 0 1 18 4}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t1) FROM t1 WHERE content MATCH 'specification NEAR supports'",
+          "expect": "{<b>...</b>braille devices, handheld devices, etc. This <b>specification</b> also <b>supports</b> content positioning, downloadable fonts, table layout<b>...</b>}"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification attach'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR attach'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/18 attach'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/19 attach'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/000018 attach'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-5.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/000019 attach'",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev zygosis'",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR zygosis'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR/100 zygosis'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR/1000 zygosis'"
+        }
+      ]
+    },
+    {
+      "name": "fts3near-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR/10000 zygosis'",
+          "expect": "3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR/0 three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR/1 two'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR/1 three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'three NEAR/1 one'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"one two\" NEAR/1 five'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"one two\" NEAR/2 five'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR four'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'four NEAR three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/0 three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/2 one'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/1 one'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'five NEAR/1 \"two three\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR five'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'four NEAR four'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'one NEAR two NEAR one'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"one three\" NEAR/0 \"four five\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH '\"four five\" NEAR/0 \"one three\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR/0 B'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'B NEAR/0 A'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH '\"C D\" NEAR/0 A'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR/0 \"C D\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR A'"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('A A A');\n    SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR/2 A';"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('A A A A');\n    SELECT offsets(t1) FROM t1 WHERE content MATCH 'A NEAR A NEAR A';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/1 one'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'one NEAR/1 three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/1 two'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/2 two'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'two NEAR/2 three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH 'three NEAR/0 \"two four\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE content MATCH '\"two four\" NEAR/0 three'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT snippet(t1) FROM t1 WHERE content MATCH 'specification NEAR supports'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification attach'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR attach'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/18 attach'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/19 attach'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/000018 attach'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'specification NEAR/000019 attach'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev zygosis'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR zygosis'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR/100 zygosis'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR/1000 zygosis'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t1 WHERE content MATCH 'abbrev NEAR/10000 zygosis'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1(content) VALUES('one three four five');\n  INSERT INTO t1(content) VALUES('two three four five');\n  INSERT INTO t1(content) VALUES('one two three four five');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(content) VALUES('A X B C D A B');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(content) VALUES(\n    'one two three two four six three six nine four eight twelve'\n  );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(content) VALUES('\n    This specification defines Cascading Style Sheets, level 2 (CSS2). CSS2 is a style sheet language that allows authors and users to attach style (e.g., fonts, spacing, and aural cues) to structured documents (e.g., HTML documents and XML applications). By separating the presentation style of documents from the content of documents, CSS2 simplifies Web authoring and site maintenance.\n\n    CSS2 builds on CSS1 (see [CSS1]) and, with very few exceptions, all valid CSS1 style sheets are valid CSS2 style sheets. CSS2 supports media-specific style sheets so that authors may tailor the presentation of their documents to visual browsers, aural devices, printers, braille devices, handheld devices, etc. This specification also supports content positioning, downloadable fonts, table layout, features for internationalization, automatic counters and numbering, and some properties related to user interface.\n  ')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('\n      abbrev aberrations abjurations aboding abr abscesses absolutistic\n      abstention abuses acanthuses acceptance acclaimers accomplish\n      accoutring accusation acetonic acid acolytes acquitting acrylonitrile\n      actives acyclic addicted adenoid adjacently adjusting admissible\n      adoption adulated advantaging advertisers aedes aerogramme aetiology\n      affiliative afforest afterclap agamogenesis aggrade agings agonize\n      agron ailurophile airfreight airspeed alarmists alchemizing\n      alexandrines alien aliped all allergenic allocator allowances almost\n      alphabetizes altho alvine amaurosis ambles ameliorate amicability amnio\n      amour ampicillin amusement anadromous analogues anarchy anchormen\n      anecdota aneurin angst animating anlage announcements anodized\n      answerable antemeridian anthracene antiabortionist anticlimaxes\n      antifriction antimitotic antiphon antiques antithetic anviled\n      apatosaurus aphrodisia apodal aposiopesis apparatus appendectomies\n      applications appraisingly appropriate apteryx arabinose\n      arboricultural archdeaconates archipelago ardently arguers armadillo\n      arnicas arrayed arrowy arthroscope artisans ascensive ashier\n      aspersorium assail assentor assignees assonants astereognosis\n      astringency astutest atheistical atomize attachment attenuates\n      attrahent audibility augite auricle auteurists autobus autolysis\n      autosome avenge avidest aw awl ayes babirusa backbeats backgrounder\n      backseat backswings baddie bagnios baked balefuller ballista balmily\n      bandbox bandylegged bankruptcy baptism barbering bargain barneys\n      barracuda barterer bashes bassists bathers batterer bavardage\n      beachfront beanstalk beauteous become bedim bedtimes beermats begat\n      begun belabors bellarmine belongings bending benthos bereavements\n      besieger bestialized betide bevels biases bicarbonates bidentate bigger\n      bile billow bine biodynamics biomedicine biotites birding bisection\n      bitingly bkg blackheads blaeberry blanking blatherer bleeper blindage\n      blithefulness blockish bloodstreams bloused blubbing bluestocking\n      blurted boatbill bobtailed boffo bold boltrope bondservant bonks\n      bookbinding bookworm booting borating boscages botchers bougainvillea\n      bounty bowlegged boyhood bracketed brainstorm brandishes\n      braunschweigers brazilin breakneck breathlessness brewage bridesmaids\n      brighter brisker broader brokerages bronziest browband brunets bryology\n      bucking budlike bugleweed bulkily bulling bummer bunglers bureau burgs\n      burrito bushfire buss butlery buttressing bylines cabdriver cached\n      cadaverousnesses cafeterias cakewalk calcifies calendula callboy calms\n      calyptra camisoles camps candelabrum caned cannolis canoodling cantors\n      cape caponize capsuling caracoled carbolics carcase carditis caretakers\n      carnallite carousel carrageenan cartels carves cashbook castanets\n      casuistry catalyzer catchers categorizations cathexis caucuses\n      causeway cavetto cede cella cementite centenary centrals ceramics ceria\n      cervixes chafferer chalcopyrites chamfers change chaotically\n      characteristically charivari chases chatterer cheats cheeks chef\n      chemurgy chetah chickaree chigoes chillies chinning chirp chive\n      chloroforms chokebore choplogic chorioids chromatic chronically\n      chubbiest chunder chutzpah cimetidine cinque circulated circumscribe\n      cirrose citrin claddagh clamorousness clapperboards classicalism\n      clauses cleanse clemency clicker clinchers cliquiest clods closeting\n      cloudscape clucking cnidarian coalfish coatrack coca cockfights coddled\n      coeducation coexistence cognitively coiffed colatitude collage\n      collections collinear colonelcy colorimetric columelliform combos\n      comforters commence commercialist commit commorancy communized compar\n      compendiously complainers compliance composition comprised comradery\n      concelebrants concerted conciliation concourses condensate\n      condonations confab confessionals confirmed conforming congeal\n      congregant conjectured conjurers connoisseurs conscripting\n      conservator consolable conspired constricting consuls contagious\n      contemporaneity contesters continuities contractors contrarian\n      contrive convalescents convents convexly convulsed cooncan coparcenary\n      coprolite copyreader cordially corklike cornflour coroner corralling\n      corrigible corsages cosies cosmonauts costumer cottontails counselings\n      counterclaim counterpane countertenors courageously couth coveting\n      coworker cozier cracklings crampon crappies craved cream credenzas\n      crematoriums cresol cricoid crinkle criterion crocodile crore crossover\n      crowded cruelest crunch cruzeiros cryptomeria cubism cuesta culprit\n      cumquat cupped curdle curly cursoring curvy customized cutting cyclamens\n      cylindrical cytaster dachshund daikon damages damselfly dangling\n      darkest databanks dauphine dazzling deadpanned deathday debauchers\n      debunking decameter decedents decibel decisions declinations\n      decomposition decoratively decretive deduct deescalated defecating\n      deferentially definiendum defluxion defrocks degrade deice dekaliters\n      deli delinquencies deludedly demarcates demineralizers demodulating\n      demonstrabilities demurred deniabilities denouncement denudation\n      departure deplorable deposing depredatory deputizes derivational\n      desalinization descriptors desexes desisted despising destitute\n      detectability determiner detoxifying devalued devilries devotions\n      dextrous diagenesis dialling diaphoresis diazonium dickeys diddums\n      differencing dig dignified dildo dimetric dineric dinosaurs diplodocus\n      directer dirty disagrees disassembler disburses disclosures\n      disconcerts discountability discrete disembarrass disenthrone\n      disgruntled dishpans disintegrators dislodged disobedient\n      dispassionate dispiritednesses dispraised disqualifying\n      dissatisfying dissidence dissolvers distich distracting distrusts\n      ditto diverse divineness dizzily dockyard dodgers doggish doited dom\n      dominium doohickey doozie dorsum doubleheaders dourer downbeats\n      downshifted doyennes draftsman dramatic drawling dredge drifter\n      drivelines droopier drowsed drunkards dubiosities duding dulcifying\n      dumpcart duodecillion durable duteous dyed dysgenic eagles earplugs\n      earwitness ebonite echoers economical ectothermous edibility educates\n      effected effigies eggbeaters egresses ejaculates elasticize elector\n      electrodynamometer electrophorus elem eligibly eloped emaciating\n      embarcaderos embezzlers embosses embryectomy emfs emotionalizing\n      empiricist emu enamels enchained encoded encrusts endeavored endogamous\n      endothelioma energizes engager engrosses enl enologist enrolls ensphere\n      enters entirety entrap entryways envies eosinophil epicentral\n      epigrammatized episodic epochs equestrian equitably erect ernes\n      errorless escalated eschatology espaliers essonite estop eternity\n      ethnologically eudemonics euphonious euthenist evangelizations\n      eventuality evilest evulsion examinee exceptionably exciter\n      excremental execrably exemplars exhalant exhorter exocrine exothermic\n      expected expends explainable exploratory expostulatory expunges\n      extends externals extorts extrapolative extrorse eyebolt eyra\n      facetiously factor faeries fairings fallacies falsities fancifulness\n      fantasticalness farmhouse fascinate fatalistically fattener fave\n      fearlessly featly federates feints fellowman fencers ferny\n      fertilenesses feta feudality fibers fictionalize fiefs fightback\n      filefish filmier finaglers fingerboards finochio firefly firmament\n      fishmeal fitted fjords flagitiousnesses flamen flaps flatfooting\n      flauntier fleapit fleshes flickertail flints floaty floorboards\n      floristic flow fluffily fluorescein flutes flyspecks foetal folderols\n      followable foolhardier footlockers foppish forceless foredo foreknows\n      foreseeing foretaste forgather forlorn formidableness fortalice\n      forwarding founding foxhunting fragmentarily frangipani fray freeform\n      freezable freshening fridges frilliest frizzed frontbench frottages\n      fruitcake fryable fugleman fulminated functionalists fungoid furfuran\n      furtive fussy fwd gadolinium galabias gallinaceous galvanism gamers\n      gangland gaoling garganey garrisoning gasp gate gauger gayety geed\n      geminately generalissimos genii gentled geochronology geomorphic\n      geriatricians gesellschaft ghat gibbeting giggles gimps girdlers\n      glabella glaive glassfuls gleefully glistered globetrotted glorifier\n      gloving glutathione glyptodont goaled gobsmacked goggliest golliwog\n      goobers gooseberries gormandizer gouramis grabbier gradually grampuses\n      grandmothers granulated graptolite gratuitously gravitates greaten\n      greenmailer greys grills grippers groan gropingly grounding groveling\n      grueled grunter guardroom guggle guineas gummed gunnysacks gushingly\n      gutturals gynecoid gyrostabilizer habitudes haemophilia hailer hairs\n      halest hallow halters hamsters handhelds handsaw hangup haranguer\n      hardheartedness harlotry harps hashing hated hauntingly hayrack\n      headcases headphone headword heartbreakers heaters hebephrenia\n      hedonist heightening heliozoan helots hemelytron hemorrhagic hent\n      herbicides hereunto heroines heteroclitics heterotrophs hexers\n      hidebound hies hightails hindmost hippopotomonstrosesquipedalian\n      histologist hittable hobbledehoys hogans holdings holocrine homegirls\n      homesteader homogeneousness homopolar honeys hoodwinks hoovered\n      horizontally horridness horseshoers hospitalization hotdogging houri\n      housemate howitzers huffier humanist humid humors huntress husbandmen\n      hyaenas hydride hydrokinetics hydroponically hygrothermograph\n      hyperbolically hypersensitiveness hypnogogic hypodermically\n      hypothermia iatrochemistry ichthyological idealist ideograms idling\n      igniting illegal illuminatingly ilmenite imbibing immateriality\n      immigrating immortalizes immures imparts impeder imperfection\n      impersonated implant implying imposition imprecating imprimis\n      improvising impv inanenesses inaugurate incapably incentivize\n      incineration incloses incomparableness inconsequential incorporate\n      incrementing incumbered indecorous indentation indicative indignities\n      indistinguishably indoors indulges ineducation inerrable\n      inexperienced infants infestations infirmnesses inflicting\n      infracostal ingathered ingressions inheritances iniquity\n      injuriousnesses innervated inoculates inquisitionist insectile\n      insiders insolate inspirers instatement instr insulates intactness\n      intellects intensifies intercalations intercontinental interferon\n      interlarded intermarrying internalizing interpersonally\n      interrelatednesses intersperse interviewees intolerance\n      intransigents introducing intubates invades inventing inveterate\n      invocate iodides irenicism ironsmith irreducibly irresistibility\n      irriguous isobarisms isometrically issuable itineracies jackdaws\n      jaggery jangling javelins jeeringly jeremiad jeweler jigsawing jitter\n      jocosity jokester jot jowls judicative juicy jungly jurists juxtaposed\n      kalpa karstify keddah kendo kermesses keynote kibbutznik kidnaper\n      kilogram kindred kingpins kissers klatch kneads knobbed knowingest\n      kookaburras kruller labefaction labyrinths lacquer laddered lagoons\n      lambency laminates lancinate landscapist lankiness lapse larked lasso\n      laterite laudableness laundrywomen lawgiver laypersons leafhoppers\n      leapfrogs leaven leeches legated legislature leitmotifs lenients\n      leprous letterheads levelling lexicographically liberalists\n      librettist licorice lifesaving lightheadedly likelier limekiln limped\n      lines linkers lipoma liquidator listeners litharge litmus\n      liverishnesses loamier lobeline locative locutionary loggier loiterer\n      longevity loomed loping lotion louts lowboys luaus lucrativeness lulus\n      lumpier lungi lush luthern lymphangial lythraceous machinists maculate\n      maggot magnetochemistry maharani maimers majored malaprops malignants\n      maloti mammary manchineel manfully manicotti manipulativenesses\n      mansards manufactories maraschino margin markdown marooning marshland\n      mascaraing massaging masticate matchmark matings mattes mausoleum\n      mayflies mealworm meataxe medevaced medievalist meetings megavitamin\n      melded melodramatic memorableness mendaciousnesses mensurable\n      mercenaries mere meronymous mesmerizes mestee metallurgical\n      metastasize meterages meticulosity mewed microbe microcrystalline\n      micromanager microsporophyll midiron miffed milder militiamen\n      millesimal milometer mincing mingily minims minstrelsy mires\n      misanthropic miscalculate miscomprehended misdefines misery mishears\n      misled mispickel misrepresent misspending mistranslate miswriting\n      mixologists mobilizers moderators modulate mojo mollies momentum monde\n      monied monocles monographs monophyletic monotonousness moocher\n      moorages morality morion mortally moseyed motherly motorboat mouldering\n      mousers moveables mucky mudslides mulatto multicellularity\n      multipartite multivalences mundanities murkiest mushed muskiness\n      mutability mutisms mycelia myosotis mythicist nacred namable napkin\n      narghile nastiness nattering nauseations nearliest necessitate\n      necrophobia neg negotiators neologizes nephrotomy netiquette\n      neurophysiology newbie newspaper niccolite nielsbohriums nightlong\n      nincompoops nitpicked nix noddling nomadize nonadhesive noncandidates\n      nonconducting nondigestible nones nongreasy nonjoinder nonoccurrence\n      nonporousness nonrestrictive nonstaining nonuniform nooses northwards\n      nostalgic notepaper nourishment noyades nuclides numberless numskulls\n      nutmegged nymphaea oatmeal obis objurgators oblivious obsequiousness\n      obsoletism obtruding occlusions ocher octettes odeums offcuts\n      officiation ogival oilstone olestras omikron oncogenesis onsetting\n      oomphs openly ophthalmoscope opposites optimum orangutans\n      orchestrations ordn organophosphates origin ornithosis orthognathous\n      oscillatory ossuaries ostracized ounce outbreaks outearning outgrows\n      outlived outpoints outrunning outspends outwearing overabound\n      overbalance overcautious overcrowds overdubbing overexpanding\n      overgraze overindustrialize overlearning overoptimism overproducing\n      overripe overshadowing overspreading overstuff overtones overwind ow\n      oxidizing pacer packs paganish painstakingly palate palette pally\n      palsying pandemic panhandled pantheism papaws papped parading\n      parallelize paranoia parasitically pardners parietal parodied pars\n      participator partridgeberry passerines password pastors\n      paterfamiliases patination patrolman paunch pawnshops peacekeeper\n      peatbog peculator pedestrianism peduncles pegboard pellucidnesses\n      pendency penitentiary penstock pentylenetetrazol peptidase perched\n      perennial performing perigynous peripheralize perjurer permissively\n      perpetuals persistency perspicuously perturbingly pesky petcock\n      petrologists pfennige pharmacies phenformin philanderers\n      philosophically phonecards phosgenes photocomposer photogenic photons\n      phototype phylloid physiotherapeutics picadores pickup pieces pigging\n      pilaster pillion pimples pinioned pinpricks pipers pirogi pit\n      pitifullest pizza placental plainly planing plasmin platforming\n      playacts playwrights plectra pleurisy plopped plug plumule plussed\n      poaches poetasters pointless polarize policyholder polkaed\n      polyadelphous polygraphing polyphonous pomace ponderers pooch poplar\n      porcelains portableness portly positioning postage posthumously\n      postponed potages potholed poulard powdering practised pranksters\n      preadapt preassigning precentors precipitous preconditions predefined\n      predictors preengage prefers prehumans premedical prenotification\n      preplanning prepuberty presbytery presentation presidia prestissimo\n      preterites prevailer prewarmed priding primitively principalships\n      prisage privileged probed prochurch proctoscope products proficients\n      prognathism prohibiting proletarianisms prominence promulgates\n      proofreading property proportions prorate proselytize prosthesis\n      proteins prototypic provenances provitamin prudish pseudonymities\n      psychoanalysts psychoneuroses psychrometer publishable pufferies\n      pullet pulses punchy punkins purchased purities pursers pushover\n      putridity pylons pyrogenous pzazz quadricepses quaff qualmish quarriers\n      quasilinear queerness questionnaires quieten quintals quislings quoits\n      rabidness racketeers radiative radioisotope radiotherapists ragingly\n      rainband rakishness rampagers rands raped rare raspy ratiocinator\n      rattlebrain ravening razz reactivation readoption realm reapportioning\n      reasoning reattempts rebidding rebuts recapitulatory receptiveness\n      recipes reckonings recognizee recommendatory reconciled reconnoiters\n      recontaminated recoupments recruits recumbently redact redefine\n      redheaded redistributable redraw redwing reeled reenlistment reexports\n      refiles reflate reflowing refortified refried refuses regelate\n      registrant regretting rehabilitative reigning reinduced reinstalled\n      reinvesting rejoining relations relegates religiosities reluctivity\n      remastered reminisce remodifying remounted rends renovate reordered\n      repartee repel rephrase replicate repossessing reprint reprogramed\n      repugnantly requiter rescheduling resegregate resettled residually\n      resold resourcefulness respondent restating restrainedly resubmission\n      resurveyed retaliating retiarius retorsion retreated retrofitting\n      returning revanchism reverberated reverted revitalization\n      revolutionize rewind rhapsodizing rhizogenic rhythms ricketinesses\n      ridicule righteous rilles rinks rippliest ritualize riyals roast rockery\n      roguish romanizations rookiest roquelaure rotation rotundity rounder\n      routinizing rubberize rubricated ruefully ruining rummaged runic\n      russets ruttish sackers sacrosanctly safeguarding said salaciousness\n      salinity salsas salutatorians sampan sandbag saned santonin\n      saprophagous sarnies satem saturant savaged sawbucks scablike scalp\n      scant scared scatter schedulers schizophrenics schnauzers schoolmarms\n      scintillae scleroses scoped scotched scram scratchiness screwball\n      scripting scrubwomen scrutinizing scumbled scuttled seals seasickness\n      seccos secretions secularizing seditiousnesses seeking segregators\n      seize selfish semeiology seminarian semitropical sensate sensors\n      sentimo septicemic sequentially serener serine serums\n      sesquicentennials seventeen sexiest sforzandos shadowing shallot\n      shampooing sharking shearer sheered shelters shifter shiner shipper\n      shitted shoaled shofroth shorebirds shortsightedly showboated shrank\n      shrines shucking shuttlecocks sickeningly sideling sidewise sigil\n      signifiers siliceous silty simony simulative singled sinkings sirrah\n      situps skateboarder sketchpad skim skirmished skulkers skywalk slander\n      slating sleaziest sleepyheads slicking slink slitting slot slub\n      slumlords smallest smattered smilier smokers smriti snailfish snatch\n      snides snitching snooze snowblowers snub soapboxing socialite sockeyes\n      softest sold solicitings solleret sombreros somnolencies sons sopor\n      sorites soubrette soupspoon southpaw spaces spandex sparkers spatially\n      speccing specking spectroscopists speedsters spermatics sphincter\n      spiffied spindlings spirals spitball splayfeet splitter spokeswomen\n      spooled sportily spousals sprightliness sprogs spurner squalene\n      squattered squelches squirms stablish staggerings stalactitic stamp\n      stands starflower starwort stations stayed steamroll steeplebush\n      stemmatics stepfathers stereos steroid sticks stillage stinker\n      stirringly stockpiling stomaching stopcock stormers strabismuses\n      strainer strappado strawberries streetwise striae strikeouts strives\n      stroppiest stubbed study stunting style suavity subchloride subdeb\n      subfields subjoin sublittoral subnotebooks subprograms subside\n      substantial subtenants subtreasuries succeeding sucked sufferers\n      sugarier sulfaguanidine sulphating summerhouse sunbonnets sunned\n      superagency supercontinent superheroes supernatural superscribing\n      superthin supplest suppositive surcease surfs surprise survey\n      suspiration svelte swamplands swashes sweatshop swellhead swindling\n      switching sworn syllabuses sympathetics synchrocyclotron syndic\n      synonymously syringed tablatures tabulation tackling taiga takas talker\n      tamarisks tangential tans taproom tarpapers taskmaster tattiest\n      tautologically taxied teacup tearjerkers technocracies teepee\n      telegenic telephony telexed temperaments temptress tenderizing tensed\n      tenuring tergal terned terror testatrices tetherball textile thatched\n      their theorem thereof thermometers thewy thimerosal thirsty\n      thoroughwort threateningly thrived through thumbnails thwacks\n      ticketing tie til timekeepers timorousness tinkers tippers tisane\n      titrating toastmaster toff toking tomb tongs toolmakings topes topple\n      torose tortilla totalizing touchlines tousling townsmen trachea\n      tradeable tragedienne traitorous trances transcendentalists\n      transferrable tranship translating transmogrifying transportable\n      transvestism traumatize treachery treed trenail tressing tribeswoman\n      trichromatism triennials trikes trims triplicate tristich trivializes\n      trombonist trots trouts trued trunnion tryster tubes tulle tundras turban\n      turgescence turnround tutelar tweedinesses twill twit tympanum typists\n      tzarists ulcered ultramodern umbles unaccountability unamended\n      unassertivenesses unbanned unblocked unbundled uncertified unclaimed\n      uncoated unconcerns unconvinced uncrossing undefined underbodice\n      underemphasize undergrowth underpayment undershirts understudy\n      underwritten undissolved unearthed unentered unexpended unfeeling\n      unforeseen unfussy unhair unhinges unifilar unimproved uninvitingly\n      universalization unknowns unlimbering unman unmet unnaturalness\n      unornament unperturbed unprecedentedly unproportionate unread\n      unreflecting unreproducible unripe unsatisfying unseaworthiness\n      unsharable unsociable unstacking unsubtly untactfully untied untruest\n      unveils unwilled unyokes upheave upraised upstart upwind urethrae\n      urtexts usurers uvula vacillators vailed validation valvule vanities\n      varia variously vassaled vav veggies velours venerator ventrals\n      verbalizes verification vernacularized verticality vestigially via\n      vicariously victoriousness viewpoint villainies vines violoncellist\n      virtual viscus vital vitrify viviparous vocalizers voidable volleys\n      volutes vouches vulcanology wackos waggery wainwrights waling wallowing\n      wanking wardroom warmup wartiest washwoman watchman watermarks waverer\n      wayzgoose weariest weatherstripped weediness weevil welcomed\n      wentletrap whackers wheatworm whelp whf whinged whirl whistles whithers\n      wholesomeness whosoever widows wikiup willowier windburned windsail\n      wingspread winterkilled wisecracking witchgrass witling wobbliest\n      womanliness woodcut woodworking woozy working worldwide worthiest\n      wrappings wretched writhe wynd xylophone yardarm yea yelped yippee yoni\n      yuks zealotry zigzagger zitherists zoologists zygosis');"
+        }
+      ]
+    }
+  ]
+}

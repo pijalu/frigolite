@@ -3,6 +3,15 @@
   "name": "autoindex5",
   "tests": [
     {
+      "name": "autoindex5-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE source_package_status\n          (bug_name TEXT NOT NULL,\n           package INTEGER NOT NULL,\n           vulnerable INTEGER NOT NULL,\n           urgency TEXT NOT NULL,\n           PRIMARY KEY (bug_name, package));\n  CREATE INDEX source_package_status_package\n              ON source_package_status(package);\n  \n  CREATE TABLE source_packages\n              (name TEXT NOT NULL,\n              release TEXT NOT NULL,\n              subrelease TEXT NOT NULL,\n              archive TEXT NOT NULL,\n              version TEXT NOT NULL,\n              version_id INTEGER NOT NULL DEFAULT 0,\n              PRIMARY KEY (name, release, subrelease, archive));\n  \n  CREATE TABLE bugs\n          (name TEXT NOT NULL PRIMARY KEY,\n           cve_status TEXT NOT NULL\n               CHECK (cve_status IN\n                      ('', 'CANDIDATE', 'ASSIGNED', 'RESERVED', 'REJECTED')),\n           not_for_us INTEGER NOT NULL CHECK (not_for_us IN (0, 1)),\n           description TEXT NOT NULL,\n           release_date TEXT NOT NULL,\n           source_file TEXT NOT NULL,\n           source_line INTEGER NOT NULL);\n  \n  CREATE TABLE package_notes\n          (id INTEGER NOT NULL PRIMARY KEY,\n           bug_name TEXT NOT NULL,\n           package TEXT NOT NULL,\n           fixed_version TEXT\n               CHECK (fixed_version IS NULL OR fixed_version <> ''),\n           fixed_version_id INTEGER NOT NULL DEFAULT 0,\n           release TEXT NOT NULL,\n           package_kind TEXT NOT NULL DEFAULT 'unknown',\n           urgency TEXT NOT NULL,\n           bug_origin TEXT NOT NULL DEFAULT '');\n  CREATE INDEX package_notes_package\n              ON package_notes(package);\n  CREATE UNIQUE INDEX package_notes_bug\n              ON package_notes(bug_name, package, release);\n  \n  CREATE TABLE debian_bugs\n          (bug INTEGER NOT NULL,\n           note INTEGER NOT NULL,\n           PRIMARY KEY (bug, note));\n  \n  \n  CREATE VIEW debian_cve AS\n              SELECT DISTINCT debian_bugs.bug, st.bug_name\n              FROM package_notes, debian_bugs, source_package_status AS st\n              WHERE package_notes.bug_name = st.bug_name\n              AND debian_bugs.note = package_notes.id\n              ORDER BY debian_bugs.bug;"
+        }
+      ]
+    },
+    {
       "name": "2.1",
       "steps": [
         {

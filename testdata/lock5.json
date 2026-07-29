@@ -1,0 +1,371 @@
+{
+  "file": "lock5.test",
+  "name": "lock5",
+  "tests": [
+    {
+      "name": "2.dotfile.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t1 SET z=z+1, x=hex(randomblob(20));"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;",
+          "expect": "a b"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    SELECT * FROM t1;",
+          "expect": "a b"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "0 {a b}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-dotfile.X",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "lock5-flock.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "0 {1 2}"
+        }
+      ]
+    },
+    {
+      "name": "lock5-none.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA mmap_size = 0"
+        }
+      ]
+    },
+    {
+      "name": "lock5-none.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "lock5-none.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "lock5-none.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "lock5-none.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "lock5-none.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.dotfile.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "2.dotfile.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "2.dotfile.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "2.dotfile.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1;",
+          "expect": "0 1000"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 1;\n    BEGIN;\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n      )\n      INSERT INTO t1 SELECT i, i+1 FROM s;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

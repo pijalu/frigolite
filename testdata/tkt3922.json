@@ -9,10 +9,6 @@
           "type": "query",
           "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;",
           "expect": "-9223372036854775808 integer"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;"
         }
       ]
     },
@@ -23,6 +19,30 @@
           "type": "query",
           "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-1');\n      SELECT a, typeof(a) FROM t1;",
           "expect": "-1 integer"
+        }
+      ]
+    },
+    {
+      "name": "tkt3922.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;",
+          "expect": "9223372036854775807 integer"
+        }
+      ]
+    },
+    {
+      "name": "tkt3922.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('1');\n      SELECT a, typeof(a) FROM t1;",
+          "expect": "1 integer"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a NUMBER);\n      INSERT INTO t1 VALUES('-9223372036854775808');\n      SELECT a, typeof(a) FROM t1;"
         },
         {
           "type": "exec",
@@ -39,30 +59,10 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('-9223372036854776833');\n    SELECT a, typeof(a) FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "tkt3922.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;",
-          "expect": "9223372036854775807 integer"
         },
         {
           "type": "exec",
           "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "tkt3922.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES('1');\n      SELECT a, typeof(a) FROM t1;",
-          "expect": "1 integer"
         },
         {
           "type": "exec",

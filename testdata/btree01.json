@@ -3,10 +3,22 @@
   "name": "btree01",
   "tests": [
     {
-      "name": "__RESET_DB__",
+      "name": "btree01-1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "PRAGMA page_size=65536;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n  WITH RECURSIVE\n     c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n  INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n  UPDATE t1 SET b=zeroblob(3000);\n  UPDATE t1 SET b=zeroblob(64000) WHERE a=2;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "btree01-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=1024;\n  CREATE TABLE t1(a INT PRIMARY KEY, b BLOB, c INT) WITHOUT ROWID;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x*2, zeroblob(100), x FROM c;\n  UPDATE t1 SET b=zeroblob(1000) WHERE a=198;\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INT);\n  INSERT INTO t2(y) VALUES(198),(187),(100);\n  SELECT y, c FROM t2 LEFT JOIN t1 ON y=a ORDER BY x;",
+          "expect": "198 99 187 {} 100 50"
         }
       ]
     },
@@ -17,6 +29,42 @@
           "type": "query",
           "sql": "SELECT y, c FROM t1 RIGHT JOIN t2 ON y=a ORDER BY x;",
           "expect": "198 99 187 {} 100 50"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(3000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(2000);\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==0;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==1;\n      UPDATE t1 SET b=zeroblob(6499) WHERE (a%3)==2;\n      UPDATE t1 SET b=zeroblob(64000) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2331);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6542) FROM c;\n      UPDATE t1 SET b=zeroblob(2332);\n      UPDATE t1 SET b=zeroblob(65496) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(1);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      WITH RECURSIVE\n        c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<31)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n      UPDATE t1 SET b=zeroblob(4000);\n      UPDATE t1 SET b=zeroblob(65000) WHERE a=$::i;\n      PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

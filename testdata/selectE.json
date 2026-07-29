@@ -3,8 +3,13 @@
   "name": "selectE",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "selectE-3.1",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 1 EXCEPT SELECT 2 ORDER BY 1 COLLATE nocase EXCEPT SELECT 3;",
+          "expect": "1 {ORDER BY clause should come after EXCEPT not before}"
+        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc'),('def'),('ghi');\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('DEF'),('abc');\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('def'),('jkl');\n\n    SELECT a FROM t1 EXCEPT SELECT a FROM t2\n     ORDER BY a COLLATE nocase;"
@@ -28,16 +33,6 @@
         {
           "type": "exec",
           "sql": "SELECT a COLLATE nocase FROM t2 EXCEPT SELECT a FROM t3\n     ORDER BY 1 COLLATE binary"
-        }
-      ]
-    },
-    {
-      "name": "selectE-3.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT 1 EXCEPT SELECT 2 ORDER BY 1 COLLATE nocase EXCEPT SELECT 3;",
-          "expect": "1 {ORDER BY clause should come after EXCEPT not before}"
         }
       ]
     }

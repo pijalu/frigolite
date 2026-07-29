@@ -1,0 +1,16 @@
+{
+  "file": "e_uri.test",
+  "name": "e_uri",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,26 @@
+{
+  "file": "vacuummem.test",
+  "name": "vacuummem",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = -2000;\n  CREATE TABLE t1(a, b, c);\n\n  WITH r(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM r WHERE i<100000\n  )\n  INSERT INTO t1 SELECT randomblob(100),randomblob(100),randomblob(100) FROM r;\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE +a IS NOT NULL",
+          "expect": "100000"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,103 @@
+{
+  "file": "pragma3.test",
+  "name": "pragma3",
+  "tests": [
+    {
+      "name": "pragma3-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA data_version;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.data_version;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.data_version=1234;\n  PRAGMA main.data_version;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA data_version;\n  BEGIN IMMEDIATE;\n  PRAGMA data_version;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(100),(200),(300);\n  PRAGMA data_version;\n  COMMIT;\n  SELECT * FROM t1;\n  PRAGMA data_version;",
+          "expect": "1 1 1 100 200 300 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA data_version;\n  BEGIN IMMEDIATE;\n  PRAGMA data_version;\n  INSERT INTO t1 VALUES(400),(500);\n  PRAGMA data_version;\n  COMMIT;\n  SELECT * FROM t1;\n  PRAGMA data_version;\n  PRAGMA shrink_memory;",
+          "expect": "1 1 1 100 200 300 400 500 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma3-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n  PRAGMA data_version;",
+          "expect": "101 201 301 401 501 2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    PRAGMA data_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version; SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a>300"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode=WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

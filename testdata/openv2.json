@@ -3,32 +3,6 @@
   "name": "openv2",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master"
-        }
-      ]
-    },
-    {
       "name": "openv2-1.4",
       "steps": [
         {
@@ -39,6 +13,28 @@
       ]
     },
     {
+      "name": "openv2-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)",
+          "expect": "1 {attempt to write a readonly database}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -47,21 +43,10 @@
       ]
     },
     {
-      "name": "setup_5",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master"
-        }
-      ]
-    },
-    {
-      "name": "openv2-2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x)",
-          "expect": "1 {attempt to write a readonly database}"
+          "type": "reset_db"
         }
       ]
     }

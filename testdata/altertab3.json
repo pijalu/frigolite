@@ -3,14 +3,6 @@
   "name": "altertab3",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
@@ -26,14 +18,6 @@
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  SELECT sql FROM sqlite_master WHERE name = 'r1';",
           "expect": "{CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b, a name FROM \"t1x\" \n      INTERSECT \n    SELECT a,b,c FROM \"t1x\" WHERE b>='d' ORDER BY name;\n    SELECT new.c;\n  END}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -62,14 +46,6 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_master WHERE name = 'v1'",
           "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE a=1 OR (b IN ())}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -141,14 +117,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
@@ -167,14 +135,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.0",
       "steps": [
         {
@@ -189,14 +149,6 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE Table0 RENAME Col0 TO Col0;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -239,14 +191,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
@@ -285,14 +229,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "9.1",
       "steps": [
         {
@@ -307,14 +243,6 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t1x;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -334,14 +262,6 @@
           "type": "query",
           "sql": "ALTER TABLE t2 RENAME TO t3;\n  SELECT sql FROM sqlite_master WHERE name='v1';",
           "expect": "{CREATE VIEW v1 AS SELECT * FROM t1 WHERE (\n    SELECT t1.a FROM t1, t2\n  ) IN () OR t1.a=5}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -384,14 +304,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "12.1",
       "steps": [
         {
@@ -406,14 +318,6 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t1x;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -436,10 +340,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "14.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    SELECT sum() FILTER (WHERE (SELECT sum() FILTER (WHERE 0)) AND a);\n  END;"
         }
       ]
     },
@@ -450,14 +355,6 @@
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t1x;",
           "expect": "1 {error in trigger AFTER: no such column: a}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -480,10 +377,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "17.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  CREATE TRIGGER AFTER INSERT ON t1 WHEN new.a NOT NULL BEGIN\n    SELECT a () FILTER (WHERE a>0) FROM t1;\n  END;"
         }
       ]
     },
@@ -494,14 +392,6 @@
           "type": "query",
           "sql": "ALTER TABLE t1 RENAME TO t1x;\n  ALTER TABLE t1x RENAME a TO aaa;\n  SELECT sql FROM sqlite_master WHERE type='trigger';",
           "expect": "{CREATE TRIGGER AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    SELECT a () FILTER (WHERE aaa>0) FROM \"t1x\";\n  END}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -535,14 +425,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "19.0",
       "steps": [
         {
@@ -562,27 +444,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "21.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE s(col);\n  CREATE VIEW v AS SELECT ( \n    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) \n  ) IN() ; \n  CREATE TABLE a(a);\n  ALTER TABLE a RENAME a TO b;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -644,14 +510,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "23.1",
       "steps": [
         {
@@ -667,14 +525,6 @@
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t1x;",
           "expect": "1 {error in trigger r1: no such table: main.t2}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -708,19 +558,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "24.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE v0 (v1); CREATE TABLE v2 (v3 INTEGER UNIQUE ON CONFLICT ABORT); CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( ( SELECT v1 AS PROMO_REVENUE FROM v2 JOIN v0 USING ( VALUE ) ) AND 0 ) BEGIN DELETE FROM v2; END;"
+          "sql": "CREATE TABLE v0 (v1); \n  CREATE TABLE v2 (v3 INTEGER UNIQUE ON CONFLICT ABORT); \n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( \n      ( SELECT v1 AS PROMO_REVENUE FROM v2 JOIN v0 USING ( VALUE ) ) AND 0 ) \n  BEGIN \n    DELETE FROM v2; \n  END;"
         }
       ]
     },
@@ -754,14 +596,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "25.1",
       "steps": [
         {
@@ -776,14 +610,6 @@
         {
           "type": "exec",
           "sql": "#  ALTER TABLE t2 RENAME COLUMN a TO aaa;\n#"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -825,14 +651,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "26.5",
       "steps": [
         {
@@ -848,14 +666,6 @@
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t2;",
           "expect": "1 {error in trigger xx: no such column: xx}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -879,14 +689,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "28.1",
       "steps": [
         {
@@ -902,14 +704,6 @@
           "type": "query",
           "sql": "SELECT sql FROM sqlite_schema WHERE type='trigger'",
           "expect": "{CREATE TRIGGER AFTER INSERT ON \"t2\" BEGIN\n    UPDATE \"t2\" SET (c,d)=(a,b);\n  END}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -978,14 +772,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "30.0",
       "steps": [
         {
@@ -1023,32 +809,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "31.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(ii INTEGER PRIMARY KEY, tt INTEGER, rr REAL);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t1 SELECT NULL, i, 5.0 FROM s;"
-        }
-      ]
-    },
-    {
-      "name": "31.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 DROP COLUMN tt;"
-        },
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 DROP COLUMN tt;"
         }
       ]
     },
@@ -1059,14 +824,6 @@
           "type": "query",
           "sql": "SELECT rr FROM t1 LIMIT 1",
           "expect": "5.0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -1099,14 +856,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "32.2.0",
       "steps": [
         {
@@ -1135,14 +884,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "33.1",
       "steps": [
         {
@@ -1158,6 +899,291 @@
           "type": "query",
           "sql": "ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;",
           "expect": "{CREATE TABLE x1(a TEXT, c CHECK(c!=0))}"
+        }
+      ]
+    },
+    {
+      "name": "31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN tt;"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN tt;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

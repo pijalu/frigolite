@@ -1,0 +1,262 @@
+{
+  "file": "e_blobopen.test",
+  "name": "e_blobopen",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE main.t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TEMP TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n\n  CREATE TABLE main.x1(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TEMP TABLE x2(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n  CREATE TABLE aux.x3(a INTEGER PRIMARY KEY, b TEXT, c BLOB);\n\n  INSERT INTO main.t1 VALUES(1, 'main one', X'0101');\n  INSERT INTO main.t1 VALUES(2, 'main two', X'0102');\n  INSERT INTO main.t1 VALUES(3, 'main three', X'0103');\n  INSERT INTO main.t1 VALUES(4, 'main four', X'0104');\n  INSERT INTO main.t1 VALUES(5, 'main five', X'0105');\n\n  INSERT INTO main.x1 VALUES(1, 'x main one', X'000101');\n  INSERT INTO main.x1 VALUES(2, 'x main two', X'000102');\n  INSERT INTO main.x1 VALUES(3, 'x main three', X'000103');\n  INSERT INTO main.x1 VALUES(4, 'x main four', X'000104');\n  INSERT INTO main.x1 VALUES(5, 'x main five', X'000105');\n\n  INSERT INTO temp.t1 VALUES(1, 'temp one', X'0201');\n  INSERT INTO temp.t1 VALUES(2, 'temp two', X'0202');\n  INSERT INTO temp.t1 VALUES(3, 'temp three', X'0203');\n  INSERT INTO temp.t1 VALUES(4, 'temp four', X'0204');\n  INSERT INTO temp.t1 VALUES(5, 'temp five', X'0205');\n\n  INSERT INTO temp.x2 VALUES(1, 'x temp one', X'000201');\n  INSERT INTO temp.x2 VALUES(2, 'x temp two', X'000202');\n  INSERT INTO temp.x2 VALUES(3, 'x temp three', X'000203');\n  INSERT INTO temp.x2 VALUES(4, 'x temp four', X'000204');\n  INSERT INTO temp.x2 VALUES(5, 'x temp five', X'000205');\n\n  INSERT INTO aux.t1 VALUES(1, 'aux one', X'0301');\n  INSERT INTO aux.t1 VALUES(2, 'aux two', X'0302');\n  INSERT INTO aux.t1 VALUES(3, 'aux three', X'0303');\n  INSERT INTO aux.t1 VALUES(4, 'aux four', X'0304');\n  INSERT INTO aux.t1 VALUES(5, 'aux five', X'0305');\n\n  INSERT INTO aux.x3 VALUES(1, 'x aux one', X'000301');\n  INSERT INTO aux.x3 VALUES(2, 'x aux two', X'000302');\n  INSERT INTO aux.x3 VALUES(3, 'x aux three', X'000303');\n  INSERT INTO aux.x3 VALUES(4, 'x aux four', X'000304');\n  INSERT INTO aux.x3 VALUES(5, 'x aux five', X'000305');"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('abcd', 152);\n  INSERT INTO t1 VALUES(NULL, X'00010203');\n  INSERT INTO t1 VALUES('', 154.2);\n\n  CREATE TABLE t2(x PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 'blob');\n\n  CREATE TABLE t3(a PRIMARY KEY, b, c, d, e, f, UNIQUE(e, f));\n  INSERT INTO t3 VALUES('aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff');\n  CREATE INDEX t3b ON t3(b);\n\n  CREATE TABLE p1(x PRIMARY KEY);\n  INSERT INTO p1 VALUES('abc');\n\n  CREATE TABLE c1(a INTEGER PRIMARY KEY, b REFERENCES p1);\n  INSERT INTO c1 VALUES(45, 'abc');"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c UNIQUE);\n  INSERT INTO b1 VALUES(1, '1234567890', 1);\n  INSERT INTO b1 VALUES(2, '1234567890', 2);\n  INSERT INTO b1 VALUES(3, '1234567890', 3);\n  INSERT INTO b1 VALUES(4, '1234567890', 4);\n  INSERT INTO b1 VALUES(5, '1234567890', 5);\n  INSERT INTO b1 VALUES(6, '1234567890', 6);\n\n  CREATE TABLE b2(a INTEGER PRIMARY KEY, b, c UNIQUE);\n  INSERT INTO b2 VALUES(1, '1234567890', 1);\n  INSERT INTO b2 VALUES(2, '1234567890', 2);\n  INSERT INTO b2 VALUES(3, '1234567890', 3);\n  INSERT INTO b2 VALUES(4, '1234567890', 4);\n  INSERT INTO b2 VALUES(5, '1234567890', 5);\n  INSERT INTO b2 VALUES(6, '1234567890', 6);"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b3(x INTEGER PRIMARY KEY, y TEXT, z INTEGER);\n  INSERT INTO b3 VALUES(22, '..........', NULL);"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b3 SET z = 'not null';"
+        }
+      ]
+    },
+    {
+      "name": "12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3;",
+          "expect": "22 xxxxx..... {not null}"
+        }
+      ]
+    },
+    {
+      "name": "12.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM b3;",
+          "expect": "22 xxxxx..... {not null}"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c2(i INTEGER PRIMARY KEY, j);\n  INSERT INTO c2 VALUES(10, zeroblob(24));"
+        }
+      ]
+    },
+    {
+      "name": "11.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b1 WHERE a = 1"
+        }
+      ]
+    },
+    {
+      "name": "11.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b1 WHERE a = 2"
+        }
+      ]
+    },
+    {
+      "name": "11.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b1 SET c = 42 WHERE a=4"
+        }
+      ]
+    },
+    {
+      "name": "11.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b1 SET c = 43 WHERE a=3"
+        }
+      ]
+    },
+    {
+      "name": "11.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5)"
+        }
+      ]
+    },
+    {
+      "name": "11.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6)"
+        }
+      ]
+    },
+    {
+      "name": "11.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b2 WHERE a = 1"
+        }
+      ]
+    },
+    {
+      "name": "11.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b2 WHERE a = 2"
+        }
+      ]
+    },
+    {
+      "name": "11.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b2 SET c = 42 WHERE a=4"
+        }
+      ]
+    },
+    {
+      "name": "11.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE b2 SET c = 43 WHERE a=3"
+        }
+      ]
+    },
+    {
+      "name": "11.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5)"
+        }
+      ]
+    },
+    {
+      "name": "11.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6)"
+        }
+      ]
+    },
+    {
+      "name": "13.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT j FROM c2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b1 WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b1 WHERE a = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE b1 SET c = 42 WHERE a=4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE b1 SET c = 43 WHERE a=3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b2 WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM b2 WHERE a = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE b2 SET c = 42 WHERE a=4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE b2 SET c = 43 WHERE a=3"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT j FROM c2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

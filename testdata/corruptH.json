@@ -3,8 +3,30 @@
   "name": "corruptH",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.1",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES(randomblob(200));\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;\n  INSERT INTO t2 SELECT randomblob(200) FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n  PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t3(x);\n\n  CREATE TABLE t2(x PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(randomblob(100));\n\n  DROP TABLE t3;"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n\n  CREATE TABLE t2(c INTEGER PRAGMA KEY, d);\n  INSERT INTO t2 VALUES(1, randomblob(1100));"
+        },
         {
           "type": "exec",
           "sql": "SELECT name, rootpage FROM sqlite_master"
@@ -20,20 +42,7 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t2"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "SELECT name, rootpage FROM sqlite_master"
@@ -41,20 +50,11 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t1 WHERE a IN (1, 2)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_4",
-      "steps": [
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;\n      INSERT INTO t2 SELECT randomblob(100) FROM t2;"
+        },
         {
           "type": "exec",
           "sql": "SELECT name, rootpage FROM sqlite_master"
@@ -66,6 +66,22 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t2 WHERE c=1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

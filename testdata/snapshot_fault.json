@@ -1,0 +1,108 @@
+{
+  "file": "snapshot_fault.test",
+  "name": "snapshot_fault",
+  "tests": [
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t1 VALUES('def');"
+        }
+      ]
+    },
+    {
+      "name": "4.1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 500 * 9500 ));\n  PRAGMA user_version = 211;",
+          "expect": "wal 0"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512;\n  PRAGMA journal_mode = wal;\n  PRAGMA wal_autocheckpoint = 0;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES(randomblob( 5000 ));\n  PRAGMA user_version = 211;",
+          "expect": "wal 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n    INSERT INTO t1 VALUES(1, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(2, randomblob(500), randomblob(500));\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, randomblob(500), randomblob(500));\n    BEGIN;\n      SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=randomblob(501), c=randomblob(501) WHERE a=1;\n    INSERT INTO t1 VALUES(4, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(5, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(6, randomblob(500), randomblob(500));"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b UNIQUE, c UNIQUE);\n    INSERT INTO t1 VALUES(1, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(2, randomblob(500), randomblob(500));\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, randomblob(500), randomblob(500));\n    BEGIN;\n      SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=randomblob(501), c=randomblob(501) WHERE a=1;\n    INSERT INTO t1 VALUES(4, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(5, randomblob(500), randomblob(500));\n    INSERT INTO t1 VALUES(6, randomblob(500), randomblob(500));\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1;\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

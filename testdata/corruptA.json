@@ -8,10 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
         }
       ]
     },
@@ -52,6 +48,10 @@
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 {file is not a database}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);"
         }
       ]
     }

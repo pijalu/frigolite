@@ -80,14 +80,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.4",
       "steps": [
         {
@@ -98,28 +90,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE mmm(x, y);\n  INSERT INTO mmm VALUES(1, 'one');\n  INSERT INTO mmm VALUES(2, 'two');\n  INSERT INTO mmm VALUES(3, 'three');\n\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b);\n  CREATE TABLE aux.mmm(x, y);\n  INSERT INTO aux.mmm VALUES(1, 'ONE');\n  INSERT INTO aux.mmm VALUES(2, 'TWO');\n  INSERT INTO aux.mmm VALUES(3, 'THREE');\n\n  CREATE TRIGGER aux.ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET b=y FROM mmm WHERE x=new.a AND a=new.a;\n  END;\n  \n  INSERT INTO t1(a) VALUES (2);\n  SELECT * FROM t1;",
           "expect": "2 TWO"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -167,6 +143,30 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE map(k, v);\n  INSERT INTO map VALUES('b', 'twelve');\n  INSERT INTO map VALUES('d', 'fourteen');\n  UPDATE v1 SET a=map.v FROM map WHERE v1.k=map.k;\n  SELECT * FROM log;\n  DELETE FROM log;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

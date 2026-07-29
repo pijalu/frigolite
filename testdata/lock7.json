@@ -8,10 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b)"
         }
       ]
     },
@@ -22,10 +18,6 @@
           "type": "query",
           "sql": "PRAGMA lock_status",
           "expect": "main unlocked temp closed"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
         }
       ]
     },
@@ -36,10 +28,6 @@
           "type": "query",
           "sql": "PRAGMA lock_status",
           "expect": "main unlocked temp closed"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
         }
       ]
     },
@@ -70,10 +58,6 @@
           "type": "query",
           "sql": "PRAGMA lock_status",
           "expect": "main reserved temp closed"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
         }
       ]
     },
@@ -84,10 +68,6 @@
           "type": "query",
           "sql": "PRAGMA lock_status",
           "expect": "main unlocked temp closed"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA lock_status"
         }
       ]
     },
@@ -97,6 +77,26 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
         },
         {
           "type": "exec",

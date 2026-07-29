@@ -1,0 +1,2667 @@
+{
+  "file": "without_rowid3.test",
+  "name": "without_rowid3",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = on"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t3)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t4)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t7)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t8)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t3)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t4)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t7)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t8)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA count_changes = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t3)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t4)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t7)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_check(t8)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 0"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA count_changes = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 0"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;",
+          "expect": "35.0 text"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM i",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;",
+          "expect": "35.0 text 35 integer"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM i",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-1.7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO i VALUES('sqlite');\n    INSERT INTO j VALUES('sqlite');\n    DELETE FROM i WHERE i = 'SQLite';"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO i VALUES('sqlite');\n    INSERT INTO j VALUES('sqlite');\n    DELETE FROM i WHERE i = 'SQLite';"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ab VALUES(1, 'b');\n    INSERT INTO cd VALUES(1, 'd');\n    INSERT INTO ef VALUES(1, 'e');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ab VALUES(1, 'b');\n    INSERT INTO cd VALUES(1, 'd');\n    INSERT INTO ef VALUES(1, 'e');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ab SET a = 5",
+          "expect": "1 {CHECK constraint failed: e!=5}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ab",
+          "expect": "1 b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ab"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE ab SET a = 5",
+          "expect": "1 {CHECK constraint failed: e!=5}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef",
+          "expect": "1 b 1 d 1 e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM ab",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef",
+          "expect": "1 b 1 d 1 e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = off"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = off"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = on"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = on"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1(a)) WITHOUT rowid;\n      INSERT INTO t1 VALUES('hello', 'world');\n      INSERT INTO t2 VALUES('key', 'hello');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1(a)) WITHOUT rowid;\n      INSERT INTO t1 VALUES('hello', 'world');\n      INSERT INTO t2 VALUES('key', 'hello');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = on"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = on"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a REFERENCES t2(c), b);\n      CREATE TABLE t2(c UNIQUE, b);\n      INSERT INTO t2 VALUES(1, 2);\n      INSERT INTO t1 VALUES(1, 2);\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a REFERENCES t2(c), b);\n      CREATE TABLE t2(c UNIQUE, b);\n      INSERT INTO t2 VALUES(1, 2);\n      INSERT INTO t1 VALUES(1, 2);\n      VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1, 'A');",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 3);\n    INSERT INTO t2 VALUES(1, 'A');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 3);\n    INSERT INTO t2 VALUES(1, 'A');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET c = 2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET c = 2"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET c = 3",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 2",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 1"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-7.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 3",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t2;\n    DELETE FROM t1 WHERE a = 2;\n    SELECT * FROM t2;",
+          "expect": "1 2 1 1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t2;\n    DELETE FROM t1 WHERE a = 2;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(2, 'two');\n    UPDATE t2 SET d = 2;\n    DELETE FROM t1 WHERE a = 1;\n    SELECT * FROM t2;",
+          "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 'two');\n    UPDATE t2 SET d = 2;\n    DELETE FROM t1 WHERE a = 1;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "2 two"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INSERT INTO pp VALUES(7, 8, 9);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INSERT INTO pp VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO cc VALUES(6, 'A', 5);\n    INSERT INTO cc VALUES(6, 'B', 5);\n    INSERT INTO cc VALUES(9, 'A', 8);\n    INSERT INTO cc VALUES(9, 'B', 8);\n    UPDATE pp SET b = 1 WHERE a = 7;\n    SELECT * FROM cc;",
+          "expect": "6 A 5 6 B 5 3 A 2 3 B 2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cc VALUES(6, 'A', 5);\n    INSERT INTO cc VALUES(6, 'B', 5);\n    INSERT INTO cc VALUES(9, 'A', 8);\n    INSERT INTO cc VALUES(9, 'B', 8);\n    UPDATE pp SET b = 1 WHERE a = 7;\n    SELECT * FROM cc;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-9.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;",
+          "expect": "{} A {} {} B {} 3 A 2 3 B 2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-10.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(rowid) REFERENCES t1(a));",
+          "expect": "1 {unknown column \"rowid\" in foreign key definition}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-10.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(rowid, d, FOREIGN KEY(rowid) REFERENCES t1(a));",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-10.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, a, b) VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(1, 1);",
+          "expect": "1 {foreign key mismatch - \"t2\" referencing \"t1\"}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-10.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(rowid PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, b) VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 1);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-11.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;",
+          "expect": "15 100"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;",
+          "expect": "A B a b"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(y REFERENCES t1 ON DELETE RESTRICT);\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(y REFERENCES t1 ON DELETE RESTRICT);\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;",
+          "expect": "A B a b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO down(c39, c38) VALUES('yes', 'no')",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-12.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;",
+          "expect": "yes no yes no"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-13.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM pp;\n      SELECT * FROM cc;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TABLE t2(a, b);\n      INSERT INTO t2(a,b) VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TABLE t2(a, b);\n      INSERT INTO t2(a,b) VALUES(1,2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'",
+          "expect": "1 {Cannot add a REFERENCES column with non-NULL default value}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1",
+          "expect": "1 {Cannot add a REFERENCES column with non-NULL default value}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM sqlite_schema WHERE name='t2';",
+          "expect": "{CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM sqlite_schema WHERE name='t2';"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_schema WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_schema WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 2, 3)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, NULL)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET b = 5",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET b = 1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, 1)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1tmp.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TEMP TABLE t2(a, b);\n      INSERT INTO temp.t2(a,b) VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TEMP TABLE t2(a, b);\n      INSERT INTO temp.t2(a,b) VALUES(1,2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1tmp.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1tmp.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1tmp.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'",
+          "expect": "1 {Cannot add a REFERENCES column with non-NULL default value}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1tmp.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1",
+          "expect": "1 {Cannot add a REFERENCES column with non-NULL default value}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1tmp.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM temp.sqlite_schema WHERE name='t2';",
+          "expect": "{CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM temp.sqlite_schema WHERE name='t2';"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TEMP TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TEMP TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TEMP TABLE t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TEMP TABLE t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_temp_schema WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM temp.sqlite_schema WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 2, 3)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, NULL)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET b = 5",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET b = 1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2tmp.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, 1)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1aux.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux;\n      CREATE TABLE aux.t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TABLE aux.t2(a, b);\n      INSERT INTO aux.t2(a,b) VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux;\n      CREATE TABLE aux.t1(a PRIMARY KEY) WITHOUT rowid;\n      CREATE TABLE aux.t2(a, b);\n      INSERT INTO aux.t2(a,b) VALUES(1,2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1aux.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN d DEFAULT NULL REFERENCES t1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1aux.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN e REFERENCES t1 DEFAULT NULL",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1aux.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN f REFERENCES t1 DEFAULT 'text'",
+          "expect": "1 {Cannot add a REFERENCES column with non-NULL default value}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1aux.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN g DEFAULT CURRENT_TIME REFERENCES t1",
+          "expect": "1 {Cannot add a REFERENCES column with non-NULL default value}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.1aux.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM aux.sqlite_schema WHERE name='t2';",
+          "expect": "{CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = off;\n      ALTER TABLE t2 ADD COLUMN h DEFAULT 'text' REFERENCES t1;\n      PRAGMA foreign_keys = on;\n      SELECT sql FROM aux.sqlite_schema WHERE name='t2';"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TABLE aux.t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TABLE aux.t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE aux.t1(a PRIMARY KEY, b REFERENCES t1) WITHOUT rowid;\n      CREATE TABLE aux.t2(a PRIMARY KEY, b REFERENCES t1, c REFERENCES t2)\n            WITHOUT rowid;\n      CREATE TABLE aux.t3(a REFERENCES t1, b REFERENCES t2, c REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM aux.sqlite_schema WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM aux.sqlite_schema WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, 2, 3)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, NULL)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET b = 5",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t4 SET b = 1",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-14.2aux.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, 1)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, 1)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    INSERT INTO t1 VALUES('a', 1);\n    CREATE TABLE t2(x REFERENCES t1);\n    INSERT INTO t2 VALUES('a');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    INSERT INTO t1 VALUES('a', 1);\n    CREATE TABLE t2(x REFERENCES t1);\n    INSERT INTO t2 VALUES('a');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2;\n    DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('x')",
+          "expect": "1 {no such table: main.t1}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x PRIMARY KEY) WITHOUT rowid;\n    INSERT INTO t1 VALUES('x');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x PRIMARY KEY) WITHOUT rowid;\n    INSERT INTO t1 VALUES('x');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('x')"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE cc"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE cc"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pp VALUES('a', 'b');\n    INSERT INTO cc VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE pp;\n      CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n      INSERT INTO pp VALUES(1, 'a', 'b');\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.3.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE v USING echo(t1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE v USING echo(t1)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-2.14.4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE v;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE v;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-15.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-15.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-15.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cc WHERE x = 'see'"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cc WHERE x = 'see'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-15.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM pp WHERE a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM pp WHERE a = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO self VALUES(13, 13)"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE self SET a = 14, b = 14"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM self"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     UNIQUE (a,b),\n     PRIMARY KEY (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET c=11, e=22 WHERE a=1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d=11, f=22 WHERE a=1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     PRIMARY KEY (a,b),\n     UNIQUE (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET c=11, e=22 WHERE a=1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d=11, f=22 WHERE a=1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-16.4.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;",
+          "expect": "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA count_changes = 1",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO one VALUES(0, 0, 0);\n      UPDATE two SET e=e+1, f=f+1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM one",
+          "expect": "1 2 3 2 3 4 3 4 5 0 0 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM one"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM two",
+          "expect": "1 2 3 2 3 4 3 4 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM two"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE high SET \"a'b!\" = 'c'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE high SET \"a'b!\" = 'c'"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM high ; SELECT * FROM low",
+          "expect": "c b b c"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM high ; SELECT * FROM low"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM high"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM high"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-17.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM high ; SELECT * FROM low"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM high ; SELECT * FROM low"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 0"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE long(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE short(d, e, f REFERENCES long);\n      CREATE TABLE mid(g, h, i REFERENCES long DEFERRABLE INITIALLY DEFERRED);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE long(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE short(d, e, f REFERENCES long);\n      CREATE TABLE mid(g, h, i REFERENCES long DEFERRABLE INITIALLY DEFERRED);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO long VALUES(1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO long VALUES(1, 2, 3)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO short VALUES(1, 3, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO short VALUES(1, 3, 2)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO mid VALUES(1, 3, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO mid VALUES(1, 3, 2)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nought(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nought(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO nought VALUES(2, 1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cross VALUES(0, 1, 0)"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE nought SET b = 5"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM cross",
+          "expect": "0 5 0"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM cross"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO two VALUES(100, 101);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO short VALUES(1, 3, 2)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO short VALUES(1, 3, NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO short VALUES(1, 3, NULL)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM short",
+          "expect": "1 3 2 1 3 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM short"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-18.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE short SET f = 2 WHERE f IS NULL",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM cc"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT ; SELECT * FROM cc"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cc ; DELETE FROM pp"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM pp"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM cc"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO pp VALUES(3, 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT ; SELECT * FROM pp"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        INSERT INTO cc VALUES(2, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT ; SELECT * FROM cc"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cc ; DELETE FROM pp"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(1, 2)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(NULL, 3)"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = 5 WHERE e IS NULL",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = 1 WHERE e IS NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = 1 WHERE e IS NULL"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = NULL WHERE f = 3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = NULL WHERE f = 3"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 10",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = NULL",
+          "expect": "1 {NOT NULL constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET e = NULL"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 10;\n    DELETE FROM t1;\n    DELETE FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 10;\n    DELETE FROM t1;\n    DELETE FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, NULL);\n    INSERT INTO t3 VALUES(1, 2, NULL);\n    INSERT INTO t3 VALUES(1, NULL, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(1, NULL, NULL);\n    INSERT INTO t3 VALUES(1, 2, NULL);\n    INSERT INTO t3 VALUES(1, NULL, 3);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(3, 1, 4)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1, 4);\n    INSERT INTO t3 VALUES(3, 1, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1, 4);\n    INSERT INTO t3 VALUES(3, 1, 4);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b = 10",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 10"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 10"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.1.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET h = 'hello' WHERE i = 3",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;",
+          "expect": "2 one 4 four"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;",
+          "expect": "2 one"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;",
+          "expect": "hello 2 2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;",
+          "expect": "{} one 4 four"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;",
+          "expect": "{} one {} four"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;",
+          "expect": "hello {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-genfkey.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET h = 2, i = 2;\n    DELETE FROM t1;\n    SELECT * FROM t3;",
+          "expect": "hello {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t3 SET h = 2, i = 2;\n    DELETE FROM t1;\n    SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-dd08e5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-dd08e5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM tdd08;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-dd08e5.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM tdd08;",
+          "expect": "200 300"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM tdd08;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-dd08e5.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO tdd08_b VALUES(400,500,300);",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-dd08e5.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE tdd08_b SET x=x+1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-dd08e5.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE tdd08 SET a=a+1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-ce7c13.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE tce71(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX ice71 ON tce71(a,b);\n    INSERT INTO tce71 VALUES(100,200);\n    CREATE TABLE tce72(w, x, y, FOREIGN KEY(x,y) REFERENCES tce71(a,b));\n    INSERT INTO tce72 VALUES(300,100,200);\n    UPDATE tce71 set b = 200 where a = 100;\n    SELECT * FROM tce71, tce72;",
+          "expect": "100 200 300 100 200"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tce71(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX ice71 ON tce71(a,b);\n    INSERT INTO tce71 VALUES(100,200);\n    CREATE TABLE tce72(w, x, y, FOREIGN KEY(x,y) REFERENCES tce71(a,b));\n    INSERT INTO tce72 VALUES(300,100,200);\n    UPDATE tce71 set b = 200 where a = 100;\n    SELECT * FROM tce71, tce72;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-ce7c13.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE tce71 set b = 201 where a = 100;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-ce7c13.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE tce71 set a = 101 where a = 100;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-ce7c13.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE tce73(a INTEGER PRIMARY KEY, b, UNIQUE(a,b)) WITHOUT rowid;\n    INSERT INTO tce73 VALUES(100,200);\n    CREATE TABLE tce74(w, x, y, FOREIGN KEY(x,y) REFERENCES tce73(a,b));\n    INSERT INTO tce74 VALUES(300,100,200);\n    UPDATE tce73 set b = 200 where a = 100;\n    SELECT * FROM tce73, tce74;",
+          "expect": "100 200 300 100 200"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tce73(a INTEGER PRIMARY KEY, b, UNIQUE(a,b)) WITHOUT rowid;\n    INSERT INTO tce73 VALUES(100,200);\n    CREATE TABLE tce74(w, x, y, FOREIGN KEY(x,y) REFERENCES tce73(a,b));\n    INSERT INTO tce74 VALUES(300,100,200);\n    UPDATE tce73 set b = 200 where a = 100;\n    SELECT * FROM tce73, tce74;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-ce7c13.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE tce73 set b = 201 where a = 100;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-ce7c13.1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE tce73 set a = 101 where a = 100;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-30.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid3-30.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 SELECT * FROM t1;\n  SELECT changes();",
+          "expect": "3"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

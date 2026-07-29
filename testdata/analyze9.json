@@ -1,0 +1,881 @@
+{
+  "file": "analyze9.test",
+  "name": "analyze9",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT, b TEXT); \n  INSERT INTO t1 VALUES('(0)', '(0)');\n  INSERT INTO t1 VALUES('(1)', '(1)');\n  INSERT INTO t1 VALUES('(2)', '(2)');\n  INSERT INTO t1 VALUES('(3)', '(3)');\n  INSERT INTO t1 VALUES('(4)', '(4)');\n  CREATE INDEX i1 ON t1(a, b);"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tbl,idx,nEq,nLt,nDLt,test_decode(sample) FROM sqlite_stat4;",
+          "expect": "t1 i1 {1 1 1} {0 0 0} {0 0 0} {(0) (0) 1}\n  t1 i1 {1 1 1} {1 1 1} {1 1 1} {(1) (1) 2}\n  t1 i1 {1 1 1} {2 2 2} {2 2 2} {(2) (2) 3}\n  t1 i1 {1 1 1} {3 3 3} {3 3 3} {(3) (3) 4}\n  t1 i1 {1 1 1} {4 4 4} {4 4 4} {(4) (4) 5}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT tbl,idx,nEq,nLt,nDLt,s(sample) FROM sqlite_stat4;",
+          "expect": "t1 i1 {1 1 1} {0 0 0} {0 0 0} ....(0)(0)\n    t1 i1 {1 1 1} {1 1 1} {1 1 1} ....(1)(1).\n    t1 i1 {1 1 1} {2 2 2} {2 2 2} ....(2)(2).\n    t1 i1 {1 1 1} {3 3 3} {3 3 3} ....(3)(3).\n    t1 i1 {1 1 1} {4 4 4} {4 4 4} ....(4)(4)."
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('some text', 14, NULL);\n  INSERT INTO t1 VALUES(22.0, NULL, x'656667');\n  CREATE INDEX i1 ON t1(a, b, c);\n  ANALYZE;\n  SELECT test_decode(sample) FROM sqlite_stat4;",
+          "expect": "{22.0 NULL x'656667' 2} \n  {{some text} 14 NULL 1}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a, b);\n  BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2 GROUP BY a;"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n  SELECT lindex(nEq, 0) FROM sqlite_stat4;"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 1, 'one-a');\n  INSERT INTO t1 VALUES(11, 1, 'one-b');\n  INSERT INTO t1 VALUES(21, 1, 'one-c');\n  INSERT INTO t1 VALUES(31, 1, 'one-d');\n  INSERT INTO t1 VALUES(41, 1, 'one-e');\n  INSERT INTO t1 VALUES(51, 1, 'one-f');\n  INSERT INTO t1 VALUES(61, 1, 'one-g');\n  INSERT INTO t1 VALUES(71, 1, 'one-h');\n  INSERT INTO t1 VALUES(81, 1, 'one-i');\n  INSERT INTO t1 VALUES(91, 1, 'one-j');\n  INSERT INTO t1 SELECT a+1,2,'two' || substr(c,4) FROM t1;\n  INSERT INTO t1 SELECT a+2,3,'three'||substr(c,4) FROM t1 WHERE c GLOB 'one-*';\n  INSERT INTO t1 SELECT a+3,4,'four'||substr(c,4) FROM t1 WHERE c GLOB 'one-*';\n  INSERT INTO t1 SELECT a+4,5,'five'||substr(c,4) FROM t1 WHERE c GLOB 'one-*';\n  INSERT INTO t1 SELECT a+5,6,'six'||substr(c,4) FROM t1 WHERE c GLOB 'one-*';\t\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND 60;",
+          "expect": "three-d three-e three-f"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(c, b, a);"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(c, b, a) VALUES(200, 1, 'a');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'b');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'c');\n\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'e');\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'f');\n\n    INSERT INTO t1(c, b, a) VALUES(201, 3, 'g');\n    INSERT INTO t1(c, b, a) VALUES(201, 4, 'h');\n\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;\n    SELECT count(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    neq,\n    lrange(nlt, 0, 2),\n    lrange(ndlt, 0, 2),\n    lrange(test_decode(sample), 0, 2)\n    FROM sqlite_stat4\n  ORDER BY rowid LIMIT 16;",
+          "expect": "{10 10 10 1} {0 0 0} {0 0 0} {0 0 0}\n  {10 10 10 1} {10 10 10} {1 1 1} {1 1 1}\n  {10 10 10 1} {20 20 20} {2 2 2} {2 2 2}\n  {10 10 10 1} {30 30 30} {3 3 3} {3 3 3}\n  {10 10 10 1} {40 40 40} {4 4 4} {4 4 4}\n  {10 10 10 1} {50 50 50} {5 5 5} {5 5 5}\n  {10 10 10 1} {60 60 60} {6 6 6} {6 6 6}\n  {10 10 10 1} {70 70 70} {7 7 7} {7 7 7}\n  {10 10 10 1} {80 80 80} {8 8 8} {8 8 8}\n  {10 10 10 1} {90 90 90} {9 9 9} {9 9 9}\n  {10 10 10 1} {100 100 100} {10 10 10} {10 10 10}\n  {10 10 10 1} {110 110 110} {11 11 11} {11 11 11}\n  {10 10 10 1} {120 120 120} {12 12 12} {12 12 12}\n  {10 10 10 1} {130 130 130} {13 13 13} {13 13 13}\n  {10 10 10 1} {140 140 140} {14 14 14} {14 14 14}\n  {10 10 10 1} {150 150 150} {15 15 15} {15 15 15}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    neq,\n    lrange(nlt, 0, 2),\n    lrange(ndlt, 0, 2),\n    lrange(test_decode(sample), 0, 1)\n    FROM sqlite_stat4\n  ORDER BY rowid DESC LIMIT 2;",
+          "expect": "{2 1 1 1} {295 296 296} {120 122 125} {201 4} \n  {5 3 1 1} {290 290 290} {119 119 119} {200 1}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(DISTINCT c) FROM t1 WHERE c<201"
+        }
+      ]
+    },
+    {
+      "name": "4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(DISTINCT c) FROM t1 WHERE c<200"
+        }
+      ]
+    },
+    {
+      "name": "4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM sqlite_stat4\n  WHERE lindex(test_decode(sample), 3) IN \n    ('34', '68', '102', '136', '170', '204', '238', '272')",
+          "expect": "8"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(o,t INTEGER PRIMARY KEY);\n    CREATE INDEX i1 ON t1(o);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(o,t INTEGER PRIMARY KEY);\n    CREATE INDEX i1 ON t1(o);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;"
+        }
+      ]
+    },
+    {
+      "name": "4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT test_decode(sample) FROM sqlite_stat4;",
+          "expect": "{x 211} {x 423} {x 635} {x 847} \n  {x 1590} {x 3710} {x 5830} {x 7950}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'utf-16';\n  CREATE TABLE t0(v);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  PRAGMA writable_schema = 1;\n  CREATE TEMP TABLE x1 AS\n    SELECT tbl,idx,neq,nlt,ndlt,sample FROM sqlite_stat4\n    ORDER BY (rowid%5), rowid;\n  DELETE FROM sqlite_stat4;\n  INSERT INTO sqlite_stat4 SELECT * FROM x1;\n  PRAGMA writable_schema = 0;\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a = 'abc';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE sqlite_stat4 SET sample = X'FFFF';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 1;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n  UPDATE sqlite_stat4 SET neq = '0 0 0';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 1;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n  UPDATE sqlite_stat4 SET ndlt = '0 0 0';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 3;",
+          "expect": "3 3"
+        }
+      ]
+    },
+    {
+      "name": "7.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n  UPDATE sqlite_stat4 SET nlt = '0 0 0';\n  ANALYZE sqlite_master;\n  SELECT * FROM t1 WHERE a = 5;",
+          "expect": "5 5"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES('1');\n  INSERT INTO t1 VALUES('2');\n  INSERT INTO t1 VALUES('3');\n  INSERT INTO t1 VALUES('4');\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE x = 3;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d);\n  CREATE INDEX i2 ON t1(e);"
+        }
+      ]
+    },
+    {
+      "name": "10.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a, b);\n  CREATE INDEX t3a ON t3(a);\n  CREATE INDEX t3b ON t3(b);"
+        }
+      ]
+    },
+    {
+      "name": "10.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(x, a, b);\n  CREATE INDEX t3a ON t3(x, a);\n  CREATE INDEX t3b ON t3(x, b);"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);"
+        }
+      ]
+    },
+    {
+      "name": "14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b INTEGER, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b INTEGER, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b, c, d FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_decode(sample) FROM sqlite_stat4 WHERE idx='i1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT test_decode(sample) AS s FROM sqlite_stat4 WHERE idx='i1'"
+        }
+      ]
+    },
+    {
+      "name": "14.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);"
+        }
+      ]
+    },
+    {
+      "name": "14.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "14.4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "14.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid",
+          "expect": "{0 1} {1 1} {2 1} {3 1} \n  {4 1} {5 1} {6 1} {7 1} \n  {8 1} {9 1} {10 1} {11 1} \n  {12 1} {13 1} {14 1} {15 1}"
+        }
+      ]
+    },
+    {
+      "name": "15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "15.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "15.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE sqlite_stat1 SET stat = NULL;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "15.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "15.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "15.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "15.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE main.t1"
+        }
+      ]
+    },
+    {
+      "name": "17.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE temp.t1;",
+          "expect": "1 {no such table: temp.t1}"
+        }
+      ]
+    },
+    {
+      "name": "17.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_stat4"
+        }
+      ]
+    },
+    {
+      "name": "19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n      CREATE INDEX i1 ON t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;\n      ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n      CREATE VIEW v1 AS SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);"
+        }
+      ]
+    },
+    {
+      "name": "20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "21.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "22.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "23.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "24.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b);\n    WITH ints(i,j) AS (\n      SELECT 1,1 UNION ALL SELECT i+1,j+1 FROM ints WHERE i<100\n    ) INSERT INTO t6 SELECT * FROM ints;\n    CREATE INDEX aa ON t6(a);\n    CREATE INDEX bb ON t6(b);\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "26.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET z = rowid / 20;\n      ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "26.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE x = 10000 AND y < 50;",
+          "expect": "49"
+        }
+      ]
+    },
+    {
+      "name": "26.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE z = 444;",
+          "expect": "20"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "26.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

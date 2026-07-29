@@ -1,0 +1,2799 @@
+{
+  "file": "pragma.test",
+  "name": "pragma",
+  "tests": [
+    {
+      "name": "1.15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size = 0;"
+        }
+      ]
+    },
+    {
+      "name": "1.15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "1.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size = -500;"
+        }
+      ]
+    },
+    {
+      "name": "1.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "1.15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size = 500;"
+        }
+      ]
+    },
+    {
+      "name": "1.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "1.15.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check='4'",
+          "expect": "1 {no such table: 4}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=xyz",
+          "expect": "1 {no such table: xyz}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.6b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=t2",
+          "expect": "0 {{wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.6c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=sqlite_schema",
+          "expect": "0 ok"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.9b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA t2.integrity_check=t2;",
+          "expect": "{wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.9c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA t2.integrity_check=sqlite_schema;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b);\n      CREATE INDEX t1a ON t1(a);\n      INSERT INTO t1 VALUES(1,1),(2,2),(3,3),(2,4),(NULL,5),(NULL,6);\n      PRAGMA writable_schema=ON;\n      UPDATE sqlite_master SET sql='CREATE UNIQUE INDEX t1a ON t1(a)'\n        WHERE name='t1a';\n      UPDATE sqlite_master SET sql='CREATE TABLE t1(a NOT NULL,b)'\n        WHERE name='t1';\n      PRAGMA writable_schema=OFF;\n      ALTER TABLE t1 RENAME TO t1x;\n      PRAGMA integrity_check;",
+          "expect": "{non-unique entry in index t1a} {NULL value in t1x.a} {non-unique entry in index t1a} {NULL value in t1x.a}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(3);",
+          "expect": "{non-unique entry in index t1a} {NULL value in t1x.a} {non-unique entry in index t1a}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(2);",
+          "expect": "{non-unique entry in index t1a} {NULL value in t1x.a}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.23",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(1);",
+          "expect": "{non-unique entry in index t1a}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.24",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES (1);\n    ALTER TABLE t1 ADD COLUMN b NOT NULL DEFAULT 0.25;\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);",
+          "expect": "1 0.25 ok"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.25",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ALTER TABLE t1 ADD COLUMN c CHECK (1);\n    SELECT * FROM t1;\n    PRAGMA integrity_check(t1);",
+          "expect": "1 0.25 {} ok"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.40",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','two'),\n    (3, 'three','three','three'),\n    (4, 'four','four','four'),\n    (5, 'five','five','five');\n  CREATE INDEX t1bcd ON t1(b,c,d);\n  CREATE TABLE t2(\n    a INTEGER PRIMARY KEY,\n    b TEXT COLLATE nocase,\n    c INT COLLATE nocase,\n    d TEXT\n  );\n  INSERT INTO t2(a,b,c,d) VALUES\n    (1, 'one','one','one'),\n    (2, 'two','two','TWO'),\n    (3, 'three','THREE','three'),\n    (4, 'FOUR','four','four'),\n    (5, 'FIVE','FIVE','five');\n  CREATE INDEX t2bcd ON t2(b,c,d);\n  CREATE TEMP TABLE saved_schema AS SELECT name, rootpage FROM sqlite_schema;\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t2bcd')\n   WHERE name='t1bcd';\n  UPDATE sqlite_schema\n     SET rootpage=(SELECT rootpage FROM saved_schema WHERE name='t1bcd')\n   WHERE name='t2bcd';\n  PRAGMA Writable_schema=RESET;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.41",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT integrity_check AS x FROM pragma_integrity_check ORDER BY 1;",
+          "expect": "{row 2 missing from index t1bcd}\n    {row 2 missing from index t2bcd}\n    {row 3 values differ from index t1bcd}\n    {row 3 values differ from index t2bcd}\n    {row 4 values differ from index t1bcd}\n    {row 4 values differ from index t2bcd}\n    {row 5 values differ from index t1bcd}\n    {row 5 values differ from index t2bcd}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.5.1c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t3i2 ON t3(b,a);\n  PRAGMA index_info='t3i2';\n  DROP INDEX t3i2;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version = 106;\n  PRAGMA schema_version;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version = 106;\n  PRAGMA schema_version;"
+        }
+      ]
+    },
+    {
+      "name": "24.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES('a', 'b', 'c');\n    PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "24.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "0 {{database disk image is malformed}}"
+        }
+      ]
+    },
+    {
+      "name": "25.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT, b AS (a*2) NOT NULL);\n  CREATE TEMP TABLE t2(a PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2x ON t2(c,b);\n  PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA default_cache_size=-123;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
+          "expect": "123 123 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
+          "expect": "123 123 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n      PRAGMA cache_size;\n      PRAGMA default_cache_size;\n      PRAGMA synchronous;",
+          "expect": "123 123 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
+          "expect": "123 123 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=EXTRA;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
+          "expect": "123 123 3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=FULL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
+          "expect": "123 123 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;",
+          "expect": "123 123 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=0;\n    PRAGMA synchronous;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=2;\n    PRAGMA synchronous;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=4;\n    PRAGMA synchronous;",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=3;\n    PRAGMA synchronous;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=8;\n    PRAGMA synchronous;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA synchronous=10;\n    PRAGMA synchronous;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA vdbe_listing=YES;\n      PRAGMA vdbe_listing;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA vdbe_listing=NO;\n      PRAGMA vdbe_listing;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-1.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA bogus = -1234;  -- Parsing of negative values"
+        }
+      ]
+    },
+    {
+      "name": "pragma-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma aux.synchronous;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;",
+          "expect": "0 2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;",
+          "expect": "2 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE t2(a,b,c);\n    CREATE INDEX i2 ON t2(a);\n    INSERT INTO t2 VALUES(11,2,3);\n    INSERT INTO t2 VALUES(22,3,4);\n    COMMIT;\n    SELECT rowid, * from t2;",
+          "expect": "1 11 2 3 2 22 3 4"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "{wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=1",
+          "expect": "{wrong # of entries in index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check",
+          "expect": "{wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=4",
+          "expect": "{wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2} {wrong # of entries in index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=0",
+          "expect": "{wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH t2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA quick_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA QUICK_CHECK",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.9a",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=1",
+          "expect": "{*** in database t2 ***\nPage 4: never used}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=5",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2} {row 1 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=4",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=3",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(2)",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2} {*** in database t3 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check(10)",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2} {*** in database t3 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=8",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2} {row 1 missing from index i2} {row 2 missing from index i2} {*** in database t3 ***\nPage 4: never used\nPage 5: never used}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-3.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check=4",
+          "expect": "{*** in database t2 ***\nPage 4: never used\nPage 5: never used\nPage 6: never used} {wrong # of entries in index i2}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma aux.default_cache_size = 456;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;",
+          "expect": "456 456"
+        }
+      ]
+    },
+    {
+      "name": "pragma-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma cache_size;\n    pragma default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;",
+          "expect": "456 456"
+        }
+      ]
+    },
+    {
+      "name": "pragma-5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma synchronous;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    pragma synchronous = OFF;",
+          "expect": "1 {Safety level may not be changed inside a transaction}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma synchronous;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_temp_master",
+          "expect": "0 main 1 temp 2 aux"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)",
+          "expect": "0 a TYPE_X 0 {} 0 1 b TYPE_Y 0 {} 0 2 c TYPE_Z 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma table_info;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);",
+          "expect": "0 a TEXT 0 CURRENT_TIMESTAMP 0 1 b {} 0 5+3 2 2 c TEXT 0 <<NULL>> 3 3 d INTEGER 0 NULL 0 4 e TEXT 0 '' 1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)",
+          "expect": "0 a {} 0 {} 0 1 b INTEGER 0 {} 1 2 c {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);",
+          "expect": "0 0 t2 a b {NO ACTION} {NO ACTION} NONE"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma foreign_key_list;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma foreign_key_list(t3_bogus);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma foreign_key_list(t5);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t3i1 ON t3(a,b);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma index_info(t3i1_bogus);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE trial(col_main);\n      CREATE TEMP TABLE trial(col_temp);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(trial);",
+          "expect": "0 col_temp {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.table_info(trial);",
+          "expect": "0 col_temp {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.table_info(trial);",
+          "expect": "0 col_main {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test_table(\n      one INT NOT NULL DEFAULT -1, \n      two text,\n      three VARCHAR(45, 65) DEFAULT 'abcde',\n      four REAL DEFAULT X'abcdef',\n      five DEFAULT CURRENT_TIME\n    );"
+        }
+      ]
+    },
+    {
+      "name": "pragma-6.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-7.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma index_list(t3_bogus);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma encoding=bogus;",
+          "expect": "1 {unsupported encoding: bogus}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma lock_status;",
+          "expect": "main unlocked temp closed"
+        }
+      ]
+    },
+    {
+      "name": "pragma-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma lock_status;",
+          "expect": "main unlocked"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version = 105;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version = 108;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.schema_version;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.schema_version = 206;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA user_version = 2;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA user_version;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version;",
+          "expect": "108"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n      PRAGMA user_version;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA schema_version;",
+          "expect": "109"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.user_version;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.user_version = 3;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.user_version;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.user_version;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.user_version;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.user_version;",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n      PRAGMA aux.user_version;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.user_version;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA user_version = -450;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.2.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA user_version;",
+          "expect": "-450"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA application_id;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-8.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA Application_ID(12345); PRAGMA application_id;",
+          "expect": "12345"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store=file;\n    PRAGMA temp_store;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store=memory;\n    PRAGMA temp_store;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store_directory;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store_directory;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store_directory='/NON/EXISTENT/PATH/FOOBAR';",
+          "expect": "1 {not a writable directory}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store_directory='';"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store_directory;\n          PRAGMA temp_store=FILE;\n          CREATE TEMP TABLE temp_store_directory_test(a integer);\n          INSERT INTO temp_store_directory_test values (2);\n          SELECT * FROM temp_store_directory_test;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store = 0;\n    PRAGMA temp_store;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store = 1;\n    PRAGMA temp_store;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store = 2;\n    PRAGMA temp_store;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp_store = 3;\n    PRAGMA temp_store;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    CREATE TEMP TABLE temp_table(t);\n    INSERT INTO temp_table VALUES('valuable data');\n    PRAGMA temp_store = 1;",
+          "expect": "1 {temporary storage cannot be changed from within a transaction}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM temp_table;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.17",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO temp_table VALUES('valuable data II');\n    SELECT * FROM temp_table;",
+          "expect": "{valuable data} {valuable data II}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-9.18",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma temp_store = 1",
+          "expect": "1 {temporary storage cannot be changed from within a transaction}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randstr(10,10));"
+        }
+      ]
+    },
+    {
+      "name": "pragma-10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = randstr(10,10);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma collation_list;",
+          "expect": "0 New_Collation 1 RTRIM 2 NOCASE 3 BINARY"
+        }
+      ]
+    },
+    {
+      "name": "pragma-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.table_info('abc');"
+        }
+      ]
+    },
+    {
+      "name": "pragma-12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;",
+          "expect": "200"
+        }
+      ]
+    },
+    {
+      "name": "pragma-12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;",
+          "expect": "400"
+        }
+      ]
+    },
+    {
+      "name": "pragma-13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t4;\n    PRAGMA vdbe_trace=on;\n    PRAGMA vdbe_listing=on;\n    PRAGMA sql_trace=on;\n    CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n    INSERT INTO t4(b) VALUES(x'0123456789abcdef0123456789abcdef0123456789');\n    INSERT INTO t4(b) VALUES(randstr(30,30));\n    INSERT INTO t4(b) VALUES(1.23456);\n    INSERT INTO t4(b) VALUES(NULL);\n    INSERT INTO t4(b) VALUES(0);\n    INSERT INTO t4(b) SELECT b||b||b||b FROM t4;\n    SELECT * FROM t4;"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma auto_vacuum = 0",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;",
+          "expect": "2 2 0"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.2uc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma PAGE_COUNT",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.3uc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma PAGE_COUNT",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n      PRAGMA page_count;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-14.6uc",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma AUX.PAGE_COUNT",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "pragma-15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size=59;\n      PRAGMA cache_size;",
+          "expect": "59"
+        }
+      ]
+    },
+    {
+      "name": "pragma-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE newtable(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "59"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\"mylittleproxy\";\n      select * from sqlite_master;",
+          "expect": "mylittleproxy"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\"mylittleproxy\";"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      select * from sqlite_master;",
+          "expect": "mylittleproxy"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\"myotherproxy\";",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\"myoriginalproxy\";\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n      PRAGMA lock_proxy_file;",
+          "expect": "myotherproxy"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
+          "expect": "myotherproxy"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n        select * from sqlite_master;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "select * from sqlite_master",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\"yetanotherproxy\";\n      PRAGMA lock_proxy_file;",
+          "expect": "yetanotherproxy"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table mine(x);"
+        }
+      ]
+    },
+    {
+      "name": "pragma-16.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "pragma-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA error",
+          "expect": "1 {SQL logic error}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA error='This is the error message'",
+          "expect": "1 {This is the error message}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-19.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA error='7 This is the error message'",
+          "expect": "1 {This is the error message}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-19.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA error=7",
+          "expect": "1 {out of memory}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-19.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA filename",
+          "expect": "test.db"
+        }
+      ]
+    },
+    {
+      "name": "pragma-20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_store_directory",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "pragma-20.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_store_directory"
+        }
+      ]
+    },
+    {
+      "name": "pragma-20.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA data_store_directory",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "22.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "22.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "22.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "22.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "22.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "22.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA main.integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "22.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA aux.integrity_check;",
+          "expect": "ok"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=OFF;\n    PRAGMA cache_size=1234;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=OFF;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=-4321;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=ON;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA default_cache_size=-123;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n      PRAGMA cache_size;\n      PRAGMA default_cache_size;\n      PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=NORMAL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=EXTRA;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL;\n    PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size;\n    PRAGMA default_cache_size;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=0;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=2;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=4;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=3;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=8;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=10;\n    PRAGMA synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA vdbe_listing=YES;\n      PRAGMA vdbe_listing;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA vdbe_listing=NO;\n      PRAGMA vdbe_listing;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA parser_trace=ON;\n    PRAGMA parser_trace=OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA bogus = -1234;  -- Parsing of negative values"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma aux.synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma aux.synchronous = OFF;\n      pragma aux.synchronous;\n      pragma synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma aux.synchronous = ON;\n      pragma synchronous;\n      pragma aux.synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE t2(a,b,c);\n    CREATE INDEX i2 ON t2(a);\n    INSERT INTO t2 VALUES(11,2,3);\n    INSERT INTO t2 VALUES(22,3,4);\n    COMMIT;\n    SELECT rowid, * from t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=1"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test.db' AS t2;\n        PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=4"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=0"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH t2"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX t2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA quick_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA QUICK_CHECK"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'testerr.db' AS t2;\n        PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=5"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=4"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=3"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check(2)"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'testerr.db' AS t3;\n        PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check(10)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=8"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check=4"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma aux.cache_size = 50;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma aux.default_cache_size = 456;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma cache_size;\n    pragma default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH aux;\n    ATTACH 'test3.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH aux;\n    ATTACH 'test2.db' AS aux;\n    pragma aux.cache_size;\n    pragma aux.default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma synchronous;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_temp_master"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a TYPE_X, b [TYPE_Y], c \"TYPE_Z\");\n    pragma table_info(t2)"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma table_info;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(\n      a TEXT DEFAULT CURRENT_TIMESTAMP, \n      b DEFAULT (5+3),\n      c TEXT,\n      d INTEGER DEFAULT NULL,\n      e TEXT DEFAULT '',\n      UNIQUE(b,c,d),\n      PRIMARY KEY(e,b,c)\n    );\n    PRAGMA table_info(t5);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2_3(a,b INTEGER PRIMARY KEY,c);\n    pragma table_info(t2_3)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a int references t2(b), b UNIQUE);\n      pragma foreign_key_list(t3);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma foreign_key_list;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma foreign_key_list(t3_bogus);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma foreign_key_list(t5);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b UNIQUE)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t3i1 ON t3(a,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma index_info(t3i1_bogus);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE trial(col_main);\n      CREATE TEMP TABLE trial(col_temp);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(trial);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.table_info(trial);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.table_info(trial);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test_table(\n      one INT NOT NULL DEFAULT -1, \n      two text,\n      three VARCHAR(45, 65) DEFAULT 'abcde',\n      four REAL DEFAULT X'abcdef',\n      five DEFAULT CURRENT_TIME\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t68(a,b,c,PRIMARY KEY(a,b,a,c));\n    PRAGMA table_info(t68);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma index_list(t3_bogus);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma lock_status;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version = 105;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b, c);\n    INSERT INTO t4 VALUES(1, 2, 3);\n    SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version = 108;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      CREATE TABLE aux.t1(a, b, c);\n      PRAGMA aux.schema_version = 205;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.schema_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.schema_version = 206;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA user_version = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n      PRAGMA user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.user_version = 3;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      PRAGMA aux.user_version = 10;\n      PRAGMA user_version = 11;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n      PRAGMA aux.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA user_version = -450;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA user_version;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA application_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA Application_ID(12345); PRAGMA application_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store=file;\n    PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store=memory;\n    PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store_directory;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store_directory;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store_directory='';"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store_directory;\n          PRAGMA temp_store=FILE;\n          CREATE TEMP TABLE temp_store_directory_test(a integer);\n          INSERT INTO temp_store_directory_test values (2);\n          SELECT * FROM temp_store_directory_test;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = 0;\n    PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = 1;\n    PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = 2;\n    PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp_store = 3;\n    PRAGMA temp_store;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM temp_table;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO temp_table VALUES('valuable data II');\n    SELECT * FROM temp_table;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma temp_store = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes = 1;\n\n    CREATE TABLE t1(a PRIMARY KEY);\n    CREATE TABLE t1_mirror(a);\n    CREATE TABLE t1_mirror2(a);\n    CREATE TRIGGER t1_bi BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN \n      INSERT INTO t1_mirror2 VALUES(new.a);\n    END;\n    CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN \n      UPDATE t1_mirror SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_au AFTER UPDATE ON t1 BEGIN \n      UPDATE t1_mirror2 SET a = new.a WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_bd BEFORE DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror WHERE a = old.a;\n    END;\n    CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN \n      DELETE FROM t1_mirror2 WHERE a = old.a;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randstr(10,10));"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = randstr(10,10);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma collation_list;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.table_info('abc');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.default_cache_size = 200;\n      PRAGMA temp.default_cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.cache_size = 400;\n      PRAGMA temp.cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t4;\n    PRAGMA vdbe_trace=on;\n    PRAGMA vdbe_listing=on;\n    PRAGMA sql_trace=on;\n    CREATE TABLE t4(a INTEGER PRIMARY KEY,b);\n    INSERT INTO t4(b) VALUES(x'0123456789abcdef0123456789abcdef0123456789');\n    INSERT INTO t4(b) VALUES(randstr(30,30));\n    INSERT INTO t4(b) VALUES(1.23456);\n    INSERT INTO t4(b) VALUES(NULL);\n    INSERT INTO t4(b) VALUES(0);\n    INSERT INTO t4(b) SELECT b||b||b||b FROM t4;\n    SELECT * FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA vdbe_trace=off;\n    PRAGMA vdbe_listing=off;\n    PRAGMA sql_trace=off;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum = 0"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma page_count; pragma main.page_count"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n      PRAGMA page_count;\n      PRAGMA main.page_count;\n      PRAGMA temp.page_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma PAGE_COUNT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE def(a, b, c);\n      PRAGMA page_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma PAGE_COUNT"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n      PRAGMA page_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a, b, c);\n      CREATE TABLE t2(a, b, c);\n      CREATE TABLE t3(a, b, c);\n      CREATE TABLE t4(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      PRAGMA aux.page_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma AUX.PAGE_COUNT"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size=59;\n      PRAGMA cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE newtable(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"mylittleproxy\";\n      select * from sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"mylittleproxy\";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      select * from sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"myotherproxy\";"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"myoriginalproxy\";\n      PRAGMA lock_proxy_file=\"myotherproxy\";\n      PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n        select * from sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "select * from sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\"yetanotherproxy\";\n      PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table mine(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_proxy_file=\":auto:\";\n      PRAGMA lock_proxy_file;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA filename"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1, 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name='i2'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    WITH RECURSIVE\n      c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n    INSERT INTO t1(a,b,c) SELECT i, printf('xyz%08x',i), 2000-i FROM c;\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1bc ON t1(b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT seq, \"name\", \"unique\" FROM out ORDER BY seq"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT seqno, cid, name FROM out ORDER BY seqno"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT seqno, cid, name FROM out ORDER BY seqno"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cid, \"name\", type, \"notnull\", dflt_value, pk FROM out\n            ORDER BY cid"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, \"origin\" FROM out ORDER BY name DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA temp.cache_size = 1;\n    CREATE TEMP TABLE IF NOT EXISTS a(b);\n    DELETE FROM a;\n    INSERT INTO a VALUES(randomblob(1000));\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;\n    INSERT INTO a SELECT * FROM a;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t FROM temp_table"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN e;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2;\n    CREATE TABLE t2(x, y INTEGER REFERENCES t1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

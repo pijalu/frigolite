@@ -3,19 +3,32 @@
   "name": "tkt2920",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "tkt2920-1.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA page_size=1024;\n    PRAGMA max_page_count=40;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE filler (fill);"
-        },
+          "sql": "INSERT INTO filler VALUES(randomblob(1024))",
+          "expect": "1 {database or disk is full}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2920-1.5",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA max_page_count=41"
-        },
+          "sql": "INSERT INTO filler VALUES(randomblob(2048))",
+          "expect": "1 {database or disk is full}"
+        }
+      ]
+    },
+    {
+      "name": "tkt2920-1.7",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA max_page_count=42"
+          "sql": "INSERT INTO filler VALUES(randomblob(2048))",
+          "expect": "0 {}"
         }
       ]
     },
@@ -26,6 +39,22 @@
           "type": "exec",
           "sql": "COMMIT",
           "expect": "1 {cannot commit - no transaction is active}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA max_page_count=40;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE filler (fill);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO filler VALUES(randomblob(1024))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count=41"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count=42"
         }
       ]
     }

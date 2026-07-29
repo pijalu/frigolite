@@ -3,12 +3,153 @@
   "name": "update",
   "tests": [
     {
-      "name": "update-1.1",
+      "name": "update-15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t15(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t15(a,b) VALUES(10,'abc'),(20,'def'),(30,'ghi');\n    ALTER TABLE t15 ADD COLUMN c;\n    CREATE INDEX t15c ON t15(c);\n    INSERT INTO t15(a,b)\n      VALUES(5,'zyx'),(15,'wvu'),(25,'tsr'),(35,'qpo');\n    UPDATE t15 SET c=printf('y%d',a) WHERE c IS NULL;\n    SELECT a,b,c,'|' FROM t15 ORDER BY a;",
+          "expect": "5 zyx y5 | 10 abc y10 | 15 wvu y15 | 20 def y20 | 25 tsr y25 | 30 ghi y30 | 35 qpo y35 |"
+        }
+      ]
+    },
+    {
+      "name": "update-16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t16(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t16(a,b) VALUES(1,2),(3,4),(5,6);\n  UPDATE t16 SET a=a;\n  SELECT * FROM t16 ORDER BY +a;",
+          "expect": "1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "update-17.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  INSERT INTO t1(x) VALUES(1);\n  CREATE INDEX t1x1 ON t1(1) WHERE 3;\n  UPDATE t1 SET x=2, y=3 WHERE 3;\n  SELECT * FROM t1;",
+          "expect": "2 3"
+        }
+      ]
+    },
+    {
+      "name": "update-18.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'UTF16';\n  CREATE TABLE t0(c0 REAL, c1);\n  INSERT INTO t0(c0,c1) VALUES('xyz',11),('uvw',22);\n  CREATE INDEX i0 ON t0(c1) WHERE c0 GLOB 3;\n  CREATE INDEX i1 ON t0(c0,c1) WHERE typeof(c0)='text' AND typeof(c1)='integer';\n  UPDATE t0 SET c1=345;\n  SELECT * FROM t0;",
+          "expect": "xyz 345 uvw 345"
+        }
+      ]
+    },
+    {
+      "name": "update-18.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'utf16';\n  CREATE TABLE t0(c0 TEXT);\n  CREATE INDEX i0 ON t0(0 LIKE COALESCE(c0, 0));\n  INSERT INTO t0(c0) VALUES (0), (0);\n  SELECT * FROM t0;",
+          "expect": "0 0"
+        }
+      ]
+    },
+    {
+      "name": "update-19.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(\n   a TEXT,\n   b INTEGER PRIMARY KEY UNIQUE\n  ); \n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET a = quote(b) WHERE b>=2;\n  SELECT * FROM t1;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "update-20.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = true;\n  CREATE TABLE t1(a UNIQUE ON CONFLICT REPLACE, b);\n  INSERT INTO t1(a,b) VALUES(4,12),(9,13);\n  CREATE INDEX i0 ON t1(b);\n  CREATE TRIGGER tr0 DELETE ON t1 BEGIN\n    UPDATE t1 SET b = a;\n  END;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "update-20.20",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE test1 SET f2=5 WHERE f1<1"
-        },
+          "sql": "UPDATE t1 SET a=0;",
+          "expect": "1 {constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "update-20.30",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "update-21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);"
+        }
+      ]
+    },
+    {
+      "name": "update-21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "update-21.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "update-21.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null OR NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "update-21.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(d INT);"
+        }
+      ]
+    },
+    {
+      "name": "update-22.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT, y INT);\n  INSERT INTO t1(x) VALUES(1),(2),(3),(4),(5);\n  UPDATE t1 SET x=x+100, y=x<=(SELECT min(x) FROM t1)\n   WHERE x<3 OR (1 BETWEEN 0 AND x<=(SELECT min(x)+2 FROM t1));\n  SELECT x FROM t1 WHERE x<100 ORDER BY x;",
+          "expect": "4 5"
+        }
+      ]
+    },
+    {
+      "name": "update-1.1",
+      "steps": [
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=5 WHERE f1<1"
@@ -21,10 +162,6 @@
         {
           "type": "exec",
           "sql": "UPDATE sqlite_master SET name='xyz' WHERE name='123'"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE sqlite_master SET name='xyz' WHERE name='123'"
         }
       ]
     },
@@ -34,24 +171,12 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE test1(f1 int,f2 int)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE test1(f1 int,f2 int)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1"
         }
       ]
     },
     {
       "name": "update-3.2",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f3*2 WHERE f2==32"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f3*2 WHERE f2==32"
@@ -64,20 +189,12 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=test2.f1*2 WHERE f2==32"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=test2.f1*2 WHERE f2==32"
         }
       ]
     },
     {
       "name": "update-3.4",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f3=f1*2 WHERE f2==32"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f3=f1*2 WHERE f2==32"
@@ -90,14 +207,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2*3"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2*3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM test1"
         }
       ]
     },
@@ -108,10 +217,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 ORDER BY f1",
           "expect": "1 6 2 12 3 24 4 48 5 96 6 192 7 384 8 768 9 1536 10 3072"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1"
         }
       ]
     },
@@ -122,14 +227,6 @@
           "type": "query",
           "sql": "PRAGMA count_changes=on",
           "expect": "5"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA count_changes=on"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2/3 WHERE f1<=5"
         }
       ]
     },
@@ -140,20 +237,12 @@
           "type": "query",
           "sql": "SELECT * FROM test1 ORDER BY f1",
           "expect": "1 2 2 4 3 8 4 16 5 32 6 192 7 384 8 768 9 1536 10 3072"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1"
         }
       ]
     },
     {
       "name": "update-3.9",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2/3 WHERE f1>5"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2/3 WHERE f1>5"
@@ -167,20 +256,12 @@
           "type": "query",
           "sql": "SELECT * FROM test1 ORDER BY f1",
           "expect": "1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1"
         }
       ]
     },
     {
       "name": "update-3.11",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET F2=f1, F1=f2"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET F2=f1, F1=f2"
@@ -194,10 +275,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 ORDER BY F1",
           "expect": "2 1 4 2 8 3 16 4 32 5 64 6 128 7 256 8 512 9 1024 10"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY F1"
         }
       ]
     },
@@ -207,14 +284,6 @@
         {
           "type": "query",
           "sql": "PRAGMA count_changes=off"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA count_changes=off"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET F2=f1, F1=f2"
         }
       ]
     },
@@ -225,10 +294,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 ORDER BY F1",
           "expect": "1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY F1"
         }
       ]
     },
@@ -238,14 +303,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM test1 WHERE f1<=5;\n    INSERT INTO test1(f1,f2) VALUES(8,88);\n    INSERT INTO test1(f1,f2) VALUES(8,888);\n    INSERT INTO test1(f1,f2) VALUES(77,128);\n    INSERT INTO test1(f1,f2) VALUES(777,128);"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM test1 WHERE f1<=5;\n    INSERT INTO test1(f1,f2) VALUES(8,88);\n    INSERT INTO test1(f1,f2) VALUES(8,888);\n    INSERT INTO test1(f1,f2) VALUES(77,128);\n    INSERT INTO test1(f1,f2) VALUES(777,128);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -255,14 +312,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -272,14 +321,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -289,14 +330,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -306,14 +339,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -323,24 +348,12 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
     {
       "name": "update-4.6",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;"
-        },
         {
           "type": "exec",
           "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;"
@@ -354,10 +367,6 @@
           "type": "query",
           "sql": "PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2",
           "expect": "6 64 7 128 8 88 8 256 8 888 9 512 10 1024 77 128 777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -367,14 +376,6 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX idx1 ON test1(f1)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX idx1 ON test1(f1)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -384,14 +385,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -401,14 +394,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -418,14 +403,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -435,14 +412,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -453,10 +422,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2",
           "expect": "78 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
         }
       ]
     },
@@ -467,10 +432,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2",
           "expect": "778 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
     },
@@ -481,20 +442,12 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 128 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
     {
       "name": "update-5.5",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
@@ -508,10 +461,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 ORDER BY f1,f2",
           "expect": "6 64 8 88 8 128 8 256 8 888 9 512 10 1024 78 128 777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -522,10 +471,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2",
           "expect": "78 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
         }
       ]
     },
@@ -534,10 +479,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
@@ -549,10 +490,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2",
           "expect": "777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
         }
       ]
     },
@@ -563,20 +500,12 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 128 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
     {
       "name": "update-5.6",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;"
-        },
         {
           "type": "exec",
           "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;"
@@ -590,10 +519,6 @@
           "type": "query",
           "sql": "PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2",
           "expect": "6 64 7 128 8 88 8 256 8 888 9 512 10 1024 77 128 777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -604,10 +529,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2",
           "expect": "77 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2"
         }
       ]
     },
@@ -616,10 +537,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
@@ -631,10 +548,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2",
           "expect": "777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
         }
       ]
     },
@@ -645,14 +558,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA synchronous=FULL"
         }
       ]
     },
@@ -662,18 +567,6 @@
         {
           "type": "exec",
           "sql": "DROP INDEX idx1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX idx1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX idx1 ON test1(f2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -683,14 +576,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -701,10 +586,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 89 8 257 8 889"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -715,10 +596,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2",
           "expect": "8 89"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
         }
       ]
     },
@@ -727,10 +604,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2"
         }
       ]
@@ -741,14 +614,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -758,14 +623,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -776,10 +633,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -788,10 +641,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
         }
       ]
@@ -803,10 +652,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2",
           "expect": "8 88"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2"
         }
       ]
     },
@@ -816,14 +661,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -834,10 +671,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2",
           "expect": "78 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
         }
       ]
     },
@@ -848,10 +681,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2",
           "expect": "778 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
     },
@@ -862,10 +691,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 128 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -875,14 +700,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -893,10 +710,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2",
           "expect": "78 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
         }
       ]
     },
@@ -905,10 +718,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
@@ -920,10 +729,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2",
           "expect": "777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
         }
       ]
     },
@@ -934,10 +739,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 128 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -947,14 +748,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -965,10 +758,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2",
           "expect": "77 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2"
         }
       ]
     },
@@ -977,10 +766,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
@@ -992,10 +777,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2",
           "expect": "777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
         }
       ]
     },
@@ -1006,10 +787,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -1019,18 +796,6 @@
         {
           "type": "exec",
           "sql": "CREATE INDEX idx2 ON test1(f2)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX idx2 ON test1(f2)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX idx3 ON test1(f1,f2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1040,14 +805,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1058,10 +815,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 89 8 257 8 889"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -1072,10 +825,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2",
           "expect": "8 89"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
         }
       ]
     },
@@ -1084,10 +833,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2"
         }
       ]
@@ -1098,14 +843,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1115,14 +852,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1133,10 +862,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -1145,10 +870,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
         }
       ]
@@ -1160,10 +881,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2",
           "expect": "8 88"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2"
         }
       ]
     },
@@ -1173,14 +890,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1191,10 +900,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2",
           "expect": "78 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
         }
       ]
     },
@@ -1205,10 +910,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2",
           "expect": "778 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
     },
@@ -1219,10 +920,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 128 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -1232,14 +929,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1250,10 +939,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2",
           "expect": "78 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
         }
       ]
     },
@@ -1262,10 +947,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
@@ -1277,10 +958,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2",
           "expect": "777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
         }
       ]
     },
@@ -1291,10 +968,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 128 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
@@ -1304,14 +977,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
         }
       ]
     },
@@ -1322,10 +987,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2",
           "expect": "77 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2"
         }
       ]
     },
@@ -1334,10 +995,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
         }
       ]
@@ -1349,10 +1006,6 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2",
           "expect": "777 128"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
         }
       ]
     },
@@ -1363,20 +1016,12 @@
           "type": "query",
           "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2",
           "expect": "8 88 8 256 8 888"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
         }
       ]
     },
     {
       "name": "update-9.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET x=11 WHERE f1=1025"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET x=11 WHERE f1=1025"
@@ -1389,10 +1034,6 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=x(11) WHERE f1=1025"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=x(11) WHERE f1=1025"
         }
       ]
     },
@@ -1402,20 +1043,12 @@
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=11 WHERE x=1025"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=11 WHERE x=1025"
         }
       ]
     },
     {
       "name": "update-9.4",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE test1 SET f1=11 WHERE x(f1)=1025"
-        },
         {
           "type": "exec",
           "sql": "UPDATE test1 SET f1=11 WHERE x(f1)=1025"
@@ -1429,10 +1062,6 @@
           "type": "query",
           "sql": "DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1",
           "expect": "1 2 3 4 5 6 2 3 4 4 6 7"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1"
         }
       ]
     },
@@ -1533,10 +1162,6 @@
           "type": "query",
           "sql": "UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;",
           "expect": "2 14 3 7"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;"
         }
       ]
     },
@@ -1547,10 +1172,6 @@
           "type": "query",
           "sql": "UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;",
           "expect": "1 15 2 8"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;"
         }
       ]
     },
@@ -1561,10 +1182,6 @@
           "type": "query",
           "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;",
           "expect": "1 16 2 9"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;"
         }
       ]
     },
@@ -1575,10 +1192,6 @@
           "type": "query",
           "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;",
           "expect": "1 16 2 10"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;"
         }
       ]
     },
@@ -1589,10 +1202,6 @@
           "type": "query",
           "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT a+2 FROM t2;\n    INSERT INTO t2 SELECT a+4 FROM t2;\n    INSERT INTO t2 SELECT a+8 FROM t2;\n    INSERT INTO t2 SELECT a+16 FROM t2;\n    INSERT INTO t2 SELECT a+32 FROM t2;\n    INSERT INTO t2 SELECT a+64 FROM t2;\n    INSERT INTO t2 SELECT a+128 FROM t2;\n    INSERT INTO t2 SELECT a+256 FROM t2;\n    INSERT INTO t2 SELECT a+512 FROM t2;\n    INSERT INTO t2 SELECT a+1024 FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;",
           "expect": "2048"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT a+2 FROM t2;\n    INSERT INTO t2 SELECT a+4 FROM t2;\n    INSERT INTO t2 SELECT a+8 FROM t2;\n    INSERT INTO t2 SELECT a+16 FROM t2;\n    INSERT INTO t2 SELECT a+32 FROM t2;\n    INSERT INTO t2 SELECT a+64 FROM t2;\n    INSERT INTO t2 SELECT a+128 FROM t2;\n    INSERT INTO t2 SELECT a+256 FROM t2;\n    INSERT INTO t2 SELECT a+512 FROM t2;\n    INSERT INTO t2 SELECT a+1024 FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;"
         }
       ]
     },
@@ -1603,10 +1212,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t2 WHERE a=rowid;",
           "expect": "2048"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t2 WHERE a=rowid;"
         }
       ]
     },
@@ -1617,10 +1222,6 @@
           "type": "query",
           "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;",
           "expect": "2048"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;"
         }
       ]
     },
@@ -1631,20 +1232,12 @@
           "type": "query",
           "sql": "UPDATE t2 SET rowid=rowid+10000;\n    UPDATE t2 SET rowid=rowid-9999;\n    SELECT count(*) FROM t2 WHERE a=rowid;",
           "expect": "2048"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t2 SET rowid=rowid+10000;\n    UPDATE t2 SET rowid=rowid-9999;\n    SELECT count(*) FROM t2 WHERE a=rowid;"
         }
       ]
     },
     {
       "name": "update-13.4",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;"
-        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;"
@@ -1657,20 +1250,12 @@
         {
           "type": "query",
           "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;"
         }
       ]
     },
     {
       "name": "update-14.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE TRIGGER t3r1 BEFORE UPDATE on t3 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
-        },
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(a,b,c);\n    CREATE TRIGGER t3r1 BEFORE UPDATE on t3 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
@@ -1693,10 +1278,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(a,b,c);\n    CREATE TRIGGER t4r1 AFTER UPDATE on t4 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(a,b,c);\n    CREATE TRIGGER t4r1 AFTER UPDATE on t4 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
         }
       ]
     },
@@ -1707,36 +1288,570 @@
           "type": "exec",
           "sql": "UPDATE t4 SET a=1;",
           "expect": "1 {no such column: nosuchcol}"
-        }
-      ]
-    },
-    {
-      "name": "update-15.1",
-      "steps": [
+        },
         {
-          "type": "query",
-          "sql": "CREATE TABLE t15(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t15(a,b) VALUES(10,'abc'),(20,'def'),(30,'ghi');\n    ALTER TABLE t15 ADD COLUMN c;\n    CREATE INDEX t15c ON t15(c);\n    INSERT INTO t15(a,b)\n      VALUES(5,'zyx'),(15,'wvu'),(25,'tsr'),(35,'qpo');\n    UPDATE t15 SET c=printf('y%d',a) WHERE c IS NULL;\n    SELECT a,b,c,'|' FROM t15 ORDER BY a;",
-          "expect": "5 zyx y5 | 10 abc y10 | 15 wvu y15 | 20 def y20 | 25 tsr y25 | 30 ghi y30 | 35 qpo y35 |"
-        }
-      ]
-    },
-    {
-      "name": "update-16.1",
-      "steps": [
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=5 WHERE f1<1"
+        },
         {
-          "type": "query",
-          "sql": "CREATE TABLE t16(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t16(a,b) VALUES(1,2),(3,4),(5,6);\n  UPDATE t16 SET a=a;\n  SELECT * FROM t16 ORDER BY +a;",
-          "expect": "1 2 3 4 5 6"
-        }
-      ]
-    },
-    {
-      "name": "update-17.10",
-      "steps": [
+          "type": "exec",
+          "sql": "UPDATE sqlite_master SET name='xyz' WHERE name='123'"
+        },
         {
-          "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  INSERT INTO t1(x) VALUES(1);\n  CREATE INDEX t1x1 ON t1(1) WHERE 3;\n  UPDATE t1 SET x=2, y=3 WHERE 3;\n  SELECT * FROM t1;",
-          "expect": "2 3"
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int,f2 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f3*2 WHERE f2==32"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=test2.f1*2 WHERE f2==32"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f3=f1*2 WHERE f2==32"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2*3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=on"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2/3 WHERE f1<=5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2/3 WHERE f1>5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET F2=f1, F1=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY F1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=off"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET F2=f1, F1=f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY F1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM test1 WHERE f1<=5;\n    INSERT INTO test1(f1,f2) VALUES(8,88);\n    INSERT INTO test1(f1,f2) VALUES(8,888);\n    INSERT INTO test1(f1,f2) VALUES(77,128);\n    INSERT INTO test1(f1,f2) VALUES(777,128);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON test1(f1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=on;\n    UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA count_changes=off;\n    SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous=FULL"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX idx1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON test1(f2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx2 ON test1(f2)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx3 ON test1(f1,f2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2+1 WHERE f1==8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==88 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2>800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f2=f2-1 WHERE f1==8 and f2<800"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f2==89 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f2==88 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1+1 WHERE f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1>100 and f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==78 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=f1-1 WHERE f1<=100 and f2==128"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==77 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==778 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==777 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test1 WHERE f1==8 ORDER BY f1,f2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET x=11 WHERE f1=1025"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=x(11) WHERE f1=1025"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=11 WHERE x=1025"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE test1 SET f1=11 WHERE x(f1)=1025"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1;\n    CREATE TABLE t1(\n       a integer primary key,\n       b UNIQUE, \n       c, d,\n       e, f,\n       UNIQUE(c,d)\n    );\n    INSERT INTO t1 VALUES(1,2,3,4,5,6);\n    INSERT INTO t1 VALUES(2,3,4,4,6,7);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET e=e+1 WHERE b IN (SELECT b FROM t1);\n      SELECT b,e FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET e=e+1 WHERE a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE xyz.a IN (SELECT a FROM t1);\n      SELECT a,e FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 AS xyz SET e=e+1 WHERE EXISTS(SELECT 1 FROM t1 WHERE t1.a<xyz.a);\n      SELECT a,e FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    INSERT INTO t2 SELECT a+2 FROM t2;\n    INSERT INTO t2 SELECT a+4 FROM t2;\n    INSERT INTO t2 SELECT a+8 FROM t2;\n    INSERT INTO t2 SELECT a+16 FROM t2;\n    INSERT INTO t2 SELECT a+32 FROM t2;\n    INSERT INTO t2 SELECT a+64 FROM t2;\n    INSERT INTO t2 SELECT a+128 FROM t2;\n    INSERT INTO t2 SELECT a+256 FROM t2;\n    INSERT INTO t2 SELECT a+512 FROM t2;\n    INSERT INTO t2 SELECT a+1024 FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t2 WHERE a=rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET rowid=rowid+10000;\n    UPDATE t2 SET rowid=rowid-9999;\n    SELECT count(*) FROM t2 WHERE a=rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 SELECT a+2048 FROM t2;\n    INSERT INTO t2 SELECT a+4096 FROM t2;\n    INSERT INTO t2 SELECT a+8192 FROM t2;\n    SELECT count(*) FROM t2 WHERE a=rowid;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET rowid=rowid-1;\n    SELECT count(*) FROM t2 WHERE a=rowid+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c);\n    CREATE TRIGGER t3r1 BEFORE UPDATE on t3 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a,b,c);\n    CREATE TRIGGER t4r1 AFTER UPDATE on t4 WHEN nosuchcol BEGIN\n      SELECT 'illegal WHEN clause';\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM test1"
         }
       ]
     },
@@ -1749,12 +1864,10 @@
       ]
     },
     {
-      "name": "update-18.10",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA encoding = 'UTF16';\n  CREATE TABLE t0(c0 REAL, c1);\n  INSERT INTO t0(c0,c1) VALUES('xyz',11),('uvw',22);\n  CREATE INDEX i0 ON t0(c1) WHERE c0 GLOB 3;\n  CREATE INDEX i1 ON t0(c0,c1) WHERE typeof(c0)='text' AND typeof(c1)='integer';\n  UPDATE t0 SET c1=345;\n  SELECT * FROM t0;",
-          "expect": "xyz 345 uvw 345"
+          "type": "reset_db"
         }
       ]
     },
@@ -1767,16 +1880,6 @@
       ]
     },
     {
-      "name": "update-18.20",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA encoding = 'utf16';\n  CREATE TABLE t0(c0 TEXT);\n  CREATE INDEX i0 ON t0(0 LIKE COALESCE(c0, 0));\n  INSERT INTO t0(c0) VALUES (0), (0);\n  SELECT * FROM t0;",
-          "expect": "0 0"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -1785,113 +1888,10 @@
       ]
     },
     {
-      "name": "update-19.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(\n   a TEXT,\n   b INTEGER PRIMARY KEY UNIQUE\n  ); \n  INSERT INTO t1 VALUES(1,2);\n  UPDATE t1 SET a = quote(b) WHERE b>=2;\n  SELECT * FROM t1;",
-          "expect": "2 2"
-        }
-      ]
-    },
-    {
       "name": "__RESET_DB__",
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "update-20.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA recursive_triggers = true;\n  CREATE TABLE t1(a UNIQUE ON CONFLICT REPLACE, b);\n  INSERT INTO t1(a,b) VALUES(4,12),(9,13);\n  CREATE INDEX i0 ON t1(b);\n  CREATE TRIGGER tr0 DELETE ON t1 BEGIN\n    UPDATE t1 SET b = a;\n  END;\n  PRAGMA integrity_check;",
-          "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "update-20.20",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=0;",
-          "expect": "1 {constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "update-20.30",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA integrity_check;",
-          "expect": "ok"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "update-21.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1 (vkey INTEGER, c5 INTEGER);\n  INSERT INTO t1 VALUES(3,NULL),(6,-54);"
-        }
-      ]
-    },
-    {
-      "name": "update-21.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null;\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;"
-        }
-      ]
-    },
-    {
-      "name": "update-21.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;"
-        }
-      ]
-    },
-    {
-      "name": "update-21.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n  UPDATE t1 SET vkey = 100 WHERE c5 is null OR NOT (-10*(select min(vkey) from t1) >= c5);\n  SELECT * FROM t1 ORDER BY vkey, c5;\n  ROLLBACK;"
-        }
-      ]
-    },
-    {
-      "name": "update-21.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t2(d INT);"
-        }
-      ]
-    },
-    {
-      "name": "update-22.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT, y INT);\n  INSERT INTO t1(x) VALUES(1),(2),(3),(4),(5);\n  UPDATE t1 SET x=x+100, y=x<=(SELECT min(x) FROM t1)\n   WHERE x<3 OR (1 BETWEEN 0 AND x<=(SELECT min(x)+2 FROM t1));\n  SELECT x FROM t1 WHERE x<100 ORDER BY x;",
-          "expect": "4 5"
         }
       ]
     }

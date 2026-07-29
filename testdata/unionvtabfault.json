@@ -19,11 +19,23 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n    \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n    );"
+        },
+        {
+          "type": "exec",
           "sql": "ATTACH 'test.db2' AS aux;"
         },
         {
           "type": "exec",
           "sql": "CREATE TEMP TABLE xyz(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n      \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n  );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM uuu"
         }
       ]
     }

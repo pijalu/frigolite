@@ -1,0 +1,20 @@
+{
+  "file": "thread004.test",
+  "name": "thread004",
+  "tests": [
+    {
+      "name": "thread004-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

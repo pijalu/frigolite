@@ -13,23 +13,6 @@
       ]
     },
     {
-      "name": "1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 123__456"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 123__456"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 1.0e1_2"
-        }
-      ]
-    },
-    {
       "name": "3.0.0",
       "steps": [
         {
@@ -46,32 +29,6 @@
           "type": "query",
           "sql": "SELECT 0xFF_EF",
           "expect": "65519"
-        }
-      ]
-    },
-    {
-      "name": "3.0.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 0xFF__EF"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 0xFF__EF"
-        }
-      ]
-    },
-    {
-      "name": "3.0.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT 0xFFEF_"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 0xFFEF_"
         }
       ]
     },
@@ -96,14 +53,37 @@
       ]
     },
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123__456"
+        }
+      ]
+    },
+    {
+      "name": "3.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0xFF__EF"
+        }
+      ]
+    },
+    {
+      "name": "3.0.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 0xFFEF_"
+        }
+      ]
+    },
+    {
       "name": "3.1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT 0XFF__EF"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT 0XFF__EF"
         }
       ]
@@ -117,7 +97,27 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT 123__456"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0xFF__EF"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0xFFEF_"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0XFF__EF"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT 0XFFEF_"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1.0e1_2"
         }
       ]
     }

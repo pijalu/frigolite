@@ -1,0 +1,61 @@
+{
+  "file": "sharedlock.test",
+  "name": "sharedlock",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "sharedlock-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database table is locked: t2}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY rowid"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 'three')"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

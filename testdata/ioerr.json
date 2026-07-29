@@ -1,0 +1,112 @@
+{
+  "file": "ioerr.test",
+  "name": "ioerr",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500)); -- Page 4 is overflow"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(randstr(100,100));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc (a1) VALUES(NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as aux;\n        CREATE TABLE tx(a, b);\n        CREATE TABLE aux.ty(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n      INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);\n      BEGIN;\n      INSERT INTO t1 VALUES(randstr(200,200), randstr(1000,1000), 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:i, 'hello world');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES('abc', 123);\n    INSERT INTO t1 VALUES('def', 123);\n    INSERT INTO t1 VALUES('ghi', 123);\n    INSERT INTO t1 SELECT (a+500)%900, 'good string' FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(1100));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(randomblob(2000));"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    CREATE TABLE t2(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE oid > 85;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,40 @@
+{
+  "file": "ioerr4.test",
+  "name": "ioerr4",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=INCREMENTAL;\n    CREATE TABLE a(i INTEGER, b BLOB);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO a VALUES(1, zeroblob(2000));\n    INSERT INTO a VALUES(2, zeroblob(2000));\n    INSERT INTO a SELECT i+2, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+4, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+8, zeroblob(2000) FROM a;\n    INSERT INTO a SELECT i+16, zeroblob(2000) FROM a;\n    SELECT count(*) FROM a;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA freelist_count"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM a;\n    PRAGMA freelist_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=INCREMENTAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(5)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

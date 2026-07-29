@@ -9,10 +9,11 @@ import (
 
 // Parser turns a token stream into AST nodes.
 type Parser struct {
-	tokens *Tokenizer
-	cur    Token
-	peek   Token
-	err    error
+	tokens          *Tokenizer
+	cur             Token
+	peek            Token
+	err             error
+	windowSpecDepth int // recursion guard for window spec parsing
 }
 
 // NewParser creates a parser for the given SQL text.
@@ -1313,18 +1314,17 @@ func (p *Parser) parseParenthesizedUpdateAssignments(s *UpdateStmt) {
 		return
 	}
 	if p.cur.Type == TokenLParen {
-		p.next()
-		for i, col := range cols {
-			val := p.parseExpr()
-			s.Assignments = append(s.Assignments, Assignment{Column: col, Value: val})
-			if i < len(cols)-1 {
-				if p.cur.Type == TokenComma {
-					p.next()
-				}
+		// Use parseExpr which goes through parseParenExpr and handles
+		// both subqueries (SELECT ...) and row value lists (expr, expr, ...).
+		val := p.parseExpr()
+		if rv, ok := val.(*RowValue); ok && len(rv.Values) == len(cols) {
+			for i, col := range cols {
+				s.Assignments = append(s.Assignments, Assignment{Column: col, Value: rv.Values[i]})
 			}
-		}
-		if p.cur.Type == TokenRParen {
-			p.next()
+		} else if val != nil {
+			for _, col := range cols {
+				s.Assignments = append(s.Assignments, Assignment{Column: col, Value: val})
+			}
 		}
 		s.SetParenColumns = cols
 	}
@@ -1972,26 +1972,29 @@ func (p *Parser) parseParenIdentList() []IndexedColumn {
 			if p.cur.Type == TokenEOF {
 				return cols
 			}
-			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-				col := IndexedColumn{Name: p.cur.Value}
-				p.next()
-				// Optional COLLATE clause
-				if p.cur.Type == TokenKeyword && p.cur.Value == "COLLATE" {
+			if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
+					col := IndexedColumn{Name: p.cur.Value}
 					p.next()
-					if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword {
-						col.Collate = p.cur.Value
+					// Optional COLLATE clause
+					if p.cur.Type == TokenKeyword && p.cur.Value == "COLLATE" {
+						p.next()
+						if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString {
+							col.Collate = p.cur.Value
+							p.next()
+						}
+					}
+					// Optional ASC/DESC
+					if p.cur.Type == TokenKeyword && (p.cur.Value == "ASC" || p.cur.Value == "DESC") {
+						if p.cur.Value == "DESC" {
+							col.Desc = true
+						}
 						p.next()
 					}
+					cols = append(cols, col)
+				} else {
+					// Token doesn't match expected identifier/string — break to avoid infinite loop
+					break
 				}
-				// Optional ASC/DESC
-				if p.cur.Type == TokenKeyword && (p.cur.Value == "ASC" || p.cur.Value == "DESC") {
-					if p.cur.Value == "DESC" {
-						col.Desc = true
-					}
-					p.next()
-				}
-				cols = append(cols, col)
-			}
 			if p.cur.Type == TokenComma {
 				p.next()
 			}
@@ -3890,6 +3893,12 @@ func formatFuncCall(v *FuncCall) string {
 // Returns the OVER clause WindowDef and an optional FILTER expression.
 // Handles both orderings: FILTER (...) OVER (...) and OVER (...) FILTER (...).
 func (p *Parser) parseWindowClause() (over *WindowDef, filter Expr) {
+	// Prevent recursive window spec parsing. Window functions cannot be
+	// nested inside window definitions (OVER clauses), so skip window
+	// clause processing when already inside a window spec.
+	if p.windowSpecDepth > 0 {
+		return nil, nil
+	}
 	var ov *WindowDef
 	var flt Expr
 	// Loop to handle both orderings: FILTER...OVER or OVER...FILTER
@@ -3982,6 +3991,8 @@ func (p *Parser) skipWindowSpec() {
 // and returns a populated *WindowDef. Unlike skipInlineWindowSpec,
 // this function stores the parsed results rather than discarding them.
 func (p *Parser) parseInlineWindowSpec() *WindowDef {
+	p.windowSpecDepth++
+	defer func() { p.windowSpecDepth-- }()
 	wd := &WindowDef{}
 	p.next() // skip (
 	for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
@@ -4032,6 +4043,8 @@ func (p *Parser) parseInlineWindowSpec() *WindowDef {
 
 func (p *Parser) skipInlineWindowSpec() {
 	// Inline window specification: OVER (PARTITION BY ... ORDER BY ...)
+	p.windowSpecDepth++
+	defer func() { p.windowSpecDepth-- }()
 	p.next()
 	for p.cur.Type != TokenRParen && p.cur.Type != TokenEOF {
 		if p.cur.Type == TokenKeyword && p.cur.Value == "PARTITION" {

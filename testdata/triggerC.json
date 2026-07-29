@@ -1,0 +1,849 @@
+{
+  "file": "triggerC.test",
+  "name": "triggerC",
+  "tests": [
+    {
+      "name": "triggerC-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = ON;\n  CREATE TABLE t12(a, b);\n  INSERT INTO t12 VALUES(1, 2);\n  CREATE TRIGGER tr12 AFTER UPDATE ON t12 BEGIN\n    UPDATE t12 SET a=new.a+1, b=new.b+1;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t12 SET a=a+1, b=b+1;",
+          "expect": "1 {triggers nested too deep}"
+        }
+      ]
+    },
+    {
+      "name": "15.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = 1;\n  CREATE TABLE node(\n      id int not null primary key, \n      pid int not null default 0 references node,\n      key varchar not null, \n      path varchar default '',\n      unique(pid, key)\n      );\n  CREATE TRIGGER node_delete_referencing AFTER DELETE ON \"node\"\n    BEGIN\n    DELETE FROM \"node\" WHERE pid = old.\"id\";\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "15.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO node(id, pid, key) VALUES(9, 0, 'test');\n  INSERT INTO node(id, pid, key) VALUES(90, 9, 'test1');\n  INSERT INTO node(id, pid, key) VALUES(900, 90, 'test2');\n  DELETE FROM node WHERE id=9;\n  SELECT * FROM node;"
+        }
+      ]
+    },
+    {
+      "name": "15.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE   x1  (x);\n\n  CREATE TABLE   x2  (a, b);\n  CREATE TABLE '\"x2\"'(a, b);\n\n  INSERT INTO x2 VALUES(1, 2);\n  INSERT INTO x2 VALUES(3, 4);\n  INSERT INTO '\"x2\"' SELECT * FROM x2;\n\n  CREATE TRIGGER x1ai AFTER INSERT ON x1 BEGIN\n    INSERT INTO \"\"\"x2\"\"\" VALUES('x', 'y');\n    DELETE FROM \"\"\"x2\"\"\" WHERE a=1;\n    UPDATE \"\"\"x2\"\"\" SET b = 11 WHERE a = 3;\n  END;\n\n  INSERT INTO x1 VALUES('go!');"
+        }
+      ]
+    },
+    {
+      "name": "15.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x2;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "15.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM \"\"\"x2\"\"\";",
+          "expect": "3 11 x y"
+        }
+      ]
+    },
+    {
+      "name": "16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT raise(ABORT, 'msg') FROM sqlite_master \n  UNION SELECT 1 \n  ORDER BY raise(IGNORE);",
+          "expect": "1 {1st ORDER BY term does not match any column in the result set}"
+        }
+      ]
+    },
+    {
+      "name": "16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master \n  GROUP BY raise(IGNORE) \n  HAVING raise(ABORT, 'msg');",
+          "expect": "1 {RAISE() may only be used within a trigger-program}"
+        }
+      ]
+    },
+    {
+      "name": "17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE xyz(x INTEGER PRIMARY KEY, y, z);\n  CREATE TRIGGER xyz_tr BEFORE INSERT ON xyz BEGIN\n    SELECT new.x;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xyz VALUES('hello', 2, 3);",
+          "expect": "1 {datatype mismatch}"
+        }
+      ]
+    },
+    {
+      "name": "18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c);\n  CREATE TABLE t4(d);\n  CREATE TABLE t5(e);\n  CREATE TABLE t6(f);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a);\n  END;\n  CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.b);\n  END;\n  CREATE TRIGGER r3 AFTER INSERT ON t3 BEGIN\n    INSERT INTO t4 VALUES(new.c);\n  END;\n  CREATE TRIGGER r4 AFTER INSERT ON t4 BEGIN\n    INSERT INTO t5 VALUES(new.d);\n  END;\n  CREATE TRIGGER r5 AFTER INSERT ON t5 BEGIN\n    INSERT INTO t6 VALUES(new.e);\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "18.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1(a) VALUES(1);\n  SELECT f FROM t6;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "18.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a) VALUES(2);",
+          "expect": "1 {triggers nested too deep}"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE log(t, a1, b1, c1, a2, b2, c2);\n    CREATE TRIGGER trig1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('before', NULL, NULL, NULL, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER trig2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('after', NULL, NULL, NULL, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER trig3 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('before', old.a,old.b,old.c, new.a,new.b,new.c);\n    END;\n    CREATE TRIGGER trig4 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('after', old.a,old.b,old.c, new.a,new.b,new.c);\n    END;\n\n    CREATE TRIGGER trig5 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('before', old.a,old.b,old.c, NULL,NULL,NULL);\n    END;\n    CREATE TRIGGER trig6 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('after', old.a,old.b,old.c, NULL,NULL,NULL);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('A', 'B', 'C');\n    SELECT * FROM log;",
+          "expect": "before {} {} {} A B C after {} {} {} A B C"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "A B C"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM log;\n    UPDATE t1 SET a = 'a';\n    SELECT * FROM log;",
+          "expect": "before A B C a B C after A B C a B C"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "a B C"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log;",
+          "expect": "before a B C {} {} {} after a B C {} {} {}"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n    CREATE TRIGGER t4t AFTER DELETE ON t4 BEGIN\n      SELECT RAISE(ABORT, 'delete is not supported');\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5 (a primary key, b, c);\n    INSERT INTO t5 values (1, 2, 3);\n    CREATE TRIGGER au_tbl AFTER UPDATE ON t5 BEGIN\n      UPDATE OR IGNORE t5 SET a = new.a, c = 10;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR REPLACE t5 SET a = 4 WHERE a = 1",
+          "expect": "1 {triggers nested too deep}"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t6 VALUES(1, 2);\n    create trigger r1 after update on t6 for each row begin\n      SELECT 1;\n    end;\n    UPDATE t6 SET a=a;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE cnt(n);\n    INSERT INTO cnt VALUES(0);\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c, d, e);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE TRIGGER t1r1 AFTER UPDATE ON t1 BEGIN UPDATE cnt SET n=n+1; END;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    INSERT INTO t1 VALUES(6,7,8,9,10);\n    INSERT INTO t1 VALUES(11,12,13,14,15);"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-1.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE OR ROLLBACK t1 SET a=100",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-2.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b);\n    CREATE TRIGGER t3i AFTER INSERT ON t3 BEGIN\n      DELETE FROM t3 WHERE rowid = new.rowid;\n    END;\n    CREATE TRIGGER t3d AFTER DELETE ON t3 BEGIN\n      INSERT INTO t3 VALUES(old.a, old.b);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES(0,0)",
+          "expect": "1 {triggers nested too deep}"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-3.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3b VALUES(1);",
+          "expect": "1 {triggers nested too deep}"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(t);\n    CREATE TABLE t4(a TEXT,b INTEGER,c REAL);\n    CREATE TRIGGER t4bi BEFORE INSERT ON t4 BEGIN\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;\n    CREATE TRIGGER t4ai AFTER INSERT ON t4 BEGIN\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;\n    CREATE TRIGGER t4bd BEFORE DELETE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n    END;\n    CREATE TRIGGER t4ad AFTER DELETE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n    END;\n    CREATE TRIGGER t4bu BEFORE UPDATE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;\n    CREATE TRIGGER t4au AFTER UPDATE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-5.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b);\n    CREATE UNIQUE INDEX t5i ON t5(b);\n    INSERT INTO t5 VALUES(1, 'a');\n    INSERT INTO t5 VALUES(2, 'b');\n    INSERT INTO t5 VALUES(3, 'c');\n\n    CREATE TABLE t5g(a, b, c);\n    CREATE TRIGGER t5t BEFORE DELETE ON t5 BEGIN\n      INSERT INTO t5g VALUES(old.a, old.b, (SELECT count(*) FROM t5));\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-5.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t5t;\n    CREATE TRIGGER t5t AFTER DELETE ON t5 BEGIN\n      INSERT INTO t5g VALUES(old.a, old.b, (SELECT count(*) FROM t5));\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-5.3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = off"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-5.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = on"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = off;\n    PRAGMA recursive_triggers;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA recursive_triggers = on;\n    PRAGMA recursive_triggers;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(x);\n    CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES(1, 2);\n    INSERT INTO t7 VALUES(3, 4);\n    INSERT INTO t7 VALUES(5, 6);\n    CREATE TRIGGER t7t BEFORE UPDATE ON t7 BEGIN\n      DELETE FROM t7 WHERE a = 1;\n    END;\n    CREATE TRIGGER t7ta AFTER UPDATE ON t7 BEGIN\n      INSERT INTO t8 VALUES('after fired ' || old.rowid || '->' || new.rowid);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t7t;\n    CREATE TRIGGER t7t BEFORE UPDATE ON t7 WHEN (old.rowid!=1 OR new.rowid!=8)\n    BEGIN\n      UPDATE t7 set rowid = 8 WHERE rowid=1;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t7t;\n    DROP TRIGGER t7ta;\n    CREATE TRIGGER t7t BEFORE DELETE ON t7 BEGIN\n      UPDATE t7 set rowid = 8 WHERE rowid=1;\n    END;\n    CREATE TRIGGER t7ta AFTER DELETE ON t7 BEGIN\n      INSERT INTO t8 VALUES('after fired ' || old.rowid);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-7.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-9.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t9(a,b);\n    CREATE INDEX t9b ON t9(b);\n    INSERT INTO t9 VALUES(1,0);\n    INSERT INTO t9 VALUES(2,1);\n    INSERT INTO t9 VALUES(3,2);\n    INSERT INTO t9 SELECT a+3, a+2 FROM t9;\n    INSERT INTO t9 SELECT a+6, a+5 FROM t9;\n    SELECT a FROM t9 ORDER BY a;",
+          "expect": "1 2 3 4 5 6 7 8 9 10 11 12"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TRIGGER t9r1 AFTER DELETE ON t9 BEGIN\n      DELETE FROM t9 WHERE b=old.a;\n    END;\n    DELETE FROM t9 WHERE b=4;\n    SELECT a FROM t9 ORDER BY a;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(a, updatecnt DEFAULT 0);\n    CREATE TRIGGER t10_bu BEFORE UPDATE OF a ON t10 BEGIN\n      UPDATE t10 SET updatecnt = updatecnt+1 WHERE rowid = old.rowid;\n    END;\n    INSERT INTO t10(a) VALUES('hello');"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t10 SET a = 'tcl', updatecnt = 5;\n    SELECT * FROM t10;",
+          "expect": "tcl 5"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(\n      c1,   c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9, c10,\n      c11, c12, c13, c14, c15, c16, c17, c18, c19, c20,\n      c21, c22, c23, c24, c25, c26, c27, c28, c29, c30,\n      c31, c32, c33, c34, c35, c36, c37, c38, c39, c40\n    );\n\n    CREATE TRIGGER t11_bu BEFORE UPDATE OF c1 ON t11 BEGIN\n      UPDATE t11 SET c31 = c31+1, c32=c32+1 WHERE rowid = old.rowid;\n    END;\n\n    INSERT INTO t11 VALUES(\n      1,   2,  3,  4,  5,  6,  7,  8,  9, 10,\n      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,\n      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,\n      31, 32, 33, 34, 35, 36, 37, 38, 39, 40\n    );"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM log;\n    CREATE TABLE t2(a, b);\n    CREATE VIEW v2 AS SELECT * FROM t2;\n    CREATE TRIGGER tv2 INSTEAD OF INSERT ON v2 BEGIN\n      INSERT INTO log VALUES(new.a, new.b);\n    END;\n    INSERT INTO v2 DEFAULT VALUES;\n    SELECT a, b, a IS NULL, b IS NULL FROM log;",
+          "expect": "{} {} 1 1"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1 ; END ;\n    SELECT count(*) FROM sqlite_master;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "triggerC-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = on"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE log(t, a1, b1, c1, a2, b2, c2);\n    CREATE TRIGGER trig1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('before', NULL, NULL, NULL, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER trig2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('after', NULL, NULL, NULL, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER trig3 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('before', old.a,old.b,old.c, new.a,new.b,new.c);\n    END;\n    CREATE TRIGGER trig4 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('after', old.a,old.b,old.c, new.a,new.b,new.c);\n    END;\n\n    CREATE TRIGGER trig5 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('before', old.a,old.b,old.c, NULL,NULL,NULL);\n    END;\n    CREATE TRIGGER trig6 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('after', old.a,old.b,old.c, NULL,NULL,NULL);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('A', 'B', 'C');\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    UPDATE t1 SET a = 'a';\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    DELETE FROM t1;\n    SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a, b);\n    CREATE TRIGGER t4t AFTER DELETE ON t4 BEGIN\n      SELECT RAISE(ABORT, 'delete is not supported');\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t4 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t4"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5 (a primary key, b, c);\n    INSERT INTO t5 values (1, 2, 3);\n    CREATE TRIGGER au_tbl AFTER UPDATE ON t5 BEGIN\n      UPDATE OR IGNORE t5 SET a = new.a, c = 10;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t6 VALUES(1, 2);\n    create trigger r1 after update on t6 for each row begin\n      SELECT 1;\n    end;\n    UPDATE t6 SET a=a;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE cnt(n);\n    INSERT INTO cnt VALUES(0);\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c, d, e);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE TRIGGER t1r1 AFTER UPDATE ON t1 BEGIN UPDATE cnt SET n=n+1; END;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    INSERT INTO t1 VALUES(6,7,8,9,10);\n    INSERT INTO t1 VALUES(11,12,13,14,15);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a PRIMARY KEY);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a, b);\n    CREATE TRIGGER t3i AFTER INSERT ON t3 BEGIN\n      DELETE FROM t3 WHERE rowid = new.rowid;\n    END;\n    CREATE TRIGGER t3d AFTER DELETE ON t3 BEGIN\n      INSERT INTO t3 VALUES(old.a, old.b);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(t);\n    CREATE TABLE t4(a TEXT,b INTEGER,c REAL);\n    CREATE TRIGGER t4bi BEFORE INSERT ON t4 BEGIN\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;\n    CREATE TRIGGER t4ai AFTER INSERT ON t4 BEGIN\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;\n    CREATE TRIGGER t4bd BEFORE DELETE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n    END;\n    CREATE TRIGGER t4ad AFTER DELETE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n    END;\n    CREATE TRIGGER t4bu BEFORE UPDATE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;\n    CREATE TRIGGER t4au AFTER UPDATE ON t4 BEGIN\n      INSERT INTO log VALUES(old.rowid || ' ' || typeof(old.rowid) || ' ' ||\n                             old.a     || ' ' || typeof(old.a)     || ' ' ||\n                             old.b     || ' ' || typeof(old.b)     || ' ' ||\n                             old.c     || ' ' || typeof(old.c)\n      );\n      INSERT INTO log VALUES(new.rowid || ' ' || typeof(new.rowid) || ' ' ||\n                             new.a     || ' ' || typeof(new.a)     || ' ' ||\n                             new.b     || ' ' || typeof(new.b)     || ' ' ||\n                             new.c     || ' ' || typeof(new.c)\n      );\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b);\n    CREATE UNIQUE INDEX t5i ON t5(b);\n    INSERT INTO t5 VALUES(1, 'a');\n    INSERT INTO t5 VALUES(2, 'b');\n    INSERT INTO t5 VALUES(3, 'c');\n\n    CREATE TABLE t5g(a, b, c);\n    CREATE TRIGGER t5t BEFORE DELETE ON t5 BEGIN\n      INSERT INTO t5g VALUES(old.a, old.b, (SELECT count(*) FROM t5));\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t5t;\n    CREATE TRIGGER t5t AFTER DELETE ON t5 BEGIN\n      INSERT INTO t5g VALUES(old.a, old.b, (SELECT count(*) FROM t5));\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = off"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = on"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = off;\n    PRAGMA recursive_triggers;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = on;\n    PRAGMA recursive_triggers;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(x);\n    CREATE TABLE t7(a, b);\n    INSERT INTO t7 VALUES(1, 2);\n    INSERT INTO t7 VALUES(3, 4);\n    INSERT INTO t7 VALUES(5, 6);\n    CREATE TRIGGER t7t BEFORE UPDATE ON t7 BEGIN\n      DELETE FROM t7 WHERE a = 1;\n    END;\n    CREATE TRIGGER t7ta AFTER UPDATE ON t7 BEGIN\n      INSERT INTO t8 VALUES('after fired ' || old.rowid || '->' || new.rowid);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t7t;\n    CREATE TRIGGER t7t BEFORE UPDATE ON t7 WHEN (old.rowid!=1 OR new.rowid!=8)\n    BEGIN\n      UPDATE t7 set rowid = 8 WHERE rowid=1;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 5;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t7 SET b=7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER t7t;\n    DROP TRIGGER t7ta;\n    CREATE TRIGGER t7t BEFORE DELETE ON t7 BEGIN\n      UPDATE t7 set rowid = 8 WHERE rowid=1;\n    END;\n    CREATE TRIGGER t7ta AFTER DELETE ON t7 BEGIN\n      INSERT INTO t8 VALUES('after fired ' || old.rowid);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t7 WHERE a = 3;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t7 WHERE a = 1;\n      SELECT rowid, * FROM t7;\n      SELECT * FROM t8;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(a,b);\n    CREATE INDEX t9b ON t9(b);\n    INSERT INTO t9 VALUES(1,0);\n    INSERT INTO t9 VALUES(2,1);\n    INSERT INTO t9 VALUES(3,2);\n    INSERT INTO t9 SELECT a+3, a+2 FROM t9;\n    INSERT INTO t9 SELECT a+6, a+5 FROM t9;\n    SELECT a FROM t9 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER t9r1 AFTER DELETE ON t9 BEGIN\n      DELETE FROM t9 WHERE b=old.a;\n    END;\n    DELETE FROM t9 WHERE b=4;\n    SELECT a FROM t9 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t10(a, updatecnt DEFAULT 0);\n    CREATE TRIGGER t10_bu BEFORE UPDATE OF a ON t10 BEGIN\n      UPDATE t10 SET updatecnt = updatecnt+1 WHERE rowid = old.rowid;\n    END;\n    INSERT INTO t10(a) VALUES('hello');"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t10 SET a = 'world';\n    SELECT * FROM t10;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t10 SET a = 'tcl', updatecnt = 5;\n    SELECT * FROM t10;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(\n      c1,   c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9, c10,\n      c11, c12, c13, c14, c15, c16, c17, c18, c19, c20,\n      c21, c22, c23, c24, c25, c26, c27, c28, c29, c30,\n      c31, c32, c33, c34, c35, c36, c37, c38, c39, c40\n    );\n\n    CREATE TRIGGER t11_bu BEFORE UPDATE OF c1 ON t11 BEGIN\n      UPDATE t11 SET c31 = c31+1, c32=c32+1 WHERE rowid = old.rowid;\n    END;\n\n    INSERT INTO t11 VALUES(\n      1,   2,  3,  4,  5,  6,  7,  8,  9, 10,\n      11, 12, 13, 14, 15, 16, 17, 18, 19, 20,\n      21, 22, 23, 24, 25, 26, 27, 28, 29, 30,\n      31, 32, 33, 34, 35, 36, 37, 38, 39, 40\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t11 SET c4=35, c33=22, c1=5;\n    SELECT * FROM t11;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE log(a, b)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tt1 BEFORE INSERT ON t1 BEGIN \n        INSERT INTO log VALUES(new.a, new.b);\n      END;\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tt2 AFTER INSERT ON t1 BEGIN \n        INSERT INTO log VALUES(new.a, new.b);\n      END;\n      INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tt1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 DEFAULT VALUES;\n      SELECT * FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM log;\n    CREATE TABLE t2(a, b);\n    CREATE VIEW v2 AS SELECT * FROM t2;\n    CREATE TRIGGER tv2 INSTEAD OF INSERT ON v2 BEGIN\n      INSERT INTO log VALUES(new.a, new.b);\n    END;\n    INSERT INTO v2 DEFAULT VALUES;\n    SELECT a, b, a IS NULL, b IS NULL FROM log;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1 ; END ;\n    SELECT count(*) FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER tr1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA recursive_triggers = on"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(x), min(x) FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(x), min(x) FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(x), min(x) FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(x), min(x) FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(x), min(x) FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), max(x), min(x) FROM t3b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

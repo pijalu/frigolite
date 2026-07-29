@@ -1,0 +1,370 @@
+{
+  "file": "misc7.test",
+  "name": "misc7",
+  "tests": [
+    {
+      "name": "misc7-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b,c) VALUES(12345,2,3) ON CONFLICT(a) DO NOTHING;",
+          "expect": "1 {UPSERT not implemented for virtual table \"t1\"}"
+        }
+      ]
+    },
+    {
+      "name": "misc7-14.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a PRIMARY KEY, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "23.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "23.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "23.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4);",
+          "expect": "1 {attempt to write a readonly database}"
+        }
+      ]
+    },
+    {
+      "name": "misc7-5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);",
+          "expect": "1 {unable to open database file}"
+        }
+      ]
+    },
+    {
+      "name": "misc7-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;"
+        }
+      ]
+    },
+    {
+      "name": "misc7-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    CREATE TABLE aux.hello(world);\n    SELECT name FROM aux.sqlite_master;",
+          "expect": "hello"
+        }
+      ]
+    },
+    {
+      "name": "misc7-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH aux;"
+        }
+      ]
+    },
+    {
+      "name": "misc7-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;",
+          "expect": "hello hello"
+        }
+      ]
+    },
+    {
+      "name": "misc7-9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * \n    FROM (SELECT name+1 AS one FROM sqlite_master LIMIT 1 OFFSET 1) \n    WHERE one LIKE 'hello%';"
+        }
+      ]
+    },
+    {
+      "name": "misc7-10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "misc7-11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t1.a, t2.a FROM t1, t1 AS t2 ORDER BY 2 LIMIT 1;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "misc7-13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a = 1;",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "misc7-15.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "misc7-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc WHERE rowid > 12;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;"
+        }
+      ]
+    },
+    {
+      "name": "misc7-16.X",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3;",
+          "expect": "32"
+        }
+      ]
+    },
+    {
+      "name": "misc7-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t3 WHERE (oid%3)==0;"
+        }
+      ]
+    },
+    {
+      "name": "misc7-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3;",
+          "expect": "0 32"
+        }
+      ]
+    },
+    {
+      "name": "misc7-17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';"
+        }
+      ]
+    },
+    {
+      "name": "misc7-17.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3;",
+          "expect": "1 {malformed database schema (t3) - invalid rootpage}"
+        }
+      ]
+    },
+    {
+      "name": "misc7-18.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE table_1 (col_10);\n    CREATE TABLE table_2 (\n      col_1, col_2, col_3, col_4, col_5,\n      col_6, col_7, col_8, col_9, col_10\n    );\n    SELECT a.col_10\n    FROM\n      (SELECT table_1.col_10 AS col_10 FROM table_1) a,\n      (SELECT table_1.col_10, table_2.col_9 AS qcol_9\n         FROM table_1, table_2\n        GROUP BY table_1.col_10, qcol_9);"
+        }
+      ]
+    },
+    {
+      "name": "misc7-22.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "misc7-22.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "misc7-22.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 {attempt to write a readonly database}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a PRIMARY KEY, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    CREATE TABLE aux.hello(world);\n    SELECT name FROM aux.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA omit_readlock = 1;\n    ATTACH 'test2.db' AS aux;\n    SELECT name FROM aux.sqlite_master;\n    SELECT name FROM aux.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * \n    FROM (SELECT name+1 AS one FROM sqlite_master LIMIT 1 OFFSET 1) \n    WHERE one LIKE 'hello%';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING echo(abc);\n      SELECT a FROM t1 WHERE a = 1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t1.a, t2.a FROM t1, t1 AS t2 ORDER BY 2 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc \n    VALUES(randstr(100,100), randstr(100,100), randstr(100,100));\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc WHERE rowid > 12;\n    INSERT INTO abc SELECT \n            randstr(100,100), randstr(100,100), randstr(100,100) FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DELETE FROM t3 WHERE (oid%3)==0;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE table_1 (col_10);\n    CREATE TABLE table_2 (\n      col_1, col_2, col_3, col_4, col_5,\n      col_6, col_7, col_8, col_9, col_10\n    );\n    SELECT a.col_10\n    FROM\n      (SELECT table_1.col_10 AS col_10 FROM table_1) a,\n      (SELECT table_1.col_10, table_2.col_9 AS qcol_9\n         FROM table_1, table_2\n        GROUP BY table_1.col_10, qcol_9);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      PRAGMA cache_size = 10;\n      INSERT INTO t3 VALUES( randstr(100, 100), randstr(100, 100) );\n      UPDATE t3 SET a = b;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

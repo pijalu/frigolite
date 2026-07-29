@@ -1,0 +1,74 @@
+{
+  "file": "e_blobwrite.test",
+  "name": "e_blobwrite",
+  "tests": [
+    {
+      "name": "3.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET k = 'xyz' WHERE i=1;\n  SELECT * FROM t3 WHERE i=1;",
+          "expect": "1 .....0123456789......................... xyz"
+        }
+      ]
+    },
+    {
+      "name": "3.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE i=1;",
+          "expect": "1 .....0123456789......................... xyz"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t3 SET j = 'xyz' WHERE i=2;\n  SELECT * FROM t3 WHERE i=2;",
+          "expect": "2 xyz ........................................"
+        }
+      ]
+    },
+    {
+      "name": "3.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE i=2;",
+          "expect": "2 xyz ........................................"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE b=43"
+        }
+      ]
+    },
+    {
+      "name": "2.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1, 2, 3",
+          "expect": "SQLITE_OK"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE b=43"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1, 2, 3"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

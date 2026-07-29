@@ -282,14 +282,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "strict1-8.1",
       "steps": [
         {
@@ -506,6 +498,14 @@
           "type": "exec",
           "sql": "INSERT INTO strict(k) VALUES(43);",
           "expect": "1 {cannot store TEXT value in BLOB column strict.c4}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

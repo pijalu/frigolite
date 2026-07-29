@@ -8,10 +8,24 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(docid, words);"
-        },
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT level, count(*) FROM x1_segdir GROUP BY level"
+          "sql": "CREATE VIRTUAL TABLE x1 USING fts4;\n  INSERT INTO x1(x1) VALUES('automerge=2');"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid>16;\n  DROP TABLE IF EXISTS x1;\n  CREATE VIRTUAL TABLE x1 USING fts4;"
         }
       ]
     },
@@ -22,10 +36,6 @@
           "type": "query",
           "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;",
           "expect": "2 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;"
         }
       ]
     },
@@ -43,7 +53,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT max(level) FROM x1_segdir; \n    SELECT count(*) FROM x1_segdir WHERE level=2;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT max(level) FROM x1_segdir"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT level, count(*) FROM x1_segdir GROUP BY level"
         }
       ]
     }

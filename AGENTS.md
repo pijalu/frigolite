@@ -13,9 +13,10 @@ frigolite/
 ├── frigolite.go              # Public API: Open/Close/Exec/Query
 ├── frigolite_test.go          # Integration tests
 ├── frigolite_*_test.go        # Feature-specific tests
-├── frigolite_sqlite_compat_test.go  # 778 auto-generated SQLite compat tests
+├── frigolite_sqlite_compat_test.go  # 1088 auto-generated SQLite compat tests
 │
 ├── internal/
+│   ├── auth/      # SQL authorizer framework
 │   ├── util/      # Varint, CRC32, value comparison
 │   ├── storage/   # SQLite file format (pages, cells, records, header)
 │   ├── pager/     # Page cache, file I/O, in-memory store
@@ -24,6 +25,9 @@ frigolite/
 │   ├── exec/      # Query execution engine (SELECT, INSERT, UPDATE, DELETE, DDL)
 │   ├── schema/    # sqlite_schema table management
 │   ├── function/  # Scalar + aggregate SQL functions (60+ functions)
+│   ├── fts/       # Full-text search tokenizer and ranking
+│   ├── rename/    # ALTER TABLE RENAME dependency management
+│   ├── value/     # SQL value comparison and type system
 │   └── vtab/      # Virtual table module system (generate_series, etc.)
 │
 ├── cmd/frigolite/ # Interactive CLI shell (separate module)
@@ -37,7 +41,7 @@ frigolite/
 - **No CGO** — pure Go only
 - **No sqlite3 CLI** — fully standalone
 - **SQLite file format** — compatible with standard `.db` files
-- **Test coverage** — 842 tests (64 hand-written + 778 auto-converted from SQLite suite)
+- **Test coverage** — 1141 tests (53 hand-written + 1088 auto-converted from SQLite suite)
 
 ## Important Implementation Notes
 

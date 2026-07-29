@@ -1,0 +1,111 @@
+{
+  "file": "index4.test",
+  "name": "index4",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(102));\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   512\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  1024\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  2048\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  4096\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  8192\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 16384\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 32768\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 65536\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n    CREATE INDEX i2 ON t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('a');\n    INSERT INTO t1 VALUES('b');\n    INSERT INTO t1 VALUES('c');\n    INSERT INTO t1 VALUES('d');\n    INSERT INTO t1 VALUES('e');\n    INSERT INTO t1 VALUES('f');\n    INSERT INTO t1 VALUES('g');\n    INSERT INTO t1 VALUES(NULL);\n    INSERT INTO t1 SELECT randomblob(1202) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(2202) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(3202) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(4202) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(5202) FROM t1;     --   256\n  COMMIT;\n  CREATE INDEX i1 ON t1(x); \n  PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('a');\n  COMMIT;\n  CREATE INDEX i1 ON t1(x); \n  PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    DROP TABLE t1;\n    CREATE TABLE t1(x);\n  COMMIT;\n  CREATE INDEX i1 ON t1(x); \n  PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t2(x);\n    INSERT INTO t2 VALUES(14);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(15);\n    INSERT INTO t2 VALUES(35);\n    INSERT INTO t2 VALUES(16);\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i3 ON t2(x);",
+          "expect": "1 {UNIQUE constraint failed: t2.x}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

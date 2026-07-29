@@ -1,0 +1,368 @@
+{
+  "file": "analyze3.test",
+  "name": "analyze3",
+  "tests": [
+    {
+      "name": "analyze3-1.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x INTEGER, y);\n    CREATE INDEX i1 ON t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x INTEGER, y);\n    CREATE INDEX i1 ON t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*)>0 FROM sqlite_stat4;"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.1.x",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t1 WHERE x>0 AND x<1100;",
+          "expect": "99 1000"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(y) FROM t1 WHERE x>200 AND x<300",
+          "expect": "199 0 14850"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) FROM t1 WHERE x>200 AND x<300"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(y) FROM t1 WHERE x>0 AND x<1100",
+          "expect": "999 999 499500"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) FROM t1 WHERE x>0 AND x<1100"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t2(x TEXT, y);\n      INSERT INTO t2 SELECT * FROM t1;\n      CREATE INDEX i2 ON t2(x);\n    COMMIT;\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t2(x TEXT, y);\n      INSERT INTO t2 SELECT * FROM t1;\n      CREATE INDEX i2 ON t2(x);\n    COMMIT;\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-2.1.x",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2 WHERE x>1 AND x<2;\n  SELECT count(*) FROM t2 WHERE x>0 AND x<99;",
+          "expect": "200 990"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(y) FROM t2 WHERE x>12 AND x<20",
+          "expect": "161 0 4760"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) FROM t2 WHERE x>12 AND x<20"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(y) FROM t2 WHERE x>0 AND x<99",
+          "expect": "999 999 490555"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) FROM t2 WHERE x>0 AND x<99"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t3(y TEXT, x INTEGER);\n      INSERT INTO t3 SELECT y, x FROM t1;\n      CREATE INDEX i3 ON t3(x);\n    COMMIT;\n    ANALYZE;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t3(y TEXT, x INTEGER);\n      INSERT INTO t3 SELECT y, x FROM t1;\n      CREATE INDEX i3 ON t3(x);\n    COMMIT;\n    ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.3.x",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t3 WHERE x>200 AND x<300;\n  SELECT count(*) FROM t3 WHERE x>0 AND x<1100",
+          "expect": "99 1000"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(y) FROM t3 WHERE x>200 AND x<300",
+          "expect": "199 0 14850"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) FROM t3 WHERE x>200 AND x<300"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-1.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(y) FROM t3 WHERE x>0 AND x<1100",
+          "expect": "999 999 499500"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(y) FROM t3 WHERE x>0 AND x<1100"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE b LIKE 'a%'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE b LIKE 'a%'"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t1 WHERE b LIKE '%a'",
+          "expect": "999 999 100"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE b LIKE '%a'"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-3.8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(d, e, f)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(d, e, f)"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');"
+        }
+      ]
+    },
+    {
+      "name": "analyze3-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);"
+        }
+      ]
+    },
+    {
+      "name": "analyze-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1,1,'0000');\n  CREATE INDEX t0b ON t1(b);\n  ANALYZE;\n  SELECT c FROM t1 WHERE b=3 AND a BETWEEN 30 AND hex(1);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1a ON t1(a);\n  ANALYZE;\n  SELECT * FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  INSERT INTO sqlite_stat1(tbl,idx,stat) VALUES('t1','t1a','12000');\n  ANALYZE sqlite_master;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, v) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1','1 1');\n  INSERT INTO sqlite_stat4 VALUES('t1','t1','1','0','0',X'021b76657273696f6e');\n  INSERT INTO sqlite_stat4 VALUES('T1','T1','1','0','0',X'021b76657273696f6e');\n  ANALYZE sqlite_schema;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat4 VALUES\n     ('t1','t1','1','2','2',X'03000103'),\n     ('t1','sqlite_autoindex_t1_1','1','2','2',X'03000103');\n  ANALYZE sqlite_schema;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

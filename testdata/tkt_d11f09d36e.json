@@ -8,20 +8,12 @@
         {
           "type": "exec",
           "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;"
         }
       ]
     },
     {
       "name": "tkt-d11f09d36e.2",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK;"
-        },
         {
           "type": "exec",
           "sql": "BEGIN;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK;"
@@ -35,10 +27,15 @@
           "type": "query",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
-        },
+        }
+      ]
+    },
+    {
+      "name": "tkt-d11f09d36e.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA integrity_check"
+          "sql": "SAVEPOINT tr;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK TO tr;\n    RELEASE tr;"
         }
       ]
     },
@@ -49,6 +46,22 @@
           "type": "query",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT tr;\n      UPDATE t1 set x = x+10000;\n    ROLLBACK TO tr;\n    RELEASE tr;"
         },
         {
           "type": "exec",

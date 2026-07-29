@@ -1,0 +1,214 @@
+{
+  "file": "basexx1.test",
+  "name": "basexx1",
+  "tests": [
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT base64(x'')||base85(x'');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(x'01'||base64('')||base85('')||x'02');",
+          "expect": "0102"
+        }
+      ]
+    },
+    {
+      "name": "102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT base64(x'000102030405');\n  SELECT base64(x'0001020304');\n  SELECT base64(x'00010203');",
+          "expect": "{AAECAwQF\n} {AAECAwQ=\n} {AAECAw==\n}"
+        }
+      ]
+    },
+    {
+      "name": "102-b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c wHERE n<5000)\n  SELECT sum(length(base64(randomblob(n)))) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "103",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(base64('AAECAwQF'));\n  SELECT hex(base64('AAECAwQ='));\n  SELECT hex(base64('AAECAw=='));",
+          "expect": "000102030405 0001020304 00010203"
+        }
+      ]
+    },
+    {
+      "name": "104",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(base64(' AAECAwQF '));\n  SELECT hex(base64(' AAECAwQ'));\n  SELECT hex(base64('AAECAw '));",
+          "expect": "000102030405 0001020304 00010203"
+        }
+      ]
+    },
+    {
+      "name": "105",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT base85(x'000102030405');\n  SELECT base85(x'0001020304');\n  SELECT base85(x'00010203');",
+          "expect": "{##/2,#2/\n} {##/2,#*\n} {##/2,\n}"
+        }
+      ]
+    },
+    {
+      "name": "106",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(base85('##/2,#2/'));\n  SELECT hex(base85('##/2,#*'));\n  SELECT hex(base85('##/2,'));\n  SELECT hex(base85(' ##/2,#2/ '));\n  SELECT hex(base85(' ##/2,#*'));\n  SELECT hex(base85('##/2, '));",
+          "expect": "000102030405 0001020304 00010203 000102030405 0001020304 00010203"
+        }
+      ]
+    },
+    {
+      "name": "107",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE rb( len int, b blob ) STRICT;\n  INSERT INTO rb(len) VALUES (1),(2),(3),(4),(5),(150),(151),(152),(153),(1054);\n  UPDATE rb SET b = randomblob(len);\n  SELECT len, base64(base64(b))=b, base85(base85(b))=b\n  FROM rb ORDER BY len;",
+          "expect": "1 1 1 2 1 1 3 1 1 4 1 1 5 1 1 150 1 1 151 1 1 152 1 1 153 1 1 1054 1 1"
+        }
+      ]
+    },
+    {
+      "name": "108",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TEMP TABLE junk(j text, rank int);\n  INSERT INTO junk VALUES ('',0),(' ',1),('~',2);\n  SELECT len, base64(j.j||base64(b)||j.j)=b, base85(j.j||base85(b)||j.j)=b\n  FROM rb r, junk j WHERE j.rank=(r.len+r.len/25)%3 ORDER BY len;",
+          "expect": "1 1 1 2 1 1 3 1 1 4 1 1 5 1 1 150 1 1 151 1 1 152 1 1 153 1 1 1054 1 1"
+        }
+      ]
+    },
+    {
+      "name": "109",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT len, base64(b) FROM rb WHERE len>200;",
+          "expect": "1 {blob expanded to base64 too big}"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT len, base85(b) FROM rb WHERE len>200;",
+          "expect": "1 {blob expanded to base85 too big}"
+        }
+      ]
+    },
+    {
+      "name": "111",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT length(base85(b))=1335 FROM rb WHERE len=1054;",
+          "expect": "1 {blob expanded to base85 too big}"
+        }
+      ]
+    },
+    {
+      "name": "112",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));"
+        }
+      ]
+    },
+    {
+      "name": "113",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT is_base85(NULL) IS NULL;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "114",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT is_base85(1);",
+          "expect": "1 {is_base85 accepts only text or NULL}"
+        }
+      ]
+    },
+    {
+      "name": "115",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT is_base85(1.1);",
+          "expect": "1 {is_base85 accepts only text or NULL}"
+        }
+      ]
+    },
+    {
+      "name": "116",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT is_base85(x'00');",
+          "expect": "1 {is_base85 accepts only text or NULL}"
+        }
+      ]
+    },
+    {
+      "name": "117",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE bs(b blob, num);\n  INSERT INTO bs SELECT randomblob(4000 + n%3), n \n   FROM ( \n     WITH RECURSIVE seq(n) AS (\n      VALUES(1) UNION ALL SELECT n+1\n      FROM seq WHERE n<100\n     ) SELECT n FROM seq);\n  SELECT num FROM bs WHERE base64(base64(b))!=b;\n  SELECT num FROM bs WHERE base85(base85(b))!=b;"
+        }
+      ]
+    },
+    {
+      "name": "118",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT base64(zeroblob(2000_000_000))",
+          "expect": "/1.*too big.*/"
+        }
+      ]
+    },
+    {
+      "name": "119",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT base85(zeroblob(2000_000_000))",
+          "expect": "/1.*too big.*/"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

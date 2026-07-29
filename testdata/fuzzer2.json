@@ -8,10 +8,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE x1_rules SET cost = 20 WHERE cost<20 AND cFrom!='xx'"
         }
       ]
     },
@@ -25,12 +21,26 @@
       ]
     },
     {
+      "name": "1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE x1 USING fuzzer(x1_rules);\n  SELECT word FROM x1 WHERE word MATCH 'xx' LIMIT 10;",
+          "expect": "xx hw hx hy hz ia ib ic id ie"
+        }
+      ]
+    },
+    {
       "name": "1.2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT cTo FROM x1_rules WHERE cFrom='xx' \n  ORDER BY cost asc, rowid asc LIMIT 9;",
           "expect": "hw hx hy hz ia ib ic id ie"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE x1_rules SET cost = 20 WHERE cost<20 AND cFrom!='xx'"
         }
       ]
     }

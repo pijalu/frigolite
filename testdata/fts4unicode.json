@@ -1,0 +1,144 @@
+{
+  "file": "fts4unicode.test",
+  "name": "fts4unicode",
+  "tests": [
+    {
+      "name": "8.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t3 WHERE t3 MATCH 'o';",
+          "expect": "1 3 5 7"
+        }
+      ]
+    },
+    {
+      "name": "8.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t3 WHERE t3 MATCH 'a';",
+          "expect": "2 4 6 8"
+        }
+      ]
+    },
+    {
+      "name": "8.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4(tokenize=unicode61 \"remove_diacritics=0\");\n  INSERT INTO t4 SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "8.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t4 WHERE t4 MATCH 'o';",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "8.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t4 WHERE t4 MATCH 'a';",
+          "expect": "2 4"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(tokenize=unicode61 \"separators=aB\");\n  INSERT INTO t2 VALUES('oneatwoBthree');\n  INSERT INTO t2 VALUES('onebtwoAthree');\n  CREATE VIRTUAL TABLE t2aux USING fts4aux(t2);\n  SELECT * FROM t2aux;",
+          "expect": "one           * 1 1 one           0 1 1 \n  onebtwoathree * 1 1 onebtwoathree 0 1 1 \n  three         * 1 1 three         0 1 1 \n  two           * 1 1 two           0 1 1"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE ft1 USING fts3tokenize(\n    \"unicode61\", \"tokenchars=@.\", \"separators=1234567890\"\n  );\n  SELECT token FROM ft1 WHERE input = 'berlin@street123sydney.road';",
+          "expect": "berlin@street sydney.road"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t12 USING fts4(tokenize=unicode61);\n  INSERT INTO t12 VALUES('abc' || char(0) || 'def');\n  SELECT hex(CAST(content AS blob)) FROM t12;",
+          "expect": "61626300646566"
+        }
+      ]
+    },
+    {
+      "name": "12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t12(t12) VALUES('integrity-check');"
+        }
+      ]
+    },
+    {
+      "name": "12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t12aux USING fts4aux(t12);\n  SELECT * FROM t12aux;",
+          "expect": "abc * 1 1 abc 0 1 1"
+        }
+      ]
+    },
+    {
+      "name": "12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT hex(CAST(content AS blob)) FROM t12 WHERE t12 MATCH 'abc'",
+          "expect": "61626300646566"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(tokenize=unicode61, x);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4(tokenize=unicode61, x);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

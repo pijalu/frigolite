@@ -38,22 +38,6 @@
           "type": "query",
           "sql": "ALTER TABLE p3 RENAME TO p2;\n  PRAGMA foreign_keys = 1;\n  ALTER TABLE p2 RENAME TO p3;\n  SELECT sql FROM sqlite_master WHERE name LIKE 'c%';",
           "expect": "{CREATE TABLE c1(x REFERENCES \"p3\")}\n  {CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p3\")}\n  {CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p3\"(a))}"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sql FROM sqlite_master"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -126,14 +110,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "7.0",
       "steps": [
         {
@@ -183,14 +159,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
@@ -214,7 +182,7 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME a TO aaa;",
-          "expect": "1 {error in trigger tr: no such column: a}"
+          "expect": "1 {error in trigger tr after rename: no such column: a}"
         }
       ]
     },
@@ -247,28 +215,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.6",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(likelihood(1,2) AND 0);\n  ALTER TABLE t0 RENAME TO t1;\n  SELECT sql FROM sqlite_master WHERE name='i0';",
           "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -288,6 +240,54 @@
           "type": "exec",
           "sql": "ALTER TABLE t2 RENAME TO newname;",
           "expect": "1 {error in trigger AFTER: all VALUES must have the same number of terms}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

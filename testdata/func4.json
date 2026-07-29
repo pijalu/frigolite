@@ -3,23 +3,6 @@
   "name": "func4",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT tointeger(9223372036854775807 + 1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT toreal(-9223372036854775808 + 1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT toreal(9007199254740992 + 1);"
-        }
-      ]
-    },
-    {
       "name": "func4-1.1",
       "steps": [
         {
@@ -1119,176 +1102,6 @@
       ]
     },
     {
-      "name": "func4-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('bad');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234bad');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234.56bad');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (1234);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (1234.56);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234.56');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (X'');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (X'1234');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (X'12345678');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.16",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('1234.00');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.17",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (1234.00);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.18",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES ('-9223372036854775809');",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-3.19",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 (x) VALUES (9223372036854775808);",
-          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
       "name": "func4-3.20",
       "steps": [
         {
@@ -1304,136 +1117,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(\n        x REAL CHECK(toreal(x) IS NOT NULL)\n      );"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('bad');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234bad');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234.56bad');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.8",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (1234);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.9",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (1234.56);",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES ('1234.56');",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (X'');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.14",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (X'1234');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
-        }
-      ]
-    },
-    {
-      "name": "func4-4.15",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 (x) VALUES (X'12345678');",
-          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
         }
       ]
     },
@@ -2024,6 +1707,338 @@
           "type": "query",
           "sql": "SELECT toreal(x'7fffffffffffffff');",
           "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('bad');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234bad');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234.56bad');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (1234);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (1234.56);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234.56');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (ZEROBLOB(4));",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (X'');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (X'1234');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (X'12345678');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('1234.00');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (1234.00);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES ('-9223372036854775809');",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-3.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 (x) VALUES (9223372036854775808);",
+          "expect": "1 {CHECK constraint failed: tointeger(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (NULL);",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES ('');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES ('bad');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234bad');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234.56bad');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (1234);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (1234.56);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES ('1234.56');",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (ZEROBLOB(4));",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (X'');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (X'1234');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        }
+      ]
+    },
+    {
+      "name": "func4-4.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 (x) VALUES (X'12345678');",
+          "expect": "1 {CHECK constraint failed: toreal(x) IS NOT NULL}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tointeger(9223372036854775807 + 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT toreal(-9223372036854775808 + 1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT toreal(9007199254740992 + 1);"
         }
       ]
     }

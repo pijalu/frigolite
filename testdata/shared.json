@@ -1,0 +1,320 @@
+{
+  "file": "shared.test",
+  "name": "shared",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma auto_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE def(d, e, f);\n    INSERT INTO def VALUES('IV', 'V', 'VI');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    BEGIN;\n    SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO def VALUES('VII', 'VIII', 'IX');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA read_uncommitted = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT max(i) FROM seq"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM seq;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS test2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db' AS test"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(d, e, f);\n    INSERT INTO abc VALUES('i', 'ii', 'iii');\n    INSERT INTO def VALUES('I', 'II', 'III');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM test.abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM test.abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test2.ghi(g, h, i);\n      SELECT 'test.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test2.db:'||name FROM test2.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'test2.db:'||name FROM sqlite_master \n      UNION ALL\n      SELECT 'test.db:'||name FROM test.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE jkl(j, k, l);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test1.db' AS test1;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test3.db' AS test3;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test3.db' AS test3;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test1.db' AS test1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1.t1(a, b);\n    CREATE INDEX test1.i1 ON t1(a, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW test1.v1 AS SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER test1.trig1 AFTER INSERT ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b);\n      END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW v1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TRIGGER trig1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master UNION ALL SELECT * FROM test1.sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 UNION ALL SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t2 VALUES(5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16';\n      SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-8';\n      CREATE TABLE abc(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux;\n      SELECT * FROM aux.sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = 'UTF-16';\n      CREATE TABLE def(d, e, f);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE def(d, e, f)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc_mirror(a, b, c);\n    CREATE TEMP TRIGGER BEFORE INSERT ON abc BEGIN \n      INSERT INTO abc_mirror(a, b, c) VALUES(new.a, new.b, new.c);\n    END;\n    INSERT INTO abc VALUES(1, 2, 3);\n    SELECT * FROM abc_mirror;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc VALUES(4, 5, 6);\n    SELECT * FROM abc_mirror;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE de(d PRIMARY KEY, e);\n    INSERT INTO ab VALUES('Chiang Mai', 100000);\n    INSERT INTO ab VALUES('Bangkok', 8000000);\n    INSERT INTO de VALUES('Ubon', 120000);\n    INSERT INTO de VALUES('Khon Kaen', 200000);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    SELECT * FROM ab;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO de VALUES('Pataya', 30000);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM ab;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM de;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM de;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a, b, c);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    PRAGMA read_uncommitted = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO abc2 VALUES(4, 5, 6);\n    INSERT INTO abc2 VALUES(7, 8, 9);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM abc WHERE 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 10;\n      PRAGMA cache_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    DETACH aux2;\n    DETACH aux3;\n    DETACH aux4;\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE TABLE aux2.t2(a, b, c);\n    CREATE TABLE aux3.t3(a, b, c);\n    CREATE TABLE aux4.t4(a, b, c);\n    CREATE TABLE aux5.t5(a, b, c);\n    SELECT count(*) FROM \n      aux2.sqlite_master, \n      aux3.sqlite_master, \n      aux4.sqlite_master, \n      aux5.sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE VIEW v1 AS SELECT * FROM t1; \n    CREATE VIEW v2 AS SELECT * FROM t1, v1 \n                      WHERE t1.c=v1.c GROUP BY t1.a ORDER BY v1.b; \n    CREATE TRIGGER tr1 AFTER INSERT ON t1 \n      WHEN new.a!=1\n    BEGIN\n      DELETE FROM t1 WHERE a=5;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      UPDATE t1 SET c=c+1;\n    END;\n\n    INSERT INTO t1 VALUES(5, 6, 7);\n    INSERT INTO t1 VALUES(8, 9, 10);\n    INSERT INTO t1 VALUES(11, 12, 13);\n    ANALYZE;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO seq SELECT i + :max, x FROM seq;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM seq WHERE i = :i"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:a, :b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE yy(a, b);\n      INSERT INTO yy VALUES(77, 88);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

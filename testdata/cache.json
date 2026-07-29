@@ -1,0 +1,93 @@
+{
+  "file": "cache.test",
+  "name": "cache",
+  "tests": [
+    {
+      "name": "cache-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 1;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;",
+          "expect": "main reserved temp closed"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 UNION SELECT * FROM t2;",
+          "expect": "1 2 i j x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 0;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;",
+          "expect": "main reserved temp closed"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;",
+          "expect": "main exclusive temp closed"
+        }
+      ]
+    },
+    {
+      "name": "cache-2.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 UNION SELECT * FROM t2;",
+          "expect": "1 2 i j x y"
+        }
+      ]
+    },
+    {
+      "name": "cache-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM abc"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

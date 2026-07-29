@@ -1,0 +1,140 @@
+{
+  "file": "snapshot.test",
+  "name": "snapshot",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN; SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n      BEGIN;\n        INSERT INTO t1 VALUES(5, 6);\n        INSERT INTO t1 VALUES(7, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(11, 12);\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a>6"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('a', 'b');\n      INSERT INTO t1 VALUES('c', 'd');\n      SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('e', 'f');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      BEGIN;\n        INSERT INTO t2 VALUES('g', 'h');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = DELETE"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT ; BEGIN ; SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('f', 's'); \n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 VALUES('s', 'e');\n      INSERT INTO t3 VALUES('n', 't');\n      BEGIN;\n        SELECT * FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t3"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t3 VALUES('e', 't');\n      BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; PRAGMA application_id"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(10);\n      COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN ; PRAGMA application_id"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n      INSERT INTO t1 VALUES(14);\n      PRAGMA wal_checkpoint;\n      BEGIN;\n        PRAGMA application_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(14);\n      BEGIN;\n        PRAGMA application_id;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,65 @@
+{
+  "file": "fpconv1.test",
+  "name": "fpconv1",
+  "tests": [
+    {
+      "name": "fpconv1-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 - 2.34;",
+          "expect": "-1.1099999999999999"
+        }
+      ]
+    },
+    {
+      "name": "fpconv1-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 * 2.34;",
+          "expect": "2.8781999999999996"
+        }
+      ]
+    },
+    {
+      "name": "fpconv1-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 - 2.34;",
+          "expect": "-1.11"
+        }
+      ]
+    },
+    {
+      "name": "fpconv1-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 1.23 * 2.34;",
+          "expect": "2.8782"
+        }
+      ]
+    },
+    {
+      "name": "fpconv1-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n       /* Number of random floating-point values to try.\n       ** On a circa 2021 Ryzen 5950X running Mint Linux, and\n       ** compiled with -O0 -DSQLITE_DEBUG, this test runs at\n       ** about 150000 cases per second  ------------------vvvvvvv */\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500_000),\n    fp(y) AS MATERIALIZED (\n       SELECT CAST( format('%+d.%019d0e%+03d',\n                           random()%10,abs(random()),random()%200) AS real)\n        FROM c\n    )\n  SELECT y FROM fp\n   WHERE -log10(abs(decimal_sub(dtostr(y,24),format('%!.24e',y))/y))<17.0;\n                     /* Number of digits of accuracy required -------^^^^ */"
+        }
+      ]
+    },
+    {
+      "name": "fpconv1-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE\n    c(x,s) AS MATERIALIZED (VALUES(1,random()&0xffefffffffffffff)\n               UNION ALL\n               SELECT x+1,random()&0xffefffffffffffff\n                 FROM c WHERE x<1_000_000),\n    fp(y,s) AS (\n       SELECT ieee754_from_int(s),s FROM c\n    ),\n    fp2(yt,y,s) AS (\n       SELECT y||'', y, s FROM fp\n    )\n  SELECT format('%#016x',s) aS 'orig-hex',\n         format('%#016x',ieee754_to_int(CAST(yt AS real))) AS 'full-roundtrip',\n         yt AS 'rendered-as',\n         decimal_exp(yt,30) AS 'text-decimal',\n         decimal_exp(ieee754_from_int(s),30) AS 'float-decimal'\n    FROM fp2\n   WHERE ieee754_to_int(CAST(yt AS real))<>s;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,380 @@
+{
+  "file": "dbpage.test",
+  "name": "dbpage",
+  "tests": [
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage('main') ORDER BY pgno;",
+          "expect": "1 X'53514C6974' 2 X'0500000001' 3 X'0D0000004E' 4 X'0D00000016'"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=2;",
+          "expect": "2 X'0500000001'"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=4;",
+          "expect": "4 X'0D00000016'"
+        }
+      ]
+    },
+    {
+      "name": "140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=5;"
+        }
+      ]
+    },
+    {
+      "name": "150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage WHERE pgno=0;"
+        }
+      ]
+    },
+    {
+      "name": "160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH ':memory:' AS aux1;\n  PRAGMA aux1.page_size=4096;\n  CREATE TABLE aux1.t2(a,b,c);\n  INSERT INTO t2 VALUES(11,12,13);\n  SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage('aux1');",
+          "expect": "1 X'53514C6974' 2 X'0D00000001'"
+        }
+      ]
+    },
+    {
+      "name": "170",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE aux1.x3(x,y,z);\n  INSERT INTO x3(x,y,z) VALUES(1,'main',1),(2,'aux1',1);\n  SELECT pgno, schema, substr(data,1,6)\n    FROM sqlite_dbpage, x3\n   WHERE sqlite_dbpage.schema=x3.y AND sqlite_dbpage.pgno=x3.z\n   ORDER BY x3.x;",
+          "expect": "1 main SQLite 1 aux1 SQLite"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE saved_content(x);\n  INSERT INTO saved_content(x) SELECT data FROM sqlite_dbpage WHERE pgno=4;\n  UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=4;"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno, quote(substr(data,1,5)) FROM sqlite_dbpage('main') ORDER BY pgno;",
+          "expect": "1 X'53514C6974' 2 X'0500000001' 3 X'0D0000004E' 4 X'0000000000'"
+        }
+      ]
+    },
+    {
+      "name": "230",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content) WHERE pgno=4;"
+        }
+      ]
+    },
+    {
+      "name": "230",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check;",
+          "expect": "0 ok"
+        }
+      ]
+    },
+    {
+      "name": "240",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM saved_content;\n  INSERT INTO saved_content(x) \n     SELECT data FROM sqlite_dbpage WHERE schema='aux1' AND pgno=2;"
+        }
+      ]
+    },
+    {
+      "name": "241",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE sqlite_dbpage SET data=zeroblob(4096) WHERE pgno=2 AND schema='aux1';"
+        }
+      ]
+    },
+    {
+      "name": "250",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux1.integrity_check;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "260",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE sqlite_dbpage SET data=(SELECT x FROM saved_content)\n   WHERE pgno=2 AND schema='aux1';"
+        }
+      ]
+    },
+    {
+      "name": "270",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux1.integrity_check;",
+          "expect": "0 ok"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM sqlite_temp_schema, sqlite_dbpage;"
+        }
+      ]
+    },
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS aux1;\n  BEGIN;\n    CREATE VIRTUAL TABLE aux1.t1 USING sqlite_dbpage;\n    INSERT INTO t1 VALUES(17, NULL);\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=NONE;\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  INSERT INTO x1 VALUES( hex(randomblob(2000)) );\n  PRAGMA page_count;",
+          "expect": "18"
+        }
+      ]
+    },
+    {
+      "name": "520",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_count;\n  SELECT * FROM t1;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "610",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);"
+        }
+      ]
+    },
+    {
+      "name": "640",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2;",
+          "expect": "1234"
+        }
+      ]
+    },
+    {
+      "name": "700",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );\n  INSERT INTO t1 VALUES( hex(randomblob(1000)) );"
+        }
+      ]
+    },
+    {
+      "name": "720",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "800",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(x);"
+        }
+      ]
+    },
+    {
+      "name": "810",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno FROM sqlite_dbpage WHERE pgno=555"
+        }
+      ]
+    },
+    {
+      "name": "820",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pgno FROM sqlite_dbpage WHERE pgno=4294967297"
+        }
+      ]
+    },
+    {
+      "name": "100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "710",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b) SELECT x, printf('%d-x%.*c',x,x,'x') FROM c;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

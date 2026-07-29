@@ -119,6 +119,10 @@
         },
         {
           "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN z; UPDATE t1 SET z=zeroblob(600)"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT rowid, a, x FROM t1 ORDER BY +rowid"
         },
         {

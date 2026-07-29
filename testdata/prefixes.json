@@ -28,6 +28,15 @@
           "sql": "SELECT prefix_length('abc',null);"
         }
       ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT prefix_length(zeroblob(15000),zeroblob(5000));"
+        }
+      ]
     }
   ]
 }

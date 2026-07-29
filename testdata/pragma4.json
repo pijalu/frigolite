@@ -1,0 +1,520 @@
+{
+  "file": "pragma4.test",
+  "name": "pragma4",
+  "tests": [
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info = t1",
+          "expect": "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info = t2",
+          "expect": "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "4.1.5a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(t1)",
+          "expect": "1 {database schema has changed}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(t1)"
+        }
+      ]
+    },
+    {
+      "name": "4.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(t2)"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_table_info('t1')",
+          "expect": "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_table_info('t2')",
+          "expect": "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "4.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_table_info('t1')"
+        }
+      ]
+    },
+    {
+      "name": "4.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_table_info('t2')"
+        }
+      ]
+    },
+    {
+      "name": "4.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(d, e, f);\n  CREATE INDEX aux.i2 ON t2(e);"
+        }
+      ]
+    },
+    {
+      "name": "4.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_info('i1')",
+          "expect": "0 1 b"
+        }
+      ]
+    },
+    {
+      "name": "4.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_info('i2')",
+          "expect": "0 1 e"
+        }
+      ]
+    },
+    {
+      "name": "4.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_info('i1')"
+        }
+      ]
+    },
+    {
+      "name": "4.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_info('i2')"
+        }
+      ]
+    },
+    {
+      "name": "4.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX main.i1 ON t1(b, c);\n  CREATE INDEX aux.i2 ON t2(e, f);"
+        }
+      ]
+    },
+    {
+      "name": "4.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_list('t1')",
+          "expect": "0 i1 0 c 0"
+        }
+      ]
+    },
+    {
+      "name": "4.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_list('t2')",
+          "expect": "0 i2 0 c 0"
+        }
+      ]
+    },
+    {
+      "name": "4.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_list('t1')"
+        }
+      ]
+    },
+    {
+      "name": "4.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_index_list('t2')"
+        }
+      ]
+    },
+    {
+      "name": "4.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX main.i1 ON t1(a);\n  CREATE UNIQUE INDEX aux.i2 ON t2(d);\n  CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));"
+        }
+      ]
+    },
+    {
+      "name": "4.5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_foreign_key_list('c1')",
+          "expect": "0 0 t1 c a {NO ACTION} {NO ACTION} NONE"
+        }
+      ]
+    },
+    {
+      "name": "4.5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_foreign_key_list('c2')",
+          "expect": "0 0 t2 r d {NO ACTION} {NO ACTION} NONE"
+        }
+      ]
+    },
+    {
+      "name": "4.5.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_foreign_key_list('c1')"
+        }
+      ]
+    },
+    {
+      "name": "4.5.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM pragma_foreign_key_list('c2')"
+        }
+      ]
+    },
+    {
+      "name": "4.6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE main.c1 (a, b, c REFERENCES t1(a));\n  CREATE TABLE aux.c2 (d, e, r REFERENCES t2(d));\n  INSERT INTO main.c1 VALUES(1, 2, 3);\n  INSERT INTO aux.c2 VALUES(4, 5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "4.6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma foreign_key_check('c1')",
+          "expect": "c1 1 t1 0"
+        }
+      ]
+    },
+    {
+      "name": "4.6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma foreign_key_check('c2')",
+          "expect": "c2 1 t2 0"
+        }
+      ]
+    },
+    {
+      "name": "4.6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "pragma foreign_key_check('c1')",
+          "expect": "c1 1 t1 0"
+        }
+      ]
+    },
+    {
+      "name": "4.6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "pragma foreign_key_check('c2')",
+          "expect": "1 {no such table: c2}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(a DEFAULT 'abc' /* comment */, b DEFAULT -1 -- comment\n     , c DEFAULT +4.0 /* another comment */\n  );\n  PRAGMA table_info = t4;",
+          "expect": "0 a {} 0 'abc' 0 1 b {} 0 -1 0 2 c {} 0 +4.0 0"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a INT PRIMARY KEY, b INT);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT REFERENCES t1);\n    SELECT t.name, f.\"table\", f.\"from\", i.name, i.pk\n      FROM pragma_table_list() AS t\n           JOIN pragma_foreign_key_list(t.name, t.schema) AS f\n           JOIN pragma_table_info(f.\"table\", t.schema) AS i\n     WHERE i.pk;",
+          "expect": "t2 t1 d a 1"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIEW v1 AS SELECT abs(a) FROM t1;\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_schema\n       SET sql=replace(sql,'abs(a)','nosuchfunc(a)')\n     WHERE name='v1';\n    PRAGMA writable_schema=RESET;"
+        }
+      ]
+    },
+    {
+      "name": "6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_list;",
+          "expect": "main v1 view 0 0 0 main t2 table 2 0 0 main t1 table 2 0 0 main sqlite_schema table 5 0 0 temp sqlite_temp_schema table 5 0 0"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3 (\"a\" TEXT, \"b\" TEXT);\n    CREATE TABLE t4 (\"a\" TEXT, \"b\" TEXT, \"c\" TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pragma_t3 AS SELECT * FROM pragma_table_info('t3');\n    CREATE TABLE pragma_t4 AS SELECT * FROM pragma_table_info('t4');"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT pragma_t4.name, pragma_t3.name \n      FROM pragma_t4 RIGHT JOIN pragma_t3 ON (pragma_t4.name=pragma_t3.name);",
+          "expect": "a a b b"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT t4.name, t3.name \n    FROM pragma_table_info('t4') t4 \n    RIGHT JOIN pragma_table_info('t3') t3 ON (t4.name=t3.name);",
+          "expect": "a a b b"
+        }
+      ]
+    },
+    {
+      "name": "4.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "4.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        }
+      ]
+    },
+    {
+      "name": "4.3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1"
+        }
+      ]
+    },
+    {
+      "name": "4.4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1"
+        }
+      ]
+    },
+    {
+      "name": "4.5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c1"
+        }
+      ]
+    },
+    {
+      "name": "4.6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX i2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM main.sqlite_master, aux.sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

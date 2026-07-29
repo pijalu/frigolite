@@ -3,16 +3,29 @@
   "name": "fts3fault3",
   "tests": [
     {
-      "name": "__RESET_DB__",
+      "name": "1.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3(a);\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n  INSERT INTO t1 VALUES(' actually other stuff instead');"
         }
       ]
     },
     {
-      "name": "setup_1",
+      "name": "2.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM t1 WHERE rowid=2;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        },
         {
           "type": "exec",
           "sql": "BEGIN;\n      CREATE TABLE x1(a PRIMARY KEY);"
@@ -20,6 +33,14 @@
         {
           "type": "exec",
           "sql": "PRAGMA integrity_check;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -1,0 +1,328 @@
+{
+  "file": "nan.test",
+  "name": "nan",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM T1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=x-x;\n    SELECT CAST(x AS text), typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM T1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(0.5);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size=1024;\n      VACUUM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT decimal_exp(x), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT decimal_exp(x), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x AS text), typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x, typeof(x) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e+9999');\n    SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e+10000');\n    SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e-9999');\n    SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e-10000');\n    SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e2147483650');\n    SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES('2.5e-2147483650');\n    SELECT x, typeof(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cast('-1e999' AS real);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES([string repeat 9 307].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES([string repeat 9 308].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-[string repeat 9 307].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-[string repeat 9 308].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES([string repeat 9 309].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-[string repeat 9 309].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES([string repeat 9 309].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-[string repeat 9 309].0)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1234.5[string repeat 0 10000]12345)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(-1234.5[string repeat 0 10000]12345)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -3,14 +3,39 @@
   "name": "pagesize",
   "tests": [
     {
+      "name": "pagesize-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
+      "name": "pagesize-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "pagesize-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    PRAGMA page_size = 2048;\n  COMMIT;\n  PRAGMA main.page_size;",
+          "expect": "1024"
+        }
+      ]
+    },
+    {
       "name": "pagesize-1.1",
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA page_size"
-        },
-        {
-          "type": "exec",
           "sql": "PRAGMA page_size"
         }
       ]
@@ -21,10 +46,6 @@
         {
           "type": "query",
           "sql": "EXPLAIN PRAGMA page_size"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN PRAGMA page_size"
         }
       ]
     },
@@ -33,10 +54,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;"
-        },
-        {
-          "type": "exec",
           "sql": "CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;"
         }
       ]
@@ -47,10 +64,6 @@
         {
           "type": "query",
           "sql": "PRAGMA page_size=511;\n    PRAGMA page_size;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=511;\n    PRAGMA page_size;"
         }
       ]
     },
@@ -59,10 +72,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA page_size=512;\n    PRAGMA page_size;"
-        },
-        {
-          "type": "exec",
           "sql": "PRAGMA page_size=512;\n    PRAGMA page_size;"
         }
       ]
@@ -73,10 +82,6 @@
         {
           "type": "query",
           "sql": "PRAGMA page_size=8192;\n      PRAGMA page_size;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA page_size=8192;\n      PRAGMA page_size;"
         }
       ]
     },
@@ -85,10 +90,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "PRAGMA page_size=65537;\n      PRAGMA page_size;"
-        },
-        {
-          "type": "exec",
           "sql": "PRAGMA page_size=65537;\n      PRAGMA page_size;"
         }
       ]
@@ -102,25 +103,40 @@
         },
         {
           "type": "exec",
+          "sql": "PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN PRAGMA page_size"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    PRAGMA page_size=2048;\n    PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=511;\n    PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=512;\n    PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=8192;\n      PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=65537;\n      PRAGMA page_size;"
+        },
+        {
+          "type": "exec",
           "sql": "PRAGMA page_size=1234;\n      PRAGMA page_size"
         },
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x);\n      PRAGMA page_size;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_9",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size"
@@ -128,20 +144,7 @@
         {
           "type": "exec",
           "sql": "VACUUM"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_11",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size"
@@ -153,20 +156,7 @@
         {
           "type": "exec",
           "sql": "ROLLBACK;\n      SELECT count(*) FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_13",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "PRAGMA page_size"
@@ -206,31 +196,26 @@
       ]
     },
     {
-      "name": "pagesize-3.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "BEGIN;\n  SELECT * FROM sqlite_master;\n  PRAGMA page_size=2048;\n  PRAGMA main.page_size;",
-          "expect": "1024"
+          "type": "reset_db"
         }
       ]
     },
     {
-      "name": "pagesize-3.2",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x);\n  COMMIT;"
+          "type": "reset_db"
         }
       ]
     },
     {
-      "name": "pagesize-3.3",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "BEGIN;\n    PRAGMA page_size = 2048;\n  COMMIT;\n  PRAGMA main.page_size;",
-          "expect": "1024"
+          "type": "reset_db"
         }
       ]
     }

@@ -11,15 +11,15 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
-        },
-        {
-          "type": "exec",
           "sql": "CREATE TABLE abc(a, b, c)"
         },
         {
           "type": "exec",
           "sql": "INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;\n      INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
         }
       ]
     }

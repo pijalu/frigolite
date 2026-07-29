@@ -1,0 +1,316 @@
+{
+  "file": "corruptI.test",
+  "name": "corruptI",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n     PRAGMA page_size = 512;\n     CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n     WITH s(a, b) AS (\n       SELECT 2, 'abcdefghij'\n       UNION ALL\n       SELECT a+2, b FROM s WHERe a < 40\n     )\n     INSERT INTO t1 SELECT * FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(9, 'klmnopqrst');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 65536;\n  PRAGMA autovacuum = 0;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(-1, 'abcdefghij');\n  INSERT INTO t1 VALUES(0, 'abcdefghij');"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_count"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(600));"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES('a', 'A');\n  INSERT INTO t1 VALUES('b', 'A');\n  INSERT INTO t1 VALUES('c', 'A');\n  SELECT name FROM sqlite_master;",
+          "expect": "t1 sqlite_autoindex_t1_1"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));\n  INSERT INTO t1 VALUES(zeroblob(300));"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 10",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a = 10",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE r(x);\n    INSERT INTO r VALUES('ABCDEFGHIJK');\n    CREATE INDEX r1 ON r(x);"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM r WHERE x >= 10.0",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM r WHERE x >= 10",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 'klmnopqrst')"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a=0",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx(x);",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid=2"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x='d' AND y='D' WHERE rowid = 2",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "/.*in database main.*/"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE r(x);\n    INSERT INTO r VALUES('ABCDEFGHIJK');\n    CREATE INDEX r1 ON r(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(5, 'klmnopqrst')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(7, 'klmnopqrst')"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t100(x);\n    DROP TABLE t100;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid=2"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,15 @@
+{
+  "file": "chunksize.test",
+  "name": "chunksize",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        }
+      ]
+    }
+  ]
+}

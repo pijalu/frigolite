@@ -179,6 +179,24 @@
       ]
     },
     {
+      "name": "aggorderby-7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES(1),(NULL),(2.5),(NULL),('three'))\n  SELECT json_group_array(x ORDER BY x NULLS FIRST),\n         json_group_array(x ORDER BY x NULLS LAST) FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "aggorderby-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x,y) AS (VALUES(1,9),(2,null),(3,5),(4,null),(5,1))\n  SELECT json_group_array(x ORDER BY y NULLS FIRST, x),\n         json_group_array(x ORDER BY y NULLS LAST, x) FROM c;"
+        }
+      ]
+    },
+    {
       "name": "aggorderby-8.0",
       "steps": [
         {
@@ -206,19 +224,19 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "aggorderby-10.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

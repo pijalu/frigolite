@@ -1,0 +1,36 @@
+{
+  "file": "colmeta.test",
+  "name": "colmeta",
+  "tests": [
+    {
+      "name": "colmeta-0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE abc4(a, b INTEGER PRIMARY KEY AUTOINCREMENT, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v1 AS SELECT * FROM abc2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

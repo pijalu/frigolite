@@ -20,20 +20,7 @@
         {
           "type": "exec",
           "sql": "SELECT *, '|' FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
@@ -69,6 +56,14 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM t8"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

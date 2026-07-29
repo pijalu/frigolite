@@ -3,6 +3,15 @@
   "name": "closure01",
   "tests": [
     {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INTEGER);\n  WITH RECURSIVE\n    cnt(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM cnt LIMIT 131072)\n  INSERT INTO t1(x, y) SELECT i, nullif(i,1)/2 FROM cnt;\n  CREATE INDEX t1y ON t1(y);\n  COMMIT;\n  CREATE VIRTUAL TABLE cx \n   USING transitive_closure(tablename=t1, idcolumn=x, parentcolumn=y);"
+        }
+      ]
+    },
+    {
       "name": "1.4",
       "steps": [
         {
@@ -93,12 +102,98 @@
       ]
     },
     {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE c2up USING transitive_closure(\n    tablename = t2,\n    idcolumn = y,\n    parentcolumn = x\n  );\n  SELECT id FROM c2up WHERE root=20;",
+          "expect": "1 2 5 10 20"
+        }
+      ]
+    },
+    {
       "name": "3.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT id FROM cx\n   WHERE root=20\n     AND tablename='t2'\n     AND idcolumn='y'\n     AND parentcolumn='x';",
           "expect": "1 2 5 10 20"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT id FROM c2\n   WHERE root IN (SELECT id FROM c2up\n                   WHERE root=20 AND depth<=2)\n   ORDER BY id;",
+          "expect": "5 10 11 20 21 22 23"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT id FROM c2\n   WHERE root=(SELECT id FROM c2up\n               WHERE root=20 AND depth=2)\n     AND depth=2\n  EXCEPT\n  SELECT id FROM c2\n   WHERE root=(SELECT id FROM c2up\n               WHERE root=20 AND depth=1)\n     AND depth<=1\n   ORDER BY id;",
+          "expect": "22 23"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE temp.closure USING transitive_closure;\n  SELECT id FROM closure\n   WHERE root=1\n     AND depth=3\n     AND tablename='t1'\n     AND idcolumn='x'\n     AND parentcolumn='y'\n  ORDER BY id;",
+          "expect": "8 9 10 11 12 13 14 15"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 (\n    id INTEGER PRIMARY KEY, \n    name TEXT NOT NULL,\n    parent_id INTEGER\n  );\n  CREATE VIRTUAL TABLE vt4 USING transitive_closure (\n    idcolumn=id, parentcolumn=parent_id, tablename=t4\n  );"
+        }
+      ]
+    },
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t4, vt4 WHERE t4.id = vt4.root AND vt4.id=4 AND vt4.depth=2;"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE c\n    USING transitive_closure(idcolumn='abc'x, tablename='t', parentcolumn='p');"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c WHERE root=1;",
+          "expect": "1 0 2 1"
         }
       ]
     },
@@ -129,15 +224,10 @@
           "type": "exec",
           "sql": "SELECT id FROM cx\n     WHERE root=20\n       AND tablename='t2'\n       AND idcolumn='x'\n       AND parentcolumn='pqr';",
           "expect": "1 {no such column: t2.pqr}"
-        }
-      ]
-    },
-    {
-      "name": "6.1",
-      "steps": [
+        },
         {
-          "type": "query",
-          "sql": "SELECT * FROM t4, vt4 WHERE t4.id = vt4.root AND vt4.id=4 AND vt4.depth=2;"
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  INSERT INTO t2 SELECT x, y FROM t1 WHERE x<32;\n  CREATE INDEX t2y ON t2(y);\n  CREATE VIRTUAL TABLE c2 \n   USING transitive_closure(tablename=t2, idcolumn=x, parentcolumn=y);"
         }
       ]
     },
@@ -146,15 +236,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "7.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);"
         }
       ]
     }

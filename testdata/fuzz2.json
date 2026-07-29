@@ -39,14 +39,6 @@
           "type": "exec",
           "sql": "INSERT INTO t0 SELECT strftime();",
           "expect": "0 {}"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT quote(t) FROM t0"
         }
       ]
     },
@@ -67,6 +59,14 @@
           "type": "exec",
           "sql": "SELECT c.* FROM (a,b) AS c",
           "expect": "1 {no such table: a}"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0; CREATE TABLE t0(t);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(t) FROM t0"
         }
       ]
     }

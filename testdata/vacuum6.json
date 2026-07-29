@@ -21,14 +21,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.2",
       "steps": [
         {
@@ -38,18 +30,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "3.0",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));"
         }
       ]
     },
@@ -69,6 +54,40 @@
           "type": "query",
           "sql": "PRAGMA integrity_check",
           "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;",
+          "expect": "18009000"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },

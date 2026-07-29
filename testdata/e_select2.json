@@ -1,0 +1,25 @@
+{
+  "file": "e_select2.test",
+  "name": "e_select2",
+  "tests": [
+    {
+      "name": "e_select-2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(b COLLATE nocase);\n\n  INSERT INTO t1 VALUES(2, 'B');\n  INSERT INTO t1 VALUES(1, 'A');\n  INSERT INTO t1 VALUES(4, 'D');\n  INSERT INTO t1 VALUES(NULL, NULL);\n  INSERT INTO t1 VALUES(3, NULL);\n\n  INSERT INTO t2 VALUES(1, 'A');\n  INSERT INTO t2 VALUES(2, NULL);\n  INSERT INTO t2 VALUES(5, 'E');\n  INSERT INTO t2 VALUES(NULL, NULL);\n  INSERT INTO t2 VALUES(3, 'C');\n\n  INSERT INTO t3 VALUES('a');\n  INSERT INTO t3 VALUES('c');\n  INSERT INTO t3 VALUES('b');"
+        }
+      ]
+    },
+    {
+      "name": "e_select-2.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

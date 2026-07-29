@@ -242,6 +242,15 @@
           "type": "query",
           "sql": "SELECT count(*) FROM nnw;",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid5-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a INTEGER PRIMARY KEY, b BLOB) WITHOUT ROWID;\n  INSERT INTO b1 VALUES(1,x'0102030405060708090a0b0c0d0e0f');"
         },
         {
           "type": "exec",
@@ -286,15 +295,6 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t5;\n    CREATE TABLE t5(\n      a INT NOT NULL ON CONFLICT REPLACE DEFAULT 3,\n      b TEXT,\n      c TEXT,\n      PRIMARY KEY(a,b)\n    ) WITHOUT ROWID;\n    INSERT INTO t5(a,b,c) VALUES(1,2,3),(NULL,4,5),(6,7,8);\n    SELECT * FROM t5;"
-        }
-      ]
-    },
-    {
-      "name": "without_rowid5-6.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE b1(a INTEGER PRIMARY KEY, b BLOB) WITHOUT ROWID;\n  INSERT INTO b1 VALUES(1,x'0102030405060708090a0b0c0d0e0f');"
         }
       ]
     }

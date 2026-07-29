@@ -129,14 +129,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.1",
       "steps": [
         {
@@ -153,6 +145,14 @@
           "type": "query",
           "sql": "VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;",
           "expect": "1 1 2 3   3 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

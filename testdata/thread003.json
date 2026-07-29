@@ -1,0 +1,83 @@
+{
+  "file": "thread003.test",
+  "name": "thread003",
+  "tests": [
+    {
+      "name": "thread003.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "thread003.1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "thread003.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 15",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "thread003.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 15",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "thread003.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA cache_size = 15",
+          "expect": "0"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b); \n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b, c);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a, b); \n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 15"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 15"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 15"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -3,19 +3,6 @@
   "name": "crash2",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA integrity_check"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
-        }
-      ]
-    },
-    {
       "name": "crash2-2.0",
       "steps": [
         {
@@ -25,6 +12,14 @@
         {
           "type": "exec",
           "sql": "INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*), md5sum(a), md5sum(b), md5sum(c) FROM abc"
         }
       ]
     }

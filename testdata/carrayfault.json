@@ -1,0 +1,16 @@
+{
+  "file": "carrayfault.test",
+  "name": "carrayfault",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

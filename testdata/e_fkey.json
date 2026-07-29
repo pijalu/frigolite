@@ -1,0 +1,2918 @@
+{
+  "file": "e_fkey.test",
+  "name": "e_fkey",
+  "tests": [
+    {
+      "name": "e_fkey-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;",
+          "expect": "world"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;",
+          "expect": "hello"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_key_list(c)",
+          "expect": "0 0 p j {} CASCADE {NO ACTION} NONE"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(i PRIMARY KEY)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c(j REFERENCES p)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA table_info(c)",
+          "expect": "0 j {REFERENCES p} 0 {} 0"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_key_list(c)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE p(i PRIMARY KEY);\n    CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;",
+          "expect": "hello"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM c;\n    DELETE FROM p;\n    PRAGMA foreign_keys = ON;\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;",
+          "expect": "world"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON;\n    PRAGMA foreign_keys;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = OFF;\n    PRAGMA foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a UNIQUE, b);\n    CREATE TABLE t2(c, d REFERENCES t1(a));\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(2, 1);\n    BEGIN;\n      PRAGMA foreign_keys = OFF;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n    PRAGMA foreign_keys = OFF;\n    BEGIN;\n      PRAGMA foreign_keys = ON;\n      DELETE FROM t1;\n      PRAGMA foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(1, 'track 1', 1)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(2, 'artist 1')"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(1, 'track 1', 2)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM artist WHERE artistid = 2",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM track WHERE trackartist = 2;\n    DELETE FROM artist WHERE artistid = 2;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(1, 'track 1', NULL);\n    INSERT INTO track VALUES(2, 'track 2', NULL);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM artist"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-10.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE track SET trackartist = 5 WHERE trackid = 1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(5, 'artist 5');\n    UPDATE track SET trackartist = 5 WHERE trackid = 1;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-10.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE track SET trackartist = NULL WHERE trackid = 1;\n    DELETE FROM artist WHERE artistid = 5;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-12.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER NOT NULL,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(14, 'Mr. Bojangles', NULL)",
+          "expect": "1 {NOT NULL constraint failed: track.trackartist}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-13.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(14, 'Mr. Bojangles', 3)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-13.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(14, 'Mr. Bojangles', NULL)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-13.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE track SET trackartist = 3 WHERE trackname = 'Mr. Bojangles';",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-13.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    UPDATE track SET trackartist = 3 WHERE trackname = 'Mr. Bojangles';\n    INSERT INTO track VALUES(15, 'Boogie Woogie', 3);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-14.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM artist WHERE artistname = 'Frank Sinatra';",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-14.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM track WHERE trackname = 'My Way';\n    DELETE FROM artist WHERE artistname = 'Frank Sinatra';"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-14.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE artist SET artistid=4 WHERE artistname = 'Dean Martin';",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-14.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM track WHERE trackname IN('That''s Amore', 'Christmas Blues');\n    UPDATE artist SET artistid=4 WHERE artistname = 'Dean Martin';"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE par(p PRIMARY KEY);\n    CREATE TABLE chi(c REFERENCES par);\n\n    INSERT INTO par VALUES(1);\n    INSERT INTO par VALUES('1');\n    INSERT INTO par VALUES(X'31');\n    SELECT typeof(p) FROM par;",
+          "expect": "integer text blob"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-16.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE nocase PRIMARY KEY);\n    CREATE TABLE t2(b REFERENCES t1);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('oNe');\n    INSERT INTO t2 VALUES('one');\n    INSERT INTO t2 VALUES('ONE');\n    UPDATE t2 SET b = 'OnE';\n    UPDATE t1 SET a = 'ONE';"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-16.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t2 SET b = 'two' WHERE rowid = 1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-16.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 1",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-17.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a NUMERIC PRIMARY KEY);\n    CREATE TABLE t2(b TEXT REFERENCES t1);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-17.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES('three');\n    INSERT INTO t2 VALUES('2.0');\n    SELECT b, typeof(b) FROM t2;",
+          "expect": "2.0 text"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-17.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(a) FROM t1",
+          "expect": "integer integer text"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-17.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 2",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a REFERENCES t1(x));"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(a PRIMARY KEY, b UNIQUE, c, d, e, f);\n    CREATE UNIQUE INDEX i1 ON parent(c, d);\n    CREATE INDEX i2 ON parent(e);\n    CREATE UNIQUE INDEX i3 ON parent(f COLLATE nocase);\n\n    CREATE TABLE child1(f, g REFERENCES parent(a));                       -- Ok\n    CREATE TABLE child2(h, i REFERENCES parent(b));                       -- Ok\n    CREATE TABLE child3(j, k, FOREIGN KEY(j, k) REFERENCES parent(c, d)); -- Ok\n    CREATE TABLE child4(l, m REFERENCES parent(e));                       -- Err\n    CREATE TABLE child5(n, o REFERENCES parent(f));                       -- Err\n    CREATE TABLE child6(p, q, FOREIGN KEY(p,q) REFERENCES parent(b, c));  -- Err\n    CREATE TABLE child7(r REFERENCES parent(c));                          -- Err"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent VALUES(1, 2, 3, 4, 5, 6);\n    INSERT INTO child1 VALUES('xxx', 1);\n    INSERT INTO child2 VALUES('xxx', 2);\n    INSERT INTO child3 VALUES(3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child4 VALUES('xxx', 5)",
+          "expect": "1 {foreign key mismatch - \"child4\" referencing \"parent\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-19.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child5 VALUES('xxx', 6)",
+          "expect": "1 {foreign key mismatch - \"child5\" referencing \"parent\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-19.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child6 VALUES(2, 3)",
+          "expect": "1 {foreign key mismatch - \"child6\" referencing \"parent\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-19.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child7 VALUES(3)",
+          "expect": "1 {foreign key mismatch - \"child7\" referencing \"parent\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(c REFERENCES nosuchtable, d);\n\n    CREATE TABLE p2(a, b, UNIQUE(a, b));\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p2(a, x));\n\n    CREATE TABLE p3(a PRIMARY KEY, b);\n    CREATE TABLE c3(c REFERENCES p3(b), d);\n\n    CREATE TABLE p4(a PRIMARY KEY, b);\n    CREATE UNIQUE INDEX p4i ON p4(b COLLATE nocase);\n    CREATE TABLE c4(c REFERENCES p4(b), d);\n\n    CREATE TABLE p5(a PRIMARY KEY, b COLLATE nocase);\n    CREATE UNIQUE INDEX p5i ON p5(b COLLATE binary);\n    CREATE TABLE c5(c REFERENCES p5(b), d);\n\n    CREATE TABLE p6(a PRIMARY KEY, b);\n    CREATE TABLE c6(c, d, FOREIGN KEY(c, d) REFERENCES p6);\n\n    CREATE TABLE p7(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE c7(c, d REFERENCES p7);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent2(a, b, PRIMARY KEY(a,b));\n\n    CREATE TABLE child8(x, y, FOREIGN KEY(x,y) REFERENCES parent2);     -- Ok\n    CREATE TABLE child9(x REFERENCES parent2);                          -- Err\n    CREATE TABLE child10(x,y,z, FOREIGN KEY(x,y,z) REFERENCES parent2); -- Err"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent2 VALUES('I', 'II');\n    INSERT INTO child8 VALUES('I', 'II');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child9 VALUES('I')",
+          "expect": "1 {foreign key mismatch - \"child9\" referencing \"parent2\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child9 VALUES('II')",
+          "expect": "1 {foreign key mismatch - \"child9\" referencing \"parent2\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child9 VALUES(NULL)",
+          "expect": "1 {foreign key mismatch - \"child9\" referencing \"parent2\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child10 VALUES('I', 'II', 'III')",
+          "expect": "1 {foreign key mismatch - \"child10\" referencing \"parent2\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child10 VALUES(1, 2, 3)",
+          "expect": "1 {foreign key mismatch - \"child10\" referencing \"parent2\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-21.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO child10 VALUES(NULL, NULL, NULL)",
+          "expect": "1 {foreign key mismatch - \"child10\" referencing \"parent2\"}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE p2(a, b PRIMARY KEY);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p1);\n    CREATE TABLE c2(a, b REFERENCES p2);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-24.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y, UNIQUE(y, x));\n    CREATE TABLE c1(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c2(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c3(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX c2i ON c2(a, b);\n    CREATE UNIQUE INDEX c3i ON c2(b, a);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-25.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-25.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-25.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM track WHERE trackartist = 5",
+          "expect": "1 1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-25.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM track WHERE trackartist = 7",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-25.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM track WHERE trackartist = 6",
+          "expect": "2 1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-26.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y, UNIQUE(y, x))"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-27.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-28.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-28.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-29.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songalbum) REFERENCES album(albumartist,albumname)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-29.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO album VALUES('Elvis Presley', 'Elvis'' Christmas Album', NULL);\n    INSERT INTO song VALUES(\n      1, 'Elvis Presley', 'Elvis'' Christmas Album', 'Here Comes Santa Clause'\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-29.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO song VALUES(2, 'Elvis Presley', 'Elvis Is Back!', 'Fever');",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-30.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO song VALUES(2, 'Elvis Presley', NULL, 'Fever');\n    INSERT INTO song VALUES(3, NULL, 'Elvis Is Back', 'Soldier Boy');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-31.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-31.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO prince VALUES(1, 2)",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-31.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER kt AFTER INSERT ON prince WHEN\n      NOT EXISTS (SELECT a FROM king WHERE a = new.c)\n    BEGIN\n      INSERT INTO king VALUES(new.c, NULL);\n    END"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-31.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-31.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n    SELECT * FROM king;",
+          "expect": "1 {} 2 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-33.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y);\n    CREATE UNIQUE INDEX pi ON parent(x, y);\n    CREATE TABLE child(a, b,\n      FOREIGN KEY(a, b) REFERENCES parent(x, y) DEFERRABLE INITIALLY DEFERRED\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-34.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y, z, PRIMARY KEY(x,y,z));\n    CREATE TABLE c1(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c2(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c3(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE\n    );\n    CREATE TABLE c4(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c5(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE\n    );\n    CREATE TABLE c6(a, b, c, FOREIGN KEY(a, b, c) REFERENCES parent);\n\n    -- This FK constraint is the only deferrable one.\n    CREATE TABLE c7(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('a', 'b', 'c');\n    INSERT INTO parent VALUES('d', 'e', 'f');\n    INSERT INTO parent VALUES('g', 'h', 'i');\n    INSERT INTO parent VALUES('j', 'k', 'l');\n    INSERT INTO parent VALUES('m', 'n', 'o');\n    INSERT INTO parent VALUES('p', 'q', 'r');\n    INSERT INTO parent VALUES('s', 't', 'u');\n\n    INSERT INTO c1 VALUES('a', 'b', 'c');\n    INSERT INTO c2 VALUES('d', 'e', 'f');\n    INSERT INTO c3 VALUES('g', 'h', 'i');\n    INSERT INTO c4 VALUES('j', 'k', 'l');\n    INSERT INTO c5 VALUES('m', 'n', 'o');\n    INSERT INTO c6 VALUES('p', 'q', 'r');\n    INSERT INTO c7 VALUES('s', 't', 'u');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-35.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-35.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-35.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(5, 'Bing Crosby');\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-36.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY,\n      b REFERENCES t1 DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-36.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-36.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 5 WHERE a = 4;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-37.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(6, 7);\n      RELEASE two;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-37.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "RELEASE one",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-37.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 7 WHERE a = 6;\n    RELEASE one;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-37.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(9, 10);\n      RELEASE two;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-37.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "RELEASE one",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-37.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TO one ; RELEASE one"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;",
+          "expect": "1 1 2 2 3 3"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;",
+          "expect": "1 1 2 2 3 3 4 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;",
+          "expect": "1 1 2 2 3 3 4 4"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT a;\n      INSERT INTO t1 VALUES(5, 5);\n      SAVEPOINT b;\n        INSERT INTO t1 VALUES(6, 7);\n        SAVEPOINT c;\n          INSERT INTO t1 VALUES(7, 8);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "RELEASE a",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TO c"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-38.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;",
+          "expect": "1 1 2 2 3 3 4 4 5 5"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-39.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO p VALUES(3, 'k3', 'III');\n\n    INSERT INTO c1 VALUES(1, 'xx', 'k1');\n    INSERT INTO c1 VALUES(2, 'xx', 'k2');\n    INSERT INTO c1 VALUES(3, 'xx', 'k3');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-39.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;",
+          "expect": "1 xx k0 2 xx k2 3 xx k3"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-39.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;",
+          "expect": "1 xx k0 2 xx {} 3 xx k3"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-39.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;",
+          "expect": "1 xx k0 2 xx {} 3 xx {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-40.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(p1, p2, PRIMARY KEY(p1, p2));\n    CREATE TABLE child(c1, c2, \n      FOREIGN KEY(c1, c2) REFERENCES parent\n      ON UPDATE NO ACTION\n      ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO parent VALUES('j', 'k');\n    INSERT INTO parent VALUES('l', 'm');\n    INSERT INTO child VALUES('j', 'k');\n    INSERT INTO child VALUES('l', 'm');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-41.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;",
+          "expect": "j k l m"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-41.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(p1, p2);\n    CREATE UNIQUE INDEX parent_i ON parent(p1, p2);\n    CREATE TABLE child1(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON UPDATE RESTRICT\n    );"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-41.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent VALUES('a', 'b');\n    INSERT INTO parent VALUES('c', 'd');\n    INSERT INTO child1 VALUES('b', 'a');\n    INSERT INTO child2 VALUES('d', 'c');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-41.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM parent WHERE p1 = 'a'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-41.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET p2 = 'e' WHERE p1 = 'c'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER UPDATE ON parent BEGIN\n      UPDATE child1 set c = new.x WHERE c = old.x;\n      UPDATE child2 set c = new.x WHERE c = old.x;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key one' WHERE x = 'key1'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;",
+          "expect": "{key two}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER DELETE ON parent BEGIN\n      UPDATE child1 SET c = NULL WHERE c = old.x;\n      UPDATE child2 SET c = NULL WHERE c = old.x;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM parent WHERE x = 'key1'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO parent VALUES('key1')",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-42.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;",
+          "expect": "key2"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key one' WHERE x = 'key1'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key two' WHERE x = 'key2'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE child2 SET c = 'key two';\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM parent WHERE x = 'key1'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM parent WHERE x = 'key2'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-43.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE child2 SET c = NULL;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-44.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c REFERENCES pA ON DELETE SET NULL);\n    CREATE TABLE cB(c REFERENCES pA ON UPDATE SET NULL);\n\n    INSERT INTO pA VALUES(X'ABCD');\n    INSERT INTO pA VALUES(X'1234');\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-44.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;",
+          "expect": "X'1234'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-44.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(c) FROM cA;",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-44.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;",
+          "expect": "X'8765'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-44.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(c) FROM cB",
+          "expect": "NULL"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-45.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c DEFAULT X'0000' REFERENCES pA ON DELETE SET DEFAULT);\n    CREATE TABLE cB(c DEFAULT X'9999' REFERENCES pA ON UPDATE SET DEFAULT);\n\n    INSERT INTO pA(rowid, x) VALUES(1, X'0000');\n    INSERT INTO pA(rowid, x) VALUES(2, X'9999');\n    INSERT INTO pA(rowid, x) VALUES(3, X'ABCD');\n    INSERT INTO pA(rowid, x) VALUES(4, X'1234');\n\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-45.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;",
+          "expect": "X'0000' X'9999' X'1234'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-45.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(c) FROM cA",
+          "expect": "X'0000'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-45.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;",
+          "expect": "X'0000' X'9999' X'8765'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-45.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(c) FROM cB",
+          "expect": "X'9999'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-46.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-46.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;",
+          "expect": "{} {} 5 5"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-46.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM p1;\n    SELECT d, c FROM c1;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-46.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM p1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-47.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-47.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;",
+          "expect": "{} {} 4 4 5 10"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-47.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;",
+          "expect": "{} {} 4 11 5 10"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-47.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;",
+          "expect": "{} {} 4 11 5 10"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-46.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM p1",
+          "expect": "{} 6 4 11 5 10"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-48.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-48.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE artist SET artistid = 100 WHERE artistname = 'Dean Martin';"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-48.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM artist",
+          "expect": "2 {Frank Sinatra} 100 {Dean Martin}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-48.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM track",
+          "expect": "11 {That's Amore} 100 12 {Christmas Blues} 100 13 {My Way} 2"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-49.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(a COLLATE nocase, b, c, PRIMARY KEY(c, a));\n    CREATE TABLE child(d DEFAULT 'a', e, f DEFAULT 'c',\n      FOREIGN KEY(f, d) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n\n    INSERT INTO parent VALUES('A', 'b', 'c');\n    INSERT INTO parent VALUES('ONE', 'two', 'three');\n    INSERT INTO child VALUES('one', 'two', 'three');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-49.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;",
+          "expect": "a two c"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-49.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;",
+          "expect": "ONE two three"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-49.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET a = '' WHERE a = 'oNe'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-50.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    INSERT INTO track VALUES(14, 'Mr. Bojangles', 3);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-50.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.'",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-50.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(0, 'Unknown Artist');\n    DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.';"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-50.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM artist",
+          "expect": "0 {Unknown Artist}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-50.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM track",
+          "expect": "14 {Mr. Bojangles} 0"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-51.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-51.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;",
+          "expect": "22 21 23 xxx 22"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-51.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;",
+          "expect": "22 23 21 xxx 23"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-52.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE zeus(a INTEGER COLLATE NOCASE, b, PRIMARY KEY(a, b));\n    CREATE TABLE apollo(c, d, \n      FOREIGN KEY(c, d) REFERENCES zeus ON UPDATE CASCADE\n    );\n    INSERT INTO zeus VALUES('abc', 'xyz');\n    INSERT INTO apollo VALUES('ABC', 'xyz');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-52.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-52.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;",
+          "expect": "integer 1 integer 1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-52.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;",
+          "expect": "integer 1 integer 1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-52.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;",
+          "expect": "integer 1 text 1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-52.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;",
+          "expect": "integer 1 null {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-53.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child(y REFERENCES parent ON UPDATE SET NULL);\n    INSERT INTO parent VALUES('key');\n    INSERT INTO child VALUES('key');"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-53.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;",
+          "expect": "key"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-53.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;",
+          "expect": "null"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-56.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE 'p 1 \"parent one\"'(a REFERENCES 'p 1 \"parent one\"', b, PRIMARY KEY(b));\n\n    CREATE TABLE c1(c, d REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c2(e, f, FOREIGN KEY(f) REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c3(e, 'f col 2', FOREIGN KEY('f col 2') REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n\n    INSERT INTO 'p 1 \"parent one\"' VALUES(1, 1);\n    INSERT INTO c1 VALUES(1, 1);\n    INSERT INTO c2 VALUES(1, 1);\n    INSERT INTO c3 VALUES(1, 1);\n\n    -- CREATE TABLE q(a, b, PRIMARY KEY(b));"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-56.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE 'p 1 \"parent one\"' RENAME TO p"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-56.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE p SET a = 'xxx', b = 'xxx';\n    SELECT * FROM p;\n    SELECT * FROM c1;\n    SELECT * FROM c2;\n    SELECT * FROM c3;",
+          "expect": "xxx xxx 1 xxx 1 xxx 1 xxx"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-56.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master WHERE type = 'table'"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-57.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-57.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-57.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c2",
+          "expect": "{} {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-57.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM c3"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-57.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM log"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-57.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-58.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c1;\n    DELETE FROM c2;\n    DELETE FROM c3;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-58.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM p",
+          "expect": "a b"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-58.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE p;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-58.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-59.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c1 ; DELETE FROM c2 ; DELETE FROM c3 ;\n    DELETE FROM c4 ; DELETE FROM c5 ; DELETE FROM c6 ;\n    DELETE FROM c7"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-59.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c7 VALUES('a', 'b')"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-59.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b, PRIMARY KEY(a, b))"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-59.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO p VALUES('a', 'b')"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-60.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-60.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON",
+          "expect": "1 {no such table: main.nosuchtable}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-60.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-60.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nosuchtable(x PRIMARY KEY)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-60.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c1"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-60.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = OFF",
+          "expect": "{CREATE TABLE t1(a, b, c DEFAULT 'xxx' REFERENCES t2)}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = OFF;\n    PRAGMA legacy_alter_table = ON;\n    ALTER TABLE p RENAME TO parent;\n    SELECT sql FROM sqlite_master WHERE name = 'c';",
+          "expect": "{CREATE TABLE c(b REFERENCES p(a))}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = OFF;\n    DROP TABLE p;\n    SELECT * FROM c;",
+          "expect": "x"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-61.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA foreign_keys = ON"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SET CONSTRAINTS ALL IMMEDIATE",
+          "expect": "1 {near \"SET\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SET CONSTRAINTS ALL DEFERRED",
+          "expect": "1 {near \"SET\": syntax error}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ci VALUES('x', 'y')",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO cd VALUES('x', 'y')",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "e_fkey-62.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cd;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON;\n      CREATE TABLE p(i PRIMARY KEY);\n      CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n      INSERT INTO p VALUES('hello');\n      INSERT INTO c VALUES('hello');\n      UPDATE p SET i = 'world';\n      SELECT * FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_list(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(i PRIMARY KEY)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c(j REFERENCES p)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA table_info(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_key_list(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(i PRIMARY KEY);\n    CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c;\n    DELETE FROM p;\n    PRAGMA foreign_keys = ON;\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON;\n    PRAGMA foreign_keys;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF;\n    PRAGMA foreign_keys;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON;\n    CREATE TABLE t1(a UNIQUE, b);\n    CREATE TABLE t2(c, d REFERENCES t1(a));\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t2 VALUES(2, 1);\n    BEGIN;\n      PRAGMA foreign_keys = OFF;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    PRAGMA foreign_keys = OFF;\n    BEGIN;\n      PRAGMA foreign_keys = ON;\n      DELETE FROM t1;\n      PRAGMA foreign_keys;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(2, 'artist 1')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(1, 'track 1', 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM track WHERE trackartist = 2;\n    DELETE FROM artist WHERE artistid = 2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(1, 'track 1', NULL);\n    INSERT INTO track VALUES(2, 'track 2', NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM artist"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(5, 'artist 5');\n    UPDATE track SET trackartist = 5 WHERE trackid = 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE track SET trackartist = NULL WHERE trackid = 1;\n    DELETE FROM artist WHERE artistid = 5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM track WHERE NOT (\n        trackartist IS NULL OR \n        EXISTS(SELECT 1 FROM artist WHERE artistid=trackartist)\n      )"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER NOT NULL,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO track VALUES(14, 'Mr. Bojangles', NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    UPDATE track SET trackartist = 3 WHERE trackname = 'Mr. Bojangles';\n    INSERT INTO track VALUES(15, 'Boogie Woogie', 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM track WHERE trackname = 'My Way';\n    DELETE FROM artist WHERE artistname = 'Frank Sinatra';"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM track WHERE trackname IN('That''s Amore', 'Christmas Blues');\n    UPDATE artist SET artistid=4 WHERE artistname = 'Dean Martin';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE par(p PRIMARY KEY);\n    CREATE TABLE chi(c REFERENCES par);\n\n    INSERT INTO par VALUES(1);\n    INSERT INTO par VALUES('1');\n    INSERT INTO par VALUES(X'31');\n    SELECT typeof(p) FROM par;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM chi WHERE c IS NOT NULL AND c NOT IN (SELECT p FROM par)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a COLLATE nocase PRIMARY KEY);\n    CREATE TABLE t2(b REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('oNe');\n    INSERT INTO t2 VALUES('one');\n    INSERT INTO t2 VALUES('ONE');\n    UPDATE t2 SET b = 'OnE';\n    UPDATE t1 SET a = 'ONE';"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a NUMERIC PRIMARY KEY);\n    CREATE TABLE t2(b TEXT REFERENCES t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES('three');\n    INSERT INTO t2 VALUES('2.0');\n    SELECT b, typeof(b) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(a) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a REFERENCES t1(x));"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(a PRIMARY KEY, b UNIQUE, c, d, e, f);\n    CREATE UNIQUE INDEX i1 ON parent(c, d);\n    CREATE INDEX i2 ON parent(e);\n    CREATE UNIQUE INDEX i3 ON parent(f COLLATE nocase);\n\n    CREATE TABLE child1(f, g REFERENCES parent(a));                       -- Ok\n    CREATE TABLE child2(h, i REFERENCES parent(b));                       -- Ok\n    CREATE TABLE child3(j, k, FOREIGN KEY(j, k) REFERENCES parent(c, d)); -- Ok\n    CREATE TABLE child4(l, m REFERENCES parent(e));                       -- Err\n    CREATE TABLE child5(n, o REFERENCES parent(f));                       -- Err\n    CREATE TABLE child6(p, q, FOREIGN KEY(p,q) REFERENCES parent(b, c));  -- Err\n    CREATE TABLE child7(r REFERENCES parent(c));                          -- Err"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent VALUES(1, 2, 3, 4, 5, 6);\n    INSERT INTO child1 VALUES('xxx', 1);\n    INSERT INTO child2 VALUES('xxx', 2);\n    INSERT INTO child3 VALUES(3, 4);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE c1(c REFERENCES nosuchtable, d);\n\n    CREATE TABLE p2(a, b, UNIQUE(a, b));\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p2(a, x));\n\n    CREATE TABLE p3(a PRIMARY KEY, b);\n    CREATE TABLE c3(c REFERENCES p3(b), d);\n\n    CREATE TABLE p4(a PRIMARY KEY, b);\n    CREATE UNIQUE INDEX p4i ON p4(b COLLATE nocase);\n    CREATE TABLE c4(c REFERENCES p4(b), d);\n\n    CREATE TABLE p5(a PRIMARY KEY, b COLLATE nocase);\n    CREATE UNIQUE INDEX p5i ON p5(b COLLATE binary);\n    CREATE TABLE c5(c REFERENCES p5(b), d);\n\n    CREATE TABLE p6(a PRIMARY KEY, b);\n    CREATE TABLE c6(c, d, FOREIGN KEY(c, d) REFERENCES p6);\n\n    CREATE TABLE p7(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE c7(c, d REFERENCES p7);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent2(a, b, PRIMARY KEY(a,b));\n\n    CREATE TABLE child8(x, y, FOREIGN KEY(x,y) REFERENCES parent2);     -- Ok\n    CREATE TABLE child9(x REFERENCES parent2);                          -- Err\n    CREATE TABLE child10(x,y,z, FOREIGN KEY(x,y,z) REFERENCES parent2); -- Err"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent2 VALUES('I', 'II');\n    INSERT INTO child8 VALUES('I', 'II');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE p2(a, b PRIMARY KEY);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p1);\n    CREATE TABLE c2(a, b REFERENCES p2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y, UNIQUE(y, x));\n    CREATE TABLE c1(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c2(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c3(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX c2i ON c2(a, b);\n    CREATE UNIQUE INDEX c3i ON c2(b, a);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM track WHERE trackartist = 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM track WHERE trackartist = 7"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM track WHERE trackartist = 6"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y, UNIQUE(y, x))"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE child"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songalbum) REFERENCES album(albumartist,albumname)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO album VALUES('Elvis Presley', 'Elvis'' Christmas Album', NULL);\n    INSERT INTO song VALUES(\n      1, 'Elvis Presley', 'Elvis'' Christmas Album', 'Here Comes Santa Clause'\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO song VALUES(2, 'Elvis Presley', NULL, 'Fever');\n    INSERT INTO song VALUES(3, NULL, 'Elvis Is Back', 'Soldier Boy');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER kt AFTER INSERT ON prince WHEN\n      NOT EXISTS (SELECT a FROM king WHERE a = new.c)\n    BEGIN\n      INSERT INTO king VALUES(new.c, NULL);\n    END"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO prince VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT * FROM king;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y);\n    CREATE UNIQUE INDEX pi ON parent(x, y);\n    CREATE TABLE child(a, b,\n      FOREIGN KEY(a, b) REFERENCES parent(x, y) DEFERRABLE INITIALLY DEFERRED\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x, y, z, PRIMARY KEY(x,y,z));\n    CREATE TABLE c1(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c2(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c3(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE\n    );\n    CREATE TABLE c4(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c5(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE\n    );\n    CREATE TABLE c6(a, b, c, FOREIGN KEY(a, b, c) REFERENCES parent);\n\n    -- This FK constraint is the only deferrable one.\n    CREATE TABLE c7(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('a', 'b', 'c');\n    INSERT INTO parent VALUES('d', 'e', 'f');\n    INSERT INTO parent VALUES('g', 'h', 'i');\n    INSERT INTO parent VALUES('j', 'k', 'l');\n    INSERT INTO parent VALUES('m', 'n', 'o');\n    INSERT INTO parent VALUES('p', 'q', 'r');\n    INSERT INTO parent VALUES('s', 't', 'u');\n\n    INSERT INTO c1 VALUES('a', 'b', 'c');\n    INSERT INTO c2 VALUES('d', 'e', 'f');\n    INSERT INTO c3 VALUES('g', 'h', 'i');\n    INSERT INTO c4 VALUES('j', 'k', 'l');\n    INSERT INTO c5 VALUES('m', 'n', 'o');\n    INSERT INTO c6 VALUES('p', 'q', 'r');\n    INSERT INTO c7 VALUES('s', 't', 'u');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(5, 'Bing Crosby');\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY,\n      b REFERENCES t1 DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 5 WHERE a = 4;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(6, 7);\n      RELEASE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a = 7 WHERE a = 6;\n    RELEASE one;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(9, 10);\n      RELEASE two;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TO one ; RELEASE one"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SAVEPOINT a;\n      INSERT INTO t1 VALUES(5, 5);\n      SAVEPOINT b;\n        INSERT INTO t1 VALUES(6, 7);\n        SAVEPOINT c;\n          INSERT INTO t1 VALUES(7, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TO c"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO p VALUES(3, 'k3', 'III');\n\n    INSERT INTO c1 VALUES(1, 'xx', 'k1');\n    INSERT INTO c1 VALUES(2, 'xx', 'k2');\n    INSERT INTO c1 VALUES(3, 'xx', 'k3');"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(p1, p2, PRIMARY KEY(p1, p2));\n    CREATE TABLE child(c1, c2, \n      FOREIGN KEY(c1, c2) REFERENCES parent\n      ON UPDATE NO ACTION\n      ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO parent VALUES('j', 'k');\n    INSERT INTO parent VALUES('l', 'm');\n    INSERT INTO child VALUES('j', 'k');\n    INSERT INTO child VALUES('l', 'm');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(p1, p2);\n    CREATE UNIQUE INDEX parent_i ON parent(p1, p2);\n    CREATE TABLE child1(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON UPDATE RESTRICT\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO parent VALUES('a', 'b');\n    INSERT INTO parent VALUES('c', 'd');\n    INSERT INTO child1 VALUES('b', 'a');\n    INSERT INTO child2 VALUES('d', 'c');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER UPDATE ON parent BEGIN\n      UPDATE child1 set c = new.x WHERE c = old.x;\n      UPDATE child2 set c = new.x WHERE c = old.x;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER DELETE ON parent BEGIN\n      UPDATE child1 SET c = NULL WHERE c = old.x;\n      UPDATE child2 SET c = NULL WHERE c = old.x;\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');"
+        },
+        {
+          "type": "exec",
+          "sql": "REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key two' WHERE x = 'key2'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE child2 SET c = 'key two';\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM parent WHERE x = 'key2'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE child2 SET c = NULL;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c REFERENCES pA ON DELETE SET NULL);\n    CREATE TABLE cB(c REFERENCES pA ON UPDATE SET NULL);\n\n    INSERT INTO pA VALUES(X'ABCD');\n    INSERT INTO pA VALUES(X'1234');\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(c) FROM cA;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(c) FROM cB"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c DEFAULT X'0000' REFERENCES pA ON DELETE SET DEFAULT);\n    CREATE TABLE cB(c DEFAULT X'9999' REFERENCES pA ON UPDATE SET DEFAULT);\n\n    INSERT INTO pA(rowid, x) VALUES(1, X'0000');\n    INSERT INTO pA(rowid, x) VALUES(2, X'9999');\n    INSERT INTO pA(rowid, x) VALUES(3, X'ABCD');\n    INSERT INTO pA(rowid, x) VALUES(4, X'1234');\n\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(c) FROM cA"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(c) FROM cB"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p1;\n    SELECT d, c FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM p1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM p1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE artist SET artistid = 100 WHERE artistname = 'Dean Martin';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM artist"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM track"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(a COLLATE nocase, b, c, PRIMARY KEY(c, a));\n    CREATE TABLE child(d DEFAULT 'a', e, f DEFAULT 'c',\n      FOREIGN KEY(f, d) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n\n    INSERT INTO parent VALUES('A', 'b', 'c');\n    INSERT INTO parent VALUES('ONE', 'two', 'three');\n    INSERT INTO child VALUES('one', 'two', 'three');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    INSERT INTO track VALUES(14, 'Mr. Bojangles', 3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO artist VALUES(0, 'Unknown Artist');\n    DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM artist"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM track"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE zeus(a INTEGER COLLATE NOCASE, b, PRIMARY KEY(a, b));\n    CREATE TABLE apollo(c, d, \n      FOREIGN KEY(c, d) REFERENCES zeus ON UPDATE CASCADE\n    );\n    INSERT INTO zeus VALUES('abc', 'xyz');\n    INSERT INTO apollo VALUES('ABC', 'xyz');"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE zeus SET a = 'aBc';\n    SELECT * FROM apollo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child(y REFERENCES parent ON UPDATE SET NULL);\n    INSERT INTO parent VALUES('key');\n    INSERT INTO child VALUES('key');"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tbl(a, b); INSERT INTO tbl VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE 'p 1 \"parent one\"'(a REFERENCES 'p 1 \"parent one\"', b, PRIMARY KEY(b));\n\n    CREATE TABLE c1(c, d REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c2(e, f, FOREIGN KEY(f) REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n    CREATE TABLE c3(e, 'f col 2', FOREIGN KEY('f col 2') REFERENCES 'p 1 \"parent one\"' ON UPDATE CASCADE);\n\n    INSERT INTO 'p 1 \"parent one\"' VALUES(1, 1);\n    INSERT INTO c1 VALUES(1, 1);\n    INSERT INTO c2 VALUES(1, 1);\n    INSERT INTO c3 VALUES(1, 1);\n\n    -- CREATE TABLE q(a, b, PRIMARY KEY(b));"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE 'p 1 \"parent one\"' RENAME TO p"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE p SET a = 'xxx', b = 'xxx';\n    SELECT * FROM p;\n    SELECT * FROM c1;\n    SELECT * FROM c2;\n    SELECT * FROM c3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE type = 'table'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM c2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM c3"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM log"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c1;\n    DELETE FROM c2;\n    DELETE FROM c3;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c5 VALUES('a', 'b')"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM p"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM c1 ; DELETE FROM c2 ; DELETE FROM c3 ;\n    DELETE FROM c4 ; DELETE FROM c5 ; DELETE FROM c6 ;\n    DELETE FROM c7"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c7 VALUES('a', 'b')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE p;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b, PRIMARY KEY(a, b))"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO p VALUES('a', 'b')"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nosuchtable(x PRIMARY KEY)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE c2"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM p"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 ADD COLUMN c DEFAULT 'xxx' REFERENCES t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sql FROM sqlite_master WHERE name = 't1'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a));\n    BEGIN;\n      ALTER TABLE p RENAME TO parent;\n      SELECT sql FROM sqlite_master WHERE name = 'c';\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF;\n    PRAGMA legacy_alter_table = ON;\n    ALTER TABLE p RENAME TO parent;\n    SELECT sql FROM sqlite_master WHERE name = 'c';"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA legacy_alter_table = OFF"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a UNIQUE);\n    CREATE TABLE c(b REFERENCES p(a) ON DELETE SET NULL);\n    INSERT INTO p VALUES('x');\n    INSERT INTO c VALUES('x');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = OFF;\n    DROP TABLE p;\n    SELECT * FROM c;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = ON"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO p VALUES(1, 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c VALUES('w', 2, 3)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c VALUES('x', 'x', NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c VALUES('y', NULL, 'x')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO c VALUES('z', NULL, NULL)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM cd;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t0(a PRIMARY KEY, b);\n    INSERT INTO t0 VALUES('x0', NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t0(a PRIMARY KEY);\n    INSERT INTO t0 VALUES('xxx');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE a = 1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

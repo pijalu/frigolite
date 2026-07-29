@@ -1,0 +1,102 @@
+{
+  "file": "index3.test",
+  "name": "index3",
+  "tests": [
+    {
+      "name": "index3-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a, b, c, d, e, \n                  PRIMARY KEY('a'), UNIQUE('b' COLLATE nocase DESC));\n  CREATE INDEX t1c ON t1('c');\n  CREATE INDEX t1d ON t1('d' COLLATE binary ASC);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<30)\n    INSERT INTO t1(a,b,c,d,e) \n      SELECT x, printf('ab%03xxy',x), x, x, x FROM c;"
+        }
+      ]
+    },
+    {
+      "name": "index3-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1 WHERE b='ab005xy' COLLATE nocase;",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "index3-2.2eqp",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b='ab005xy' COLLATE nocase;",
+          "expect": "/USING INDEX/"
+        }
+      ]
+    },
+    {
+      "name": "index3-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE tbl_name='t1' ORDER BY name",
+          "expect": "sqlite_autoindex_t1_1 sqlite_autoindex_t1_2 t1 t1c t1d"
+        }
+      ]
+    },
+    {
+      "name": "index3-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2a(a integer, b, PRIMARY KEY(a));\n  CREATE TABLE t2b(\"a\" integer, b, PRIMARY KEY(\"a\"));\n  CREATE TABLE t2c([a] integer, b, PRIMARY KEY([a]));\n  CREATE TABLE t2d('a' integer, b, PRIMARY KEY('a'));"
+        }
+      ]
+    },
+    {
+      "name": "index3-2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE tbl_name LIKE 't2_' ORDER BY name",
+          "expect": "t2a t2b t2c t2d"
+        }
+      ]
+    },
+    {
+      "name": "index3-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;",
+          "expect": "1 1"
+        }
+      ]
+    },
+    {
+      "name": "index3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE UNIQUE INDEX i1 ON t1(a);",
+          "expect": "1 {UNIQUE constraint failed: t1.a}"
+        }
+      ]
+    },
+    {
+      "name": "index3-99.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

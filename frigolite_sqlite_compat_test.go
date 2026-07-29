@@ -9,6 +9,7 @@ import (
 
 // Auto-generated from 8_3_names.test
 func TestSQLite_f_8_3_names(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21,6 +22,7 @@ func TestSQLite_f_8_3_names(t *testing.T) {
 }
 // Auto-generated from affinity2.test
 func TestSQLite_affinity2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -53,6 +55,7 @@ func TestSQLite_affinity2(t *testing.T) {
 }
 // Auto-generated from affinity3.test
 func TestSQLite_affinity3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -72,6 +75,7 @@ func TestSQLite_affinity3(t *testing.T) {
 }
 // Auto-generated from aggerror.test
 func TestSQLite_aggerror(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -84,6 +88,7 @@ func TestSQLite_aggerror(t *testing.T) {
 }
 // Auto-generated from aggfault.test
 func TestSQLite_aggfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -94,6 +99,7 @@ func TestSQLite_aggfault(t *testing.T) {
 }
 // Auto-generated from aggnested.test
 func TestSQLite_aggnested(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -156,6 +162,7 @@ func TestSQLite_aggnested(t *testing.T) {
 }
 // Auto-generated from aggorderby.test
 func TestSQLite_aggorderby(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -190,6 +197,7 @@ func TestSQLite_aggorderby(t *testing.T) {
 }
 // Auto-generated from alias.test
 func TestSQLite_alias(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -211,6 +219,7 @@ func TestSQLite_alias(t *testing.T) {
 }
 // Auto-generated from alter.test
 func TestSQLite_alter(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -282,6 +291,7 @@ func TestSQLite_alter(t *testing.T) {
 }
 // Auto-generated from alter2.test
 func TestSQLite_alter2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -329,6 +339,7 @@ func TestSQLite_alter2(t *testing.T) {
 }
 // Auto-generated from alter3.test
 func TestSQLite_alter3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -401,6 +412,7 @@ func TestSQLite_alter3(t *testing.T) {
 }
 // Auto-generated from alter4.test
 func TestSQLite_alter4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -454,6 +466,7 @@ func TestSQLite_alter4(t *testing.T) {
 }
 // Auto-generated from alterauth.test
 func TestSQLite_alterauth(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -465,6 +478,7 @@ func TestSQLite_alterauth(t *testing.T) {
 }
 // Auto-generated from alterauth2.test
 func TestSQLite_alterauth2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -473,6 +487,7 @@ func TestSQLite_alterauth2(t *testing.T) {
 }
 // Auto-generated from altercol.test
 func TestSQLite_altercol(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -572,6 +587,7 @@ func TestSQLite_altercol(t *testing.T) {
 }
 // Auto-generated from altercons.test
 func TestSQLite_altercons(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -694,6 +710,7 @@ func TestSQLite_altercons(t *testing.T) {
 }
 // Auto-generated from altercons2.test
 func TestSQLite_altercons2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -780,6 +797,7 @@ func TestSQLite_altercons2(t *testing.T) {
 }
 // Auto-generated from altercons3.test
 func TestSQLite_altercons3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -806,6 +824,7 @@ func TestSQLite_altercons3(t *testing.T) {
 }
 // Auto-generated from altercorrupt.test
 func TestSQLite_altercorrupt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -825,6 +844,7 @@ func TestSQLite_altercorrupt(t *testing.T) {
 }
 // Auto-generated from alterdropcol.test
 func TestSQLite_alterdropcol(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -916,6 +936,7 @@ func TestSQLite_alterdropcol(t *testing.T) {
 }
 // Auto-generated from alterdropcol2.test
 func TestSQLite_alterdropcol2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -935,6 +956,7 @@ func TestSQLite_alterdropcol2(t *testing.T) {
 }
 // Auto-generated from alterfault.test
 func TestSQLite_alterfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -949,6 +971,7 @@ func TestSQLite_alterfault(t *testing.T) {
 }
 // Auto-generated from alterlegacy.test
 func TestSQLite_alterlegacy(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1050,6 +1073,7 @@ func TestSQLite_alterlegacy(t *testing.T) {
 }
 // Auto-generated from altermalloc.test
 func TestSQLite_altermalloc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1058,6 +1082,7 @@ func TestSQLite_altermalloc(t *testing.T) {
 }
 // Auto-generated from altermalloc2.test
 func TestSQLite_altermalloc2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1083,6 +1108,7 @@ func TestSQLite_altermalloc2(t *testing.T) {
 }
 // Auto-generated from altermalloc3.test
 func TestSQLite_altermalloc3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1098,6 +1124,7 @@ func TestSQLite_altermalloc3(t *testing.T) {
 }
 // Auto-generated from alterqf.test
 func TestSQLite_alterqf(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1111,6 +1138,7 @@ func TestSQLite_alterqf(t *testing.T) {
 }
 // Auto-generated from altertab.test
 func TestSQLite_altertab(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1212,6 +1240,7 @@ func TestSQLite_altertab(t *testing.T) {
 }
 // Auto-generated from altertab2.test
 func TestSQLite_altertab2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1264,6 +1293,7 @@ func TestSQLite_altertab2(t *testing.T) {
 }
 // Auto-generated from altertab3.test
 func TestSQLite_altertab3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1383,6 +1413,7 @@ func TestSQLite_altertab3(t *testing.T) {
 }
 // Auto-generated from altertrig.test
 func TestSQLite_altertrig(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1392,6 +1423,7 @@ func TestSQLite_altertrig(t *testing.T) {
 }
 // Auto-generated from amatch1.test
 func TestSQLite_amatch1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1415,6 +1447,7 @@ func TestSQLite_amatch1(t *testing.T) {
 }
 // Auto-generated from analyze.test
 func TestSQLite_analyze(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1466,6 +1499,7 @@ func TestSQLite_analyze(t *testing.T) {
 }
 // Auto-generated from analyze3.test
 func TestSQLite_analyze3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1511,6 +1545,7 @@ func TestSQLite_analyze3(t *testing.T) {
 }
 // Auto-generated from analyze4.test
 func TestSQLite_analyze4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1524,6 +1559,7 @@ func TestSQLite_analyze4(t *testing.T) {
 }
 // Auto-generated from analyze5.test
 func TestSQLite_analyze5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1537,6 +1573,7 @@ func TestSQLite_analyze5(t *testing.T) {
 }
 // Auto-generated from analyze6.test
 func TestSQLite_analyze6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1548,6 +1585,7 @@ func TestSQLite_analyze6(t *testing.T) {
 }
 // Auto-generated from analyze7.test
 func TestSQLite_analyze7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1566,6 +1604,7 @@ func TestSQLite_analyze7(t *testing.T) {
 }
 // Auto-generated from analyze8.test
 func TestSQLite_analyze8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1576,6 +1615,7 @@ func TestSQLite_analyze8(t *testing.T) {
 }
 // Auto-generated from analyze9.test
 func TestSQLite_analyze9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1669,6 +1709,7 @@ func TestSQLite_analyze9(t *testing.T) {
 }
 // Auto-generated from analyzeC.test
 func TestSQLite_analyzeC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1688,6 +1729,7 @@ func TestSQLite_analyzeC(t *testing.T) {
 }
 // Auto-generated from analyzeD.test
 func TestSQLite_analyzeD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1705,6 +1747,7 @@ func TestSQLite_analyzeD(t *testing.T) {
 }
 // Auto-generated from analyzeE.test
 func TestSQLite_analyzeE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1753,6 +1796,7 @@ func TestSQLite_analyzeE(t *testing.T) {
 }
 // Auto-generated from analyzeF.test
 func TestSQLite_analyzeF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1772,6 +1816,7 @@ func TestSQLite_analyzeF(t *testing.T) {
 }
 // Auto-generated from analyzeG.test
 func TestSQLite_analyzeG(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1781,6 +1826,7 @@ func TestSQLite_analyzeG(t *testing.T) {
 }
 // Auto-generated from analyzer1.test
 func TestSQLite_analyzer1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1789,6 +1835,7 @@ func TestSQLite_analyzer1(t *testing.T) {
 }
 // Auto-generated from atof1.test
 func TestSQLite_atof1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1806,6 +1853,7 @@ func TestSQLite_atof1(t *testing.T) {
 }
 // Auto-generated from atof2.test
 func TestSQLite_atof2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1817,6 +1865,7 @@ func TestSQLite_atof2(t *testing.T) {
 }
 // Auto-generated from atomic.test
 func TestSQLite_atomic(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1829,6 +1878,7 @@ func TestSQLite_atomic(t *testing.T) {
 }
 // Auto-generated from atomic2.test
 func TestSQLite_atomic2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1842,6 +1892,7 @@ func TestSQLite_atomic2(t *testing.T) {
 }
 // Auto-generated from attach.test
 func TestSQLite_attach(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1923,6 +1974,7 @@ func TestSQLite_attach(t *testing.T) {
 }
 // Auto-generated from attach2.test
 func TestSQLite_attach2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1957,6 +2009,7 @@ func TestSQLite_attach2(t *testing.T) {
 }
 // Auto-generated from attach3.test
 func TestSQLite_attach3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -1998,6 +2051,7 @@ func TestSQLite_attach3(t *testing.T) {
 }
 // Auto-generated from attach4.test
 func TestSQLite_attach4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2015,6 +2069,7 @@ func TestSQLite_attach4(t *testing.T) {
 }
 // Auto-generated from auth.test
 func TestSQLite_auth(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2092,6 +2147,7 @@ func TestSQLite_auth(t *testing.T) {
 }
 // Auto-generated from auth2.test
 func TestSQLite_auth2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2109,6 +2165,7 @@ func TestSQLite_auth2(t *testing.T) {
 }
 // Auto-generated from auth3.test
 func TestSQLite_auth3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2123,6 +2180,7 @@ func TestSQLite_auth3(t *testing.T) {
 }
 // Auto-generated from autoanalyze1.test
 func TestSQLite_autoanalyze1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2139,6 +2197,7 @@ func TestSQLite_autoanalyze1(t *testing.T) {
 }
 // Auto-generated from autoinc.test
 func TestSQLite_autoinc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2208,6 +2267,7 @@ func TestSQLite_autoinc(t *testing.T) {
 }
 // Auto-generated from autoindex1.test
 func TestSQLite_autoindex1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2249,6 +2309,7 @@ func TestSQLite_autoindex1(t *testing.T) {
 }
 // Auto-generated from autoindex2.test
 func TestSQLite_autoindex2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2259,6 +2320,7 @@ func TestSQLite_autoindex2(t *testing.T) {
 }
 // Auto-generated from autoindex3.test
 func TestSQLite_autoindex3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2279,6 +2341,7 @@ func TestSQLite_autoindex3(t *testing.T) {
 }
 // Auto-generated from autoindex4.test
 func TestSQLite_autoindex4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2301,6 +2364,7 @@ func TestSQLite_autoindex4(t *testing.T) {
 }
 // Auto-generated from autoindex5.test
 func TestSQLite_autoindex5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2314,6 +2378,7 @@ func TestSQLite_autoindex5(t *testing.T) {
 }
 // Auto-generated from autovacuum.test
 func TestSQLite_autovacuum(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2382,6 +2447,7 @@ func TestSQLite_autovacuum(t *testing.T) {
 }
 // Auto-generated from autovacuum2.test
 func TestSQLite_autovacuum2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2392,6 +2458,7 @@ func TestSQLite_autovacuum2(t *testing.T) {
 }
 // Auto-generated from autovacuum_ioerr2.test
 func TestSQLite_autovacuum_ioerr2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2404,6 +2471,7 @@ func TestSQLite_autovacuum_ioerr2(t *testing.T) {
 }
 // Auto-generated from avfs.test
 func TestSQLite_avfs(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2423,6 +2491,7 @@ func TestSQLite_avfs(t *testing.T) {
 }
 // Auto-generated from avtrans.test
 func TestSQLite_avtrans(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2490,6 +2559,7 @@ func TestSQLite_avtrans(t *testing.T) {
 }
 // Auto-generated from backup.test
 func TestSQLite_backup(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2529,6 +2599,7 @@ func TestSQLite_backup(t *testing.T) {
 }
 // Auto-generated from backup2.test
 func TestSQLite_backup2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2537,6 +2608,7 @@ func TestSQLite_backup2(t *testing.T) {
 }
 // Auto-generated from backup4.test
 func TestSQLite_backup4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2548,6 +2620,7 @@ func TestSQLite_backup4(t *testing.T) {
 }
 // Auto-generated from backup5.test
 func TestSQLite_backup5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2568,6 +2641,7 @@ func TestSQLite_backup5(t *testing.T) {
 }
 // Auto-generated from backup_ioerr.test
 func TestSQLite_backup_ioerr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2578,6 +2652,7 @@ func TestSQLite_backup_ioerr(t *testing.T) {
 }
 // Auto-generated from backup_malloc.test
 func TestSQLite_backup_malloc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2592,6 +2667,7 @@ func TestSQLite_backup_malloc(t *testing.T) {
 }
 // Auto-generated from badutf.test
 func TestSQLite_badutf(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2600,6 +2676,7 @@ func TestSQLite_badutf(t *testing.T) {
 }
 // Auto-generated from basexx1.test
 func TestSQLite_basexx1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2626,6 +2703,7 @@ func TestSQLite_basexx1(t *testing.T) {
 }
 // Auto-generated from bestindex1.test
 func TestSQLite_bestindex1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2637,6 +2715,7 @@ func TestSQLite_bestindex1(t *testing.T) {
 }
 // Auto-generated from bestindex2.test
 func TestSQLite_bestindex2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2645,6 +2724,7 @@ func TestSQLite_bestindex2(t *testing.T) {
 }
 // Auto-generated from bestindex3.test
 func TestSQLite_bestindex3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2654,6 +2734,7 @@ func TestSQLite_bestindex3(t *testing.T) {
 }
 // Auto-generated from bestindex4.test
 func TestSQLite_bestindex4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2664,6 +2745,7 @@ func TestSQLite_bestindex4(t *testing.T) {
 }
 // Auto-generated from bestindex5.test
 func TestSQLite_bestindex5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2684,6 +2766,7 @@ func TestSQLite_bestindex5(t *testing.T) {
 }
 // Auto-generated from bestindex6.test
 func TestSQLite_bestindex6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2694,6 +2777,7 @@ func TestSQLite_bestindex6(t *testing.T) {
 }
 // Auto-generated from bestindex7.test
 func TestSQLite_bestindex7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2710,6 +2794,7 @@ func TestSQLite_bestindex7(t *testing.T) {
 }
 // Auto-generated from bestindex8.test
 func TestSQLite_bestindex8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2733,6 +2818,7 @@ func TestSQLite_bestindex8(t *testing.T) {
 }
 // Auto-generated from bestindexB.test
 func TestSQLite_bestindexB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2742,6 +2828,7 @@ func TestSQLite_bestindexB(t *testing.T) {
 }
 // Auto-generated from bestindexC.test
 func TestSQLite_bestindexC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2767,6 +2854,7 @@ func TestSQLite_bestindexC(t *testing.T) {
 }
 // Auto-generated from bestindexE.test
 func TestSQLite_bestindexE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2789,6 +2877,7 @@ func TestSQLite_bestindexE(t *testing.T) {
 }
 // Auto-generated from bestindexF.test
 func TestSQLite_bestindexF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2800,6 +2889,7 @@ func TestSQLite_bestindexF(t *testing.T) {
 }
 // Auto-generated from bestindexG.test
 func TestSQLite_bestindexG(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2809,6 +2899,7 @@ func TestSQLite_bestindexG(t *testing.T) {
 }
 // Auto-generated from between.test
 func TestSQLite_between(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2830,6 +2921,7 @@ func TestSQLite_between(t *testing.T) {
 }
 // Auto-generated from bigfile.test
 func TestSQLite_bigfile(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2853,6 +2945,7 @@ func TestSQLite_bigfile(t *testing.T) {
 }
 // Auto-generated from bigfile2.test
 func TestSQLite_bigfile2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2864,6 +2957,7 @@ func TestSQLite_bigfile2(t *testing.T) {
 }
 // Auto-generated from bigmmap.test
 func TestSQLite_bigmmap(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2873,6 +2967,7 @@ func TestSQLite_bigmmap(t *testing.T) {
 }
 // Auto-generated from bigrow.test
 func TestSQLite_bigrow(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2901,6 +2996,7 @@ func TestSQLite_bigrow(t *testing.T) {
 }
 // Auto-generated from bigsort.test
 func TestSQLite_bigsort(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2909,6 +3005,7 @@ func TestSQLite_bigsort(t *testing.T) {
 }
 // Auto-generated from bind.test
 func TestSQLite_bind(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2934,6 +3031,7 @@ func TestSQLite_bind(t *testing.T) {
 }
 // Auto-generated from bind2.test
 func TestSQLite_bind2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2943,6 +3041,7 @@ func TestSQLite_bind2(t *testing.T) {
 }
 // Auto-generated from bindxfer.test
 func TestSQLite_bindxfer(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2951,6 +3050,7 @@ func TestSQLite_bindxfer(t *testing.T) {
 }
 // Auto-generated from blob.test
 func TestSQLite_blob(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -2969,6 +3069,7 @@ func TestSQLite_blob(t *testing.T) {
 }
 // Auto-generated from bloom1.test
 func TestSQLite_bloom1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3009,6 +3110,7 @@ func TestSQLite_bloom1(t *testing.T) {
 }
 // Auto-generated from boundary1.test
 func TestSQLite_boundary1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3076,6 +3178,7 @@ func TestSQLite_boundary1(t *testing.T) {
 }
 // Auto-generated from boundary2.test
 func TestSQLite_boundary2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3143,6 +3246,7 @@ func TestSQLite_boundary2(t *testing.T) {
 }
 // Auto-generated from boundary3.test
 func TestSQLite_boundary3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3210,6 +3314,7 @@ func TestSQLite_boundary3(t *testing.T) {
 }
 // Auto-generated from boundary4.test
 func TestSQLite_boundary4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3257,6 +3362,7 @@ func TestSQLite_boundary4(t *testing.T) {
 }
 // Auto-generated from btree01.test
 func TestSQLite_btree01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3268,6 +3374,7 @@ func TestSQLite_btree01(t *testing.T) {
 }
 // Auto-generated from btree02.test
 func TestSQLite_btree02(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3279,6 +3386,7 @@ func TestSQLite_btree02(t *testing.T) {
 }
 // Auto-generated from btreefault.test
 func TestSQLite_btreefault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3296,6 +3404,7 @@ func TestSQLite_btreefault(t *testing.T) {
 }
 // Auto-generated from busy.test
 func TestSQLite_busy(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3313,6 +3422,7 @@ func TestSQLite_busy(t *testing.T) {
 }
 // Auto-generated from cache.test
 func TestSQLite_cache(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3327,6 +3437,7 @@ func TestSQLite_cache(t *testing.T) {
 }
 // Auto-generated from cacheflush.test
 func TestSQLite_cacheflush(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3355,6 +3466,7 @@ func TestSQLite_cacheflush(t *testing.T) {
 }
 // Auto-generated from cachespill.test
 func TestSQLite_cachespill(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3367,6 +3479,7 @@ func TestSQLite_cachespill(t *testing.T) {
 }
 // Auto-generated from capi2.test
 func TestSQLite_capi2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3396,6 +3509,7 @@ func TestSQLite_capi2(t *testing.T) {
 }
 // Auto-generated from capi3.test
 func TestSQLite_capi3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3418,6 +3532,7 @@ func TestSQLite_capi3(t *testing.T) {
 }
 // Auto-generated from capi3b.test
 func TestSQLite_capi3b(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3428,6 +3543,7 @@ func TestSQLite_capi3b(t *testing.T) {
 }
 // Auto-generated from capi3c.test
 func TestSQLite_capi3c(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3458,6 +3574,7 @@ func TestSQLite_capi3c(t *testing.T) {
 }
 // Auto-generated from capi3d.test
 func TestSQLite_capi3d(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3477,6 +3594,7 @@ func TestSQLite_capi3d(t *testing.T) {
 }
 // Auto-generated from carray01.test
 func TestSQLite_carray01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3487,6 +3605,7 @@ func TestSQLite_carray01(t *testing.T) {
 }
 // Auto-generated from carray02.test
 func TestSQLite_carray02(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3498,6 +3617,7 @@ func TestSQLite_carray02(t *testing.T) {
 }
 // Auto-generated from carrayfault.test
 func TestSQLite_carrayfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3506,6 +3626,7 @@ func TestSQLite_carrayfault(t *testing.T) {
 }
 // Auto-generated from cast.test
 func TestSQLite_cast(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3573,6 +3694,7 @@ func TestSQLite_cast(t *testing.T) {
 }
 // Auto-generated from cffault.test
 func TestSQLite_cffault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3590,6 +3712,7 @@ func TestSQLite_cffault(t *testing.T) {
 }
 // Auto-generated from changes2.test
 func TestSQLite_changes2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3607,6 +3730,7 @@ func TestSQLite_changes2(t *testing.T) {
 }
 // Auto-generated from check.test
 func TestSQLite_check(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3696,6 +3820,7 @@ func TestSQLite_check(t *testing.T) {
 }
 // Auto-generated from checkfault.test
 func TestSQLite_checkfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3706,6 +3831,7 @@ func TestSQLite_checkfault(t *testing.T) {
 }
 // Auto-generated from cksumvfs.test
 func TestSQLite_cksumvfs(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3723,6 +3849,7 @@ func TestSQLite_cksumvfs(t *testing.T) {
 }
 // Auto-generated from close.test
 func TestSQLite_close(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3731,6 +3858,7 @@ func TestSQLite_close(t *testing.T) {
 }
 // Auto-generated from closure01.test
 func TestSQLite_closure01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3762,6 +3890,7 @@ func TestSQLite_closure01(t *testing.T) {
 }
 // Auto-generated from coalesce.test
 func TestSQLite_coalesce(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3778,6 +3907,7 @@ func TestSQLite_coalesce(t *testing.T) {
 }
 // Auto-generated from collate1.test
 func TestSQLite_collate1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3845,6 +3975,7 @@ func TestSQLite_collate1(t *testing.T) {
 }
 // Auto-generated from collate2.test
 func TestSQLite_collate2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3912,6 +4043,7 @@ func TestSQLite_collate2(t *testing.T) {
 }
 // Auto-generated from collate3.test
 func TestSQLite_collate3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -3977,6 +4109,7 @@ func TestSQLite_collate3(t *testing.T) {
 }
 // Auto-generated from collate4.test
 func TestSQLite_collate4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4017,6 +4150,7 @@ func TestSQLite_collate4(t *testing.T) {
 }
 // Auto-generated from collate5.test
 func TestSQLite_collate5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4067,6 +4201,7 @@ func TestSQLite_collate5(t *testing.T) {
 }
 // Auto-generated from collate6.test
 func TestSQLite_collate6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4086,6 +4221,7 @@ func TestSQLite_collate6(t *testing.T) {
 }
 // Auto-generated from collate7.test
 func TestSQLite_collate7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4095,6 +4231,7 @@ func TestSQLite_collate7(t *testing.T) {
 }
 // Auto-generated from collate8.test
 func TestSQLite_collate8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4125,6 +4262,7 @@ func TestSQLite_collate8(t *testing.T) {
 }
 // Auto-generated from collate9.test
 func TestSQLite_collate9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4144,6 +4282,7 @@ func TestSQLite_collate9(t *testing.T) {
 }
 // Auto-generated from collateA.test
 func TestSQLite_collateA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4182,6 +4321,7 @@ func TestSQLite_collateA(t *testing.T) {
 }
 // Auto-generated from collateB.test
 func TestSQLite_collateB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4204,6 +4344,7 @@ func TestSQLite_collateB(t *testing.T) {
 }
 // Auto-generated from colmeta.test
 func TestSQLite_colmeta(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4217,6 +4358,7 @@ func TestSQLite_colmeta(t *testing.T) {
 }
 // Auto-generated from colname.test
 func TestSQLite_colname(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4253,6 +4395,7 @@ func TestSQLite_colname(t *testing.T) {
 }
 // Auto-generated from columncount.test
 func TestSQLite_columncount(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4261,6 +4404,7 @@ func TestSQLite_columncount(t *testing.T) {
 }
 // Auto-generated from conflict.test
 func TestSQLite_conflict(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4334,6 +4478,7 @@ func TestSQLite_conflict(t *testing.T) {
 }
 // Auto-generated from conflict2.test
 func TestSQLite_conflict2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4386,6 +4531,7 @@ func TestSQLite_conflict2(t *testing.T) {
 }
 // Auto-generated from conflict3.test
 func TestSQLite_conflict3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4422,6 +4568,7 @@ func TestSQLite_conflict3(t *testing.T) {
 }
 // Auto-generated from contrib01.test
 func TestSQLite_contrib01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4432,6 +4579,7 @@ func TestSQLite_contrib01(t *testing.T) {
 }
 // Auto-generated from corrupt.test
 func TestSQLite_corrupt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4467,6 +4615,7 @@ func TestSQLite_corrupt(t *testing.T) {
 }
 // Auto-generated from corrupt2.test
 func TestSQLite_corrupt2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4485,6 +4634,7 @@ func TestSQLite_corrupt2(t *testing.T) {
 }
 // Auto-generated from corrupt4.test
 func TestSQLite_corrupt4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4501,6 +4651,7 @@ func TestSQLite_corrupt4(t *testing.T) {
 }
 // Auto-generated from corrupt5.test
 func TestSQLite_corrupt5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4512,6 +4663,7 @@ func TestSQLite_corrupt5(t *testing.T) {
 }
 // Auto-generated from corrupt6.test
 func TestSQLite_corrupt6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4523,6 +4675,7 @@ func TestSQLite_corrupt6(t *testing.T) {
 }
 // Auto-generated from corrupt7.test
 func TestSQLite_corrupt7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4533,6 +4686,7 @@ func TestSQLite_corrupt7(t *testing.T) {
 }
 // Auto-generated from corrupt8.test
 func TestSQLite_corrupt8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4554,6 +4708,7 @@ func TestSQLite_corrupt8(t *testing.T) {
 }
 // Auto-generated from corrupt9.test
 func TestSQLite_corrupt9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4563,6 +4718,7 @@ func TestSQLite_corrupt9(t *testing.T) {
 }
 // Auto-generated from corruptA.test
 func TestSQLite_corruptA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4571,6 +4727,7 @@ func TestSQLite_corruptA(t *testing.T) {
 }
 // Auto-generated from corruptB.test
 func TestSQLite_corruptB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4582,6 +4739,7 @@ func TestSQLite_corruptB(t *testing.T) {
 }
 // Auto-generated from corruptC.test
 func TestSQLite_corruptC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4592,6 +4750,7 @@ func TestSQLite_corruptC(t *testing.T) {
 }
 // Auto-generated from corruptD.test
 func TestSQLite_corruptD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4601,6 +4760,7 @@ func TestSQLite_corruptD(t *testing.T) {
 }
 // Auto-generated from corruptE.test
 func TestSQLite_corruptE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4609,6 +4769,7 @@ func TestSQLite_corruptE(t *testing.T) {
 }
 // Auto-generated from corruptF.test
 func TestSQLite_corruptF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4618,6 +4779,7 @@ func TestSQLite_corruptF(t *testing.T) {
 }
 // Auto-generated from corruptG.test
 func TestSQLite_corruptG(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4626,6 +4788,7 @@ func TestSQLite_corruptG(t *testing.T) {
 }
 // Auto-generated from corruptH.test
 func TestSQLite_corruptH(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4648,6 +4811,7 @@ func TestSQLite_corruptH(t *testing.T) {
 }
 // Auto-generated from corruptI.test
 func TestSQLite_corruptI(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4697,6 +4861,7 @@ func TestSQLite_corruptI(t *testing.T) {
 }
 // Auto-generated from corruptK.test
 func TestSQLite_corruptK(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4720,6 +4885,7 @@ func TestSQLite_corruptK(t *testing.T) {
 }
 // Auto-generated from corruptL.test
 func TestSQLite_corruptL(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4841,6 +5007,7 @@ func TestSQLite_corruptL(t *testing.T) {
 }
 // Auto-generated from corruptM.test
 func TestSQLite_corruptM(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4862,6 +5029,7 @@ func TestSQLite_corruptM(t *testing.T) {
 }
 // Auto-generated from corruptN.test
 func TestSQLite_corruptN(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4911,6 +5079,7 @@ func TestSQLite_corruptN(t *testing.T) {
 }
 // Auto-generated from cost.test
 func TestSQLite_cost(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4942,6 +5111,7 @@ func TestSQLite_cost(t *testing.T) {
 }
 // Auto-generated from count.test
 func TestSQLite_count(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4974,6 +5144,7 @@ func TestSQLite_count(t *testing.T) {
 }
 // Auto-generated from countofview.test
 func TestSQLite_countofview(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -4999,6 +5170,7 @@ func TestSQLite_countofview(t *testing.T) {
 }
 // Auto-generated from coveridxscan.test
 func TestSQLite_coveridxscan(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5015,6 +5187,7 @@ func TestSQLite_coveridxscan(t *testing.T) {
 }
 // Auto-generated from crash.test
 func TestSQLite_crash(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5032,6 +5205,7 @@ func TestSQLite_crash(t *testing.T) {
 }
 // Auto-generated from crash2.test
 func TestSQLite_crash2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5042,6 +5216,7 @@ func TestSQLite_crash2(t *testing.T) {
 }
 // Auto-generated from crash3.test
 func TestSQLite_crash3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5057,6 +5232,7 @@ func TestSQLite_crash3(t *testing.T) {
 }
 // Auto-generated from crash4.test
 func TestSQLite_crash4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5079,6 +5255,7 @@ func TestSQLite_crash4(t *testing.T) {
 }
 // Auto-generated from crash5.test
 func TestSQLite_crash5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5090,6 +5267,7 @@ func TestSQLite_crash5(t *testing.T) {
 }
 // Auto-generated from crash6.test
 func TestSQLite_crash6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5101,6 +5279,7 @@ func TestSQLite_crash6(t *testing.T) {
 }
 // Auto-generated from crash7.test
 func TestSQLite_crash7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5110,6 +5289,7 @@ func TestSQLite_crash7(t *testing.T) {
 }
 // Auto-generated from crash8.test
 func TestSQLite_crash8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5132,6 +5312,7 @@ func TestSQLite_crash8(t *testing.T) {
 }
 // Auto-generated from crashM.test
 func TestSQLite_crashM(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5140,6 +5321,7 @@ func TestSQLite_crashM(t *testing.T) {
 }
 // Auto-generated from createtab.test
 func TestSQLite_createtab(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5161,6 +5343,7 @@ func TestSQLite_createtab(t *testing.T) {
 }
 // Auto-generated from cse.test
 func TestSQLite_cse(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5197,6 +5380,7 @@ func TestSQLite_cse(t *testing.T) {
 }
 // Auto-generated from csv01.test
 func TestSQLite_csv01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5242,6 +5426,7 @@ func TestSQLite_csv01(t *testing.T) {
 }
 // Auto-generated from ctime.test
 func TestSQLite_ctime(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5253,6 +5438,7 @@ func TestSQLite_ctime(t *testing.T) {
 }
 // Auto-generated from cursorhint.test
 func TestSQLite_cursorhint(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5272,6 +5458,7 @@ func TestSQLite_cursorhint(t *testing.T) {
 }
 // Auto-generated from cursorhint2.test
 func TestSQLite_cursorhint2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5286,6 +5473,7 @@ func TestSQLite_cursorhint2(t *testing.T) {
 }
 // Auto-generated from dataversion1.test
 func TestSQLite_dataversion1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5298,6 +5486,7 @@ func TestSQLite_dataversion1(t *testing.T) {
 }
 // Auto-generated from date.test
 func TestSQLite_date(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5326,6 +5515,7 @@ func TestSQLite_date(t *testing.T) {
 }
 // Auto-generated from date2.test
 func TestSQLite_date2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5400,6 +5590,7 @@ func TestSQLite_date2(t *testing.T) {
 }
 // Auto-generated from date3.test
 func TestSQLite_date3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5409,6 +5600,7 @@ func TestSQLite_date3(t *testing.T) {
 }
 // Auto-generated from dbdata.test
 func TestSQLite_dbdata(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5429,6 +5621,7 @@ func TestSQLite_dbdata(t *testing.T) {
 }
 // Auto-generated from dbfuzz001.test
 func TestSQLite_dbfuzz001(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5449,6 +5642,7 @@ func TestSQLite_dbfuzz001(t *testing.T) {
 }
 // Auto-generated from dbpage.test
 func TestSQLite_dbpage(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5507,6 +5701,7 @@ func TestSQLite_dbpage(t *testing.T) {
 }
 // Auto-generated from dbpagefault.test
 func TestSQLite_dbpagefault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5529,6 +5724,7 @@ func TestSQLite_dbpagefault(t *testing.T) {
 }
 // Auto-generated from dbstatus.test
 func TestSQLite_dbstatus(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5545,6 +5741,7 @@ func TestSQLite_dbstatus(t *testing.T) {
 }
 // Auto-generated from dbstatus2.test
 func TestSQLite_dbstatus2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5565,6 +5762,7 @@ func TestSQLite_dbstatus2(t *testing.T) {
 }
 // Auto-generated from decimal.test
 func TestSQLite_decimal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5624,6 +5822,7 @@ func TestSQLite_decimal(t *testing.T) {
 }
 // Auto-generated from default.test
 func TestSQLite_default(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5661,6 +5860,7 @@ func TestSQLite_default(t *testing.T) {
 }
 // Auto-generated from delete.test
 func TestSQLite_delete(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5728,6 +5928,7 @@ func TestSQLite_delete(t *testing.T) {
 }
 // Auto-generated from delete2.test
 func TestSQLite_delete2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5741,6 +5942,7 @@ func TestSQLite_delete2(t *testing.T) {
 }
 // Auto-generated from delete3.test
 func TestSQLite_delete3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5750,6 +5952,7 @@ func TestSQLite_delete3(t *testing.T) {
 }
 // Auto-generated from delete4.test
 func TestSQLite_delete4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5796,6 +5999,7 @@ func TestSQLite_delete4(t *testing.T) {
 }
 // Auto-generated from delete_db.test
 func TestSQLite_delete_db(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5812,6 +6016,7 @@ func TestSQLite_delete_db(t *testing.T) {
 }
 // Auto-generated from descidx1.test
 func TestSQLite_descidx1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5841,6 +6046,7 @@ func TestSQLite_descidx1(t *testing.T) {
 }
 // Auto-generated from descidx2.test
 func TestSQLite_descidx2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5860,6 +6066,7 @@ func TestSQLite_descidx2(t *testing.T) {
 }
 // Auto-generated from descidx3.test
 func TestSQLite_descidx3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5882,6 +6089,7 @@ func TestSQLite_descidx3(t *testing.T) {
 }
 // Auto-generated from diskfull.test
 func TestSQLite_diskfull(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5894,6 +6102,7 @@ func TestSQLite_diskfull(t *testing.T) {
 }
 // Auto-generated from distinct.test
 func TestSQLite_distinct(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -5935,6 +6144,7 @@ func TestSQLite_distinct(t *testing.T) {
 }
 // Auto-generated from distinct2.test
 func TestSQLite_distinct2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6012,6 +6222,7 @@ func TestSQLite_distinct2(t *testing.T) {
 }
 // Auto-generated from distinctagg.test
 func TestSQLite_distinctagg(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6038,6 +6249,7 @@ func TestSQLite_distinctagg(t *testing.T) {
 }
 // Auto-generated from e_blobbytes.test
 func TestSQLite_e_blobbytes(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6046,6 +6258,7 @@ func TestSQLite_e_blobbytes(t *testing.T) {
 }
 // Auto-generated from e_blobclose.test
 func TestSQLite_e_blobclose(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6063,6 +6276,7 @@ func TestSQLite_e_blobclose(t *testing.T) {
 }
 // Auto-generated from e_blobopen.test
 func TestSQLite_e_blobopen(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6093,6 +6307,7 @@ func TestSQLite_e_blobopen(t *testing.T) {
 }
 // Auto-generated from e_blobwrite.test
 func TestSQLite_e_blobwrite(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6106,6 +6321,7 @@ func TestSQLite_e_blobwrite(t *testing.T) {
 }
 // Auto-generated from e_changes.test
 func TestSQLite_e_changes(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6153,6 +6369,7 @@ func TestSQLite_e_changes(t *testing.T) {
 }
 // Auto-generated from e_createtable.test
 func TestSQLite_e_createtable(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6238,6 +6455,7 @@ func TestSQLite_e_createtable(t *testing.T) {
 }
 // Auto-generated from e_delete.test
 func TestSQLite_e_delete(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6254,6 +6472,7 @@ func TestSQLite_e_delete(t *testing.T) {
 }
 // Auto-generated from e_droptrigger.test
 func TestSQLite_e_droptrigger(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6262,6 +6481,7 @@ func TestSQLite_e_droptrigger(t *testing.T) {
 }
 // Auto-generated from e_dropview.test
 func TestSQLite_e_dropview(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6287,6 +6507,7 @@ func TestSQLite_e_dropview(t *testing.T) {
 }
 // Auto-generated from e_expr.test
 func TestSQLite_e_expr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6354,6 +6575,7 @@ func TestSQLite_e_expr(t *testing.T) {
 }
 // Auto-generated from e_fkey.test
 func TestSQLite_e_fkey(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6431,6 +6653,7 @@ func TestSQLite_e_fkey(t *testing.T) {
 }
 // Auto-generated from e_fts3.test
 func TestSQLite_e_fts3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6439,6 +6662,7 @@ func TestSQLite_e_fts3(t *testing.T) {
 }
 // Auto-generated from e_insert.test
 func TestSQLite_e_insert(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6458,6 +6682,7 @@ func TestSQLite_e_insert(t *testing.T) {
 }
 // Auto-generated from e_reindex.test
 func TestSQLite_e_reindex(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6478,6 +6703,7 @@ func TestSQLite_e_reindex(t *testing.T) {
 }
 // Auto-generated from e_resolve.test
 func TestSQLite_e_resolve(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6507,6 +6733,7 @@ func TestSQLite_e_resolve(t *testing.T) {
 }
 // Auto-generated from e_select.test
 func TestSQLite_e_select(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6564,6 +6791,7 @@ func TestSQLite_e_select(t *testing.T) {
 }
 // Auto-generated from e_select2.test
 func TestSQLite_e_select2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6573,6 +6801,7 @@ func TestSQLite_e_select2(t *testing.T) {
 }
 // Auto-generated from e_totalchanges.test
 func TestSQLite_e_totalchanges(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6582,6 +6811,7 @@ func TestSQLite_e_totalchanges(t *testing.T) {
 }
 // Auto-generated from e_update.test
 func TestSQLite_e_update(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6604,6 +6834,7 @@ func TestSQLite_e_update(t *testing.T) {
 }
 // Auto-generated from e_uri.test
 func TestSQLite_e_uri(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6612,6 +6843,7 @@ func TestSQLite_e_uri(t *testing.T) {
 }
 // Auto-generated from e_vacuum.test
 func TestSQLite_e_vacuum(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6649,6 +6881,7 @@ func TestSQLite_e_vacuum(t *testing.T) {
 }
 // Auto-generated from e_wal.test
 func TestSQLite_e_wal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6678,6 +6911,7 @@ func TestSQLite_e_wal(t *testing.T) {
 }
 // Auto-generated from e_walauto.test
 func TestSQLite_e_walauto(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6687,6 +6921,7 @@ func TestSQLite_e_walauto(t *testing.T) {
 }
 // Auto-generated from e_walckpt.test
 func TestSQLite_e_walckpt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6706,6 +6941,7 @@ func TestSQLite_e_walckpt(t *testing.T) {
 }
 // Auto-generated from e_walhook.test
 func TestSQLite_e_walhook(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6734,6 +6970,7 @@ func TestSQLite_e_walhook(t *testing.T) {
 }
 // Auto-generated from emptytable.test
 func TestSQLite_emptytable(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6745,6 +6982,7 @@ func TestSQLite_emptytable(t *testing.T) {
 }
 // Auto-generated from enc.test
 func TestSQLite_enc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6783,6 +7021,7 @@ func TestSQLite_enc(t *testing.T) {
 }
 // Auto-generated from enc2.test
 func TestSQLite_enc2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6848,6 +7087,7 @@ func TestSQLite_enc2(t *testing.T) {
 }
 // Auto-generated from enc3.test
 func TestSQLite_enc3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6864,6 +7104,7 @@ func TestSQLite_enc3(t *testing.T) {
 }
 // Auto-generated from enc4.test
 func TestSQLite_enc4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6874,6 +7115,7 @@ func TestSQLite_enc4(t *testing.T) {
 }
 // Auto-generated from eqp.test
 func TestSQLite_eqp(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6896,6 +7138,7 @@ func TestSQLite_eqp(t *testing.T) {
 }
 // Auto-generated from eqp2.test
 func TestSQLite_eqp2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6908,6 +7151,7 @@ func TestSQLite_eqp2(t *testing.T) {
 }
 // Auto-generated from errmsg.test
 func TestSQLite_errmsg(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6917,6 +7161,7 @@ func TestSQLite_errmsg(t *testing.T) {
 }
 // Auto-generated from errofst1.test
 func TestSQLite_errofst1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6926,6 +7171,7 @@ func TestSQLite_errofst1(t *testing.T) {
 }
 // Auto-generated from eval.test
 func TestSQLite_eval(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6940,6 +7186,7 @@ func TestSQLite_eval(t *testing.T) {
 }
 // Auto-generated from exclusive.test
 func TestSQLite_exclusive(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6978,6 +7225,7 @@ func TestSQLite_exclusive(t *testing.T) {
 }
 // Auto-generated from exclusive2.test
 func TestSQLite_exclusive2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -6993,6 +7241,7 @@ func TestSQLite_exclusive2(t *testing.T) {
 }
 // Auto-generated from exec.test
 func TestSQLite_exec(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7001,6 +7250,7 @@ func TestSQLite_exec(t *testing.T) {
 }
 // Auto-generated from existsexpr.test
 func TestSQLite_existsexpr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7081,6 +7331,7 @@ func TestSQLite_existsexpr(t *testing.T) {
 }
 // Auto-generated from existsexpr2.test
 func TestSQLite_existsexpr2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7098,6 +7349,7 @@ func TestSQLite_existsexpr2(t *testing.T) {
 }
 // Auto-generated from existsfault.test
 func TestSQLite_existsfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7108,6 +7360,7 @@ func TestSQLite_existsfault(t *testing.T) {
 }
 // Auto-generated from expr.test
 func TestSQLite_expr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7164,6 +7417,7 @@ func TestSQLite_expr(t *testing.T) {
 }
 // Auto-generated from expr2.test
 func TestSQLite_expr2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7178,6 +7432,7 @@ func TestSQLite_expr2(t *testing.T) {
 }
 // Auto-generated from exprfault.test
 func TestSQLite_exprfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7193,6 +7448,7 @@ func TestSQLite_exprfault(t *testing.T) {
 }
 // Auto-generated from exprfault2.test
 func TestSQLite_exprfault2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7202,6 +7458,7 @@ func TestSQLite_exprfault2(t *testing.T) {
 }
 // Auto-generated from expridx1.test
 func TestSQLite_expridx1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7238,6 +7495,7 @@ func TestSQLite_expridx1(t *testing.T) {
 }
 // Auto-generated from extension01.test
 func TestSQLite_extension01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7251,6 +7509,7 @@ func TestSQLite_extension01(t *testing.T) {
 }
 // Auto-generated from fallocate.test
 func TestSQLite_fallocate(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7270,6 +7529,7 @@ func TestSQLite_fallocate(t *testing.T) {
 }
 // Auto-generated from filectrl.test
 func TestSQLite_filectrl(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7285,6 +7545,7 @@ func TestSQLite_filectrl(t *testing.T) {
 }
 // Auto-generated from filefmt.test
 func TestSQLite_filefmt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7308,6 +7569,7 @@ func TestSQLite_filefmt(t *testing.T) {
 }
 // Auto-generated from filter1.test
 func TestSQLite_filter1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7367,6 +7629,7 @@ func TestSQLite_filter1(t *testing.T) {
 }
 // Auto-generated from filter2.test
 func TestSQLite_filter2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7390,6 +7653,7 @@ func TestSQLite_filter2(t *testing.T) {
 }
 // Auto-generated from filterfault.test
 func TestSQLite_filterfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7399,6 +7663,7 @@ func TestSQLite_filterfault(t *testing.T) {
 }
 // Auto-generated from fkey1.test
 func TestSQLite_fkey1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7451,6 +7716,7 @@ func TestSQLite_fkey1(t *testing.T) {
 }
 // Auto-generated from fkey2.test
 func TestSQLite_fkey2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7518,6 +7784,7 @@ func TestSQLite_fkey2(t *testing.T) {
 }
 // Auto-generated from fkey3.test
 func TestSQLite_fkey3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7572,6 +7839,7 @@ func TestSQLite_fkey3(t *testing.T) {
 }
 // Auto-generated from fkey4.test
 func TestSQLite_fkey4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7581,6 +7849,7 @@ func TestSQLite_fkey4(t *testing.T) {
 }
 // Auto-generated from fkey5.test
 func TestSQLite_fkey5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7654,6 +7923,7 @@ func TestSQLite_fkey5(t *testing.T) {
 }
 // Auto-generated from fkey6.test
 func TestSQLite_fkey6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7701,6 +7971,7 @@ func TestSQLite_fkey6(t *testing.T) {
 }
 // Auto-generated from fkey7.test
 func TestSQLite_fkey7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7720,6 +7991,7 @@ func TestSQLite_fkey7(t *testing.T) {
 }
 // Auto-generated from fkey8.test
 func TestSQLite_fkey8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7779,6 +8051,7 @@ func TestSQLite_fkey8(t *testing.T) {
 }
 // Auto-generated from fordelete.test
 func TestSQLite_fordelete(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7808,6 +8081,7 @@ func TestSQLite_fordelete(t *testing.T) {
 }
 // Auto-generated from format4.test
 func TestSQLite_format4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7819,6 +8093,7 @@ func TestSQLite_format4(t *testing.T) {
 }
 // Auto-generated from fpconv1.test
 func TestSQLite_fpconv1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7830,6 +8105,7 @@ func TestSQLite_fpconv1(t *testing.T) {
 }
 // Auto-generated from fts-9fd058691.test
 func TestSQLite_fts_9fd058691(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7842,6 +8118,7 @@ func TestSQLite_fts_9fd058691(t *testing.T) {
 }
 // Auto-generated from fts3aa.test
 func TestSQLite_fts3aa(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7896,6 +8173,7 @@ func TestSQLite_fts3aa(t *testing.T) {
 }
 // Auto-generated from fts3ab.test
 func TestSQLite_fts3ab(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7919,6 +8197,7 @@ func TestSQLite_fts3ab(t *testing.T) {
 }
 // Auto-generated from fts3ac.test
 func TestSQLite_fts3ac(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7952,6 +8231,7 @@ func TestSQLite_fts3ac(t *testing.T) {
 }
 // Auto-generated from fts3ad.test
 func TestSQLite_fts3ad(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7964,6 +8244,7 @@ func TestSQLite_fts3ad(t *testing.T) {
 }
 // Auto-generated from fts3ae.test
 func TestSQLite_fts3ae(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7977,6 +8258,7 @@ func TestSQLite_fts3ae(t *testing.T) {
 }
 // Auto-generated from fts3af.test
 func TestSQLite_fts3af(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -7991,6 +8273,7 @@ func TestSQLite_fts3af(t *testing.T) {
 }
 // Auto-generated from fts3ag.test
 func TestSQLite_fts3ag(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8010,6 +8293,7 @@ func TestSQLite_fts3ag(t *testing.T) {
 }
 // Auto-generated from fts3ah.test
 func TestSQLite_fts3ah(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8018,6 +8302,7 @@ func TestSQLite_fts3ah(t *testing.T) {
 }
 // Auto-generated from fts3ai.test
 func TestSQLite_fts3ai(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8032,6 +8317,7 @@ func TestSQLite_fts3ai(t *testing.T) {
 }
 // Auto-generated from fts3aj.test
 func TestSQLite_fts3aj(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8041,6 +8327,7 @@ func TestSQLite_fts3aj(t *testing.T) {
 }
 // Auto-generated from fts3ak.test
 func TestSQLite_fts3ak(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8055,6 +8342,7 @@ func TestSQLite_fts3ak(t *testing.T) {
 }
 // Auto-generated from fts3al.test
 func TestSQLite_fts3al(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8063,6 +8351,7 @@ func TestSQLite_fts3al(t *testing.T) {
 }
 // Auto-generated from fts3am.test
 func TestSQLite_fts3am(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8075,6 +8364,7 @@ func TestSQLite_fts3am(t *testing.T) {
 }
 // Auto-generated from fts3an.test
 func TestSQLite_fts3an(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8088,6 +8378,7 @@ func TestSQLite_fts3an(t *testing.T) {
 }
 // Auto-generated from fts3ao.test
 func TestSQLite_fts3ao(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8121,6 +8412,7 @@ func TestSQLite_fts3ao(t *testing.T) {
 }
 // Auto-generated from fts3atoken.test
 func TestSQLite_fts3atoken(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8148,6 +8440,7 @@ func TestSQLite_fts3atoken(t *testing.T) {
 }
 // Auto-generated from fts3atoken2.test
 func TestSQLite_fts3atoken2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8159,6 +8452,7 @@ func TestSQLite_fts3atoken2(t *testing.T) {
 }
 // Auto-generated from fts3auto.test
 func TestSQLite_fts3auto(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8168,6 +8462,7 @@ func TestSQLite_fts3auto(t *testing.T) {
 }
 // Auto-generated from fts3aux1.test
 func TestSQLite_fts3aux1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8245,6 +8540,7 @@ func TestSQLite_fts3aux1(t *testing.T) {
 }
 // Auto-generated from fts3aux2.test
 func TestSQLite_fts3aux2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8273,6 +8569,7 @@ func TestSQLite_fts3aux2(t *testing.T) {
 }
 // Auto-generated from fts3b.test
 func TestSQLite_fts3b(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8301,6 +8598,7 @@ func TestSQLite_fts3b(t *testing.T) {
 }
 // Auto-generated from fts3c.test
 func TestSQLite_fts3c(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8310,6 +8608,7 @@ func TestSQLite_fts3c(t *testing.T) {
 }
 // Auto-generated from fts3comp1.test
 func TestSQLite_fts3comp1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8339,6 +8638,7 @@ func TestSQLite_fts3comp1(t *testing.T) {
 }
 // Auto-generated from fts3conf.test
 func TestSQLite_fts3conf(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8372,6 +8672,7 @@ func TestSQLite_fts3conf(t *testing.T) {
 }
 // Auto-generated from fts3corrupt.test
 func TestSQLite_fts3corrupt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8410,6 +8711,7 @@ func TestSQLite_fts3corrupt(t *testing.T) {
 }
 // Auto-generated from fts3corrupt2.test
 func TestSQLite_fts3corrupt2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8421,6 +8723,7 @@ func TestSQLite_fts3corrupt2(t *testing.T) {
 }
 // Auto-generated from fts3corrupt3.test
 func TestSQLite_fts3corrupt3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8433,6 +8736,7 @@ func TestSQLite_fts3corrupt3(t *testing.T) {
 }
 // Auto-generated from fts3corrupt4.test
 func TestSQLite_fts3corrupt4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8552,6 +8856,7 @@ func TestSQLite_fts3corrupt4(t *testing.T) {
 }
 // Auto-generated from fts3corrupt5.test
 func TestSQLite_fts3corrupt5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8561,6 +8866,7 @@ func TestSQLite_fts3corrupt5(t *testing.T) {
 }
 // Auto-generated from fts3corrupt6.test
 func TestSQLite_fts3corrupt6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8582,6 +8888,7 @@ func TestSQLite_fts3corrupt6(t *testing.T) {
 }
 // Auto-generated from fts3corrupt7.test
 func TestSQLite_fts3corrupt7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8615,6 +8922,7 @@ func TestSQLite_fts3corrupt7(t *testing.T) {
 }
 // Auto-generated from fts3cov.test
 func TestSQLite_fts3cov(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8646,6 +8954,7 @@ func TestSQLite_fts3cov(t *testing.T) {
 }
 // Auto-generated from fts3d.test
 func TestSQLite_fts3d(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8661,6 +8970,7 @@ func TestSQLite_fts3d(t *testing.T) {
 }
 // Auto-generated from fts3defer.test
 func TestSQLite_fts3defer(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8684,6 +8994,7 @@ func TestSQLite_fts3defer(t *testing.T) {
 }
 // Auto-generated from fts3defer2.test
 func TestSQLite_fts3defer2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8708,6 +9019,7 @@ func TestSQLite_fts3defer2(t *testing.T) {
 }
 // Auto-generated from fts3defer3.test
 func TestSQLite_fts3defer3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8720,6 +9032,7 @@ func TestSQLite_fts3defer3(t *testing.T) {
 }
 // Auto-generated from fts3drop.test
 func TestSQLite_fts3drop(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8731,6 +9044,7 @@ func TestSQLite_fts3drop(t *testing.T) {
 }
 // Auto-generated from fts3dropmod.test
 func TestSQLite_fts3dropmod(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8741,6 +9055,7 @@ func TestSQLite_fts3dropmod(t *testing.T) {
 }
 // Auto-generated from fts3e.test
 func TestSQLite_fts3e(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8756,6 +9071,7 @@ func TestSQLite_fts3e(t *testing.T) {
 }
 // Auto-generated from fts3expr.test
 func TestSQLite_fts3expr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8764,6 +9080,7 @@ func TestSQLite_fts3expr(t *testing.T) {
 }
 // Auto-generated from fts3expr5.test
 func TestSQLite_fts3expr5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8776,6 +9093,7 @@ func TestSQLite_fts3expr5(t *testing.T) {
 }
 // Auto-generated from fts3f.test
 func TestSQLite_fts3f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8786,6 +9104,7 @@ func TestSQLite_fts3f(t *testing.T) {
 }
 // Auto-generated from fts3fault.test
 func TestSQLite_fts3fault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8822,6 +9141,7 @@ func TestSQLite_fts3fault(t *testing.T) {
 }
 // Auto-generated from fts3fault2.test
 func TestSQLite_fts3fault2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8853,6 +9173,7 @@ func TestSQLite_fts3fault2(t *testing.T) {
 }
 // Auto-generated from fts3fault3.test
 func TestSQLite_fts3fault3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8867,6 +9188,7 @@ func TestSQLite_fts3fault3(t *testing.T) {
 }
 // Auto-generated from fts3first.test
 func TestSQLite_fts3first(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8877,6 +9199,7 @@ func TestSQLite_fts3first(t *testing.T) {
 }
 // Auto-generated from fts3fuzz001.test
 func TestSQLite_fts3fuzz001(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8889,6 +9212,7 @@ func TestSQLite_fts3fuzz001(t *testing.T) {
 }
 // Auto-generated from fts3integrity.test
 func TestSQLite_fts3integrity(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8897,6 +9221,7 @@ func TestSQLite_fts3integrity(t *testing.T) {
 }
 // Auto-generated from fts3join.test
 func TestSQLite_fts3join(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8913,6 +9238,7 @@ func TestSQLite_fts3join(t *testing.T) {
 }
 // Auto-generated from fts3malloc.test
 func TestSQLite_fts3malloc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8924,6 +9250,7 @@ func TestSQLite_fts3malloc(t *testing.T) {
 }
 // Auto-generated from fts3matchinfo.test
 func TestSQLite_fts3matchinfo(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -8966,6 +9293,7 @@ func TestSQLite_fts3matchinfo(t *testing.T) {
 }
 // Auto-generated from fts3misc.test
 func TestSQLite_fts3misc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9037,6 +9365,7 @@ func TestSQLite_fts3misc(t *testing.T) {
 }
 // Auto-generated from fts3near.test
 func TestSQLite_fts3near(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9091,6 +9420,7 @@ func TestSQLite_fts3near(t *testing.T) {
 }
 // Auto-generated from fts3offsets.test
 func TestSQLite_fts3offsets(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9104,6 +9434,7 @@ func TestSQLite_fts3offsets(t *testing.T) {
 }
 // Auto-generated from fts3prefix.test
 func TestSQLite_fts3prefix(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9151,6 +9482,7 @@ func TestSQLite_fts3prefix(t *testing.T) {
 }
 // Auto-generated from fts3prefix2.test
 func TestSQLite_fts3prefix2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9161,6 +9493,7 @@ func TestSQLite_fts3prefix2(t *testing.T) {
 }
 // Auto-generated from fts3query.test
 func TestSQLite_fts3query(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9179,6 +9512,7 @@ func TestSQLite_fts3query(t *testing.T) {
 }
 // Auto-generated from fts3rank.test
 func TestSQLite_fts3rank(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9192,6 +9526,7 @@ func TestSQLite_fts3rank(t *testing.T) {
 }
 // Auto-generated from fts3shared.test
 func TestSQLite_fts3shared(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9203,6 +9538,7 @@ func TestSQLite_fts3shared(t *testing.T) {
 }
 // Auto-generated from fts3snippet.test
 func TestSQLite_fts3snippet(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9227,6 +9563,7 @@ func TestSQLite_fts3snippet(t *testing.T) {
 }
 // Auto-generated from fts3snippet2.test
 func TestSQLite_fts3snippet2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9246,6 +9583,7 @@ func TestSQLite_fts3snippet2(t *testing.T) {
 }
 // Auto-generated from fts3sort.test
 func TestSQLite_fts3sort(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9257,6 +9595,7 @@ func TestSQLite_fts3sort(t *testing.T) {
 }
 // Auto-generated from fts3tok1.test
 func TestSQLite_fts3tok1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9280,6 +9619,7 @@ func TestSQLite_fts3tok1(t *testing.T) {
 }
 // Auto-generated from fts3tok_err.test
 func TestSQLite_fts3tok_err(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9289,6 +9629,7 @@ func TestSQLite_fts3tok_err(t *testing.T) {
 }
 // Auto-generated from fts4aa.test
 func TestSQLite_fts4aa(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9318,6 +9659,7 @@ func TestSQLite_fts4aa(t *testing.T) {
 }
 // Auto-generated from fts4check.test
 func TestSQLite_fts4check(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9337,6 +9679,7 @@ func TestSQLite_fts4check(t *testing.T) {
 }
 // Auto-generated from fts4content.test
 func TestSQLite_fts4content(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9414,6 +9757,7 @@ func TestSQLite_fts4content(t *testing.T) {
 }
 // Auto-generated from fts4docid.test
 func TestSQLite_fts4docid(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9434,6 +9778,7 @@ func TestSQLite_fts4docid(t *testing.T) {
 }
 // Auto-generated from fts4growth.test
 func TestSQLite_fts4growth(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9485,6 +9830,7 @@ func TestSQLite_fts4growth(t *testing.T) {
 }
 // Auto-generated from fts4growth2.test
 func TestSQLite_fts4growth2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9498,6 +9844,7 @@ func TestSQLite_fts4growth2(t *testing.T) {
 }
 // Auto-generated from fts4incr.test
 func TestSQLite_fts4incr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9509,6 +9856,7 @@ func TestSQLite_fts4incr(t *testing.T) {
 }
 // Auto-generated from fts4intck1.test
 func TestSQLite_fts4intck1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9527,6 +9875,7 @@ func TestSQLite_fts4intck1(t *testing.T) {
 }
 // Auto-generated from fts4langid.test
 func TestSQLite_fts4langid(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9569,6 +9918,7 @@ func TestSQLite_fts4langid(t *testing.T) {
 }
 // Auto-generated from fts4lastrowid.test
 func TestSQLite_fts4lastrowid(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9582,6 +9932,7 @@ func TestSQLite_fts4lastrowid(t *testing.T) {
 }
 // Auto-generated from fts4merge.test
 func TestSQLite_fts4merge(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9611,6 +9962,7 @@ func TestSQLite_fts4merge(t *testing.T) {
 }
 // Auto-generated from fts4merge2.test
 func TestSQLite_fts4merge2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9620,6 +9972,7 @@ func TestSQLite_fts4merge2(t *testing.T) {
 }
 // Auto-generated from fts4merge4.test
 func TestSQLite_fts4merge4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9638,6 +9991,7 @@ func TestSQLite_fts4merge4(t *testing.T) {
 }
 // Auto-generated from fts4merge5.test
 func TestSQLite_fts4merge5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9651,6 +10005,7 @@ func TestSQLite_fts4merge5(t *testing.T) {
 }
 // Auto-generated from fts4min.test
 func TestSQLite_fts4min(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9661,6 +10016,7 @@ func TestSQLite_fts4min(t *testing.T) {
 }
 // Auto-generated from fts4noti.test
 func TestSQLite_fts4noti(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9688,6 +10044,7 @@ func TestSQLite_fts4noti(t *testing.T) {
 }
 // Auto-generated from fts4onepass.test
 func TestSQLite_fts4onepass(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9697,6 +10054,7 @@ func TestSQLite_fts4onepass(t *testing.T) {
 }
 // Auto-generated from fts4opt.test
 func TestSQLite_fts4opt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9717,6 +10075,7 @@ func TestSQLite_fts4opt(t *testing.T) {
 }
 // Auto-generated from fts4record.test
 func TestSQLite_fts4record(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9733,6 +10092,7 @@ func TestSQLite_fts4record(t *testing.T) {
 }
 // Auto-generated from fts4rename.test
 func TestSQLite_fts4rename(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9749,6 +10109,7 @@ func TestSQLite_fts4rename(t *testing.T) {
 }
 // Auto-generated from fts4unicode.test
 func TestSQLite_fts4unicode(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9773,6 +10134,7 @@ func TestSQLite_fts4unicode(t *testing.T) {
 }
 // Auto-generated from func.test
 func TestSQLite_func(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9840,6 +10202,7 @@ func TestSQLite_func(t *testing.T) {
 }
 // Auto-generated from func2.test
 func TestSQLite_func2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9904,6 +10267,7 @@ func TestSQLite_func2(t *testing.T) {
 }
 // Auto-generated from func3.test
 func TestSQLite_func3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -9937,6 +10301,7 @@ func TestSQLite_func3(t *testing.T) {
 }
 // Auto-generated from func4.test
 func TestSQLite_func4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10004,6 +10369,7 @@ func TestSQLite_func4(t *testing.T) {
 }
 // Auto-generated from func5.test
 func TestSQLite_func5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10015,6 +10381,7 @@ func TestSQLite_func5(t *testing.T) {
 }
 // Auto-generated from func6.test
 func TestSQLite_func6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10035,6 +10402,7 @@ func TestSQLite_func6(t *testing.T) {
 }
 // Auto-generated from func7.test
 func TestSQLite_func7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10102,6 +10470,7 @@ func TestSQLite_func7(t *testing.T) {
 }
 // Auto-generated from func8.test
 func TestSQLite_func8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10117,6 +10486,7 @@ func TestSQLite_func8(t *testing.T) {
 }
 // Auto-generated from func9.test
 func TestSQLite_func9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10139,6 +10509,7 @@ func TestSQLite_func9(t *testing.T) {
 }
 // Auto-generated from fuzz-oss1.test
 func TestSQLite_fuzz_oss1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10151,6 +10522,7 @@ func TestSQLite_fuzz_oss1(t *testing.T) {
 }
 // Auto-generated from fuzz.test
 func TestSQLite_fuzz(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10174,6 +10546,7 @@ func TestSQLite_fuzz(t *testing.T) {
 }
 // Auto-generated from fuzz2.test
 func TestSQLite_fuzz2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10183,6 +10556,7 @@ func TestSQLite_fuzz2(t *testing.T) {
 }
 // Auto-generated from fuzz3.test
 func TestSQLite_fuzz3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10196,6 +10570,7 @@ func TestSQLite_fuzz3(t *testing.T) {
 }
 // Auto-generated from fuzz4.test
 func TestSQLite_fuzz4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10212,6 +10587,7 @@ func TestSQLite_fuzz4(t *testing.T) {
 }
 // Auto-generated from fuzzer1.test
 func TestSQLite_fuzzer1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10297,6 +10673,7 @@ func TestSQLite_fuzzer1(t *testing.T) {
 }
 // Auto-generated from fuzzer2.test
 func TestSQLite_fuzzer2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10309,6 +10686,7 @@ func TestSQLite_fuzzer2(t *testing.T) {
 }
 // Auto-generated from fuzzerfault.test
 func TestSQLite_fuzzerfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10327,6 +10705,7 @@ func TestSQLite_fuzzerfault(t *testing.T) {
 }
 // Auto-generated from gcfault.test
 func TestSQLite_gcfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10336,6 +10715,7 @@ func TestSQLite_gcfault(t *testing.T) {
 }
 // Auto-generated from gencol1.test
 func TestSQLite_gencol1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10437,6 +10817,7 @@ func TestSQLite_gencol1(t *testing.T) {
 }
 // Auto-generated from having.test
 func TestSQLite_having(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10456,6 +10837,7 @@ func TestSQLite_having(t *testing.T) {
 }
 // Auto-generated from hexlit.test
 func TestSQLite_hexlit(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10471,6 +10853,7 @@ func TestSQLite_hexlit(t *testing.T) {
 }
 // Auto-generated from hidden.test
 func TestSQLite_hidden(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10496,6 +10879,7 @@ func TestSQLite_hidden(t *testing.T) {
 }
 // Auto-generated from hook.test
 func TestSQLite_hook(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10566,6 +10950,7 @@ func TestSQLite_hook(t *testing.T) {
 }
 // Auto-generated from hook2.test
 func TestSQLite_hook2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10579,6 +10964,7 @@ func TestSQLite_hook2(t *testing.T) {
 }
 // Auto-generated from icu.test
 func TestSQLite_icu(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10607,6 +10993,7 @@ func TestSQLite_icu(t *testing.T) {
 }
 // Auto-generated from ieee754.test
 func TestSQLite_ieee754(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10619,6 +11006,7 @@ func TestSQLite_ieee754(t *testing.T) {
 }
 // Auto-generated from imposter1.test
 func TestSQLite_imposter1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10638,6 +11026,7 @@ func TestSQLite_imposter1(t *testing.T) {
 }
 // Auto-generated from in.test
 func TestSQLite_in(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10705,6 +11094,7 @@ func TestSQLite_in(t *testing.T) {
 }
 // Auto-generated from in2.test
 func TestSQLite_in2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10717,6 +11107,7 @@ func TestSQLite_in2(t *testing.T) {
 }
 // Auto-generated from in3.test
 func TestSQLite_in3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10737,6 +11128,7 @@ func TestSQLite_in3(t *testing.T) {
 }
 // Auto-generated from in4.test
 func TestSQLite_in4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10804,6 +11196,7 @@ func TestSQLite_in4(t *testing.T) {
 }
 // Auto-generated from in5.test
 func TestSQLite_in5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10850,6 +11243,7 @@ func TestSQLite_in5(t *testing.T) {
 }
 // Auto-generated from in6.test
 func TestSQLite_in6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10872,6 +11266,7 @@ func TestSQLite_in6(t *testing.T) {
 }
 // Auto-generated from in7.test
 func TestSQLite_in7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10902,6 +11297,7 @@ func TestSQLite_in7(t *testing.T) {
 }
 // Auto-generated from incrblob.test
 func TestSQLite_incrblob(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10942,6 +11338,7 @@ func TestSQLite_incrblob(t *testing.T) {
 }
 // Auto-generated from incrblob2.test
 func TestSQLite_incrblob2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10959,6 +11356,7 @@ func TestSQLite_incrblob2(t *testing.T) {
 }
 // Auto-generated from incrblob3.test
 func TestSQLite_incrblob3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10975,6 +11373,7 @@ func TestSQLite_incrblob3(t *testing.T) {
 }
 // Auto-generated from incrblob4.test
 func TestSQLite_incrblob4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -10997,6 +11396,7 @@ func TestSQLite_incrblob4(t *testing.T) {
 }
 // Auto-generated from incrblob_err.test
 func TestSQLite_incrblob_err(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11005,6 +11405,7 @@ func TestSQLite_incrblob_err(t *testing.T) {
 }
 // Auto-generated from incrblobfault.test
 func TestSQLite_incrblobfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11013,6 +11414,7 @@ func TestSQLite_incrblobfault(t *testing.T) {
 }
 // Auto-generated from incrcorrupt.test
 func TestSQLite_incrcorrupt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11024,6 +11426,7 @@ func TestSQLite_incrcorrupt(t *testing.T) {
 }
 // Auto-generated from incrvacuum.test
 func TestSQLite_incrvacuum(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11101,6 +11504,7 @@ func TestSQLite_incrvacuum(t *testing.T) {
 }
 // Auto-generated from incrvacuum2.test
 func TestSQLite_incrvacuum2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11124,6 +11528,7 @@ func TestSQLite_incrvacuum2(t *testing.T) {
 }
 // Auto-generated from incrvacuum3.test
 func TestSQLite_incrvacuum3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11132,6 +11537,7 @@ func TestSQLite_incrvacuum3(t *testing.T) {
 }
 // Auto-generated from incrvacuum_ioerr.test
 func TestSQLite_incrvacuum_ioerr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11144,6 +11550,7 @@ func TestSQLite_incrvacuum_ioerr(t *testing.T) {
 }
 // Auto-generated from index.test
 func TestSQLite_index(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11215,6 +11622,7 @@ func TestSQLite_index(t *testing.T) {
 }
 // Auto-generated from index2.test
 func TestSQLite_index2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11227,6 +11635,7 @@ func TestSQLite_index2(t *testing.T) {
 }
 // Auto-generated from index3.test
 func TestSQLite_index3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11242,6 +11651,7 @@ func TestSQLite_index3(t *testing.T) {
 }
 // Auto-generated from index4.test
 func TestSQLite_index4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11263,6 +11673,7 @@ func TestSQLite_index4(t *testing.T) {
 }
 // Auto-generated from index5.test
 func TestSQLite_index5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11275,6 +11686,7 @@ func TestSQLite_index5(t *testing.T) {
 }
 // Auto-generated from index6.test
 func TestSQLite_index6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11344,6 +11756,7 @@ func TestSQLite_index6(t *testing.T) {
 }
 // Auto-generated from index7.test
 func TestSQLite_index7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11392,6 +11805,7 @@ func TestSQLite_index7(t *testing.T) {
 }
 // Auto-generated from index8.test
 func TestSQLite_index8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11402,6 +11816,7 @@ func TestSQLite_index8(t *testing.T) {
 }
 // Auto-generated from index9.test
 func TestSQLite_index9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11413,6 +11828,7 @@ func TestSQLite_index9(t *testing.T) {
 }
 // Auto-generated from indexA.test
 func TestSQLite_indexA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11471,6 +11887,7 @@ func TestSQLite_indexA(t *testing.T) {
 }
 // Auto-generated from indexedby.test
 func TestSQLite_indexedby(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11504,6 +11921,7 @@ func TestSQLite_indexedby(t *testing.T) {
 }
 // Auto-generated from indexexpr1.test
 func TestSQLite_indexexpr1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11593,6 +12011,7 @@ func TestSQLite_indexexpr1(t *testing.T) {
 }
 // Auto-generated from indexexpr2.test
 func TestSQLite_indexexpr2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11661,6 +12080,7 @@ func TestSQLite_indexexpr2(t *testing.T) {
 }
 // Auto-generated from indexexpr3.test
 func TestSQLite_indexexpr3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11672,6 +12092,7 @@ func TestSQLite_indexexpr3(t *testing.T) {
 }
 // Auto-generated from indexfault.test
 func TestSQLite_indexfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11686,6 +12107,7 @@ func TestSQLite_indexfault(t *testing.T) {
 }
 // Auto-generated from init.test
 func TestSQLite_init(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11694,6 +12116,7 @@ func TestSQLite_init(t *testing.T) {
 }
 // Auto-generated from insert.test
 func TestSQLite_insert(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11761,6 +12184,7 @@ func TestSQLite_insert(t *testing.T) {
 }
 // Auto-generated from insert2.test
 func TestSQLite_insert2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11801,6 +12225,7 @@ func TestSQLite_insert2(t *testing.T) {
 }
 // Auto-generated from insert3.test
 func TestSQLite_insert3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11829,6 +12254,7 @@ func TestSQLite_insert3(t *testing.T) {
 }
 // Auto-generated from insert4.test
 func TestSQLite_insert4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11886,6 +12312,7 @@ func TestSQLite_insert4(t *testing.T) {
 }
 // Auto-generated from insert5.test
 func TestSQLite_insert5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11897,6 +12324,7 @@ func TestSQLite_insert5(t *testing.T) {
 }
 // Auto-generated from insertfault.test
 func TestSQLite_insertfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11907,6 +12335,7 @@ func TestSQLite_insertfault(t *testing.T) {
 }
 // Auto-generated from instr.test
 func TestSQLite_instr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11974,6 +12403,7 @@ func TestSQLite_instr(t *testing.T) {
 }
 // Auto-generated from instrfault.test
 func TestSQLite_instrfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -11984,6 +12414,7 @@ func TestSQLite_instrfault(t *testing.T) {
 }
 // Auto-generated from intarray.test
 func TestSQLite_intarray(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12001,6 +12432,7 @@ func TestSQLite_intarray(t *testing.T) {
 }
 // Auto-generated from interrupt.test
 func TestSQLite_interrupt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12016,6 +12448,7 @@ func TestSQLite_interrupt(t *testing.T) {
 }
 // Auto-generated from interrupt2.test
 func TestSQLite_interrupt2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12031,6 +12464,7 @@ func TestSQLite_interrupt2(t *testing.T) {
 }
 // Auto-generated from intpkey.test
 func TestSQLite_intpkey(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12098,6 +12532,7 @@ func TestSQLite_intpkey(t *testing.T) {
 }
 // Auto-generated from intreal.test
 func TestSQLite_intreal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12131,6 +12566,7 @@ func TestSQLite_intreal(t *testing.T) {
 }
 // Auto-generated from io.test
 func TestSQLite_io(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12183,6 +12619,7 @@ func TestSQLite_io(t *testing.T) {
 }
 // Auto-generated from ioerr.test
 func TestSQLite_ioerr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12214,6 +12651,7 @@ func TestSQLite_ioerr(t *testing.T) {
 }
 // Auto-generated from ioerr2.test
 func TestSQLite_ioerr2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12232,6 +12670,7 @@ func TestSQLite_ioerr2(t *testing.T) {
 }
 // Auto-generated from ioerr3.test
 func TestSQLite_ioerr3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12240,6 +12679,7 @@ func TestSQLite_ioerr3(t *testing.T) {
 }
 // Auto-generated from ioerr4.test
 func TestSQLite_ioerr4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12253,6 +12693,7 @@ func TestSQLite_ioerr4(t *testing.T) {
 }
 // Auto-generated from ioerr5.test
 func TestSQLite_ioerr5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12265,6 +12706,7 @@ func TestSQLite_ioerr5(t *testing.T) {
 }
 // Auto-generated from ioerr6.test
 func TestSQLite_ioerr6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12277,6 +12719,7 @@ func TestSQLite_ioerr6(t *testing.T) {
 }
 // Auto-generated from istrue.test
 func TestSQLite_istrue(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12320,6 +12763,7 @@ func TestSQLite_istrue(t *testing.T) {
 }
 // Auto-generated from join.test
 func TestSQLite_join(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12387,6 +12831,7 @@ func TestSQLite_join(t *testing.T) {
 }
 // Auto-generated from join2.test
 func TestSQLite_join2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12454,6 +12899,7 @@ func TestSQLite_join2(t *testing.T) {
 }
 // Auto-generated from join4.test
 func TestSQLite_join4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12470,6 +12916,7 @@ func TestSQLite_join4(t *testing.T) {
 }
 // Auto-generated from join5.test
 func TestSQLite_join5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12549,6 +12996,7 @@ func TestSQLite_join5(t *testing.T) {
 }
 // Auto-generated from join6.test
 func TestSQLite_join6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12573,6 +13021,7 @@ func TestSQLite_join6(t *testing.T) {
 }
 // Auto-generated from join8.test
 func TestSQLite_join8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12668,6 +13117,7 @@ func TestSQLite_join8(t *testing.T) {
 }
 // Auto-generated from joinB.test
 func TestSQLite_joinB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12735,6 +13185,7 @@ func TestSQLite_joinB(t *testing.T) {
 }
 // Auto-generated from joinC.test
 func TestSQLite_joinC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12802,6 +13253,7 @@ func TestSQLite_joinC(t *testing.T) {
 }
 // Auto-generated from joinD.test
 func TestSQLite_joinD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12869,6 +13321,7 @@ func TestSQLite_joinD(t *testing.T) {
 }
 // Auto-generated from joinE.test
 func TestSQLite_joinE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12899,6 +13352,7 @@ func TestSQLite_joinE(t *testing.T) {
 }
 // Auto-generated from joinF.test
 func TestSQLite_joinF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -12961,6 +13415,7 @@ func TestSQLite_joinF(t *testing.T) {
 }
 // Auto-generated from joinH.test
 func TestSQLite_joinH(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13048,6 +13503,7 @@ func TestSQLite_joinH(t *testing.T) {
 }
 // Auto-generated from joinI.test
 func TestSQLite_joinI(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13112,6 +13568,7 @@ func TestSQLite_joinI(t *testing.T) {
 }
 // Auto-generated from journal1.test
 func TestSQLite_journal1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13122,6 +13579,7 @@ func TestSQLite_journal1(t *testing.T) {
 }
 // Auto-generated from journal2.test
 func TestSQLite_journal2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13142,6 +13600,7 @@ func TestSQLite_journal2(t *testing.T) {
 }
 // Auto-generated from journal3.test
 func TestSQLite_journal3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13151,6 +13610,7 @@ func TestSQLite_journal3(t *testing.T) {
 }
 // Auto-generated from jrnlmode.test
 func TestSQLite_jrnlmode(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13218,6 +13678,7 @@ func TestSQLite_jrnlmode(t *testing.T) {
 }
 // Auto-generated from jrnlmode2.test
 func TestSQLite_jrnlmode2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13233,6 +13694,7 @@ func TestSQLite_jrnlmode2(t *testing.T) {
 }
 // Auto-generated from jrnlmode3.test
 func TestSQLite_jrnlmode3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13245,6 +13707,7 @@ func TestSQLite_jrnlmode3(t *testing.T) {
 }
 // Auto-generated from json101.test
 func TestSQLite_json101(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13312,6 +13775,7 @@ func TestSQLite_json101(t *testing.T) {
 }
 // Auto-generated from json102.test
 func TestSQLite_json102(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13379,6 +13843,7 @@ func TestSQLite_json102(t *testing.T) {
 }
 // Auto-generated from json103.test
 func TestSQLite_json103(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13398,6 +13863,7 @@ func TestSQLite_json103(t *testing.T) {
 }
 // Auto-generated from json104.test
 func TestSQLite_json104(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13410,6 +13876,7 @@ func TestSQLite_json104(t *testing.T) {
 }
 // Auto-generated from json105.test
 func TestSQLite_json105(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13422,6 +13889,7 @@ func TestSQLite_json105(t *testing.T) {
 }
 // Auto-generated from json106.test
 func TestSQLite_json106(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13430,6 +13898,7 @@ func TestSQLite_json106(t *testing.T) {
 }
 // Auto-generated from json108.test
 func TestSQLite_json108(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13442,6 +13911,7 @@ func TestSQLite_json108(t *testing.T) {
 }
 // Auto-generated from json109.test
 func TestSQLite_json109(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13458,6 +13928,7 @@ func TestSQLite_json109(t *testing.T) {
 }
 // Auto-generated from json501.test
 func TestSQLite_json501(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13469,6 +13940,7 @@ func TestSQLite_json501(t *testing.T) {
 }
 // Auto-generated from jsonb01.test
 func TestSQLite_jsonb01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13479,6 +13951,7 @@ func TestSQLite_jsonb01(t *testing.T) {
 }
 // Auto-generated from keyword1.test
 func TestSQLite_keyword1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13490,6 +13963,7 @@ func TestSQLite_keyword1(t *testing.T) {
 }
 // Auto-generated from lastinsert.test
 func TestSQLite_lastinsert(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13502,6 +13976,7 @@ func TestSQLite_lastinsert(t *testing.T) {
 }
 // Auto-generated from laststmtchanges.test
 func TestSQLite_laststmtchanges(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13518,6 +13993,7 @@ func TestSQLite_laststmtchanges(t *testing.T) {
 }
 // Auto-generated from like.test
 func TestSQLite_like(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13591,6 +14067,7 @@ func TestSQLite_like(t *testing.T) {
 }
 // Auto-generated from like2.test
 func TestSQLite_like2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13658,6 +14135,7 @@ func TestSQLite_like2(t *testing.T) {
 }
 // Auto-generated from like3.test
 func TestSQLite_like3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13704,6 +14182,7 @@ func TestSQLite_like3(t *testing.T) {
 }
 // Auto-generated from limit.test
 func TestSQLite_limit(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13771,6 +14250,7 @@ func TestSQLite_limit(t *testing.T) {
 }
 // Auto-generated from limit2.test
 func TestSQLite_limit2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13799,6 +14279,7 @@ func TestSQLite_limit2(t *testing.T) {
 }
 // Auto-generated from literal.test
 func TestSQLite_literal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13807,6 +14288,7 @@ func TestSQLite_literal(t *testing.T) {
 }
 // Auto-generated from literal2.test
 func TestSQLite_literal2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13825,6 +14307,7 @@ func TestSQLite_literal2(t *testing.T) {
 }
 // Auto-generated from loadext.test
 func TestSQLite_loadext(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13839,6 +14322,7 @@ func TestSQLite_loadext(t *testing.T) {
 }
 // Auto-generated from lock.test
 func TestSQLite_lock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13873,6 +14357,7 @@ func TestSQLite_lock(t *testing.T) {
 }
 // Auto-generated from lock2.test
 func TestSQLite_lock2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13887,6 +14372,7 @@ func TestSQLite_lock2(t *testing.T) {
 }
 // Auto-generated from lock3.test
 func TestSQLite_lock3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13901,6 +14387,7 @@ func TestSQLite_lock3(t *testing.T) {
 }
 // Auto-generated from lock4.test
 func TestSQLite_lock4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13912,6 +14399,7 @@ func TestSQLite_lock4(t *testing.T) {
 }
 // Auto-generated from lock5.test
 func TestSQLite_lock5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13938,6 +14426,7 @@ func TestSQLite_lock5(t *testing.T) {
 }
 // Auto-generated from lock6.test
 func TestSQLite_lock6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13952,6 +14441,7 @@ func TestSQLite_lock6(t *testing.T) {
 }
 // Auto-generated from lock7.test
 func TestSQLite_lock7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13962,6 +14452,7 @@ func TestSQLite_lock7(t *testing.T) {
 }
 // Auto-generated from lookaside.test
 func TestSQLite_lookaside(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13972,6 +14463,7 @@ func TestSQLite_lookaside(t *testing.T) {
 }
 // Auto-generated from main.test
 func TestSQLite_main(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -13984,6 +14476,7 @@ func TestSQLite_main(t *testing.T) {
 }
 // Auto-generated from malloc.test
 func TestSQLite_malloc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14037,6 +14530,7 @@ func TestSQLite_malloc(t *testing.T) {
 }
 // Auto-generated from malloc3.test
 func TestSQLite_malloc3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14058,6 +14552,7 @@ func TestSQLite_malloc3(t *testing.T) {
 }
 // Auto-generated from malloc4.test
 func TestSQLite_malloc4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14066,6 +14561,7 @@ func TestSQLite_malloc4(t *testing.T) {
 }
 // Auto-generated from malloc5.test
 func TestSQLite_malloc5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14100,6 +14596,7 @@ func TestSQLite_malloc5(t *testing.T) {
 }
 // Auto-generated from mallocA.test
 func TestSQLite_mallocA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14116,6 +14613,7 @@ func TestSQLite_mallocA(t *testing.T) {
 }
 // Auto-generated from mallocC.test
 func TestSQLite_mallocC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14125,6 +14623,7 @@ func TestSQLite_mallocC(t *testing.T) {
 }
 // Auto-generated from mallocG.test
 func TestSQLite_mallocG(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14135,6 +14634,7 @@ func TestSQLite_mallocG(t *testing.T) {
 }
 // Auto-generated from mallocH.test
 func TestSQLite_mallocH(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14146,6 +14646,7 @@ func TestSQLite_mallocH(t *testing.T) {
 }
 // Auto-generated from mallocI.test
 func TestSQLite_mallocI(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14154,6 +14655,7 @@ func TestSQLite_mallocI(t *testing.T) {
 }
 // Auto-generated from mallocK.test
 func TestSQLite_mallocK(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14171,6 +14673,7 @@ func TestSQLite_mallocK(t *testing.T) {
 }
 // Auto-generated from mallocM.test
 func TestSQLite_mallocM(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14183,6 +14686,7 @@ func TestSQLite_mallocM(t *testing.T) {
 }
 // Auto-generated from manydb.test
 func TestSQLite_manydb(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14192,6 +14696,7 @@ func TestSQLite_manydb(t *testing.T) {
 }
 // Auto-generated from memdb1.test
 func TestSQLite_memdb1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14238,6 +14743,7 @@ func TestSQLite_memdb1(t *testing.T) {
 }
 // Auto-generated from memjournal.test
 func TestSQLite_memjournal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14251,6 +14757,7 @@ func TestSQLite_memjournal(t *testing.T) {
 }
 // Auto-generated from memjournal2.test
 func TestSQLite_memjournal2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14259,6 +14766,7 @@ func TestSQLite_memjournal2(t *testing.T) {
 }
 // Auto-generated from memsubsys1.test
 func TestSQLite_memsubsys1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14271,6 +14779,7 @@ func TestSQLite_memsubsys1(t *testing.T) {
 }
 // Auto-generated from memsubsys2.test
 func TestSQLite_memsubsys2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14282,6 +14791,7 @@ func TestSQLite_memsubsys2(t *testing.T) {
 }
 // Auto-generated from merge1.test
 func TestSQLite_merge1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14290,6 +14800,7 @@ func TestSQLite_merge1(t *testing.T) {
 }
 // Auto-generated from minmax.test
 func TestSQLite_minmax(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14357,6 +14868,7 @@ func TestSQLite_minmax(t *testing.T) {
 }
 // Auto-generated from minmax2.test
 func TestSQLite_minmax2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14416,6 +14928,7 @@ func TestSQLite_minmax2(t *testing.T) {
 }
 // Auto-generated from minmax3.test
 func TestSQLite_minmax3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14453,6 +14966,7 @@ func TestSQLite_minmax3(t *testing.T) {
 }
 // Auto-generated from minmax4.test
 func TestSQLite_minmax4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14495,6 +15009,7 @@ func TestSQLite_minmax4(t *testing.T) {
 }
 // Auto-generated from misc1.test
 func TestSQLite_misc1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14572,6 +15087,7 @@ func TestSQLite_misc1(t *testing.T) {
 }
 // Auto-generated from misc2.test
 func TestSQLite_misc2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14609,6 +15125,7 @@ func TestSQLite_misc2(t *testing.T) {
 }
 // Auto-generated from misc3.test
 func TestSQLite_misc3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14658,6 +15175,7 @@ func TestSQLite_misc3(t *testing.T) {
 }
 // Auto-generated from misc4.test
 func TestSQLite_misc4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14684,6 +15202,7 @@ func TestSQLite_misc4(t *testing.T) {
 }
 // Auto-generated from misc5.test
 func TestSQLite_misc5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14705,6 +15224,7 @@ func TestSQLite_misc5(t *testing.T) {
 }
 // Auto-generated from misc7.test
 func TestSQLite_misc7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14755,6 +15275,7 @@ func TestSQLite_misc7(t *testing.T) {
 }
 // Auto-generated from misc8.test
 func TestSQLite_misc8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14781,6 +15302,7 @@ func TestSQLite_misc8(t *testing.T) {
 }
 // Auto-generated from misuse.test
 func TestSQLite_misuse(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14805,6 +15327,7 @@ func TestSQLite_misuse(t *testing.T) {
 }
 // Auto-generated from mjournal.test
 func TestSQLite_mjournal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14827,6 +15350,7 @@ func TestSQLite_mjournal(t *testing.T) {
 }
 // Auto-generated from mmap1.test
 func TestSQLite_mmap1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14852,6 +15376,7 @@ func TestSQLite_mmap1(t *testing.T) {
 }
 // Auto-generated from mmap3.test
 func TestSQLite_mmap3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14860,6 +15385,7 @@ func TestSQLite_mmap3(t *testing.T) {
 }
 // Auto-generated from mmapcorrupt.test
 func TestSQLite_mmapcorrupt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14872,6 +15398,7 @@ func TestSQLite_mmapcorrupt(t *testing.T) {
 }
 // Auto-generated from mmapfault.test
 func TestSQLite_mmapfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14882,6 +15409,7 @@ func TestSQLite_mmapfault(t *testing.T) {
 }
 // Auto-generated from mmapwarm.test
 func TestSQLite_mmapwarm(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14899,6 +15427,7 @@ func TestSQLite_mmapwarm(t *testing.T) {
 }
 // Auto-generated from multiplex.test
 func TestSQLite_multiplex(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14938,6 +15467,7 @@ func TestSQLite_multiplex(t *testing.T) {
 }
 // Auto-generated from multiplex3.test
 func TestSQLite_multiplex3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14952,6 +15482,7 @@ func TestSQLite_multiplex3(t *testing.T) {
 }
 // Auto-generated from multiplex4.test
 func TestSQLite_multiplex4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14969,6 +15500,7 @@ func TestSQLite_multiplex4(t *testing.T) {
 }
 // Auto-generated from mutex1.test
 func TestSQLite_mutex1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -14979,6 +15511,7 @@ func TestSQLite_mutex1(t *testing.T) {
 }
 // Auto-generated from nan.test
 func TestSQLite_nan(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15010,6 +15543,7 @@ func TestSQLite_nan(t *testing.T) {
 }
 // Auto-generated from nockpt.test
 func TestSQLite_nockpt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15027,6 +15561,7 @@ func TestSQLite_nockpt(t *testing.T) {
 }
 // Auto-generated from nolock.test
 func TestSQLite_nolock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15040,6 +15575,7 @@ func TestSQLite_nolock(t *testing.T) {
 }
 // Auto-generated from normalize.test
 func TestSQLite_normalize(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15050,6 +15586,7 @@ func TestSQLite_normalize(t *testing.T) {
 }
 // Auto-generated from notify1.test
 func TestSQLite_notify1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15081,6 +15618,7 @@ func TestSQLite_notify1(t *testing.T) {
 }
 // Auto-generated from notify2.test
 func TestSQLite_notify2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15091,6 +15629,7 @@ func TestSQLite_notify2(t *testing.T) {
 }
 // Auto-generated from notify3.test
 func TestSQLite_notify3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15102,6 +15641,7 @@ func TestSQLite_notify3(t *testing.T) {
 }
 // Auto-generated from notnull.test
 func TestSQLite_notnull(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15117,6 +15657,7 @@ func TestSQLite_notnull(t *testing.T) {
 }
 // Auto-generated from notnull2.test
 func TestSQLite_notnull2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15144,6 +15685,7 @@ func TestSQLite_notnull2(t *testing.T) {
 }
 // Auto-generated from notnullfault.test
 func TestSQLite_notnullfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15157,6 +15699,7 @@ func TestSQLite_notnullfault(t *testing.T) {
 }
 // Auto-generated from null.test
 func TestSQLite_null(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15202,6 +15745,7 @@ func TestSQLite_null(t *testing.T) {
 }
 // Auto-generated from nulls1.test
 func TestSQLite_nulls1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15258,6 +15802,7 @@ func TestSQLite_nulls1(t *testing.T) {
 }
 // Auto-generated from numcast.test
 func TestSQLite_numcast(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15269,6 +15814,7 @@ func TestSQLite_numcast(t *testing.T) {
 }
 // Auto-generated from numindex1.test
 func TestSQLite_numindex1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15282,6 +15828,7 @@ func TestSQLite_numindex1(t *testing.T) {
 }
 // Auto-generated from offset1.test
 func TestSQLite_offset1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15315,6 +15862,7 @@ func TestSQLite_offset1(t *testing.T) {
 }
 // Auto-generated from openv2.test
 func TestSQLite_openv2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15331,6 +15879,7 @@ func TestSQLite_openv2(t *testing.T) {
 }
 // Auto-generated from orderby1.test
 func TestSQLite_orderby1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15383,6 +15932,7 @@ func TestSQLite_orderby1(t *testing.T) {
 }
 // Auto-generated from orderby2.test
 func TestSQLite_orderby2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15400,6 +15950,7 @@ func TestSQLite_orderby2(t *testing.T) {
 }
 // Auto-generated from orderby3.test
 func TestSQLite_orderby3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15422,6 +15973,7 @@ func TestSQLite_orderby3(t *testing.T) {
 }
 // Auto-generated from orderby4.test
 func TestSQLite_orderby4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15435,6 +15987,7 @@ func TestSQLite_orderby4(t *testing.T) {
 }
 // Auto-generated from orderby5.test
 func TestSQLite_orderby5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15475,6 +16028,7 @@ func TestSQLite_orderby5(t *testing.T) {
 }
 // Auto-generated from orderby6.test
 func TestSQLite_orderby6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15496,6 +16050,7 @@ func TestSQLite_orderby6(t *testing.T) {
 }
 // Auto-generated from orderby7.test
 func TestSQLite_orderby7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15512,6 +16067,7 @@ func TestSQLite_orderby7(t *testing.T) {
 }
 // Auto-generated from orderby8.test
 func TestSQLite_orderby8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15521,6 +16077,7 @@ func TestSQLite_orderby8(t *testing.T) {
 }
 // Auto-generated from orderby9.test
 func TestSQLite_orderby9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15532,6 +16089,7 @@ func TestSQLite_orderby9(t *testing.T) {
 }
 // Auto-generated from orderbyA.test
 func TestSQLite_orderbyA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15543,6 +16101,7 @@ func TestSQLite_orderbyA(t *testing.T) {
 }
 // Auto-generated from orderbyB.test
 func TestSQLite_orderbyB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15551,6 +16110,7 @@ func TestSQLite_orderbyB(t *testing.T) {
 }
 // Auto-generated from oserror.test
 func TestSQLite_oserror(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15559,6 +16119,7 @@ func TestSQLite_oserror(t *testing.T) {
 }
 // Auto-generated from ovfl.test
 func TestSQLite_ovfl(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15568,6 +16129,7 @@ func TestSQLite_ovfl(t *testing.T) {
 }
 // Auto-generated from pager1.test
 func TestSQLite_pager1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15647,6 +16209,7 @@ func TestSQLite_pager1(t *testing.T) {
 }
 // Auto-generated from pager2.test
 func TestSQLite_pager2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15659,6 +16222,7 @@ func TestSQLite_pager2(t *testing.T) {
 }
 // Auto-generated from pager4.test
 func TestSQLite_pager4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15680,6 +16244,7 @@ func TestSQLite_pager4(t *testing.T) {
 }
 // Auto-generated from pagerfault.test
 func TestSQLite_pagerfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15747,6 +16312,7 @@ func TestSQLite_pagerfault(t *testing.T) {
 }
 // Auto-generated from pagerfault2.test
 func TestSQLite_pagerfault2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15762,6 +16328,7 @@ func TestSQLite_pagerfault2(t *testing.T) {
 }
 // Auto-generated from pagerfault3.test
 func TestSQLite_pagerfault3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15770,6 +16337,7 @@ func TestSQLite_pagerfault3(t *testing.T) {
 }
 // Auto-generated from pageropt.test
 func TestSQLite_pageropt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15790,6 +16358,7 @@ func TestSQLite_pageropt(t *testing.T) {
 }
 // Auto-generated from pagesize.test
 func TestSQLite_pagesize(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15829,6 +16398,7 @@ func TestSQLite_pagesize(t *testing.T) {
 }
 // Auto-generated from parser1.test
 func TestSQLite_parser1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15851,6 +16421,7 @@ func TestSQLite_parser1(t *testing.T) {
 }
 // Auto-generated from pcache.test
 func TestSQLite_pcache(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15868,6 +16439,7 @@ func TestSQLite_pcache(t *testing.T) {
 }
 // Auto-generated from pcache2.test
 func TestSQLite_pcache2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15880,6 +16452,7 @@ func TestSQLite_pcache2(t *testing.T) {
 }
 // Auto-generated from pendingrace.test
 func TestSQLite_pendingrace(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15892,6 +16465,7 @@ func TestSQLite_pendingrace(t *testing.T) {
 }
 // Auto-generated from percentile.test
 func TestSQLite_percentile(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15920,6 +16494,7 @@ func TestSQLite_percentile(t *testing.T) {
 }
 // Auto-generated from pragma.test
 func TestSQLite_pragma(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -15997,6 +16572,7 @@ func TestSQLite_pragma(t *testing.T) {
 }
 // Auto-generated from pragma2.test
 func TestSQLite_pragma2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16030,6 +16606,7 @@ func TestSQLite_pragma2(t *testing.T) {
 }
 // Auto-generated from pragma3.test
 func TestSQLite_pragma3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16051,6 +16628,7 @@ func TestSQLite_pragma3(t *testing.T) {
 }
 // Auto-generated from pragma4.test
 func TestSQLite_pragma4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16102,6 +16680,7 @@ func TestSQLite_pragma4(t *testing.T) {
 }
 // Auto-generated from pragma5.test
 func TestSQLite_pragma5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16114,6 +16693,7 @@ func TestSQLite_pragma5(t *testing.T) {
 }
 // Auto-generated from pragma6.test
 func TestSQLite_pragma6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16124,6 +16704,7 @@ func TestSQLite_pragma6(t *testing.T) {
 }
 // Auto-generated from pragmafault.test
 func TestSQLite_pragmafault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16135,6 +16716,7 @@ func TestSQLite_pragmafault(t *testing.T) {
 }
 // Auto-generated from prefixes.test
 func TestSQLite_prefixes(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16145,6 +16727,7 @@ func TestSQLite_prefixes(t *testing.T) {
 }
 // Auto-generated from printf.test
 func TestSQLite_printf(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16190,6 +16773,7 @@ func TestSQLite_printf(t *testing.T) {
 }
 // Auto-generated from printf2.test
 func TestSQLite_printf2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16247,6 +16831,7 @@ func TestSQLite_printf2(t *testing.T) {
 }
 // Auto-generated from progress.test
 func TestSQLite_progress(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16264,6 +16849,7 @@ func TestSQLite_progress(t *testing.T) {
 }
 // Auto-generated from ptrchng.test
 func TestSQLite_ptrchng(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16301,6 +16887,7 @@ func TestSQLite_ptrchng(t *testing.T) {
 }
 // Auto-generated from pushdown.test
 func TestSQLite_pushdown(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16344,6 +16931,7 @@ func TestSQLite_pushdown(t *testing.T) {
 }
 // Auto-generated from qrf01.test
 func TestSQLite_qrf01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16360,6 +16948,7 @@ func TestSQLite_qrf01(t *testing.T) {
 }
 // Auto-generated from qrf02.test
 func TestSQLite_qrf02(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16368,6 +16957,7 @@ func TestSQLite_qrf02(t *testing.T) {
 }
 // Auto-generated from qrf03.test
 func TestSQLite_qrf03(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16376,6 +16966,7 @@ func TestSQLite_qrf03(t *testing.T) {
 }
 // Auto-generated from qrf04.test
 func TestSQLite_qrf04(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16384,6 +16975,7 @@ func TestSQLite_qrf04(t *testing.T) {
 }
 // Auto-generated from qrf05.test
 func TestSQLite_qrf05(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16392,6 +16984,7 @@ func TestSQLite_qrf05(t *testing.T) {
 }
 // Auto-generated from qrf06.test
 func TestSQLite_qrf06(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16400,6 +16993,7 @@ func TestSQLite_qrf06(t *testing.T) {
 }
 // Auto-generated from queryonly.test
 func TestSQLite_queryonly(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16414,6 +17008,7 @@ func TestSQLite_queryonly(t *testing.T) {
 }
 // Auto-generated from quickcheck.test
 func TestSQLite_quickcheck(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16423,6 +17018,7 @@ func TestSQLite_quickcheck(t *testing.T) {
 }
 // Auto-generated from quota.test
 func TestSQLite_quota(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16449,6 +17045,7 @@ func TestSQLite_quota(t *testing.T) {
 }
 // Auto-generated from quote.test
 func TestSQLite_quote(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16491,6 +17088,7 @@ func TestSQLite_quote(t *testing.T) {
 }
 // Auto-generated from randexpr1.test
 func TestSQLite_randexpr1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16558,6 +17156,7 @@ func TestSQLite_randexpr1(t *testing.T) {
 }
 // Auto-generated from rdonly.test
 func TestSQLite_rdonly(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16567,6 +17166,7 @@ func TestSQLite_rdonly(t *testing.T) {
 }
 // Auto-generated from readonly.test
 func TestSQLite_readonly(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16579,6 +17179,7 @@ func TestSQLite_readonly(t *testing.T) {
 }
 // Auto-generated from recover.test
 func TestSQLite_recover(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16602,6 +17203,7 @@ func TestSQLite_recover(t *testing.T) {
 }
 // Auto-generated from regexp1.test
 func TestSQLite_regexp1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16671,6 +17273,7 @@ func TestSQLite_regexp1(t *testing.T) {
 }
 // Auto-generated from regexp2.test
 func TestSQLite_regexp2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16701,6 +17304,7 @@ func TestSQLite_regexp2(t *testing.T) {
 }
 // Auto-generated from reindex.test
 func TestSQLite_reindex(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16722,6 +17326,7 @@ func TestSQLite_reindex(t *testing.T) {
 }
 // Auto-generated from reservebytes.test
 func TestSQLite_reservebytes(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16734,6 +17339,7 @@ func TestSQLite_reservebytes(t *testing.T) {
 }
 // Auto-generated from resetdb.test
 func TestSQLite_resetdb(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16760,6 +17366,7 @@ func TestSQLite_resetdb(t *testing.T) {
 }
 // Auto-generated from resolver01.test
 func TestSQLite_resolver01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16777,6 +17384,7 @@ func TestSQLite_resolver01(t *testing.T) {
 }
 // Auto-generated from returning1.test
 func TestSQLite_returning1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16890,6 +17498,7 @@ func TestSQLite_returning1(t *testing.T) {
 }
 // Auto-generated from returningfault.test
 func TestSQLite_returningfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16903,6 +17512,7 @@ func TestSQLite_returningfault(t *testing.T) {
 }
 // Auto-generated from rollback.test
 func TestSQLite_rollback(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16915,6 +17525,7 @@ func TestSQLite_rollback(t *testing.T) {
 }
 // Auto-generated from rollback2.test
 func TestSQLite_rollback2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16924,6 +17535,7 @@ func TestSQLite_rollback2(t *testing.T) {
 }
 // Auto-generated from rollbackfault.test
 func TestSQLite_rollbackfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16935,6 +17547,7 @@ func TestSQLite_rollbackfault(t *testing.T) {
 }
 // Auto-generated from rowallock.test
 func TestSQLite_rowallock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16945,6 +17558,7 @@ func TestSQLite_rowallock(t *testing.T) {
 }
 // Auto-generated from rowhash.test
 func TestSQLite_rowhash(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -16955,6 +17569,7 @@ func TestSQLite_rowhash(t *testing.T) {
 }
 // Auto-generated from rowid.test
 func TestSQLite_rowid(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17022,6 +17637,7 @@ func TestSQLite_rowid(t *testing.T) {
 }
 // Auto-generated from rowvalue.test
 func TestSQLite_rowvalue(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17099,6 +17715,7 @@ func TestSQLite_rowvalue(t *testing.T) {
 }
 // Auto-generated from rowvalue2.test
 func TestSQLite_rowvalue2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17123,6 +17740,7 @@ func TestSQLite_rowvalue2(t *testing.T) {
 }
 // Auto-generated from rowvalue3.test
 func TestSQLite_rowvalue3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17135,6 +17753,7 @@ func TestSQLite_rowvalue3(t *testing.T) {
 }
 // Auto-generated from rowvalue4.test
 func TestSQLite_rowvalue4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17153,6 +17772,7 @@ func TestSQLite_rowvalue4(t *testing.T) {
 }
 // Auto-generated from rowvalue6.test
 func TestSQLite_rowvalue6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17162,6 +17782,7 @@ func TestSQLite_rowvalue6(t *testing.T) {
 }
 // Auto-generated from rowvalue7.test
 func TestSQLite_rowvalue7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17183,6 +17804,7 @@ func TestSQLite_rowvalue7(t *testing.T) {
 }
 // Auto-generated from rowvalue8.test
 func TestSQLite_rowvalue8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17193,6 +17815,7 @@ func TestSQLite_rowvalue8(t *testing.T) {
 }
 // Auto-generated from rowvalue9.test
 func TestSQLite_rowvalue9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17249,6 +17872,7 @@ func TestSQLite_rowvalue9(t *testing.T) {
 }
 // Auto-generated from rowvalueA.test
 func TestSQLite_rowvalueA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17276,6 +17900,7 @@ func TestSQLite_rowvalueA(t *testing.T) {
 }
 // Auto-generated from rowvaluefault.test
 func TestSQLite_rowvaluefault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17292,6 +17917,7 @@ func TestSQLite_rowvaluefault(t *testing.T) {
 }
 // Auto-generated from rowvaluevtab.test
 func TestSQLite_rowvaluevtab(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17305,6 +17931,7 @@ func TestSQLite_rowvaluevtab(t *testing.T) {
 }
 // Auto-generated from savepoint.test
 func TestSQLite_savepoint(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17372,6 +17999,7 @@ func TestSQLite_savepoint(t *testing.T) {
 }
 // Auto-generated from savepoint2.test
 func TestSQLite_savepoint2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17381,6 +18009,7 @@ func TestSQLite_savepoint2(t *testing.T) {
 }
 // Auto-generated from savepoint4.test
 func TestSQLite_savepoint4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17392,6 +18021,7 @@ func TestSQLite_savepoint4(t *testing.T) {
 }
 // Auto-generated from savepoint5.test
 func TestSQLite_savepoint5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17402,6 +18032,7 @@ func TestSQLite_savepoint5(t *testing.T) {
 }
 // Auto-generated from savepoint6.test
 func TestSQLite_savepoint6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17413,6 +18044,7 @@ func TestSQLite_savepoint6(t *testing.T) {
 }
 // Auto-generated from savepoint7.test
 func TestSQLite_savepoint7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17431,6 +18063,7 @@ func TestSQLite_savepoint7(t *testing.T) {
 }
 // Auto-generated from savepointfault.test
 func TestSQLite_savepointfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17439,6 +18072,7 @@ func TestSQLite_savepointfault(t *testing.T) {
 }
 // Auto-generated from scanstatus.test
 func TestSQLite_scanstatus(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17482,6 +18116,7 @@ func TestSQLite_scanstatus(t *testing.T) {
 }
 // Auto-generated from scanstatus2.test
 func TestSQLite_scanstatus2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17511,6 +18146,7 @@ func TestSQLite_scanstatus2(t *testing.T) {
 }
 // Auto-generated from schema.test
 func TestSQLite_schema(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17534,6 +18170,7 @@ func TestSQLite_schema(t *testing.T) {
 }
 // Auto-generated from schema2.test
 func TestSQLite_schema2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17555,6 +18192,7 @@ func TestSQLite_schema2(t *testing.T) {
 }
 // Auto-generated from schema4.test
 func TestSQLite_schema4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17585,6 +18223,7 @@ func TestSQLite_schema4(t *testing.T) {
 }
 // Auto-generated from schema5.test
 func TestSQLite_schema5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17595,6 +18234,7 @@ func TestSQLite_schema5(t *testing.T) {
 }
 // Auto-generated from schemafault.test
 func TestSQLite_schemafault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17604,6 +18244,7 @@ func TestSQLite_schemafault(t *testing.T) {
 }
 // Auto-generated from securedel.test
 func TestSQLite_securedel(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17621,6 +18262,7 @@ func TestSQLite_securedel(t *testing.T) {
 }
 // Auto-generated from securedel2.test
 func TestSQLite_securedel2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17639,6 +18281,7 @@ func TestSQLite_securedel2(t *testing.T) {
 }
 // Auto-generated from seekscan1.test
 func TestSQLite_seekscan1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17652,6 +18295,7 @@ func TestSQLite_seekscan1(t *testing.T) {
 }
 // Auto-generated from select1.test
 func TestSQLite_select1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17719,6 +18363,7 @@ func TestSQLite_select1(t *testing.T) {
 }
 // Auto-generated from select2.test
 func TestSQLite_select2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17747,6 +18392,7 @@ func TestSQLite_select2(t *testing.T) {
 }
 // Auto-generated from select3.test
 func TestSQLite_select3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17808,6 +18454,7 @@ func TestSQLite_select3(t *testing.T) {
 }
 // Auto-generated from select4.test
 func TestSQLite_select4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17875,6 +18522,7 @@ func TestSQLite_select4(t *testing.T) {
 }
 // Auto-generated from select5.test
 func TestSQLite_select5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17919,6 +18567,7 @@ func TestSQLite_select5(t *testing.T) {
 }
 // Auto-generated from select6.test
 func TestSQLite_select6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -17986,6 +18635,7 @@ func TestSQLite_select6(t *testing.T) {
 }
 // Auto-generated from select7.test
 func TestSQLite_select7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18013,6 +18663,7 @@ func TestSQLite_select7(t *testing.T) {
 }
 // Auto-generated from select8.test
 func TestSQLite_select8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18025,6 +18676,7 @@ func TestSQLite_select8(t *testing.T) {
 }
 // Auto-generated from select9.test
 func TestSQLite_select9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18046,6 +18698,7 @@ func TestSQLite_select9(t *testing.T) {
 }
 // Auto-generated from selectA.test
 func TestSQLite_selectA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18113,6 +18766,7 @@ func TestSQLite_selectA(t *testing.T) {
 }
 // Auto-generated from selectB.test
 func TestSQLite_selectB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18149,6 +18803,7 @@ func TestSQLite_selectB(t *testing.T) {
 }
 // Auto-generated from selectC.test
 func TestSQLite_selectC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18184,6 +18839,7 @@ func TestSQLite_selectC(t *testing.T) {
 }
 // Auto-generated from selectD.test
 func TestSQLite_selectD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18206,6 +18862,7 @@ func TestSQLite_selectD(t *testing.T) {
 }
 // Auto-generated from selectE.test
 func TestSQLite_selectE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18220,6 +18877,7 @@ func TestSQLite_selectE(t *testing.T) {
 }
 // Auto-generated from selectF.test
 func TestSQLite_selectF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18229,6 +18887,7 @@ func TestSQLite_selectF(t *testing.T) {
 }
 // Auto-generated from selectH.test
 func TestSQLite_selectH(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18251,6 +18910,7 @@ func TestSQLite_selectH(t *testing.T) {
 }
 // Auto-generated from shared.test
 func TestSQLite_shared(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18318,6 +18978,7 @@ func TestSQLite_shared(t *testing.T) {
 }
 // Auto-generated from shared2.test
 func TestSQLite_shared2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18339,6 +19000,7 @@ func TestSQLite_shared2(t *testing.T) {
 }
 // Auto-generated from shared3.test
 func TestSQLite_shared3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18354,6 +19016,7 @@ func TestSQLite_shared3(t *testing.T) {
 }
 // Auto-generated from shared6.test
 func TestSQLite_shared6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18377,6 +19040,7 @@ func TestSQLite_shared6(t *testing.T) {
 }
 // Auto-generated from shared7.test
 func TestSQLite_shared7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18389,6 +19053,7 @@ func TestSQLite_shared7(t *testing.T) {
 }
 // Auto-generated from shared8.test
 func TestSQLite_shared8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18399,6 +19064,7 @@ func TestSQLite_shared8(t *testing.T) {
 }
 // Auto-generated from shared9.test
 func TestSQLite_shared9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18407,6 +19073,7 @@ func TestSQLite_shared9(t *testing.T) {
 }
 // Auto-generated from shared_err.test
 func TestSQLite_shared_err(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18429,6 +19096,7 @@ func TestSQLite_shared_err(t *testing.T) {
 }
 // Auto-generated from sharedlock.test
 func TestSQLite_sharedlock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18441,6 +19109,7 @@ func TestSQLite_sharedlock(t *testing.T) {
 }
 // Auto-generated from shell1.test
 func TestSQLite_shell1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18460,6 +19129,7 @@ func TestSQLite_shell1(t *testing.T) {
 }
 // Auto-generated from shell5.test
 func TestSQLite_shell5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18482,6 +19152,7 @@ func TestSQLite_shell5(t *testing.T) {
 }
 // Auto-generated from shell7.test
 func TestSQLite_shell7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18494,6 +19165,7 @@ func TestSQLite_shell7(t *testing.T) {
 }
 // Auto-generated from shell9.test
 func TestSQLite_shell9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18514,6 +19186,7 @@ func TestSQLite_shell9(t *testing.T) {
 }
 // Auto-generated from shellA.test
 func TestSQLite_shellA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18523,6 +19196,7 @@ func TestSQLite_shellA(t *testing.T) {
 }
 // Auto-generated from shmlock.test
 func TestSQLite_shmlock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18532,6 +19206,7 @@ func TestSQLite_shmlock(t *testing.T) {
 }
 // Auto-generated from shortread1.test
 func TestSQLite_shortread1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18543,6 +19218,7 @@ func TestSQLite_shortread1(t *testing.T) {
 }
 // Auto-generated from shrink.test
 func TestSQLite_shrink(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18553,6 +19229,7 @@ func TestSQLite_shrink(t *testing.T) {
 }
 // Auto-generated from sidedelete.test
 func TestSQLite_sidedelete(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18565,6 +19242,7 @@ func TestSQLite_sidedelete(t *testing.T) {
 }
 // Auto-generated from skipscan1.test
 func TestSQLite_skipscan1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18626,6 +19304,7 @@ func TestSQLite_skipscan1(t *testing.T) {
 }
 // Auto-generated from skipscan2.test
 func TestSQLite_skipscan2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18650,6 +19329,7 @@ func TestSQLite_skipscan2(t *testing.T) {
 }
 // Auto-generated from skipscan3.test
 func TestSQLite_skipscan3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18667,6 +19347,7 @@ func TestSQLite_skipscan3(t *testing.T) {
 }
 // Auto-generated from skipscan5.test
 func TestSQLite_skipscan5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18679,6 +19360,7 @@ func TestSQLite_skipscan5(t *testing.T) {
 }
 // Auto-generated from skipscan6.test
 func TestSQLite_skipscan6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18690,6 +19372,7 @@ func TestSQLite_skipscan6(t *testing.T) {
 }
 // Auto-generated from snapshot.test
 func TestSQLite_snapshot(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18720,6 +19403,7 @@ func TestSQLite_snapshot(t *testing.T) {
 }
 // Auto-generated from snapshot2.test
 func TestSQLite_snapshot2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18761,6 +19445,7 @@ func TestSQLite_snapshot2(t *testing.T) {
 }
 // Auto-generated from snapshot3.test
 func TestSQLite_snapshot3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18775,6 +19460,7 @@ func TestSQLite_snapshot3(t *testing.T) {
 }
 // Auto-generated from snapshot4.test
 func TestSQLite_snapshot4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18786,6 +19472,7 @@ func TestSQLite_snapshot4(t *testing.T) {
 }
 // Auto-generated from snapshot_fault.test
 func TestSQLite_snapshot_fault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18810,6 +19497,7 @@ func TestSQLite_snapshot_fault(t *testing.T) {
 }
 // Auto-generated from snapshot_up.test
 func TestSQLite_snapshot_up(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18828,6 +19516,7 @@ func TestSQLite_snapshot_up(t *testing.T) {
 }
 // Auto-generated from softheap1.test
 func TestSQLite_softheap1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18839,6 +19528,7 @@ func TestSQLite_softheap1(t *testing.T) {
 }
 // Auto-generated from sort.test
 func TestSQLite_sort(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18906,6 +19596,7 @@ func TestSQLite_sort(t *testing.T) {
 }
 // Auto-generated from sort3.test
 func TestSQLite_sort3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18916,6 +19607,7 @@ func TestSQLite_sort3(t *testing.T) {
 }
 // Auto-generated from sort4.test
 func TestSQLite_sort4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18925,6 +19617,7 @@ func TestSQLite_sort4(t *testing.T) {
 }
 // Auto-generated from sort5.test
 func TestSQLite_sort5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18939,6 +19632,7 @@ func TestSQLite_sort5(t *testing.T) {
 }
 // Auto-generated from sorterref.test
 func TestSQLite_sorterref(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18950,6 +19644,7 @@ func TestSQLite_sorterref(t *testing.T) {
 }
 // Auto-generated from sortfault.test
 func TestSQLite_sortfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18972,6 +19667,7 @@ func TestSQLite_sortfault(t *testing.T) {
 }
 // Auto-generated from speed1.test
 func TestSQLite_speed1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18984,6 +19680,7 @@ func TestSQLite_speed1(t *testing.T) {
 }
 // Auto-generated from speed1p.test
 func TestSQLite_speed1p(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -18996,6 +19693,7 @@ func TestSQLite_speed1p(t *testing.T) {
 }
 // Auto-generated from speed2.test
 func TestSQLite_speed2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19005,6 +19703,7 @@ func TestSQLite_speed2(t *testing.T) {
 }
 // Auto-generated from speed3.test
 func TestSQLite_speed3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19024,6 +19723,7 @@ func TestSQLite_speed3(t *testing.T) {
 }
 // Auto-generated from speed4.test
 func TestSQLite_speed4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19036,6 +19736,7 @@ func TestSQLite_speed4(t *testing.T) {
 }
 // Auto-generated from speed4p.test
 func TestSQLite_speed4p(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19049,6 +19750,7 @@ func TestSQLite_speed4p(t *testing.T) {
 }
 // Auto-generated from spellfix.test
 func TestSQLite_spellfix(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19104,6 +19806,7 @@ func TestSQLite_spellfix(t *testing.T) {
 }
 // Auto-generated from spellfix2.test
 func TestSQLite_spellfix2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19118,6 +19821,7 @@ func TestSQLite_spellfix2(t *testing.T) {
 }
 // Auto-generated from spellfix3.test
 func TestSQLite_spellfix3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19135,6 +19839,7 @@ func TestSQLite_spellfix3(t *testing.T) {
 }
 // Auto-generated from spellfix4.test
 func TestSQLite_spellfix4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19163,6 +19868,7 @@ func TestSQLite_spellfix4(t *testing.T) {
 }
 // Auto-generated from sqldiff1.test
 func TestSQLite_sqldiff1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19177,6 +19883,7 @@ func TestSQLite_sqldiff1(t *testing.T) {
 }
 // Auto-generated from sqllimits1.test
 func TestSQLite_sqllimits1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19216,6 +19923,7 @@ func TestSQLite_sqllimits1(t *testing.T) {
 }
 // Auto-generated from sqllog.test
 func TestSQLite_sqllog(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19225,6 +19933,7 @@ func TestSQLite_sqllog(t *testing.T) {
 }
 // Auto-generated from starschema1.test
 func TestSQLite_starschema1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19241,6 +19950,7 @@ func TestSQLite_starschema1(t *testing.T) {
 }
 // Auto-generated from stat.test
 func TestSQLite_stat(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19293,6 +20003,7 @@ func TestSQLite_stat(t *testing.T) {
 }
 // Auto-generated from statfault.test
 func TestSQLite_statfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19305,6 +20016,7 @@ func TestSQLite_statfault(t *testing.T) {
 }
 // Auto-generated from stmt.test
 func TestSQLite_stmt(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19318,6 +20030,7 @@ func TestSQLite_stmt(t *testing.T) {
 }
 // Auto-generated from stmtrand.test
 func TestSQLite_stmtrand(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19329,6 +20042,7 @@ func TestSQLite_stmtrand(t *testing.T) {
 }
 // Auto-generated from stmtvtab1.test
 func TestSQLite_stmtvtab1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19340,6 +20054,7 @@ func TestSQLite_stmtvtab1(t *testing.T) {
 }
 // Auto-generated from strict1.test
 func TestSQLite_strict1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19448,6 +20163,7 @@ func TestSQLite_strict1(t *testing.T) {
 }
 // Auto-generated from strict2.test
 func TestSQLite_strict2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19483,6 +20199,7 @@ func TestSQLite_strict2(t *testing.T) {
 }
 // Auto-generated from subjournal.test
 func TestSQLite_subjournal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19496,6 +20213,7 @@ func TestSQLite_subjournal(t *testing.T) {
 }
 // Auto-generated from subquery.test
 func TestSQLite_subquery(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19563,6 +20281,7 @@ func TestSQLite_subquery(t *testing.T) {
 }
 // Auto-generated from subquery2.test
 func TestSQLite_subquery2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19606,6 +20325,7 @@ func TestSQLite_subquery2(t *testing.T) {
 }
 // Auto-generated from subselect.test
 func TestSQLite_subselect(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19643,6 +20363,7 @@ func TestSQLite_subselect(t *testing.T) {
 }
 // Auto-generated from substr.test
 func TestSQLite_substr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19656,6 +20377,7 @@ func TestSQLite_substr(t *testing.T) {
 }
 // Auto-generated from subtype1.test
 func TestSQLite_subtype1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19681,6 +20403,7 @@ func TestSQLite_subtype1(t *testing.T) {
 }
 // Auto-generated from superlock.test
 func TestSQLite_superlock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19698,6 +20421,7 @@ func TestSQLite_superlock(t *testing.T) {
 }
 // Auto-generated from swarmvtab.test
 func TestSQLite_swarmvtab(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19733,6 +20457,7 @@ func TestSQLite_swarmvtab(t *testing.T) {
 }
 // Auto-generated from swarmvtab2.test
 func TestSQLite_swarmvtab2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19744,6 +20469,7 @@ func TestSQLite_swarmvtab2(t *testing.T) {
 }
 // Auto-generated from swarmvtab3.test
 func TestSQLite_swarmvtab3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19754,6 +20480,7 @@ func TestSQLite_swarmvtab3(t *testing.T) {
 }
 // Auto-generated from swarmvtabfault.test
 func TestSQLite_swarmvtabfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19764,6 +20491,7 @@ func TestSQLite_swarmvtabfault(t *testing.T) {
 }
 // Auto-generated from symlink.test
 func TestSQLite_symlink(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19790,6 +20518,7 @@ func TestSQLite_symlink(t *testing.T) {
 }
 // Auto-generated from symlink2.test
 func TestSQLite_symlink2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19799,6 +20528,7 @@ func TestSQLite_symlink2(t *testing.T) {
 }
 // Auto-generated from sync.test
 func TestSQLite_sync(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19810,6 +20540,7 @@ func TestSQLite_sync(t *testing.T) {
 }
 // Auto-generated from sync2.test
 func TestSQLite_sync2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19831,6 +20562,7 @@ func TestSQLite_sync2(t *testing.T) {
 }
 // Auto-generated from syscall.test
 func TestSQLite_syscall(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19847,6 +20579,7 @@ func TestSQLite_syscall(t *testing.T) {
 }
 // Auto-generated from sysfault.test
 func TestSQLite_sysfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19863,6 +20596,7 @@ func TestSQLite_sysfault(t *testing.T) {
 }
 // Auto-generated from tabfunc01.test
 func TestSQLite_tabfunc01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -19934,6 +20668,7 @@ func TestSQLite_tabfunc01(t *testing.T) {
 }
 // Auto-generated from table.test
 func TestSQLite_table(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20015,6 +20750,7 @@ func TestSQLite_table(t *testing.T) {
 }
 // Auto-generated from tableopts.test
 func TestSQLite_tableopts(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20025,6 +20761,7 @@ func TestSQLite_tableopts(t *testing.T) {
 }
 // Auto-generated from tclsqlite.test
 func TestSQLite_tclsqlite(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20094,6 +20831,7 @@ func TestSQLite_tclsqlite(t *testing.T) {
 }
 // Auto-generated from tempdb.test
 func TestSQLite_tempdb(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20111,6 +20849,7 @@ func TestSQLite_tempdb(t *testing.T) {
 }
 // Auto-generated from tempdb2.test
 func TestSQLite_tempdb2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20131,6 +20870,7 @@ func TestSQLite_tempdb2(t *testing.T) {
 }
 // Auto-generated from tempfault.test
 func TestSQLite_tempfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20146,6 +20886,7 @@ func TestSQLite_tempfault(t *testing.T) {
 }
 // Auto-generated from temptable.test
 func TestSQLite_temptable(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20183,6 +20924,7 @@ func TestSQLite_temptable(t *testing.T) {
 }
 // Auto-generated from temptable2.test
 func TestSQLite_temptable2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20235,6 +20977,7 @@ func TestSQLite_temptable2(t *testing.T) {
 }
 // Auto-generated from temptable3.test
 func TestSQLite_temptable3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20250,6 +20993,7 @@ func TestSQLite_temptable3(t *testing.T) {
 }
 // Auto-generated from temptrigger.test
 func TestSQLite_temptrigger(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20339,6 +21083,7 @@ func TestSQLite_temptrigger(t *testing.T) {
 }
 // Auto-generated from thread001.test
 func TestSQLite_thread001(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20353,6 +21098,7 @@ func TestSQLite_thread001(t *testing.T) {
 }
 // Auto-generated from thread002.test
 func TestSQLite_thread002(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20371,6 +21117,7 @@ func TestSQLite_thread002(t *testing.T) {
 }
 // Auto-generated from thread003.test
 func TestSQLite_thread003(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20381,6 +21128,7 @@ func TestSQLite_thread003(t *testing.T) {
 }
 // Auto-generated from thread004.test
 func TestSQLite_thread004(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20389,6 +21137,7 @@ func TestSQLite_thread004(t *testing.T) {
 }
 // Auto-generated from thread005.test
 func TestSQLite_thread005(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20400,6 +21149,7 @@ func TestSQLite_thread005(t *testing.T) {
 }
 // Auto-generated from thread1.test
 func TestSQLite_thread1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20410,6 +21160,7 @@ func TestSQLite_thread1(t *testing.T) {
 }
 // Auto-generated from thread2.test
 func TestSQLite_thread2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20418,6 +21169,7 @@ func TestSQLite_thread2(t *testing.T) {
 }
 // Auto-generated from thread3.test
 func TestSQLite_thread3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20427,6 +21179,7 @@ func TestSQLite_thread3(t *testing.T) {
 }
 // Auto-generated from tkt-02a8e81d44.test
 func TestSQLite_tkt_02a8e81d44(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20435,6 +21188,7 @@ func TestSQLite_tkt_02a8e81d44(t *testing.T) {
 }
 // Auto-generated from tkt-2a5629202f.test
 func TestSQLite_tkt_2a5629202f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20447,6 +21201,7 @@ func TestSQLite_tkt_2a5629202f(t *testing.T) {
 }
 // Auto-generated from tkt-2d1a5c67d.test
 func TestSQLite_tkt_2d1a5c67d(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20463,6 +21218,7 @@ func TestSQLite_tkt_2d1a5c67d(t *testing.T) {
 }
 // Auto-generated from tkt-2ea2425d34.test
 func TestSQLite_tkt_2ea2425d34(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20471,6 +21227,7 @@ func TestSQLite_tkt_2ea2425d34(t *testing.T) {
 }
 // Auto-generated from tkt-31338dca7e.test
 func TestSQLite_tkt_31338dca7e(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20490,6 +21247,7 @@ func TestSQLite_tkt_31338dca7e(t *testing.T) {
 }
 // Auto-generated from tkt-313723c356.test
 func TestSQLite_tkt_313723c356(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20500,6 +21258,7 @@ func TestSQLite_tkt_313723c356(t *testing.T) {
 }
 // Auto-generated from tkt-385a5b56b9.test
 func TestSQLite_tkt_385a5b56b9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20511,6 +21270,7 @@ func TestSQLite_tkt_385a5b56b9(t *testing.T) {
 }
 // Auto-generated from tkt-38cb5df375.test
 func TestSQLite_tkt_38cb5df375(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20548,6 +21308,7 @@ func TestSQLite_tkt_38cb5df375(t *testing.T) {
 }
 // Auto-generated from tkt-3998683a16.test
 func TestSQLite_tkt_3998683a16(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20556,6 +21317,7 @@ func TestSQLite_tkt_3998683a16(t *testing.T) {
 }
 // Auto-generated from tkt-3a77c9714e.test
 func TestSQLite_tkt_3a77c9714e(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20568,6 +21330,7 @@ func TestSQLite_tkt_3a77c9714e(t *testing.T) {
 }
 // Auto-generated from tkt-3fe897352e.test
 func TestSQLite_tkt_3fe897352e(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20582,6 +21345,7 @@ func TestSQLite_tkt_3fe897352e(t *testing.T) {
 }
 // Auto-generated from tkt-4a03edc4c8.test
 func TestSQLite_tkt_4a03edc4c8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20592,6 +21356,7 @@ func TestSQLite_tkt_4a03edc4c8(t *testing.T) {
 }
 // Auto-generated from tkt-4c86b126f2.test
 func TestSQLite_tkt_4c86b126f2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20601,6 +21366,7 @@ func TestSQLite_tkt_4c86b126f2(t *testing.T) {
 }
 // Auto-generated from tkt-4dd95f6943.test
 func TestSQLite_tkt_4dd95f6943(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20611,6 +21377,7 @@ func TestSQLite_tkt_4dd95f6943(t *testing.T) {
 }
 // Auto-generated from tkt-4ef7e3cfca.test
 func TestSQLite_tkt_4ef7e3cfca(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20630,6 +21397,7 @@ func TestSQLite_tkt_4ef7e3cfca(t *testing.T) {
 }
 // Auto-generated from tkt-54844eea3f.test
 func TestSQLite_tkt_54844eea3f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20640,6 +21408,7 @@ func TestSQLite_tkt_54844eea3f(t *testing.T) {
 }
 // Auto-generated from tkt-5e10420e8d.test
 func TestSQLite_tkt_5e10420e8d(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20655,6 +21424,7 @@ func TestSQLite_tkt_5e10420e8d(t *testing.T) {
 }
 // Auto-generated from tkt-5ee23731f.test
 func TestSQLite_tkt_5ee23731f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20668,6 +21438,7 @@ func TestSQLite_tkt_5ee23731f(t *testing.T) {
 }
 // Auto-generated from tkt-6bfb98dfc0.test
 func TestSQLite_tkt_6bfb98dfc0(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20676,6 +21447,7 @@ func TestSQLite_tkt_6bfb98dfc0(t *testing.T) {
 }
 // Auto-generated from tkt-752e1646fc.test
 func TestSQLite_tkt_752e1646fc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20684,6 +21456,7 @@ func TestSQLite_tkt_752e1646fc(t *testing.T) {
 }
 // Auto-generated from tkt-78e04e52ea.test
 func TestSQLite_tkt_78e04e52ea(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20698,6 +21471,7 @@ func TestSQLite_tkt_78e04e52ea(t *testing.T) {
 }
 // Auto-generated from tkt-7a31705a7e6.test
 func TestSQLite_tkt_7a31705a7e6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20706,6 +21480,7 @@ func TestSQLite_tkt_7a31705a7e6(t *testing.T) {
 }
 // Auto-generated from tkt-7bbfb7d442.test
 func TestSQLite_tkt_7bbfb7d442(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20720,6 +21495,7 @@ func TestSQLite_tkt_7bbfb7d442(t *testing.T) {
 }
 // Auto-generated from tkt-80ba201079.test
 func TestSQLite_tkt_80ba201079(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20741,6 +21517,7 @@ func TestSQLite_tkt_80ba201079(t *testing.T) {
 }
 // Auto-generated from tkt-80e031a00f.test
 func TestSQLite_tkt_80e031a00f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20808,6 +21585,7 @@ func TestSQLite_tkt_80e031a00f(t *testing.T) {
 }
 // Auto-generated from tkt-8454a207b9.test
 func TestSQLite_tkt_8454a207b9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20822,6 +21600,7 @@ func TestSQLite_tkt_8454a207b9(t *testing.T) {
 }
 // Auto-generated from tkt-868145d012.test
 func TestSQLite_tkt_868145d012(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20832,6 +21611,7 @@ func TestSQLite_tkt_868145d012(t *testing.T) {
 }
 // Auto-generated from tkt-8c63ff0ec.test
 func TestSQLite_tkt_8c63ff0ec(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20842,6 +21622,7 @@ func TestSQLite_tkt_8c63ff0ec(t *testing.T) {
 }
 // Auto-generated from tkt-91e2e8ba6f.test
 func TestSQLite_tkt_91e2e8ba6f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20856,6 +21637,7 @@ func TestSQLite_tkt_91e2e8ba6f(t *testing.T) {
 }
 // Auto-generated from tkt-99378177930f87bd.test
 func TestSQLite_tkt_99378177930f87bd(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20873,6 +21655,7 @@ func TestSQLite_tkt_99378177930f87bd(t *testing.T) {
 }
 // Auto-generated from tkt-9a8b09f8e6.test
 func TestSQLite_tkt_9a8b09f8e6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20929,6 +21712,7 @@ func TestSQLite_tkt_9a8b09f8e6(t *testing.T) {
 }
 // Auto-generated from tkt-9d68c883.test
 func TestSQLite_tkt_9d68c883(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20939,6 +21723,7 @@ func TestSQLite_tkt_9d68c883(t *testing.T) {
 }
 // Auto-generated from tkt-9f2eb3abac.test
 func TestSQLite_tkt_9f2eb3abac(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20952,6 +21737,7 @@ func TestSQLite_tkt_9f2eb3abac(t *testing.T) {
 }
 // Auto-generated from tkt-a7b7803e.test
 func TestSQLite_tkt_a7b7803e(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20967,6 +21753,7 @@ func TestSQLite_tkt_a7b7803e(t *testing.T) {
 }
 // Auto-generated from tkt-a8a0d2996a.test
 func TestSQLite_tkt_a8a0d2996a(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -20988,6 +21775,7 @@ func TestSQLite_tkt_a8a0d2996a(t *testing.T) {
 }
 // Auto-generated from tkt-b1d3a2e531.test
 func TestSQLite_tkt_b1d3a2e531(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21007,6 +21795,7 @@ func TestSQLite_tkt_b1d3a2e531(t *testing.T) {
 }
 // Auto-generated from tkt-b351d95f9.test
 func TestSQLite_tkt_b351d95f9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21017,6 +21806,7 @@ func TestSQLite_tkt_b351d95f9(t *testing.T) {
 }
 // Auto-generated from tkt-b72787b1.test
 func TestSQLite_tkt_b72787b1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21027,6 +21817,7 @@ func TestSQLite_tkt_b72787b1(t *testing.T) {
 }
 // Auto-generated from tkt-b75a9ca6b0.test
 func TestSQLite_tkt_b75a9ca6b0(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21036,6 +21827,7 @@ func TestSQLite_tkt_b75a9ca6b0(t *testing.T) {
 }
 // Auto-generated from tkt-ba7cbfaedc.test
 func TestSQLite_tkt_ba7cbfaedc(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21046,6 +21838,7 @@ func TestSQLite_tkt_ba7cbfaedc(t *testing.T) {
 }
 // Auto-generated from tkt-bdc6bbbb38.test
 func TestSQLite_tkt_bdc6bbbb38(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21055,6 +21848,7 @@ func TestSQLite_tkt_bdc6bbbb38(t *testing.T) {
 }
 // Auto-generated from tkt-c48d99d690.test
 func TestSQLite_tkt_c48d99d690(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21064,6 +21858,7 @@ func TestSQLite_tkt_c48d99d690(t *testing.T) {
 }
 // Auto-generated from tkt-c694113d5.test
 func TestSQLite_tkt_c694113d5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21074,6 +21869,7 @@ func TestSQLite_tkt_c694113d5(t *testing.T) {
 }
 // Auto-generated from tkt-cbd054fa6b.test
 func TestSQLite_tkt_cbd054fa6b(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21087,6 +21883,7 @@ func TestSQLite_tkt_cbd054fa6b(t *testing.T) {
 }
 // Auto-generated from tkt-d11f09d36e.test
 func TestSQLite_tkt_d11f09d36e(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21098,6 +21895,7 @@ func TestSQLite_tkt_d11f09d36e(t *testing.T) {
 }
 // Auto-generated from tkt-d635236375.test
 func TestSQLite_tkt_d635236375(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21107,6 +21905,7 @@ func TestSQLite_tkt_d635236375(t *testing.T) {
 }
 // Auto-generated from tkt-d82e3f3721.test
 func TestSQLite_tkt_d82e3f3721(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21121,6 +21920,7 @@ func TestSQLite_tkt_d82e3f3721(t *testing.T) {
 }
 // Auto-generated from tkt-f3e5abed55.test
 func TestSQLite_tkt_f3e5abed55(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21134,6 +21934,7 @@ func TestSQLite_tkt_f3e5abed55(t *testing.T) {
 }
 // Auto-generated from tkt-f67b41381a.test
 func TestSQLite_tkt_f67b41381a(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21144,6 +21945,7 @@ func TestSQLite_tkt_f67b41381a(t *testing.T) {
 }
 // Auto-generated from tkt-f777251dc7a.test
 func TestSQLite_tkt_f777251dc7a(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21159,6 +21961,7 @@ func TestSQLite_tkt_f777251dc7a(t *testing.T) {
 }
 // Auto-generated from tkt-f7b4edec.test
 func TestSQLite_tkt_f7b4edec(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21169,6 +21972,7 @@ func TestSQLite_tkt_f7b4edec(t *testing.T) {
 }
 // Auto-generated from tkt-f973c7ac31.test
 func TestSQLite_tkt_f973c7ac31(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21187,6 +21991,7 @@ func TestSQLite_tkt_f973c7ac31(t *testing.T) {
 }
 // Auto-generated from tkt-fa7bf5ec.test
 func TestSQLite_tkt_fa7bf5ec(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21195,6 +22000,7 @@ func TestSQLite_tkt_fa7bf5ec(t *testing.T) {
 }
 // Auto-generated from tkt-fc62af4523.test
 func TestSQLite_tkt_fc62af4523(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21206,6 +22012,7 @@ func TestSQLite_tkt_fc62af4523(t *testing.T) {
 }
 // Auto-generated from tkt-fc7bd6358f.test
 func TestSQLite_tkt_fc7bd6358f(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21216,6 +22023,7 @@ func TestSQLite_tkt_fc7bd6358f(t *testing.T) {
 }
 // Auto-generated from tkt1435.test
 func TestSQLite_tkt1435(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21226,6 +22034,7 @@ func TestSQLite_tkt1435(t *testing.T) {
 }
 // Auto-generated from tkt1443.test
 func TestSQLite_tkt1443(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21236,6 +22045,7 @@ func TestSQLite_tkt1443(t *testing.T) {
 }
 // Auto-generated from tkt1444.test
 func TestSQLite_tkt1444(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21246,6 +22056,7 @@ func TestSQLite_tkt1444(t *testing.T) {
 }
 // Auto-generated from tkt1449.test
 func TestSQLite_tkt1449(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21255,6 +22066,7 @@ func TestSQLite_tkt1449(t *testing.T) {
 }
 // Auto-generated from tkt1473.test
 func TestSQLite_tkt1473(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21319,6 +22131,7 @@ func TestSQLite_tkt1473(t *testing.T) {
 }
 // Auto-generated from tkt1501.test
 func TestSQLite_tkt1501(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21327,6 +22140,7 @@ func TestSQLite_tkt1501(t *testing.T) {
 }
 // Auto-generated from tkt1512.test
 func TestSQLite_tkt1512(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21337,6 +22151,7 @@ func TestSQLite_tkt1512(t *testing.T) {
 }
 // Auto-generated from tkt1536.test
 func TestSQLite_tkt1536(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21346,6 +22161,7 @@ func TestSQLite_tkt1536(t *testing.T) {
 }
 // Auto-generated from tkt1537.test
 func TestSQLite_tkt1537(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21366,6 +22182,7 @@ func TestSQLite_tkt1537(t *testing.T) {
 }
 // Auto-generated from tkt1567.test
 func TestSQLite_tkt1567(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21378,6 +22195,7 @@ func TestSQLite_tkt1567(t *testing.T) {
 }
 // Auto-generated from tkt1644.test
 func TestSQLite_tkt1644(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21394,6 +22212,7 @@ func TestSQLite_tkt1644(t *testing.T) {
 }
 // Auto-generated from tkt1667.test
 func TestSQLite_tkt1667(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21405,6 +22224,7 @@ func TestSQLite_tkt1667(t *testing.T) {
 }
 // Auto-generated from tkt1873.test
 func TestSQLite_tkt1873(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21416,6 +22236,7 @@ func TestSQLite_tkt1873(t *testing.T) {
 }
 // Auto-generated from tkt2141.test
 func TestSQLite_tkt2141(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21426,6 +22247,7 @@ func TestSQLite_tkt2141(t *testing.T) {
 }
 // Auto-generated from tkt2192.test
 func TestSQLite_tkt2192(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21439,6 +22261,7 @@ func TestSQLite_tkt2192(t *testing.T) {
 }
 // Auto-generated from tkt2251.test
 func TestSQLite_tkt2251(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21454,6 +22277,7 @@ func TestSQLite_tkt2251(t *testing.T) {
 }
 // Auto-generated from tkt2285.test
 func TestSQLite_tkt2285(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21465,6 +22289,7 @@ func TestSQLite_tkt2285(t *testing.T) {
 }
 // Auto-generated from tkt2332.test
 func TestSQLite_tkt2332(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21475,6 +22300,7 @@ func TestSQLite_tkt2332(t *testing.T) {
 }
 // Auto-generated from tkt2339.test
 func TestSQLite_tkt2339(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21491,6 +22317,7 @@ func TestSQLite_tkt2339(t *testing.T) {
 }
 // Auto-generated from tkt2391.test
 func TestSQLite_tkt2391(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21502,6 +22329,7 @@ func TestSQLite_tkt2391(t *testing.T) {
 }
 // Auto-generated from tkt2409.test
 func TestSQLite_tkt2409(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21513,6 +22341,7 @@ func TestSQLite_tkt2409(t *testing.T) {
 }
 // Auto-generated from tkt2450.test
 func TestSQLite_tkt2450(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21524,6 +22353,7 @@ func TestSQLite_tkt2450(t *testing.T) {
 }
 // Auto-generated from tkt2565.test
 func TestSQLite_tkt2565(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21534,6 +22364,7 @@ func TestSQLite_tkt2565(t *testing.T) {
 }
 // Auto-generated from tkt2640.test
 func TestSQLite_tkt2640(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21547,6 +22378,7 @@ func TestSQLite_tkt2640(t *testing.T) {
 }
 // Auto-generated from tkt2643.test
 func TestSQLite_tkt2643(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21559,6 +22391,7 @@ func TestSQLite_tkt2643(t *testing.T) {
 }
 // Auto-generated from tkt2686.test
 func TestSQLite_tkt2686(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21570,6 +22403,7 @@ func TestSQLite_tkt2686(t *testing.T) {
 }
 // Auto-generated from tkt2767.test
 func TestSQLite_tkt2767(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21581,6 +22415,7 @@ func TestSQLite_tkt2767(t *testing.T) {
 }
 // Auto-generated from tkt2817.test
 func TestSQLite_tkt2817(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21598,6 +22433,7 @@ func TestSQLite_tkt2817(t *testing.T) {
 }
 // Auto-generated from tkt2820.test
 func TestSQLite_tkt2820(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21614,6 +22450,7 @@ func TestSQLite_tkt2820(t *testing.T) {
 }
 // Auto-generated from tkt2822.test
 func TestSQLite_tkt2822(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21644,6 +22481,7 @@ func TestSQLite_tkt2822(t *testing.T) {
 }
 // Auto-generated from tkt2832.test
 func TestSQLite_tkt2832(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21657,6 +22495,7 @@ func TestSQLite_tkt2832(t *testing.T) {
 }
 // Auto-generated from tkt2854.test
 func TestSQLite_tkt2854(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21672,6 +22511,7 @@ func TestSQLite_tkt2854(t *testing.T) {
 }
 // Auto-generated from tkt2920.test
 func TestSQLite_tkt2920(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21683,6 +22523,7 @@ func TestSQLite_tkt2920(t *testing.T) {
 }
 // Auto-generated from tkt2927.test
 func TestSQLite_tkt2927(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21750,6 +22591,7 @@ func TestSQLite_tkt2927(t *testing.T) {
 }
 // Auto-generated from tkt2942.test
 func TestSQLite_tkt2942(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21761,6 +22603,7 @@ func TestSQLite_tkt2942(t *testing.T) {
 }
 // Auto-generated from tkt3080.test
 func TestSQLite_tkt3080(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21775,6 +22618,7 @@ func TestSQLite_tkt3080(t *testing.T) {
 }
 // Auto-generated from tkt3093.test
 func TestSQLite_tkt3093(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21785,6 +22629,7 @@ func TestSQLite_tkt3093(t *testing.T) {
 }
 // Auto-generated from tkt3121.test
 func TestSQLite_tkt3121(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21794,6 +22639,7 @@ func TestSQLite_tkt3121(t *testing.T) {
 }
 // Auto-generated from tkt3201.test
 func TestSQLite_tkt3201(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21811,6 +22657,7 @@ func TestSQLite_tkt3201(t *testing.T) {
 }
 // Auto-generated from tkt3292.test
 func TestSQLite_tkt3292(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21822,6 +22669,7 @@ func TestSQLite_tkt3292(t *testing.T) {
 }
 // Auto-generated from tkt3298.test
 func TestSQLite_tkt3298(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21835,6 +22683,7 @@ func TestSQLite_tkt3298(t *testing.T) {
 }
 // Auto-generated from tkt3334.test
 func TestSQLite_tkt3334(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21853,6 +22702,7 @@ func TestSQLite_tkt3334(t *testing.T) {
 }
 // Auto-generated from tkt3346.test
 func TestSQLite_tkt3346(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21864,6 +22714,7 @@ func TestSQLite_tkt3346(t *testing.T) {
 }
 // Auto-generated from tkt3357.test
 func TestSQLite_tkt3357(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21875,6 +22726,7 @@ func TestSQLite_tkt3357(t *testing.T) {
 }
 // Auto-generated from tkt3419.test
 func TestSQLite_tkt3419(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21888,6 +22740,7 @@ func TestSQLite_tkt3419(t *testing.T) {
 }
 // Auto-generated from tkt3424.test
 func TestSQLite_tkt3424(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21898,6 +22751,7 @@ func TestSQLite_tkt3424(t *testing.T) {
 }
 // Auto-generated from tkt3442.test
 func TestSQLite_tkt3442(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21906,6 +22760,7 @@ func TestSQLite_tkt3442(t *testing.T) {
 }
 // Auto-generated from tkt3457.test
 func TestSQLite_tkt3457(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21914,6 +22769,7 @@ func TestSQLite_tkt3457(t *testing.T) {
 }
 // Auto-generated from tkt3461.test
 func TestSQLite_tkt3461(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21928,6 +22784,7 @@ func TestSQLite_tkt3461(t *testing.T) {
 }
 // Auto-generated from tkt3493.test
 func TestSQLite_tkt3493(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21961,6 +22818,7 @@ func TestSQLite_tkt3493(t *testing.T) {
 }
 // Auto-generated from tkt3522.test
 func TestSQLite_tkt3522(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21970,6 +22828,7 @@ func TestSQLite_tkt3522(t *testing.T) {
 }
 // Auto-generated from tkt3527.test
 func TestSQLite_tkt3527(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21979,6 +22838,7 @@ func TestSQLite_tkt3527(t *testing.T) {
 }
 // Auto-generated from tkt3541.test
 func TestSQLite_tkt3541(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -21988,6 +22848,7 @@ func TestSQLite_tkt3541(t *testing.T) {
 }
 // Auto-generated from tkt3554.test
 func TestSQLite_tkt3554(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22000,6 +22861,7 @@ func TestSQLite_tkt3554(t *testing.T) {
 }
 // Auto-generated from tkt3581.test
 func TestSQLite_tkt3581(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22010,6 +22872,7 @@ func TestSQLite_tkt3581(t *testing.T) {
 }
 // Auto-generated from tkt35xx.test
 func TestSQLite_tkt35xx(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22019,6 +22882,7 @@ func TestSQLite_tkt35xx(t *testing.T) {
 }
 // Auto-generated from tkt3630.test
 func TestSQLite_tkt3630(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22029,6 +22893,7 @@ func TestSQLite_tkt3630(t *testing.T) {
 }
 // Auto-generated from tkt3718.test
 func TestSQLite_tkt3718(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22054,6 +22919,7 @@ func TestSQLite_tkt3718(t *testing.T) {
 }
 // Auto-generated from tkt3731.test
 func TestSQLite_tkt3731(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22064,6 +22930,7 @@ func TestSQLite_tkt3731(t *testing.T) {
 }
 // Auto-generated from tkt3757.test
 func TestSQLite_tkt3757(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22073,6 +22940,7 @@ func TestSQLite_tkt3757(t *testing.T) {
 }
 // Auto-generated from tkt3761.test
 func TestSQLite_tkt3761(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22084,6 +22952,7 @@ func TestSQLite_tkt3761(t *testing.T) {
 }
 // Auto-generated from tkt3762.test
 func TestSQLite_tkt3762(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22092,6 +22961,7 @@ func TestSQLite_tkt3762(t *testing.T) {
 }
 // Auto-generated from tkt3773.test
 func TestSQLite_tkt3773(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22100,6 +22970,7 @@ func TestSQLite_tkt3773(t *testing.T) {
 }
 // Auto-generated from tkt3791.test
 func TestSQLite_tkt3791(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22108,6 +22979,7 @@ func TestSQLite_tkt3791(t *testing.T) {
 }
 // Auto-generated from tkt3793.test
 func TestSQLite_tkt3793(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22121,6 +22993,7 @@ func TestSQLite_tkt3793(t *testing.T) {
 }
 // Auto-generated from tkt3810.test
 func TestSQLite_tkt3810(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22141,6 +23014,7 @@ func TestSQLite_tkt3810(t *testing.T) {
 }
 // Auto-generated from tkt3824.test
 func TestSQLite_tkt3824(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22152,6 +23026,7 @@ func TestSQLite_tkt3824(t *testing.T) {
 }
 // Auto-generated from tkt3832.test
 func TestSQLite_tkt3832(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22160,6 +23035,7 @@ func TestSQLite_tkt3832(t *testing.T) {
 }
 // Auto-generated from tkt3838.test
 func TestSQLite_tkt3838(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22169,6 +23045,7 @@ func TestSQLite_tkt3838(t *testing.T) {
 }
 // Auto-generated from tkt3841.test
 func TestSQLite_tkt3841(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22177,6 +23054,7 @@ func TestSQLite_tkt3841(t *testing.T) {
 }
 // Auto-generated from tkt3871.test
 func TestSQLite_tkt3871(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22188,6 +23066,7 @@ func TestSQLite_tkt3871(t *testing.T) {
 }
 // Auto-generated from tkt3879.test
 func TestSQLite_tkt3879(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22198,6 +23077,7 @@ func TestSQLite_tkt3879(t *testing.T) {
 }
 // Auto-generated from tkt3911.test
 func TestSQLite_tkt3911(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22210,6 +23090,7 @@ func TestSQLite_tkt3911(t *testing.T) {
 }
 // Auto-generated from tkt3918.test
 func TestSQLite_tkt3918(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22221,6 +23102,7 @@ func TestSQLite_tkt3918(t *testing.T) {
 }
 // Auto-generated from tkt3922.test
 func TestSQLite_tkt3922(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22236,6 +23118,7 @@ func TestSQLite_tkt3922(t *testing.T) {
 }
 // Auto-generated from tkt3929.test
 func TestSQLite_tkt3929(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22245,6 +23128,7 @@ func TestSQLite_tkt3929(t *testing.T) {
 }
 // Auto-generated from tkt3935.test
 func TestSQLite_tkt3935(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22255,6 +23139,7 @@ func TestSQLite_tkt3935(t *testing.T) {
 }
 // Auto-generated from tkt3992.test
 func TestSQLite_tkt3992(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22267,6 +23152,7 @@ func TestSQLite_tkt3992(t *testing.T) {
 }
 // Auto-generated from tkt3997.test
 func TestSQLite_tkt3997(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22280,6 +23166,7 @@ func TestSQLite_tkt3997(t *testing.T) {
 }
 // Auto-generated from tkt4018.test
 func TestSQLite_tkt4018(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22290,6 +23177,7 @@ func TestSQLite_tkt4018(t *testing.T) {
 }
 // Auto-generated from tpch01.test
 func TestSQLite_tpch01(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22299,6 +23187,7 @@ func TestSQLite_tpch01(t *testing.T) {
 }
 // Auto-generated from trace.test
 func TestSQLite_trace(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22331,6 +23220,7 @@ func TestSQLite_trace(t *testing.T) {
 }
 // Auto-generated from trace3.test
 func TestSQLite_trace3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22352,6 +23242,7 @@ func TestSQLite_trace3(t *testing.T) {
 }
 // Auto-generated from trans.test
 func TestSQLite_trans(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22421,6 +23312,7 @@ func TestSQLite_trans(t *testing.T) {
 }
 // Auto-generated from trans2.test
 func TestSQLite_trans2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22430,6 +23322,7 @@ func TestSQLite_trans2(t *testing.T) {
 }
 // Auto-generated from trans3.test
 func TestSQLite_trans3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22443,6 +23336,7 @@ func TestSQLite_trans3(t *testing.T) {
 }
 // Auto-generated from transitive1.test
 func TestSQLite_transitive1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22520,6 +23414,7 @@ func TestSQLite_transitive1(t *testing.T) {
 }
 // Auto-generated from trigger1.test
 func TestSQLite_trigger1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22603,6 +23498,7 @@ func TestSQLite_trigger1(t *testing.T) {
 }
 // Auto-generated from trigger2.test
 func TestSQLite_trigger2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22661,6 +23557,7 @@ func TestSQLite_trigger2(t *testing.T) {
 }
 // Auto-generated from trigger3.test
 func TestSQLite_trigger3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22684,6 +23581,7 @@ func TestSQLite_trigger3(t *testing.T) {
 }
 // Auto-generated from trigger4.test
 func TestSQLite_trigger4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22716,6 +23614,7 @@ func TestSQLite_trigger4(t *testing.T) {
 }
 // Auto-generated from trigger5.test
 func TestSQLite_trigger5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22724,6 +23623,7 @@ func TestSQLite_trigger5(t *testing.T) {
 }
 // Auto-generated from trigger6.test
 func TestSQLite_trigger6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22736,6 +23636,7 @@ func TestSQLite_trigger6(t *testing.T) {
 }
 // Auto-generated from trigger7.test
 func TestSQLite_trigger7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22750,6 +23651,7 @@ func TestSQLite_trigger7(t *testing.T) {
 }
 // Auto-generated from trigger8.test
 func TestSQLite_trigger8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22759,6 +23661,7 @@ func TestSQLite_trigger8(t *testing.T) {
 }
 // Auto-generated from trigger9.test
 func TestSQLite_trigger9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22792,6 +23695,7 @@ func TestSQLite_trigger9(t *testing.T) {
 }
 // Auto-generated from triggerA.test
 func TestSQLite_triggerA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22818,6 +23722,7 @@ func TestSQLite_triggerA(t *testing.T) {
 }
 // Auto-generated from triggerB.test
 func TestSQLite_triggerB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22834,6 +23739,7 @@ func TestSQLite_triggerB(t *testing.T) {
 }
 // Auto-generated from triggerC.test
 func TestSQLite_triggerC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22907,6 +23813,7 @@ func TestSQLite_triggerC(t *testing.T) {
 }
 // Auto-generated from triggerD.test
 func TestSQLite_triggerD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22924,6 +23831,7 @@ func TestSQLite_triggerD(t *testing.T) {
 }
 // Auto-generated from triggerE.test
 func TestSQLite_triggerE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22942,6 +23850,7 @@ func TestSQLite_triggerE(t *testing.T) {
 }
 // Auto-generated from triggerG.test
 func TestSQLite_triggerG(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22959,6 +23868,7 @@ func TestSQLite_triggerG(t *testing.T) {
 }
 // Auto-generated from triggerupfrom.test
 func TestSQLite_triggerupfrom(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -22991,6 +23901,7 @@ func TestSQLite_triggerupfrom(t *testing.T) {
 }
 // Auto-generated from trustschema1.test
 func TestSQLite_trustschema1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23056,6 +23967,7 @@ func TestSQLite_trustschema1(t *testing.T) {
 }
 // Auto-generated from types.test
 func TestSQLite_types(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23083,6 +23995,7 @@ func TestSQLite_types(t *testing.T) {
 }
 // Auto-generated from types2.test
 func TestSQLite_types2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23094,6 +24007,7 @@ func TestSQLite_types2(t *testing.T) {
 }
 // Auto-generated from types3.test
 func TestSQLite_types3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23107,6 +24021,7 @@ func TestSQLite_types3(t *testing.T) {
 }
 // Auto-generated from unhex.test
 func TestSQLite_unhex(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23121,6 +24036,7 @@ func TestSQLite_unhex(t *testing.T) {
 }
 // Auto-generated from unionall.test
 func TestSQLite_unionall(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23190,6 +24106,7 @@ func TestSQLite_unionall(t *testing.T) {
 }
 // Auto-generated from unionall2.test
 func TestSQLite_unionall2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23201,6 +24118,7 @@ func TestSQLite_unionall2(t *testing.T) {
 }
 // Auto-generated from unionallfault.test
 func TestSQLite_unionallfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23210,6 +24128,7 @@ func TestSQLite_unionallfault(t *testing.T) {
 }
 // Auto-generated from unionvtab.test
 func TestSQLite_unionvtab(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23305,6 +24224,7 @@ func TestSQLite_unionvtab(t *testing.T) {
 }
 // Auto-generated from unionvtabfault.test
 func TestSQLite_unionvtabfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23318,6 +24238,7 @@ func TestSQLite_unionvtabfault(t *testing.T) {
 }
 // Auto-generated from unique.test
 func TestSQLite_unique(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23330,6 +24251,7 @@ func TestSQLite_unique(t *testing.T) {
 }
 // Auto-generated from unique2.test
 func TestSQLite_unique2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23346,6 +24268,7 @@ func TestSQLite_unique2(t *testing.T) {
 }
 // Auto-generated from unixexcl.test
 func TestSQLite_unixexcl(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23360,6 +24283,7 @@ func TestSQLite_unixexcl(t *testing.T) {
 }
 // Auto-generated from unordered.test
 func TestSQLite_unordered(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23372,6 +24296,7 @@ func TestSQLite_unordered(t *testing.T) {
 }
 // Auto-generated from update.test
 func TestSQLite_update(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23441,6 +24366,7 @@ func TestSQLite_update(t *testing.T) {
 }
 // Auto-generated from update2.test
 func TestSQLite_update2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23466,6 +24392,7 @@ func TestSQLite_update2(t *testing.T) {
 }
 // Auto-generated from upfrom1.test
 func TestSQLite_upfrom1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23499,6 +24426,7 @@ func TestSQLite_upfrom1(t *testing.T) {
 }
 // Auto-generated from upfrom2.test
 func TestSQLite_upfrom2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23550,6 +24478,7 @@ func TestSQLite_upfrom2(t *testing.T) {
 }
 // Auto-generated from upfrom3.test
 func TestSQLite_upfrom3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23572,6 +24501,7 @@ func TestSQLite_upfrom3(t *testing.T) {
 }
 // Auto-generated from upfrom4.test
 func TestSQLite_upfrom4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23596,6 +24526,7 @@ func TestSQLite_upfrom4(t *testing.T) {
 }
 // Auto-generated from upfromfault.test
 func TestSQLite_upfromfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23612,6 +24543,7 @@ func TestSQLite_upfromfault(t *testing.T) {
 }
 // Auto-generated from upsert1.test
 func TestSQLite_upsert1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23670,6 +24602,7 @@ func TestSQLite_upsert1(t *testing.T) {
 }
 // Auto-generated from upsert2.test
 func TestSQLite_upsert2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23690,6 +24623,7 @@ func TestSQLite_upsert2(t *testing.T) {
 }
 // Auto-generated from upsert3.test
 func TestSQLite_upsert3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23708,6 +24642,7 @@ func TestSQLite_upsert3(t *testing.T) {
 }
 // Auto-generated from upsert4.test
 func TestSQLite_upsert4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23720,6 +24655,7 @@ func TestSQLite_upsert4(t *testing.T) {
 }
 // Auto-generated from upsert5.test
 func TestSQLite_upsert5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23750,6 +24686,7 @@ func TestSQLite_upsert5(t *testing.T) {
 }
 // Auto-generated from upsertfault.test
 func TestSQLite_upsertfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23760,6 +24697,7 @@ func TestSQLite_upsertfault(t *testing.T) {
 }
 // Auto-generated from uri.test
 func TestSQLite_uri(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23775,6 +24713,7 @@ func TestSQLite_uri(t *testing.T) {
 }
 // Auto-generated from uri2.test
 func TestSQLite_uri2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23786,6 +24725,7 @@ func TestSQLite_uri2(t *testing.T) {
 }
 // Auto-generated from utf16align.test
 func TestSQLite_utf16align(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23800,6 +24740,7 @@ func TestSQLite_utf16align(t *testing.T) {
 }
 // Auto-generated from vacuum-into.test
 func TestSQLite_vacuum_into(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23843,6 +24784,7 @@ func TestSQLite_vacuum_into(t *testing.T) {
 }
 // Auto-generated from vacuum.test
 func TestSQLite_vacuum(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23881,6 +24823,7 @@ func TestSQLite_vacuum(t *testing.T) {
 }
 // Auto-generated from vacuum2.test
 func TestSQLite_vacuum2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23912,6 +24855,7 @@ func TestSQLite_vacuum2(t *testing.T) {
 }
 // Auto-generated from vacuum3.test
 func TestSQLite_vacuum3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23932,6 +24876,7 @@ func TestSQLite_vacuum3(t *testing.T) {
 }
 // Auto-generated from vacuum4.test
 func TestSQLite_vacuum4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23940,6 +24885,7 @@ func TestSQLite_vacuum4(t *testing.T) {
 }
 // Auto-generated from vacuum5.test
 func TestSQLite_vacuum5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23960,6 +24906,7 @@ func TestSQLite_vacuum5(t *testing.T) {
 }
 // Auto-generated from vacuum6.test
 func TestSQLite_vacuum6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23986,6 +24933,7 @@ func TestSQLite_vacuum6(t *testing.T) {
 }
 // Auto-generated from vacuummem.test
 func TestSQLite_vacuummem(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -23995,6 +24943,7 @@ func TestSQLite_vacuummem(t *testing.T) {
 }
 // Auto-generated from values.test
 func TestSQLite_values(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24098,6 +25047,7 @@ func TestSQLite_values(t *testing.T) {
 }
 // Auto-generated from valuesfault.test
 func TestSQLite_valuesfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24107,6 +25057,7 @@ func TestSQLite_valuesfault(t *testing.T) {
 }
 // Auto-generated from view.test
 func TestSQLite_view(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24188,6 +25139,7 @@ func TestSQLite_view(t *testing.T) {
 }
 // Auto-generated from view2.test
 func TestSQLite_view2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24199,6 +25151,7 @@ func TestSQLite_view2(t *testing.T) {
 }
 // Auto-generated from view3.test
 func TestSQLite_view3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24209,6 +25162,7 @@ func TestSQLite_view3(t *testing.T) {
 }
 // Auto-generated from vtab1.test
 func TestSQLite_vtab1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24280,6 +25234,7 @@ func TestSQLite_vtab1(t *testing.T) {
 }
 // Auto-generated from vtab2.test
 func TestSQLite_vtab2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24302,6 +25257,7 @@ func TestSQLite_vtab2(t *testing.T) {
 }
 // Auto-generated from vtab3.test
 func TestSQLite_vtab3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24313,6 +25269,7 @@ func TestSQLite_vtab3(t *testing.T) {
 }
 // Auto-generated from vtab4.test
 func TestSQLite_vtab4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24330,6 +25287,7 @@ func TestSQLite_vtab4(t *testing.T) {
 }
 // Auto-generated from vtab5.test
 func TestSQLite_vtab5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24355,6 +25313,7 @@ func TestSQLite_vtab5(t *testing.T) {
 }
 // Auto-generated from vtab6.test
 func TestSQLite_vtab6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24404,6 +25363,7 @@ func TestSQLite_vtab6(t *testing.T) {
 }
 // Auto-generated from vtab7.test
 func TestSQLite_vtab7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24424,6 +25384,7 @@ func TestSQLite_vtab7(t *testing.T) {
 }
 // Auto-generated from vtab8.test
 func TestSQLite_vtab8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24436,6 +25397,7 @@ func TestSQLite_vtab8(t *testing.T) {
 }
 // Auto-generated from vtab9.test
 func TestSQLite_vtab9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24448,6 +25410,7 @@ func TestSQLite_vtab9(t *testing.T) {
 }
 // Auto-generated from vtabA.test
 func TestSQLite_vtabA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24468,6 +25431,7 @@ func TestSQLite_vtabA(t *testing.T) {
 }
 // Auto-generated from vtabB.test
 func TestSQLite_vtabB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24482,6 +25446,7 @@ func TestSQLite_vtabB(t *testing.T) {
 }
 // Auto-generated from vtabC.test
 func TestSQLite_vtabC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24494,6 +25459,7 @@ func TestSQLite_vtabC(t *testing.T) {
 }
 // Auto-generated from vtabD.test
 func TestSQLite_vtabD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24510,6 +25476,7 @@ func TestSQLite_vtabD(t *testing.T) {
 }
 // Auto-generated from vtabE.test
 func TestSQLite_vtabE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24518,6 +25485,7 @@ func TestSQLite_vtabE(t *testing.T) {
 }
 // Auto-generated from vtabF.test
 func TestSQLite_vtabF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24527,6 +25495,7 @@ func TestSQLite_vtabF(t *testing.T) {
 }
 // Auto-generated from vtabH.test
 func TestSQLite_vtabH(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24540,6 +25509,7 @@ func TestSQLite_vtabH(t *testing.T) {
 }
 // Auto-generated from vtabI.test
 func TestSQLite_vtabI(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24548,6 +25518,7 @@ func TestSQLite_vtabI(t *testing.T) {
 }
 // Auto-generated from vtabJ.test
 func TestSQLite_vtabJ(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24570,6 +25541,7 @@ func TestSQLite_vtabJ(t *testing.T) {
 }
 // Auto-generated from vtabK.test
 func TestSQLite_vtabK(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24591,6 +25563,7 @@ func TestSQLite_vtabK(t *testing.T) {
 }
 // Auto-generated from vtabL.test
 func TestSQLite_vtabL(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24599,6 +25572,7 @@ func TestSQLite_vtabL(t *testing.T) {
 }
 // Auto-generated from vtab_alter.test
 func TestSQLite_vtab_alter(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24616,6 +25590,7 @@ func TestSQLite_vtab_alter(t *testing.T) {
 }
 // Auto-generated from vtab_err.test
 func TestSQLite_vtab_err(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24628,6 +25603,7 @@ func TestSQLite_vtab_err(t *testing.T) {
 }
 // Auto-generated from vtab_shared.test
 func TestSQLite_vtab_shared(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24650,6 +25626,7 @@ func TestSQLite_vtab_shared(t *testing.T) {
 }
 // Auto-generated from vtabdistinct.test
 func TestSQLite_vtabdistinct(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24661,6 +25638,7 @@ func TestSQLite_vtabdistinct(t *testing.T) {
 }
 // Auto-generated from vtabrhs1.test
 func TestSQLite_vtabrhs1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24675,6 +25653,7 @@ func TestSQLite_vtabrhs1(t *testing.T) {
 }
 // Auto-generated from wal.test
 func TestSQLite_wal(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24746,6 +25725,7 @@ func TestSQLite_wal(t *testing.T) {
 }
 // Auto-generated from wal2.test
 func TestSQLite_wal2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24797,6 +25777,7 @@ func TestSQLite_wal2(t *testing.T) {
 }
 // Auto-generated from wal3.test
 func TestSQLite_wal3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24827,6 +25808,7 @@ func TestSQLite_wal3(t *testing.T) {
 }
 // Auto-generated from wal4.test
 func TestSQLite_wal4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24835,6 +25817,7 @@ func TestSQLite_wal4(t *testing.T) {
 }
 // Auto-generated from wal5.test
 func TestSQLite_wal5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24844,6 +25827,7 @@ func TestSQLite_wal5(t *testing.T) {
 }
 // Auto-generated from wal6.test
 func TestSQLite_wal6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24885,6 +25869,7 @@ func TestSQLite_wal6(t *testing.T) {
 }
 // Auto-generated from wal64k.test
 func TestSQLite_wal64k(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24894,6 +25879,7 @@ func TestSQLite_wal64k(t *testing.T) {
 }
 // Auto-generated from wal7.test
 func TestSQLite_wal7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24902,6 +25888,7 @@ func TestSQLite_wal7(t *testing.T) {
 }
 // Auto-generated from wal8.test
 func TestSQLite_wal8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24913,6 +25900,7 @@ func TestSQLite_wal8(t *testing.T) {
 }
 // Auto-generated from wal9.test
 func TestSQLite_wal9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24922,6 +25910,7 @@ func TestSQLite_wal9(t *testing.T) {
 }
 // Auto-generated from walbak.test
 func TestSQLite_walbak(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24953,6 +25942,7 @@ func TestSQLite_walbak(t *testing.T) {
 }
 // Auto-generated from walbig.test
 func TestSQLite_walbig(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24969,6 +25959,7 @@ func TestSQLite_walbig(t *testing.T) {
 }
 // Auto-generated from walblock.test
 func TestSQLite_walblock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24979,6 +25970,7 @@ func TestSQLite_walblock(t *testing.T) {
 }
 // Auto-generated from walckptnoop.test
 func TestSQLite_walckptnoop(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -24991,6 +25983,7 @@ func TestSQLite_walckptnoop(t *testing.T) {
 }
 // Auto-generated from walcksum.test
 func TestSQLite_walcksum(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25018,6 +26011,7 @@ func TestSQLite_walcksum(t *testing.T) {
 }
 // Auto-generated from walcrash.test
 func TestSQLite_walcrash(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25034,6 +26028,7 @@ func TestSQLite_walcrash(t *testing.T) {
 }
 // Auto-generated from walcrash2.test
 func TestSQLite_walcrash2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25044,6 +26039,7 @@ func TestSQLite_walcrash2(t *testing.T) {
 }
 // Auto-generated from walcrash3.test
 func TestSQLite_walcrash3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25054,6 +26050,7 @@ func TestSQLite_walcrash3(t *testing.T) {
 }
 // Auto-generated from walcrash4.test
 func TestSQLite_walcrash4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25065,6 +26062,7 @@ func TestSQLite_walcrash4(t *testing.T) {
 }
 // Auto-generated from walfault.test
 func TestSQLite_walfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25093,6 +26091,7 @@ func TestSQLite_walfault(t *testing.T) {
 }
 // Auto-generated from walfault2.test
 func TestSQLite_walfault2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25106,6 +26105,7 @@ func TestSQLite_walfault2(t *testing.T) {
 }
 // Auto-generated from walhook.test
 func TestSQLite_walhook(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25122,6 +26122,7 @@ func TestSQLite_walhook(t *testing.T) {
 }
 // Auto-generated from walmode.test
 func TestSQLite_walmode(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25169,6 +26170,7 @@ func TestSQLite_walmode(t *testing.T) {
 }
 // Auto-generated from walnoshm.test
 func TestSQLite_walnoshm(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25184,6 +26186,7 @@ func TestSQLite_walnoshm(t *testing.T) {
 }
 // Auto-generated from waloverwrite.test
 func TestSQLite_waloverwrite(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25202,6 +26205,7 @@ func TestSQLite_waloverwrite(t *testing.T) {
 }
 // Auto-generated from walpersist.test
 func TestSQLite_walpersist(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25215,6 +26219,7 @@ func TestSQLite_walpersist(t *testing.T) {
 }
 // Auto-generated from walprotocol.test
 func TestSQLite_walprotocol(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25227,6 +26232,7 @@ func TestSQLite_walprotocol(t *testing.T) {
 }
 // Auto-generated from walprotocol2.test
 func TestSQLite_walprotocol2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25240,6 +26246,7 @@ func TestSQLite_walprotocol2(t *testing.T) {
 }
 // Auto-generated from walrestart.test
 func TestSQLite_walrestart(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25251,6 +26258,7 @@ func TestSQLite_walrestart(t *testing.T) {
 }
 // Auto-generated from walro2.test
 func TestSQLite_walro2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25261,6 +26269,7 @@ func TestSQLite_walro2(t *testing.T) {
 }
 // Auto-generated from walrofault.test
 func TestSQLite_walrofault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25270,6 +26279,7 @@ func TestSQLite_walrofault(t *testing.T) {
 }
 // Auto-generated from walseh1.test
 func TestSQLite_walseh1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25283,6 +26293,7 @@ func TestSQLite_walseh1(t *testing.T) {
 }
 // Auto-generated from walsetlk.test
 func TestSQLite_walsetlk(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25304,6 +26315,7 @@ func TestSQLite_walsetlk(t *testing.T) {
 }
 // Auto-generated from walsetlk2.test
 func TestSQLite_walsetlk2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25356,6 +26368,7 @@ func TestSQLite_walsetlk2(t *testing.T) {
 }
 // Auto-generated from walsetlk3.test
 func TestSQLite_walsetlk3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25372,6 +26385,7 @@ func TestSQLite_walsetlk3(t *testing.T) {
 }
 // Auto-generated from walsetlk_recover.test
 func TestSQLite_walsetlk_recover(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25381,6 +26395,7 @@ func TestSQLite_walsetlk_recover(t *testing.T) {
 }
 // Auto-generated from walsetlk_snapshot.test
 func TestSQLite_walsetlk_snapshot(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25391,6 +26406,7 @@ func TestSQLite_walsetlk_snapshot(t *testing.T) {
 }
 // Auto-generated from walshared.test
 func TestSQLite_walshared(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25402,6 +26418,7 @@ func TestSQLite_walshared(t *testing.T) {
 }
 // Auto-generated from walslow.test
 func TestSQLite_walslow(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25428,6 +26445,7 @@ func TestSQLite_walslow(t *testing.T) {
 }
 // Auto-generated from walthread.test
 func TestSQLite_walthread(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25451,6 +26469,7 @@ func TestSQLite_walthread(t *testing.T) {
 }
 // Auto-generated from walvfs.test
 func TestSQLite_walvfs(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25511,6 +26530,7 @@ func TestSQLite_walvfs(t *testing.T) {
 }
 // Auto-generated from where.test
 func TestSQLite_where(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25590,6 +26610,7 @@ func TestSQLite_where(t *testing.T) {
 }
 // Auto-generated from where2.test
 func TestSQLite_where2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25658,6 +26679,7 @@ func TestSQLite_where2(t *testing.T) {
 }
 // Auto-generated from where3.test
 func TestSQLite_where3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25681,6 +26703,7 @@ func TestSQLite_where3(t *testing.T) {
 }
 // Auto-generated from where4.test
 func TestSQLite_where4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25712,6 +26735,7 @@ func TestSQLite_where4(t *testing.T) {
 }
 // Auto-generated from where5.test
 func TestSQLite_where5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25770,6 +26794,7 @@ func TestSQLite_where5(t *testing.T) {
 }
 // Auto-generated from where6.test
 func TestSQLite_where6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25787,6 +26812,7 @@ func TestSQLite_where6(t *testing.T) {
 }
 // Auto-generated from where7.test
 func TestSQLite_where7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25802,6 +26828,7 @@ func TestSQLite_where7(t *testing.T) {
 }
 // Auto-generated from where8.test
 func TestSQLite_where8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25824,6 +26851,7 @@ func TestSQLite_where8(t *testing.T) {
 }
 // Auto-generated from where9.test
 func TestSQLite_where9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25856,6 +26884,7 @@ func TestSQLite_where9(t *testing.T) {
 }
 // Auto-generated from whereA.test
 func TestSQLite_whereA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25894,6 +26923,7 @@ func TestSQLite_whereA(t *testing.T) {
 }
 // Auto-generated from whereB.test
 func TestSQLite_whereB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25914,6 +26944,7 @@ func TestSQLite_whereB(t *testing.T) {
 }
 // Auto-generated from whereC.test
 func TestSQLite_whereC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25922,6 +26953,7 @@ func TestSQLite_whereC(t *testing.T) {
 }
 // Auto-generated from whereD.test
 func TestSQLite_whereD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25966,6 +26998,7 @@ func TestSQLite_whereD(t *testing.T) {
 }
 // Auto-generated from whereE.test
 func TestSQLite_whereE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25976,6 +27009,7 @@ func TestSQLite_whereE(t *testing.T) {
 }
 // Auto-generated from whereF.test
 func TestSQLite_whereF(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -25999,6 +27033,7 @@ func TestSQLite_whereF(t *testing.T) {
 }
 // Auto-generated from whereG.test
 func TestSQLite_whereG(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26060,6 +27095,7 @@ func TestSQLite_whereG(t *testing.T) {
 }
 // Auto-generated from whereH.test
 func TestSQLite_whereH(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26077,6 +27113,7 @@ func TestSQLite_whereH(t *testing.T) {
 }
 // Auto-generated from whereI.test
 func TestSQLite_whereI(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26091,6 +27128,7 @@ func TestSQLite_whereI(t *testing.T) {
 }
 // Auto-generated from whereJ.test
 func TestSQLite_whereJ(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26114,6 +27152,7 @@ func TestSQLite_whereJ(t *testing.T) {
 }
 // Auto-generated from whereK.test
 func TestSQLite_whereK(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26132,6 +27171,7 @@ func TestSQLite_whereK(t *testing.T) {
 }
 // Auto-generated from whereL.test
 func TestSQLite_whereL(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26176,6 +27216,7 @@ func TestSQLite_whereL(t *testing.T) {
 }
 // Auto-generated from whereM.test
 func TestSQLite_whereM(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26210,6 +27251,7 @@ func TestSQLite_whereM(t *testing.T) {
 }
 // Auto-generated from whereN.test
 func TestSQLite_whereN(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26218,6 +27260,7 @@ func TestSQLite_whereN(t *testing.T) {
 }
 // Auto-generated from wherefault.test
 func TestSQLite_wherefault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26231,6 +27274,7 @@ func TestSQLite_wherefault(t *testing.T) {
 }
 // Auto-generated from wherelfault.test
 func TestSQLite_wherelfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26244,6 +27288,7 @@ func TestSQLite_wherelfault(t *testing.T) {
 }
 // Auto-generated from wherelimit.test
 func TestSQLite_wherelimit(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26315,6 +27360,7 @@ func TestSQLite_wherelimit(t *testing.T) {
 }
 // Auto-generated from wherelimit2.test
 func TestSQLite_wherelimit2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26357,6 +27403,7 @@ func TestSQLite_wherelimit2(t *testing.T) {
 }
 // Auto-generated from wherelimit3.test
 func TestSQLite_wherelimit3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26365,6 +27412,7 @@ func TestSQLite_wherelimit3(t *testing.T) {
 }
 // Auto-generated from widetab1.test
 func TestSQLite_widetab1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26391,6 +27439,7 @@ func TestSQLite_widetab1(t *testing.T) {
 }
 // Auto-generated from win32lock.test
 func TestSQLite_win32lock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26403,6 +27452,7 @@ func TestSQLite_win32lock(t *testing.T) {
 }
 // Auto-generated from win32longpath.test
 func TestSQLite_win32longpath(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26411,6 +27461,7 @@ func TestSQLite_win32longpath(t *testing.T) {
 }
 // Auto-generated from win32nolock.test
 func TestSQLite_win32nolock(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26423,6 +27474,7 @@ func TestSQLite_win32nolock(t *testing.T) {
 }
 // Auto-generated from window1.test
 func TestSQLite_window1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26526,6 +27578,7 @@ func TestSQLite_window1(t *testing.T) {
 }
 // Auto-generated from window2.test
 func TestSQLite_window2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26541,6 +27594,7 @@ func TestSQLite_window2(t *testing.T) {
 }
 // Auto-generated from window3.test
 func TestSQLite_window3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26549,6 +27603,7 @@ func TestSQLite_window3(t *testing.T) {
 }
 // Auto-generated from window4.test
 func TestSQLite_window4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26568,6 +27623,7 @@ func TestSQLite_window4(t *testing.T) {
 }
 // Auto-generated from window5.test
 func TestSQLite_window5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26577,6 +27633,7 @@ func TestSQLite_window5(t *testing.T) {
 }
 // Auto-generated from window6.test
 func TestSQLite_window6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26605,6 +27662,7 @@ func TestSQLite_window6(t *testing.T) {
 }
 // Auto-generated from window7.test
 func TestSQLite_window7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26614,6 +27672,7 @@ func TestSQLite_window7(t *testing.T) {
 }
 // Auto-generated from window8.test
 func TestSQLite_window8(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26631,6 +27690,7 @@ func TestSQLite_window8(t *testing.T) {
 }
 // Auto-generated from window9.test
 func TestSQLite_window9(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26678,6 +27738,7 @@ func TestSQLite_window9(t *testing.T) {
 }
 // Auto-generated from windowA.test
 func TestSQLite_windowA(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26686,6 +27747,7 @@ func TestSQLite_windowA(t *testing.T) {
 }
 // Auto-generated from windowB.test
 func TestSQLite_windowB(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26725,6 +27787,7 @@ func TestSQLite_windowB(t *testing.T) {
 }
 // Auto-generated from windowC.test
 func TestSQLite_windowC(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26740,6 +27803,7 @@ func TestSQLite_windowC(t *testing.T) {
 }
 // Auto-generated from windowD.test
 func TestSQLite_windowD(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26761,6 +27825,7 @@ func TestSQLite_windowD(t *testing.T) {
 }
 // Auto-generated from windowE.test
 func TestSQLite_windowE(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26786,6 +27851,7 @@ func TestSQLite_windowE(t *testing.T) {
 }
 // Auto-generated from windowerr.test
 func TestSQLite_windowerr(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26794,6 +27860,7 @@ func TestSQLite_windowerr(t *testing.T) {
 }
 // Auto-generated from windowfault.test
 func TestSQLite_windowfault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26823,6 +27890,7 @@ func TestSQLite_windowfault(t *testing.T) {
 }
 // Auto-generated from windowpushd.test
 func TestSQLite_windowpushd(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26836,6 +27904,7 @@ func TestSQLite_windowpushd(t *testing.T) {
 }
 // Auto-generated from with1.test
 func TestSQLite_with1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -26935,6 +28004,7 @@ func TestSQLite_with1(t *testing.T) {
 }
 // Auto-generated from with2.test
 func TestSQLite_with2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27044,6 +28114,7 @@ func TestSQLite_with2(t *testing.T) {
 }
 // Auto-generated from with3.test
 func TestSQLite_with3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27069,6 +28140,7 @@ func TestSQLite_with3(t *testing.T) {
 }
 // Auto-generated from with4.test
 func TestSQLite_with4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27092,6 +28164,7 @@ func TestSQLite_with4(t *testing.T) {
 }
 // Auto-generated from with5.test
 func TestSQLite_with5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27121,6 +28194,7 @@ func TestSQLite_with5(t *testing.T) {
 }
 // Auto-generated from with6.test
 func TestSQLite_with6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27150,6 +28224,7 @@ func TestSQLite_with6(t *testing.T) {
 }
 // Auto-generated from withM.test
 func TestSQLite_withM(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27161,6 +28236,7 @@ func TestSQLite_withM(t *testing.T) {
 }
 // Auto-generated from without_rowid1.test
 func TestSQLite_without_rowid1(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27253,6 +28329,7 @@ func TestSQLite_without_rowid1(t *testing.T) {
 }
 // Auto-generated from without_rowid2.test
 func TestSQLite_without_rowid2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27268,6 +28345,7 @@ func TestSQLite_without_rowid2(t *testing.T) {
 }
 // Auto-generated from without_rowid3.test
 func TestSQLite_without_rowid3(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27335,6 +28413,7 @@ func TestSQLite_without_rowid3(t *testing.T) {
 }
 // Auto-generated from without_rowid4.test
 func TestSQLite_without_rowid4(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27382,6 +28461,7 @@ func TestSQLite_without_rowid4(t *testing.T) {
 }
 // Auto-generated from without_rowid5.test
 func TestSQLite_without_rowid5(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27440,6 +28520,7 @@ func TestSQLite_without_rowid5(t *testing.T) {
 }
 // Auto-generated from without_rowid6.test
 func TestSQLite_without_rowid6(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27461,6 +28542,7 @@ func TestSQLite_without_rowid6(t *testing.T) {
 }
 // Auto-generated from without_rowid7.test
 func TestSQLite_without_rowid7(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27494,6 +28576,7 @@ func TestSQLite_without_rowid7(t *testing.T) {
 }
 // Auto-generated from writecrash.test
 func TestSQLite_writecrash(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27508,6 +28591,7 @@ func TestSQLite_writecrash(t *testing.T) {
 }
 // Auto-generated from zeroblob.test
 func TestSQLite_zeroblob(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27524,6 +28608,7 @@ func TestSQLite_zeroblob(t *testing.T) {
 }
 // Auto-generated from zerodamage.test
 func TestSQLite_zerodamage(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27544,6 +28629,7 @@ func TestSQLite_zerodamage(t *testing.T) {
 }
 // Auto-generated from zipfile.test
 func TestSQLite_zipfile(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27632,6 +28718,7 @@ func TestSQLite_zipfile(t *testing.T) {
 }
 // Auto-generated from zipfile2.test
 func TestSQLite_zipfile2(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)
@@ -27644,6 +28731,7 @@ func TestSQLite_zipfile2(t *testing.T) {
 }
 // Auto-generated from zipfilefault.test
 func TestSQLite_zipfilefault(t *testing.T) {
+	t.Parallel()
 	db := setupDB(t)
 	var dbs []*DB
 	dbs = append(dbs, db)

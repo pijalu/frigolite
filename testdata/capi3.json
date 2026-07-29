@@ -1,0 +1,347 @@
+{
+  "file": "capi3.test",
+  "name": "capi3",
+  "tests": [
+    {
+      "name": "20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n  INSERT INTO t4 VALUES('abcdefghij');"
+        }
+      ]
+    },
+    {
+      "name": "capi3-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tablename(x)"
+        }
+      ]
+    },
+    {
+      "name": "capi3-5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);"
+        }
+      ]
+    },
+    {
+      "name": "capi3-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;",
+          "expect": "1 {unsupported file format}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);"
+        }
+      ]
+    },
+    {
+      "name": "capi3-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);"
+        }
+      ]
+    },
+    {
+      "name": "capi3-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;",
+          "expect": "1 {malformed database schema (?)}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);"
+        }
+      ]
+    },
+    {
+      "name": "capi3-8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master;",
+          "expect": "1 {malformed database schema (?)}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-10-1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select * from sqlite_master;",
+          "expect": "1 {out of memory}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-10-4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select * from sqlite_master where rowid>5;",
+          "expect": "1 {out of memory}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'int');\n    INSERT INTO t1 VALUES(2, 'notatype');"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "0 {1 int 2 notatype}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n    INSERT INTO t2 VALUES(3);"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;",
+          "expect": "1 {cannot rollback - no transaction is active}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.16",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    COMMIT;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-11.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "1 {cannot commit - no transaction is active}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, NULL);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(4);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-12.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(4, NULL);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3-12.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "COMMIT;\n    SELECT a FROM t1;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "capi3-13.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "capi3-13-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "{} {} hello world {} {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tablename(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a VARINT, b BLOB, c VARCHAR(16));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES('one', 'two', NULL);\n    INSERT INTO t1 VALUES(1.2, 1.3, 1.4);"
+        },
+        {
+          "type": "exec",
+          "sql": "pragma encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES(NULL,NULL,NULL,NULL,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n      PRAGMA writable_schema=ON;\n      INSERT INTO sqlite_master VALUES('table',NULL,NULL,NULL,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 'int');\n    INSERT INTO t1 VALUES(2, 'notatype');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n    INSERT INTO t2 VALUES(3);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;\n    SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -1,0 +1,32 @@
+{
+  "file": "instrfault.test",
+  "name": "instrfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT instr(h, n) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr(h, n) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr($::HAYSTACK, $::NEEDLE) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT instr($::HAYSTACK, $::NEEDLE) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM h1 WHERE instr(a,b)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

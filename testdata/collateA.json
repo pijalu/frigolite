@@ -9,10 +9,6 @@
           "type": "query",
           "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;",
           "expect": "6"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;"
         }
       ]
     },
@@ -21,10 +17,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE b='abcde     '"
         }
       ]
@@ -36,10 +28,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abcde     '",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
         }
       ]
     },
@@ -48,10 +36,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
         }
       ]
@@ -63,10 +47,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy'",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
         }
       ]
     },
@@ -77,10 +57,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
         }
       ]
     },
@@ -91,10 +67,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy  '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
         }
       ]
     },
@@ -105,10 +77,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy   '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
         }
       ]
     },
@@ -119,10 +87,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy    '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
         }
       ]
     },
@@ -133,10 +97,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
         }
       ]
     },
@@ -147,10 +107,6 @@
           "type": "query",
           "sql": "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;"
         }
       ]
     },
@@ -161,10 +117,6 @@
           "type": "query",
           "sql": "SELECT 'abc123                         '='abc123' COLLATE RTRIM;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT 'abc123                         '='abc123' COLLATE RTRIM;"
         }
       ]
     },
@@ -175,10 +127,6 @@
           "type": "query",
           "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''",
           "expect": "1 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''"
         }
       ]
     },
@@ -189,10 +137,6 @@
           "type": "query",
           "sql": "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '",
           "expect": "1 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '"
         }
       ]
     },
@@ -203,10 +147,6 @@
           "type": "query",
           "sql": "SELECT '  '='      ' COLLATE RTRIM, '  '='        '",
           "expect": "1 0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT '  '='      ' COLLATE RTRIM, '  '='        '"
         }
       ]
     },
@@ -217,10 +157,6 @@
           "type": "query",
           "sql": "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '",
           "expect": "0 1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '"
         }
       ]
     },
@@ -229,10 +165,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='xyzz'"
         }
       ]
@@ -243,10 +175,6 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
         }
       ]
     },
@@ -255,10 +183,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
         }
       ]
@@ -269,10 +193,6 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abcd   '"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
         }
       ]
     },
@@ -281,10 +201,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='abcd'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='abcd'"
         }
       ]
@@ -295,10 +211,6 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abc'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abc'"
         }
       ]
     },
@@ -307,10 +219,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
         }
       ]
@@ -322,10 +230,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c=''",
           "expect": "5 6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c=''"
         }
       ]
     },
@@ -336,10 +240,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c=' '",
           "expect": "5 6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c=' '"
         }
       ]
     },
@@ -350,10 +250,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='                    '",
           "expect": "5 6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='                    '"
         }
       ]
     },
@@ -364,10 +260,6 @@
           "type": "query",
           "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;",
           "expect": "ok"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;"
         }
       ]
     },
@@ -376,10 +268,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE b='abcde     '"
         }
       ]
@@ -391,10 +279,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abcde     '",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
         }
       ]
     },
@@ -403,10 +287,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
         }
       ]
@@ -418,10 +298,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy'",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
         }
       ]
     },
@@ -432,10 +308,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
         }
       ]
     },
@@ -446,10 +318,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy  '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
         }
       ]
     },
@@ -460,10 +328,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy   '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
         }
       ]
     },
@@ -474,10 +338,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy    '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
         }
       ]
     },
@@ -488,10 +348,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
         }
       ]
     },
@@ -500,10 +356,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='xyzz'"
         }
       ]
@@ -514,10 +366,6 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
         }
       ]
     },
@@ -526,10 +374,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
         }
       ]
@@ -540,10 +384,6 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abcd   '"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
         }
       ]
     },
@@ -552,10 +392,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='abcd'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='abcd'"
         }
       ]
@@ -566,10 +402,6 @@
         {
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abc'"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abc'"
         }
       ]
     },
@@ -578,10 +410,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
         }
       ]
@@ -593,10 +421,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c=''",
           "expect": "5 6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c=''"
         }
       ]
     },
@@ -607,10 +431,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c=' '",
           "expect": "5 6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c=' '"
         }
       ]
     },
@@ -621,10 +441,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='                    '",
           "expect": "5 6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='                    '"
         }
       ]
     },
@@ -639,31 +455,10 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_48",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "REINDEX;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
       "name": "collateA-3.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE b='abcde     '"
         }
       ]
@@ -675,10 +470,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='abcde     '",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
         }
       ]
     },
@@ -687,10 +478,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
         }
       ]
@@ -702,10 +489,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy'",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
         }
       ]
     },
@@ -716,10 +499,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
         }
       ]
     },
@@ -730,10 +509,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy  '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
         }
       ]
     },
@@ -744,10 +519,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy   '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
         }
       ]
     },
@@ -758,10 +529,6 @@
           "type": "query",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy    '",
           "expect": "2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
         }
       ]
     },
@@ -775,7 +542,235 @@
         },
         {
           "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc123'='abc123                         ' COLLATE RTRIM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 'abc123                         '='abc123' COLLATE RTRIM;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '  '='' COLLATE RTRIM, '  '='' COLLATE BINARY, '  '=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ''='  ' COLLATE RTRIM, ''='  ' COLLATE BINARY, ''='  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '  '='      ' COLLATE RTRIM, '  '='        '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT ''<>'  ' COLLATE RTRIM, ''<>'  ' COLLATE BINARY, ''<>'  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=' '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='                    '"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1b ON t1(b);\n    CREATE INDEX i1c ON t1(c);\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzyy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzz   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcd'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcdef    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=''"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c=' '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='                    '"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='abcde     '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE b='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy  '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy   '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy    '"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1 WHERE c='xyzzy                                  '"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

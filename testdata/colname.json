@@ -3,85 +3,6 @@
   "name": "colname",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA short_column_names"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA full_column_names"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tabc(a,b,c);\n    INSERT INTO tabc VALUES(1,2,3);\n    CREATE TABLE txyz(x,y,z);\n    INSERT INTO txyz VALUES(4,5,6);\n    CREATE TABLE tboth(a,b,c,x,y,z);\n    INSERT INTO tboth VALUES(11,12,13,14,15,16);\n    CREATE VIEW v1 AS SELECT tabC.a, txyZ.x, * \n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v2 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, *\n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=OFF;\n    CREATE VIEW v3 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v4 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=ON;\n    CREATE VIEW v5 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v6 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x.* FROM sqlite_master X LIMIT 1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t7 VALUES(1,2);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE \"t3893\"(\"x\");\n    INSERT INTO t3893 VALUES(123);\n    SELECT \"y\".\"x\" FROM (SELECT \"x\" FROM \"t3893\") AS \"y\";"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE VIEW v2(x,y) AS SELECT a,b FROM t1 LIMIT 10;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIEW v3 AS SELECT c AS a, d AS b FROM t2;"
-        }
-      ]
-    },
-    {
       "name": "colname-9.300",
       "steps": [
         {
@@ -121,6 +42,16 @@
       ]
     },
     {
+      "name": "colname-9.410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5 AS SELECT RAISE(abort,a);",
+          "expect": "1 {no such column: a}"
+        }
+      ]
+    },
+    {
       "name": "colname-10.100",
       "steps": [
         {
@@ -137,6 +68,70 @@
           "type": "query",
           "sql": "DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS SELECT \"with space\" FROM t1 GROUP BY 1;\n  PRAGMA table_info(t3);",
           "expect": "0 {with space} TEXT 0 {} 0"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA full_column_names"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tabc(a,b,c);\n    INSERT INTO tabc VALUES(1,2,3);\n    CREATE TABLE txyz(x,y,z);\n    INSERT INTO txyz VALUES(4,5,6);\n    CREATE TABLE tboth(a,b,c,x,y,z);\n    INSERT INTO tboth VALUES(11,12,13,14,15,16);\n    CREATE VIEW v1 AS SELECT tabC.a, txyZ.x, * \n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v2 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, *\n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=OFF;\n    CREATE VIEW v3 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v4 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA short_column_names=OFF;\n    PRAGMA full_column_names=ON;\n    CREATE VIEW v5 AS SELECT tabC.a, txyZ.x, *\n      FROM tabc, txyz ORDER BY 1 LIMIT 1;\n    CREATE VIEW v6 AS SELECT tabC.a, txyZ.x, tboTh.a, tbotH.x, * \n      FROM tabc, txyz, tboth ORDER BY 1 LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x.* FROM sqlite_master X LIMIT 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t7 VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"t3893\"(\"x\");\n    INSERT INTO t3893 VALUES(123);\n    SELECT \"y\".\"x\" FROM (SELECT \"x\" FROM \"t3893\") AS \"y\";"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2(x,y) AS SELECT a,b FROM t1 LIMIT 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c,d);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIEW v3 AS SELECT c AS a, d AS b FROM t2;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

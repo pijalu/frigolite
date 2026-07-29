@@ -3,71 +3,12 @@
   "name": "index7",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\""
-        }
-      ]
-    },
-    {
       "name": "index7-1.1.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT count(*) FROM t1;",
           "expect": "20"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE x IS NOT NULL;",
-          "expect": "1 {no such column: x}"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE EXISTS(SELECT * FROM t1);",
-          "expect": "1 {subqueries prohibited in partial index WHERE clauses}"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;",
-          "expect": "1 {parameters prohibited in partial index WHERE clauses}"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();",
-          "expect": "1 {non-deterministic functions prohibited in partial index WHERE clauses}"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';",
-          "expect": "0 {}"
         }
       ]
     },
@@ -97,174 +38,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE c>=101;\n  DROP INDEX IF EXISTS bad1;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {20 1} t1a {14 1} t1b {10 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {20 1} t1a {20 1} t1b {10 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.11b",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {20 1} t1a {6 1} t1b {20 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {20 1} t1a {13 1} t1b {10 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.13",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {15 1} t1a {10 1} t1b {8 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {15 1} t1a {10 1} t1b {8 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-1.15",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
-          "expect": "t1 {15 1} t1a {10 1} t1b {8 1} t1c {15 1} ok"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
-        }
-      ]
-    },
-    {
-      "name": "index7-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;",
-          "expect": "800"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;"
-        }
-      ]
-    },
-    {
-      "name": "index7-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;",
-          "expect": "/(SCAN|SEARCH) t2 USING COVERING INDEX t2a1 /"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;"
-        }
-      ]
-    },
-    {
-      "name": "index7-2.3stat4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;",
-          "expect": "/(SCAN|SEARCH) t2 USING COVERING INDEX t2a1 /"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;"
-        }
-      ]
-    },
-    {
-      "name": "index7-2.3stat4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a>0;",
-          "expect": "/(SCAN|SEARCH) t2 USING COVERING INDEX t2a1 /"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a>0;"
-        }
-      ]
-    },
-    {
-      "name": "index7-2.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;",
-          "expect": "~/INDEX t2a1/"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;"
         }
       ]
     },
@@ -344,26 +117,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(a,b PRIMARY KEY) without rowid;\n  INSERT INTO t3 SELECT value, value FROM nums WHERE value<200;\n  UPDATE t3 SET a=999 WHERE b%5!=0;\n  CREATE UNIQUE INDEX t3a ON t3(a) WHERE a<>999;"
-        }
-      ]
-    },
-    {
-      "name": "index7-3.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3(a,b) VALUES(150, 'test1');",
-          "expect": "1 {UNIQUE constraint failed: t3.a}"
-        }
-      ]
-    },
-    {
-      "name": "index7-3.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3(a,b) VALUES(999, 'test1'), (999, 'test2');",
-          "expect": "0 {}"
         }
       ]
     },
@@ -458,20 +211,276 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "index7-8.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE INDEX t1y ON t1(y) WHERE y IS NOT NULL;\n  INSERT INTO t1(x) VALUES(1),(2);\n  ANALYZE;\n  EXPLAIN QUERY PLAN SELECT 1 FROM t1 WHERE y=5;",
           "expect": "/SEARCH t1 USING COVERING INDEX t1y/"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;",
+          "expect": "14 20 ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE x IS NOT NULL;",
+          "expect": "1 {no such column: x}"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE EXISTS(SELECT * FROM t1);",
+          "expect": "1 {subqueries prohibited in partial index WHERE clauses}"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE a!=?1;",
+          "expect": "1 {parameters prohibited in partial index WHERE clauses}"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE a!=random();",
+          "expect": "1 {non-deterministic functions prohibited in partial index WHERE clauses}"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX bad1 ON t1(a,b) WHERE a NOT LIKE 'abc%';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {20 1} t1a {14 1} t1b {10 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {20 1} t1a {20 1} t1b {10 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.11b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {20 1} t1a {6 1} t1b {20 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {20 1} t1a {13 1} t1b {10 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {15 1} t1a {10 1} t1b {8 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.14",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {15 1} t1a {10 1} t1b {8 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-1.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;",
+          "expect": "t1 {15 1} t1a {10 1} t1b {8 1} t1c {15 1} ok"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;",
+          "expect": "800"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;",
+          "expect": "/(SCAN|SEARCH) t2 USING COVERING INDEX t2a1 /"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.3stat4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;",
+          "expect": "/(SCAN|SEARCH) t2 USING COVERING INDEX t2a1 /"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.3stat4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a>0;",
+          "expect": "/(SCAN|SEARCH) t2 USING COVERING INDEX t2a1 /"
+        }
+      ]
+    },
+    {
+      "name": "index7-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;",
+          "expect": "~/INDEX t2a1/"
+        }
+      ]
+    },
+    {
+      "name": "index7-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(a,b) VALUES(150, 'test1');",
+          "expect": "1 {UNIQUE constraint failed: t3.a}"
+        }
+      ]
+    },
+    {
+      "name": "index7-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3(a,b) VALUES(999, 'test1'), (999, 'test2');",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=b;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=NULL WHERE b%3!=0;\n    UPDATE t1 SET b=b+100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=CASE WHEN b%3!=0 THEN b END;\n    UPDATE t1 SET b=b-100;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b BETWEEN 8 AND 12;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "REINDEX;\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1c ON t1(c);\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n    PRAGMA integrity_check;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b PRIMARY KEY) without rowid;\n    INSERT INTO t2(a,b) SELECT value, value FROM nums WHERE value<1000;\n    UPDATE t2 SET a=NULL WHERE b%5==0;\n    CREATE INDEX t2a1 ON t2(a) WHERE a IS NOT NULL;\n    SELECT count(*) FROM t2 WHERE a IS NOT NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a=5;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n      SELECT * FROM t2 WHERE a IS NOT NULL AND a>0;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN\n    SELECT * FROM t2 WHERE a IS NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\""
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

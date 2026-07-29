@@ -1,0 +1,15 @@
+{
+  "file": "zeroblobfault.test",
+  "name": "zeroblobfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(zeroblob(2000))"
+        }
+      ]
+    }
+  ]
+}

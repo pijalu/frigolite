@@ -3,10 +3,21 @@
   "name": "vtabH",
   "tests": [
     {
-      "name": "__RESET_DB__",
+      "name": "1.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE vars USING tclvar;\n  SELECT name, arrayname, value FROM vars WHERE name = 'xyz';",
+          "expect": "xyz {} 10"
         }
       ]
     },
@@ -17,6 +28,14 @@
           "type": "query",
           "sql": "SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'",
           "expect": "test.db ."
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

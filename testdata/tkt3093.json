@@ -1,0 +1,29 @@
+{
+  "file": "tkt3093.test",
+  "name": "tkt3093",
+  "tests": [
+    {
+      "name": "tkt3093.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x=x+1;",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n     INSERT INTO t1 VALUES(2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

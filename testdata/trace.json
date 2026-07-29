@@ -1,0 +1,182 @@
+{
+  "file": "trace.test",
+  "name": "trace",
+  "tests": [
+    {
+      "name": "trace-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "trace-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 2 3 2 3"
+        }
+      ]
+    },
+    {
+      "name": "trace-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "trace-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 2 3 2 3"
+        }
+      ]
+    },
+    {
+      "name": "trace-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT $::t6int, ?1, $::t6int",
+          "expect": "6 6 6"
+        }
+      ]
+    },
+    {
+      "name": "trace-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6([$::t6int],\"?1\"); INSERT INTO t6 VALUES(1,2)"
+        }
+      ]
+    },
+    {
+      "name": "trace-6.100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6",
+          "expect": "{$::t6str} 1 {test-six y'all} {test-six y'all} 2 {test-six y'all}"
+        }
+      ]
+    },
+    {
+      "name": "trace-6.200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6",
+          "expect": "{$::t6str} 1 {test-six y'all} {test-six y'all} 2 {test-six y'all}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT $::t6int, ?1, $::t6int"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6([$::t6int],\"?1\"); INSERT INTO t6 VALUES(1,2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '$::t6int', [$::t6int], $::t6int, ?1, \"?1\", $::t6int FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1b(x TEXT PRIMARY KEY, y);\n     INSERT INTO t1b VALUES('abc','def'),('ghi','jkl'),('mno','pqr');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER r1t1 AFTER UPDATE ON t1 BEGIN\n        UPDATE t2 SET a=new.a WHERE rowid=new.rowid;\n      END;\n      CREATE TRIGGER r1t2 AFTER UPDATE ON t2 BEGIN\n        SELECT 'hello';\n      END;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET a=a+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x'3031323334' AS x"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

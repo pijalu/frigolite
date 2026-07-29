@@ -110,14 +110,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
@@ -165,14 +157,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.0",
       "steps": [
         {
@@ -202,27 +186,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c, d, e);\n  CREATE INDEX i1 ON t1(a, b, c, d, e);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -252,14 +220,6 @@
           "type": "query",
           "sql": "SELECT * FROM t0 WHERE EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \n  BETWEEN 1 AND 1;",
           "expect": "0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -313,14 +273,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.1.1",
       "steps": [
         {
@@ -370,14 +322,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "9.0",
       "steps": [
         {
@@ -397,14 +341,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "10.0",
       "steps": [
         {
@@ -420,6 +356,100 @@
           "type": "query",
           "sql": "SELECT a, min(b) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
           "expect": "1 a\n  2 a\n  3 a\n  4 b\n  5 c\n  6 d"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b) FILTER (WHERE a%2) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
+          "expect": "1 a\n  2 a\n  3 a\n  4 c\n  5 c\n  6 e"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, min(b) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
+          "expect": "1 b\n  2 b\n  3 b\n  4 b\n  5 d\n  6 d"
+        }
+      ]
+    },
+    {
+      "name": "10.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)",
+          "expect": "1 {FILTER clause may only be used with aggregate window functions}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

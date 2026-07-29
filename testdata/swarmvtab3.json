@@ -8,14 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TEMP TABLE swarm(id, tbl, minval, maxval);"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS s"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS s"
         }
       ]
     },
@@ -25,6 +17,14 @@
         {
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS s"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS s"
         },
         {
           "type": "exec",

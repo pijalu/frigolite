@@ -13,11 +13,128 @@
       ]
     },
     {
+      "name": "1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA journal_mode = WAL;",
+          "expect": "exclusive wal"
+        }
+      ]
+    },
+    {
       "name": "1.1.3",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "2.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t1;",
+          "expect": "exclusive 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = NORMAL;\n  SELECT * FROM t1;",
+          "expect": "exclusive 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = DELETE;\n  SELECT * FROM t1;",
+          "expect": "delete 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "2.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = NORMAL;\n  SELECT * FROM t1;",
+          "expect": "normal 1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n  PRAGMA locking_mode = NORMAL;\n  PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(5, 6);"
+        }
+      ]
+    },
+    {
+      "name": "3.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode = NORMAL;\n  SELECT * FROM t1;",
+          "expect": "normal 1 2 3 4 5 6"
+        }
+      ]
+    },
+    {
+      "name": "3.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE;\n  INSERT INTO t1 VALUES(7, 8);",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "4.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y)"
+        }
+      ]
+    },
+    {
+      "name": "4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = wAL",
+          "expect": "wal"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 1);"
+        }
+      ]
+    },
+    {
+      "name": "4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA journal_mode = delete",
+          "expect": "delete"
         }
       ]
     },
@@ -32,19 +149,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "1.2.2",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
+          "type": "query",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE",
+          "expect": "1 2"
         }
       ]
     },
@@ -59,31 +169,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "1.3.2",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(3, 4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE",
+          "expect": "1 2 3 4"
         }
       ]
     },
@@ -94,16 +185,6 @@
           "type": "exec",
           "sql": "SELECT * FROM t1",
           "expect": "1 {database is locked}"
-        }
-      ]
-    },
-    {
-      "name": "2.3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA journal_mode = DELETE;\n  SELECT * FROM t1;",
-          "expect": "delete 1 2 3 4"
         }
       ]
     },
@@ -133,10 +214,6 @@
         {
           "type": "query",
           "sql": "PRAGMA journal_mode = WAL"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL"
         }
       ]
     },
@@ -147,10 +224,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1",
           "expect": "1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
         }
       ]
     },
@@ -191,6 +264,34 @@
           "type": "exec",
           "sql": "PRAGMA journal_mode = WAL",
           "expect": "0 delete"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA locking_mode = EXCLUSIVE"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
         }
       ]
     },
@@ -203,40 +304,26 @@
       ]
     },
     {
-      "name": "4.1.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(x, y)"
+          "type": "reset_db"
         }
       ]
     },
     {
-      "name": "4.1.3",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA journal_mode = wAL",
-          "expect": "wal"
+          "type": "reset_db"
         }
       ]
     },
     {
-      "name": "4.2.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1, 1);"
-        }
-      ]
-    },
-    {
-      "name": "4.2.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "PRAGMA journal_mode = delete",
-          "expect": "delete"
+          "type": "reset_db"
         }
       ]
     }

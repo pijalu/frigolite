@@ -3,15 +3,6 @@
   "name": "joinE",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);"
-        }
-      ]
-    },
-    {
       "name": "joinE-1",
       "steps": [
         {
@@ -206,10 +197,6 @@
         {
           "type": "exec",
           "sql": "#   SELECT a, b\n#   FROM t1 FULL JOIN t2 ON b IS NULL\n#   ORDER BY coalesce(a,b,3);\n#"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1);\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(NULL);"
         }
       ]
     },
@@ -403,6 +390,14 @@
         {
           "type": "exec",
           "sql": "#   SELECT a, b\n#   FROM t1 FULL JOIN t2 ON b IS NULL\n#   ORDER BY coalesce(a,b,3);\n#"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1);\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES(NULL);"
         }
       ]
     }

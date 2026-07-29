@@ -8,10 +8,6 @@
         {
           "type": "exec",
           "sql": "create table a(id integer primary key, b_id integer, myvalue varchar);\n    create table b(id integer primary key, bvalue varchar);\n    insert into a(b_id, myvalue) values(1,'Test');\n    insert into a(b_id, myvalue) values(1,'Test2');\n    insert into a(b_id, myvalue) values(1,'Test3');\n    insert into b(bvalue) values('btest');"
-        },
-        {
-          "type": "exec",
-          "sql": "create table a(id integer primary key, b_id integer, myvalue varchar);\n    create table b(id integer primary key, bvalue varchar);\n    insert into a(b_id, myvalue) values(1,'Test');\n    insert into a(b_id, myvalue) values(1,'Test2');\n    insert into a(b_id, myvalue) values(1,'Test3');\n    insert into b(bvalue) values('btest');"
         }
       ]
     },
@@ -22,10 +18,6 @@
           "type": "query",
           "sql": "SELECT cc.id, cc.b_id, cc.myvalue, dd.bvalue \n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue FROM a\n      INNER JOIN b ON a.b_id = b.id WHERE b.bvalue = 'btest'\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id",
           "expect": "1 1 Test btest 2 1 Test2 btest 3 1 Test3 btest"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT cc.id, cc.b_id, cc.myvalue, dd.bvalue \n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue FROM a\n      INNER JOIN b ON a.b_id = b.id WHERE b.bvalue = 'btest'\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id"
         }
       ]
     },
@@ -36,10 +28,6 @@
           "type": "query",
           "sql": "SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id",
           "expect": "1 1 Test 2 1 Test2 3 1 Test3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id"
         }
       ]
     },
@@ -50,6 +38,18 @@
           "type": "query",
           "sql": "SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id",
           "expect": "1 1 Test 2 1 Test2 3 1 Test3"
+        },
+        {
+          "type": "exec",
+          "sql": "create table a(id integer primary key, b_id integer, myvalue varchar);\n    create table b(id integer primary key, bvalue varchar);\n    insert into a(b_id, myvalue) values(1,'Test');\n    insert into a(b_id, myvalue) values(1,'Test2');\n    insert into a(b_id, myvalue) values(1,'Test3');\n    insert into b(bvalue) values('btest');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cc.id, cc.b_id, cc.myvalue, dd.bvalue \n    FROM (\n      SELECT DISTINCT a.id, a.b_id, a.myvalue FROM a\n      INNER JOIN b ON a.b_id = b.id WHERE b.bvalue = 'btest'\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cc.id, cc.b_id, cc.myvalue\n    FROM (\n      SELECT a.id, a.b_id, a.myvalue \n      FROM a, b WHERE a.b_id = b.id\n    ) cc\n    LEFT OUTER JOIN b dd ON cc.b_id = dd.id"
         },
         {
           "type": "exec",

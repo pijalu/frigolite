@@ -1,0 +1,368 @@
+{
+  "file": "fkey6.test",
+  "name": "fkey6",
+  "tests": [
+    {
+      "name": "fkey6-1.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA defer_foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  CREATE TABLE t2(y INTEGER PRIMARY KEY,\n          z INTEGER REFERENCES t1(x) DEFERRABLE INITIALLY DEFERRED);\n  CREATE INDEX t2z ON t2(z);\n  CREATE TABLE t3(u INTEGER PRIMARY KEY, v INTEGER REFERENCES t1(x));\n  CREATE INDEX t3v ON t3(v);\n  INSERT INTO t1 VALUES(1),(2),(3),(4),(5);\n  INSERT INTO t2 VALUES(1,1),(2,2);\n  INSERT INTO t3 VALUES(3,3),(4,4);"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DELETE FROM p1;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DROP TABLE p1;\n    PRAGMA vdbe_trace = 0;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DELETE FROM p1;\n    DROP TABLE c1;\n  COMMIT;\n  PRAGMA defer_foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE p1;\n  CREATE TABLE p1(a PRIMARY KEY);\n  INSERT INTO p1 VALUES('one'), ('two');\n  CREATE TABLE c1(x REFERENCES p1);\n  INSERT INTO c1 VALUES('two'), ('one');"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO c1 VALUES('three');\n    DROP TABLE c1;\n  COMMIT;\n  PRAGMA defer_foreign_keys;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(x, y REFERENCES p2 ON DELETE RESTRICT ON UPDATE RESTRICT);\n  INSERT INTO p2 VALUES(1, 'one');\n  INSERT INTO p2 VALUES(2, 'two');\n  INSERT INTO c2 VALUES('i', 1);"
+        }
+      ]
+    },
+    {
+      "name": "3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE p2 SET a=a-1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "3.2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    UPDATE p2 SET a=a-1;"
+        }
+      ]
+    },
+    {
+      "name": "3.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "3.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER p2t AFTER DELETE ON p2 BEGIN\n    INSERT INTO p2 VALUES(old.a, 'deleted!');\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "3.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM p2 WHERE a=1;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "3.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "3.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "BEGIN;\n    PRAGMA defer_foreign_keys = 1;\n    DELETE FROM p2 WHERE a=1;\n  COMMIT;\n  SELECT * FROM p2;",
+          "expect": "0 one 1 deleted!"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE p1(a INTEGER PRIMARY KEY, b UNIQUE);\n  CREATE TABLE c1(x REFERENCES p1(b));\n\n  INSERT INTO p1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO c1 VALUES('two');\n\n  PRAGMA foreign_keys = 1;\n  PRAGMA defer_foreign_keys = 1;"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM p1 WHERE a=2;"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA foreign_keys = 1;\n  CREATE TABLE p1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO c1 VALUES(123);\n    PRAGMA defer_foreign_keys = 1;\n    INSERT INTO p1 VALUES(123, 'one two three');\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2;",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.10.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3",
+          "expect": "1 {FOREIGN KEY constraint failed}"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE y=1;"
+        }
+      ]
+    },
+    {
+      "name": "fkey6-1.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM t1 WHERE x=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t2 WHERE y=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "ROLLBACK"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

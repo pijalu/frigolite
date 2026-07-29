@@ -3,15 +3,6 @@
   "name": "dbfuzz001",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA writable_schema=on; PRAGMA integrity_check"
-        }
-      ]
-    },
-    {
       "name": "dbfuzz001-101b",
       "steps": [
         {
@@ -27,16 +18,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t3 WHERE x IS NOT NULL AND +rowid=6;"
-        }
-      ]
-    },
-    {
-      "name": "dbfuzz001-200",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t3 SELECT * FROM t2;",
-          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
@@ -61,19 +42,21 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "dbfuzz001-430",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a INTEGER, b INT, c DEFAULT 0);"
+        }
+      ]
+    },
+    {
+      "name": "dbfuzz001-420",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA locking_mode=EXCLUSIVE;\n  PRAGMA journal_mode = memory;\n  INSERT INTO t1 VALUES(1,2,3);\n  PRAGMA journal_mode=PERSIST;",
+          "expect": "exclusive memory persist"
         }
       ]
     },
@@ -92,6 +75,28 @@
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode=MEMORY;\n  INSERT INTO t1 VALUES(7, 8, 9);"
+        }
+      ]
+    },
+    {
+      "name": "dbfuzz001-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT * FROM t2;",
+          "expect": "1 {database disk image is malformed}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema=on; PRAGMA integrity_check"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

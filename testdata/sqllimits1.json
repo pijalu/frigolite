@@ -1,0 +1,459 @@
+{
+  "file": "sqllimits1.test",
+  "name": "sqllimits1",
+  "tests": [
+    {
+      "name": "sqllimits1.17.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n  SELECT *,*,*,*,*,*,*,* FROM (\n    SELECT 1,2,3,4,5,6,7,8,9,10\n  )\n  ))))"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-18.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "19.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'utf16';"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT randomblob(2147483647)",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT zeroblob(2147483647)",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT LENGTH(randomblob($::LARGESIZE))"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(randomblob($::LARGESIZE))",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT LENGTH(zeroblob($::LARGESIZE))"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote(zeroblob($::LARGESIZE))",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT zeroblob(-1)",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT replace($::str, 'A', $::rep)",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT length(strftime($::str, '2003-10-31'))",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT $::str1 || $::str2",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT quote($::str1)",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT hex($::str1)",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    INSERT INTO t4 VALUES(2);\n    INSERT INTO t4 SELECT 2+x FROM t4;"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'A' || $::strvalue"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.17.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT 'A' || $::strvalue"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT strftime('%Y ' || $::strvalue, '2008-01-02')"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-5.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT strftime('%Y-%m-%d ' || $::strvalue, '2008-01-02')",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA max_page_count = 1000;",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE trig (a INTEGER, b INTEGER);"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO trig VALUES (1,1);"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT COUNT(*) FROM trig;",
+          "expect": "7"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO trig VALUES (1,10);",
+          "expect": "1 {database or disk is full}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT COUNT(*) FROM trig;",
+          "expect": "0 7"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA max_page_count = 1000;",
+          "expect": "6"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA max_page_count;"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-7.7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-8.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM v1",
+          "expect": "1 {too many columns in result set}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-8.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP VIEW IF EXISTS v1"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-9.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-9.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM v199"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT $::string LIKE $::pattern;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-15.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT $::string LIKE $::pattern;",
+          "expect": "1 {LIKE or GLOB pattern too complex}"
+        }
+      ]
+    },
+    {
+      "name": "sqllimits1-16.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "#    SELECT strftime($::format, 1);\n#",
+          "expect": "1 {string or blob too big}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    INSERT INTO t4 VALUES(2);\n    INSERT INTO t4 SELECT 2+x FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count = 1000;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE trig (a INTEGER, b INTEGER);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER update_b BEFORE UPDATE ON trig\n      FOR EACH ROW BEGIN\n        INSERT INTO trig VALUES (65, 'update_b');\n      END;\n\n    CREATE TRIGGER update_a AFTER UPDATE ON trig\n      FOR EACH ROW BEGIN\n        INSERT INTO trig VALUES (65, 'update_a');\n      END;\n\n    CREATE TRIGGER insert_b BEFORE INSERT ON trig\n      FOR EACH ROW BEGIN\n        UPDATE trig SET a = 1;\n      END;\n\n    CREATE TRIGGER insert_a AFTER INSERT ON trig\n      FOR EACH ROW BEGIN\n        UPDATE trig SET a = 1;\n      END;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO trig VALUES (1,1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT COUNT(*) FROM trig;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count = 1000000;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a||b||c, b||c||a, c||a||b FROM abc;\n    INSERT INTO abc SELECT a, b, c FROM abc;\n    INSERT INTO abc SELECT b, a, c FROM abc;\n    INSERT INTO abc SELECT c, b, a FROM abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count = 1000;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE abc;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP VIEW IF EXISTS v1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA max_page_count = 1000000;  -- 1 GB\n      CREATE TABLE v0(a);\n      INSERT INTO v0 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT $::string LIKE $::pattern;"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t4"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

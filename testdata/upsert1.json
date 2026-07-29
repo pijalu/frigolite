@@ -1,0 +1,384 @@
+{
+  "file": "upsert1.test",
+  "name": "upsert1",
+  "tests": [
+    {
+      "name": "upsert1-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(b);\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(1,99),(99,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 2 0"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-101",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(2,3) ON CONFLICT(a) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(2,99) ON CONFLICT(a) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "2 3 0"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-102",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(3,4) ON CONFLICT(b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(99,4) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "3 4 0"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(x) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 {no such column: x}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(c) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE nocase) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(5,6) ON CONFLICT(b COLLATE binary) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "5 6 0"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(a+b);\n  INSERT INTO t1(a,b) VALUES(7,8) ON CONFLICT(a+b) DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a+b) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "0 {7 8 0}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-201",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) VALUES(8,7),(9,6) ON CONFLICT(a) DO NOTHING;",
+          "expect": "1 {UNIQUE constraint failed: index 't1x1'}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(9,10) ON CONFLICT(a+(+b)) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX t1x1;\n  DELETE FROM t1;\n  CREATE UNIQUE INDEX t1x1 ON t1(b) WHERE b>10;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2) ON CONFLICT(b) WHERE b!=10 DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-320",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b) VALUES(1,2),(3,2),(4,20),(5,20)\n         ON CONFLICT(b) WHERE b>10 DO NOTHING;\n  SELECT *, 'x' FROM t1 ORDER BY b, a;",
+          "expect": "1 2 0 x 3 2 0 x 4 20 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a TEXT UNIQUE, b INT DEFAULT 1);\n  INSERT INTO t2(a) VALUES('one'),('two'),('three');\n  PRAGMA count_changes=ON;\n  INSERT INTO t2(a) VALUES('one'),('one'),('three'),('four')\n      ON CONFLICT(a) DO UPDATE SET b=b+1;"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA count_changes=OFF;\n  SELECT a, b FROM t2 ORDER BY a;",
+          "expect": "four 1 one 3 three 2 two 1"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-500",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INT UNIQUE);\n  INSERT INTO t1(x,y) SELECT 1,2 WHERE true\n    ON CONFLICT(x) DO UPDATE SET y=max(t1.y,excluded.y) AND true;\n  SELECT * FROM t1;",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-600",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(b UNIQUE, a INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT OR IGNORE INTO t1(a) VALUES('1') ON CONFLICT(a) DO NOTHING;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-610",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT OR IGNORE INTO t1(a) VALUES('1'),(1) ON CONFLICT(a) DO NOTHING;\n  PRAGMA integrity_check;",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-700",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT, d INT, e INT);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  CREATE UNIQUE INDEX t1e ON t1(e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(e) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-710",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-720",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(b) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-730",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT, b INT, c INT, d INT, e INT);\n  CREATE UNIQUE INDEX t1a ON t1(a);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  CREATE UNIQUE INDEX t1e ON t1(e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(e) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-740",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-750",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(b) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-760",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT, c INT, d INT, e INT) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t1a ON t1(a);\n  CREATE UNIQUE INDEX t1b ON t1(b);\n  CREATE UNIQUE INDEX t1e ON t1(e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(e) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-770",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-780",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,2,33,44,5)\n    ON CONFLICT(b) DO UPDATE SET c=excluded.c;\n  SELECT * FROM t1;",
+          "expect": "1 2 33 4 5"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-800",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-900",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-910",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3) ON CONFLICT(x) DO NOTHING;",
+          "expect": "1 {cannot UPSERT a view}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-1000",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 UNIQUE) WITHOUT ROWID;\n  INSERT OR FAIL INTO t0(c2) VALUES (0), (NULL)\n    ON CONFLICT(c2) DO UPDATE SET c1 = c0;",
+          "expect": "1 {NOT NULL constraint failed: t0.c0}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-1100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY ON CONFLICT REPLACE, b UNIQUE);\n  INSERT INTO t1(b) VALUES(22);\n  INSERT INTO t1 VALUES(2,22) ON CONFLICT (b) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "1 22"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-1200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-1210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert1-1300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT, y TEXT);\n  INSERT INTO t1 VALUES\n    (11, printf('%.9000c','a')),\n    (11, printf('%.9000c','a')),\n    (33, printf('%.9000c','b')),\n    (33, printf('%.9000c','b'));\n  CREATE TABLE t2(x INT UNIQUE, y TEXT);\n  CREATE TRIGGER r1 BEFORE UPDATE ON t2 BEGIN\n    SELECT raise(ABORT,'Incorrect old.y value passed to trigger!')\n     WHERE old.y != new.y;\n    /* ^^^ This trigger will fire and cause the ABORT if the problem has\n    ** not been fixed, or if there is a regression. */\n  END;\n  INSERT INTO t2(x, y) SELECT x, y FROM t1\n   WHERE true\n   ON CONFLICT (x) DO UPDATE SET y = excluded.y;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

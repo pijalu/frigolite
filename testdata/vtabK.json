@@ -3,6 +3,55 @@
   "name": "vtabK",
   "tests": [
     {
+      "name": "100",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');"
+        }
+      ]
+    },
+    {
+      "name": "110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);",
+          "expect": "1 {no such column: stat}"
+        }
+      ]
+    },
+    {
+      "name": "120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t3(b) VALUES('Four score and seven years ago');\n  SELECT * FROM t3 WHERE t3 MATCH 'this';",
+          "expect": "{this is a test}"
+        }
+      ]
+    },
+    {
+      "name": "140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t3 WHERE t3 MATCH 'four seven';",
+          "expect": "{Four score and seven years ago}"
+        }
+      ]
+    },
+    {
       "name": "150",
       "steps": [
         {
@@ -29,6 +78,45 @@
           "type": "query",
           "sql": "PRAGMA integrity_check;",
           "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('Ebed-malech');\n  CREATE TABLE x(a);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);"
+        }
+      ]
+    },
+    {
+      "name": "210",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING rtree(id,x,y);",
+          "expect": "1 {no such column: stat}"
+        }
+      ]
+    },
+    {
+      "name": "220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1;",
+          "expect": "Ebed-malech"
+        }
+      ]
+    },
+    {
+      "name": "300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING rtree(a,b,c);\n  CREATE TABLE t2(x);\n  ALTER TABLE t2 ADD d GENERATED ALWAYS AS (c IN (SELECT 1 FROM t1)) VIRTUAL;",
+          "expect": "1 {error in table t2 after add column: subqueries prohibited in generated columns}"
         }
       ]
     },

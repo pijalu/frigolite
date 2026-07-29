@@ -52,14 +52,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
@@ -89,14 +81,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.1",
       "steps": [
         {
@@ -112,14 +96,6 @@
           "type": "exec",
           "sql": "SELECT * FROM t0 LEFT OUTER JOIN t1 ON v0.c0 INNER JOIN v0 INNER JOIN t2 ON (t2.c2 NOT NULL);",
           "expect": "1 {ON clause references tables to its right}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -158,14 +134,6 @@
           "type": "query",
           "sql": "SELECT (d IS NULL) FROM t1 RIGHT JOIN t2 ON (j=33);",
           "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -228,14 +196,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.0",
       "steps": [
         {
@@ -252,14 +212,6 @@
           "type": "query",
           "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true WHERE CASE WHEN t2.b THEN 0 ELSE 1 END;",
           "expect": "3 NULL"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -302,14 +254,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
@@ -344,14 +288,6 @@
           "type": "query",
           "sql": "SELECT x4.oid FROM x1 JOIN (x2 JOIN x4 ON c='c')",
           "expect": "{forty three}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -401,6 +337,26 @@
           "type": "exec",
           "sql": "SELECT a FROM wo1, x1, x2;",
           "expect": "1 {ambiguous column name: a}"
+        }
+      ]
+    },
+    {
+      "name": "9.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x1 JOIN x2 USING (rowid);",
+          "expect": "1 {cannot join using column rowid - column not present in both tables}"
+        }
+      ]
+    },
+    {
+      "name": "9.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM wo2 JOIN x2 USING (rowid);",
+          "expect": "1 {cannot join using column rowid - column not present in both tables}"
         }
       ]
     },
@@ -464,14 +420,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "10.0",
       "steps": [
         {
@@ -527,14 +475,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "12.1",
       "steps": [
         {
@@ -558,14 +498,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 LEFT JOIN t2 ON true RIGHT JOIN t3 ON d2=e3 WHERE c2 BETWEEN NULL AND a1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -606,14 +538,6 @@
           "type": "query",
           "sql": "SELECT sum( a1.a+a1.b ) FROM t3 AS a1 RIGHT JOIN t3 ON true\n   GROUP BY a1.a ORDER BY 1;",
           "expect": "-1480 240 480"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -707,14 +631,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "15.1",
       "steps": [
         {
@@ -725,10 +641,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "15.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "CREATE TABLE x1(x COLLATE nocase);\n  CREATE TABLE x2(x);\n  CREATE TABLE x3(x);\n  CREATE TABLE t4(y);\n  INSERT INTO x1 VALUES('ABC');\n  INSERT INTO x3 VALUES('abc');\n  SELECT lower(x), quote(y) FROM x1 LEFT JOIN x2 USING (x) JOIN x3 USING (x) FULL JOIN t4;",
+          "expect": "abc NULL"
         }
       ]
     },
@@ -772,6 +690,26 @@
       ]
     },
     {
+      "name": "16.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM (t0_a RIGHT JOIN (              t2 LEFT JOIN t0_b) USING (c0));",
+          "expect": "1 {ambiguous column name: c0}"
+        }
+      ]
+    },
+    {
+      "name": "16.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM (t0_a RIGHT JOIN (SELECT * FROM t2 LEFT JOIN t0_b) USING (c0));",
+          "expect": "1 {}"
+        }
+      ]
+    },
+    {
       "name": "16.4.0",
       "steps": [
         {
@@ -781,10 +719,22 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "16.4.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "SELECT * FROM x0 RIGHT JOIN (              x1, x2) USING (a)",
+          "expect": "1 {ambiguous column name: a}"
+        }
+      ]
+    },
+    {
+      "name": "16.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x0 RIGHT JOIN (SELECT * FROM x1, x2) USING (a)",
+          "expect": "blue red"
         }
       ]
     },
@@ -804,6 +754,126 @@
           "type": "exec",
           "sql": "SELECT * FROM (t0 NATURAL RIGHT JOIN (t0 FULL JOIN (v0 NATURAL FULL JOIN t2) ON TRUE)) NATURAL FULL JOIN t1;",
           "expect": "1 {ambiguous column name: c0}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

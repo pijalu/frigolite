@@ -1,0 +1,111 @@
+{
+  "file": "without_rowid2.test",
+  "name": "without_rowid2",
+  "tests": [
+    {
+      "name": "without_rowid2-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INT PRIMARY KEY,\n      b INT\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    ) WITHOUT rowid;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      x INT PRIMARY KEY,\n      y TEXT\n    ) WITHOUT rowid;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a INT REFERENCES t2,\n      b INT REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a int primary key) WITHOUT rowid;\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c) WITHOUT rowid;\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);"
+        }
+      ]
+    },
+    {
+      "name": "without_rowid2-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(\n      a INT PRIMARY KEY,\n      b INT\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    ) WITHOUT rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(\n      x INT PRIMARY KEY,\n      y TEXT\n    ) WITHOUT rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a INT REFERENCES t2,\n      b INT REFERENCES t1,\n      FOREIGN KEY (a,b) REFERENCES t2(x,y)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a int primary key) WITHOUT rowid;\n    CREATE TABLE t5(x references t4);\n    CREATE TABLE t6(x references t4);\n    CREATE TABLE t7(x references t4);\n    CREATE TABLE t8(x references t4);\n    CREATE TABLE t9(x references t4);\n    CREATE TABLE t10(x references t4);\n    DROP TABLE t7;\n    DROP TABLE t9;\n    DROP TABLE t5;\n    DROP TABLE t8;\n    DROP TABLE t6;\n    DROP TABLE t10;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a PRIMARY KEY, b, c) WITHOUT rowid;\n    CREATE TABLE t6(\n      d REFERENCES t5,\n      e REFERENCES t5(c)\n    );\n    PRAGMA foreign_key_list(t6);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5(a, b)\n    );\n    PRAGMA foreign_key_list(t7);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t8(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET NULL\n    );\n    PRAGMA foreign_key_list(t8);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t9(d, e, f,\n      FOREIGN KEY (d, e) REFERENCES t5 ON DELETE CASCADE ON UPDATE SET DEFAULT\n    );\n    PRAGMA foreign_key_list(t9);"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

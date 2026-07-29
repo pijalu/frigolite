@@ -52,36 +52,6 @@
       ]
     },
     {
-      "name": "whereG-2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', -0.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;",
-          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
-        }
-      ]
-    },
-    {
-      "name": "whereG-2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', 1.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;",
-          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
-        }
-      ]
-    },
-    {
-      "name": "whereG-2.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', track.cid)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;",
-          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
-        }
-      ]
-    },
-    {
       "name": "whereG-3.0",
       "steps": [
         {
@@ -101,27 +71,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 SELECT 'def', b, c FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "ANALYZE"
         }
       ]
     },
@@ -273,14 +227,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.11",
       "steps": [
         {
@@ -320,28 +266,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "10.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE a(b TEXT);  INSERT INTO a VALUES(0),(4),(9);\n  CREATE TABLE c(d NUM);\n  CREATE VIEW f(g, h) AS SELECT b, 0 FROM a UNION SELECT d, d FROM c;\n  SELECT g = g FROM f GROUP BY h;",
           "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -412,14 +342,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "12.0",
       "steps": [
         {
@@ -436,6 +358,84 @@
           "type": "query",
           "sql": "CREATE INDEX t1x2 ON t1(abs(a));\n  SELECT typeof(abs(a)) FROM t1 NOT INDEXED;\n  SELECT typeof(abs(a)) FROM t1 INDEXED BY t1x2;",
           "expect": "real real"
+        }
+      ]
+    },
+    {
+      "name": "whereG-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', -0.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "whereG-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', 1.01)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        }
+      ]
+    },
+    {
+      "name": "whereG-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT DISTINCT aname\n      FROM album, composer, track\n     WHERE likelihood(cname LIKE '%bach%', track.cid)\n       AND composer.cid=track.cid\n       AND album.aid=track.aid;",
+          "expect": "1 {second argument to likelihood() must be a constant between 0.0 and 1.0}"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 SELECT 'def', b, c FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "ANALYZE"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

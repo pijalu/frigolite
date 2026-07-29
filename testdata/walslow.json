@@ -3,8 +3,60 @@
   "name": "walslow",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "4.1",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(300));\n    INSERT INTO t1 VALUES(2, randomblob(300));\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, randomblob(300));"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t1",
+          "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t2",
+          "expect": "B 2"
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t2",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT blob(400), blob(400) FROM t2"
+        },
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = wal"
@@ -44,24 +96,10 @@
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t1 WHERE a!=b"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
+        },
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "3.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a FROM t1",
-          "expect": "1 2 3"
+          "type": "exec",
+          "sql": "PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, randomblob(300));\n    INSERT INTO t1 VALUES(2, randomblob(300));\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, randomblob(300));"
         },
         {
           "type": "exec",
@@ -70,60 +108,14 @@
         {
           "type": "exec",
           "sql": "SELECT a FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO \"t1\" VALUES('A',0);\n  CREATE TABLE t2(x, y);\n  INSERT INTO \"t2\" VALUES('B',2);"
-        }
-      ]
-    },
-    {
-      "name": "4.1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t2",
-          "expect": "B 2"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t2"
-        }
-      ]
-    },
-    {
-      "name": "4.2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT count(*) FROM t2",
-          "expect": "1"
         },
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t2"
-        }
-      ]
-    },
-    {
-      "name": "4.2.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t2 SELECT blob(400), blob(400) FROM t2"
         },
         {
           "type": "exec",
@@ -132,6 +124,22 @@
         {
           "type": "exec",
           "sql": "SELECT count(*) FROM t2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

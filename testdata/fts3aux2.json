@@ -3,6 +3,15 @@
   "name": "fts3aux2",
   "tests": [
     {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=l);\n  INSERT INTO t1(a, b, l) VALUES\n    ('zero zero', 'zero zero', 0),\n    ('one two', 'three four', 1),\n    ('five six', 'seven eight', 2)\n  ;\n  CREATE VIRTUAL TABLE terms USING fts4aux(t1);"
+        }
+      ]
+    },
+    {
       "name": "1.2.1",
       "steps": [
         {
@@ -173,6 +182,15 @@
           "type": "query",
           "sql": "SELECT term, col, documents, occurrences, languageid \n  FROM terms WHERE term>='e' AND term<'seven' AND languageid=2",
           "expect": "eight * 1 1 2    eight 1 1 1 2 \n  five * 1 1 2     five 0 1 1 2"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3();\n  INSERT INTO ft VALUES('a_234567890123456789');\n  INSERT INTO ft VALUES('b_234567890123456789');\n  INSERT INTO ft VALUES('c_234567890123456789');\n  CREATE VIRTUAL TABLE t2 USING fts4aux(ft);"
         }
       ]
     },

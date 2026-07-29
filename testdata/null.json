@@ -3,16 +3,50 @@
   "name": "null",
   "tests": [
     {
+      "name": "null-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(a, b, c);\n  CREATE UNIQUE INDEX t5ab ON t5(a, b);\n\n  INSERT INTO t5 VALUES(1, NULL, 'one');\n  INSERT INTO t5 VALUES(1, NULL, 'i');\n  INSERT INTO t5 VALUES(NULL, 'x', 'two');\n  INSERT INTO t5 VALUES(NULL, 'x', 'ii');"
+        }
+      ]
+    },
+    {
+      "name": "null-9.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 WHERE a = 1 AND b IS NULL;",
+          "expect": "1 {} one 1 {} i"
+        }
+      ]
+    },
+    {
+      "name": "null-9.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t5 WHERE a IS NULL AND b = 'x';",
+          "expect": "{} x two {} x ii"
+        }
+      ]
+    },
+    {
+      "name": "null-10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t0(c0 PRIMARY KEY DESC);\n  INSERT INTO t0(c0) VALUES (0);\n  SELECT * FROM t0 WHERE t0.c0 > NULL;"
+        }
+      ]
+    },
+    {
       "name": "null-1.0",
       "steps": [
         {
           "type": "query",
           "sql": "begin;\n    create table t1(a,b,c);\n    insert into t1 values(1,0,0);\n    insert into t1 values(2,0,1);\n    insert into t1 values(3,1,0);\n    insert into t1 values(4,1,1);\n    insert into t1 values(5,null,0);\n    insert into t1 values(6,null,1);\n    insert into t1 values(7,null,null);\n    commit;\n    select * from t1;",
           "expect": "1 0 0 2 0 1 3 1 0 4 1 1 5 {} 0 6 {} 1 7 {} {}"
-        },
-        {
-          "type": "exec",
-          "sql": "begin;\n    create table t1(a,b,c);\n    insert into t1 values(1,0,0);\n    insert into t1 values(2,0,1);\n    insert into t1 values(3,1,0);\n    insert into t1 values(4,1,1);\n    insert into t1 values(5,null,0);\n    insert into t1 values(6,null,1);\n    insert into t1 values(7,null,null);\n    commit;\n    select * from t1;"
         }
       ]
     },
@@ -23,10 +57,6 @@
           "type": "query",
           "sql": "select ifnull(a+b,99) from t1;",
           "expect": "1 2 4 5 99 99 99"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(a+b,99) from t1;"
         }
       ]
     },
@@ -37,10 +67,6 @@
           "type": "query",
           "sql": "select ifnull(b*c,99) from t1;",
           "expect": "0 0 0 1 99 99 99"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(b*c,99) from t1;"
         }
       ]
     },
@@ -51,10 +77,6 @@
           "type": "query",
           "sql": "select ifnull(case when b<>0 then 1 else 0 end, 99) from t1;",
           "expect": "0 0 1 1 0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case when b<>0 then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -65,10 +87,6 @@
           "type": "query",
           "sql": "select ifnull(case when not b<>0 then 1 else 0 end, 99) from t1;",
           "expect": "1 1 0 0 0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case when not b<>0 then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -79,10 +97,6 @@
           "type": "query",
           "sql": "select ifnull(case when b<>0 and c<>0 then 1 else 0 end, 99) from t1;",
           "expect": "0 0 0 1 0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case when b<>0 and c<>0 then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -93,10 +107,6 @@
           "type": "query",
           "sql": "select ifnull(case when not (b<>0 and c<>0) then 1 else 0 end, 99) from t1;",
           "expect": "1 1 1 0 1 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case when not (b<>0 and c<>0) then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -107,10 +117,6 @@
           "type": "query",
           "sql": "select ifnull(case when b<>0 or c<>0 then 1 else 0 end, 99) from t1;",
           "expect": "0 1 1 1 0 1 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case when b<>0 or c<>0 then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -121,10 +127,6 @@
           "type": "query",
           "sql": "select ifnull(case when not (b<>0 or c<>0) then 1 else 0 end, 99) from t1;",
           "expect": "1 0 0 0 0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case when not (b<>0 or c<>0) then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -135,10 +137,6 @@
           "type": "query",
           "sql": "select ifnull(case b when c then 1 else 0 end, 99) from t1;",
           "expect": "1 0 0 1 0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case b when c then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -149,10 +147,6 @@
           "type": "query",
           "sql": "select ifnull(case c when b then 1 else 0 end, 99) from t1;",
           "expect": "1 0 0 1 0 0 0"
-        },
-        {
-          "type": "exec",
-          "sql": "select ifnull(case c when b then 1 else 0 end, 99) from t1;"
         }
       ]
     },
@@ -163,10 +157,6 @@
           "type": "query",
           "sql": "select count(*), count(b), count(c), sum(b), sum(c), \n           avg(b), avg(c), min(b), max(b) from t1;",
           "expect": "7 4 6 2 3 0.5 0.5 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "select count(*), count(b), count(c), sum(b), sum(c), \n           avg(b), avg(c), min(b), max(b) from t1;"
         }
       ]
     },
@@ -177,10 +167,6 @@
           "type": "query",
           "sql": "SELECT sum(b), total(b) FROM t1 WHERE b<0",
           "expect": "{} 0.0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(b), total(b) FROM t1 WHERE b<0"
         }
       ]
     },
@@ -191,10 +177,6 @@
           "type": "query",
           "sql": "select a from t1 where b<10",
           "expect": "1 2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "select a from t1 where b<10"
         }
       ]
     },
@@ -205,10 +187,6 @@
           "type": "query",
           "sql": "select a from t1 where not b>10",
           "expect": "1 2 3 4"
-        },
-        {
-          "type": "exec",
-          "sql": "select a from t1 where not b>10"
         }
       ]
     },
@@ -219,10 +197,6 @@
           "type": "query",
           "sql": "select a from t1 where b<10 or c=1;",
           "expect": "1 2 3 4 6"
-        },
-        {
-          "type": "exec",
-          "sql": "select a from t1 where b<10 or c=1;"
         }
       ]
     },
@@ -233,10 +207,6 @@
           "type": "query",
           "sql": "select a from t1 where b<10 and c=1;",
           "expect": "2 4"
-        },
-        {
-          "type": "exec",
-          "sql": "select a from t1 where b<10 and c=1;"
         }
       ]
     },
@@ -247,10 +217,6 @@
           "type": "query",
           "sql": "select a from t1 where not (b<10 and c=1);",
           "expect": "1 3 5"
-        },
-        {
-          "type": "exec",
-          "sql": "select a from t1 where not (b<10 and c=1);"
         }
       ]
     },
@@ -261,10 +227,6 @@
           "type": "query",
           "sql": "select distinct b from t1 order by b;",
           "expect": "{} 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "select distinct b from t1 order by b;"
         }
       ]
     },
@@ -275,10 +237,6 @@
           "type": "query",
           "sql": "select b from t1 union select c from t1 order by b;",
           "expect": "{} 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "select b from t1 union select c from t1 order by b;"
         }
       ]
     },
@@ -289,10 +247,6 @@
           "type": "query",
           "sql": "select b from t1 union select c from t1 order by 1;",
           "expect": "{} 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "select b from t1 union select c from t1 order by 1;"
         }
       ]
     },
@@ -303,10 +257,6 @@
           "type": "query",
           "sql": "select b from t1 union select c from t1 order by t1.b;",
           "expect": "{} 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "select b from t1 union select c from t1 order by t1.b;"
         }
       ]
     },
@@ -317,10 +267,6 @@
           "type": "query",
           "sql": "select b from t1 union select c from t1 order by main.t1.b;",
           "expect": "{} 0 1"
-        },
-        {
-          "type": "exec",
-          "sql": "select b from t1 union select c from t1 order by main.t1.b;"
         }
       ]
     },
@@ -351,10 +297,6 @@
           "type": "query",
           "sql": "create table t2(a, b unique on conflict ignore);\n      insert into t2 values(1,1);\n      insert into t2 values(2,null);\n      insert into t2 values(3,null);\n      insert into t2 values(4,1);\n      select a from t2;",
           "expect": "1 2 3"
-        },
-        {
-          "type": "exec",
-          "sql": "create table t2(a, b unique on conflict ignore);\n      insert into t2 values(1,1);\n      insert into t2 values(2,null);\n      insert into t2 values(3,null);\n      insert into t2 values(4,1);\n      select a from t2;"
         }
       ]
     },
@@ -365,10 +307,6 @@
           "type": "query",
           "sql": "create table t3(a, b, c, unique(b,c) on conflict ignore);\n      insert into t3 values(1,1,1);\n      insert into t3 values(2,null,1);\n      insert into t3 values(3,null,1);\n      insert into t3 values(4,1,1);\n      select a from t3;",
           "expect": "1 2 3"
-        },
-        {
-          "type": "exec",
-          "sql": "create table t3(a, b, c, unique(b,c) on conflict ignore);\n      insert into t3 values(1,1,1);\n      insert into t3 values(2,null,1);\n      insert into t3 values(3,null,1);\n      insert into t3 values(4,1,1);\n      select a from t3;"
         }
       ]
     },
@@ -378,10 +316,6 @@
         {
           "type": "query",
           "sql": "CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,11);\n    INSERT INTO t4 VALUES(2,NULL);\n    SELECT x FROM t4 WHERE y=NULL;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,11);\n    INSERT INTO t4 VALUES(2,NULL);\n    SELECT x FROM t4 WHERE y=NULL;"
         }
       ]
     },
@@ -390,10 +324,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
         }
       ]
@@ -405,10 +335,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;"
         }
       ]
     },
@@ -419,10 +345,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;"
         }
       ]
     },
@@ -433,10 +355,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;"
         }
       ]
     },
@@ -446,10 +364,6 @@
         {
           "type": "query",
           "sql": "CREATE INDEX t4i1 ON t4(y);\n    SELECT x FROM t4 WHERE y=NULL;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t4i1 ON t4(y);\n    SELECT x FROM t4 WHERE y=NULL;"
         }
       ]
     },
@@ -458,10 +372,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
         }
       ]
@@ -473,10 +383,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;"
         }
       ]
     },
@@ -487,10 +393,6 @@
           "type": "query",
           "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;"
         }
       ]
     },
@@ -504,36 +406,143 @@
         },
         {
           "type": "exec",
-          "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;"
-        }
-      ]
-    },
-    {
-      "name": "null-9.1",
-      "steps": [
+          "sql": "begin;\n    create table t1(a,b,c);\n    insert into t1 values(1,0,0);\n    insert into t1 values(2,0,1);\n    insert into t1 values(3,1,0);\n    insert into t1 values(4,1,1);\n    insert into t1 values(5,null,0);\n    insert into t1 values(6,null,1);\n    insert into t1 values(7,null,null);\n    commit;\n    select * from t1;"
+        },
         {
           "type": "exec",
-          "sql": "CREATE TABLE t5(a, b, c);\n  CREATE UNIQUE INDEX t5ab ON t5(a, b);\n\n  INSERT INTO t5 VALUES(1, NULL, 'one');\n  INSERT INTO t5 VALUES(1, NULL, 'i');\n  INSERT INTO t5 VALUES(NULL, 'x', 'two');\n  INSERT INTO t5 VALUES(NULL, 'x', 'ii');"
-        }
-      ]
-    },
-    {
-      "name": "null-9.2",
-      "steps": [
+          "sql": "select ifnull(a+b,99) from t1;"
+        },
         {
-          "type": "query",
-          "sql": "SELECT * FROM t5 WHERE a = 1 AND b IS NULL;",
-          "expect": "1 {} one 1 {} i"
-        }
-      ]
-    },
-    {
-      "name": "null-9.3",
-      "steps": [
+          "type": "exec",
+          "sql": "select ifnull(b*c,99) from t1;"
+        },
         {
-          "type": "query",
-          "sql": "SELECT * FROM t5 WHERE a IS NULL AND b = 'x';",
-          "expect": "{} x two {} x ii"
+          "type": "exec",
+          "sql": "select ifnull(case when b<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when not b<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when b<>0 and c<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when not (b<>0 and c<>0) then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when b<>0 or c<>0 then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case when not (b<>0 or c<>0) then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case b when c then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select ifnull(case c when b then 1 else 0 end, 99) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select count(*), count(b), count(c), sum(b), sum(c), \n           avg(b), avg(c), min(b), max(b) from t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(b), total(b) FROM t1 WHERE b<0"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where b<10"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where not b>10"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where b<10 or c=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where b<10 and c=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select a from t1 where not (b<10 and c=1);"
+        },
+        {
+          "type": "exec",
+          "sql": "select distinct b from t1 order by b;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by b;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by 1;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by t1.b;"
+        },
+        {
+          "type": "exec",
+          "sql": "select b from t1 union select c from t1 order by main.t1.b;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t2(a, b unique on conflict ignore);\n      insert into t2 values(1,1);\n      insert into t2 values(2,null);\n      insert into t2 values(3,null);\n      insert into t2 values(4,1);\n      select a from t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "create table t3(a, b, c, unique(b,c) on conflict ignore);\n      insert into t3 values(1,1,1);\n      insert into t3 values(2,null,1);\n      insert into t3 values(3,null,1);\n      insert into t3 values(4,1,1);\n      select a from t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,11);\n    INSERT INTO t4 VALUES(2,NULL);\n    SELECT x FROM t4 WHERE y=NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4i1 ON t4(y);\n    SELECT x FROM t4 WHERE y=NULL;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y IN (33,NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y<33 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y>6 ORDER BY x;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT x FROM t4 WHERE y!=33 ORDER BY x;"
         }
       ]
     },
@@ -542,15 +551,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "null-10.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t0(c0 PRIMARY KEY DESC);\n  INSERT INTO t0(c0) VALUES (0);\n  SELECT * FROM t0 WHERE t0.c0 > NULL;"
         }
       ]
     }

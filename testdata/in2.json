@@ -8,10 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE a(i INTEGER PRIMARY KEY, a);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE a(i INTEGER PRIMARY KEY, a);"
         }
       ]
     },
@@ -21,6 +17,10 @@
         {
           "type": "exec",
           "sql": "INSERT INTO a VALUES($::ii, $::ii)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE a(i INTEGER PRIMARY KEY, a);"
         },
         {
           "type": "exec",

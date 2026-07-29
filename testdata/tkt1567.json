@@ -8,20 +8,12 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY);"
         }
       ]
     },
     {
       "name": "tkt1567-1.3",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t1 SET a = a||'x' WHERE rowid%2==0;"
-        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    UPDATE t1 SET a = a||'x' WHERE rowid%2==0;"
@@ -44,10 +36,6 @@
         {
           "type": "exec",
           "sql": "COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT;"
         }
       ]
     },
@@ -57,20 +45,12 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t2(a TEXT PRIMARY KEY, rowid INT) WITHOUT rowid;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a TEXT PRIMARY KEY, rowid INT) WITHOUT rowid;"
         }
       ]
     },
     {
       "name": "tkt1567-2.3",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t2 SET a = a||'x' WHERE rowid%2==0;"
-        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    UPDATE t2 SET a = a||'x' WHERE rowid%2==0;"
@@ -93,6 +73,26 @@
         {
           "type": "exec",
           "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a TEXT PRIMARY KEY);"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t1 SET a = a||'x' WHERE rowid%2==0;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a TEXT PRIMARY KEY, rowid INT) WITHOUT rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    UPDATE t2 SET a = a||'x' WHERE rowid%2==0;"
         },
         {
           "type": "exec",

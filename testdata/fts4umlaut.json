@@ -1,0 +1,15 @@
+{
+  "file": "fts4umlaut.test",
+  "name": "fts4umlaut",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(x, tokenize=unicode61);\n  CREATE VIRTUAL TABLE t2 USING fts4(\n      x, \n      tokenize=unicode61 \"remove_diacritics=2\"\n  );"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,284 @@
+{
+  "file": "quote.test",
+  "name": "quote",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y, z);"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";"
+        }
+      ]
+    },
+    {
+      "name": "2.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xyz VALUES(1, 2, 3);"
+        }
+      ]
+    },
+    {
+      "name": "2.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO xyz VALUES(1, 2, 'null');",
+          "expect": "1 {CHECK constraint failed: c!=\"null\"}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 'w');\n  SELECT * FROM t1 WHERE z='w';",
+          "expect": "4 5 w"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sql FROM sqlite_master;",
+          "expect": "{CREATE TABLE t1(x, y, z)}\n  {CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") )}\n  {CREATE INDEX i2 ON t1(x, y, z||\"abc\")}\n  {CREATE INDEX i3 ON t1(\"w\"||\"\")}\n  {CREATE INDEX i4 ON t1(x) WHERE z=\"w\"}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n      CREATE INDEX x1 on t1(\"b\");\n      ALTER TABLE t1 DROP COLUMN b;",
+          "expect": "1 {error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?}"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;",
+          "expect": "1 {error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?}"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a,'b');\n    CREATE INDEX x1 on t1(\"b\");\n    ALTER TABLE t1 DROP COLUMN b;",
+          "expect": "1 {error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a,\"b\");\n    CREATE INDEX x1 on t1('b');\n    ALTER TABLE t1 DROP COLUMN b;",
+          "expect": "1 {error in index x1 after drop column: no such column: b}"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"b\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;",
+          "expect": "1 {error in index x1 after drop column: no such column: \"b\" - should this be a string literal in single-quotes?}"
+        }
+      ]
+    },
+    {
+      "name": "3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX x1 ON t1(\"a\"||\"x\");\n    INSERT INTO t1 VALUES(1,2,3),(1,4,5);\n    ALTER TABLE t1 DROP COLUMN b;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE '@abc' ( '#xyz' int, '!pqr' text );",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO '@abc' VALUES(5,'hello')",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM '@abc'",
+          "expect": "0 {5 hello}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM [@abc]",
+          "expect": "0 {5 hello}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM `@abc`",
+          "expect": "0 {5 hello}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'",
+          "expect": "0 {hello 10}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT '!pqr', '#xyz'+5 FROM '@abc'",
+          "expect": "0 {!pqr 5}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT \"!pqr\", \"#xyz\"+5 FROM '@abc'",
+          "expect": "0 {hello 10}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT [!pqr], `#xyz`+5 FROM '@abc'",
+          "expect": "0 {hello 10}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'",
+          "expect": "0 {hello 10}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE '@abc' SET '#xyz'=11"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'",
+          "expect": "0 {hello 16}"
+        }
+      ]
+    },
+    {
+      "name": "quote-1.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE '@abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE '@abc' SET '#xyz'=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE '@abc'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

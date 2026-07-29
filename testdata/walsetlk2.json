@@ -3,14 +3,6 @@
   "name": "walsetlk2",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1.0",
       "steps": [
         {
@@ -67,35 +59,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(5, 6);"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
         }
       ]
     },
@@ -140,27 +108,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.5",
       "steps": [
         {
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(9, 10);"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(11, 12);"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
         }
       ]
     },
@@ -185,27 +137,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0",
       "steps": [
         {
           "type": "exec",
           "sql": "PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(5, 'five');"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
         }
       ]
     },
@@ -216,14 +152,6 @@
           "type": "exec",
           "sql": "INSERT INTO t1 VALUES(7, 'seven');",
           "expect": "0 {}"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(9, 'nine');"
-        },
-        {
-          "type": "exec",
-          "sql": "COMMIT"
         }
       ]
     },
@@ -244,6 +172,48 @@
           "type": "query",
           "sql": "SELECT * FROM t1",
           "expect": "1 one 3 three 5 five 7 seven 9 nine"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(13, 'thirteen');",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(5, 6);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(11, 12);"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(5, 'five');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n      INSERT INTO t1 VALUES(9, 'nine');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
         },
         {
           "type": "exec",
@@ -256,12 +226,42 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(13, 'thirteen');",
-          "expect": "0 {}"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

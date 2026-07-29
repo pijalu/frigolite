@@ -13,14 +13,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "gencol1-3.100",
       "steps": [
         {
@@ -37,14 +29,6 @@
           "type": "exec",
           "sql": "UPDATE t0 SET c1 = c0, c3 = c0+1;",
           "expect": "1 {FOREIGN KEY constraint failed}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -68,14 +52,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "gencol1-5.100",
       "steps": [
         {
@@ -92,14 +68,6 @@
           "type": "exec",
           "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 NOT NULL AS(c1), c1);\n  REPLACE INTO t0(c1) VALUES(NULL);",
           "expect": "1 {NOT NULL constraint failed: t0.c0}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -234,14 +202,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "gencol1-9.10",
       "steps": [
         {
@@ -358,6 +318,66 @@
       ]
     },
     {
+      "name": "gencol1-13.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x, y AS(x+1));\n  INSERT INTO t1 VALUES(10);\n  SELECT y FROM t1 JOIN t1 USING (y,y);",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-13.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 123 FROM t1 JOIN t1 USING (x);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-13.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 456 FROM t1 JOIN t1 USING (x,x);",
+          "expect": "456"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-13.20",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1y ON t1(y);\n  SELECT y FROM t1 JOIN t1 USING (y,y);",
+          "expect": "11"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-13.21",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t1x ON t1(x);\n  SELECT 123 FROM t1 JOIN t1 USING (x);",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-13.22",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT 456 FROM t1 JOIN t1 USING (x,x);",
+          "expect": "456"
+        }
+      ]
+    },
+    {
       "name": "gencol1-14.10",
       "steps": [
         {
@@ -378,28 +398,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "gencol1-15.20",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA writable_schema=ON;\n  REPLACE INTO t1 VALUES(9);\n  SELECT a, quote(b) FROM t1",
           "expect": "9 NULL"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -440,14 +444,6 @@
           "type": "query",
           "sql": "SELECT c0, c1, c2 FROM t0 LEFT JOIN t1 ON c0=c1;",
           "expect": "0 {} {}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -501,14 +497,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "gencol1-18.10",
       "steps": [
         {
@@ -525,14 +513,6 @@
           "type": "query",
           "sql": "UPDATE t0 SET c1=0, c2=0 WHERE c0>=0;\n  SELECT * FROM t0;",
           "expect": "0 0 0"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -556,10 +536,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "gencol1-20.2",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "-- Do an UPSERT on the b column\n  INSERT INTO tab (prim, b)\n  VALUES ('2001-01-01',5)\n      ON CONFLICT(prim) DO UPDATE SET  b=excluded.b;\n  -- Now b is NULL rather than 5\n  SELECT * FROM tab;"
         }
       ]
     },
@@ -574,28 +555,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "gencol1-22.1",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t0(a PRIMARY KEY,b TEXT AS ('2') UNIQUE);\n  INSERT INTO t0(a) VALUES(2);\n  SELECT * FROM t0 AS x JOIN t0 AS y\n   WHERE x.b='2'\n     AND (y.a=2 OR (x.b LIKE '2*' AND y.a=x.b));",
           "expect": "2 2 2 2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(b) FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2"
         }
       ]
     },
@@ -626,6 +591,120 @@
           "type": "query",
           "sql": "EXPLAIN SELECT b FROM t1 INDEXED BY x2;",
           "expect": "/Column 0/"
+        }
+      ]
+    },
+    {
+      "name": "gencol1-23.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE v0(c1 INT, c2 AS (RAISE(IGNORE)));",
+          "expect": "1 {RAISE() may only be used within a trigger-program}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(b) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(b) FROM t1 INDEXED BY x2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

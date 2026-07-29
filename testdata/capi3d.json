@@ -1,0 +1,64 @@
+{
+  "file": "capi3d.test",
+  "name": "capi3d",
+  "tests": [
+    {
+      "name": "capi3d-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(x,y);\n  BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "capi3d-4.2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "capi3d-4.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH ':memory:' AS mem1"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH mem1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(6); INSERT INTO t1 VALUES(7);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

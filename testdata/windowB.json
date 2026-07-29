@@ -22,27 +22,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, 45);\n  INSERT INTO t1 VALUES(3, 66.2);\n  INSERT INTO t1 VALUES(4, 'hello world');\n  INSERT INTO t1 VALUES(5, 'hello world');\n  INSERT INTO t1 VALUES(6, X'1234');\n  INSERT INTO t1 VALUES(7, X'1234');\n  INSERT INTO t1 VALUES(8, NULL);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -81,14 +65,6 @@
           "type": "exec",
           "sql": "SELECT 1 WINDOW win AS (PARTITION BY fake_column);",
           "expect": "0 1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -152,14 +128,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.0",
       "steps": [
         {
@@ -185,14 +153,6 @@
           "type": "query",
           "sql": "SELECT a, sum(c) OVER (\n    ORDER BY a RANGE BETWEEN 2 FOLLOWING AND 0 FOLLOWING EXCLUDE NO OTHERS\n  ) FROM t1;",
           "expect": "7 {} 8 {} abc 1001"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -246,14 +206,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
@@ -283,6 +235,105 @@
       ]
     },
     {
+      "name": "10.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );"
+        }
+      ]
+    },
+    {
+      "name": "10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    json_group_array( v ) OVER w,\n    json_group_array( v ) OVER w\n  FROM t1\n  window w as ( \n    range between unbounded preceding and unbounded following \n  )",
+          "expect": "{[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]}"
+        }
+      ]
+    },
+    {
+      "name": "10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT \n    group_concat( v ) OVER w,\n    json_group_array( v ) OVER w,\n    json_group_array( v ) OVER w,\n    group_concat( v ) OVER w\n  FROM t1\n  window w as ( \n    range between unbounded preceding and unbounded following \n  )",
+          "expect": "one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two\n\n  one,two\n  {[\"one\",\"two\"]} \n  {[\"one\",\"two\"]} \n  one,two"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT value FROM json_each('[1,2,3,4,5]');",
+          "expect": "1 2 3 4 5"
+        }
+      ]
+    },
+    {
+      "name": "11.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT key, value FROM json_each('[1,2,3,4,5]');",
+          "expect": "0 1  1 2  2 3  3 4  4 5"
+        }
+      ]
+    },
+    {
+      "name": "11.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid, value FROM json_each('[1,2,3,4,5]');",
+          "expect": "0 1  1 2  2 3  3 4  4 5"
+        }
+      ]
+    },
+    {
+      "name": "11.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (ORDER BY rowid) FROM json_each('[1,2,3,4,5]')",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "11.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) FROM json_each('[1,2,3,4,5]')",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
+      "name": "11.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (ORDER BY rowid DESC) FROM json_each('[1,2,3,4,5]')",
+          "expect": "5 9 12 14 15"
+        }
+      ]
+    },
+    {
+      "name": "11.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT sum(value) OVER (ORDER BY value ASC) FROM json_each('[2,1,4,3,5]')",
+          "expect": "1 3 6 10 15"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -291,11 +342,50 @@
       ]
     },
     {
-      "name": "10.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(i INTEGER PRIMARY KEY, v);\n  INSERT INTO t1 VALUES( 1, 'one' );\n  INSERT INTO t1 VALUES( 2, 'two' );"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -31,10 +31,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "2.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  INSERT INTO t1 VALUES(1, 0, randomblob(200));\n  INSERT INTO t1 VALUES(2, 1, randomblob(200));\n  INSERT INTO t1 VALUES(3, 0, randomblob(200));\n  INSERT INTO t1 VALUES(4, 1, randomblob(200));\n  INSERT INTO t1 VALUES(5, 0, randomblob(200));\n  INSERT INTO t1 VALUES(6, 1, randomblob(200));\n  INSERT INTO t1 VALUES(7, 0, randomblob(200));\n  INSERT INTO t1 VALUES(8, 1, randomblob(200));"
         }
       ]
     },
@@ -58,14 +59,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.0.1",
       "steps": [
         {
@@ -82,14 +75,6 @@
           "type": "query",
           "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n     INSERT INTO t1(a,b) SELECT x, x+1 FROM c;\n  SELECT printf('(%d)',changes());\n  DELETE FROM t1;\n  SELECT printf('(%d)',changes());",
           "expect": "(100) (101)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -172,6 +157,15 @@
       ]
     },
     {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1 ON t1(b, c);\n  INSERT INTO t1(a,b,c) VALUES(1, 1, zeroblob(80));\n  INSERT INTO t1(a,b,c) SELECT a+1, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+2, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+10, 2, c FROM t1 WHERE b=1;\n  INSERT INTO t1(a,b,c) SELECT a+20, 3, c FROM t1 WHERE b=1;\n  PRAGMA reverse_unordered_selects = ON;\n  DELETE FROM t1 WHERE b=2;\n  SELECT a FROM t1 WHERE b=2;"
+        }
+      ]
+    },
+    {
       "name": "6.0",
       "steps": [
         {
@@ -229,27 +223,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "7.2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "DELETE FROM t4 WHERE b='world'"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -286,6 +264,46 @@
         {
           "type": "query",
           "sql": "DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

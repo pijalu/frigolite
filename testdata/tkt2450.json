@@ -9,10 +9,6 @@
           "type": "query",
           "sql": "CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";"
         }
       ]
     },
@@ -23,10 +19,6 @@
           "type": "query",
           "sql": "SELECT * FROM \"t a\";",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM \"t a\";"
         }
       ]
     },
@@ -37,10 +29,6 @@
           "type": "query",
           "sql": "SELECT \"t a\".* FROM \"t a\";",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT \"t a\".* FROM \"t a\";"
         }
       ]
     },
@@ -51,6 +39,18 @@
           "type": "query",
           "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM \"t a\", t1;",
           "expect": "1 2"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE \"t a\" (\"\"\"cb\"\"\");\n    INSERT INTO \"t a\" (\"\"\"cb\"\"\") VALUES (1);\n    SELECT \"\"\"cb\"\"\" FROM \"t a\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM \"t a\";"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT \"t a\".* FROM \"t a\";"
         },
         {
           "type": "exec",

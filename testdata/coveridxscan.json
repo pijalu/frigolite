@@ -1,0 +1,68 @@
+{
+  "file": "coveridxscan.test",
+  "name": "coveridxscan",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, c FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, c FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

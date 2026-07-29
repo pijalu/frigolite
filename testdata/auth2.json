@@ -1,0 +1,93 @@
+{
+  "file": "auth2.test",
+  "name": "auth2",
+  "tests": [
+    {
+      "name": "auth2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT min(a,b,c) FROM t1",
+          "expect": "0 {{}}"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(min(a,b,c),999) FROM t1",
+          "expect": "0 999"
+        }
+      ]
+    },
+    {
+      "name": "auth2-1.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT coalesce(a,b,c) FROM t1",
+          "expect": "0 1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "setup_5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(x,y,z);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM v2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b, a FROM v2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "auth2-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  DELETE FROM t2;\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;",
+          "expect": "1 NULL 3 a NULL c"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

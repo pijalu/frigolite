@@ -3,15 +3,11 @@
   "name": "shell7",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "1.0",
       "steps": [
         {
           "type": "exec",
-          "sql": "SELECT tn, length(x) AS l, x FROM f1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM dbstat"
+          "sql": "CREATE TABLE f1(tn INTEGER PRIMARY KEY, x BLOB); \n  CREATE TABLE f2(tn INTEGER PRIMARY KEY, x BLOB); \n\n  INSERT INTO f1 VALUES(1, X'01020304');\n  INSERT INTO f1 VALUES(2, X'01000304');\n  INSERT INTO f1 VALUES(3, randomblob(200));"
         }
       ]
     },
@@ -30,6 +26,14 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT tn, length(x) AS l, x FROM f1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM dbstat"
         }
       ]
     }

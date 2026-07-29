@@ -9,10 +9,6 @@
           "type": "query",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;",
           "expect": "8 64"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;"
         }
       ]
     },
@@ -23,10 +19,6 @@
           "type": "query",
           "sql": "SELECT name FROM sqlite_master",
           "expect": "t1 t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT name FROM sqlite_master"
         }
       ]
     },
@@ -36,10 +28,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t2"
         }
       ]
     },
@@ -48,10 +36,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t2"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM t2"
         }
       ]
@@ -63,6 +47,22 @@
           "type": "query",
           "sql": "SELECT * FROM t2",
           "expect": "98 99"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abcdefgh');\n    INSERT INTO t1 SELECT a+1, b||b FROM t1;\n    INSERT INTO t1 SELECT a+2, b||b FROM t1;\n    INSERT INTO t1 SELECT a+4, b||b FROM t1;\n    SELECT count(*), max(length(b)) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2"
         },
         {
           "type": "exec",

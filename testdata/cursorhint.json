@@ -8,18 +8,6 @@
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(x,y,z);\n  INSERT INTO t1(a,b) VALUES(10, 15);\n  INSERT INTO t1(a,b) VALUES(20, 25);\n  INSERT INTO t2(x,y) VALUES('ten', 'fifteen');\n  INSERT INTO t2(x,y) VALUES('twenty', 'twentyfive');\n  CREATE TABLE t3(id TEXT PRIMARY KEY, a, b, c, d) WITHOUT ROWID;\n  INSERT INTO t3(id,a,b,c,d) SELECT rowid, a, b, c, d FROM t1;\n  PRAGMA automatic_index = 0;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t1bc ON t1(b,c);\n    CREATE INDEX t2yz ON t2(y,z);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -51,6 +39,19 @@
       ]
     },
     {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(b INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t3(c INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a) VALUES(1),(2);\n  INSERT INTO t2(b) VALUES(4),(8);\n  INSERT INTO t3(c) VALUES(16),(32);\n  CREATE VIEW v4(d) AS SELECT c FROM t3;\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN v4 ON (d IS NULL);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t1bc ON t1(b,c);\n    CREATE INDEX t2yz ON t2(y,z);"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -59,11 +60,10 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t2(b INT PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t3(c INT PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1(a) VALUES(1),(2);\n  INSERT INTO t2(b) VALUES(4),(8);\n  INSERT INTO t3(c) VALUES(16),(32);\n  CREATE VIEW v4(d) AS SELECT c FROM t3;\n  SELECT * FROM t1 RIGHT JOIN t2 ON true JOIN v4 ON (d IS NULL);"
+          "type": "reset_db"
         }
       ]
     }

@@ -3,8 +3,91 @@
   "name": "instr",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "instr-1.60",
       "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(instr(NULL,'abc'), 999);",
+          "expect": "999"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.61",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(instr('abc',NULL), 999);",
+          "expect": "999"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.62",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT coalesce(instr(NULL,NULL), 999);",
+          "expect": "999"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.63",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT instr(X'', 'abc')"
+        }
+      ]
+    },
+    {
+      "name": "instr-1.64",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(X'', 'abc');\n  SELECT instr(a, b) FROM x1;"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  INSERT INTO t0(c0) VALUES (x'bb'), (0);\n  SELECT COUNT(*) FROM t0 WHERE INSTR(x'aabb', t0.c0) ORDER BY t0.c0, t0.c1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(c0) FROM t0 WHERE INSTR(x'aabb', t0.c0) ORDER BY t0.c0, t0.c1;",
+          "expect": "X'BB'"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('text'),(x'bb');\n  SELECT quote(x) FROM t1 WHERE instr(x'aabb',x);",
+          "expect": "X'BB'"
+        }
+      ]
+    },
+    {
+      "name": "instr-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(x) FROM t1 WHERE x>'zzz' AND instr(x'aabb',x);",
+          "expect": "X'BB'"
+        },
         {
           "type": "exec",
           "sql": "SELECT instr('abcdefg','a');"
@@ -220,94 +303,6 @@
         {
           "type": "exec",
           "sql": "SELECT instr(x'78c3a4e282ac79','y');"
-        }
-      ]
-    },
-    {
-      "name": "instr-1.60",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT coalesce(instr(NULL,'abc'), 999);",
-          "expect": "999"
-        }
-      ]
-    },
-    {
-      "name": "instr-1.61",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT coalesce(instr('abc',NULL), 999);",
-          "expect": "999"
-        }
-      ]
-    },
-    {
-      "name": "instr-1.62",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT coalesce(instr(NULL,NULL), 999);",
-          "expect": "999"
-        }
-      ]
-    },
-    {
-      "name": "instr-1.63",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT instr(X'', 'abc')"
-        }
-      ]
-    },
-    {
-      "name": "instr-1.64",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(X'', 'abc');\n  SELECT instr(a, b) FROM x1;"
-        }
-      ]
-    },
-    {
-      "name": "instr-2.0",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 PRIMARY KEY, c1);\n  INSERT INTO t0(c0) VALUES (x'bb'), (0);\n  SELECT COUNT(*) FROM t0 WHERE INSTR(x'aabb', t0.c0) ORDER BY t0.c0, t0.c1;",
-          "expect": "1"
-        }
-      ]
-    },
-    {
-      "name": "instr-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote(c0) FROM t0 WHERE INSTR(x'aabb', t0.c0) ORDER BY t0.c0, t0.c1;",
-          "expect": "X'BB'"
-        }
-      ]
-    },
-    {
-      "name": "instr-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1(x) VALUES('text'),(x'bb');\n  SELECT quote(x) FROM t1 WHERE instr(x'aabb',x);",
-          "expect": "X'BB'"
-        }
-      ]
-    },
-    {
-      "name": "instr-2.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT quote(x) FROM t1 WHERE x>'zzz' AND instr(x'aabb',x);",
-          "expect": "X'BB'"
         }
       ]
     }

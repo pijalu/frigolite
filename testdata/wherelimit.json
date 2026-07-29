@@ -3,19 +3,60 @@
   "name": "wherelimit",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "wherelimit-4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
-        },
+          "sql": "CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-4.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "COMMIT;"
-        },
+          "sql": "DELETE FROM tv WHERE 1 LIMIT 2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-4.3",
+      "steps": [
         {
           "type": "exec",
-          "sql": "CREATE TABLE t1(x, y)"
+          "sql": "DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t3 WHERE a=5 LIMIT 2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a,b,c,d FROM t3 ORDER BY 1;",
+          "expect": "1 2 3 4 9 10 11 12"
         }
       ]
     },
@@ -96,10 +137,6 @@
           "type": "exec",
           "sql": "UPDATE t1 SET y=1 WHERE x=1 OFFSET 2",
           "expect": "1 {near \"OFFSET\": syntax error}"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE t1"
         }
       ]
     },
@@ -110,10 +147,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "25"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -123,14 +156,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -140,14 +165,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -157,14 +174,15 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
-        },
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.3b",
+      "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
+          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5"
         }
       ]
     },
@@ -175,10 +193,15 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "11"
-        },
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-1.4",
+      "steps": [
         {
           "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
+          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2"
         }
       ]
     },
@@ -189,10 +212,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "6"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -202,14 +221,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -219,14 +230,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -236,14 +239,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -253,14 +248,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -270,14 +257,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -287,14 +266,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -304,14 +275,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -321,14 +284,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -338,14 +293,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -356,10 +303,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "36"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -369,14 +312,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=1"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -386,14 +321,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=1 LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -403,14 +330,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -420,14 +339,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -437,14 +348,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -454,14 +357,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -471,14 +366,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -488,14 +375,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -505,14 +384,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -522,14 +393,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -539,14 +402,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -556,14 +411,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -573,14 +420,6 @@
         {
           "type": "exec",
           "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -591,10 +430,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1",
           "expect": "36"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1"
         }
       ]
     },
@@ -604,14 +439,15 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=1 WHERE x=1"
-        },
+        }
+      ]
+    },
+    {
+      "name": "wherelimit-3.2",
+      "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5"
         }
       ]
     },
@@ -622,10 +458,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM t1 WHERE y=1",
           "expect": "10"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         }
       ]
     },
@@ -635,14 +467,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=2"
         }
       ]
     },
@@ -652,14 +476,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         }
       ]
     },
@@ -669,14 +485,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         }
       ]
     },
@@ -686,14 +494,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=3"
         }
       ]
     },
@@ -703,14 +503,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=3"
         }
       ]
     },
@@ -720,14 +512,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=4"
         }
       ]
     },
@@ -737,14 +521,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=4"
         }
       ]
     },
@@ -754,14 +530,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         }
       ]
     },
@@ -771,14 +539,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         }
       ]
     },
@@ -788,14 +548,6 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         }
       ]
     },
@@ -805,6 +557,346 @@
         {
           "type": "exec",
           "sql": "UPDATE t1 SET y=1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x int, y int);\n    BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x, y)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x, y LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 RETURNING x, y, '|' ORDER BY x  LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1 LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=4 ORDER BY x LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=5 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=2 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE x=3 ORDER BY x LIMIT 50 OFFSET 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 RETURNING x, y, '|' LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=2"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET 2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=2 WHERE x=2 ORDER BY x LIMIT 5 OFFSET -2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT 2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=3 WHERE x=3 ORDER BY x LIMIT -2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=3"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=4 WHERE x=4 ORDER BY x LIMIT -2, -5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=4 WHERE x=5 ORDER BY x LIMIT 2, 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=4"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=4 WHERE x=6 ORDER BY x LIMIT 5 OFFSET 5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=1 ORDER BY x LIMIT 50 OFFSET 30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=1 WHERE x=2 ORDER BY x LIMIT 30, 50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1 WHERE y=1"
         },
         {
           "type": "exec",
@@ -821,64 +913,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-4.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a int);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE t2(a int);\n    INSERT INTO t2 SELECT a+100 FROM t1;\n    CREATE VIEW tv(r,a) AS\n       SELECT rowid, a FROM t2 UNION ALL SELECT rowid, a FROM t1;\n    CREATE TRIGGER tv_del INSTEAD OF DELETE ON tv\n    BEGIN\n      DELETE FROM t1 WHERE rowid=old.r;\n      DELETE FROM t2 WHERE rowid=old.r;\n    END;"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM tv WHERE 1 LIMIT 2;",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-4.3",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM tv WHERE 1 ORDER BY a LIMIT 2;",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-4.10",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t3(a,b,c,d TEXT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t3(a,b,c,d) VALUES(1,2,3,4),(5,6,7,8),(9,10,11,12);"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-4.11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM t3 WHERE a=5 LIMIT 2;",
-          "expect": "0 {}"
-        }
-      ]
-    },
-    {
-      "name": "wherelimit-4.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT a,b,c,d FROM t3 ORDER BY 1;",
-          "expect": "1 2 3 4 9 10 11 12"
         }
       ]
     }

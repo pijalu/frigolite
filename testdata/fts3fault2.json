@@ -3,8 +3,140 @@
   "name": "fts3fault2",
   "tests": [
     {
-      "name": "setup_0",
+      "name": "7.0",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t7 USING fts4(x,prefix=2);\n  INSERT INTO t7 VALUES('the quick brown fox');\n  INSERT INTO t7 VALUES('jumped over the');\n  INSERT INTO t7 VALUES('lazy dog');"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t8 USING fts3;\n  INSERT INTO t8 VALUES('the quick brown fox');\n  INSERT INTO t8 VALUES('jumped over the');\n  INSERT INTO t8 VALUES('lazy dog');\n  INSERT INTO t8(t8) VALUES('automerge=8');\n  SELECT name FROM sqlite_master WHERE name LIKE 't8%';",
+          "expect": "t8 t8_content t8_segments t8_segdir t8_stat"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t9 USING fts3;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t9 SELECT 'one two three' FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(x);\n    INSERT INTO t1 VALUES('a b c');\n    INSERT INTO t1 VALUES('c d e');\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE tx USING fts4(a, b);\n    INSERT INTO tx VALUES('a b c', 'x y z');\n    CREATE VIRTUAL TABLE terms2 USING fts4aux(tx);"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts4(a, b);\n    INSERT INTO ft VALUES('U U T C O', 'F N D E S');\n    INSERT INTO ft VALUES('P H X G B', 'I D M R U');\n    INSERT INTO ft VALUES('P P X D M', 'Y V N T C');\n    INSERT INTO ft VALUES('Z L Q O W', 'D F U N Q');\n    INSERT INTO ft VALUES('A J D U P', 'C H M Q E');\n    INSERT INTO ft VALUES('P S A O H', 'S Z C W D');\n    INSERT INTO ft VALUES('T B N L W', 'C A K T I');\n    INSERT INTO ft VALUES('K E Z L O', 'L L Y C E');\n    INSERT INTO ft VALUES('C R E S V', 'Q V F W P');\n    INSERT INTO ft VALUES('S K H G W', 'R W Q F G');"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts4(a, tokenize=unicode61);"
+        }
+      ]
+    },
+    {
+      "name": "6.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t6 USING fts4(x,order=DESC);\n    INSERT INTO t6(docid, x) VALUES(-1,'a b');\n    INSERT INTO t6(docid, x) VALUES(1, 'b');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(x);\n    INSERT INTO t1 VALUES('a b c');\n    INSERT INTO t1 VALUES('c d e');\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE tx USING fts4(a, b);\n    INSERT INTO tx VALUES('a b c', 'x y z');\n    CREATE VIRTUAL TABLE terms2 USING fts4aux(tx);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE tt USING fts4(content=\"xx yy\");"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE tt USING fts4(compress=zip, uncompress=unzip);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts4(a, b);\n    INSERT INTO ft VALUES('U U T C O', 'F N D E S');\n    INSERT INTO ft VALUES('P H X G B', 'I D M R U');\n    INSERT INTO ft VALUES('P P X D M', 'Y V N T C');\n    INSERT INTO ft VALUES('Z L Q O W', 'D F U N Q');\n    INSERT INTO ft VALUES('A J D U P', 'C H M Q E');\n    INSERT INTO ft VALUES('P S A O H', 'S Z C W D');\n    INSERT INTO ft VALUES('T B N L W', 'C A K T I');\n    INSERT INTO ft VALUES('K E Z L O', 'L L Y C E');\n    INSERT INTO ft VALUES('C R E S V', 'Q V F W P');\n    INSERT INTO ft VALUES('S K H G W', 'R W Q F G');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft(ft) VALUES('rebuild')"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts4(a, tokenize=unicode61);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES('the quick brown fox');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES(\n       'theunusuallylongtokenthatjustdragsonandonandonandthendragsonsomemoreeof'\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM ft WHERE ft MATCH 'th*'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t6 USING fts4(x,order=DESC);\n    INSERT INTO t6(docid, x) VALUES(-1,'a b');\n    INSERT INTO t6(docid, x) VALUES(1, 'b');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t6 WHERE t6 MATCH '\"a* b\"'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT docid FROM t7 WHERE t7 MATCH 't*'"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t8 VALUES('one two three')"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t8 RENAME TO t8ii"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t9 WHERE t9 MATCH '\"one two three\"'"
+        },
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
@@ -36,6 +168,10 @@
         {
           "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
         }
       ]
     },
@@ -44,15 +180,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM sqlite_master"
         }
       ]
     },

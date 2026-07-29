@@ -454,10 +454,17 @@ func (e *ColumnRef) expr() {}
 
 // NumericLit represents a numeric literal.
 type NumericLit struct {
-	Value string
+	Value  string
+	cached interface{} // cached parsed value (int64 or float64), avoids re-parsing
 }
 
 func (e *NumericLit) expr() {}
+
+// Cached returns the pre-parsed cached value, or nil if not yet cached.
+func (e *NumericLit) Cached() interface{} { return e.cached }
+
+// SetCached stores a pre-parsed value for future use.
+func (e *NumericLit) SetCached(v interface{}) { e.cached = v }
 
 // StringLit represents a string literal.
 type StringLit struct {

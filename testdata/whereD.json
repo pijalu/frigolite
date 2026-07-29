@@ -195,18 +195,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t3(a, b, c);\n  CREATE UNIQUE INDEX i3 ON t3(a, b);\n  INSERT INTO t3 VALUES(1, 'one', 'i');\n  INSERT INTO t3 VALUES(3, 'three', 'iii');\n  INSERT INTO t3 VALUES(6, 'six', 'vi');\n  INSERT INTO t3 VALUES(2, 'two', 'ii');\n  INSERT INTO t3 VALUES(4, 'four', 'iv');\n  INSERT INTO t3 VALUES(5, 'five', 'v');\n\n  CREATE TABLE t4(x PRIMARY KEY, y);\n  INSERT INTO t4 VALUES('a', 'one');\n  INSERT INTO t4 VALUES('b', 'two');"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t41(a,b,c);\n    INSERT INTO t41 VALUES(1,2,3), (4,5,6);\n    CREATE TABLE t42(d,e,f);\n    INSERT INTO t42 VALUES(3,6,9), (4,8,12);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX t42d ON t42(d);\n    CREATE INDEX t42e ON t42(e);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.d=x.b);"
         }
       ]
     },
@@ -344,6 +332,18 @@
           "type": "query",
           "sql": "CREATE INDEX idx_bar ON bar(ba, bb);\n  SELECT \n    bar.Id, bar.ba, bar.bb, foo.fb\n    FROM foo LEFT JOIN bar\n           ON (bar.ba = 1 AND bar.bb = foo.fb)\n           OR (bar.ba = 5 AND bar.bb = foo.fb);",
           "expect": "1 1 1 1 \n  {} {} {} 2 \n  {} {} {} 3 \n  4 1 4 4 \n  {} {} {} 5 \n  {} {} {} 6 \n  7 1 7 7 \n  {} {} {} 8 \n  {} {} {} 9"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t41(a,b,c);\n    INSERT INTO t41 VALUES(1,2,3), (4,5,6);\n    CREATE TABLE t42(d,e,f);\n    INSERT INTO t42 VALUES(3,6,9), (4,8,12);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t42d ON t42(d);\n    CREATE INDEX t42e ON t42(e);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.d=x.b);"
         }
       ]
     }

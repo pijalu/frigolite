@@ -17,10 +17,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM x"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM x"
         }
       ]
     },
@@ -29,10 +25,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM x"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT * FROM x"
         }
       ]
@@ -68,34 +60,28 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE b(c);\n    INSERT INTO b VALUES('Tehran');\n    INSERT INTO b VALUES('Qom');\n    INSERT INTO b VALUES('Markazi');\n    PRAGMA wal_checkpoint;",
+          "expect": "wal 0 5 5"
+        }
+      ]
+    },
+    {
       "name": "2.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM b",
           "expect": "Tehran Qom Markazi"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM b"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM b"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO b VALUES('Qazvin')"
         }
       ]
     },
     {
       "name": "2.4",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "INSERT INTO b VALUES('Gilan');\n    INSERT INTO b VALUES('Ardabil');"
-        },
         {
           "type": "exec",
           "sql": "INSERT INTO b VALUES('Gilan');\n    INSERT INTO b VALUES('Ardabil');"
@@ -109,10 +95,6 @@
           "type": "query",
           "sql": "SELECT * FROM b",
           "expect": "Tehran Qom Markazi Qazvin Gilan Ardabil"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM b"
         }
       ]
     },
@@ -126,7 +108,39 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM x"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE b(c);\n    INSERT INTO b VALUES('Tehran');\n    INSERT INTO b VALUES('Qom');\n    INSERT INTO b VALUES('Markazi');\n    PRAGMA wal_checkpoint;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO b VALUES('Gilan');\n    INSERT INTO b VALUES('Ardabil');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM b"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO b VALUES('Qazvin')"
         }
       ]
     }

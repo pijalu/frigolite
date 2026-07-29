@@ -1,0 +1,89 @@
+{
+  "file": "notify3.test",
+  "name": "notify3",
+  "tests": [
+    {
+      "name": "notify3-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('t1 A', 't1 B');"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "1 {database schema is locked: aux}"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    },
+    {
+      "name": "notify3-1.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t2",
+          "expect": "0 {{t2 A} {t2 B} {t2 C} {t2 D}}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('t1 A', 't1 B');"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('t2 A', 't2 B');"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE;\n    INSERT INTO t2 VALUES('t2 C', 't2 D');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

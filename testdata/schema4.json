@@ -41,14 +41,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "schema4-1.5",
       "steps": [
         {
@@ -101,14 +93,6 @@
           "type": "query",
           "sql": "INSERT INTO tbl VALUES('a', 'b');\n    DELETE FROM tbl;\n    SELECT * FROM log;",
           "expect": "{after insert} a b {after delete} a b"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -177,6 +161,22 @@
           "type": "query",
           "sql": "INSERT INTO x1 VALUES(456);\n    SELECT * FROM x1",
           "expect": "123 456"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

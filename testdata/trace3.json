@@ -1,0 +1,260 @@
+{
+  "file": "trace3.test",
+  "name": "trace3",
+  "tests": [
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE T1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);"
+        }
+      ]
+    },
+    {
+      "name": "trace3-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(2,-1);\n    INSERT INTO t1 VALUES(3,0);\n    INSERT INTO t1 VALUES(4,1);\n    INSERT INTO t1 VALUES(5,-2147483648);\n    INSERT INTO t1 VALUES(6,2147483647);\n    INSERT INTO t1 VALUES(7,-9223372036854775808);\n    INSERT INTO t1 VALUES(8,9223372036854775807);\n    INSERT INTO t1 VALUES(9,-1.0);\n    INSERT INTO t1 VALUES(10,0.0);\n    INSERT INTO t1 VALUES(11,1.0);\n    INSERT INTO t1 VALUES(12,'');\n    INSERT INTO t1 VALUES(13,'1');\n    INSERT INTO t1 VALUES(14,'one');\n    INSERT INTO t1 VALUES(15,x'abcd0123');\n    INSERT INTO t1 VALUES(16,x'4567cdef');"
+        }
+      ]
+    },
+    {
+      "name": "trace3-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "trace3-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^\\{-?\\d+ \\{SELECT a, b FROM t1 ORDER BY a;\\}\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^\\{-?\\d+ -?\\d+\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^\\{-?\\d+ -?\\d+\\}$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^-?\\d+ 1$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;",
+          "expect": "/^-?\\d+ 1$/"
+        }
+      ]
+    },
+    {
+      "name": "trace3-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "trace3-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "trace3-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "trace3-6.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "trace3-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        }
+      ]
+    },
+    {
+      "name": "12.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(2,-1);\n    INSERT INTO t1 VALUES(3,0);\n    INSERT INTO t1 VALUES(4,1);\n    INSERT INTO t1 VALUES(5,-2147483648);\n    INSERT INTO t1 VALUES(6,2147483647);\n    INSERT INTO t1 VALUES(7,-9223372036854775808);\n    INSERT INTO t1 VALUES(8,9223372036854775807);\n    INSERT INTO t1 VALUES(9,-1.0);\n    INSERT INTO t1 VALUES(10,0.0);\n    INSERT INTO t1 VALUES(11,1.0);\n    INSERT INTO t1 VALUES(12,'');\n    INSERT INTO t1 VALUES(13,'1');\n    INSERT INTO t1 VALUES(14,'one');\n    INSERT INTO t1 VALUES(15,x'abcd0123');\n    INSERT INTO t1 VALUES(16,x'4567cdef');"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, b FROM t1 ORDER BY a;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

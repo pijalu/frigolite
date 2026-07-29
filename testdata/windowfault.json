@@ -8,6 +8,51 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);"
+        }
+      ]
+    },
+    {
+      "name": "10.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);"
+        }
+      ]
+    },
+    {
+      "name": "11.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);"
+        }
+      ]
+    },
+    {
+      "name": "12.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "13.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');"
+        }
+      ]
+    },
+    {
+      "name": "13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT group_concat(a, b) OVER (\n    ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1"
         },
         {
           "type": "exec",
@@ -48,65 +93,14 @@
         {
           "type": "exec",
           "sql": "SELECT a, sum(b) OVER win1 FROM t1\n      WINDOW win1 AS (PARTITION BY a ),\n             win2 AS (PARTITION BY b )\n    ORDER BY a;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT 0.0 FROM t"
         },
         {
           "type": "exec",
           "sql": "SELECT sum(y) OVER win FROM t\n    WINDOW win AS (\n      ORDER BY x ROWS BETWEEN UNBOUNDED PRECEDING AND 1800 FOLLOWING\n    )"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "10.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);"
         },
         {
           "type": "exec",
           "sql": "SELECT row_number() OVER win\n    FROM t1\n    WINDOW win AS (\n      ORDER BY (\n        SELECT percent_rank() OVER win2 FROM t2\n        WINDOW win2 AS (ORDER BY a)\n      )\n    )"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "11.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);"
         },
         {
           "type": "exec",
@@ -115,27 +109,18 @@
         {
           "type": "exec",
           "sql": "VALUES(false),(current_date collate binary) \n    intersect \n    values(count() not like group_concat(cast(cast(0e00 as text) as integer) <= NULL || 0.4e-0 || 0x8 & true ) over () collate rtrim);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "12.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b, c);"
         },
         {
           "type": "exec",
           "sql": "WITH v(a, b, row_number) AS (\n      SELECT a, b, row_number() OVER (PARTITION BY a COLLATE nocase ORDER BY b) FROM t1\n    )\n    SELECT * FROM v WHERE a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(a, b) OVER (\n        ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 0.0 FROM t"
         }
       ]
     },
@@ -148,24 +133,34 @@
       ]
     },
     {
-      "name": "13.0",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1 VALUES(1, '1', 'a');\n  INSERT INTO t1 VALUES(2, '22', 'b');\n  INSERT INTO t1 VALUES(3, '333', 'c');\n  INSERT INTO t1 VALUES(4, '4444', 'dddd');\n  INSERT INTO t1 VALUES(5, '55555', 'e');\n  INSERT INTO t1 VALUES(6, '666666', 'f');\n  INSERT INTO t1 VALUES(7, '7777777', 'gggggggggg');"
+          "type": "reset_db"
         }
       ]
     },
     {
-      "name": "13.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "SELECT group_concat(a, b) OVER (\n    ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1"
-        },
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "SELECT group_concat(a, b) OVER (\n        ORDER BY id RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING\n    ) FROM t1"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

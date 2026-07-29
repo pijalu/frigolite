@@ -1,0 +1,258 @@
+{
+  "file": "corrupt.test",
+  "name": "corrupt",
+  "tests": [
+    {
+      "name": "corrupt-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1i1'"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('abc');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-3.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-3.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE oid = 10;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-3.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x = 'abcde';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid = 3",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA page_size = 1024"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));"
+        }
+      ]
+    },
+    {
+      "name": "corrupt-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1i1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage FROM sqlite_master WHERE name = 't1'"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA schema_version"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES( randomblob(10) )"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE rowid=1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024; CREATE TABLE t1(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

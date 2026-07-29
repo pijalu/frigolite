@@ -17,10 +17,6 @@
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
     },
@@ -29,10 +25,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
@@ -43,10 +35,6 @@
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
     },
@@ -55,10 +43,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
@@ -69,10 +53,6 @@
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
     },
@@ -81,10 +61,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
@@ -95,10 +71,6 @@
         {
           "type": "query",
           "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a,b RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a,b RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
     },
@@ -107,10 +79,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a, sum(b) OVER (\n    PARTITION BY a RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a, sum(b) OVER (\n    PARTITION BY a RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
         }
       ]
@@ -121,10 +89,6 @@
         {
           "type": "query",
           "sql": "SELECT sum( sum(a) OVER () ) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum( sum(a) OVER () ) FROM t1;"
         }
       ]
     },
@@ -133,10 +97,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT sum(a) OVER () AS xyz FROM t1 ORDER BY sum(xyz);"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT sum(a) OVER () AS xyz FROM t1 ORDER BY sum(xyz);"
         }
       ]
@@ -147,10 +107,6 @@
         {
           "type": "query",
           "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 'hello' PRECEDING AND 10 FOLLOWING)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 'hello' PRECEDING AND 10 FOLLOWING)"
         }
       ]
     },
@@ -159,10 +115,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 10 PRECEDING AND x'ABCD' FOLLOWING)"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 10 PRECEDING AND x'ABCD' FOLLOWING)"
         }
       ]
@@ -173,6 +125,54 @@
         {
           "type": "query",
           "sql": "SELECT row_number(a) OVER () FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a ROWS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a RANGE BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN -1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a GROUPS BETWEEN  1 PRECEDING AND -1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    ORDER BY a,b RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, sum(b) OVER (\n    PARTITION BY a RANGE BETWEEN  1 PRECEDING AND 1 FOLLOWING\n  ) FROM t1 ORDER BY 1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum( sum(a) OVER () ) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a) OVER () AS xyz FROM t1 ORDER BY sum(xyz);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 'hello' PRECEDING AND 10 FOLLOWING)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT sum(a) OVER win FROM t1\n  WINDOW win AS (ROWS BETWEEN 10 PRECEDING AND x'ABCD' FOLLOWING)"
         },
         {
           "type": "exec",

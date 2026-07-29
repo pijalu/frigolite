@@ -11,6 +11,10 @@
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 2, 2, NULL) ON CONFLICT(b, c) DO\n       UPDATE SET d=d+1;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT * FROM sqlite_master"
         }
       ]

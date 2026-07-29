@@ -51,14 +51,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "3.1.0",
       "steps": [
         {
@@ -181,35 +173,6 @@
           "type": "query",
           "sql": "SELECT * FROM t4 ORDER BY Substr(a,-2) COLLATE binary;",
           "expect": ".ABC1 1 .ABC3 3 .abc2 2 .abc4 4"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_20",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(1,2,3,4,5,6);"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET b=b+1;"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE t1 SET d=d+1;"
         }
       ]
     },
@@ -368,14 +331,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "8.0",
       "steps": [
         {
@@ -414,28 +369,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "9.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a, abs(b));\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t1(a,b) VALUES(4,4),(5,-5),(5,20),(6,6);\n  INSERT INTO t2(c,d) VALUES(100,1),(200,1),(300,2);\n  SELECT *,\n    (SELECT max(c+abs(b)) FROM t2 GROUP BY d ORDER BY d LIMIT 1) AS subq\n   FROM t1 WHERE a=5;",
           "expect": "5 -5 205 5 20 220"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -465,6 +404,62 @@
           "type": "query",
           "sql": "CREATE TABLE t3 (a INT, b AS (-a));\n  CREATE INDEX t3x ON t3(b, a);\n  INSERT INTO t3(a) VALUES(44);\n  SELECT * FROM t3 AS a0\n   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)\n   GROUP BY b;",
           "expect": "44 -44"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1,2,3,4,5,6);"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET b=b+1;"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET d=d+1;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

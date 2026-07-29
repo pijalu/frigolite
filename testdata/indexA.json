@@ -61,39 +61,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a TEXT, b, c);\n  INSERT INTO x1 VALUES('2', 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c);\n  INSERT INTO x2 VALUES('2', 'two', 'ii');\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x3(a REAL, b, c);\n  INSERT INTO x3 VALUES('2', 'two', 'ii');\n  INSERT INTO x3 VALUES('2.0', 'twopointoh', 'ii.0');"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i3"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -103,26 +75,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i3"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -142,14 +94,6 @@
           "type": "query",
           "sql": "SELECT sum(a), b FROM t2 WHERE b='two'",
           "expect": "6 two"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -182,27 +126,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.3",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -264,28 +192,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "7.0",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(i INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE INDEX i1 ON t1(c) WHERE b='abc' AND i=5;\n  INSERT INTO t1 VALUES(5, 'abc', 'xyz');\n  SELECT * FROM t1 INDEXED BY i1 WHERE b='abc' AND i=5 ORDER BY c;",
           "expect": "5 abc xyz"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -305,6 +217,94 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE b=4;",
           "expect": "1 4 1  2 4 2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

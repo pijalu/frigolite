@@ -48,6 +48,10 @@
         {
           "type": "exec",
           "sql": "INSERT INTO a(id,name) VALUES(10,'ten')"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE A SET name='new text for row 3' WHERE id=3"
         }
       ]
     },
@@ -56,15 +60,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE A SET name='new text for row 3' WHERE id=3"
         }
       ]
     }

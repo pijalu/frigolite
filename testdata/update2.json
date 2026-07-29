@@ -17,10 +17,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
         }
       ]
     },
@@ -39,10 +35,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
         }
       ]
     },
@@ -89,10 +81,6 @@
           "type": "query",
           "sql": "UPDATE t4 SET c=c+2 WHERE c>2;\n  SELECT a, c FROM t4 ORDER BY a;",
           "expect": "1 5 2 6"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
         }
       ]
     },
@@ -121,10 +109,6 @@
           "type": "query",
           "sql": "SELECT * FROM x1;",
           "expect": "1 a 2 2 a 3 3 a 4"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a'"
         }
       ]
     },
@@ -173,6 +157,22 @@
           "type": "query",
           "sql": "UPDATE OR REPLACE t1 SET x=1;\n  SELECT quote(x), quote(y), '|' FROM t1;",
           "expect": "1 NULL |"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a'"
         }
       ]
     }

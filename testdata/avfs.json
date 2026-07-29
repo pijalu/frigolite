@@ -43,6 +43,10 @@
         },
         {
           "type": "exec",
+          "sql": "INSERT INTO ri VALUES (randomblob(1500))"
+        },
+        {
+          "type": "exec",
           "sql": "COMMIT"
         },
         {

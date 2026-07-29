@@ -479,28 +479,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "analyzeE-5.0",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA encoding = 'UTF-16';\n  CREATE TABLE t0 (c1 TEXT);\n  INSERT INTO t0 VALUES ('');\n  CREATE INDEX i0 ON t0(c1);\n  ANALYZE;\n  SELECT * FROM t0 WHERE t0.c1 BETWEEN '' AND (ABS(''));",
           "expect": "{}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -546,6 +530,42 @@
         {
           "type": "query",
           "sql": "SELECT count(*) FROM sqlite_stat4 WHERE idx='i1' AND neq<>'1 1 1 1 1 1';"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-7.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a TEXT COLLATE binary);\n  CREATE INDEX t1x ON t1(a);\n  INSERT INTO t1(a) VALUES(0),('apple'),(NULL),(''),('banana');\n  ANALYZE;\n  SELECT format('(%s)',a) FROM t1 WHERE t1.a > CAST(zeroblob(5) AS TEXT);",
+          "expect": "(0) (apple) (banana)"
+        }
+      ]
+    },
+    {
+      "name": "analyzeE-7.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT format('(%s)',a) FROM t1 WHERE t1.a <= CAST(zeroblob(5) AS TEXT);",
+          "expect": "()"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },

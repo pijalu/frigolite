@@ -1,0 +1,147 @@
+{
+  "file": "enc3.test",
+  "name": "enc3",
+  "tests": [
+    {
+      "name": "enc3-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding=utf16le;\n      PRAGMA encoding;",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "enc3-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc''123',5);\n    SELECT * FROM t1",
+          "expect": "abc'123 5"
+        }
+      ]
+    },
+    {
+      "name": "enc3-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(x) || ' ' || quote(y) FROM t1",
+          "expect": "{'abc''123' 5}"
+        }
+      ]
+    },
+    {
+      "name": "enc3-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(x'616263646566',NULL);\n      SELECT * FROM t1",
+          "expect": "abcdef {}"
+        }
+      ]
+    },
+    {
+      "name": "enc3-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT quote(x) || ' ' || quote(y) FROM t1",
+          "expect": "{X'616263646566' NULL}"
+        }
+      ]
+    },
+    {
+      "name": "enc3-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding",
+          "expect": "UTF-16le"
+        }
+      ]
+    },
+    {
+      "name": "enc3-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES(x'61006200630064006500');\n      SELECT CAST(a AS text) FROM t2 WHERE CAST(a AS text) LIKE 'abc%';",
+          "expect": "abcde"
+        }
+      ]
+    },
+    {
+      "name": "enc3-2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT CAST(x'61006200630064006500' AS text);",
+          "expect": "abcde"
+        }
+      ]
+    },
+    {
+      "name": "enc3-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT rowid FROM t2\n       WHERE CAST(a AS text) LIKE CAST(x'610062002500' AS text);",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "enc3-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db' AS utf16;\n      SELECT 1 FROM utf16.sqlite_master LIMIT 1;",
+          "expect": "1 {attached databases must use the same text encoding as main database}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=utf16le;\n      PRAGMA encoding;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc''123',5);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(x) || ' ' || quote(y) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n      INSERT INTO t1 VALUES(x'616263646566',NULL);\n      SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT quote(x) || ' ' || quote(y) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(a);\n      INSERT INTO t2 VALUES(x'61006200630064006500');\n      SELECT CAST(a AS text) FROM t2 WHERE CAST(a AS text) LIKE 'abc%';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT CAST(x'61006200630064006500' AS text);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t2\n       WHERE CAST(a AS text) LIKE CAST(x'610062002500' AS text);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT 1 FROM sqlite_master LIMIT 1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

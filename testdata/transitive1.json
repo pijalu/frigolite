@@ -301,14 +301,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "transitive1-600",
       "steps": [
         {
@@ -345,14 +337,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "transitive1-700",
       "steps": [
         {
@@ -376,14 +360,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 CROSS JOIN t2 WHERE likely(t2.y=t1.a) AND unlikely(t1.a=t2.x)"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -434,28 +410,12 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "transitive1-900",
       "steps": [
         {
           "type": "query",
           "sql": "CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t2 VALUES('abc');\n  SELECT * FROM t1 CROSS JOIN t2 WHERE a=b AND b='ABC';",
           "expect": "abc abc"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -489,14 +449,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "1100",
       "steps": [
         {
@@ -511,14 +463,6 @@
         {
           "type": "query",
           "sql": "SELECT * FROM t1 CROSS JOIN t2 \n  WHERE (t1.x COLLATE nocase) = (t2.y COLLATE nocase) \n    AND (t2.y = 'ABC')"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -538,6 +482,62 @@
           "type": "query",
           "sql": "SELECT * FROM t1 CROSS JOIN t2 \n  WHERE t1.x = t2.y\n    AND (t1.x COLLATE nocase = 'abc')",
           "expect": "ABC ABC"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

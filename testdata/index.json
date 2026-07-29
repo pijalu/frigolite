@@ -1,0 +1,1448 @@
+{
+  "file": "index.test",
+  "name": "index",
+  "tests": [
+    {
+      "name": "index-22.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a, b TEXT);\n  CREATE UNIQUE INDEX IF NOT EXISTS x1 ON t1(b==0);\n  CREATE INDEX IF NOT EXISTS x2 ON t1(a || 0) WHERE b;\n  INSERT INTO t1(a,b) VALUES('a',1),('a',0);\n  SELECT a, b, '|' FROM t1;",
+          "expect": "a 1 | a 0 |"
+        }
+      ]
+    },
+    {
+      "name": "index-23.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a TEXT, b REAL);\n  CREATE UNIQUE INDEX t1x1 ON t1(a GLOB b);\n  INSERT INTO t1(a,b) VALUES('0.0','1'),('1.0','1');\n  SELECT * FROM t1;\n  REINDEX;"
+        }
+      ]
+    },
+    {
+      "name": "index-23.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a REAL);\n  CREATE UNIQUE INDEX index_0 ON t1(TYPEOF(a));\n  INSERT OR IGNORE INTO t1(a) VALUES (0.1),(FALSE);\n  SELECT * FROM t1;\n  REINDEX;"
+        }
+      ]
+    },
+    {
+      "name": "index-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int, f3 int)"
+        }
+      ]
+    },
+    {
+      "name": "index-1.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'",
+          "expect": "index1 {CREATE INDEX index1 ON test1(f1)} test1 index"
+        }
+      ]
+    },
+    {
+      "name": "index-1.1c",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'",
+          "expect": "index1 {CREATE INDEX index1 ON test1(f1)} test1 index"
+        }
+      ]
+    },
+    {
+      "name": "index-1.1d",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name",
+          "expect": "index1 test1"
+        }
+      ]
+    },
+    {
+      "name": "index-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        }
+      ]
+    },
+    {
+      "name": "index-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f1)"
+        }
+      ]
+    },
+    {
+      "name": "index-2.1b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int, f3 int)"
+        }
+      ]
+    },
+    {
+      "name": "index-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f1, f2, f4, f3)"
+        }
+      ]
+    },
+    {
+      "name": "index-3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int, f3 int, f4 int, f5 int)"
+        }
+      ]
+    },
+    {
+      "name": "index-3.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        }
+      ]
+    },
+    {
+      "name": "index-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(cnt int, power int)"
+        }
+      ]
+    },
+    {
+      "name": "index-4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt FROM test1 WHERE power=4",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "index-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "index-4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT power FROM test1 WHERE cnt=6",
+          "expect": "64"
+        }
+      ]
+    },
+    {
+      "name": "index-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX indext"
+        }
+      ]
+    },
+    {
+      "name": "index-4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "index-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX indext ON test1(cnt)"
+        }
+      ]
+    },
+    {
+      "name": "index-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "index-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX index9"
+        }
+      ]
+    },
+    {
+      "name": "index-4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "index-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX indext"
+        }
+      ]
+    },
+    {
+      "name": "index-4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "index-4.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        }
+      ]
+    },
+    {
+      "name": "index-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON sqlite_master(name)"
+        }
+      ]
+    },
+    {
+      "name": "index-5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        }
+      ]
+    },
+    {
+      "name": "index-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int)"
+        }
+      ]
+    },
+    {
+      "name": "index-6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX [index1] ON test2(g1)",
+          "expect": "1 {index index1 already exists}"
+        }
+      ]
+    },
+    {
+      "name": "index-6.1b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name",
+          "expect": "index1 test1 test2"
+        }
+      ]
+    },
+    {
+      "name": "index-6.1c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX IF NOT EXISTS index1 ON test1(f1)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "index-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX test1 ON test2(g1)"
+        }
+      ]
+    },
+    {
+      "name": "index-6.2b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name",
+          "expect": "index1 test1 test2"
+        }
+      ]
+    },
+    {
+      "name": "index-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        }
+      ]
+    },
+    {
+      "name": "index-6.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE test1(a,b);\n    CREATE INDEX index1 ON test1(a);\n    CREATE INDEX index2 ON test1(b);\n    CREATE INDEX index3 ON test1(a,b);\n    DROP TABLE test1;\n    SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name;"
+        }
+      ]
+    },
+    {
+      "name": "index-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int primary key)"
+        }
+      ]
+    },
+    {
+      "name": "index-7.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT f1 FROM test1 WHERE f2=65536",
+          "expect": "16"
+        }
+      ]
+    },
+    {
+      "name": "index-7.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master \n    WHERE type='index' AND tbl_name='test1'",
+          "expect": "sqlite_autoindex_test1_1"
+        }
+      ]
+    },
+    {
+      "name": "index-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP table test1"
+        }
+      ]
+    },
+    {
+      "name": "index-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX index1"
+        }
+      ]
+    },
+    {
+      "name": "index-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tab1(a int)"
+        }
+      ]
+    },
+    {
+      "name": "index-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON tab1(a)"
+        }
+      ]
+    },
+    {
+      "name": "index-10.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a int, b int);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(2,4);\n    INSERT INTO t1 VALUES(3,8);\n    INSERT INTO t1 VALUES(1,12);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;",
+          "expect": "2 12"
+        }
+      ]
+    },
+    {
+      "name": "index-10.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE a=2 ORDER BY b;",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "index-10.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE b=12;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "index-10.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE b=2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        }
+      ]
+    },
+    {
+      "name": "index-10.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES (1,1);\n    INSERT INTO t1 VALUES (1,2);\n    INSERT INTO t1 VALUES (1,3);\n    INSERT INTO t1 VALUES (1,4);\n    INSERT INTO t1 VALUES (1,5);\n    INSERT INTO t1 VALUES (1,6);\n    INSERT INTO t1 VALUES (1,7);\n    INSERT INTO t1 VALUES (1,8);\n    INSERT INTO t1 VALUES (1,9);\n    INSERT INTO t1 VALUES (2,0);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;",
+          "expect": "1 2 3 4 5 6 7 8 9"
+        }
+      ]
+    },
+    {
+      "name": "index-10.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b IN (2, 4, 6, 8);"
+        }
+      ]
+    },
+    {
+      "name": "index-10.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE b>2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "index-10.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1 WHERE b=1;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        }
+      ]
+    },
+    {
+      "name": "index-10.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 ORDER BY b;",
+          "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "index-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a text,\n      b int,\n      c float,\n      PRIMARY KEY(b)\n    );"
+        }
+      ]
+    },
+    {
+      "name": "index-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t4(a NUM,b);\n    INSERT INTO t4 VALUES('0.0',1);\n    INSERT INTO t4 VALUES('0.00',2);\n    INSERT INTO t4 VALUES('abc',3);\n    INSERT INTO t4 VALUES('-1.0',4);\n    INSERT INTO t4 VALUES('+1.0',5);\n    INSERT INTO t4 VALUES('0',6);\n    INSERT INTO t4 VALUES('00000',7);\n    SELECT a FROM t4 ORDER BY b;",
+          "expect": "0 0 abc -1 1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-12.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 WHERE a==0 ORDER BY b",
+          "expect": "0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-12.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 WHERE a<0.5 ORDER BY b",
+          "expect": "0 0 -1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-12.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 WHERE a>-0.5 ORDER BY b",
+          "expect": "0 0 abc 1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-12.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE INDEX t4i1 ON t4(a);\n    SELECT a FROM t4 WHERE a==0 ORDER BY b",
+          "expect": "0 0 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-12.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 WHERE a<0.5 ORDER BY b",
+          "expect": "0 0 -1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-12.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a FROM t4 WHERE a>-0.5 ORDER BY b",
+          "expect": "0 0 abc 1 0 0"
+        }
+      ]
+    },
+    {
+      "name": "index-13.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t5(\n      a int UNIQUE,\n      b float PRIMARY KEY,\n      c varchar(10),\n      UNIQUE(a,c)\n   );\n   INSERT INTO t5 VALUES(1,2,3);\n   SELECT * FROM t5;",
+          "expect": "1 2.0 3"
+        }
+      ]
+    },
+    {
+      "name": "index-13.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='t5';",
+          "expect": "3"
+        }
+      ]
+    },
+    {
+      "name": "index-13.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t5 VALUES('a','b','c');\n    SELECT * FROM t5;",
+          "expect": "1 2.0 3 a b c"
+        }
+      ]
+    },
+    {
+      "name": "index-14.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6(a,b,c);\n    CREATE INDEX t6i1 ON t6(a,b);\n    INSERT INTO t6 VALUES('','',1);\n    INSERT INTO t6 VALUES('',NULL,2);\n    INSERT INTO t6 VALUES(NULL,'',3);\n    INSERT INTO t6 VALUES('abc',123,4);\n    INSERT INTO t6 VALUES(123,'abc',5);\n    SELECT c FROM t6 ORDER BY a,b;",
+          "expect": "3 5 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "index-14.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a='';",
+          "expect": "2 1"
+        }
+      ]
+    },
+    {
+      "name": "index-14.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE b='';",
+          "expect": "1 3"
+        }
+      ]
+    },
+    {
+      "name": "index-14.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a>'';",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "index-14.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a>='';",
+          "expect": "2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "index-14.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a>123;",
+          "expect": "2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "index-14.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a>=123;",
+          "expect": "5 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "index-14.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a<'abc';",
+          "expect": "5 2 1"
+        }
+      ]
+    },
+    {
+      "name": "index-14.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a<='abc';",
+          "expect": "5 2 1 4"
+        }
+      ]
+    },
+    {
+      "name": "index-14.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a<='';",
+          "expect": "5 2 1"
+        }
+      ]
+    },
+    {
+      "name": "index-14.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT c FROM t6 WHERE a<'';",
+          "expect": "5"
+        }
+      ]
+    },
+    {
+      "name": "index-15.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n    SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "index-15.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES('1.234e5',1);\n    INSERT INTO t1 VALUES('12.33e04',2);\n    INSERT INTO t1 VALUES('12.35E4',3);\n    INSERT INTO t1 VALUES('12.34e',4);\n    INSERT INTO t1 VALUES('12.32e+4',5);\n    INSERT INTO t1 VALUES('12.36E+04',6);\n    INSERT INTO t1 VALUES('12.36E+',7);\n    INSERT INTO t1 VALUES('+123.10000E+0003',8);\n    INSERT INTO t1 VALUES('+',9);\n    INSERT INTO t1 VALUES('+12347.E+02',10);\n    INSERT INTO t1 VALUES('+12347E+02',11);\n    INSERT INTO t1 VALUES('+.125E+04',12);\n    INSERT INTO t1 VALUES('-.125E+04',13);\n    INSERT INTO t1 VALUES('.125E+0',14);\n    INSERT INTO t1 VALUES('.125',15);\n    SELECT b FROM t1 ORDER BY a, b;",
+          "expect": "13 14 15 12 8 5 2 1 3 6 10 11 9 4 7"
+        }
+      ]
+    },
+    {
+      "name": "index-15.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b FROM t1 WHERE typeof(a) IN ('integer','real') ORDER BY b;",
+          "expect": "1 2 3 5 6 8 10 11 12 13 14 15"
+        }
+      ]
+    },
+    {
+      "name": "index-16.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "index-16.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "index-16.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c PRIMARY KEY, UNIQUE(c) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "index-16.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c, d), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "index-16.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';",
+          "expect": "2"
+        }
+      ]
+    },
+    {
+      "name": "index-17.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c, d UNIQUE, UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT name FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';",
+          "expect": "sqlite_autoindex_t7_1 sqlite_autoindex_t7_2 sqlite_autoindex_t7_3"
+        }
+      ]
+    },
+    {
+      "name": "index-17.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX sqlite_autoindex_t7_1;",
+          "expect": "1 {index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped}"
+        }
+      ]
+    },
+    {
+      "name": "index-17.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS sqlite_autoindex_t7_1;",
+          "expect": "1 {index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped}"
+        }
+      ]
+    },
+    {
+      "name": "index-17.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS no_such_index;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "index-18.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sqlite_t1(a, b, c);",
+          "expect": "1 {object name reserved for internal use: sqlite_t1}"
+        }
+      ]
+    },
+    {
+      "name": "index-18.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE sqlite_t1(a, b, c);",
+          "expect": "1 {object name reserved for internal use: sqlite_t1}"
+        }
+      ]
+    },
+    {
+      "name": "index-18.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX sqlite_i1 ON t7(c);",
+          "expect": "1 {object name reserved for internal use: sqlite_i1}"
+        }
+      ]
+    },
+    {
+      "name": "index-18.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIEW sqlite_v1 AS SELECT * FROM t7;",
+          "expect": "1 {object name reserved for internal use: sqlite_v1}"
+        }
+      ]
+    },
+    {
+      "name": "index-18.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER sqlite_tr1 BEFORE INSERT ON t7 BEGIN SELECT 1; END;",
+          "expect": "1 {object name reserved for internal use: sqlite_tr1}"
+        }
+      ]
+    },
+    {
+      "name": "index-18.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;"
+        }
+      ]
+    },
+    {
+      "name": "index-19.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a UNIQUE PRIMARY KEY);\n      CREATE TABLE t8(a UNIQUE PRIMARY KEY ON CONFLICT ROLLBACK);\n      INSERT INTO t7 VALUES(1);\n      INSERT INTO t8 VALUES(1);"
+        }
+      ]
+    },
+    {
+      "name": "index-19.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t7 VALUES(1);",
+          "expect": "1 {UNIQUE constraint failed: t7.a}"
+        }
+      ]
+    },
+    {
+      "name": "index-19.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;",
+          "expect": "1 {cannot start a transaction within a transaction}"
+        }
+      ]
+    },
+    {
+      "name": "index-19.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t8 VALUES(1);",
+          "expect": "1 {UNIQUE constraint failed: t8.a}"
+        }
+      ]
+    },
+    {
+      "name": "index-19.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      COMMIT;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "index-19.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n      DROP TABLE t8;\n      CREATE TABLE t7(\n         a PRIMARY KEY ON CONFLICT FAIL, \n         UNIQUE(a) ON CONFLICT IGNORE\n      );",
+          "expect": "1 {conflicting ON CONFLICT clauses specified}"
+        }
+      ]
+    },
+    {
+      "name": "index-20.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX \"t6i2\" ON t6(c);\n    DROP INDEX \"t6i2\";"
+        }
+      ]
+    },
+    {
+      "name": "index-20.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX \"t6i1\";"
+        }
+      ]
+    },
+    {
+      "name": "index-21.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX temp.i21 ON t6(c);",
+          "expect": "1 {cannot create a TEMP index on non-TEMP table \"t6\"}"
+        }
+      ]
+    },
+    {
+      "name": "index-21.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TEMP TABLE t6(x);\n     INSERT INTO temp.t6 values(1),(5),(9);\n     CREATE INDEX temp.i21 ON t6(x);\n     SELECT x FROM t6 ORDER BY x DESC;",
+          "expect": "0 {9 5 1}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int, f3 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int, f3 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f4)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f1, f2, f4, f3)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int, f3 int, f4 int, f5 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master \n           WHERE type='index' AND tbl_name='test1'\n           ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(cnt int, power int)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index9 ON test1(cnt)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX indext ON test1(power)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM test1 WHERE power=4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT power FROM test1 WHERE cnt=6"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX indext"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT power FROM test1 WHERE cnt=6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX indext ON test1(cnt)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT power FROM test1 WHERE cnt=6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX index9"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT power FROM test1 WHERE cnt=6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX indext"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT power FROM test1 WHERE cnt=6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT cnt FROM test1 WHERE power=1024"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON sqlite_master(name)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test2(g1 real, g2 real)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test1(f1)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX index1 ON test2(g1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX test1 ON test2(g1)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE test2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(a,b);\n    CREATE INDEX index1 ON test1(a);\n    CREATE INDEX index2 ON test1(b);\n    CREATE INDEX index3 ON test1(a,b);\n    DROP TABLE test1;\n    SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE test1(f1 int, f2 int primary key)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT f1 FROM test1 WHERE f2=65536"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master \n    WHERE type='index' AND tbl_name='test1'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP table test1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type!='meta'"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX index1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tab1(a int)"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN CREATE INDEX idx1 ON tab1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE tbl_name='tab1'"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX idx1 ON tab1(a)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE tbl_name='tab1' ORDER BY name"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a int, b int);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(2,4);\n    INSERT INTO t1 VALUES(3,8);\n    INSERT INTO t1 VALUES(1,12);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=2 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b=12;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b=2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    INSERT INTO t1 VALUES (1,1);\n    INSERT INTO t1 VALUES (1,2);\n    INSERT INTO t1 VALUES (1,3);\n    INSERT INTO t1 VALUES (1,4);\n    INSERT INTO t1 VALUES (1,5);\n    INSERT INTO t1 VALUES (1,6);\n    INSERT INTO t1 VALUES (1,7);\n    INSERT INTO t1 VALUES (1,8);\n    INSERT INTO t1 VALUES (1,9);\n    INSERT INTO t1 VALUES (2,0);\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b IN (2, 4, 6, 8);"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b = 2 OR b = 4 OR b = 6 OR b = 8;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b>2;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1 WHERE b=1;\n    SELECT b FROM t1 WHERE a=1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(\n      a text,\n      b int,\n      c float,\n      PRIMARY KEY(b)\n    );"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t3 WHERE b==10"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4(a NUM,b);\n    INSERT INTO t4 VALUES('0.0',1);\n    INSERT INTO t4 VALUES('0.00',2);\n    INSERT INTO t4 VALUES('abc',3);\n    INSERT INTO t4 VALUES('-1.0',4);\n    INSERT INTO t4 VALUES('+1.0',5);\n    INSERT INTO t4 VALUES('0',6);\n    INSERT INTO t4 VALUES('00000',7);\n    SELECT a FROM t4 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE a==0 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE a<0.5 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE a>-0.5 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX t4i1 ON t4(a);\n    SELECT a FROM t4 WHERE a==0 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE a<0.5 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM t4 WHERE a>-0.5 ORDER BY b"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(\n      a int UNIQUE,\n      b float PRIMARY KEY,\n      c varchar(10),\n      UNIQUE(a,c)\n   );\n   INSERT INTO t5 VALUES(1,2,3);\n   SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='t5';"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t5 VALUES('a','b','c');\n    SELECT * FROM t5;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t6(a,b,c);\n    CREATE INDEX t6i1 ON t6(a,b);\n    INSERT INTO t6 VALUES('','',1);\n    INSERT INTO t6 VALUES('',NULL,2);\n    INSERT INTO t6 VALUES(NULL,'',3);\n    INSERT INTO t6 VALUES('abc',123,4);\n    INSERT INTO t6 VALUES(123,'abc',5);\n    SELECT c FROM t6 ORDER BY a,b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a='';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE b='';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a>'';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a>='';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a>123;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a>=123;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a<'abc';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a<='abc';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a<='';"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT c FROM t6 WHERE a<'';"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('1.234e5',1);\n    INSERT INTO t1 VALUES('12.33e04',2);\n    INSERT INTO t1 VALUES('12.35E4',3);\n    INSERT INTO t1 VALUES('12.34e',4);\n    INSERT INTO t1 VALUES('12.32e+4',5);\n    INSERT INTO t1 VALUES('12.36E+04',6);\n    INSERT INTO t1 VALUES('12.36E+',7);\n    INSERT INTO t1 VALUES('+123.10000E+0003',8);\n    INSERT INTO t1 VALUES('+',9);\n    INSERT INTO t1 VALUES('+12347.E+02',10);\n    INSERT INTO t1 VALUES('+12347E+02',11);\n    INSERT INTO t1 VALUES('+.125E+04',12);\n    INSERT INTO t1 VALUES('-.125E+04',13);\n    INSERT INTO t1 VALUES('.125E+0',14);\n    INSERT INTO t1 VALUES('.125',15);\n    SELECT b FROM t1 ORDER BY a, b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b FROM t1 WHERE typeof(a) IN ('integer','real') ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c UNIQUE PRIMARY KEY);\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c PRIMARY KEY, UNIQUE(c) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c, d), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c, d , UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT count(*) FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;\n    CREATE TABLE t7(c, d UNIQUE, UNIQUE(c), PRIMARY KEY(c, d) );\n    SELECT name FROM sqlite_master WHERE tbl_name = 't7' AND type = 'index';"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t7;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t7(a UNIQUE PRIMARY KEY);\n      CREATE TABLE t8(a UNIQUE PRIMARY KEY ON CONFLICT ROLLBACK);\n      INSERT INTO t7 VALUES(1);\n      INSERT INTO t8 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX \"t6i2\" ON t6(c);\n    DROP INDEX \"t6i2\";"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX \"t6i1\";"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

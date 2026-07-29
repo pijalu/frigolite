@@ -1,0 +1,150 @@
+{
+  "file": "types3.test",
+  "name": "types3",
+  "tests": [
+    {
+      "name": "types3-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x TEXT PRIMARY KEY);\n  INSERT INTO t1 VALUES('1');\n  SELECT * FROM t1 WHERE NOT x=upper(1);"
+        }
+      ]
+    },
+    {
+      "name": "types3-3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE NOT x=add_text_type(1);"
+        }
+      ]
+    },
+    {
+      "name": "types3-3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE NOT x=add_int_type('1');"
+        }
+      ]
+    },
+    {
+      "name": "types3-3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DELETE FROM t1;\n  INSERT INTO t1 VALUES(1.25);\n  SELECT * FROM t1 WHERE NOT x=add_real_type('1.25');"
+        }
+      ]
+    },
+    {
+      "name": "types3-3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE NOT x=add_text_type(1.25);"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "text"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "int integer"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "wideInt integer"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "int integer"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "double real"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "bytearray blob"
+        }
+      ]
+    },
+    {
+      "name": "types3-1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT typeof(:V)",
+          "expect": "bytearray text"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT typeof(:V)"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

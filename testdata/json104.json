@@ -1,0 +1,56 @@
+{
+  "file": "json104.test",
+  "name": "json104",
+  "tests": [
+    {
+      "name": "json104-308",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_patch('[\"a\",\"b\"]','[\"c\",\"d\"]');",
+          "expect": "{[\"c\",\"d\"]}"
+        }
+      ]
+    },
+    {
+      "name": "402",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE obj SET x = json_insert(x, '$.c', 3);\n  SELECT * FROM obj;",
+          "expect": "{{\"a\":1,\"b\":2,\"c\":3}}"
+        }
+      ]
+    },
+    {
+      "name": "403",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_extract(x, '$.b') FROM obj;\n  SELECT json_extract(x, '$.\"b\"') FROM obj;",
+          "expect": "2 2"
+        }
+      ]
+    },
+    {
+      "name": "404",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE obj SET x = json_set(x, '$.\"b\"', 555);\n  SELECT json_extract(x, '$.b') FROM obj;\n  SELECT json_extract(x, '$.\"b\"') FROM obj;",
+          "expect": "555 555"
+        }
+      ]
+    },
+    {
+      "name": "405",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE obj SET x = json_set(x, '$.\"d\"', 4);\n  SELECT json_extract(x, '$.\"d\"') FROM obj;",
+          "expect": "4"
+        }
+      ]
+    }
+  ]
+}

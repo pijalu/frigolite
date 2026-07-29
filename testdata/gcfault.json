@@ -1,0 +1,20 @@
+{
+  "file": "gcfault.test",
+  "name": "gcfault",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT group_concat(e, (SELECT s FROM s WHERE i=1)) FROM e"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT string_agg(e, (SELECT s FROM s WHERE i=2)) FROM e"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

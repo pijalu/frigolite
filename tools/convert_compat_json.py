@@ -21,6 +21,27 @@ UNSUPPORTED_IFCAPABLE = {
 # ifcapable features that ARE supported at the block level
 SUPPORTED_IFCAPABLE = {'altertable', 'trigger', 'view', 'explain'}
 
+# Patterns that indicate C-specific testing (not applicable to Go).
+# Files matching these are excluded entirely — they test memory allocation,
+# threading, or other C internals with no useful SQL to extract.
+C_SPECIFIC_PATTERNS = [
+    r'\bdo_malloc_test\b',
+    r'\bdo_fault_test\b',
+    r'\bsource\s+\$testdir/malloc_common\.tcl',
+    r'\bsource\s+\$testdir/fault_common\.tcl',
+    r'\bsqlite3_threadsafe\b',
+    r'\bsqlite3_db_mutex\b',
+]
+
+# C-API-only step patterns — SQL calls that only test C API internals
+# with no SQL query to execute.
+C_API_ONLY_PATTERNS = [
+    r'^\s*sqlite3_(errcode|errmsg|finalize|reset|step|data_count|column_count|'
+    r'column_text|column_name|column_decltype|column_type|column_bytes|'
+    r'bind_|db_status|status|changes|total_changes|connection_pointer|'
+    r'last_insert_rowid|backup_remaining|backup_pagecount)\b',
+]
+
 
 def find_ifcapable_blocks(content):
     """Find all ifcapable feature blocks and return list of (start, end) ranges to skip."""
@@ -77,6 +98,44 @@ def has_unsupported_features(sql):
         return True
     if re.search(r'\btcl\s*\(', sql, re.IGNORECASE) or 'vtab_command' in sql:
         return True
+    return False
+
+
+def is_c_specific_file(content):
+    """Return True if the file is a C-specific test (malloc, threading, etc.)."""
+    for pattern in C_SPECIFIC_PATTERNS:
+        if re.search(pattern, content):
+            return True
+    return False
+
+
+def extract_prepare_sql(content):
+    """Extract SQL from sqlite3_prepare calls with inline SQL.
+
+    Returns list of (position, step_type, sql) tuples.
+    Handles both 'quoted' and {braced} SQL arguments.
+    """
+    entries = []
+    # Pattern: sqlite3_prepare <db_handle> "SQL STRING" -1 tail_var
+    for m in re.finditer(r'sqlite3_prepare\s+\w+\s+"([^"]*)"', content):
+        sql = m.group(1).strip()
+        if sql and not re.match(r'^\s*$', sql):
+            entries.append((m.start(), "execsql", sql))
+    # Pattern: sqlite3_prepare <db_handle> { SQL }
+    for m in re.finditer(r'sqlite3_prepare\s+\$?\w+\s*\{([^}]*)\}', content):
+        sql = m.group(1).strip()
+        if sql and not re.match(r'^\s*$', sql):
+            entries.append((m.start(), "execsql", sql))
+    return entries
+
+
+def is_c_api_only_step(step_sql):
+    """Return True if the step only tests C-API internals (no SQL to run)."""
+    if not step_sql:
+        return True
+    for pattern in C_API_ONLY_PATTERNS:
+        if re.search(pattern, step_sql.strip(), re.IGNORECASE):
+            return True
     return False
 
 
@@ -325,8 +384,17 @@ def extract_tests(content):
                             entries.append((auth_pos, "auth", None, None, None, action, "SQLITE_DENY"))
                         elif result == "SQLITE_OK":
                             entries.append((auth_pos, "auth", None, None, None, action, "SQLITE_OK"))
-      
-    entries.sort(key=lambda x: x[0])
+        
+        # Phase 11: sqlite3_prepare db "SQL" / sqlite3_prepare db {SQL}
+        for pos, stype, sql in extract_prepare_sql(content):
+            if is_position_blocked(pos, blocked_ranges):
+                continue
+            # Skip prepare calls that are inside already-captured do_test blocks
+            already_covered = any(abs(e[0] - pos) < 15 for e in entries)
+            if not already_covered:
+                entries.append((pos, stype, sql, None, None))
+        
+        entries.sort(key=lambda x: x[0])
     
     # Find orphan virtual tables: CREATE VIRTUAL TABLE statements that will be filtered,
     # whose tables are subsequently referenced by other SQL statements.
@@ -411,30 +479,35 @@ def extract_tests(content):
 def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
-    skip_files = set()
+    c_specific_skip = set()
     for fname in os.listdir(TEST_DIR):
         if not fname.endswith('.test'):
             continue
         filepath = os.path.join(TEST_DIR, fname)
         with open(filepath, 'r', errors='replace') as f:
             content = f.read()
-        if C_API_RE.search(content):
-            skip_files.add(fname)
-        # Also skip files that use TCL-level API wrappers (the sqlite3_ prefix is stripped in TCL)
-        if re.search(r'\b(set_authorizer|create_function|create_collation|create_module|'
-                     r'overload|declare_vtab|progress_handler|wal_hook|auto_extension|'
-                     r'commit_hook|rollback_hook|update_hook|preupdate_hook|'
-                     r'snapshot_get|snapshot_open|snapshot_free)\s',
-                     content, re.IGNORECASE):
-            skip_files.add(fname)
+        # Only skip files that are C-specific (malloc, fault, threading)
+        if is_c_specific_file(content):
+            c_specific_skip.add(fname)
     
-    print(f"Skipping {len(skip_files)} C API test files")
+    print(f"Skipping {len(c_specific_skip)} C-specific test files (malloc, fault, threading)")
+    
+    # Track which files contain C-API patterns, for "source" marking
+    was_c_api = set()
+    for fname in os.listdir(TEST_DIR):
+        if not fname.endswith('.test') or fname in c_specific_skip:
+            continue
+        filepath = os.path.join(TEST_DIR, fname)
+        with open(filepath, 'r', errors='replace') as f:
+            content = f.read()
+        if C_API_RE.search(content):
+            was_c_api.add(fname)
     
     active = excluded = no_sql = 0
     for fname in sorted(os.listdir(TEST_DIR)):
         if not fname.endswith('.test'):
             continue
-        if fname in skip_files:
+        if fname in c_specific_skip:
             excluded += 1
             continue
         filepath = os.path.join(TEST_DIR, fname)
@@ -457,6 +530,9 @@ def main():
             "name": out_name,
             "tests": tests
         }
+        # Mark tests sourced from C-API files
+        if fname in was_c_api:
+            test_data["source"] = "capi"
         
         out_path = os.path.join(OUTPUT_DIR, f"{out_name}.json")
         with open(out_path, 'w') as f:
@@ -470,7 +546,7 @@ def main():
                 data = json.load(f)
                 total_tests += len(data.get("tests", []))
     
-    print(f"Excluded (C API, non-SQL): {excluded}")
+    print(f"Excluded (C-specific): {excluded}")
     print(f"No extractable SQL: {no_sql}")
     print(f"Generated test data files: {active}")
     print(f"Total test cases: {total_tests}")

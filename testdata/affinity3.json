@@ -119,6 +119,46 @@
           "sql": "CREATE TABLE map_integer (id INT, name);\n  INSERT INTO map_integer VALUES(1,'a');\n  CREATE TABLE map_text (id TEXT, name);\n  INSERT INTO map_text VALUES('4','e');\n  CREATE TABLE data (id TEXT, name);\n  INSERT INTO data VALUES(1,'abc');\n  INSERT INTO data VALUES('4','xyz');\n  CREATE VIEW idmap as\n      SELECT * FROM map_integer\n      UNION SELECT * FROM map_text;\n  CREATE TABLE mzed AS SELECT * FROM idmap;"
         }
       ]
+    },
+    {
+      "name": "affinity3-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index=ON;\n  SELECT * FROM data JOIN idmap USING(id);",
+          "expect": "4 xyz e"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM data JOIN mzed USING(id);",
+          "expect": "4 xyz e"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-250",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA automatic_index=OFF;\n  SELECT * FROM data JOIN idmap USING(id);",
+          "expect": "4 xyz e"
+        }
+      ]
+    },
+    {
+      "name": "affinity3-260",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM data JOIN mzed USING(id);",
+          "expect": "4 xyz e"
+        }
+      ]
     }
   ]
 }

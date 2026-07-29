@@ -10,6 +10,66 @@
           "sql": "CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);"
         }
       ]
+    },
+    {
+      "name": "upsert3-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(k) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert3-120",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(0,'abcdefghij')\n     ON CONFLICT(v) DO NOTHING;",
+          "expect": "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+        }
+      ]
+    },
+    {
+      "name": "upsert3-130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(0, 'abcdefghij')\n      ON CONFLICT(k,v) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "0 abcdefghij"
+        }
+      ]
+    },
+    {
+      "name": "upsert3-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO t1 VALUES(0, 'abcdefghij')\n      ON CONFLICT(v,k) DO NOTHING;\n  SELECT * FROM t1;",
+          "expect": "0 abcdefghij"
+        }
+      ]
+    },
+    {
+      "name": "upsert3-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE excluded(a INT, b INT, c INT DEFAULT 0);\n  CREATE UNIQUE INDEX excludedab ON excluded(a,b);\n  INSERT INTO excluded(a,b) VALUES(1,2),(1,2),(3,4),(1,2),(5,6),(3,4)\n    ON CONFLICT(b,a) DO UPDATE SET c=excluded.c+1;\n  SELECT *, 'x' FROM excluded ORDER BY a;",
+          "expect": "1 2 2 x 3 4 1 x 5 6 0 x"
+        }
+      ]
+    },
+    {
+      "name": "upsert3-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "INSERT INTO excluded AS base(a,b,c) VALUES(1,2,8),(1,2,3)\n    ON CONFLICT(b,a) DO UPDATE SET c=excluded.c+1 WHERE base.c<excluded.c;\n  SELECT *, 'x' FROM excluded ORDER BY a;",
+          "expect": "1 2 9 x 3 4 1 x 5 6 0 x"
+        }
+      ]
     }
   ]
 }

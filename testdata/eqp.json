@@ -1,0 +1,123 @@
+{
+  "file": "eqp.test",
+  "name": "eqp",
+  "tests": [
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT, ex TEXT);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(a INT, b INT, ex TEXT);\n  CREATE TABLE t3(a INT, b INT, ex TEXT);"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INT, y INT, ex TEXT);\n\n  CREATE TABLE t2(x INT, y INT, ex TEXT);\n  CREATE INDEX t2i1 ON t2(x);"
+        }
+      ]
+    },
+    {
+      "name": "5.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT, ex TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "5.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON t1(a)"
+        }
+      ]
+    },
+    {
+      "name": "5.3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i2 ON t1(a, b)"
+        }
+      ]
+    },
+    {
+      "name": "5.4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(c INT, d INT, ex TEXT)"
+        }
+      ]
+    },
+    {
+      "name": "5.5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i3 ON t1(b)"
+        }
+      ]
+    },
+    {
+      "name": "5.8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i4 ON t2(c)"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INT, b INT, ex CHAR(100));\n  CREATE TABLE t2(a INT, b INT, ex CHAR(100));\n  CREATE INDEX i1 ON t2(a);"
+        }
+      ]
+    },
+    {
+      "name": "7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1(a,b) VALUES(1, 2);\n  INSERT INTO t1(a,b) VALUES(3, 4);\n\n  INSERT INTO t2(a,b) VALUES(1, 2);\n  INSERT INTO t2(a,b) VALUES(3, 4);\n  INSERT INTO t2(a,b) VALUES(5, 6);\n \n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  CREATE TABLE t2(a, b, c);"
+        }
+      ]
+    },
+    {
+      "name": "9.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "-- Schema from Fossil 2018-08-16\n  CREATE TABLE forumpost(\n    fpid INTEGER PRIMARY KEY,\n    froot INT,\n    fprev INT,\n    firt INT,\n    fmtime REAL\n  );\n  CREATE INDEX forumthread ON forumpost(froot,fmtime);\n  CREATE TABLE blob(\n    rid INTEGER PRIMARY KEY,\n    rcvid INTEGER,\n    size INTEGER,\n    uuid TEXT UNIQUE NOT NULL,\n    content BLOB,\n    CHECK( length(uuid)>=40 AND rid>0 )\n  );\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  CREATE INDEX event_i1 ON event(mtime);\n  CREATE TABLE private(rid INTEGER PRIMARY KEY);"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

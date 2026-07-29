@@ -40,14 +40,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
@@ -87,6 +79,24 @@
       ]
     },
     {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t6(x);\n    SELECT * FROM t6 WHERE 1 IN (SELECT value FROM json_each(x));"
+        }
+      ]
+    },
+    {
+      "name": "6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t;\n    CREATE TABLE t(json JSON);\n    SELECT * FROM t\n     WHERE(EXISTS(SELECT 1 FROM json_each(t.json,\"$.foo\") j\n                   WHERE j.value = 'meep'));"
+        }
+      ]
+    },
+    {
       "name": "7.1",
       "steps": [
         {
@@ -113,6 +123,14 @@
           "type": "query",
           "sql": "DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;",
           "expect": "~/ (Lt|Ge) /"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

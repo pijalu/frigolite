@@ -3,12 +3,32 @@
   "name": "json102",
   "tests": [
     {
+      "name": "json102-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex','[52,3.14159]');",
+          "expect": "{{\"ex\":\"[52,3.14159]\"}}"
+        }
+      ]
+    },
+    {
       "name": "json102-100b",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT json(jsonb_object('ex','[52,3.14159]'));",
           "expect": "{{\"ex\":\"[52,3.14159]\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',json('[52,3.14159]'));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
         }
       ]
     },
@@ -27,7 +47,47 @@
       "steps": [
         {
           "type": "query",
+          "sql": "SELECT json_object('ex',jsonb('[52,3.14159]'));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-110-3",
+      "steps": [
+        {
+          "type": "query",
           "sql": "SELECT json(jsonb_object('ex',jsonb('[52,3.14159]')));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',json_array(52,3.14159));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('ex',json_array(52,3.14159)));",
+          "expect": "{{\"ex\":[52,3.14159]}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-120-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('ex',jsonb_array(52,3.14159));",
           "expect": "{{\"ex\":[52,3.14159]}}"
         }
       ]
@@ -43,12 +103,32 @@
       ]
     },
     {
+      "name": "json102-140",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(1,2,'3',4);",
+          "expect": "{[1,2,\"3\",4]}"
+        }
+      ]
+    },
+    {
       "name": "json102-140b",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT json(jsonb_array(1,2,'3',4));",
           "expect": "{[1,2,\"3\",4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-150",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array('[1,2]');",
+          "expect": "{[\"[1,2]\"]}"
         }
       ]
     },
@@ -63,12 +143,132 @@
       ]
     },
     {
+      "name": "json102-160",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(json_array(1,2));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array(jsonb_array(1,2));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-160-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_array(json_array(1,2)));",
+          "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
       "name": "json102-160-4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT json(jsonb_array(jsonb_array(1,2)));",
           "expect": "{[[1,2]]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-190",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('[1,2,3,4]');",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-190b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('[1,2,3,4]'));",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-191",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length( json_remove('[1,2,3,4]','$[2]') );",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "json102-191b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length( jsonb_remove('[1,2,3,4]','$[2]') );",
+          "expect": "{3}"
+        }
+      ]
+    },
+    {
+      "name": "json102-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('[1,2,3,4]', '$');",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-200b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('[1,2,3,4]'), '$');",
+          "expect": "{4}"
+        }
+      ]
+    },
+    {
+      "name": "json102-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length('[1,2,3,4]', '$[2]');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-210b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(jsonb('[1,2,3,4]'), '$[2]');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-410",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c',4);",
+          "expect": "{{\"a\":2,\"c\":4}}"
         }
       ]
     },
@@ -83,12 +283,62 @@
       ]
     },
     {
+      "name": "json102-430",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c',json_object('e',5));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json(jsonb_object('a',2,'c',json_object('e',5)));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-430-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_object('a',2,'c',jsonb_object('e',5));",
+          "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
       "name": "json102-430-4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT json(jsonb_object('a',2,'c',jsonb_object('e',5)));",
           "expect": "{{\"a\":2,\"c\":{\"e\":5}}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[2]');",
+          "expect": "{[0,1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-440-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]');",
+          "expect": "{[0,1,3,4]}"
         }
       ]
     },
@@ -113,6 +363,96 @@
       ]
     },
     {
+      "name": "json102-445-1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[5]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[6]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[4294967295]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[4294967296]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[4294967297]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[42949672950]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-445-7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[42949672960]');",
+          "expect": "{[0,1,2,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[2]','$[0]');",
+          "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-450-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]');",
+          "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
       "name": "json102-450-3",
       "steps": [
         {
@@ -129,6 +469,26 @@
           "type": "query",
           "sql": "SELECT json(jsonb_remove(jsonb('[0,1,2,3,4]'),'$[2]','$[0]'));",
           "expect": "{[1,3,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove('[0,1,2,3,4]','$[0]','$[2]');",
+          "expect": "{[1,2,4]}"
+        }
+      ]
+    },
+    {
+      "name": "json102-460-2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_remove(jsonb('[0,1,2,3,4]'),'$[0]','$[2]');",
+          "expect": "{[1,2,4]}"
         }
       ]
     },
@@ -153,18 +513,266 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "json102-510b",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778');",
+          "expect": "{object}"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "json102-520b",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$');",
+          "expect": "{object}"
+        }
+      ]
+    },
+    {
+      "name": "json102-530b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a');",
+          "expect": "{array}"
+        }
+      ]
+    },
+    {
+      "name": "json102-540b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[0]');",
+          "expect": "{integer}"
+        }
+      ]
+    },
+    {
+      "name": "json102-550b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[1]');",
+          "expect": "{real}"
+        }
+      ]
+    },
+    {
+      "name": "json102-560b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[2]');",
+          "expect": "{true}"
+        }
+      ]
+    },
+    {
+      "name": "json102-570b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[3]');",
+          "expect": "{false}"
+        }
+      ]
+    },
+    {
+      "name": "json102-580b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[4]');",
+          "expect": "{null}"
+        }
+      ]
+    },
+    {
+      "name": "json102-590b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[5]');",
+          "expect": "{text}"
+        }
+      ]
+    },
+    {
+      "name": "json102-600b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_type(x'cc0f1761cb0b133235332e350102001778','$.a[6]');",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "json102-610",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(123)||'\"x\":35'||char(125));",
+          "expect": "{1}"
+        }
+      ]
+    },
+    {
+      "name": "json102-620",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(123)||'\"x\":35');",
+          "expect": "{0}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1000",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE user(name,phone,phoneb);\n  INSERT INTO user(name,phone) VALUES\n     ('Alice','[\"919-555-2345\",\"804-555-3621\"]'),\n     ('Bob','[\"201-555-8872\"]'),\n     ('Cindy','[\"704-555-9983\"]'),\n     ('Dave','[\"336-555-8421\",\"704-555-4321\",\"803-911-4421\"]');\n  UPDATE user SET phoneb=jsonb(phone);\n  SELECT DISTINCT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;",
+          "expect": "Cindy Dave"
+        }
+      ]
+    },
+    {
+      "name": "json102-1000b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT user.name\n    FROM user, json_each(user.phoneb)\n   WHERE json_each.value LIKE '704-%'\n   ORDER BY 1;",
+          "expect": "Cindy Dave"
+        }
+      ]
+    },
+    {
+      "name": "json102-1010",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE user\n     SET phone=json_extract(phone,'$[0]')\n   WHERE json_array_length(phone)<2;\n  SELECT name, substr(phone,1,5) FROM user ORDER BY name;",
+          "expect": "Alice {[\"919} Bob 201-5 Cindy 704-5 Dave {[\"336}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1011",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT name FROM user WHERE phone LIKE '704-%'\n  UNION\n  SELECT user.name\n    FROM user, json_each(user.phone)\n   WHERE json_valid(user.phone)\n     AND json_each.value LIKE '704-%';",
+          "expect": "Cindy Dave"
+        }
+      ]
+    },
+    {
+      "name": "json102-1110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT big.rowid, fullkey, value\n    FROM big, json_tree(big.json)\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id"
+        }
+      ]
+    },
+    {
+      "name": "json102-1110b",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT big.rowid, fullkey, value\n    FROM big, json_tree(jsonb(big.json))\n   WHERE json_tree.type NOT IN ('object','array')\n   ORDER BY +big.rowid, +json_tree.id"
+        }
+      ]
+    },
+    {
+      "name": "json102-1120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT big.rowid, fullkey, atom\n    FROM big, json_tree(big.json)\n   WHERE atom IS NOT NULL\n   ORDER BY +big.rowid, +json_tree.id"
+        }
+      ]
+    },
+    {
+      "name": "json102-1130",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$.partlist')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "json102-1131",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json,'$')\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "json102-1132",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT DISTINCT json_extract(big.json,'$.id')\n    FROM big, json_tree(big.json)\n   WHERE json_tree.key='uuid'\n     AND json_tree.value='6fa5181e-5721-11e5-a04e-57f3d7b32808';",
+          "expect": "123"
+        }
+      ]
+    },
+    {
+      "name": "json102-1201",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(32)  || '\"xyz\"')"
+        }
+      ]
+    },
+    {
+      "name": "json102-1202",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_valid(char(200) || '\"xyz\"')"
+        }
+      ]
+    },
+    {
+      "name": "json102-1501",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;"
+        }
+      ]
+    },
+    {
+      "name": "json102-1710",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET memo = JSON_REMOVE(memo, '$.y');\n  PRAGMA integrity_check;\n  SELECT * FROM t1;",
+          "expect": "ok 2023-08-03 876 5 {{\"x\":77}}"
+        }
+      ]
+    },
+    {
+      "name": "json102-1720",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE t1 SET memo = JSON_SET(memo, '$.y', 6)\n    WHERE a2 IN (876) AND JSON_TYPE(memo, '$.y') IS NULL;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;",
+          "expect": "ok 2023-08-03 876 5 {{\"x\":77,\"y\":6}}"
         }
       ]
     },
@@ -203,6 +811,26 @@
           "type": "query",
           "sql": "SELECT '[\"zero\",\"one\",\"two\"]'->1;",
           "expect": "{\"one\"}"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT json_extract(json_array($::str),'$[0]')==$::str"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

@@ -12,34 +12,6 @@
       ]
     },
     {
-      "name": "1.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
-          "expect": "c2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
-        }
-      ]
-    },
-    {
-      "name": "1.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
-          "expect": "c3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
-        }
-      ]
-    },
-    {
       "name": "1.3",
       "steps": [
         {
@@ -49,75 +21,11 @@
       ]
     },
     {
-      "name": "1.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
-          "expect": "b2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
-        }
-      ]
-    },
-    {
-      "name": "1.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
-          "expect": "b3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE u1(a, b, c);\n  CREATE TABLE u2(x, y, z);\n\n  INSERT INTO u1 VALUES('a1', 'b1', 'c1');\n  INSERT INTO u2 VALUES('a1', 'b1', 'c1');"
-        }
-      ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )",
-          "expect": "one"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )"
-        }
-      ]
-    },
-    {
-      "name": "2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123",
-          "expect": "three"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -180,14 +88,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "4.1",
       "steps": [
         {
@@ -218,14 +118,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
@@ -236,27 +128,11 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "6.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t01(w,x,y,z);\n  CREATE TABLE t02(w,x,y,z);\n  CREATE VIEW t0(w,x,y,z) AS\n    SELECT w,x,y,z FROM t01 UNION ALL SELECT w,x,y,z FROM t02;\n  CREATE INDEX t01x ON t01(w,x,y);\n  CREATE INDEX t02x ON t02(w,x,y);\n  CREATE VIEW v1(k) AS VALUES(77),(88),(99);\n  CREATE TABLE k1(k);\n  INSERT INTO k1 SELECT * FROM v1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -286,6 +162,130 @@
           "type": "query",
           "sql": "SELECT t0_2.c\n    FROM (SELECT '0000' AS c0 FROM empty2 RIGHT JOIN t0_1 ON 1) AS v0 \n    LEFT JOIN empty1 ON v0.c0, t0_2 \n    RIGHT JOIN (\n           SELECT 5678 AS col0 FROM (SELECT 0)\n    ) AS sub1 ON 1 WHERE +t0_2.c;",
           "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
+          "expect": "c2"
+        }
+      ]
+    },
+    {
+      "name": "1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
+          "expect": "c3"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)",
+          "expect": "b2"
+        }
+      ]
+    },
+    {
+      "name": "1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)",
+          "expect": "b3"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )",
+          "expect": "one"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123",
+          "expect": "three"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

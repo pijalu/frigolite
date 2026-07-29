@@ -17,12 +17,20 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t1 RENAME TO t2"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 RENAME TO t2"
         }
       ]
     },
     {
       "name": "1.2",
       "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 RENAME c TO ccc"
+        },
         {
           "type": "exec",
           "sql": "ALTER TABLE t2 RENAME c TO ccc"
@@ -35,17 +43,16 @@
         {
           "type": "exec",
           "sql": "ALTER TABLE t2 ADD COLUMN d"
+        },
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t2 ADD COLUMN d"
         }
       ]
     },
     {
       "name": "2.1",
       "steps": [
-        {
-          "type": "auth",
-          "action": "SQLITE_ALTER_TABLE",
-          "result": "SQLITE_DENY"
-        },
         {
           "type": "exec",
           "sql": "ALTER TABLE t2 RENAME TO t3",
@@ -57,11 +64,6 @@
       "name": "2.2",
       "steps": [
         {
-          "type": "auth",
-          "action": "SQLITE_ALTER_TABLE",
-          "result": "SQLITE_DENY"
-        },
-        {
           "type": "exec",
           "sql": "ALTER TABLE t2 RENAME d TO ddd",
           "expect": "1 {not authorized}"
@@ -71,11 +73,6 @@
     {
       "name": "2.3",
       "steps": [
-        {
-          "type": "auth",
-          "action": "SQLITE_ALTER_TABLE",
-          "result": "SQLITE_DENY"
-        },
         {
           "type": "exec",
           "sql": "ALTER TABLE t2 ADD COLUMN e",

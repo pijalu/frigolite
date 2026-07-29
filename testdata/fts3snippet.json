@@ -1,0 +1,185 @@
+{
+  "file": "fts3snippet.test",
+  "name": "fts3snippet",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('one two three four five');\n  INSERT INTO t2 VALUES('two three four five one');\n  INSERT INTO t2 VALUES('three four five one two');\n  INSERT INTO t2 VALUES('four five one two three');\n  INSERT INTO t2 VALUES('five one two three four');"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'",
+          "expect": "{[one] two three [four] five}\n  {two three [four] five [one]}\n  {three [four] five [one] two}\n  {[four] five [one] two three}\n  {five [one] two three [four]}"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC",
+          "expect": "{five [one] two three [four]}\n  {[four] five [one] two three}\n  {three [four] five [one] two}\n  {two three [four] five [one]}\n  {[one] two three [four] five}"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES('six');"
+        }
+      ]
+    },
+    {
+      "name": "2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2, '[', ']') FROM t2 WHERE t2 MATCH 'one OR (four AND six)'",
+          "expect": "{[one] two three [four] five}\n  {two three [four] five [one]}\n  {three [four] five [one] two}\n  {[four] five [one] two three}\n  {five [one] two three [four]}"
+        }
+      ]
+    },
+    {
+      "name": "2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t2, '[', ']') FROM t2 \n  WHERE t2 MATCH 'one OR (four AND six)' \n  ORDER BY docid DESC",
+          "expect": "{five [one] two three [four]}\n  {[four] five [one] two three}\n  {three [four] five [one] two}\n  {two three [four] five [one]}\n  {[one] two three [four] five}"
+        }
+      ]
+    },
+    {
+      "name": "3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('[one two three]');"
+        }
+      ]
+    },
+    {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'one';",
+          "expect": "{[<b>one</b> two three]}"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'two';",
+          "expect": "{[one <b>two</b> three]}"
+        }
+      ]
+    },
+    {
+      "name": "3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'three';",
+          "expect": "{[one two <b>three</b>]}"
+        }
+      ]
+    },
+    {
+      "name": "3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'one OR two OR three';",
+          "expect": "{[<b>one</b> <b>two</b> <b>three</b>]}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE t4 USING fts4;\n  INSERT INTO t4 VALUES('a b c d');\n  SELECT snippet(t4, '[', ']', '...', 0, 0) FROM t4 WHERE t4 MATCH 'b';",
+          "expect": "{}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t5 USING fts3(x);\n  INSERT INTO t5 VALUES('a1 a2 a3');\n  INSERT INTO t5 VALUES('a4 a5 a6');\n  INSERT INTO t5 VALUES('a70 a71 a72');"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t5, '[', ']') FROM t5 WHERE t5 MATCH \n  'a1 OR a2 OR a3 OR a4 OR a5 OR a6 OR a7 OR a8 OR a9 OR a10 OR ' ||\n  'a11 OR a12 OR a13 OR a14 OR a15 OR a16 OR a17 OR a18 OR a19 OR a10 OR ' ||\n  'a21 OR a22 OR a23 OR a24 OR a25 OR a26 OR a27 OR a28 OR a29 OR a20 OR ' ||\n  'a31 OR a32 OR a33 OR a34 OR a35 OR a36 OR a37 OR a38 OR a39 OR a30 OR ' ||\n  'a41 OR a42 OR a43 OR a44 OR a45 OR a46 OR a47 OR a48 OR a49 OR a40 OR ' ||\n  'a51 OR a52 OR a53 OR a54 OR a55 OR a56 OR a57 OR a58 OR a59 OR a50 OR ' ||\n  'a61 OR a62 OR a63 OR a64 OR a65 OR a66 OR a67 OR a68 OR a69 OR a60 OR ' ||\n  'a71 OR a72 OR a73 OR a74 OR a75 OR a76 OR a77 OR a78 OR a79 OR a70'",
+          "expect": "{[a1] [a2] [a3]}\n  {[a4] [a5] [a6]}\n  {[a70] [a71] [a72]}"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT snippet(t5, '[', ']', -1, 0) FROM t5 WHERE t5 MATCH 'a5'",
+          "expect": "{a4 [a5] a6}"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('xxx xxx xxx xxx');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );"
+        },
+        {
+          "type": "exec",
+          "sql": "UPDATE ft SET b = NULL"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x, y);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding = \\"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

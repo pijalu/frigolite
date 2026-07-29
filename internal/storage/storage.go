@@ -455,6 +455,19 @@ func DecodeRecord(data []byte) (*Record, error) {
 // Returns the number of values decoded (may be less than len(target) for short records).
 // This avoids the intermediate Record allocation — values are decoded directly into target.
 func DecodeRecordValuesInto(data []byte, target []interface{}) (int, error) {
+	return decodeRecordValuesFiltered(data, target, nil)
+}
+
+// DecodeRecordValuesFiltered decodes record values from data into target, but only
+// decodes the columns specified in colIndices. Columns not in colIndices are left
+// at their zero value in target. When colIndices is nil, all columns are decoded.
+// This allows lazy decoding: first decode only the columns needed for WHERE
+// evaluation, then decode the rest only if the row passes.
+func DecodeRecordValuesFiltered(data []byte, target []interface{}, colIndices map[int]bool) (int, error) {
+	return decodeRecordValuesFiltered(data, target, colIndices)
+}
+
+func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices map[int]bool) (int, error) {
 	pos := 0
 
 	// Header size (varint)
@@ -475,6 +488,7 @@ func DecodeRecordValuesInto(data []byte, target []interface{}) (int, error) {
 	if count > len(target) {
 		count = len(target)
 	}
+	decodeAll := colIndices == nil
 	for i := 0; i < count; i++ {
 		valLen, err := SerialTypeLength(serialTypes[i])
 		if err != nil {
@@ -483,7 +497,11 @@ func DecodeRecordValuesInto(data []byte, target []interface{}) (int, error) {
 		if pos+int(valLen) > len(data) {
 			return i, fmt.Errorf("storage: record data too short at value %d: need %d bytes at offset %d, have %d", i, valLen, pos, len(data))
 		}
-		target[i] = decodeValue(serialTypes[i], data[pos:pos+int(valLen)])
+		if decodeAll || colIndices[i] {
+			target[i] = decodeValue(serialTypes[i], data[pos:pos+int(valLen)])
+		}
+		// For skipped columns (not in colIndices), advance past the data but
+		// leave target[i] as its zero value (nil).
 		pos += int(valLen)
 	}
 

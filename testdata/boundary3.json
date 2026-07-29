@@ -23,7 +23,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00ffffffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=17"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 72057594037927935 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -43,6 +51,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 72057594037927935 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 72057594037927935 ORDER BY t1.a DESC"
         },
         {
@@ -59,6 +71,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 72057594037927935 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 72057594037927935 ORDER BY t1.a DESC"
         },
         {
@@ -72,6 +88,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=17\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 72057594037927935 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -95,7 +115,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000004000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=16"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 16384 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -123,6 +151,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 16384 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 16384 ORDER BY t1.a DESC"
         },
         {
@@ -147,6 +179,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 16384 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 16384 ORDER BY t1.a DESC"
         },
         {
@@ -168,6 +204,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=16\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 16384 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -199,7 +239,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000100000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=36"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 4294967296 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -227,6 +275,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 4294967296 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 4294967296 ORDER BY t1.a DESC"
         },
         {
@@ -251,6 +303,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 4294967296 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 4294967296 ORDER BY t1.a DESC"
         },
         {
@@ -272,6 +328,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=36\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 4294967296 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -303,7 +363,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000001000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=6"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 16777216 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -331,6 +399,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 16777216 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 16777216 ORDER BY t1.a DESC"
         },
         {
@@ -355,6 +427,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 16777216 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 16777216 ORDER BY t1.a DESC"
         },
         {
@@ -376,6 +452,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=6\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 16777216 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -407,7 +487,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffffff7fff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=29"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -32769 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -435,6 +523,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -32769 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -32769 ORDER BY t1.a DESC"
         },
         {
@@ -459,6 +551,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -32769 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -32769 ORDER BY t1.a DESC"
         },
         {
@@ -480,6 +576,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=29\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -32769 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -511,7 +611,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffff7fffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=21"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -140737488355329 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -531,6 +639,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -140737488355329 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -140737488355329 ORDER BY t1.a DESC"
         },
         {
@@ -547,6 +659,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -140737488355329 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -140737488355329 ORDER BY t1.a DESC"
         },
         {
@@ -560,6 +676,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=21\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -140737488355329 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -583,7 +703,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000002'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=41"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 2 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -611,6 +739,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 2 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 2 ORDER BY t1.a DESC"
         },
         {
@@ -635,6 +767,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 2 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 2 ORDER BY t1.a DESC"
         },
         {
@@ -656,6 +792,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=41\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 2 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -687,7 +827,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000004'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=31"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 4 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -715,6 +863,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 4 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 4 ORDER BY t1.a DESC"
         },
         {
@@ -739,6 +891,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 4 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 4 ORDER BY t1.a DESC"
         },
         {
@@ -760,6 +916,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=31\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 4 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -791,7 +951,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0001ffffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=13"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 562949953421311 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -811,6 +979,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 562949953421311 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 562949953421311 ORDER BY t1.a DESC"
         },
         {
@@ -827,6 +999,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 562949953421311 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 562949953421311 ORDER BY t1.a DESC"
         },
         {
@@ -840,6 +1016,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=13\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 562949953421311 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -863,7 +1043,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000100'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=61"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 256 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -891,6 +1079,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 256 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 256 ORDER BY t1.a DESC"
         },
         {
@@ -915,6 +1107,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 256 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 256 ORDER BY t1.a DESC"
         },
         {
@@ -936,6 +1132,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=61\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 256 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -967,7 +1167,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000800000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=22"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 34359738368 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -995,6 +1203,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 34359738368 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 34359738368 ORDER BY t1.a DESC"
         },
         {
@@ -1019,6 +1231,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 34359738368 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 34359738368 ORDER BY t1.a DESC"
         },
         {
@@ -1040,6 +1256,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=22\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 34359738368 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1071,7 +1291,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000010000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=62"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 65536 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1099,6 +1327,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 65536 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 65536 ORDER BY t1.a DESC"
         },
         {
@@ -1123,6 +1355,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 65536 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 65536 ORDER BY t1.a DESC"
         },
         {
@@ -1144,6 +1380,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=62\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 65536 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1175,7 +1415,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000010000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=40"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 268435456 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1203,6 +1451,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 268435456 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 268435456 ORDER BY t1.a DESC"
         },
         {
@@ -1227,6 +1479,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 268435456 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 268435456 ORDER BY t1.a DESC"
         },
         {
@@ -1248,6 +1504,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=40\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 268435456 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1279,7 +1539,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffff800000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=44"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -140737488355328 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1299,6 +1567,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -140737488355328 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -140737488355328 ORDER BY t1.a DESC"
         },
         {
@@ -1315,6 +1587,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -140737488355328 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -140737488355328 ORDER BY t1.a DESC"
         },
         {
@@ -1328,6 +1604,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=44\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -140737488355328 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1351,7 +1631,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000010000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=19"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 1099511627776 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1379,6 +1667,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 1099511627776 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 1099511627776 ORDER BY t1.a DESC"
         },
         {
@@ -1400,6 +1692,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= CAST(t2.r AS real)\n     WHERE t2.a=19\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 1099511627776 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1427,6 +1723,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 1099511627776 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid <= 1099511627776 ORDER BY t1.a DESC"
         },
         {
@@ -1451,6 +1751,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 9223372036854775807 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > 9223372036854775807 ORDER BY t1.a DESC"
         },
         {
@@ -1464,6 +1768,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=3\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 9223372036854775807 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1483,6 +1791,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 9223372036854775807 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 9223372036854775807 ORDER BY t1.a DESC"
         },
         {
@@ -1496,6 +1808,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=3\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 9223372036854775807 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1519,7 +1835,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000008000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=50"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 32768 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1547,6 +1871,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 32768 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 32768 ORDER BY t1.a DESC"
         },
         {
@@ -1571,6 +1899,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 32768 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 32768 ORDER BY t1.a DESC"
         },
         {
@@ -1592,6 +1924,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=50\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 32768 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1623,7 +1959,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ff80000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=64"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -36028797018963968 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1643,6 +1987,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -36028797018963968 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -36028797018963968 ORDER BY t1.a DESC"
         },
         {
@@ -1659,6 +2007,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -36028797018963968 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -36028797018963968 ORDER BY t1.a DESC"
         },
         {
@@ -1672,6 +2024,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=64\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -36028797018963968 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1695,7 +2051,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='000000000000ffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=48"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 65535 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1723,6 +2087,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 65535 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 65535 ORDER BY t1.a DESC"
         },
         {
@@ -1747,6 +2115,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 65535 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 65535 ORDER BY t1.a DESC"
         },
         {
@@ -1768,6 +2140,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=48\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 65535 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1799,7 +2175,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00000000ffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=14"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 4294967295 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1827,6 +2211,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 4294967295 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 4294967295 ORDER BY t1.a DESC"
         },
         {
@@ -1851,6 +2239,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 4294967295 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 4294967295 ORDER BY t1.a DESC"
         },
         {
@@ -1872,6 +2264,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=14\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 4294967295 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1903,7 +2299,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='000000ffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=57"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 1099511627775 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -1931,6 +2335,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 1099511627775 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 1099511627775 ORDER BY t1.a DESC"
         },
         {
@@ -1955,6 +2363,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 1099511627775 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 1099511627775 ORDER BY t1.a DESC"
         },
         {
@@ -1976,6 +2388,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=57\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 1099511627775 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2007,7 +2423,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffff800000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=37"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -8388608 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2035,6 +2459,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -8388608 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -8388608 ORDER BY t1.a DESC"
         },
         {
@@ -2059,6 +2487,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -8388608 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -8388608 ORDER BY t1.a DESC"
         },
         {
@@ -2080,6 +2512,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=37\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -8388608 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2111,7 +2547,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000008000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=35"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 549755813888 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2139,6 +2583,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 549755813888 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 549755813888 ORDER BY t1.a DESC"
         },
         {
@@ -2163,6 +2611,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 549755813888 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 549755813888 ORDER BY t1.a DESC"
         },
         {
@@ -2184,6 +2636,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=35\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 549755813888 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2215,7 +2671,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00000000007fffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=18"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 8388607 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2243,6 +2707,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 8388607 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 8388607 ORDER BY t1.a DESC"
         },
         {
@@ -2267,6 +2735,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 8388607 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 8388607 ORDER BY t1.a DESC"
         },
         {
@@ -2288,6 +2760,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=18\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 8388607 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2319,7 +2795,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='fffffffffffffffd'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=52"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -3 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2347,6 +2831,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -3 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -3 ORDER BY t1.a DESC"
         },
         {
@@ -2371,6 +2859,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -3 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -3 ORDER BY t1.a DESC"
         },
         {
@@ -2392,6 +2884,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=52\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -3 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2423,7 +2919,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=59"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 0 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2451,6 +2955,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 0 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 0 ORDER BY t1.a DESC"
         },
         {
@@ -2475,6 +2983,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 0 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 0 ORDER BY t1.a DESC"
         },
         {
@@ -2496,6 +3008,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=59\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 0 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2527,7 +3043,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=38"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -1 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2555,6 +3079,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -1 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -1 ORDER BY t1.a DESC"
         },
         {
@@ -2579,6 +3107,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -1 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -1 ORDER BY t1.a DESC"
         },
         {
@@ -2600,6 +3132,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=38\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -1 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2631,7 +3167,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='fffffffffffffffe'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=33"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -2 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2659,6 +3203,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -2 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -2 ORDER BY t1.a DESC"
         },
         {
@@ -2683,6 +3231,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -2 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -2 ORDER BY t1.a DESC"
         },
         {
@@ -2704,6 +3256,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=33\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -2 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2735,7 +3291,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000200000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=42"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 2097152 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2763,6 +3327,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 2097152 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 2097152 ORDER BY t1.a DESC"
         },
         {
@@ -2787,6 +3355,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 2097152 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 2097152 ORDER BY t1.a DESC"
         },
         {
@@ -2808,6 +3380,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=42\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 2097152 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2839,7 +3415,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000080'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=49"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 128 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2867,6 +3451,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 128 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 128 ORDER BY t1.a DESC"
         },
         {
@@ -2891,6 +3479,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 128 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 128 ORDER BY t1.a DESC"
         },
         {
@@ -2912,6 +3504,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=49\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 128 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2943,7 +3539,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00000000000000ff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=30"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 255 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -2971,6 +3575,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 255 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 255 ORDER BY t1.a DESC"
         },
         {
@@ -2995,6 +3603,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 255 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 255 ORDER BY t1.a DESC"
         },
         {
@@ -3016,6 +3628,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=30\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 255 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3047,7 +3663,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffff80000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=11"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -2147483648 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3075,6 +3699,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -2147483648 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -2147483648 ORDER BY t1.a DESC"
         },
         {
@@ -3099,6 +3727,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -2147483648 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -2147483648 ORDER BY t1.a DESC"
         },
         {
@@ -3120,6 +3752,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=11\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -2147483648 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3151,7 +3787,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00000007ffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=39"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 34359738367 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3179,6 +3823,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 34359738367 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 34359738367 ORDER BY t1.a DESC"
         },
         {
@@ -3203,6 +3851,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 34359738367 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 34359738367 ORDER BY t1.a DESC"
         },
         {
@@ -3224,6 +3876,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=39\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 34359738367 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3255,7 +3911,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffff7fffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=58"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -549755813889 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3283,6 +3947,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -549755813889 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -549755813889 ORDER BY t1.a DESC"
         },
         {
@@ -3307,6 +3975,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -549755813889 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -549755813889 ORDER BY t1.a DESC"
         },
         {
@@ -3328,6 +4000,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=58\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -549755813889 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3359,7 +4035,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffffff8000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=32"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -32768 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3387,6 +4071,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -32768 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -32768 ORDER BY t1.a DESC"
         },
         {
@@ -3411,6 +4099,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -32768 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -32768 ORDER BY t1.a DESC"
         },
         {
@@ -3432,6 +4124,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=32\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -32768 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3463,7 +4159,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='000000007fffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=20"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 2147483647 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3491,6 +4195,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 2147483647 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 2147483647 ORDER BY t1.a DESC"
         },
         {
@@ -3515,6 +4223,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 2147483647 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 2147483647 ORDER BY t1.a DESC"
         },
         {
@@ -3536,6 +4248,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=20\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 2147483647 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3567,7 +4283,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffffffff7f'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=54"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -129 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3595,6 +4319,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -129 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -129 ORDER BY t1.a DESC"
         },
         {
@@ -3619,6 +4347,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -129 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -129 ORDER BY t1.a DESC"
         },
         {
@@ -3640,6 +4372,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=54\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -129 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3671,7 +4407,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffffffff80'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=53"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -128 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3699,6 +4443,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -128 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -128 ORDER BY t1.a DESC"
         },
         {
@@ -3723,6 +4471,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -128 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -128 ORDER BY t1.a DESC"
         },
         {
@@ -3744,6 +4496,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=53\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -128 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3775,7 +4531,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0100000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=28"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 72057594037927936 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3795,6 +4559,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 72057594037927936 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 72057594037927936 ORDER BY t1.a DESC"
         },
         {
@@ -3811,6 +4579,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 72057594037927936 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 72057594037927936 ORDER BY t1.a DESC"
         },
         {
@@ -3824,6 +4596,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=28\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 72057594037927936 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3847,7 +4623,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000080000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=51"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 2147483648 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3875,6 +4659,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 2147483648 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 2147483648 ORDER BY t1.a DESC"
         },
         {
@@ -3899,6 +4687,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 2147483648 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 2147483648 ORDER BY t1.a DESC"
         },
         {
@@ -3920,6 +4712,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=51\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 2147483648 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3951,7 +4747,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000007fffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=46"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 549755813887 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -3979,6 +4783,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 549755813887 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 549755813887 ORDER BY t1.a DESC"
         },
         {
@@ -4003,6 +4811,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 549755813887 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 549755813887 ORDER BY t1.a DESC"
         },
         {
@@ -4024,6 +4836,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=46\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 549755813887 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4055,7 +4871,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffff8000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=63"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -549755813888 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4083,6 +4907,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -549755813888 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -549755813888 ORDER BY t1.a DESC"
         },
         {
@@ -4107,6 +4935,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -549755813888 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -549755813888 ORDER BY t1.a DESC"
         },
         {
@@ -4128,6 +4960,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=63\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -549755813888 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4159,7 +4995,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000ffffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=10"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 281474976710655 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4179,6 +5023,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 281474976710655 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 281474976710655 ORDER BY t1.a DESC"
         },
         {
@@ -4195,6 +5043,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 281474976710655 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 281474976710655 ORDER BY t1.a DESC"
         },
         {
@@ -4208,6 +5060,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=10\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 281474976710655 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4231,7 +5087,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='000003ffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=7"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 4398046511103 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4259,6 +5123,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 4398046511103 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 4398046511103 ORDER BY t1.a DESC"
         },
         {
@@ -4283,6 +5151,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 4398046511103 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 4398046511103 ORDER BY t1.a DESC"
         },
         {
@@ -4304,6 +5176,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=7\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 4398046511103 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4335,7 +5211,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='000000000fffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=12"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 268435455 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4363,6 +5247,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 268435455 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 268435455 ORDER BY t1.a DESC"
         },
         {
@@ -4387,6 +5275,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 268435455 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 268435455 ORDER BY t1.a DESC"
         },
         {
@@ -4408,6 +5300,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=12\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 268435455 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4439,7 +5335,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='8000000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=55"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -9223372036854775808 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4459,6 +5363,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -9223372036854775808 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -9223372036854775808 ORDER BY t1.a DESC"
         },
         {
@@ -4475,6 +5383,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -9223372036854775808 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -9223372036854775808 ORDER BY t1.a DESC"
         },
         {
@@ -4488,6 +5400,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=55\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -9223372036854775808 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4511,7 +5427,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0002000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=43"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 562949953421312 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4531,6 +5455,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 562949953421312 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 562949953421312 ORDER BY t1.a DESC"
         },
         {
@@ -4547,6 +5475,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 562949953421312 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 562949953421312 ORDER BY t1.a DESC"
         },
         {
@@ -4560,6 +5492,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=43\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 562949953421312 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4583,7 +5519,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffffff7fffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -8388609 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4611,6 +5555,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -8388609 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -8388609 ORDER BY t1.a DESC"
         },
         {
@@ -4635,6 +5583,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -8388609 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -8388609 ORDER BY t1.a DESC"
         },
         {
@@ -4656,6 +5608,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=1\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -8388609 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4687,7 +5643,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000ffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=9"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 16777215 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4715,6 +5679,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 16777215 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 16777215 ORDER BY t1.a DESC"
         },
         {
@@ -4739,6 +5707,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 16777215 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 16777215 ORDER BY t1.a DESC"
         },
         {
@@ -4760,6 +5732,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=9\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 16777215 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4791,7 +5767,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000800000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=24"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 8388608 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4819,6 +5803,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 8388608 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 8388608 ORDER BY t1.a DESC"
         },
         {
@@ -4843,6 +5831,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 8388608 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 8388608 ORDER BY t1.a DESC"
         },
         {
@@ -4864,6 +5856,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=24\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 8388608 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4895,7 +5891,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000003fff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=8"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 16383 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4923,6 +5927,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 16383 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 16383 ORDER BY t1.a DESC"
         },
         {
@@ -4947,6 +5955,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 16383 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 16383 ORDER BY t1.a DESC"
         },
         {
@@ -4968,6 +5980,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=8\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 16383 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -4999,7 +6015,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000800000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=34"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 140737488355328 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5019,6 +6043,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 140737488355328 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 140737488355328 ORDER BY t1.a DESC"
         },
         {
@@ -5035,6 +6063,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 140737488355328 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 140737488355328 ORDER BY t1.a DESC"
         },
         {
@@ -5048,6 +6080,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=34\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 140737488355328 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5071,7 +6107,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00000000001fffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=15"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 2097151 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5099,6 +6143,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 2097151 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 2097151 ORDER BY t1.a DESC"
         },
         {
@@ -5123,6 +6171,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 2097151 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 2097151 ORDER BY t1.a DESC"
         },
         {
@@ -5144,6 +6196,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=15\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 2097151 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5175,7 +6231,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='00007fffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=25"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 140737488355327 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5195,6 +6259,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 140737488355327 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 140737488355327 ORDER BY t1.a DESC"
         },
         {
@@ -5211,6 +6279,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 140737488355327 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 140737488355327 ORDER BY t1.a DESC"
         },
         {
@@ -5224,6 +6296,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=25\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 140737488355327 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5247,7 +6323,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0001000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=26"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 281474976710656 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5267,6 +6351,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 281474976710656 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 281474976710656 ORDER BY t1.a DESC"
         },
         {
@@ -5283,6 +6371,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 281474976710656 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 281474976710656 ORDER BY t1.a DESC"
         },
         {
@@ -5296,6 +6388,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=26\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 281474976710656 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5319,7 +6415,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000007fff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=23"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 32767 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5347,6 +6451,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 32767 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 32767 ORDER BY t1.a DESC"
         },
         {
@@ -5371,6 +6479,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 32767 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 32767 ORDER BY t1.a DESC"
         },
         {
@@ -5392,6 +6504,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=23\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 32767 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5423,7 +6539,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='000000000000007f'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=4"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 127 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5451,6 +6575,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 127 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 127 ORDER BY t1.a DESC"
         },
         {
@@ -5475,6 +6603,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 127 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 127 ORDER BY t1.a DESC"
         },
         {
@@ -5496,6 +6628,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=4\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 127 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5527,7 +6663,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='007fffffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=27"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 36028797018963967 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5547,6 +6691,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 36028797018963967 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 36028797018963967 ORDER BY t1.a DESC"
         },
         {
@@ -5563,6 +6711,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 36028797018963967 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 36028797018963967 ORDER BY t1.a DESC"
         },
         {
@@ -5576,6 +6728,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=27\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 36028797018963967 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5599,7 +6755,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000040000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=56"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 4398046511104 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5627,6 +6791,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 4398046511104 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 4398046511104 ORDER BY t1.a DESC"
         },
         {
@@ -5651,6 +6819,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 4398046511104 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 4398046511104 ORDER BY t1.a DESC"
         },
         {
@@ -5672,6 +6844,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=56\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 4398046511104 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5703,7 +6879,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000001'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=60"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 1 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5731,6 +6915,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 1 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 1 ORDER BY t1.a DESC"
         },
         {
@@ -5755,6 +6943,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 1 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 1 ORDER BY t1.a DESC"
         },
         {
@@ -5776,6 +6968,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=60\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 1 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5807,7 +7003,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0080000000000000'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=45"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 36028797018963968 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5827,6 +7031,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 36028797018963968 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 36028797018963968 ORDER BY t1.a DESC"
         },
         {
@@ -5843,6 +7051,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 36028797018963968 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 36028797018963968 ORDER BY t1.a DESC"
         },
         {
@@ -5856,6 +7068,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=45\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 36028797018963968 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5879,7 +7095,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ffffffff7fffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=47"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -2147483649 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5907,6 +7131,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -2147483649 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -2147483649 ORDER BY t1.a DESC"
         },
         {
@@ -5931,6 +7159,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -2147483649 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -2147483649 ORDER BY t1.a DESC"
         },
         {
@@ -5952,6 +7184,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < CAST(t2.r AS real)\n     WHERE t2.a=47\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -2147483649 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -5983,7 +7219,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='ff7fffffffffffff'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -36028797018963969 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6003,6 +7247,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -36028797018963969 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= -36028797018963969 ORDER BY t1.a DESC"
         },
         {
@@ -6019,6 +7267,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -36028797018963969 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -36028797018963969 ORDER BY t1.a DESC"
         },
         {
@@ -6032,6 +7284,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=2\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -36028797018963969 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6055,7 +7311,15 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.* FROM t1 JOIN t2 USING(a) WHERE x='0000000000000003'"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t1.rowid, x FROM t1 JOIN t2 ON t2.r=t1.rowid WHERE t2.a=5"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 3 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6083,6 +7347,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 3 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid >= 3 ORDER BY t1.a DESC"
         },
         {
@@ -6104,6 +7372,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid >= CAST(t2.r AS real)\n     WHERE t2.a=5\n     ORDER BY t1.rowid DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 3 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6131,6 +7403,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 3 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid <= 3 ORDER BY t1.a DESC"
         },
         {
@@ -6155,6 +7431,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > 9.22337303685477580800e+18 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > 9.22337303685477580800e+18 ORDER BY t1.a DESC"
         },
         {
@@ -6168,6 +7448,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=65\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= 9.22337303685477580800e+18 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6187,6 +7471,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < 9.22337303685477580800e+18 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < 9.22337303685477580800e+18 ORDER BY t1.a DESC"
         },
         {
@@ -6200,6 +7488,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=65\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= 9.22337303685477580800e+18 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6219,6 +7511,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid > -9.22337303685477580800e+18 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid > -9.22337303685477580800e+18 ORDER BY t1.a DESC"
         },
         {
@@ -6232,6 +7528,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid > t2.r\n     WHERE t2.a=66\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid >= -9.22337303685477580800e+18 ORDER BY t2.a"
         },
         {
           "type": "exec",
@@ -6251,6 +7551,10 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid < -9.22337303685477580800e+18 ORDER BY t2.a"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT t2.a FROM t2 NATURAL JOIN t1\n     WHERE t1.rowid < -9.22337303685477580800e+18 ORDER BY t1.a DESC"
         },
         {
@@ -6264,6 +7568,10 @@
         {
           "type": "exec",
           "sql": "SELECT t1.a FROM t1 JOIN t2 ON t1.rowid < t2.r\n     WHERE t2.a=66\n     ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t2.a FROM t1 JOIN t2 USING(a)\n     WHERE t1.rowid <= -9.22337303685477580800e+18 ORDER BY t2.a"
         },
         {
           "type": "exec",

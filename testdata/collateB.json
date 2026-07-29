@@ -132,19 +132,19 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t4(a COLLATE binary);\n  CREATE INDEX i4 ON t4(a);\n  INSERT INTO t4 VALUES('one'), ('two'), ('three');\n  VACUUM;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

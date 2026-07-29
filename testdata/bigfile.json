@@ -8,14 +8,6 @@
         {
           "type": "exec",
           "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyz');\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyz');\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t1;"
         }
       ]
     },
@@ -25,10 +17,6 @@
         {
           "type": "query",
           "sql": "SELECT md5sum(x) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t1;"
         }
       ]
     },
@@ -37,10 +25,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;"
-        },
-        {
-          "type": "exec",
           "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;"
         }
       ]
@@ -55,31 +39,10 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t1;"
-        }
-      ]
-    },
-    {
       "name": "bigfile-1.5",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT md5sum(x) FROM t1;"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT md5sum(x) FROM t1;"
         }
       ]
@@ -90,10 +53,6 @@
         {
           "type": "query",
           "sql": "SELECT md5sum(x) FROM t2;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t2;"
         }
       ]
     },
@@ -102,10 +61,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;"
-        },
-        {
-          "type": "exec",
           "sql": "CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;"
         }
       ]
@@ -120,31 +75,10 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_11",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t1;"
-        }
-      ]
-    },
-    {
       "name": "bigfile-1.9",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT md5sum(x) FROM t2;"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT md5sum(x) FROM t2;"
         }
       ]
@@ -155,10 +89,6 @@
         {
           "type": "query",
           "sql": "SELECT md5sum(x) FROM t1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t1;"
         }
       ]
     },
@@ -167,10 +97,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT md5sum(x) FROM t2;"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT md5sum(x) FROM t2;"
         }
       ]
@@ -181,10 +107,6 @@
         {
           "type": "query",
           "sql": "SELECT md5sum(x) FROM t3;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t3;"
         }
       ]
     },
@@ -193,10 +115,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;"
-        },
-        {
-          "type": "exec",
           "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;"
         }
       ]
@@ -211,31 +129,10 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_19",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT md5sum(x) FROM t1;"
-        }
-      ]
-    },
-    {
       "name": "bigfile-1.15",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT md5sum(x) FROM t2;"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT md5sum(x) FROM t2;"
         }
       ]
@@ -249,7 +146,95 @@
         },
         {
           "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('abcdefghijklmnopqrstuvwxyz');\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    INSERT INTO t1 SELECT rowid || ' ' || x FROM t1;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
           "sql": "SELECT md5sum(x) FROM t3;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t4 AS SELECT * FROM t1;\n    SELECT md5sum(x) FROM t4;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT md5sum(x) FROM t3;"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

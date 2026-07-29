@@ -1,0 +1,28 @@
+{
+  "file": "uri2.test",
+  "name": "uri2",
+  "tests": [
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA compile_options"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA compile_options"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

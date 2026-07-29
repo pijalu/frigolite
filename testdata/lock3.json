@@ -8,14 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
         }
       ]
     },
@@ -25,32 +17,12 @@
         {
           "type": "exec",
           "sql": "BEGIN DEFERRED TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN DEFERRED TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(2)"
-        },
-        {
-          "type": "exec",
-          "sql": "END TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
         }
       ]
     },
     {
       "name": "lock3-3.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN IMMEDIATE TRANSACTION"
-        },
         {
           "type": "exec",
           "sql": "BEGIN IMMEDIATE TRANSACTION"
@@ -73,20 +45,12 @@
         {
           "type": "exec",
           "sql": "END TRANSACTION"
-        },
-        {
-          "type": "exec",
-          "sql": "END TRANSACTION"
         }
       ]
     },
     {
       "name": "lock3-4.1",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN EXCLUSIVE TRANSACTION"
-        },
         {
           "type": "exec",
           "sql": "BEGIN EXCLUSIVE TRANSACTION"
@@ -109,6 +73,42 @@
         {
           "type": "exec",
           "sql": "END TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN DEFERRED TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(2)"
+        },
+        {
+          "type": "exec",
+          "sql": "END TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN IMMEDIATE TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "END TRANSACTION"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN EXCLUSIVE TRANSACTION"
         },
         {
           "type": "exec",

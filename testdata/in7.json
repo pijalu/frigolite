@@ -8,18 +8,6 @@
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c PRIMARY KEY);\n  CREATE TABLE t2(x, y, z);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT rootpage, tbl_name FROM sqlite_schema"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -39,14 +27,6 @@
           "type": "query",
           "sql": "SELECT b FROM t1 WHERE a IN (1,2,3) ORDER BY b ASC NULLS LAST;",
           "expect": "one three {}"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     },
@@ -139,6 +119,20 @@
       ]
     },
     {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;",
+          "expect": "X'3333'"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT rootpage, tbl_name FROM sqlite_schema"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -147,12 +141,18 @@
       ]
     },
     {
-      "name": "4.0",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;",
-          "expect": "X'3333'"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

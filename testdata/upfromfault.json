@@ -3,40 +3,11 @@
   "name": "upfromfault",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "WITH data(k, v) AS (\n          VALUES(3, 'thirty'), (1, 'ten')\n      )\n      UPDATE t1 SET z=v FROM data WHERE x=k;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE t2 SET x=a FROM t1 WHERE c=z;\n    END;"
         }
       ]
     },
@@ -49,11 +20,35 @@
         },
         {
           "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "WITH data(k, v) AS (\n          VALUES(3, 'thirty'), (1, 'ten')\n      )\n      UPDATE t1 SET z=v FROM data WHERE x=k;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      UPDATE t2 SET x=a FROM t1 WHERE c=z;\n    END;"
+        },
+        {
+          "type": "exec",
           "sql": "INSERT INTO t1 VALUES(NULL, NULL, 1), (NULL, NULL, 3);"
         },
         {
           "type": "exec",
           "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

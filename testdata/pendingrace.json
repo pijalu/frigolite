@@ -3,10 +3,11 @@
   "name": "pendingrace",
   "tests": [
     {
-      "name": "__RESET_DB__",
+      "name": "1.0",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;"
         }
       ]
     },
@@ -17,6 +18,14 @@
           "type": "exec",
           "sql": "PRAGMA integrity_check",
           "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

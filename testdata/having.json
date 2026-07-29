@@ -61,14 +61,6 @@
       ]
     },
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
       "name": "5.0",
       "steps": [
         {
@@ -94,6 +86,14 @@
           "type": "query",
           "sql": "SELECT EXISTS (\n    SELECT * FROM (\n      SELECT * FROM (\n        SELECT 1\n      ) WHERE Col0 = 1   GROUP BY 1\n    )   WHERE 0\n  )\n  FROM (SELECT 1 Col0)   GROUP BY 1",
           "expect": "0"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

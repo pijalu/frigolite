@@ -9,10 +9,6 @@
           "type": "query",
           "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,934);\n    INSERT INTO t1 VALUES(2,221);\n    INSERT INTO t1 VALUES(1,372);\n    INSERT INTO t1 VALUES(3,552);\n    INSERT INTO t1 VALUES(1,719);\n    INSERT INTO t1 VALUES(4,102);\n    SELECT * FROM t1 ORDER BY b;",
           "expect": "4 102 2 221 1 372 3 552 1 719 1 934"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,934);\n    INSERT INTO t1 VALUES(2,221);\n    INSERT INTO t1 VALUES(1,372);\n    INSERT INTO t1 VALUES(3,552);\n    INSERT INTO t1 VALUES(1,719);\n    INSERT INTO t1 VALUES(4,102);\n    SELECT * FROM t1 ORDER BY b;"
         }
       ]
     },
@@ -21,10 +17,6 @@
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
-        },
-        {
-          "type": "exec",
           "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
         }
       ]
@@ -36,10 +28,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;",
           "expect": "0"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
         }
       ]
     },
@@ -50,10 +38,6 @@
           "type": "query",
           "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;"
         }
       ]
     },
@@ -64,10 +48,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;",
           "expect": "1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;"
         }
       ]
     },
@@ -78,10 +58,6 @@
           "type": "query",
           "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;",
           "expect": "1 1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;"
         }
       ]
     },
@@ -92,10 +68,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;",
           "expect": "3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;"
         }
       ]
     },
@@ -106,10 +78,6 @@
           "type": "query",
           "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;",
           "expect": "1 1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;"
         }
       ]
     },
@@ -120,10 +88,6 @@
           "type": "query",
           "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;",
           "expect": "3"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;"
         }
       ]
     },
@@ -134,10 +98,6 @@
           "type": "query",
           "sql": "SELECT a FROM (SELECT a FROM t1) WHERE a=1;",
           "expect": "1 1 1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a FROM (SELECT a FROM t1) WHERE a=1;"
         }
       ]
     },
@@ -148,6 +108,46 @@
           "type": "query",
           "sql": "SELECT count(*) FROM (SELECT a FROM t1) WHERE a=1;",
           "expect": "3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,934);\n    INSERT INTO t1 VALUES(2,221);\n    INSERT INTO t1 VALUES(1,372);\n    INSERT INTO t1 VALUES(3,552);\n    INSERT INTO t1 VALUES(1,719);\n    INSERT INTO t1 VALUES(4,102);\n    SELECT * FROM t1 ORDER BY b;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 2) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 3) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b LIMIT 99) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM (SELECT a FROM t1 ORDER BY b) WHERE a=1;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT a FROM (SELECT a FROM t1) WHERE a=1;"
         },
         {
           "type": "exec",

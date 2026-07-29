@@ -3,6 +3,26 @@
   "name": "json103",
   "tests": [
     {
+      "name": "json103-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b,c) SELECT x, x%3, printf('n%d',x)  FROM c;\n  UPDATE t1 SET a='orange' WHERE rowid=39;\n  UPDATE t1 SET a=32.5 WHERE rowid=31;\n  UPDATE t1 SET a=x'303132' WHERE rowid=29;\n  UPDATE t1 SET a=NULL WHERE rowid=37;\n  SELECT json_group_array(a) FROM t1 WHERE a<0 AND typeof(a)!='blob';",
+          "expect": "{[]}"
+        }
+      ]
+    },
+    {
+      "name": "json103-101",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_group_array(a) FROM t1;",
+          "expect": "1 {JSON cannot hold BLOB values}"
+        }
+      ]
+    },
+    {
       "name": "json103-102",
       "steps": [
         {
@@ -13,12 +33,92 @@
       ]
     },
     {
+      "name": "json103-110",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_array(a) FROM t1\n   WHERE rowid BETWEEN 31 AND 39;",
+          "expect": "{[32.5,32,33,34,35,36,null,38,\"orange\"]}"
+        }
+      ]
+    },
+    {
+      "name": "json103-111",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_array_length(json_group_array(a)) FROM t1\n   WHERE rowid BETWEEN 31 AND 39;",
+          "expect": "9"
+        }
+      ]
+    },
+    {
+      "name": "json103-120",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, json_group_array(a) FROM t1 WHERE rowid<10 GROUP BY b ORDER BY b;",
+          "expect": "0 {[3,6,9]} 1 {[1,4,7]} 2 {[2,5,8]}"
+        }
+      ]
+    },
+    {
+      "name": "json103-200",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_object(c,a) FROM t1 WHERE a<0 AND typeof(a)!='blob';",
+          "expect": "{{}}"
+        }
+      ]
+    },
+    {
+      "name": "json103-201",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT json_group_object(c,a) FROM t1;",
+          "expect": "1 {JSON cannot hold BLOB values}"
+        }
+      ]
+    },
+    {
       "name": "json103-202",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT quote(jsonb_group_object(c,a)) FROM t1 WHERE a<0 AND typeof(a)!='blob';",
           "expect": "X'0C'"
+        }
+      ]
+    },
+    {
+      "name": "json103-210",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT json_group_object(c,a) FROM t1\n   WHERE rowid BETWEEN 31 AND 39 AND rowid%2==1;",
+          "expect": "{{\"n31\":32.5,\"n33\":33,\"n35\":35,\"n37\":null,\"n39\":\"orange\"}}"
+        }
+      ]
+    },
+    {
+      "name": "json103-220",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT b, json_group_object(c,a) FROM t1\n   WHERE rowid<7 GROUP BY b ORDER BY b;",
+          "expect": "0 {{\"n3\":3,\"n6\":6}} 1 {{\"n1\":1,\"n4\":4}} 2 {{\"n2\":2,\"n5\":5}}"
+        }
+      ]
+    },
+    {
+      "name": "json103-300",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1),('abc');\n  SELECT\n     json_group_array(x),\n     json_group_array(json_object('x',x))\n    FROM t1;",
+          "expect": "{[1,\"abc\"]} {[{\"x\":1},{\"x\":\"abc\"}]}"
         }
       ]
     }

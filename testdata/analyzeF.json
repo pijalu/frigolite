@@ -1,0 +1,109 @@
+{
+  "file": "analyzeF.test",
+  "name": "analyzeF",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;"
+        }
+      ]
+    },
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)",
+          "expect": "1 {no such function: func}"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1 SET y=y+1 WHERE x = substr('145', 2, 1) AND y = func(1, 2, 3)",
+          "expect": "1 {no such function: func}"
+        }
+      ]
+    },
+    {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x = error('error one') AND y = 4;",
+          "expect": "1 {error one}"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x = dstr() AND y = 11;",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x = test_zeroblob(1100000) AND y = 4;",
+          "expect": "1 {string or blob too big}"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c INT);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(a, c) SELECT x, x FROM c;\n  UPDATE t1 SET b=printf('x%02x',a/500) WHERE a>4000;\n  UPDATE t1 SET b='xyz' where a>=9998;\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n  SELECT count(*), b FROM t1 GROUP BY 2 ORDER BY 2;",
+          "expect": "4000 {} 499 x08 500 x09 500 x0a 500 x0b 500 x0c 500 x0d 500 x0e 500 x0f 500 x10 500 x11 500 x12 498 x13 3 xyz"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "explain query plan\n  SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;\n  /*                  v---- Should be \"=\", not \">\"  */"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1 WHERE b='xyz' AND b IS NOT NULL ORDER BY +a;",
+          "expect": "9998 xyz 9998 9999 xyz 9999 10000 xyz 10000"
+        },
+        {
+          "type": "exec",
+          "sql": "DELETE FROM t1"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

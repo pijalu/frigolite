@@ -1,0 +1,89 @@
+{
+  "file": "rollback.test",
+  "name": "rollback",
+  "tests": [
+    {
+      "name": "rollback-1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;",
+          "expect": "1 2 3 4"
+        }
+      ]
+    },
+    {
+      "name": "rollback-1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "rollback-1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t3 SELECT a FROM t1;",
+          "expect": "1 {UNIQUE constraint failed: t3.a}"
+        }
+      ]
+    },
+    {
+      "name": "rollback-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t3 VALUES('hello world');"
+        }
+      ]
+    },
+    {
+      "name": "rollback-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT distinct tbl_name FROM sqlite_master;",
+          "expect": "t1 t3"
+        }
+      ]
+    },
+    {
+      "name": "rollback-2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT distinct tbl_name FROM sqlite_master;",
+          "expect": "t1 t3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t3(a unique on conflict rollback);\n      INSERT INTO t3 SELECT a FROM t1;\n      BEGIN;\n      INSERT INTO t1 SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      INSERT INTO t3 VALUES('hello world');"
+        },
+        {
+          "type": "exec",
+          "sql": "COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT distinct tbl_name FROM sqlite_master;"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT distinct tbl_name FROM sqlite_master;"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

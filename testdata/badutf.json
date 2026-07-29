@@ -1,0 +1,16 @@
+{
+  "file": "badutf.test",
+  "name": "badutf",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA encoding=UTF8"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

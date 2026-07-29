@@ -3,78 +3,6 @@
   "name": "whereA",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;"
-        },
-        {
-          "type": "exec",
-          "sql": "VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA reverse_unordered_selects;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_6",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA reverse_unordered_selects=1;\n    VACUUM;\n    SELECT * FROM t1;"
-        }
-      ]
-    },
-    {
       "name": "whereA-1.8",
       "steps": [
         {
@@ -90,6 +18,54 @@
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE b=2 AND a IS NOT NULL;",
           "expect": "1 2 3"
+        }
+      ]
+    },
+    {
+      "name": "whereA-5.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA reverse_unordered_selects=on;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE INDEX t1b ON t1(b);\n  SELECT a FROM t1 WHERE b=-99 OR b>1;",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "whereA-6.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX t1aa ON t1(a,a);\n  INSERT INTO t1 VALUES(1,2);\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='27 3 3' WHERE idx='t1aa';\n  ANALYZE sqlite_schema;\n  PRAGMA reverse_unordered_selects (1) ;\n  SELECT a FROM t1 WHERE  a=1 OR a=2;",
+          "expect": "1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM;\n    SELECT * FROM t1 ORDER BY rowid;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA reverse_unordered_selects=1;\n    VACUUM;\n    SELECT * FROM t1;"
         },
         {
           "type": "exec",
@@ -130,12 +106,10 @@
       ]
     },
     {
-      "name": "whereA-5.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "PRAGMA reverse_unordered_selects=on;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE INDEX t1b ON t1(b);\n  SELECT a FROM t1 WHERE b=-99 OR b>1;",
-          "expect": "1"
+          "type": "reset_db"
         }
       ]
     },
@@ -148,12 +122,18 @@
       ]
     },
     {
-      "name": "whereA-6.1",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a, b);\n  CREATE INDEX t1aa ON t1(a,a);\n  INSERT INTO t1 VALUES(1,2);\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='27 3 3' WHERE idx='t1aa';\n  ANALYZE sqlite_schema;\n  PRAGMA reverse_unordered_selects (1) ;\n  SELECT a FROM t1 WHERE  a=1 OR a=2;",
-          "expect": "1"
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     }

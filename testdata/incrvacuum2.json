@@ -3,16 +3,30 @@
   "name": "incrvacuum2",
   "tests": [
     {
+      "name": "4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 SELECT * FROM t1;            --    2\n    INSERT INTO t1 SELECT * FROM t1;            --    4\n    INSERT INTO t1 SELECT * FROM t1;            --    8\n    INSERT INTO t1 SELECT * FROM t1;            --   16\n    INSERT INTO t1 SELECT * FROM t1;            --   32\n    INSERT INTO t1 SELECT * FROM t1;            --  128\n    INSERT INTO t1 SELECT * FROM t1;            --  256\n    INSERT INTO t1 SELECT * FROM t1;            --  512\n    INSERT INTO t1 SELECT * FROM t1;            -- 1024\n    INSERT INTO t1 SELECT * FROM t1;            -- 2048\n    INSERT INTO t1 SELECT * FROM t1;            -- 4096\n    INSERT INTO t1 SELECT * FROM t1;            -- 8192\n    DELETE FROM t1 WHERE oid>512;\n    DELETE FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;"
+        }
+      ]
+    },
+    {
       "name": "incrvacuum2-1.2",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA incremental_vacuum(1);",
           "expect": "31744"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA incremental_vacuum(1);"
         }
       ]
     },
@@ -23,10 +37,6 @@
           "type": "query",
           "sql": "PRAGMA incremental_vacuum(5);",
           "expect": "26624"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA incremental_vacuum(5);"
         }
       ]
     },
@@ -37,10 +47,15 @@
           "type": "query",
           "sql": "PRAGMA incremental_vacuum(1000);",
           "expect": "3072"
-        },
+        }
+      ]
+    },
+    {
+      "name": "incrvacuum2-2.1",
+      "steps": [
         {
           "type": "exec",
-          "sql": "PRAGMA incremental_vacuum(1000);"
+          "sql": "ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;"
         }
       ]
     },
@@ -51,10 +66,6 @@
           "type": "query",
           "sql": "PRAGMA aux.incremental_vacuum(1)",
           "expect": "32768 31744"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA aux.incremental_vacuum(1)"
         }
       ]
     },
@@ -65,10 +76,6 @@
           "type": "query",
           "sql": "PRAGMA aux.incremental_vacuum(5)",
           "expect": "32768 26624"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA aux.incremental_vacuum(5)"
         }
       ]
     },
@@ -79,10 +86,6 @@
           "type": "query",
           "sql": "PRAGMA main.incremental_vacuum(5)",
           "expect": "27648 26624"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA main.incremental_vacuum(5)"
         }
       ]
     },
@@ -93,10 +96,6 @@
           "type": "query",
           "sql": "PRAGMA aux.incremental_vacuum",
           "expect": "27648 3072"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA aux.incremental_vacuum"
         }
       ]
     },
@@ -107,10 +106,6 @@
           "type": "query",
           "sql": "PRAGMA incremental_vacuum(1)",
           "expect": "26624 3072"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA incremental_vacuum(1)"
         }
       ]
     },
@@ -120,20 +115,12 @@
         {
           "type": "exec",
           "sql": "PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;"
         }
       ]
     },
     {
       "name": "incrvacuum2-3.2",
       "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;"
-        },
         {
           "type": "exec",
           "sql": "BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;"
@@ -147,10 +134,15 @@
           "type": "query",
           "sql": "PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);",
           "expect": "wal"
-        },
+        }
+      ]
+    },
+    {
+      "name": "4.2.1",
+      "steps": [
         {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);"
+          "type": "query",
+          "sql": "PRAGMA wal_checkpoint"
         }
       ]
     },
@@ -160,6 +152,74 @@
         {
           "type": "query",
           "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(5);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1000);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH DATABASE 'test2.db' AS aux;\n      PRAGMA aux.auto_vacuum=incremental;\n      CREATE TABLE aux.t2(x);\n      INSERT INTO t2 VALUES(zeroblob(30000));\n      INSERT INTO t1 SELECT * FROM t2;\n      DELETE FROM t2;\n      DELETE FROM t1;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.incremental_vacuum(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.incremental_vacuum(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA main.incremental_vacuum(5)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA aux.incremental_vacuum"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1)"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 'full';\n    BEGIN;\n    CREATE TABLE abc(a);\n    INSERT INTO abc VALUES(randstr(1500,1500));\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DELETE FROM abc;\n    PRAGMA incremental_vacuum;\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL;\n      PRAGMA incremental_vacuum(1);"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA journal_mode = WAL"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA wal_checkpoint"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA incremental_vacuum(1)"
         }
       ]
     },
@@ -168,19 +228,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "setup_13",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "PRAGMA journal_mode = WAL"
-        },
-        {
-          "type": "exec",
-          "sql": "PRAGMA incremental_vacuum(1)"
         }
       ]
     }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/rename"
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
@@ -53,6 +54,13 @@ type ColumnDef struct {
 // Manager manages the database schema.
 type Manager struct {
 	pager *pager.Pager
+
+	// entriesCache caches GetEntries results to avoid repeated schema scans.
+	// Invalidated by AddEntry. Not thread-safe — callers must ensure single-
+	// goroutine access, which holds for the current architecture (each DB has
+	// its own Manager, and operations on a single DB are sequential).
+	entriesCache map[SchemaType][]*Entry
+	cacheValid   bool
 }
 
 // NewManager creates a new schema manager.
@@ -95,6 +103,10 @@ func (m *Manager) Init() error {
 
 // AddEntry adds a new entry to the schema.
 func (m *Manager) AddEntry(entry *Entry) error {
+	// Invalidate schema cache since the schema has changed
+	m.cacheValid = false
+	m.entriesCache = nil
+
 	// Convert schema entry to a record and insert into page 1
 	values := []interface{}{
 		entry.Type,
@@ -121,6 +133,13 @@ func (m *Manager) AddEntry(entry *Entry) error {
 
 // GetEntries returns all schema entries of the given type.
 func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
+	// Return cached entries if cache is valid
+	if m.cacheValid && m.entriesCache != nil {
+		if entries, ok := m.entriesCache[schemaType]; ok {
+			return entries, nil
+		}
+	}
+
 	var entries []*Entry
 	tree := btree.NewBTree(m.pager, 1, true)
 	cursor, err := tree.OpenCursor()
@@ -154,6 +173,16 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 			break
 		}
 	}
+
+	// Cache the result (copy the slice to prevent caller modifications from
+	// corrupting the cache)
+	if !m.cacheValid {
+		m.entriesCache = make(map[SchemaType][]*Entry)
+		m.cacheValid = true
+	}
+	cached := make([]*Entry, len(entries))
+	copy(cached, entries)
+	m.entriesCache[schemaType] = cached
 
 	return entries, nil
 }
@@ -347,7 +376,17 @@ func (m *Manager) FindIndex(name string) (*Entry, error) {
 }
 
 // RenameEntry renames a schema entry (used by ALTER TABLE RENAME TO).
+// If newSQL is non-empty, it is used directly as the entry's new SQL text.
+// Otherwise, the SQL is computed using token-level rename via FindRenameTokens+ApplyRenames,
+// with a fallback to simple string replacement.
 func (m *Manager) RenameEntry(oldName, newName string) error {
+	return m.RenameEntryWithSQL(oldName, newName, "")
+}
+
+// RenameEntryWithSQL renames a schema entry using the provided SQL text.
+// If newSQL is empty, the SQL is computed using token-level rename
+// via FindRenameTokens+ApplyRenames, with a fallback to simple string replacement.
+func (m *Manager) RenameEntryWithSQL(oldName, newName, newSQL string) error {
 	// Try the full name first, then the short name (schema prefix stripped)
 	searchNames := []string{oldName}
 	if dotIdx := strings.Index(oldName, "."); dotIdx >= 0 {
@@ -378,8 +417,24 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 		return fmt.Errorf("no such table: %s", oldName)
 	}
 
-	// Rebuild SQL with new table name (use quoted name to match SQLite format)
-	newSQL := strings.Replace(oldEntry.SQL, oldName, `"`+newName+`"`, 1)
+	// Determine the new SQL text
+	finalSQL := newSQL
+	if finalSQL == "" {
+		// Use token-level rename
+		ctx := &rename.RenameContext{
+			OldName:   oldName,
+			NewName:   newName,
+			QuotedNew: `"` + newName + `"`,
+			IsTable:   true,
+		}
+		ranges, rErr := rename.FindRenameTokens(oldEntry.SQL, ctx)
+		if rErr == nil && len(ranges) > 0 {
+			finalSQL = rename.ApplyRenames(oldEntry.SQL, ranges, `"`+newName+`"`)
+		} else {
+			// Fallback to simple string replacement
+			finalSQL = strings.Replace(oldEntry.SQL, oldName, `"`+newName+`"`, 1)
+		}
+	}
 
 	// Remove old entry
 	if err := m.RemoveEntry(oldName); err != nil {
@@ -392,7 +447,7 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 		Name:     newName,
 		TblName:  newName,
 		RootPage: oldEntry.RootPage,
-		SQL:      newSQL,
+		SQL:      finalSQL,
 	}
 
 	return m.AddEntry(newEntry)
@@ -400,6 +455,10 @@ func (m *Manager) RenameEntry(oldName, newName string) error {
 
 // RemoveEntry removes a schema entry by name.
 func (m *Manager) RemoveEntry(name string) error {
+	// Invalidate schema cache since the schema has changed
+	m.cacheValid = false
+	m.entriesCache = nil
+
 	// Strip schema prefix if present (e.g. "aux.t4" -> "t4")
 	searchName := name
 	if dotIdx := strings.Index(name, "."); dotIdx >= 0 {

@@ -1,0 +1,461 @@
+{
+  "file": "attach2.test",
+  "name": "attach2",
+  "tests": [
+    {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA encoding = 'utf16';\n    ATTACH 'test.db2' AS aux;\n    SELECT * FROM t2;",
+          "expect": "text2"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test.db4' AS aux;\n    SELECT * FROM t4;",
+          "expect": "text4"
+        }
+      ]
+    },
+    {
+      "name": "2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "ATTACH 'test.db3' AS aux;\n    SELECT * FROM t3;\n    SELECT * FROM t2;",
+          "expect": "text3 text2"
+        }
+      ]
+    },
+    {
+      "name": "2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db4' AS aux;",
+          "expect": "1 {attached databases must use the same text encoding as main database}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS t2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' AS t2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM t2.sqlite_master;",
+          "expect": "0 {t1 x1}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM t2.sqlite_master;",
+          "expect": "0 {t1 x1}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT name FROM main.sqlite_master;",
+          "expect": "0 {t1 x1}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    INSERT INTO t1 VALUES(8,9);",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "8 9"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2.t1 VALUES(1,2);",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "rollback"
+        }
+      ]
+    },
+    {
+      "name": "attach2-2.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 {cannot commit - no transaction is active}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as file2"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM file2.t1;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE file2.t1 SET a=0;",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "1 {database is locked}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "COMMIT",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.13",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM file2.t1",
+          "expect": "1 2"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        }
+      ]
+    },
+    {
+      "name": "attach2-4.15",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT * FROM t1",
+          "expect": "1 2 1 2"
+        }
+      ]
+    },
+    {
+      "name": "attach2-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;"
+        }
+      ]
+    },
+    {
+      "name": "attach2-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE tbl(a, b, c);\n    CREATE TABLE aux.tbl(a, b, c);\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "attach2-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP TABLE aux.tbl;\n    DROP TABLE tbl;\n    ROLLBACK;"
+        }
+      ]
+    },
+    {
+      "name": "attach2-6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        }
+      ]
+    },
+    {
+      "name": "attach2-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test3.db' as aux2;\n    DETACH aux2;",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "attach2-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DETACH aux;",
+          "expect": "0 {}"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA database_list"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "rollback"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA lock_status"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as file2"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test2.db' as file2"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO file2.t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM file2.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1, 2)"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE tbl(a, b, c);\n    CREATE TABLE aux.tbl(a, b, c);\n    COMMIT;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    DROP TABLE aux.tbl;\n    DROP TABLE tbl;\n    ROLLBACK;"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);"
+        },
+        {
+          "type": "exec",
+          "sql": "DETACH t2"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

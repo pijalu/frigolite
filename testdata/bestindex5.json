@@ -3,15 +3,6 @@
   "name": "bestindex5",
   "tests": [
     {
-      "name": "setup_0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "%QUERY%"
-        }
-      ]
-    },
-    {
       "name": "2.0.0",
       "steps": [
         {
@@ -120,6 +111,10 @@
         {
           "type": "query",
           "sql": "SELECT rowid, * FROM t4 WHERE rowid!=1 OR x!='245';"
+        },
+        {
+          "type": "exec",
+          "sql": "%QUERY%"
         }
       ]
     }

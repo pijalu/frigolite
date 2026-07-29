@@ -1,0 +1,219 @@
+{
+  "file": "fts3corrupt.test",
+  "name": "fts3corrupt",
+  "tests": [
+    {
+      "name": "1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');"
+        }
+      ]
+    },
+    {
+      "name": "1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('world');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "1.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;"
+        }
+      ]
+    },
+    {
+      "name": "2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('hello');\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'hello'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT rowid FROM t1 WHERE t1 MATCH 'world'",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "4.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');"
+        }
+      ]
+    },
+    {
+      "name": "4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_segdir SET root = X'FFFFFFFFFFFFFFFF';\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "5.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;"
+        }
+      ]
+    },
+    {
+      "name": "5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_stat SET value = X'0000';\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "5.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE t1_stat SET value = NULL;\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO f_segments (blockid) values (16);\n  INSERT INTO f_segments values (0, x'');\n  INSERT INTO f_stat VALUES (1,x'cf0f01');\n  INSERT INTO f(f) VALUES ('merge=1');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "7.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a,b);\n  INSERT INTO f_segdir VALUES (0,0,1,0,'0 0',x'01010101020101');\n  SELECT  matchinfo( f , 'pcx')  FROM f WHERE b MATCH x'c533';",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE VIRTUAL TABLE f USING fts3(a);\n  INSERT INTO f(f) VALUES('nodesize=24');\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n  COMMIT;\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n  COMMIT;\n\n  SELECT count(*) FROM f_segments;",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE f_segments SET block = (\n    SELECT block FROM f_segments WHERE blockid=1\n  ) WHERE blockid=2"
+        }
+      ]
+    },
+    {
+      "name": "8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO f(f) VALUES('merge=2,2');",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('one')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('two')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('three')"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('four')"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

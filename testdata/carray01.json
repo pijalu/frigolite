@@ -1,0 +1,17 @@
+{
+  "file": "carray01.test",
+  "name": "carray01",
+  "tests": [
+    {
+      "name": "400",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;",
+          "expect": "1 {table-function argument references tables to its right}"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

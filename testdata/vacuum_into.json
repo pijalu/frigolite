@@ -3,12 +3,174 @@
   "name": "vacuum_into",
   "tests": [
     {
+      "name": "vacuum-into-100",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(\n    a INTEGER PRIMARY KEY,\n    b ANY,\n    c INT AS (b+1),                          --- See \"2024-04-09\" block\n    CHECK( typeof(b)!='integer' OR b>a-5 )   --- comment below\n  );\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b) SELECT x, randomblob(600) FROM c;\n  CREATE INDEX t1b ON t1(b);\n  DELETE FROM t1 WHERE a%2;\n  SELECT count(*), sum(a), sum(length(b)) FROM t1;",
+          "expect": "50 2550 30000"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-110",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM main INTO 'out.db';"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-130",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO 'out.db';",
+          "expect": "1 {output file already exists}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-140",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO 'out2.db';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-150",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO 'out2.db';",
+          "expect": "1 {output file already exists}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-200",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM main INTO ':memory:';",
+          "expect": "0 {}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-300",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2(name TEXT);\n  INSERT INTO t2 VALUES(':memory:');\n  VACUUM main INTO (SELECT name FROM t2);"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-310",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO null;",
+          "expect": "1 {non-text filename}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-320",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO x;",
+          "expect": "1 {no such column: x}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-330",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO t1.nosuchcol;",
+          "expect": "1 {no such column: t1.nosuchcol}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-340",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO main.t1.nosuchcol;",
+          "expect": "1 {no such column: main.t1.nosuchcol}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-420",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO target2()",
+          "expect": "1 {no such function: target2}"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-500",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO 'test.db2';"
+        }
+      ]
+    },
+    {
       "name": "vacuum-into-610",
       "steps": [
         {
           "type": "query",
           "sql": "PRAGMA page_size;",
           "expect": "4096"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-620",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n    VACUUM INTO 'test.db2';"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-700",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"
+        }
+      ]
+    },
+    {
+      "name": "vacuum-into-410",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO target()"
+        },
+        {
+          "type": "exec",
+          "sql": "VACUUM INTO target()"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA page_size=4096;\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(a);\n      INSERT INTO t1 VALUES(19);\n      CREATE INDEX t1a ON t1(a);\n      PRAGMA integrity_check;"
         },
         {
           "type": "exec",
@@ -21,15 +183,6 @@
       "steps": [
         {
           "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "vacuum-into-700",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);"
         }
       ]
     }

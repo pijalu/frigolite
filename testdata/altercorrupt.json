@@ -3,23 +3,6 @@
   "name": "altercorrupt",
   "tests": [
     {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2(a,b,c PRIMARY KEY, d, e, f) WITHOUT ROWID;\n  CREATE TABLE t1(a,b,c AS (-b) VIRTUAL,d CHECK(d>5),e UNIQUE, f AS (+b));\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql = 'xxxCREATE TABLE t2(a)' WHERE name='t2'"
-        }
-      ]
-    },
-    {
       "name": "1.1",
       "steps": [
         {
@@ -30,6 +13,16 @@
       ]
     },
     {
+      "name": "2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "ALTER TABLE t1 DROP COLUMN a;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
       "name": "__RESET_DB__",
       "steps": [
         {
@@ -38,21 +31,10 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "__RESET_DB__",
       "steps": [
         {
-          "type": "exec",
-          "sql": "CREATE TABLE t1(a,b,c AS (-b) VIRTUAL,d CHECK(d>5),e UNIQUE, f AS (+b));\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql = 'xxxCREATE TABLE t1(a)' WHERE name='t1'"
-        }
-      ]
-    },
-    {
-      "name": "2.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "ALTER TABLE t1 DROP COLUMN a;",
-          "expect": "1 {database disk image is malformed}"
+          "type": "reset_db"
         }
       ]
     }

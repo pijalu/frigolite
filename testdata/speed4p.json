@@ -7,15 +7,11 @@
       "steps": [
         {
           "type": "exec",
+          "sql": "PRAGMA page_size=1024;\n  PRAGMA cache_size=8192;\n  PRAGMA locking_mode=EXCLUSIVE;\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;"
+        },
+        {
+          "type": "exec",
           "sql": "CREATE INDEX i1 ON t1(t);\n  CREATE INDEX i2 ON t2(t);\n  CREATE INDEX i3 ON t3(t);\n  COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT t FROM t5"
         },
         {
           "type": "exec",
@@ -32,6 +28,14 @@
         {
           "type": "exec",
           "sql": "COMMIT"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT t FROM t5"
         }
       ]
     }

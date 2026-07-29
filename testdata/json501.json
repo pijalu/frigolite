@@ -3,6 +3,15 @@
   "name": "json501",
   "tests": [
     {
+      "name": "3.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "WITH c(x) AS (VALUES('[5, 6,]'))\n  SELECT x->>1, json(x), json_valid(x), NOT json_error_position(x) FROM c;"
+        }
+      ]
+    },
+    {
       "name": "3.2",
       "steps": [
         {

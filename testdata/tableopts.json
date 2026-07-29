@@ -3,6 +3,36 @@
   "name": "tableopts",
   "tests": [
     {
+      "name": "tableopt-2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3),(2,3,4);\n  SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "tableopt-2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "VACUUM;\n  SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;",
+          "expect": "3 4"
+        }
+      ]
+    },
+    {
+      "name": "tableopt-3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE without(x INTEGER PRIMARY KEY, without TEXT);\n  INSERT INTO without VALUES(1, 'xyzzy'), (2, 'fizzle');\n  SELECT * FROM without WHERE without='xyzzy';",
+          "expect": "1 xyzzy"
+        }
+      ]
+    },
+    {
       "name": "tableopt-1.1",
       "steps": [
         {
@@ -33,16 +63,6 @@
       ]
     },
     {
-      "name": "tableopt-2.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t1(a, b, c, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3),(2,3,4);\n  SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;",
-          "expect": "3 4"
-        }
-      ]
-    },
-    {
       "name": "tableopt-2.1.1",
       "steps": [
         {
@@ -69,26 +89,6 @@
           "type": "exec",
           "sql": "SELECT oid, * FROM t1;",
           "expect": "1 {no such column: oid}"
-        }
-      ]
-    },
-    {
-      "name": "tableopt-2.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "VACUUM;\n  SELECT c FROM t1 WHERE a IN (1,2) ORDER BY b;",
-          "expect": "3 4"
-        }
-      ]
-    },
-    {
-      "name": "tableopt-3.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE without(x INTEGER PRIMARY KEY, without TEXT);\n  INSERT INTO without VALUES(1, 'xyzzy'), (2, 'fizzle');\n  SELECT * FROM without WHERE without='xyzzy';",
-          "expect": "1 xyzzy"
         }
       ]
     }

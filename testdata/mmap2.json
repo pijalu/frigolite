@@ -1,0 +1,16 @@
+{
+  "file": "mmap2.test",
+  "name": "mmap2",
+  "tests": [
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA mmap_size = 8000000"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

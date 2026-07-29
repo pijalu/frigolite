@@ -1,0 +1,60 @@
+{
+  "file": "thread002.test",
+  "name": "thread002",
+  "tests": [
+    {
+      "name": "thread002.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux1.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux1.t1(v) SELECT sum(v) FROM aux2.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux2.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux2.t1(v) SELECT sum(v) FROM aux3.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM aux3.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO aux3.t1(v) SELECT sum(v) FROM aux1.t1"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE IF NOT EXISTS aux1.t2(a,b)"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS aux1.t2"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT count(*) FROM t1"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA integrity_check"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}

@@ -3,34 +3,31 @@
   "name": "fts3corrupt7",
   "tests": [
     {
-      "name": "__RESET_DB__",
+      "name": "1.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'rtree NEAR rtree NEAR \"json1 enable\"';",
+          "expect": "0 {}"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "2.1",
       "steps": [
         {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "SELECT 0 FROM t1 WHERE t1 MATCH 'rtree NEAR rtree\"json1 enable\"';",
+          "expect": "1 {database disk image is malformed}"
         }
       ]
     },
     {
-      "name": "__RESET_DB__",
+      "name": "4.1",
       "steps": [
         {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1 USING fts4(content);\n  DELETE FROM t1_segments;\n  DELETE FROM t1_segdir;"
         }
       ]
     },
@@ -40,6 +37,94 @@
         {
           "type": "exec",
           "sql": "INSERT INTO t1_segdir\n  (level, idx, start_block, leaves_end_block, end_block, root)\n  VALUES(0, 0, 0, 0, 0, X'000568656C6C6F08010201FFFFFF7F00');"
+        }
+      ]
+    },
+    {
+      "name": "4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t1_terms USING fts4aux(t1);"
+        }
+      ]
+    },
+    {
+      "name": "4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1_terms;",
+          "expect": "1 {database disk image is malformed}"
+        }
+      ]
+    },
+    {
+      "name": "7.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t USING fts3(x);\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(1,0,0,0,'0 -9223372036854775808',x'00');"
+        }
+      ]
+    },
+    {
+      "name": "7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t(x) VALUES('alpha');"
+        }
+      ]
+    },
+    {
+      "name": "8.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE t USING fts4(x);\n  INSERT INTO t_content(docid,c0x) VALUES(1,'a b');\n  DELETE FROM t_segments;\n  DELETE FROM t_segdir;\n  INSERT INTO t_segdir(level,idx,start_block,leaves_end_block,end_block,root)\n    VALUES(0,0,0,0,0,x'000161110150028001500a818080800103038101000001622c010281008101ffffffffffffffffff010204ffffffffffffffffff01ffffffffffffffffff01c80109323200');"
+        }
+      ]
+    },
+    {
+      "name": "8.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT count(*) FROM t WHERE t MATCH 'a NEAR/100 b';",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
         }
       ]
     },

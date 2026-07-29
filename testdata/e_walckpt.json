@@ -1,0 +1,60 @@
+{
+  "file": "e_walckpt.test",
+  "name": "e_walckpt",
+  "tests": [
+    {
+      "name": "6.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    /* Leave aux4 in rollback mode */"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES('xyz')"
+        },
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;"
+        },
+        {
+          "type": "exec",
+          "sql": "ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');"
+        },
+        {
+          "type": "exec",
+          "sql": "PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM sqlite_master"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(3, 4)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    }
+  ],
+  "source": "capi"
+}
