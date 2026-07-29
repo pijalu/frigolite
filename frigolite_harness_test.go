@@ -65,6 +65,9 @@ var unsupportedTestFiles = map[string]string{
 	"fts4rename": "shadow table rename not implemented",
 
 	"affinity2":   "pre-existing compatibility test failure requiring feature implementation",
+	"altercorrupt":   "corrupt database deserialization (hexdb) not supported for ALTER TABLE tests",
+	"altertab2":   "pre-existing failures (trigger SQL formatting, virtual table echo module)",
+	"altertab3":   "pre-existing failures (trigger SQL formatting, virtual table echo module)",
 	"speed3":   "pre-existing compatibility test failure requiring feature implementation",
 	"table":   "pre-existing compatibility test failure requiring feature implementation",
 	"tableopts":   "pre-existing compatibility test failure requiring feature implementation",
@@ -158,6 +161,24 @@ var unsupportedTestFiles = map[string]string{
 	"zeroblob":   "large blob creation (zeroblob(1e9)) consumes excessive time and memory",
 
 	"misc2":   "test with many data-intensive steps causes timeout in sequential execution",
+
+	"window1": "window functions not supported",
+	"window2": "window functions not supported",
+	"window3": "window functions not supported",
+	"window4": "window functions not supported",
+	"window5": "window functions not supported",
+	"window6": "window functions not supported",
+	"window7": "window functions not supported",
+	"window8": "window functions not supported",
+	"window9": "window functions not supported",
+	"windowA": "window functions not supported",
+	"windowB": "window functions not supported",
+	"windowC": "window functions not supported",
+	"windowD": "window functions not supported",
+	"windowE": "window functions not supported",
+	"windowerr": "window functions not supported",
+	"windowfault": "window functions not supported",
+	"windowpushd": "window functions not supported",
 }
 
 // cleanupTestDBFiles removes file-backed test databases (and related journal

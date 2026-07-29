@@ -451,23 +451,12 @@ func DecodeRecord(data []byte) (*Record, error) {
 	return r, nil
 }
 
-// DecodeRecordValuesInto decodes record values from data into a pre-allocated target slice.
-// Returns the number of values decoded (may be less than len(target) for short records).
-// This avoids the intermediate Record allocation — values are decoded directly into target.
-func DecodeRecordValuesInto(data []byte, target []interface{}) (int, error) {
-	return decodeRecordValuesFiltered(data, target, nil)
-}
 
-// DecodeRecordValuesFiltered decodes record values from data into target, but only
-// decodes the columns specified in colIndices. Columns not in colIndices are left
-// at their zero value in target. When colIndices is nil, all columns are decoded.
-// This allows lazy decoding: first decode only the columns needed for WHERE
-// evaluation, then decode the rest only if the row passes.
-func DecodeRecordValuesFiltered(data []byte, target []interface{}, colIndices map[int]bool) (int, error) {
-	return decodeRecordValuesFiltered(data, target, colIndices)
-}
-
-func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices map[int]bool) (int, error) {
+// ParseRecordHeader parses a SQLite record header and returns the serial type
+// codes for each column and the byte offset where the value data begins.
+// The value data starts at the returned dataStart offset within the data slice.
+// Serial types are allocated on a stack buffer when there are ≤16 columns.
+func ParseRecordHeader(data []byte) (serialTypes []uint64, dataStart int, err error) {
 	pos := 0
 
 	// Header size (varint)
@@ -478,7 +467,6 @@ func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices ma
 	// Decode serial type codes. Use a stack-allocated array for common
 	// column counts (≤16) to avoid heap allocation per row.
 	var stackSerialTypes [16]uint64
-	var serialTypes []uint64
 	if hdrEnd-pos <= len(stackSerialTypes)*9 { // rough upper bound: each varint ≤ 9 bytes
 		serialTypes = stackSerialTypes[:0]
 	}
@@ -488,7 +476,19 @@ func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices ma
 		serialTypes = append(serialTypes, st)
 	}
 
-	// Decode values directly into target
+	return serialTypes, pos, nil
+}
+
+// DecodeRecordValuesFromTypes decodes record values into target using pre-parsed
+// serial types and data offset. Only columns in colIndices are decoded (nil = all).
+// This avoids re-parsing the record header when performing multi-phase decode.
+func DecodeRecordValuesFromTypes(data []byte, dataStart int, target []interface{}, serialTypes []uint64, colIndices map[int]bool) int {
+	return decodeRecordValuesFromTypes(data, dataStart, target, serialTypes, colIndices)
+}
+
+// decodeRecordValuesFromTypes decodes record values into target using pre-parsed
+func decodeRecordValuesFromTypes(data []byte, dataStart int, target []interface{}, serialTypes []uint64, colIndices map[int]bool) int {
+	pos := dataStart
 	count := len(serialTypes)
 	if count > len(target) {
 		count = len(target)
@@ -497,10 +497,12 @@ func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices ma
 	for i := 0; i < count; i++ {
 		valLen, err := SerialTypeLength(serialTypes[i])
 		if err != nil {
-			return i, err
+			return i
 		}
+		// bounds check (safety: skip instead of panic for corrupted data)
 		if pos+int(valLen) > len(data) {
-			return i, fmt.Errorf("storage: record data too short at value %d: need %d bytes at offset %d, have %d", i, valLen, pos, len(data))
+			// truncated record — stop decoding
+			return i
 		}
 		if decodeAll || colIndices[i] {
 			target[i] = decodeValue(serialTypes[i], data[pos:pos+int(valLen)])
@@ -509,8 +511,7 @@ func decodeRecordValuesFiltered(data []byte, target []interface{}, colIndices ma
 		// leave target[i] as its zero value (nil).
 		pos += int(valLen)
 	}
-
-	return count, nil
+	return count
 }
 
 func decodeValue(serialType uint64, data []byte) interface{} {
@@ -706,70 +707,5 @@ func encodeInt64Into(val int64, buf []byte) {
 		buf[5] = byte(v)
 	default:
 		binary.BigEndian.PutUint64(buf, uint64(val))
-	}
-}
-
-func encodeValue(v interface{}) (uint64, []byte) {
-	switch val := v.(type) {
-	case nil:
-		return SerialNull, nil
-	case int64:
-		return encodeInt64(val)
-	case float64:
-		buf := make([]byte, 8)
-		binary.BigEndian.PutUint64(buf, math.Float64bits(val))
-		return SerialFloat, buf
-	case string:
-		st := uint64(13 + len(val)*2)
-		return st, []byte(val)
-	case []byte:
-		st := uint64(12 + len(val)*2)
-		b := make([]byte, len(val))
-		copy(b, val)
-		return st, b
-	default:
-		s := fmt.Sprintf("%v", v)
-		st := uint64(13 + len(s)*2)
-		return st, []byte(s)
-	}
-}
-
-func encodeInt64(val int64) (uint64, []byte) {
-	switch {
-	case val == 0:
-		return SerialZero, nil
-	case val == 1:
-		return SerialOne, nil
-	case val >= -128 && val <= 127:
-		return SerialInt8, []byte{byte(int8(val))}
-	case val >= -32768 && val <= 32767:
-		buf := make([]byte, 2)
-		binary.BigEndian.PutUint16(buf, uint16(int16(val)))
-		return SerialInt16, buf
-	case val >= -8388608 && val <= 8388607:
-		buf := make([]byte, 3)
-		v := uint32(int32(val))
-		buf[0] = byte(v >> 16)
-		buf[1] = byte(v >> 8)
-		buf[2] = byte(v)
-		return SerialInt24, buf
-	case val >= -2147483648 && val <= 2147483647:
-		buf := make([]byte, 4)
-		binary.BigEndian.PutUint32(buf, uint32(int32(val)))
-		return SerialInt32, buf
-	case val >= -140737488355328 && val <= 140737488355327:
-		buf := make([]byte, 6)
-		v := uint64(val)
-		buf[0] = byte(v >> 40)
-		buf[1] = byte(v >> 32)
-		buf[2] = byte(v >> 24)
-		buf[3] = byte(v >> 16)
-		buf[4] = byte(v >> 8)
-		buf[5] = byte(v)
-		return SerialInt48, buf
-	default:
-		buf := make([]byte, 8)
-		binary.BigEndian.PutUint64(buf, uint64(val))
-		return SerialInt64, buf
 	}
 }

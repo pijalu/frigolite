@@ -57,7 +57,9 @@ type Engine struct {
 	colCache  map[string][]sql.ColumnDef // cached column definitions (tableName -> colDefs)
 	stmtCache map[string][]sql.Stmt      // prepared statement cache (sqlText -> parsed stmts)
 	tableRootPages map[string]uint32     // tracked root pages (updated after splits)
+	tableCache     map[string]*cachedTableEntry // cached table entry lookups
 	nextRowIDCache map[uint32]int64      // cached next rowid per root page (keyed by rootPage)
+	templateCache  map[string]*sqlTemplateEntry // normalized SQL → cached AST template
 	triggerDepth int                    // prevents recursive trigger firing
 	triggerNewRow Row   // new row values for trigger execution (keyed as "new.colname")
 	triggerOldRow Row   // old row values for trigger execution (keyed as "old.colname")
@@ -136,6 +138,12 @@ func (e *Engine) authorize(action auth.Action, arg1, arg2, arg3, arg4 string) er
 	}
 }
 
+// invalidateTableCache clears the table entry cache. Must be called after
+// any DDL operation that modifies the schema (CREATE, DROP, ALTER TABLE/INDEX/VIEW/TRIGGER).
+func (e *Engine) invalidateTableCache() {
+	e.tableCache = make(map[string]*cachedTableEntry)
+}
+
 // rootPage returns the current root page for a table, checking the engine's
 // tracked root pages first, then falling back to the schema entry.
 func (e *Engine) rootPage(tableName string, schemaRoot uint32) uint32 {
@@ -165,22 +173,253 @@ func (e *Engine) tableBTreePg(pg *pager.Pager, tableName string, schemaRoot uint
 // fmt.Sprintf). When the limit is reached, the cache is cleared and rebuilt.
 const maxStmtCacheSize = 1000
 
+// cachedTableEntry caches the result of a table lookup to avoid repeated
+// schema btree scans. The cache is invalidated on DDL operations.
+type cachedTableEntry struct {
+	entry *schema.Entry
+	ctx   *DatabaseContext
+}
+
+// sqlTemplateCache stores parsed statement templates keyed by normalized SQL
+// (with literal values replaced by placeholders). When a new SQL string matches
+// a cached template, the literal values are substituted into a cloned AST,
+// avoiding full re-parsing. This primarily helps INSERT and UPDATE statements
+// with varying literal values (e.g. fmt.Sprintf-based benchmarks).
+type sqlTemplateEntry struct {
+	template string              // normalized SQL with ? for literals
+	ast      []sql.Stmt          // cached AST (with original values)
+}
+
+// maxTemplateCacheSize limits the template cache entries.
+const maxTemplateCacheSize = 100
+
+// normalizeSQL replaces all numeric and string literals in a SQL string with '?'.
+// Returns the normalized string and the extracted literal values.
+// This is a fast pre-parse scan — it does NOT use the full parser.
+// Only handles simple quoted strings and decimal integers/floats.
+func normalizeSQL(sql string) (norm string, values []interface{}) {
+	var buf strings.Builder
+	buf.Grow(len(sql))
+	values = make([]interface{}, 0, 16)
+	i := 0
+	for i < len(sql) {
+		ch := sql[i]
+		switch {
+		case ch == '\'':
+			// String literal: '...'
+			buf.WriteByte('?')
+			start := i + 1
+			i++
+			for i < len(sql) {
+				if sql[i] == '\'' {
+					if i+1 < len(sql) && sql[i+1] == '\'' {
+						// Escaped quote '' — include both, Replaces will handle
+						i += 2
+						continue
+					}
+					// End of string
+					s := sql[start:i]
+					// Only unescape if needed (avoids allocation for common case)
+					if containsDoubleQuote(s) {
+						s = strings.ReplaceAll(s, "''", "'")
+					}
+					values = append(values, s)
+					i++ // skip closing quote
+					break
+				}
+				i++
+			}
+		case ch >= '0' && ch <= '9':
+			// Numeric literal (decimal integer or float starting with digit)
+			buf.WriteByte('?')
+			start := i
+			i++
+			hasDot := false
+			for i < len(sql) {
+				c := sql[i]
+				if c >= '0' && c <= '9' {
+					i++
+				} else if c == '.' {
+					hasDot = true
+					i++
+				} else if c == 'e' || c == 'E' {
+					// Scientific notation
+					i++
+					if i < len(sql) && (sql[i] == '+' || sql[i] == '-') {
+						i++
+					}
+					for i < len(sql) && sql[i] >= '0' && sql[i] <= '9' {
+						i++
+					}
+					break
+				} else {
+					break
+				}
+			}
+			numStr := sql[start:i]
+			if hasDot || containsExp(numStr) {
+				v, _ := strconv.ParseFloat(numStr, 64)
+				values = append(values, v)
+			} else {
+				v := fastParseInt64(numStr)
+				values = append(values, v)
+			}
+		case ch == '.':
+			// Numeric literal starting with dot (e.g., .5)
+			buf.WriteByte('?')
+			start := i
+			i++
+			for i < len(sql) && sql[i] >= '0' && sql[i] <= '9' {
+				i++
+			}
+			v, _ := strconv.ParseFloat(sql[start:i], 64)
+			values = append(values, v)
+		default:
+			buf.WriteByte(ch)
+			i++
+		}
+	}
+	norm = buf.String()
+	return
+}
+
+// fastParseInt64 parses a non-negative decimal integer string without sign.
+// Faster than strconv.ParseInt for the common case of simple digits.
+func fastParseInt64(s string) int64 {
+	n := int64(0)
+	for _, c := range []byte(s) {
+		n = n*10 + int64(c-'0')
+	}
+	return n
+}
+
+// containsDoubleQuote checks if a string contains SQL escaped quotes ('').
+func containsDoubleQuote(s string) bool {
+	for i := 0; i < len(s)-1; i++ {
+		if s[i] == '\'' && s[i+1] == '\'' {
+			return true
+		}
+	}
+	return false
+}
+
+// containsExp checks if a string contains 'e' or 'E' (scientific notation marker).
+func containsExp(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] == 'e' || s[i] == 'E' {
+			return true
+		}
+	}
+	return false
+}
+
+// cloneStmtsWithValues clones the cached statement list and substitutes new
+// literal values. This avoids re-parsing structurally identical SQL.
+// Currently handles InsertStmt values; other types are returned as-is.
+func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, error) {
+	result := make([]sql.Stmt, len(stmts))
+	valIdx := 0
+	for i, stmt := range stmts {
+		switch s := stmt.(type) {
+		case *sql.InsertStmt:
+			clone := &sql.InsertStmt{
+				Table:        s.Table,
+				Columns:      s.Columns,
+				Values:       make([][]sql.Expr, len(s.Values)),
+				OnConflict:   s.OnConflict,
+				Returning:    s.Returning,
+				HasReturning: s.HasReturning,
+			}
+			// Clone values tuples
+			for vi, tuple := range s.Values {
+				clone.Values[vi] = make([]sql.Expr, len(tuple))
+				for vj, expr := range tuple {
+					switch expr.(type) {
+					case *sql.NumericLit, *sql.StringLit:
+						if valIdx >= len(values) {
+							return nil, fmt.Errorf("template cache: not enough values (need %d, have %d)", len(values), valIdx+1)
+						}
+						val := values[valIdx]
+						valIdx++
+						switch v := val.(type) {
+						case int64:
+							clone.Values[vi][vj] = &sql.NumericLit{Value: strconv.FormatInt(v, 10)}
+						case float64:
+							clone.Values[vi][vj] = &sql.NumericLit{Value: strconv.FormatFloat(v, 'g', -1, 64)}
+						case string:
+							clone.Values[vi][vj] = &sql.StringLit{Value: v}
+						default:
+							clone.Values[vi][vj] = expr // keep original
+						}
+					default:
+						// Non-value expression — keep original
+						clone.Values[vi][vj] = expr
+					}
+				}
+			}
+			// Clone Select for INSERT ... SELECT
+			if s.Select != nil {
+				clone.Select = s.Select
+			}
+			result[i] = clone
+		default:
+			// For non-InsertStmt types, return the original (they don't need value substitution)
+			result[i] = stmt
+		}
+	}
+	if valIdx != len(values) {
+		return nil, fmt.Errorf("template cache: unused values (%d remaining)", len(values)-valIdx)
+	}
+	return result, nil
+}
+
 // Prepare parses and caches a SQL statement. Repeated calls with the same SQL
 // string return the cached parsed statements without re-parsing.
+// Additionally, structurally identical SQL (same after replacing literal values
+// with placeholders) uses a template cache to avoid full re-parsing.
 func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
+	// Check exact match cache first (fastest)
 	if cached, ok := e.stmtCache[sqlStr]; ok {
 		return cached, nil
 	}
 	if len(e.stmtCache) >= maxStmtCacheSize {
-		// Clear cache to prevent unbounded growth
 		e.stmtCache = make(map[string][]sql.Stmt)
 	}
+
+	// Check template cache — normalize SQL and see if we've seen this structure
+	normSQL, values := normalizeSQL(sqlStr)
+	if normSQL != sqlStr && len(values) > 0 {
+		if cached, ok := e.templateCache[normSQL]; ok {
+			// Template cache hit — clone AST with new values
+			cloned, err := cloneStmtsWithValues(cached.ast, values)
+			if err == nil {
+				// Also cache by exact SQL for future exact matches
+				e.stmtCache[sqlStr] = cloned
+				return cloned, nil
+			}
+			// If clone fails (e.g. wrong value count), fall through to re-parse
+		}
+	}
+
+	// Full parse
 	parser := sql.NewParser(sqlStr)
 	stmts := parser.Parse()
 	if parser.Err() != nil {
 		return nil, parser.Err()
 	}
 	e.stmtCache[sqlStr] = stmts
+
+	// Store template in template cache
+	if normSQL != sqlStr && len(values) > 0 && len(e.templateCache) < maxTemplateCacheSize {
+		if e.templateCache == nil {
+			e.templateCache = make(map[string]*sqlTemplateEntry)
+		}
+		e.templateCache[normSQL] = &sqlTemplateEntry{
+			template: normSQL,
+			ast:      stmts,
+		}
+	}
+
 	return stmts, nil
 }
 
@@ -208,6 +447,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		colCache:  make(map[string][]sql.ColumnDef),
 		stmtCache: make(map[string][]sql.Stmt),
 		tableRootPages: make(map[string]uint32),
+		tableCache:     make(map[string]*cachedTableEntry),
 		nextRowIDCache: make(map[uint32]int64),
 		hasTriggersCache: make(map[string]bool),
 		encoding:  "UTF-8",
@@ -257,6 +497,11 @@ func (e *Engine) resolveDB(name string) (ctx *DatabaseContext, object string) {
 // If the name has a schema prefix (e.g. "aux.t3"), it searches only that database.
 // If no schema prefix, it searches main first, then attached databases.
 func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error) {
+	// Check table cache first
+	if cached, ok := e.tableCache[name]; ok {
+		return cached.entry, cached.ctx, nil
+	}
+
 	schemaName, objName := parseSchemaName(name)
 	if schemaName != "" {
 		ctx := e.getDB(schemaName)
@@ -267,12 +512,14 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 		if err != nil {
 			return nil, nil, err
 		}
+		e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: ctx}
 		return entry, ctx, nil
 	}
 
 	// No schema prefix: search main first, then attached databases
 	entry, err := e.mainDB.Schema.FindTable(name)
 	if err == nil {
+		e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: e.mainDB}
 		return entry, e.mainDB, nil
 	}
 
@@ -284,6 +531,7 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 		}
 		entry, err := ctx.Schema.FindTable(name)
 		if err == nil {
+			e.tableCache[name] = &cachedTableEntry{entry: entry, ctx: ctx}
 			return entry, ctx, nil
 		}
 	}
@@ -416,6 +664,9 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 }
 
 func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
+	// Invalidate table cache on any DDL operation to ensure consistency
+	e.invalidateTableCache()
+
 	switch s := stmt.(type) {
 	case *sql.CreateTableStmt:
 		return e.execCreateTable(s)
@@ -5138,7 +5389,6 @@ func selectNeedsRowMaps(e *Engine, s *sql.SelectStmt, tableName string) bool {
 
 // scanTableRows iterates over all cells, applies WHERE, builds output rows.
 func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) ([][]interface{}, []RowMap) {
-	allRows := make([][]interface{}, 0, 1024)
 	var allRowMaps []RowMap
 	hasJoins := len(s.Joins) > 0
 
@@ -5191,7 +5441,7 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 	// that are filtered out.
 	var whereDecodeIndices map[int]bool
 	var remainingDecodeIndices map[int]bool
-	useLazyDecode := false // disabled: net negative for selectivity < 75%
+	useLazyDecode := s.Where != nil && !hasJoins // two-phase decode with cached serial types
 	if useLazyDecode {
 		whereDecodeIndices = make(map[int]bool, len(affinityCols))
 		for name := range affinityCols {
@@ -5219,6 +5469,14 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 		}
 	}
 
+	// Pre-allocate output row values in a single flat slice to avoid per-row
+	// allocation. Each output row is a sub-slice of this flat slice, which avoids
+	// N individual make() calls (one per row) and reduces GC pressure significantly.
+	// Initial capacity: 1024 rows × activeColCount values.
+	outValues := make([]interface{}, 0, 1024*activeColCount)
+	outRowStarts := make([]int, 0, 1024)
+	var nonStarRows [][]interface{}
+
 	for {
 		payload, rowID, err := cursor.ReadCellData()
 		if err != nil {
@@ -5227,9 +5485,25 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 
 		passesWhere := true
 		if useLazyDecode {
-			// Phase 1: decode only WHERE-referenced columns
-			e.fillStructRow(reuseSRow, payload, colDefs, rowID, affinityCols, whereDecodeIndices)
-			passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+			// Parse header ONCE per row — inline to keep stack buffer on stack (avoids escape)
+			var stackSerialTypes [16]uint64
+			serialTypes := stackSerialTypes[:0]
+			pos := 0
+			hdrSize, n := util.GetVarint(payload[pos:])
+			pos += n
+			hdrEnd := int(hdrSize)
+			for pos < hdrEnd {
+				st, n2 := util.GetVarint(payload[pos:])
+				pos += n2
+				serialTypes = append(serialTypes, st)
+			}
+			dataStart := pos
+
+			// Phase 1: decode only WHERE-referenced columns using stack-allocated types
+			e.fillStructRowFromTypes(reuseSRow, payload, dataStart, colDefs, rowID, affinityCols, serialTypes, whereDecodeIndices)
+			if !hasJoins && s.Where != nil {
+				passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
+			}
 			if !passesWhere {
 				// Row filtered out — skip decoding remaining columns
 				if ok, err := cursor.Next(); err != nil || !ok {
@@ -5237,11 +5511,24 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 				}
 				continue
 			}
-			// Phase 2: decode remaining columns into the same buffer
-			e.fillStructRowRemaining(reuseSRow, payload, colDefs, remainingDecodeIndices)
+			// Phase 2: decode remaining columns using cached types (no header re-parse)
+			e.fillStructRowRemainingFromTypes(reuseSRow, payload, dataStart, colDefs, serialTypes, remainingDecodeIndices)
 		} else {
-			// Decode all columns at once
-			e.fillStructRow(reuseSRow, payload, colDefs, rowID, affinityCols, nil)
+			// Decode all columns at once — parse header inline with stack buffer
+			// to avoid ParseRecordHeader heap allocation (saves ~40% of total alloc bytes).
+			var stackSerialTypes [16]uint64
+			serialTypes := stackSerialTypes[:0]
+			pos := 0
+			hdrSize, n := util.GetVarint(payload[pos:])
+			pos += n
+			hdrEnd := int(hdrSize)
+			for pos < hdrEnd {
+				st, n2 := util.GetVarint(payload[pos:])
+				pos += n2
+				serialTypes = append(serialTypes, st)
+			}
+			dataStart := pos
+			e.fillStructRowFromTypes(reuseSRow, payload, dataStart, colDefs, rowID, affinityCols, serialTypes, nil)
 			if !hasJoins && s.Where != nil {
 				passesWhere = e.rowPassesWhere(s.Where, reuseSRow, cursor)
 			}
@@ -5252,37 +5539,30 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 		if hasJoins || passesWhere {
 			// Build output row
 			if isSelectStar {
-				// Fast path: copy values directly
-				outRow := make([]interface{}, activeColCount)
+				// Fast path: copy values into pre-allocated flat slice
+				outRowStarts = append(outRowStarts, len(outValues))
 				if affinityCols != nil {
 					// Need to unwrap ColumnValue wrappers
-					idx := 0
 					for i, cd := range colDefs {
 						if cd.Dropped {
 							continue
 						}
-						if idx < len(outRow) {
-							outRow[idx] = util.UnwrapColumnValue(reuseSRow.values[i])
-						}
-						idx++
+						outValues = append(outValues, util.UnwrapColumnValue(reuseSRow.values[i]))
 					}
 				} else {
 					// No affinity wrappers — values are already raw
-					idx := 0
 					for i, cd := range colDefs {
 						if cd.Dropped {
 							continue
 						}
-						if idx < len(outRow) {
-							outRow[idx] = reuseSRow.values[i]
-						}
-						idx++
+						outValues = append(outValues, reuseSRow.values[i])
 					}
 				}
-				allRows = append(allRows, outRow)
 			} else {
 				outRow := e.buildOutputRow(s.Columns, colDefs, reuseSRow)
-				allRows = append(allRows, outRow)
+				// For non-SELECT* paths, fall back to per-row allocation
+				// since buildOutputRow returns a new slice.
+				nonStarRows = append(nonStarRows, outRow)
 			}
 			if needMaps {
 				allRowMaps = append(allRowMaps, structRowToMap(reuseSRow))
@@ -5294,6 +5574,15 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 			break
 		}
 	}
+
+	// Build allRows: first from flat outValues (SELECT * fast path), then
+	// append any individually-allocated rows (non-SELECT* path).
+	totalStarRows := len(outRowStarts)
+	allRows := make([][]interface{}, totalStarRows+len(nonStarRows))
+	for i, start := range outRowStarts {
+		allRows[i] = outValues[start : start+activeColCount : start+activeColCount]
+	}
+	copy(allRows[totalStarRows:], nonStarRows)
 	return allRows, allRowMaps
 }
 
@@ -5513,80 +5802,19 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 // ColumnValue affinity wrappers. Uses a shared column index for fast lookups
 // and avoids per-row map allocation. Decodes values directly from the payload
 // into the pre-allocated values slice, bypassing the intermediate Record allocation.
-// buildStructRow creates a structRow from a record payload, wrapping values with
-// ColumnValue affinity wrappers for columns that need them. The affinityCols set
-// lists which columns require affinity wrappers (typically those referenced in
-// WHERE clause comparisons). When nil, no columns get wrapped (optimization for
-// queries without WHERE clauses or joins).
-// When reuseValues is non-nil and sufficiently sized, it is reused instead of
-// allocating a new slice (saves per-row allocations in tight loops).
-// When decodeIndices is non-nil, only the specified column indices are decoded;
-// other columns are left at nil. This enables lazy decoding: decode only WHERE
-// columns first, then decode remaining columns after WHERE passes.
-func (e *Engine) buildStructRow(payload []byte, colDefs []sql.ColumnDef, rowID int64, colIndex map[string]int, affinityCols map[string]bool, reuseValues []interface{}, decodeIndices map[int]bool) *structRow {
-	var values []interface{}
-	if len(reuseValues) >= len(colDefs) {
-		values = reuseValues[:len(colDefs)]
-		// Clear any leftover pointers from previous iteration
-		for i := range values {
-			values[i] = nil
-		}
-	} else {
-		values = make([]interface{}, len(colDefs))
-	}
-	if decodeIndices != nil {
-		if _, err := storage.DecodeRecordValuesFiltered(payload, values, decodeIndices); err != nil {
-			return &structRow{values: values, index: colIndex, rowID: rowID}
-		}
-	} else {
-		if _, err := storage.DecodeRecordValuesInto(payload, values); err != nil {
-			return &structRow{values: values, index: colIndex, rowID: rowID}
-		}
-	}
-	// Apply affinity wrappers only for columns specified in affinityCols.
-	if affinityCols != nil {
-		for i := 0; i < len(values); i++ {
-			if values[i] != nil && affinityCols[colDefs[i].Name] {
-				aff := util.Affinity(colDefs[i].Type)
-				if aff != 'I' && aff != 'R' {
-					values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
-				}
-			}
-		}
-		// Handle rowid and PRIMARY KEY for affinity columns
-		for i, cd := range colDefs {
-			if cd.PrimaryKey && values[i] == nil && affinityCols[cd.Name] {
-				aff := util.Affinity(cd.Type)
-				if aff != 'I' && aff != 'R' {
-					values[i] = &util.ColumnValue{Value: rowID, Affinity: aff}
-				} else {
-					values[i] = rowID
-				}
-			}
-		}
-	}
-	return &structRow{values: values, index: colIndex, rowID: rowID}
-}
-
-// fillStructRow fills a pre-existing structRow by decoding values from the
-// given payload. It avoids per-row allocation by reusing the structRow's values
-// buffer. When decodeIndices is non-nil, only the specified column indices are
-// decoded; others are left at nil.
-func (e *Engine) fillStructRow(sr *structRow, payload []byte, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool, decodeIndices map[int]bool) {
+// fillStructRowFromTypes fills a structRow using pre-parsed serial types.
+// It clears all values and decodes only the columns in colIndices.
+// Unlike fillStructRow, it does not re-parse the record header.
+func (e *Engine) fillStructRowFromTypes(sr *structRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool, serialTypes []uint64, colIndices map[int]bool) {
 	values := sr.values
-	// Clear previous values
 	for i := range values {
 		values[i] = nil
 	}
 	sr.rowID = rowID
 
-	if decodeIndices != nil {
-		storage.DecodeRecordValuesFiltered(payload, values, decodeIndices)
-	} else {
-		storage.DecodeRecordValuesInto(payload, values)
-	}
+	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, colIndices)
 
-	// Apply affinity wrappers only for columns specified in affinityCols.
+	// Apply affinity wrappers for columns specified in affinityCols.
 	if affinityCols != nil {
 		for i := 0; i < len(values); i++ {
 			if values[i] != nil && affinityCols[colDefs[i].Name] {
@@ -5610,24 +5838,13 @@ func (e *Engine) fillStructRow(sr *structRow, payload []byte, colDefs []sql.Colu
 	}
 }
 
-// fillStructRowRemaining decodes the specified column indices into the structRow.
-// This is the second phase of lazy decoding: after WHERE evaluation passes,
-// decode the remaining columns that were skipped in the first phase.
-// The indices parameter specifies which columns to decode (the complement of
-// the WHERE-referenced columns).
-func (e *Engine) fillStructRowRemaining(sr *structRow, payload []byte, colDefs []sql.ColumnDef, indices map[int]bool) {
-	values := sr.values
-	storage.DecodeRecordValuesFiltered(payload, values, indices)
-
-	// Apply affinity wrappers for newly-decoded columns that need them.
-	for i := range colDefs {
-		if indices[i] && values[i] != nil {
-			aff := util.Affinity(colDefs[i].Type)
-			if aff != 'I' && aff != 'R' {
-				values[i] = &util.ColumnValue{Value: values[i], Affinity: aff}
-			}
-		}
-	}
+// fillStructRowRemainingFromTypes decodes remaining columns using pre-parsed
+// serial types. This is the second phase of lazy decoding: after WHERE
+// evaluation passes, decode the columns that were skipped in the first phase.
+// Only columns in affinityCols get ColumnValue wrappers (these are the WHERE-referenced
+// columns — already decoded in phase 1). Remaining columns are left raw.
+func (e *Engine) fillStructRowRemainingFromTypes(sr *structRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, serialTypes []uint64, indices map[int]bool) {
+	storage.DecodeRecordValuesFromTypes(payload, dataStart, sr.values, serialTypes, indices)
 }
 
 // structRowToMap converts a structRow to a RowMap, reusing the already-allocated
@@ -6589,21 +6806,43 @@ func (e *Engine) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 		return &Result{Error: err}
 	}
 
-	ctx := &RenameContext{
-		OldName:   oldName,
-		NewName:   newName,
-		QuotedNew: `"` + newName + `"`,
-		IsTable:   true,
-	}
-	ranges, rErr := FindRenameTokens(entry.SQL, ctx)
-	newSQL := ""
-	if rErr == nil && len(ranges) > 0 {
-		newSQL = ApplyRenames(entry.SQL, ranges, `"`+newName+`"`)
-	}
+	if e.legacyAlterTable {
+		// In legacy mode, the CREATE SQL is used as-is (only the schema entry name
+		// changes; internal references like CHECK constraints are NOT updated).
+		// The validateRename function above catches cases where this would cause
+		// inconsistencies and rejects the rename.
+		if err := e.schema.RenameEntryWithSQL(oldName, newName, entry.SQL); err != nil {
+			return &Result{Error: err}
+		}
+	} else {
+		// Non-legacy mode: use token-level rename + string replacement fallback
+		// to update the table's own CREATE SQL with the new table name, including
+		// qualified references in CHECK constraints, column defaults, etc.
+		ctx := &RenameContext{
+			OldName:   oldName,
+			NewName:   newName,
+			QuotedNew: `"` + newName + `"`,
+			IsTable:   true,
+		}
+		ranges, rErr := FindRenameTokens(entry.SQL, ctx)
+		newSQL := ""
+		if rErr == nil && len(ranges) > 0 {
+			newSQL = ApplyRenames(entry.SQL, ranges, `"`+newName+`"`)
+			// Apply string-regex as a complementary pass to catch occurrences the
+			// token walker missed (e.g., table names in CHECK constraints that use
+			// schema-qualified column references, or DEFAULT expressions).
+			if newSQL != entry.SQL {
+				newSQL = replaceTableNameInSQL(newSQL, oldName, newName)
+			}
+		}
+		// If token rename produced nothing, fall back to string replacement
+		if newSQL == "" || newSQL == entry.SQL {
+			newSQL = replaceTableNameInSQL(entry.SQL, oldName, newName)
+		}
 
-	// Rename in schema with pre-processed SQL (empty = fallback to internal rename logic)
-	if err := e.schema.RenameEntryWithSQL(oldName, newName, newSQL); err != nil {
-		return &Result{Error: err}
+		if err := e.schema.RenameEntryWithSQL(oldName, newName, newSQL); err != nil {
+			return &Result{Error: err}
+		}
 	}
 
 	// Update column cache
@@ -6962,32 +7201,40 @@ func refTableInTrigger(sqlStr, tableName string) bool {
 // no CHECK constraints or index WHERE clauses reference the old table name,
 // and that no views have circular references.
 func (e *Engine) validateRename(oldName, newName string) error {
-	// In legacy mode, skip all validation — just check the table exists.
-	if e.legacyAlterTable {
-		_, err := e.schema.FindTable(oldName)
-		return err
-	}
 	tableEntry, err := e.schema.FindTable(oldName)
 	if err != nil {
 		return err
 	}
-	// Check if the table's own SQL has qualified references to old table name
-	refs := findQualifiedTableRefs(tableEntry.SQL, oldName)
-	if len(refs) > 0 {
-		return fmt.Errorf("error in table %s after rename: no such column: %s", newName, refs[0])
+
+	if e.legacyAlterTable {
+		// In legacy mode, the CREATE SQL is NOT updated with token-level rename.
+		// Check the table's own SQL for qualified references to the old table name
+		// that would break after rename (they won't be updated).
+		refs := findQualifiedTableRefs(tableEntry.SQL, oldName)
+		if len(refs) > 0 {
+			return fmt.Errorf("error in table %s after rename: no such column: %s", newName, refs[0])
+		}
+		// Also check indexes on this table for qualified references
+		entries, gErr := e.schema.GetEntries("")
+		if gErr == nil {
+			for _, entry := range entries {
+				if entry.Type == schema.TypeIndex && strings.EqualFold(entry.TblName, oldName) {
+					refs := findQualifiedTableRefs(entry.SQL, oldName)
+					if len(refs) > 0 {
+						return fmt.Errorf("error in index %s after rename: no such column: %s", entry.Name, refs[0])
+					}
+				}
+			}
+		}
+		return nil
 	}
-	// Check all indexes on this table for qualified references
+
+	// Non-legacy mode: the token-level rename will update qualified references in
+	// the table's own SQL and indexes. Only check triggers and views for references
+	// to tables OTHER than the one being renamed (which won't be updated).
 	entries, err := e.schema.GetEntries("")
 	if err != nil {
 		return nil
-	}
-	for _, entry := range entries {
-		if entry.Type == schema.TypeIndex && strings.EqualFold(entry.TblName, oldName) {
-			refs := findQualifiedTableRefs(entry.SQL, oldName)
-			if len(refs) > 0 {
-				return fmt.Errorf("error in index %s after rename: no such column: %s", entry.Name, refs[0])
-			}
-		}
 	}
 	// Check all triggers for references to non-existent tables
 	// Only check references to tables OTHER than the one being renamed.
@@ -7520,6 +7767,10 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 		case schema.TypeIndex:
 			if strings.EqualFold(entry.TblName, oldName) {
 				entry.TblName = newName
+			}
+			if e.legacyAlterTable {
+				// In legacy mode, indexes keep their old SQL (only TblName updated)
+				continue
 			}
 		case schema.TypeTable:
 			// Update child tables that reference the old table name via FOREIGN KEY
