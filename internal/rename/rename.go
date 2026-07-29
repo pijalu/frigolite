@@ -96,10 +96,29 @@ func collectRanges(stmt sql.Stmt, ctx *RenameContext, ranges *[]RenameRange) {
 		if ctx.IsTable && strings.EqualFold(s.Table, ctx.OldName) && s.TableTok.Start != 0 {
 			*ranges = append(*ranges, RenameRange{Start: s.TableTok.Start, End: s.TableTok.End})
 		}
+		// Walk the WHERE clause (partial index expressions)
+		if s.Where != nil {
+			collectExprRange(s.Where, ctx, ranges)
+		}
 	case *sql.CreateTableStmt:
 		// CREATE TABLE name — rename the table name in its own CREATE SQL
 		if ctx.IsTable && strings.EqualFold(s.Name, ctx.OldName) && s.NameTok.Start != 0 {
 			*ranges = append(*ranges, RenameRange{Start: s.NameTok.Start, End: s.NameTok.End})
+		}
+		// Walk column definitions (defaults, CHECK constraints)
+		for _, col := range s.Columns {
+			if col.Check != nil {
+				collectExprRange(col.Check, ctx, ranges)
+			}
+			if col.Default != nil {
+				collectExprRange(col.Default, ctx, ranges)
+			}
+		}
+		// Walk table-level constraints (CHECK expressions)
+		for _, cons := range s.Constraints {
+			if cons.Expr != nil {
+				collectExprRange(cons.Expr, ctx, ranges)
+			}
 		}
 	}
 }
@@ -268,7 +287,10 @@ func collectColumnRefRange(ref *sql.ColumnRef, ctx *RenameContext, ranges *[]Ren
 		if ref.Table != "" && ref.TableTok.Start != 0 {
 			compareTable := ref.Table
 			if dotIdx := strings.LastIndex(compareTable, "."); dotIdx >= 0 {
-				compareTable = compareTable[dotIdx+1:]
+				// For schema-qualified names (schema.table.column), TableTok covers
+				// the schema part, not the table part. Skip token rename for these
+				// and let the string-replacement fallback handle them.
+				return
 			}
 			if strings.EqualFold(compareTable, ctx.OldName) {
 				*ranges = append(*ranges, RenameRange{Start: ref.TableTok.Start, End: ref.TableTok.End})

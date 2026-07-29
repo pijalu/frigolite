@@ -2807,14 +2807,27 @@ func (p *Parser) parseAttach() *AttachStmt {
 	if p.cur.Type == TokenKeyword && p.cur.Value == "DATABASE" {
 		p.next()
 	}
-	if (p.cur.Type == TokenString) || (p.cur.Type == TokenParam && p.cur.Value == "?") {
+	if p.cur.Type == TokenString || p.cur.Type == TokenParam {
 		s.Path = p.cur.Value
 		p.next()
+	} else {
+		// Try to parse an expression for the database path
+		// (e.g., ATTACH printf('file:%09000x/x.db',1) AS aux1;)
+		expr := p.parseExpr()
+		if expr != nil {
+			s.PathExpr = expr
+		}
 	}
 	if p.cur.Type == TokenKeyword && p.cur.Value == "AS" {
 		p.next()
 		if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString || p.cur.Type == TokenParam {
-			s.Schema = p.cur.Value
+			// Preserve original case for schema names (lexer uppercases keywords)
+			if p.cur.Type == TokenKeyword {
+				// Extract original text from input using position and value length
+				s.Schema = p.tokens.input[p.cur.Pos : p.cur.Pos+len(p.cur.Value)]
+			} else {
+				s.Schema = p.cur.Value
+			}
 			p.next()
 		}
 	}
@@ -2822,14 +2835,20 @@ func (p *Parser) parseAttach() *AttachStmt {
 }
 
 func (p *Parser) parseDetach() *AttachStmt {
-	s := &AttachStmt{}
+	s := &AttachStmt{IsDetach: true}
 	p.next()
 	// DATABASE keyword is optional for DETACH
 	if p.cur.Type == TokenKeyword && p.cur.Value == "DATABASE" {
 		p.next()
 	}
 	if p.cur.Type == TokenIdentifier || p.cur.Type == TokenKeyword || p.cur.Type == TokenString || p.cur.Type == TokenParam {
-		s.Schema = p.cur.Value
+		// Preserve original case for schema names (lexer uppercases keywords)
+		if p.cur.Type == TokenKeyword {
+			// Extract original text from input using position and value length
+			s.Schema = p.tokens.input[p.cur.Pos : p.cur.Pos+len(p.cur.Value)]
+		} else {
+			s.Schema = p.cur.Value
+		}
 		p.next()
 	}
 	return s

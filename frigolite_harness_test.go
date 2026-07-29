@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -195,6 +196,31 @@ func cleanupTestDBFiles() {
 	}
 }
 
+// extractSection returns the section number from a test name.
+// For example, "attach-1.15" returns 1, "attach-12.1" returns 12.
+// Returns 0 for special test names (__RESET_DB__, etc.) or unparseable names.
+func extractSection(name string) int {
+	if name == "" || strings.HasPrefix(name, "__") {
+		return 0
+	}
+	// Find the first dot-separated component after the text prefix
+	// e.g., "attach-1.15" → after "attach-" we have "1.15" → section 1
+	parts := strings.Split(name, "-")
+	if len(parts) < 2 {
+		return 0
+	}
+	mainParts := strings.Split(parts[1], ".")
+	if len(mainParts) < 1 {
+		return 0
+	}
+	// Parse as integer for numeric comparison
+	n, err := strconv.Atoi(mainParts[0])
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
 func TestSQLiteSuite(t *testing.T) {
 	pattern := os.Getenv("FRIGOLITE_TEST")
 	runSlow := os.Getenv("FRIGOLITE_RUN_SLOW") != ""
@@ -237,11 +263,17 @@ func TestSQLiteSuite(t *testing.T) {
 			db := setupDB(t)
 			defer db.Close()
 
+			// lastSection tracks the previous test section for detecting
+			// reordered tests within this file. Reset for each test file
+			// to avoid data races across parallel goroutines.
+			var lastSection int
+
 			for i := 0; i < len(td.Tests); i++ {
 				tc := td.Tests[i]
 				if tc.Name == "__RESET_DB__" {
 					db.Close()
 					db = setupDB(t)
+					lastSection = 0
 					// After reset, apply auth steps from subsequent tests in this section
 					for j := i + 1; j < len(td.Tests); j++ {
 						remaining := td.Tests[j]
@@ -270,6 +302,17 @@ func TestSQLiteSuite(t *testing.T) {
 					}
 					continue
 				}
+
+				// Detect section transitions where the JSON ordering reversed the
+					// original TCL test order (due to alphabetical sorting). When a later
+					// section (higher number) runs before an earlier section (lower number),
+					// clean up any leftover attachments to prevent stale state conflicts.
+					section := extractSection(tc.Name)
+					if lastSection != 0 && section < lastSection {
+						db.DetachAll()
+					}
+					lastSection = section
+
 				t.Run(tc.Name, func(t *testing.T) {
 					for _, step := range tc.Steps {
 						switch step.Type {

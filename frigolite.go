@@ -105,6 +105,11 @@ func (db *DB) Close() error {
 	return nil
 }
 
+// DetachAll detaches all attached databases except "main", "temp", and "temporary".
+func (db *DB) DetachAll() {
+	db.engine.DetachAll()
+}
+
 // execResult converts an exec.Result to a public Result.
 func execResult(er *exec.Result) *Result {
 	if er == nil {

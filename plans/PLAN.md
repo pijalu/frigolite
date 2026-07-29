@@ -1,6 +1,6 @@
 # Frigolite — Master Plan: Feature-Complete SQLite Compatibility
 
-> **Status**: ACTIVE — post-G03 (performance optimizations applied).
+> **Status**: ACTIVE — post-G04 (engine.go decomposed, ATTACH/DETACH in progress).
 > **Target**: Frigolite is **feature-complete**, matching SQLite behaviour for
 > all harness tests; **performant** (suite completes <60s, benchmarks within
 > target); and **SOLID** (cognitive complexity <15 after feature freeze).
@@ -542,21 +542,41 @@ FRIGOLITE_TEST=autoindex go test -run "^TestSQLiteSuite$" -count=1 -v -timeout 6
 **Objective**: `ATTACH 'file.db' AS aux` makes `aux.t1` resolve to a table in
 the attached database. `attach*` tests pass.
 
-**Current problem**: `findTable` searches attached DBs but there is no real
-multi-database connection — each attached DB needs its own pager/btree/schema.
+**Current state**: ATTACH/DETACH partially implemented. Core mechanisms work
+(multi-statement exec, schema resolution, encoding compatibility, case
+sensitivity in error messages). **93 of 181 attach* harness tests pass** with
+these fixes applied:
 
-**Steps**:
-1. Extend `DB`/`Engine` to hold a map of `*Database` instances keyed by schema
-   name (`main`, `temp`, and user-attached names).
-2. Each `*Database` has its own pager + btree + schema manager.
-3. `ATTACH 'path' AS name`: open a new pager for `path`, create a
-   `*Database{name}`, add to the map.
-4. `DETACH name`: close the pager, remove from map.
-5. Table/view resolution: parse `schema.table` prefix; look up in the named
-   database, falling back to `main` then `temp`.
-6. Cross-database queries: `SELECT * FROM main.t1 JOIN aux.t2` must work.
-7. Transaction semantics: by default only `main` participates in a
-   transaction; attached DBs use their own (matches SQLite's behaviour).
+**Fixes delivered:**
+1. **Case sensitivity fix** (`internal/sql/parser.go`) — `parseAttach()`/
+   `parseDetach()` preserve original case from input for keyword schema names via
+   `p.tokens.input[p.cur.Pos : p.cur.Pos+len(p.cur.Value)]`. Fixes 4 tests:
+   attach-1.15, 1.16, 1.17, 1.27.
+2. **Encoding mismatch check** (`internal/exec/ddl.go`) — `execAttach()` reads
+   attached database header TextEncoding and compares with main encoding. Returns
+   `"attached databases must use the same text encoding as main database"` on
+   mismatch.
+3. **Section-based attachment cleanup** (`frigolite_harness_test.go`) — Detects
+   JSON ordering reversals (alphabetical vs TCL order) via numeric section
+   comparison (`extractSection()`) and detaches stale attachments. Fixes 8 tests:
+   attach-1.11, 1.13, 1.14, 1.19, 1.21, 1.22, 1.28, 2.4.
+4. **DetachAll() method** — Added to Engine and DB types for targeted cleanup
+   of all non-main/non-temp attachments.
+
+**Remaining blockers (88 failures):**
+- **JSON test ordering** — The converter sorts tests alphabetically instead of
+  preserving TCL file order. Late-file tests (attach-11.1, attach-12.1 at lines
+  889/902 in TCL) run before early tests (attach-1.1 at line 31) in the JSON,
+  causing stale attachment conflicts.
+- **Missing TCL setup** — TCL commands like `sqlite3 db2 test2.db` (which
+  create auxiliary database connections) are not captured by the converter. The
+  `} db2` suffix on `execsql` blocks (indicating evaluation against a different
+  database handle) is lost. This means tables that should exist in test2.db
+  don't exist when ATTACH opens it.
+
+**To unblock**: Either (a) fix the JSON converter (`tools/convert_compat_json.py`)
+to preserve TCL file order and extract `sqlite3` setup commands, or (b) modify
+the test harness to reorder tests using source-line metadata.
 
 **SQLite reference**: `src/attach.c` functions `sqlite3AttachDatabase()`,
 `sqlite3DetachDatabase()`. Schema resolution in `src/build.c`
@@ -712,14 +732,14 @@ go test -bench=. -benchtime=1000x ./benchmarks/
 
 | Phase | Description | Status | Notes |
 |-------|-------------|--------|-------|
-| G01 | Cleanup & Hygiene | ✅ Done (staged) | Removed compat tests + 3 junk files |
-| G02 | Engine Stabilization | 🔲 Not started | Fix nil-pointer + pager crashes |
-| G03 | Performance | 🔲 Not started | Suite <60s, benchmarks target |
-| G04 | SOLID Decomposition | 🔲 Not started | Split engine.go into ~11 files |
+| G01 | Cleanup & Hygiene | ✅ Done | Removed compat tests + 3 junk files |
+| G02 | Engine Stabilization | ✅ Done | Fixed nil-pointer panic + pager page-out-of-range |
+| G03 | Performance | ✅ Done (partial) | Suite <60s (**37s**). Insert ~2100-2900 (target <2000), Select **MET** (<100K), SelectWhere ~117-120K (target <50K — needs streaming API change). See G03 section for details. |
+| G04 | SOLID Decomposition | ✅ Done | Split engine.go (9,472 lines) into ~11 focused files. |
 | G05 | Parser (WINDOW, FILTER, RETURNING) | 🔲 Not started | |
 | G06 | ALTER TABLE | 🔲 Not started | Token-level rename |
-| G07 | Query Planner & ANALYZE | 🔲 Not started | Cost-based, EQP, auto-index |
-| G08 | ATTACH/DETACH | 🔲 Not started | Multi-database |
+| G07 | Query Planner & ANALYZE | 🔲 Not started | Cost-based, EQP, auto-index. Also covers index-based JOIN from G03 step 1. |
+| G08 | ATTACH/DETACH | ⏳ In progress | Core ATTACH/DETACH works. 93/181 tests pass. Case sensitivity fix, encoding check, DetachAll, section-based cleanup implemented. Blocked on JSON test ordering (alphabetical vs TCL order) and missing TCL setup steps. |
 | G09 | FTS3/4/5 | 🔲 Not started | Shadow tables, segment merge |
 | G10 | Feature Completeness | 🔲 Not started | Remove skip-list entries |
 | G11 | Quality & Final | 🔲 Not started | Complexity <15, full green |

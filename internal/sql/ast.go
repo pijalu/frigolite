@@ -388,8 +388,10 @@ func (s *AlterTableStmt) stmt() {}
 
 // AttachStmt represents an ATTACH DATABASE statement.
 type AttachStmt struct {
-	Path   string
-	Schema string
+	Path     string
+	PathExpr Expr // expression for path (evaluated at runtime if Path is empty)
+	Schema   string
+	IsDetach bool // true for DETACH, false for ATTACH
 }
 
 func (s *AttachStmt) stmt() {}
