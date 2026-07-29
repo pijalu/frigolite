@@ -64,6 +64,7 @@ type Engine struct {
 	ddlBuffer    []func()               // DDL undo operations for transaction rollback
 	outerRow     Row   // outer query row for correlated subquery resolution
 	outerRows    []RowMap // all outer rows for correlated aggregate evaluation
+	currentScanTable string // table name being scanned (for qualified column resolution)
 	resolvingViews   map[string]bool        // tracks views currently being resolved (circular reference detection)
 	legacyAlterTable bool                   // PRAGMA legacy_alter_table setting
 	encoding    string                   // database text encoding: "UTF-8", "UTF-16le", "UTF-16be"

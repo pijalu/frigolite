@@ -229,9 +229,19 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 	}
 	// Qualified column reference: check qualified name first
 	if v.Table != "" {
+		// Try table-qualified key in the current row (e.g., "t1.a")
 		if row != nil {
 			if val, ok := row.Get(v.Table + "." + v.Name); ok {
 				return val, nil
+			}
+			// If the qualified key is not found and the qualifier matches the
+			// table currently being scanned, resolve via unqualified name.
+			// Row maps store unqualified column names, so "t1.a" in a query
+			// scanning table t1 resolves to row["a"].
+			if e.currentScanTable != "" && strings.EqualFold(v.Table, e.currentScanTable) {
+				if val, ok := row.Get(v.Name); ok {
+					return val, nil
+				}
 			}
 		}
 		// Check trigger NEW/OLD rows
@@ -247,7 +257,13 @@ func (e *Engine) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, error) {
 		}
 		// Fallback to outer row for correlated references
 		if e.outerRow != nil {
-			if val, ok := e.outerRow.Get(v.Table+"."+v.Name); ok {
+			// Try qualified name first (e.g., "t1.a")
+			if val, ok := e.outerRow.Get(v.Table + "." + v.Name); ok {
+				return val, nil
+			}
+			// If not found, try unqualified name (the outer row may store
+			// column values without table prefix, e.g., "a" instead of "t1.a")
+			if val, ok := e.outerRow.Get(v.Name); ok {
 				return val, nil
 			}
 		}

@@ -180,6 +180,16 @@ func (e *Engine) execSelect(s *sql.SelectStmt) *Result {
 		return &Result{Error: err}
 	}
 
+	// Track the table being scanned for qualified column resolution.
+	// Save/restore for nested subqueries. Use the alias if present (e.g.,
+	// FROM t1 AS x → currentScanTable = "x"), otherwise use the table name.
+	prevScanTable := e.currentScanTable
+	e.currentScanTable = tableEntry.Name
+	if s.From.As != "" {
+		e.currentScanTable = s.From.As
+	}
+	defer func() { e.currentScanTable = prevScanTable }()
+
 	// Determine if row maps are needed for later processing stages.
 	// The fast path (needMaps=false) avoids per-row RowMap allocation
 	// when no expression evaluation, sorting, filtering, or combining is required.
@@ -2504,6 +2514,42 @@ func selectNeedsRowMaps(e *Engine, s *sql.SelectStmt, tableName string) bool {
 	if e.hasAggregates(s.Columns) {
 		return true
 	}
+	// WHERE clauses with subqueries (EXISTS, scalar subqueries) need row maps
+	// because the subquery evaluation passes the row as outerRow for correlated
+	// references, and structRow's lazy decode may not have all columns available.
+	if s.Where != nil && exprHasSubquery(s.Where) {
+		return true
+	}
+	return false
+}
+
+// exprHasSubquery checks if an expression tree contains a Subquery or ExistsExpr.
+func exprHasSubquery(expr sql.Expr) bool {
+	switch v := expr.(type) {
+	case *sql.Subquery, *sql.ExistsExpr:
+		return true
+	case *sql.BinaryOp:
+		return exprHasSubquery(v.Left) || exprHasSubquery(v.Right)
+	case *sql.UnaryOp:
+		return exprHasSubquery(v.Operand)
+	case *sql.ParenExpr:
+		return exprHasSubquery(v.Expr)
+	case *sql.FuncCall:
+		for _, arg := range v.Args {
+			if exprHasSubquery(arg) {
+				return true
+			}
+		}
+	case *sql.CaseExpr:
+		for _, w := range v.Whens {
+			if exprHasSubquery(w.When) || exprHasSubquery(w.Then) {
+				return true
+			}
+		}
+		if v.Else != nil && exprHasSubquery(v.Else) {
+			return true
+		}
+	}
 	return false
 }
 
@@ -2561,7 +2607,11 @@ func (e *Engine) scanTableRows(cursor *btree.Cursor, s *sql.SelectStmt, colDefs 
 	// that are filtered out.
 	var whereDecodeIndices map[int]bool
 	var remainingDecodeIndices map[int]bool
-	useLazyDecode := s.Where != nil && !hasJoins // two-phase decode with cached serial types
+	// Lazy decode only decodes WHERE-referenced columns first. But if the WHERE
+	// contains subqueries (EXISTS, scalar), the subquery may reference any column
+	// of the outer row, so we must decode all columns upfront.
+	whereHasSubquery := s.Where != nil && exprHasSubquery(s.Where)
+	useLazyDecode := s.Where != nil && !hasJoins && !whereHasSubquery // two-phase decode with cached serial types
 	if useLazyDecode {
 		whereDecodeIndices = make(map[int]bool, len(affinityCols))
 		for name := range affinityCols {
