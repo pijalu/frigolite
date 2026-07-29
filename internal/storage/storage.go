@@ -259,13 +259,13 @@ func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	pos += n
 	c.RowID = int64(rowid)
 
-	// Payload
+	// Payload — reference page data directly (no copy) for read-only use.
+	// EncodeCell copies the payload when encoding for writes.
 	payloadLen := int(plen)
 	if pos+payloadLen > len(data) {
 		payloadLen = len(data) - pos
 	}
-	c.Payload = make([]byte, payloadLen)
-	copy(c.Payload, data[pos:pos+payloadLen])
+	c.Payload = data[pos : pos+payloadLen]
 
 	return c, nil
 }
@@ -289,8 +289,7 @@ func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	if pos+payloadLen > len(data) {
 		payloadLen = len(data) - pos
 	}
-	c.Payload = make([]byte, payloadLen)
-	copy(c.Payload, data[pos:pos+payloadLen])
+	c.Payload = data[pos : pos+payloadLen]
 
 	return c, nil
 }
@@ -305,8 +304,7 @@ func decodeIndexInteriorCell(data []byte, off int) (*Cell, error) {
 	if pos+payloadLen > len(data) {
 		payloadLen = len(data) - pos
 	}
-	c.Payload = make([]byte, payloadLen)
-	copy(c.Payload, data[pos:pos+payloadLen])
+	c.Payload = data[pos : pos+payloadLen]
 	return c, nil
 }
 
@@ -451,6 +449,45 @@ func DecodeRecord(data []byte) (*Record, error) {
 	}
 
 	return r, nil
+}
+
+// DecodeRecordValuesInto decodes record values from data into a pre-allocated target slice.
+// Returns the number of values decoded (may be less than len(target) for short records).
+// This avoids the intermediate Record allocation — values are decoded directly into target.
+func DecodeRecordValuesInto(data []byte, target []interface{}) (int, error) {
+	pos := 0
+
+	// Header size (varint)
+	hdrSize, n := util.GetVarint(data[pos:])
+	pos += n
+	hdrEnd := int(hdrSize)
+
+	// Decode serial type codes
+	var serialTypes []uint64
+	for pos < hdrEnd {
+		st, n := util.GetVarint(data[pos:])
+		pos += n
+		serialTypes = append(serialTypes, st)
+	}
+
+	// Decode values directly into target
+	count := len(serialTypes)
+	if count > len(target) {
+		count = len(target)
+	}
+	for i := 0; i < count; i++ {
+		valLen, err := SerialTypeLength(serialTypes[i])
+		if err != nil {
+			return i, err
+		}
+		if pos+int(valLen) > len(data) {
+			return i, fmt.Errorf("storage: record data too short at value %d: need %d bytes at offset %d, have %d", i, valLen, pos, len(data))
+		}
+		target[i] = decodeValue(serialTypes[i], data[pos:pos+int(valLen)])
+		pos += int(valLen)
+	}
+
+	return count, nil
 }
 
 func decodeValue(serialType uint64, data []byte) interface{} {

@@ -1,0 +1,5 @@
+# Ignore built binaries
+/tmp/
+/bench
+compare-benchmark
+*.test

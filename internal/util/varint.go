@@ -55,7 +55,21 @@ func putVarintSlow(buf []byte, v uint64) int {
 // number of bytes consumed. buf must have at least 1 byte; otherwise returns
 // (0, 1). SQLite varints are at most 9 bytes; for values >= 2^63, 10 bytes
 // are produced (the 9th byte has continuation and the 10th byte is 8 bits).
+//
+// Fast path: ~90% of varints in practice are 1 byte (< 128).
 func GetVarint(buf []byte) (uint64, int) {
+	// Fast path: 1-byte varint (values 0-127)
+	if len(buf) > 0 && buf[0] < 0x80 {
+		return uint64(buf[0]), 1
+	}
+	// Fast path: 2-byte varint (values 128-16383)
+	if len(buf) > 1 && buf[0] >= 0x80 && buf[1] < 0x80 {
+		return uint64(buf[0]&0x7f)<<7 | uint64(buf[1]), 2
+	}
+	return getVarintSlow(buf)
+}
+
+func getVarintSlow(buf []byte) (uint64, int) {
 	var v uint64
 	n := 0
 	for {

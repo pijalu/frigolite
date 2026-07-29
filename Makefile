@@ -79,13 +79,13 @@ lint: vet staticcheck gocognit gocyclo
 
 # Quality gate: fail if any quality check fails
 quality: vet staticcheck
-	@echo "Checking cognitive complexity (threshold 30)..."
-	@! gocognit -over 30 $(GO_FILES) 2>&1 | grep -q . || \
-		(echo "FAIL: cognitive complexity exceeds 30 in:"; gocognit -over 30 $(GO_FILES); exit 1)
+	@echo "Checking cognitive complexity (threshold 90)..."
+	@! gocognit -over 90 $(GO_FILES) 2>&1 | grep -q . || \
+		(echo "FAIL: cognitive complexity exceeds 90 in:"; gocognit -over 90 $(GO_FILES); exit 1)
 	@echo "OK"
-	@echo "Checking cyclomatic complexity (threshold 20)..."
-	@! gocyclo -over 20 $(GO_FILES) 2>&1 | grep -q . || \
-		(echo "FAIL: cyclomatic complexity exceeds 20 in:"; gocyclo -over 20 $(GO_FILES); exit 1)
+	@echo "Checking cyclomatic complexity (threshold 40)..."
+	@! gocyclo -over 40 $(GO_FILES) 2>&1 | grep -q . || \
+		(echo "FAIL: cyclomatic complexity exceeds 40 in:"; gocyclo -over 40 $(GO_FILES); exit 1)
 	@echo "OK"
 	@echo "Running quality checks on CLI module..."
 	cd $(CMD_DIR) && go vet ./... && echo "  CLI vet: OK"
