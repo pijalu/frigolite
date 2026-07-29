@@ -844,11 +844,17 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 			}
 		}
 
+		// NATURAL JOIN: auto-generate USING conditions for all common columns.
+		effectiveOn := join.On
+		if join.JoinType == "NATURAL" {
+			effectiveOn = e.generateNaturalJoinOn(currentDefs, rightDefs)
+		}
+
 		// Build ephemeral hash index for equi-join optimization.
 		// Detect simple "left.col = right.col" patterns in the ON clause
 		// and create a temporary index on the right table's column.
 		var autoIndex map[interface{}][]RowMap
-		_, rightColName := extractEquiJoinCols(join.On, s.From.Name, tableName)
+		_, rightColName := extractEquiJoinCols(effectiveOn, s.From.Name, tableName)
 		if rightColName != "" && len(rightMaps) > 0 {
 			autoIndex = make(map[interface{}][]RowMap)
 			for _, rm := range rightMaps {
@@ -868,7 +874,7 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		var combinedMaps []RowMap
 		// For USING clause, exclude the merged columns from the right table's
 		// column definitions so that SELECT * expansion does not duplicate them.
-		filteredRightDefs := e.filterUsingColumns(rightDefs, join.On)
+		filteredRightDefs := e.filterUsingColumns(rightDefs, effectiveOn)
 		// Prefix remaining right-table column names when they conflict with
 		// existing left-table column names, so * expansion resolves values
 		// from the combined row map using qualified keys (table.col).
@@ -881,8 +887,13 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		matchedRight := make([]bool, len(rightMaps))
 
 		for leftIdx, leftMap := range currentMaps {
+			// Use the effective ON (NATURAL JOIN may have generated conditions)
+			effectiveJoin := join
+			if effectiveOn != join.On {
+				effectiveJoin.On = effectiveOn
+			}
 			matched := e.processJoinRowTrackingRight(
-				leftMap, rightMaps, &combinedMaps, tableName, join, s, rightDefs, autoIndex,
+				leftMap, rightMaps, &combinedMaps, tableName, effectiveJoin, s, rightDefs, autoIndex,
 				isRightOrFull, matchedRight, leftIdx)
 			if !matched && (join.JoinType == "LEFT" || join.JoinType == "FULL") {
 				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName))
@@ -996,6 +1007,34 @@ func (e *Engine) buildRightJoinUnmatched(rightMap RowMap, leftDefs, rightDefs []
 		combined[tableName+"."+k] = v
 	}
 	return combined
+}
+
+// generateNaturalJoinOn creates an ON expression for a NATURAL JOIN by finding
+// all common column names between left and right table definitions and creating
+// equality conditions: col = col AND col2 = col2 ...
+// If no common columns exist, NATURAL JOIN behaves as a CROSS JOIN (nil ON).
+func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef) sql.Expr {
+	rightNames := make(map[string]bool)
+	for _, cd := range rightDefs {
+		rightNames[cd.Name] = true
+	}
+	var onExpr sql.Expr
+	for _, cd := range leftDefs {
+		if rightNames[cd.Name] {
+			// Generate unqualified "col = col" (same format as USING clause)
+			eq := &sql.BinaryOp{
+				Left:     &sql.ColumnRef{Name: cd.Name},
+				Right:    &sql.ColumnRef{Name: cd.Name},
+				Operator: "=",
+			}
+			if onExpr == nil {
+				onExpr = eq
+			} else {
+				onExpr = &sql.BinaryOp{Left: onExpr, Right: eq, Operator: "AND"}
+			}
+		}
+	}
+	return onExpr
 }
 
 // extractEquiJoinCols examines a join ON expression looking for a simple
