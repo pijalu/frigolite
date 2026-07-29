@@ -152,6 +152,11 @@ G09 → G10 → G11 → G12 → G13
 | Phase | Step | Description | PASS/Total | Delta | Notes |
 |-------|------|-------------|------------|-------|-------|
 | (start) | — | Baseline measurement | 213/865 | — | 75.4% failure rate |
+| G01.1b | 1 | Fix autoIndex *ColumnValue pointer key bug + collectUsingColumns | 213/865 | +33 sub-tests | File-level unchanged; sub-test PASS 6760→6793 |
+| G01.5 | 1 | Implement RIGHT/FULL JOIN | 213/865 | — | RIGHT/FULL now correct |
+| G01.6 | 1 | Implement NATURAL JOIN | 213/865 | — | NATURAL JOIN auto-generates USING conditions |
+| G01.7-8 | 1 | Fix correlated subquery resolution (scalar + EXISTS) | 215/865 | +2 files, +121 sub-tests | existsexpr2, unionallfault now pass. 0 regressions. |
+| G01 | — | Phase complete | 215/865 | +2 files, +121 sub-tests (6760→6881) | All 7 join patterns fixed. File-level target (350) not met because files need more fixes from G02+. |
 
 ---
 
@@ -997,7 +1002,7 @@ correctly in all cases.
 | Phase | Description | Status | PASS/Total | Notes |
 |-------|-------------|--------|------------|-------|
 | (start) | Baseline | — | 213/865 | 75.4% failure rate |
-| G01 | JOIN & Subquery Engine Fix | 🔲 Not started | | Highest impact |
+| G01 | JOIN & Subquery Engine Fix | ✅ Done | 215/865 | +2 files, +121 sub-tests | All 7 join patterns fixed (autoIndex, USING, LEFT/RIGHT/FULL, NATURAL, scalar subquery, EXISTS) |
 | G02 | Expression & Type Affinity | 🔲 Not started | | |
 | G03 | SQL Functions Completion | 🔲 Not started | | |
 | G04 | Constraint Enforcement | 🔲 Not started | | |
