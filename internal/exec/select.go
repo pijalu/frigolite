@@ -761,9 +761,31 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		var rightDefs []sql.ColumnDef
 		var tableName string
 
-		// Resolve the right table — could be a table or a view
-		tableEntry, err := e.schema.FindTable(join.Table.Name)
-		if err != nil {
+		// Handle derived table (subquery) in JOIN: JOIN (SELECT ...) AS t
+		if join.Table.Subquery != nil {
+			subqResult := e.execSelect(join.Table.Subquery)
+			if subqResult.Error != nil {
+				return nil, nil, subqResult.Error
+			}
+			// Build column defs from subquery result columns
+			for _, colName := range subqResult.Columns {
+				rightDefs = append(rightDefs, sql.ColumnDef{Name: colName})
+			}
+			tableName = join.Table.Name
+			if join.Table.As != "" {
+				tableName = join.Table.As
+			}
+			// Build row maps from subquery result rows
+			for _, row := range subqResult.Rows {
+				rightRowMap := make(RowMap)
+				for i, val := range row {
+					if i < len(rightDefs) {
+						rightRowMap[rightDefs[i].Name] = val
+					}
+				}
+				rightMaps = append(rightMaps, rightRowMap)
+			}
+		} else if tableEntry, err := e.schema.FindTable(join.Table.Name); err != nil {
 			viewEntry, viewErr := e.schema.FindView(join.Table.Name)
 			if viewErr != nil {
 				return nil, nil, err
@@ -853,10 +875,26 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 		rightDefsNamed := e.prefixRightColDefs(filteredRightDefs, currentDefs, tableName)
 		combinedDefs := append(append([]sql.ColumnDef{}, currentDefs...), rightDefsNamed...)
 
-		for _, leftMap := range currentMaps {
-			matched := e.processJoinRow(leftMap, rightMaps, &combinedMaps, tableName, join, s, rightDefs, autoIndex)
-			if !matched && join.JoinType == "LEFT" {
+		// Track which right rows were matched — needed for RIGHT/FULL JOIN
+		// to find unmatched right rows that must be included with NULL left side.
+		isRightOrFull := join.JoinType == "RIGHT" || join.JoinType == "FULL"
+		matchedRight := make([]bool, len(rightMaps))
+
+		for leftIdx, leftMap := range currentMaps {
+			matched := e.processJoinRowTrackingRight(
+				leftMap, rightMaps, &combinedMaps, tableName, join, s, rightDefs, autoIndex,
+				isRightOrFull, matchedRight, leftIdx)
+			if !matched && (join.JoinType == "LEFT" || join.JoinType == "FULL") {
 				combinedMaps = append(combinedMaps, e.buildLeftJoinRow(leftMap, rightDefs, tableName))
+			}
+		}
+
+		// For RIGHT and FULL JOIN: add unmatched right rows with NULL-padded left
+		if isRightOrFull {
+			for ri, rm := range rightMaps {
+				if !matchedRight[ri] {
+					combinedMaps = append(combinedMaps, e.buildRightJoinUnmatched(rm, currentDefs, rightDefsNamed, tableName))
+				}
 			}
 		}
 
@@ -868,16 +906,25 @@ func (e *Engine) execJoins(s *sql.SelectStmt, baseMaps []RowMap, baseDefs []sql.
 }
 
 
-// processJoinRow processes a single left row against all right rows for a JOIN.
+// processJoinRowTrackingRight processes a single left row against all right rows
+// for a JOIN, optionally tracking which right rows were matched (for RIGHT/FULL JOIN).
+// When trackMatchedRight is true, disables the autoIndex hash optimization so that
+// right-row indices are available for tracking. leftIdx is the index of the left row
+// (unused but kept for API symmetry).
 // Returns true if at least one match was found (for the ON condition).
-// When autoIndex is non-nil, uses hash-index lookup instead of full scan.
-func (e *Engine) processJoinRow(leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap, tableName string, join sql.JoinClause, s *sql.SelectStmt, rightDefs []sql.ColumnDef, autoIndex map[interface{}][]RowMap) bool {
+func (e *Engine) processJoinRowTrackingRight(
+	leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap,
+	tableName string, join sql.JoinClause, s *sql.SelectStmt,
+	rightDefs []sql.ColumnDef, autoIndex map[interface{}][]RowMap,
+	trackMatchedRight bool, matchedRight []bool, leftIdx int,
+) bool {
 	matched := false
-	if autoIndex != nil {
-		// Use hash index: extract the left column value and look up matching right rows
+
+	// For RIGHT/FULL JOIN tracking, we must iterate right rows by index.
+	// Skip autoIndex optimization when tracking.
+	if autoIndex != nil && !trackMatchedRight {
 		leftColName, _ := extractEquiJoinCols(join.On, s.From.Name, tableName)
 		if leftColVal, ok := leftMap[leftColName]; ok {
-			// Unwrap *ColumnValue to match the unwrapped keys in the autoIndex.
 			if rightRows, ok := autoIndex[util.UnwrapColumnValue(leftColVal)]; ok {
 				for _, rightMap := range rightRows {
 					combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name)
@@ -889,22 +936,66 @@ func (e *Engine) processJoinRow(leftMap RowMap, rightMaps []RowMap, combinedMaps
 			}
 		}
 	} else {
-		for _, rightMap := range rightMaps {
+		for ri, rightMap := range rightMaps {
 			combinedMap := e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name)
 			if e.evalOnCondition(join.On, combinedMap) {
 				matched = true
 				*combinedMaps = append(*combinedMaps, combinedMap)
+				if trackMatchedRight {
+					matchedRight[ri] = true
+				}
 			}
 		}
 	}
 	// CROSS JOIN: always produces a match
 	if !matched && join.JoinType == "CROSS" {
-		for _, rightMap := range rightMaps {
+		for ri, rightMap := range rightMaps {
 			*combinedMaps = append(*combinedMaps, e.buildCombinedRowMap(leftMap, rightMap, tableName, s.From.Name))
+			if trackMatchedRight {
+				matchedRight[ri] = true
+			}
 		}
 		matched = true
 	}
 	return matched
+}
+
+// processJoinRow processes a single left row against all right rows for a JOIN.
+// Returns true if at least one match was found (for the ON condition).
+// When autoIndex is non-nil, uses hash-index lookup instead of full scan.
+func (e *Engine) processJoinRow(leftMap RowMap, rightMaps []RowMap, combinedMaps *[]RowMap, tableName string, join sql.JoinClause, s *sql.SelectStmt, rightDefs []sql.ColumnDef, autoIndex map[interface{}][]RowMap) bool {
+	return e.processJoinRowTrackingRight(leftMap, rightMaps, combinedMaps, tableName, join, s, rightDefs, autoIndex, false, nil, 0)
+}
+
+// buildRightJoinUnmatched creates a combined row for an unmatched right row
+// in a RIGHT or FULL JOIN. The left side columns are set to NULL.
+func (e *Engine) buildRightJoinUnmatched(rightMap RowMap, leftDefs, rightDefs []sql.ColumnDef, tableName string) RowMap {
+	combined := make(RowMap)
+	// Set all left-side columns to NULL (both qualified and unqualified)
+	for _, cd := range leftDefs {
+		combined[cd.Name] = nil
+	}
+	// Set right-side columns from the right row
+	for _, cd := range rightDefs {
+		// cd.Name may be prefixed (table.col) due to prefixRightColDefs
+		colName := cd.Name
+		// Also store under the unprefixed name for qualified lookups
+		baseName := cd.Name
+		if idx := strings.Index(colName, "."); idx >= 0 {
+			baseName = colName[idx+1:]
+		}
+		if val, ok := rightMap[baseName]; ok {
+			combined[colName] = val
+			if _, exists := combined[baseName]; !exists {
+				combined[baseName] = val
+			}
+		}
+	}
+	// Also copy all right map keys with table prefix
+	for k, v := range rightMap {
+		combined[tableName+"."+k] = v
+	}
+	return combined
 }
 
 // extractEquiJoinCols examines a join ON expression looking for a simple
