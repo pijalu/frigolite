@@ -13,7 +13,7 @@ frigolite/
 ├── frigolite.go              # Public API: Open/Close/Exec/Query
 ├── frigolite_test.go          # Integration tests
 ├── frigolite_*_test.go        # Feature-specific tests
-├── frigolite_sqlite_compat_test.go  # 1088 auto-generated SQLite compat tests
+├── frigolite_harness_test.go  # JSON-driven SQLite compat test harness (1002 files)
 │
 ├── internal/
 │   ├── auth/      # SQL authorizer framework
@@ -41,7 +41,7 @@ frigolite/
 - **No CGO** — pure Go only
 - **No sqlite3 CLI** — fully standalone
 - **SQLite file format** — compatible with standard `.db` files
-- **Test coverage** — 1141 tests (53 hand-written + 1088 auto-converted from SQLite suite)
+- **Test coverage** — 1,002 JSON-driven harness tests (converted from SQLite TCL suite) + hand-written unit tests
 
 ## Important Implementation Notes
 
@@ -64,18 +64,17 @@ Frigolite supports a useful subset of SQLite SQL:
 - Window functions, CTE (WITH)
 
 ### Test Architecture
-- `frigolite_sqlite_compat_test.go` is auto-generated from SQLite TCL test files
-- Each `.test` file becomes one `TestSQLite_*` Go function
-- SQL statements are extracted and executed through the frigolite engine
-- Results are logged (exact result matching requires manual validation)
-- To regenerate: `python3 /tmp/convert_final3.py`
+- `frigolite_harness_test.go` is the SQLite compatibility harness
+- It reads JSON test cases from `testdata/*.json` (1,002 files, converted from SQLite TCL tests)
+- Each JSON file contains named test cases with SQL steps and expected results
+- Tests are run via `FRIGOLITE_TEST=<pattern> go test -run "^TestSQLiteSuite$"`
+- Slow/unsupported tests are listed in `slowTestFiles`/`unsupportedTestFiles` maps in the harness
 
-### Generating the Compat Test File
+### Generating Test Data JSON
 ```bash
-# The converter lives in /tmp/convert_final3.py
-# It reads from ori/sqlite/test/ (reference copy of upstream SQLite tests)
-# And generates frigolite_sqlite_compat_test.go
-python3 /tmp/convert_final3.py
+# The converter reads from ori/sqlite/test/ (reference copy of upstream SQLite tests)
+# And generates testdata/*.json files
+python3 tools/convert_compat_json.py
 ```
 
 ## Source Cleanup Guidelines

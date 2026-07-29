@@ -39,3 +39,7 @@ vendor/
 test.db2
 ?
 test.db*
+
+# Junk artifacts from test runs (SQL-generated file names)
+cannot-read
+file:*
