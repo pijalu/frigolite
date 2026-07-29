@@ -6840,9 +6840,12 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 			continue
 		}
 
-		// Skip entries that don't reference the old table name
+		// Skip entries that don't reference the old table name.
+		// Check both SQL content and TblName (triggers may have updated TblName
+		// but unchanged SQL in legacy mode).
 		if !strings.Contains(entry.SQL, oldName) &&
-			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldName)) {
+			!strings.Contains(strings.ToUpper(entry.SQL), strings.ToUpper(oldName)) &&
+			!strings.EqualFold(entry.TblName, oldName) {
 			continue
 		}
 
@@ -6855,6 +6858,10 @@ func (e *Engine) renameUpdateRelatedEntries(oldName, newName string) {
 		case schema.TypeTrigger:
 			if strings.EqualFold(entry.TblName, oldName) {
 				entry.TblName = newName
+				// Persist the TblName change to the schema even in legacy mode.
+				// GetEntries returns copies, so modifications are lost without saving.
+				_ = e.schema.RemoveEntry(entry.Name)
+				_ = e.schema.AddEntry(entry)
 			}
 			if e.legacyAlterTable {
 				continue
