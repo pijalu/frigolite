@@ -57,10 +57,10 @@ func (i *Interp) Execute(src string) error {
 // evalWord evaluates a single word, performing variable ($var) and command
 // ([cmd]) substitution if needed. Braced words are returned as-is.
 func (i *Interp) evalWord(rw rawWord, localVars map[string]string) (string, error) {
-	if rw.braced {
-		return rw.text, nil
+	if rw.Braced {
+		return rw.Text, nil
 	}
-	return i.substitute(rw.text, localVars), nil
+	return i.substitute(rw.Text, localVars), nil
 }
 
 // substitute performs $var and [cmd] substitution in a string.
@@ -207,7 +207,7 @@ func (i *Interp) execScript(src string, localVars map[string]string) error {
 			continue
 		}
 		// Skip comments (parser already handles most, but double-check)
-		if len(cmd[0].text) > 0 && cmd[0].text[0] == '#' && !cmd[0].braced && !cmd[0].quoted {
+		if len(cmd[0].Text) > 0 && cmd[0].Text[0] == '#' && !cmd[0].Braced && !cmd[0].Quoted {
 			continue
 		}
 		err := i.execCommand(cmd, localVars)
@@ -339,8 +339,8 @@ func (i *Interp) execCommand(rawWords []rawWord, localVars map[string]string) er
 		// catch { body } var — execute body, ignore errors
 		if len(rawWords) >= 2 {
 			body := rawWords[1]
-			if body.braced {
-				err := i.execScript(body.text, localVars)
+			if body.Braced {
+				err := i.execScript(body.Text, localVars)
 				if err != nil {
 					i.vars[""] = "1"
 					if len(args) >= 2 {
@@ -361,8 +361,8 @@ func (i *Interp) execCommand(rawWords []rawWord, localVars map[string]string) er
 			if len(rawWords) >= 3 {
 				bodyIdx = 2 // skip level arg
 			}
-			if rawWords[bodyIdx].braced {
-				return i.execScript(rawWords[bodyIdx].text, localVars)
+			if rawWords[bodyIdx].Braced {
+				return i.execScript(rawWords[bodyIdx].Text, localVars)
 			}
 		}
 		return nil
@@ -490,8 +490,8 @@ func (i *Interp) cmdFor(rawWords []rawWord, localVars map[string]string) error {
 	body := rawWords[4]
 
 	// Execute start
-	if start.braced {
-		i.execScript(start.text, localVars)
+	if start.Braced {
+		i.execScript(start.Text, localVars)
 	}
 
 	maxIter := 50000 // safety limit for for loops
@@ -510,8 +510,8 @@ func (i *Interp) cmdFor(rawWords []rawWord, localVars map[string]string) error {
 		}
 
 		// Execute body
-		if body.braced {
-			err := i.execScript(body.text, localVars)
+		if body.Braced {
+			err := i.execScript(body.Text, localVars)
 			if err != nil {
 				if ec, ok := err.(*ControlFlow); ok {
 					if ec.Kind == "break" {
@@ -527,8 +527,8 @@ func (i *Interp) cmdFor(rawWords []rawWord, localVars map[string]string) error {
 		}
 
 		// Execute next
-		if next.braced {
-			i.execScript(next.text, localVars)
+		if next.Braced {
+			i.execScript(next.Text, localVars)
 		}
 	}
 	return nil
@@ -564,8 +564,8 @@ func (i *Interp) cmdForeach(rawWords []rawWord, localVars map[string]string) err
 			i.setVar(v, items[idx+j], localVars)
 		}
 		idx += nvars
-		if body.braced {
-			err := i.execScript(body.text, localVars)
+		if body.Braced {
+			err := i.execScript(body.Text, localVars)
 			if err != nil {
 				if ec, ok := err.(*ControlFlow); ok {
 					if ec.Kind == "break" {
@@ -600,8 +600,8 @@ func (i *Interp) cmdWhile(rawWords []rawWord, localVars map[string]string) error
 		if !isTrue(result) {
 			break
 		}
-		if body.braced {
-			err := i.execScript(body.text, localVars)
+		if body.Braced {
+			err := i.execScript(body.Text, localVars)
 			if err != nil {
 				if ec, ok := err.(*ControlFlow); ok {
 					if ec.Kind == "break" {
@@ -635,7 +635,7 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 
 		// Skip "then" keyword
 		idx++
-		if idx < len(rawWords) && !rawWords[idx].braced {
+		if idx < len(rawWords) && !rawWords[idx].Braced {
 			kw, _ := i.evalWord(rawWords[idx], localVars)
 			if kw == "then" {
 				idx++
@@ -655,8 +655,8 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 		if isTrue(result) {
 			// Execute body
 			bodyWord := rawWords[idx]
-			if bodyWord.braced {
-				return i.execScript(bodyWord.text, localVars)
+			if bodyWord.Braced {
+				return i.execScript(bodyWord.Text, localVars)
 			}
 			return nil
 		}
@@ -673,14 +673,14 @@ func (i *Interp) cmdIf(rawWords []rawWord, localVars map[string]string) error {
 			}
 			if kw == "else" {
 				idx++
-				if idx < len(rawWords) && rawWords[idx].braced {
-					return i.execScript(rawWords[idx].text, localVars)
+				if idx < len(rawWords) && rawWords[idx].Braced {
+					return i.execScript(rawWords[idx].Text, localVars)
 				}
 				return nil
 			}
 			// In TCL, else is optional. If next word is a braced body, execute it.
-			if idx < len(rawWords) && rawWords[idx].braced {
-				return i.execScript(rawWords[idx].text, localVars)
+			if idx < len(rawWords) && rawWords[idx].Braced {
+				return i.execScript(rawWords[idx].Text, localVars)
 			}
 		}
 		break
@@ -695,14 +695,14 @@ func (i *Interp) cmdProc(rawWords []rawWord) error {
 	}
 	name, _ := i.evalWord(rawWords[1], nil)
 	argsStr := ""
-	if rawWords[2].braced {
-		argsStr = rawWords[2].text
+	if rawWords[2].Braced {
+		argsStr = rawWords[2].Text
 	} else {
 		argsStr, _ = i.evalWord(rawWords[2], nil)
 	}
 	body := ""
-	if rawWords[3].braced {
-		body = rawWords[3].text
+	if rawWords[3].Braced {
+		body = rawWords[3].Text
 	} else {
 		body, _ = i.evalWord(rawWords[3], nil)
 	}
@@ -880,8 +880,8 @@ func (i *Interp) cmdRegsub(args []string) error {
 func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, localVars map[string]string) error {
 	// execsql { SQL } [db] or execsql [subst { SQL }] [db]
 	for _, rw := range rawWords[1:] {
-		if rw.braced && len(rw.text) > 0 {
-			sql := i.substitute(rw.text, localVars)
+		if rw.Braced && len(rw.Text) > 0 {
+			sql := i.substitute(rw.Text, localVars)
 			if strings.TrimSpace(sql) != "" {
 				i.stmts = append(i.stmts, Stmt{
 					Type:     sqlType,
@@ -892,7 +892,7 @@ func (i *Interp) cmdSQL(rawWords []rawWord, args []string, sqlType string, local
 			break
 		}
 		// Handle [subst { SQL }] form — the bracket parsing already resolved this
-		if !rw.braced && len(rw.text) > 0 {
+		if !rw.Braced && len(rw.Text) > 0 {
 			val, _ := i.evalWord(rw, nil)
 			if strings.TrimSpace(val) != "" && looksLikeSQL(val) {
 				i.stmts = append(i.stmts, Stmt{
@@ -922,7 +922,7 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 			sql := args[1]
 			if len(rawWords) >= 3 {
 				// Re-substitute from the raw word to handle $var in braced SQL
-				sql = i.substitute(rawWords[2].text, localVars)
+				sql = i.substitute(rawWords[2].Text, localVars)
 			}
 			if strings.TrimSpace(sql) != "" {
 				i.stmts = append(i.stmts, Stmt{
@@ -942,8 +942,8 @@ func (i *Interp) cmdDB(rawWords []rawWord, args []string, localVars map[string]s
 		}
 	case "transaction":
 		// db transaction { ... } — execute the body
-		if len(rawWords) >= 3 && rawWords[2].braced {
-			return i.execScript(rawWords[2].text, localVars)
+		if len(rawWords) >= 3 && rawWords[2].Braced {
+			return i.execScript(rawWords[2].Text, localVars)
 		}
 	case "close", "on_disconnect", "cache", "function", "collate",
 		"create_function", "progress", "trace", "busy", "wal_hook",
@@ -1034,15 +1034,15 @@ func (i *Interp) cmdDoTest(rawWords []rawWord, localVars map[string]string) erro
 	// Find the body (braced) and expected (braced)
 	bodyWord := rawWords[2]
 	expected := ""
-	if len(rawWords) >= 4 && rawWords[3].braced {
-		expected = rawWords[3].text
+	if len(rawWords) >= 4 && rawWords[3].Braced {
+		expected = rawWords[3].Text
 	}
 
 	i.curTest = name
 
 	// Execute the body — this captures SQL statements
-	if bodyWord.braced {
-		i.execScript(bodyWord.text, localVars)
+	if bodyWord.Braced {
+		i.execScript(bodyWord.Text, localVars)
 	} else {
 		body, _ := i.evalWord(bodyWord, localVars)
 		i.execScript(body, localVars)
@@ -1067,8 +1067,8 @@ func (i *Interp) cmdDoEQP(rawWords []rawWord, localVars map[string]string) error
 	}
 	name, _ := i.evalWord(rawWords[1], localVars)
 	sql := ""
-	if rawWords[2].braced {
-		sql = i.substitute(rawWords[2].text, localVars)
+	if rawWords[2].Braced {
+		sql = i.substitute(rawWords[2].Text, localVars)
 	} else {
 		sql, _ = i.evalWord(rawWords[2], localVars)
 	}

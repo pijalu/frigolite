@@ -1,21 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Package tcl implements a minimal TCL interpreter.
 // This file implements the TCL tokenizer/parser that splits source
-// text into commands (lists of rawWord).
+// text into commands (lists of RawWord).
 package tcl
 
-// rawWord represents one word in a TCL command before substitution.
-type rawWord struct {
-	text   string // raw content (for braced words, literal; for others, may contain $var or [cmd])
-	braced bool   // true if word was { ... } quoted (literal, no substitution)
-	quoted bool   // true if word was " ... " quoted (substitution applies)
+// RawWord represents one word in a TCL command before substitution.
+type RawWord struct {
+	Text   string // raw content (for braced words, literal; for others, may contain $var or [cmd])
+	Braced bool   // true if word was { ... } quoted (literal, no substitution)
+	Quoted bool   // true if word was " ... " quoted (substitution applies)
 }
 
-// parseCommands splits TCL source text into commands.
-// Each command is a slice of rawWord.
+// rawWord is an alias for backward compatibility within the package.
+type rawWord = RawWord
+
+// parseCommands splits TCL source text into commands (internal, kept for backward compat).
+func parseCommands(src string) [][]rawWord {
+	return ParseCommands(src)
+}
+
+// ParseCommands splits TCL source text into commands.
+// Each command is a slice of RawWord.
 // Commands are separated by newlines or semicolons (outside braces/brackets).
 // Lines starting with # are comments (skipped).
-func parseCommands(src string) [][]rawWord {
+func ParseCommands(src string) [][]RawWord {
 	var commands [][]rawWord
 	var current []rawWord
 	pos := 0
@@ -84,7 +92,7 @@ func parseCommands(src string) [][]rawWord {
 			if pos < len(src) {
 				pos++ // skip closing }
 			}
-			current = append(current, rawWord{text: word, braced: true})
+			current = append(current, rawWord{Text: word, Braced: true})
 
 		case '"':
 			// Quote word — read until matching "
@@ -101,7 +109,7 @@ func parseCommands(src string) [][]rawWord {
 			if pos < len(src) {
 				pos++ // skip closing "
 			}
-			current = append(current, rawWord{text: word, quoted: true})
+			current = append(current, rawWord{Text: word, Quoted: true})
 
 		default:
 			// Plain word — read until whitespace, newline, or semicolon.
@@ -136,7 +144,7 @@ func parseCommands(src string) [][]rawWord {
 				pos++
 			}
 			word := src[start:pos]
-			current = append(current, rawWord{text: word})
+			current = append(current, rawWord{Text: word})
 		}
 	}
 

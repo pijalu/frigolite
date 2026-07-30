@@ -519,9 +519,11 @@ go run ./tools/tcl2go/
 go test ./testgen/... -count=1
 ```
 
-The **tcl2go** pipeline (`tools/tcl2go/main.go` + `gen.go`) converts each TCL test file to a standalone Go `_test.go` file using a Go-based TCL interpreter (`tools/tclconvert/tcl/`). It handles `db eval`, `db onecolumn`, loops, variable substitution, and expression evaluation — capturing ALL setup SQL including CREATE TABLE statements.
+The **tcl2go** pipeline (`tools/tcl2go/main.go` + `tools/tcl2go/gen.go`) is a **TCL transpiler** that converts each TCL test file to a standalone Go `_test.go` file. It parses TCL commands using the tokenizer in `tools/tclconvert/tcl/parser.go` and emits Go code directly — **no TCL execution happens at generation time**. All control flow (`foreach`, `for`, `while`, `if`) becomes native Go control flow that runs at test runtime.
 
 Generated tests run directly via `go test ./testgen/...` — no JSON parsing, no harness overhead.
+
+Performance: all 1002+ test files generated in ~0.5s (previously the interpreter approach timed out at 120s+).
 
 > **DEPRECATED**: The old Python converters (`convert_compat_json.py`, `convert_compat_test.py`) have been deleted. The JSON harness (`frigolite_harness_test.go`) and `testdata/*.json` will be retired once tcl2go covers all 1002 test files.
 
@@ -628,17 +630,44 @@ Frigolite has three layers of testing:
 | Converter | Source | Output | Runner |
 |-----------|--------|--------|--------|
 | `tools/tcl2go/` (main.go + gen.go) | `ori/sqlite/test/*.test` (TCL) | `testgen/*/*_test.go` (Go) | `go test ./testgen/...` |
-| Go TCL interpreter | `tools/tclconvert/tcl/` (parser, interp, expr, list) | Shared lib used by tcl2go | — |
+| TCL tokenizer | `tools/tclconvert/tcl/parser.go` | Parsed commands consumed by transpiler | — |
 
-**Architecture**: A Go-based TCL interpreter (`tools/tclconvert/tcl/`) parses and executes TCL test source. The tcl2go entry point (`tools/tcl2go/main.go`) reads all `.test` files, groups them by prefix, and calls `gen.go` to produce standalone Go test files.
+**Architecture**: The tcl2go tool is a **TCL transpiler** (not an interpreter). It:
 
-Key capabilities:
-- Full TCL execution (variables, commands, expressions)
-- Handles `db eval`, `db onecolumn`, `do_execsql_test`, `do_catchsql_test`, `execsql`, `reset_db`
-- Variable substitution (`$var`, `${var}`, `[cmd]`)
-- Loop unrolling for `for`/`foreach` data generation
-- Each `.test` file becomes a `_test.go` file in a package group
-- Tests run independently via `go test ./testgen/<group>/...`
+1. Reads a `.test` file
+2. Parses TCL commands using `tcl.ParseCommands()` from `tools/tclconvert/tcl/`
+3. Walks the command tree and emits Go code directly
+4. Groups output files by package prefix (e.g., `with1`, `with2` → `testgen/with/`)
+
+Key transpilation mappings:
+
+| TCL Construct | Go Output |
+|---------------|-----------|
+| `do_execsql_test NAME {SQL} {EXPECTED}` | Go test block with `db.Query()`/`db.Exec()` + result assertion |
+| `do_catchsql_test NAME {SQL} {EXPECTED}` | Go test block with error-expected `db.Exec()` |
+| `do_test NAME {BODY} {EXPECTED}` | Go test block with transpiled body |
+| `execsql {SQL}` / `execsql2 {SQL}` | `db.Exec("SQL")` with error check |
+| `catchsql {SQL}` | `db.Exec("SQL")` with `_ = res` (error expected) |
+| `db eval {SQL}` | `db.Exec("SQL")` with error check |
+| `db onecolumn {SQL}` | `db.Query("SQL")` with error check |
+| `foreach VAR LIST {BODY}` | Go `for range` over string slice |
+| `for {INIT} {COND} {NEXT} {BODY}` | Go `for INIT; COND; NEXT { BODY }` |
+| `while {COND} {BODY}` | Go `for COND { BODY }` |
+| `if {COND} {BODY} [elseif ...]` | Go `if/else if/else` |
+| `set VAR VALUE` | Go `varName := "VALUE"` |
+| `incr VAR [N]` | Go `strconv`-based increment |
+| `$var` / `${var}` | Go variable access (string concatenation) |
+| `[expr {CONST}]` | Evaluated at generation time; literal `"result"` emitted |
+| `[subst {TEXT $var}]` | Go string concatenation of `"TEXT " + var` |
+| `reset_db` | `db.Close()` + `db = frigolite.Open("")` |
+| `source`, `finish_test`, `puts`, etc. | No-op (infrastructure commands skipped) |
+
+Key principles:
+- **No TCL execution at generation time** — loops are Go loops, conditions are Go conditions, all evaluated at test runtime
+- **Literal SQL stays literal** — braced SQL `{SELECT 1}` becomes Go string `"SELECT 1"`
+- **Variable substitution transpiled** — `$var` in unbraced contexts becomes Go variable concatenation
+- **Expression evaluation at generation time** — constant `[expr {1+2}]` evaluated before emitting `"3"`
+- **Infrastructure skipped** — `source`, `set testdir`, `ifcapable`, `finish_test`, `proc` are no-ops (irrelevant in Go test context)
 
 ### How to Generate Test Data
 

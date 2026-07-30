@@ -70,15 +70,14 @@ Frigolite supports a useful subset of SQLite SQL:
 - Tests are run via `FRIGOLITE_TEST=<pattern> go test -run "^TestSQLiteSuite$"`
 - Slow/unsupported tests are listed in `slowTestFiles`/`unsupportedTestFiles` maps in the harness
 
-### Generating Tests via tcl2go (Go TCL Interpreter)
+### Generating Tests via tcl2go (TCL Transpiler)
 ```bash
-# The tcl2go tool converts SQLite TCL test files into standalone Go test files
-# It uses a Go-based TCL interpreter to handle db eval, loops, variables, etc.
-go run ./tools/tcl2go/            # generate all test files in testgen/
+# The tcl2go tool converts SQLite TCL test files into standalone Go test files.
+# It is a TRANSPILER — it parses TCL commands and generates Go code directly.
+# No TCL execution happens at generation time. All control flow (foreach, for,
+# while, if) becomes Go control flow running at test runtime.
+go run ./tools/tcl2go/            # generate all test files in testgen/ (~0.5s)
 go test ./testgen/... -count=1    # run all generated tests
-
-# DEPRECATED (old Python converter, replaced by Go TCL interpreter):
-# python3 tools/convert_compat_json.py
 ```
 
 ## Source Cleanup Guidelines

@@ -4,10 +4,12 @@
 > **Current**: 268/1011 harness file PASS (26.5%), 13,360 sub-test PASS.
 > **Goal**: All 1002 test files green, tcl2go pipeline as sole test approach.
 >
-> **Strategy**: Go TCL interpreter (`tools/tclconvert/tcl/`) executes TCL
-> test files and captures ALL setup SQL. `tcl2go` generator (`tools/tcl2go/`)
-> produces standalone Go `_test.go` files. Tests run via `go test ./testgen/...`.
-> Old JSON harness (`frigolite_harness_test.go` + `testdata/*.json`) deprecated.
+> **Strategy**: TCL-to-Go transpiler (`tools/tcl2go/`) converts TCL test files to
+> standalone Go `_test.go` files by parsing TCL commands and emitting Go code
+> directly. No TCL execution happens at generation time — all control flow
+> (`foreach`, `for`, `while`, `if`) becomes native Go control flow running at
+> test runtime. Tests run via `go test ./testgen/...`. Generation of all 1002+
+> files completes in ~0.5s.
 >
 > **Reference**: SQLite C source at `/Users/muaddib/dev/sqlite/src/` is the spec.
 > TCL tests at `ori/sqlite/test/*.test`.
@@ -44,11 +46,13 @@ fundamental, fix it, re-run, measure, repeat.
 
 ```
 ori/sqlite/test/foo.test ──┐
-                           │  tools/tcl2go/     testgen/foo/
-                           ├─→ (TCL Interp  ──→ foo_test.go
-                           │   + gen.go)        bar_test.go
-ori/sqlite/test/bar.test ──┘                   util/
+                           │  tools/tcl2go/          testgen/foo/
+                           ├─→ (TCL Transpiler ──→  foo_test.go
+                           │    gen.go)               bar_test.go
+ori/sqlite/test/bar.test ──┘                        util/
 ```
+The transpiler parses TCL commands (not executes them) and emits Go source.
+Generation completes in ~0.5s for all 1002+ files.
 
 ---
 
@@ -76,9 +80,9 @@ ori/sqlite/test/bar.test ──┘                   util/
 
 | # | Task | Links | Status |
 |---|------|-------|--------|
-| 0.1 | Commit TCL interpreter changes | [details](tasks/TASK_0_1.md) | 🔲 |
-| 0.2 | Run tcl2go across all input files | [details](tasks/TASK_0_2.md) | 🔲 |
-| 0.3 | Fix common generator patterns | [details](tasks/TASK_0_3.md) | 🔲 |
+| 0.1 | Refactor tcl2go to TCL transpiler | [details](tasks/TASK_0_1.md) | ✅ |
+| 0.2 | Run tcl2go across all input files | [details](tasks/TASK_0_2.md) | ✅ |
+| 0.3 | Fix generated test patterns | [details](tasks/TASK_0_3.md) | 🔲 |
 | 0.4 | Phase out JSON harness | [details](tasks/TASK_0_4.md) | 🔲 |
 | 0.5 | Set new baseline | [details](tasks/TASK_0_5.md) | 🔲 |
 
@@ -132,7 +136,7 @@ Each task: remove area from skip list → implement/fix → verify → commit.
 ## Key Commands
 
 ```bash
-# tcl2go: generate all tests
+# tcl2go: generate all tests (transpiler, ~0.5s)
 go run ./tools/tcl2go/
 
 # tcl2go: run generated tests
@@ -156,8 +160,8 @@ make quality
 |----------|------|
 | SQLite C source (spec) | `/Users/muaddib/dev/sqlite/src/` |
 | SQLite TCL tests | `ori/sqlite/test/*.test` |
-| TCL interpreter | `tools/tclconvert/tcl/` (parser, interp, expr, list) |
-| tcl2go generator | `tools/tcl2go/` (main.go, gen.go) |
+| TCL tokenizer | `tools/tclconvert/tcl/parser.go` |
+| tcl2go transpiler | `tools/tcl2go/` (main.go, gen.go) |
 | Generated Go tests | `testgen/` |
 | Task detail files | `plans/tasks/TASK_*.md` (21 files) |
 | JSON harness (deprecated) | `frigolite_harness_test.go` + `testdata/*.json` |

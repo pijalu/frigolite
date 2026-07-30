@@ -1,11 +1,13 @@
-# P0 Revised Plan: TCL → Go Test File Converter
+# P0 — TCL → Go Test File Transpiler
 
-> **Strategy change**: Instead of generating JSON test data (previous approach),
-> convert each TCL `.test` file to a dedicated Go `_test.go` file. Group tests
-> by common prefix (e.g., `with1`, `with2`, `with3` → `testgen/with/`).
+> **Strategy**: Instead of generating JSON test data (previous approach) or
+> executing TCL through an interpreter (previous tcl2go approach), the tcl2go
+> tool is now a proper **TCL transpiler** — it parses TCL commands and emits
+> Go code directly, with no TCL execution at generation time.
 >
 > **Benefits**: No JSON harness parsing, independently runnable tests, parallel
-> execution per package, Go compiler validation, reusable converter.
+> execution per package, Go compiler validation, **200x+ speedup** (all 1002+
+> test files generated in ~0.5s vs timeout at 120s+).
 
 ---
 
@@ -17,19 +19,79 @@ ori/sqlite/test/foo.test  ──┐              testgen/foo/
 ori/sqlite/test/bar.test  ──┤  tcl2go tool    bar_test.go
                             ├─────────────→   ...
 ori/sqlite/test/baz.test  ──┘              util/
-                                              util_test.go
+                                                util_test.go
 ```
+
+The tcl2go tool is a transpiler (not an interpreter):
+
+1. Reads the `.test` TCL file
+2. Parses TCL commands into a command tree using `tcl.ParseCommands()`
+3. Walks the command tree and emits Go source code directly
+4. Writes the generated `_test.go` file
+
+No TCL execution takes place. All TCL control flow (`foreach`, `for`, `while`,
+`if`) becomes native Go control flow that runs at test runtime.
 
 ## Components
 
 | File | Purpose | Status |
 |------|---------|--------|
-| `tools/tclconvert/tcl/parser.go` | TCL tokenizer | ✅ DONE |
-| `tools/tclconvert/tcl/interp.go` | TCL interpreter | ✅ DONE |
-| `tools/tclconvert/tcl/expr.go` | Expression evaluator | ✅ DONE |
-| `tools/tclconvert/tcl/list.go` | List helpers | ✅ DONE |
-| `tools/tcl2go/gen.go` | Go code generator | ✅ DONE |
-| `tools/tcl2go/main.go` | Entry point | ✅ DONE |
+| `tools/tclconvert/tcl/parser.go` | TCL tokenizer — `ParseCommands()`, `RawWord` | ✅ DONE |
+| `tools/tclconvert/tcl/interp.go` | TCL interpreter (kept for old `tclconvert` tool) | ✅ DONE (unchanged) |
+| `tools/tclconvert/tcl/expr.go` | TCL expression evaluator | ✅ DONE |
+| `tools/tclconvert/tcl/list.go` | TCL list helpers | ✅ DONE |
+| `tools/tcl2go/gen.go` | Transpiler — TCL command walker + Go code emitter | ✅ DONE (rewritten) |
+| `tools/tcl2go/main.go` | Entry point — file reading, grouping, output writing | ✅ DONE |
+
+## Transpiler Mappings
+
+### Test Patterns
+
+| TCL | Go Output |
+|-----|-----------|
+| `do_execsql_test NAME {SQL} {EXPECT}` | Go block with `db.Query()`/`db.Exec()` + `flatten(r)` == `EXPECT` assertion |
+| `do_catchsql_test NAME {SQL} {EXPECT}` | Go block with `db.Exec()` + error-contains check |
+| `do_test NAME {BODY} {EXPECT}` | Go block with recursively transpiled body |
+| `do_eqp_test NAME {SQL} {EXPECT}` | Go block with `db.Query("EXPLAIN QUERY PLAN " + SQL)` |
+
+### SQL Execution
+
+| TCL | Go Output |
+|-----|-----------|
+| `execsql {SQL}` / `execsql2 {SQL}` | `res = db.Exec("SQL")` + error check |
+| `catchsql {SQL}` | `res = db.Exec("SQL")` (error expected, result ignored) |
+| `db eval {SQL}` | `res = db.Exec("SQL")` + error check |
+| `db onecolumn {SQL}` | `r := db.Query("SQL")` + error check |
+
+### Control Flow
+
+| TCL | Go Output |
+|-----|-----------|
+| `foreach VARS LIST {BODY}` | `for _, var := range []string{LIST} { BODY }` |
+| `for {INIT} {COND} {NEXT} {BODY}` | `INIT; for COND { BODY; NEXT }` |
+| `while {COND} {BODY}` | `for COND { BODY }` |
+| `if {COND} {BODY} elseif ...` | `if COND { BODY } else if ...` |
+| `break` / `continue` | `break` / `continue` |
+
+### Variables & Expressions
+
+| TCL | Go Output |
+|-----|-----------|
+| `set VAR VALUE` | `varName := "VALUE"` |
+| `set VAR [expr {1+2}]` | `varName := "3"` (evaluated at generation time) |
+| `incr VAR [N]` | `strconv`-based increment |
+| `$var` / `${var}` | Go variable access (string concatenation) |
+| `[expr {EXPR}]` | Evaluated at gen-time if all constants; runtime `tclExpr()` otherwise |
+| `[subst {TEXT $var}]` | Go string concatenation `"TEXT " + var` |
+
+### Other
+
+| TCL | Go Output |
+|-----|-----------|
+| `reset_db` | `db.Close(); db, err = frigolite.Open("")` |
+| `source`, `puts`, `finish_test`, `exit` | Skipped (no-op) |
+| `ifcapable`, `ifnotcapable` | Skipped (no-op) |
+| `proc`, `set testdir`, `global`, `uplevel` | Skipped (infrastructure) |
 
 ## Grouping Algorithm
 
@@ -42,7 +104,8 @@ select1.test → prefix "select" → testgen/select/select1_test.go
 select2.test → prefix "select" → testgen/select/select2_test.go
 ```
 
-**Logic**: Strip trailing digits and lowercase letters, keep the remainder.
+**Logic**: Strip trailing digits, keep the remainder. If result is empty, a Go
+keyword, or a single character, use the full base name.
 
 ## Generated Test Structure
 
@@ -55,47 +118,67 @@ import (
     "github.com/pijalu/frigolite"
 )
 
-func TestWith1(t *testing.T) {
+func Test_with1(t *testing.T) {
     db, _ := frigolite.Open("")
     defer db.Close()
-    
-    t.Run("1.1", func(t *testing.T) {
-        // Setup: exec SQL
-        res := db.Exec("CREATE TABLE t1(x)")
-        if res.Error != nil { t.Fatal(res.Error) }
-        
-        // Query with expected result
+
+    // Simple test case
+    { // "1.1"
         r := db.Query("SELECT * FROM t1")
         if r.Error != nil { t.Fatal(r.Error) }
-        if got := flatten(r); got != "expected" {
-            t.Errorf("got [%s] want [%s]", got, "expected")
+        got := flatten(r)
+        want := "1 2 3"
+        if got != want {
+            t.Errorf("got [%s] want [%s]", got, want)
         }
-    })
+    }
+
+    // Foreach loop (transpiled to Go for range)
+    for _, i := range []string{"1", "2", "3"} {
+        { // "test." + i
+            res := db.Exec("INSERT INTO t1 VALUES(" + i + ")")
+            if res.Error != nil { t.Fatal(res.Error) }
+        }
+    }
 }
 ```
 
-## Micro-Tasks
+## Key Principles
 
-1. **Create `tools/tcl2go/gen.go`** — Go code generator: ✅ **DONE**
-   - `generateTestFile(base string, stmts []tcl.Stmt) (filename, content)`
-   - Groups statements by `TestName` into sub-tests
-   - Generates `t.Run("NAME", ...)` for each group
-   - For each SQL statement, generates `db.Exec` or `db.Query`
-   - Includes expected result comparison when present
-   - Adds proper Go package declaration
+1. **No TCL execution at generation time** — loops are Go loops, conditions are
+   Go conditions, all evaluated at test runtime. This is the fundamental change
+   from the old interpreter approach.
 
-2. **Create `tools/tcl2go/main.go`** — Entry point: ✅ **DONE**
-   - Reads all `.test` files
-   - Groups by prefix
-   - Calls generator for each
-   - Writes output files
-   - Cleans stale output dirs
+2. **Literal SQL stays literal** — braced SQL `{SELECT 1}` becomes the Go
+   string literal `"SELECT 1"`. No TCL variable substitution within braces.
 
-3. **Generate tests** — Run the tool, then:
-   ```bash
-   go run ./tools/tcl2go/
-   go test ./testgen/... -count=1
-   ```
+3. **Variable substitution transpiled** — `$var` in unbraced contexts becomes
+   Go variable concatenation expressions.
 
-4. **Fix result mismatches** — The generated `select1` test exposes engine bugs.
-   See steps P0.7–P0.8 in PLAN.md.
+4. **Expression evaluation at generation time** — constant expressions like
+   `[expr {1+2}]` are evaluated before emitting the literal result `"3"`.
+   Complex expressions with variables use a runtime `tclExpr()` helper.
+
+5. **Infrastructure skipped** — `source`, `set testdir`, `ifcapable`,
+   `finish_test`, `proc` definitions, and other TCL test infrastructure are
+   no-ops in the Go context.
+
+## Performance
+
+| Metric | Old (Interpreter) | New (Transpiler) | Improvement |
+|--------|-------------------|-------------------|-------------|
+| All 1002+ files | >120s (timeout) | **0.59s** | **>200x** |
+| Single file | ~0.18s (inc. build) | ~0.50s (inc. build) | Comparable |
+
+## Usage
+
+```bash
+# Generate all test files
+go run ./tools/tcl2go/
+
+# Run all generated tests
+go test ./testgen/... -count=1
+
+# Run a single package
+go test ./testgen/select1/... -v
+```

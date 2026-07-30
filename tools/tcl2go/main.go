@@ -11,8 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
 
 func main() {
@@ -62,20 +60,11 @@ func main() {
 			continue
 		}
 
-		// Execute TCL through interpreter
-		interp := tcl.NewInterp()
-		interpErr := interp.Execute(string(src))
-		stmts := interp.Stmts()
-		if interpErr != nil {
-			errors = append(errors, fmt.Sprintf("%s: %v", base, interpErr))
+		// Transpile TCL source directly to Go test code
+		filename, content := generateTestFile(base, string(src))
+		if len(content) == 0 {
 			continue
 		}
-		if len(stmts) == 0 {
-			continue
-		}
-
-		// Generate Go test file
-		filename, content := generateTestFile(base, stmts)
 		pkg := groupName(base)
 		groupFiles[pkg] = append(groupFiles[pkg], genFile{filename, content})
 		processed++
@@ -89,8 +78,6 @@ func main() {
 		os.MkdirAll(pkgDir, 0755)
 
 		for _, gf := range files {
-			// Determine output path from filename (which is like "testgen/with/with1_test.go")
-			// The filename is relative to testgen, so just take the basename
 			outPath := filepath.Join(pkgDir, filepath.Base(gf.filename))
 			if err := os.WriteFile(outPath, gf.content, 0644); err != nil {
 				fmt.Fprintf(os.Stderr, "write %s: %v\n", outPath, err)
