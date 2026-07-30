@@ -22,564 +22,564 @@ func Test_altercons(t *testing.T) {
 	var testprefix = "altercons"
 	_ = testprefix // suppress unused warning
 	// foreach {tn before after} "\n  1 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  2 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  4 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  5 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b, PRIMARY KEY(a)) }\n\n  6 { CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b,PRIMARY KEY(a)) }\n\n  7 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }\n    { CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }\n\n  8 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }\n    { CREATE TABLE t1(a, b CHECK (123)) }\n\n  9 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }\n    { CREATE TABLE t1(a, b DEFAULT NULL) }\n\n 10 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }\n    { CREATE TABLE t1(a, b COLLATE nocase) }\n\n 11 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }\n    { CREATE TABLE t1(a, b REFERENCES t2) }\n\n 12 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }\n\n 13 { CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n\n 14 { CREATE TABLE t1(a, b, c, CONSTRAINT abc) }\n    { CREATE TABLE t1(a, b, c) }\n\n 15 { CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c, CHECK( a!=b )) }\n\n 16 { CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 17 { CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 18 { CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }\n    { CREATE TABLE t1(a, b, c) }\n\n 19 { CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a>b) CONSTRAINT two\n  ) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }\n\n 20 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a>b)CONSTRAINT two) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }\n\n 21 { CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }\n    { CREATE TABLE t1(a, b, c AS (b+1)) }\n\n 22 { CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }\n    { CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }\n"
-	_items := []string{"\n  1 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  2 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  4 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  5 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b, PRIMARY KEY(a)) }\n\n  6 { CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b,PRIMARY KEY(a)) }\n\n  7 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }\n    { CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }\n\n  8 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }\n    { CREATE TABLE t1(a, b CHECK (123)) }\n\n  9 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }\n    { CREATE TABLE t1(a, b DEFAULT NULL) }\n\n 10 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }\n    { CREATE TABLE t1(a, b COLLATE nocase) }\n\n 11 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }\n    { CREATE TABLE t1(a, b REFERENCES t2) }\n\n 12 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }\n\n 13 { CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n\n 14 { CREATE TABLE t1(a, b, c, CONSTRAINT abc) }\n    { CREATE TABLE t1(a, b, c) }\n\n 15 { CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c, CHECK( a!=b )) }\n\n 16 { CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 17 { CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 18 { CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }\n    { CREATE TABLE t1(a, b, c) }\n\n 19 { CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a>b) CONSTRAINT two\n  ) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }\n\n 20 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a>b)CONSTRAINT two) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }\n\n 21 { CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }\n    { CREATE TABLE t1(a, b, c AS (b+1)) }\n\n 22 { CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }\n    { CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }\n"}
+	_items := tclSplitList("\n  1 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  2 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  4 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  5 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b, PRIMARY KEY(a)) }\n\n  6 { CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b,PRIMARY KEY(a)) }\n\n  7 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }\n    { CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }\n\n  8 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }\n    { CREATE TABLE t1(a, b CHECK (123)) }\n\n  9 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }\n    { CREATE TABLE t1(a, b DEFAULT NULL) }\n\n 10 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }\n    { CREATE TABLE t1(a, b COLLATE nocase) }\n\n 11 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }\n    { CREATE TABLE t1(a, b REFERENCES t2) }\n\n 12 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }\n\n 13 { CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n\n 14 { CREATE TABLE t1(a, b, c, CONSTRAINT abc) }\n    { CREATE TABLE t1(a, b, c) }\n\n 15 { CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c, CHECK( a!=b )) }\n\n 16 { CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 17 { CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 18 { CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }\n    { CREATE TABLE t1(a, b, c) }\n\n 19 { CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a>b) CONSTRAINT two\n  ) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }\n\n 20 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a>b)CONSTRAINT two) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }\n\n 21 { CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }\n    { CREATE TABLE t1(a, b, c AS (b+1)) }\n\n 22 { CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }\n    { CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	before := _items[_idx+1]
-	after := _items[_idx+2]
+		tn := _items[_idx+0]
+		before := _items[_idx+1]
+		after := _items[_idx+2]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "1." + tn + ".0"
+				_res = db.Exec(before)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+				}
+			}
+			{ // "1." + tn + ".1"
+				_res = db.Exec("\n    ALTER TABLE t1 DROP CONSTRAINT abc;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 DROP CONSTRAINT abc;\n  ")
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list [string trim $after]"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
+			}
+		}
+		{ // "2.1"
+			_res = db.Exec("\n  ALTER TABLE t2 DROP CONSTRAINT ccc\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint may not be dropped: ccc") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint may not be dropped: ccc", _res.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT ccc\n")
+			}
+		}
+		{ // "2.2"
+			_res = db.Exec("\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such constraint: ddd") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such constraint: ddd", _res.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
+			}
+		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		{ // "1." + tn + ".0"
-			_res = db.Exec(before)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+		// foreach {tn col before after} "\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n"
+		_items := tclSplitList("\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n")
+		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+			tn := _items[_idx+0]
+			col := _items[_idx+1]
+			before := _items[_idx+2]
+			after := _items[_idx+3]
+			_ = _idx
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				{ // "3." + tn + ".0"
+					_res = db.Exec(before)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+					}
+				}
+				{ // "3." + tn + ".1"
+					_res = db.Exec("\n    ALTER TABLE t1 ALTER COLUMN " + col + " DROP NOT NULL\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ALTER COLUMN " + col + " DROP NOT NULL\n  ")
+					}
+				}
+				{ // "3." + tn + ".2"
+					r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "list [string trim $after]"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
-		}
-		{ // "1." + tn + ".1"
-			_res = db.Exec("\n    ALTER TABLE t1 DROP CONSTRAINT abc;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 DROP CONSTRAINT abc;\n  ")
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "4.0"
+				_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
+				}
 			}
-		}
-		{ // "1." + tn + ".2"
-			r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
-				return
+			{ // "4.1"
+				_res = db.Exec("\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
+				}
 			}
-			got := flatten(r)
-			want := "list [string trim $after]"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "5.1"
+				_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
+				}
 			}
-		}
-	}
-	}
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
-		}
-	}
-	{ // "2.1"
-		_res = db.Exec("\n  ALTER TABLE t2 DROP CONSTRAINT ccc\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint may not be dropped: ccc") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint may not be dropped: ccc", _res.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT ccc\n")
-		}
-	}
-	{ // "2.2"
-		_res = db.Exec("\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such constraint: ddd") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such constraint: ddd", _res.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT ddd\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	// foreach {tn col before after} "\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n"
-	_items := []string{"\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	col := _items[_idx+1]
-	before := _items[_idx+2]
-	after := _items[_idx+3]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "3." + tn + ".0"
-			_res = db.Exec(before)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+			{ // "5.2.1"
+				_res = db.Exec("\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
+				}
 			}
-		}
-		{ // "3." + tn + ".1"
-			_res = db.Exec("\n    ALTER TABLE t1 ALTER COLUMN " + col + " DROP NOT NULL\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 ALTER COLUMN " + col + " DROP NOT NULL\n  ")
+			{ // do_test "5.2.2"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 			}
-		}
-		{ // "3." + tn + ".2"
-			r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE name='t1'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list [string trim $after]"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x, y CONSTRAINT ccc UNIQUE);\n")
-		}
-	}
-	{ // "4.1"
-		_res = db.Exec("\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.1"
-		_res = db.Exec("\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t3 VALUES(1000, NULL);\n")
-		}
-	}
-	{ // "5.2.1"
-		_res = db.Exec("\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE t3 ALTER b SET NOT NULL\n")
-		}
-	}
-	{ // do_test "5.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
-	}
-	// foreach {tn before alter after} "\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n"
-	_items := []string{"\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	before := _items[_idx+1]
-	alter := _items[_idx+2]
-	after := _items[_idx+3]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "5.3." + tn + ".1"
-			_res = db.Exec(before)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
-			}
-		}
-		{ // "5.3." + tn + ".2"
-			_res = db.Exec(alter)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
-			}
-		}
-		{ // "5.3." + tn + ".3"
-			r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list [string trim $after]"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "5.4.1"
-		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
-		}
-	}
-	{ // "5.4.2"
-		_res = db.Exec("\n  ALTER TABLE x1 ALTER d SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: d") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: d", _res.Error, "\n  ALTER TABLE x1 ALTER d SET NOT NULL;\n")
-		}
-	}
-	{ // "5.4.3"
-		_res = db.Exec("\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: x2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: x2", _res.Error, "\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
-		}
-	}
-	{ // "5.4.4"
-		_res = db.Exec("\n  ALTER TABLE temp.x1 ALTER c SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.x1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.x1", _res.Error, "\n  ALTER TABLE temp.x1 ALTER c SET NOT NULL;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "6.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
-		}
-	}
-	{ // "6.2.1"
-		_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
-		}
-	}
-	{ // "6.2.2"
-		_res = db.Exec("\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
-		}
-	}
-	{ // "6.2.3"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: nn") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: nn", _res.Error, "\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
-		}
-	}
-	// foreach {tn before alter after} "\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n"
-	_items := []string{"\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	before := _items[_idx+1]
-	alter := _items[_idx+2]
-	after := _items[_idx+3]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "6.3." + tn + ".1"
-			_res = db.Exec(before)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
-			}
-		}
-		{ // "6.3." + tn + ".2"
-			_res = db.Exec(alter)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
-			}
-		}
-		{ // "6.3." + tn + ".3"
-			r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE type='table';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE type='table';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list [string trim $after]"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "6.4.1"
-		_res = db.Exec("\n  CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));\n")
-		}
-	}
-	{ // "6.4.2"
-		_res = db.Exec("\n  ALTER TABLE b1 ADD CONSTRAINT abc CHECK (a!=3);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint abc already exists") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint abc already exists", _res.Error, "\n  ALTER TABLE b1 ADD CONSTRAINT abc CHECK (a!=3);\n")
-		}
-	}
-	{ // "6.4.1"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE tbl_name='b1'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE tbl_name='b1'\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2))}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.5"
-		_res = db.Exec("\n  CREATE TABLE abc(x,y);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(x,y);\n")
-		}
-	}
-	{ // "6.6"
-		_res = db.Exec("\n  ALTER TABLE abc ADD CHECK (z>=0);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: z") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: z", _res.Error, "\n  ALTER TABLE abc ADD CHECK (z>=0);\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "7.0"
-		_res = db.Exec("\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
-		}
-	}
-	{ // "7.1"
-		_res = db.Exec("\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
-		}
-	}
-	{ // "7.2"
-		_res = db.Exec("\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
-		}
-	}
-	{ // "7.3"
-		r = db.Query("\n  SELECT b FROM x1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM x1\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 3 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.4"
-		_res = db.Exec("\n  ALTER TABLE x1 ALTER rowid SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  ALTER TABLE x1 ALTER rowid SET NOT NULL;\n")
-		}
-	}
-	{ // "7.5"
-		_res = db.Exec("\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
-		}
-	}
-	{ // "7.6"
-		_res = db.Exec("\n  ALTER TABLE v1 RENAME a TO c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \\\"v1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 RENAME a TO c;\n")
-		}
-	}
-	{ // "7.7"
-		_res = db.Exec("\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \\\"v1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
-		}
-	}
-	{ // "7.8"
-		_res = db.Exec("\n  ALTER TABLE sqlite_schema ALTER sql SET NOT NULL;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_master may not be altered") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_master may not be altered", _res.Error, "\n  ALTER TABLE sqlite_schema ALTER sql SET NOT NULL;\n")
-		}
-	}
-	{ // "7.9"
-		_res = db.Exec("\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \\\"v1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "8.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
-		}
-	}
-	{ // "8.1.1"
-		_res = db.Exec("\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
-		}
-	}
-	{ // "8.1.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY NOT NULL, b NOT NULL, c CHECK (c!=555) NOT NULL, d NOT NULL)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.1.3"
-		r = db.Query("\n  SELECT * FROM t1 WHERE a=2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE a=2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 2 2 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.2.1"
-		_res = db.Exec("\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
-		}
-	}
-	{ // "8.2.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c CHECK (c!=555), d)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.2.3"
-		r = db.Query("\n  SELECT * FROM t1 WHERE a=3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE a=3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "3 3 3 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	os.Remove("test.db2")
-	{ // "9.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
-		}
-	}
-	{ // "9.1.1"
-		_res = db.Exec("\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
-		}
-	}
-	{ // "9.1.2"
-		r = db.Query("\n  UPDATE aux.t1 SET z=x;\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE aux.t1 SET z=x;\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(x, y, z NOT NULL)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.1.3"
-		r = db.Query("\n  ALTER TABLE aux.t1 ALTER z DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE aux.t1 ALTER z DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(x, y, z)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.1.4"
-		r = db.Query("\n  ALTER TABLE t2 ALTER x SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 ALTER x SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t2(x NOT NULL, y, z)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.1.5"
-		r = db.Query("\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t2(x, y, z)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.2.1"
-		_res = db.Exec("\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
-		}
-	}
-	{ // "9.2.2"
-		r = db.Query("\n  UPDATE aux.t1 SET y=4 WHERE y=2;\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE aux.t1 SET y=4 WHERE y=2;\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(x, y, z, CONSTRAINT bill CHECK (y!=2))}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.2.3"
-		r = db.Query("\n  ALTER TABLE aux.t1 DROP CONSTRAINT bill;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE aux.t1 DROP CONSTRAINT bill;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(x, y, z)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.2.4"
-		r = db.Query("\n  ALTER TABLE t2 ADD CONSTRAINT william CHECK (z!='');\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 ADD CONSTRAINT william CHECK (z!='');\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t2(x, y, z, CONSTRAINT william CHECK (z!=''))}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.2.5"
-		r = db.Query("\n  ALTER TABLE t2 DROP CONSTRAINT william;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT william;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t2(x, y, z)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "10.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
-		}
-	}
-	{ // "10.2"
-		_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_drop_column") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_drop_column", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
-		}
-	}
-	{ // "10.3"
-		_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#2\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#2\\\": syntax error", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
-		}
-	}
+			// foreach {tn before alter after} "\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n"
+			_items := tclSplitList("\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n")
+			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+				tn := _items[_idx+0]
+				before := _items[_idx+1]
+				alter := _items[_idx+2]
+				after := _items[_idx+3]
+				_ = _idx
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // "5.3." + tn + ".1"
+						_res = db.Exec(before)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+						}
+					}
+					{ // "5.3." + tn + ".2"
+						_res = db.Exec(alter)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
+						}
+					}
+					{ // "5.3." + tn + ".3"
+						r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE name='t1';\n  ")
+							return
+						}
+						got := flatten(r)
+						want := "list [string trim $after]"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+				{ // "5.4.1"
+					_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
+					}
+				}
+				{ // "5.4.2"
+					_res = db.Exec("\n  ALTER TABLE x1 ALTER d SET NOT NULL;\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: d") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: d", _res.Error, "\n  ALTER TABLE x1 ALTER d SET NOT NULL;\n")
+					}
+				}
+				{ // "5.4.3"
+					_res = db.Exec("\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: x2") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: x2", _res.Error, "\n  ALTER TABLE x2 ALTER c SET NOT NULL;\n")
+					}
+				}
+				{ // "5.4.4"
+					_res = db.Exec("\n  ALTER TABLE temp.x1 ALTER c SET NOT NULL;\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.x1") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.x1", _res.Error, "\n  ALTER TABLE temp.x1 ALTER c SET NOT NULL;\n")
+					}
+				}
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				{ // "6.1"
+					_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+					}
+				}
+				{ // "6.2.1"
+					_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
+					}
+				}
+				{ // "6.2.2"
+					_res = db.Exec("\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE c=6;\n  ALTER TABLE t1 ADD CONSTRAINT nn CHECK (c!=6);\n")
+					}
+				}
+				{ // "6.2.3"
+					_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: nn") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: nn", _res.Error, "\n  INSERT INTO t1 VALUES(4, 5, 6);\n")
+					}
+				}
+				// foreach {tn before alter after} "\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n"
+				_items := tclSplitList("\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n")
+				for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+					tn := _items[_idx+0]
+					before := _items[_idx+1]
+					alter := _items[_idx+2]
+					after := _items[_idx+3]
+					_ = _idx
+						db.Close()
+						db, err = frigolite.Open("")
+						if err != nil { t.Fatal(err) }
+						{ // "6.3." + tn + ".1"
+							_res = db.Exec(before)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+							}
+						}
+						{ // "6.3." + tn + ".2"
+							_res = db.Exec(alter)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
+							}
+						}
+						{ // "6.3." + tn + ".3"
+							r = db.Query("\n    SELECT sql FROM sqlite_schema WHERE type='table';\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_schema WHERE type='table';\n  ")
+								return
+							}
+							got := flatten(r)
+							want := "list [string trim $after]"
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
+						}
+					}
+					{ // "6.4.1"
+						_res = db.Exec("\n  CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2));\n")
+						}
+					}
+					{ // "6.4.2"
+						_res = db.Exec("\n  ALTER TABLE b1 ADD CONSTRAINT abc CHECK (a!=3);\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint abc already exists") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint abc already exists", _res.Error, "\n  ALTER TABLE b1 ADD CONSTRAINT abc CHECK (a!=3);\n")
+						}
+					}
+					{ // "6.4.1"
+						r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE tbl_name='b1'\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE tbl_name='b1'\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE b1(a, b, CONSTRAINT abc CHECK (a!=2))}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "6.5"
+						_res = db.Exec("\n  CREATE TABLE abc(x,y);\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE abc(x,y);\n")
+						}
+					}
+					{ // "6.6"
+						_res = db.Exec("\n  ALTER TABLE abc ADD CHECK (z>=0);\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: z") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: z", _res.Error, "\n  ALTER TABLE abc ADD CHECK (z>=0);\n")
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // "7.0"
+						_res = db.Exec("\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b AS (a+1));\n  INSERT INTO x1 VALUES(1), (2), (3), (NULL);\n")
+						}
+					}
+					{ // "7.1"
+						_res = db.Exec("\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+						}
+					}
+					{ // "7.2"
+						_res = db.Exec("\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+						if _res.Error == nil {
+							t.Errorf("expected error, got none\n  sql: %s", "\n  DELETE FROM x1 WHERE b IS NULL;\n  ALTER TABLE x1 ALTER b SET NOT NULL;\n")
+						}
+					}
+					{ // "7.3"
+						r = db.Query("\n  SELECT b FROM x1\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM x1\n")
+							return
+						}
+						got := flatten(r)
+						want := "2 3 4"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.4"
+						_res = db.Exec("\n  ALTER TABLE x1 ALTER rowid SET NOT NULL;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  ALTER TABLE x1 ALTER rowid SET NOT NULL;\n")
+						}
+					}
+					{ // "7.5"
+						_res = db.Exec("\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT a, b FROM x1;\n")
+						}
+					}
+					{ // "7.6"
+						_res = db.Exec("\n  ALTER TABLE v1 RENAME a TO c;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot rename columns of view \\\"v1\\\"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot rename columns of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 RENAME a TO c;\n")
+						}
+					}
+					{ // "7.7"
+						_res = db.Exec("\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \\\"v1\\\"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 ALTER a SET NOT NULL;\n")
+						}
+					}
+					{ // "7.8"
+						_res = db.Exec("\n  ALTER TABLE sqlite_schema ALTER sql SET NOT NULL;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table sqlite_master may not be altered") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table sqlite_master may not be altered", _res.Error, "\n  ALTER TABLE sqlite_schema ALTER sql SET NOT NULL;\n")
+						}
+					}
+					{ // "7.9"
+						_res = db.Exec("\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot edit constraints of view \\\"v1\\\"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot edit constraints of view \\\"v1\\\"", _res.Error, "\n  ALTER TABLE v1 ALTER a DROP NOT NULL\n")
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // "8.0"
+						_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b NOT NULL, c CHECK (c!=555), d);\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3, 3);\n")
+						}
+					}
+					{ // "8.1.1"
+						_res = db.Exec("\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER a SET NOT NULL;\n  ALTER TABLE t1 ALTER b SET NOT NULL;\n  ALTER TABLE t1 ALTER c SET NOT NULL;\n  ALTER TABLE t1 ALTER d SET NOT NULL;\n")
+						}
+					}
+					{ // "8.1.2"
+						r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY NOT NULL, b NOT NULL, c CHECK (c!=555) NOT NULL, d NOT NULL)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "8.1.3"
+						r = db.Query("\n  SELECT * FROM t1 WHERE a=2;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE a=2;\n")
+							return
+						}
+						got := flatten(r)
+						want := "2 2 2 2"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "8.2.1"
+						_res = db.Exec("\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ALTER a DROP NOT NULL;\n  ALTER TABLE t1 ALTER b DROP NOT NULL;\n  ALTER TABLE t1 ALTER c DROP NOT NULL;\n  ALTER TABLE t1 ALTER d DROP NOT NULL;\n")
+						}
+					}
+					{ // "8.2.2"
+						r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE tbl_name = 't1'\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c CHECK (c!=555), d)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "8.2.3"
+						r = db.Query("\n  SELECT * FROM t1 WHERE a=3;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE a=3;\n")
+							return
+						}
+						got := flatten(r)
+						want := "3 3 3 3"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					os.Remove("test.db2")
+					{ // "9.0"
+						_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(x, y, z);\n  INSERT INTO aux.t1 VALUES(1, 1, 1);\n  INSERT INTO aux.t1 VALUES(2, 2, 2);\n  INSERT INTO aux.t1 VALUES(3, 3, NULL);\n\n  CREATE TABLE aux.t2(x, y, z);\n")
+						}
+					}
+					{ // "9.1.1"
+						_res = db.Exec("\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL\n")
+						}
+					}
+					{ // "9.1.2"
+						r = db.Query("\n  UPDATE aux.t1 SET z=x;\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE aux.t1 SET z=x;\n  ALTER TABLE aux.t1 ALTER COLUMN z SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t1(x, y, z NOT NULL)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.1.3"
+						r = db.Query("\n  ALTER TABLE aux.t1 ALTER z DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE aux.t1 ALTER z DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t1(x, y, z)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.1.4"
+						r = db.Query("\n  ALTER TABLE t2 ALTER x SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 ALTER x SET NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t2(x NOT NULL, y, z)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.1.5"
+						r = db.Query("\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 ALTER x DROP NOT NULL;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t2(x, y, z)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.2.1"
+						_res = db.Exec("\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n")
+						}
+					}
+					{ // "9.2.2"
+						r = db.Query("\n  UPDATE aux.t1 SET y=4 WHERE y=2;\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE aux.t1 SET y=4 WHERE y=2;\n  ALTER TABLE aux.t1 ADD CONSTRAINT bill CHECK (y!=2);\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t1(x, y, z, CONSTRAINT bill CHECK (y!=2))}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.2.3"
+						r = db.Query("\n  ALTER TABLE aux.t1 DROP CONSTRAINT bill;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE aux.t1 DROP CONSTRAINT bill;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t1';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t1(x, y, z)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.2.4"
+						r = db.Query("\n  ALTER TABLE t2 ADD CONSTRAINT william CHECK (z!='');\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 ADD CONSTRAINT william CHECK (z!='');\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t2(x, y, z, CONSTRAINT william CHECK (z!=''))}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "9.2.5"
+						r = db.Query("\n  ALTER TABLE t2 DROP CONSTRAINT william;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t2 DROP CONSTRAINT william;\n  SELECT sql FROM aux.sqlite_schema WHERE name='t2';\n")
+							return
+						}
+						got := flatten(r)
+						want := "{CREATE TABLE t2(x, y, z)}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // "10.1"
+						_res = db.Exec("\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x,y,z);\n  INSERT INTO t1 VALUES(1,'two',x'3333');\n")
+						}
+					}
+					{ // "10.2"
+						_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_drop_column") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_drop_column", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( sqlite_drop_column(22,'CREATE TABLE a(b,c)', 0));\n")
+						}
+					}
+					{ // "10.3"
+						_res = db.Exec("\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"#2\\\": syntax error") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"#2\\\": syntax error", _res.Error, "\n  ALTER TABLE t1 ADD CONSTRAINT c1 CHECK( x>#2 );\n")
+						}
+					}
 }

@@ -158,98 +158,98 @@ func Test_io(t *testing.T) {
 	var tn = "0"
 	_ = tn // suppress unused warning
 	// foreach {char sectorsize pgsize} "\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n"
-	_items := []string{"\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n"}
+	_items := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	char := _items[_idx+0]
-	sectorsize := _items[_idx+1]
-	pgsize := _items[_idx+2]
-		// incr tn 1
-		{
-			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
+		char := _items[_idx+0]
+		sectorsize := _items[_idx+1]
+		pgsize := _items[_idx+2]
+		_ = _idx
+			// incr tn 1
+			{
+				_n, _err := strconv.Atoi(tn)
+				if _err == nil {
+					tn = strconv.Itoa(_n + 1)
+				}
 			}
-		}
-		if func() bool { pgsize_n, _pgsize_e := strconv.Atoi(pgsize); if _pgsize_e != nil { return false }; _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pgsize_n > _SQLITE_MAX_PAGE_SIZE_n }() {
-		}
-		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char $char -sectorsize $sectorsize")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n  ")
-		}
-		{ // do_test "io-5." + tn
-			_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
+			if func() bool { pgsize_n, _pgsize_e := strconv.Atoi(pgsize); if _pgsize_e != nil { return false }; _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pgsize_n > _SQLITE_MAX_PAGE_SIZE_n }() {
+			}
+			os.Remove("test.db")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char $char -sectorsize $sectorsize")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc(a, b, c);\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n  ")
 			}
-			// expr [file size test.db]/2 → "[file size test.db]/2"
-		}
-	}
-	}
-	{ // do_test "io-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	}
-	// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
-	_items := []string{"\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		if tclBool("permutation" + " == \"memsubsys1\"") {
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query("\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
-		}
-		{ // "6.2." + tn + ".1"
-			r = db.Query(" PRAGMA integrity_check ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-				return
-			}
-			got := flatten(r)
-			want := "ok"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "io-5." + tn
+				_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE abc(a, b, c);\n    ")
+				}
+				// expr [file size test.db]/2 → "[file size test.db]/2"
 			}
 		}
-		{ // "6.2." + tn + ".2"
-			_res = db.Exec(sql)
+		{ // do_test "io-6.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
+			os.Remove("test.db")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			}
+			t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 * 5] [string repeat 00 2048]")
-		{ // "6.2." + tn + ".3"
-			r = db.Query(" PRAGMA integrity_check ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-				return
+		// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
+		_items := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			_ = _idx
+				if tclBool("permutation" + " == \"memsubsys1\"") {
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query("\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
+				}
+				{ // "6.2." + tn + ".1"
+					r = db.Query(" PRAGMA integrity_check ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+						return
+					}
+					got := flatten(r)
+					want := "ok"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.2." + tn + ".2"
+					_res = db.Exec(sql)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 * 5] [string repeat 00 2048]")
+				{ // "6.2." + tn + ".3"
+					r = db.Query(" PRAGMA integrity_check ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+						return
+					}
+					got := flatten(r)
+					want := "ok"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
-			got := flatten(r)
-			want := "ok"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "unregister_devsim")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 0")
+			t.Skipf("TODO: %s not implemented in frigolite", "unregister_devsim")
 }

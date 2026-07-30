@@ -38,12 +38,12 @@ func Test_alterfault(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	// foreach {tn sql} "\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n"
-	_items := []string{"\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n"}
+	_items := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.e -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE x1 DROP CONSTRAINT no...} -test {\n  faultsim_test_result                           ...}")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.e -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE x1 DROP CONSTRAINT no...} -test {\n  faultsim_test_result                           ...}")
 }

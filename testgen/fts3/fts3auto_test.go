@@ -52,229 +52,229 @@ func Test_fts3auto(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.1 $A {\"c d\" 5 \"i j\" 1 \"e f\"} {0 0 0}")
 	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.2 $A {\"c d\" 5 \"i j\" 2 \"e f\"} {1 1 1}")
 	// foreach {tn create} "\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n"
-	_items := []string{"\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n"}
+	_items := tclSplitList("\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	create := _items[_idx+1]
-		{ // do_test "2." + tn + ".1"
-			_res = db.Exec(" DROP TABLE t1 ")
-			_ = _res // catchsql
-			_res = db.Exec("CREATE VIRTUAL TABLE t1 USING " + create)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + create)
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-				var doc = "list"
-				_ = doc // suppress unused warning
-				if tclBool(i + "&0x01") {
-					doc = tclListAppend(doc, "one")
-				}
-				if tclBool(i + "&0x02") {
-					doc = tclListAppend(doc, "two")
-				}
-				if tclBool(i + "&0x04") {
-					doc = tclListAppend(doc, "three")
-				}
-				if tclBool(i + "&0x08") {
-					doc = tclListAppend(doc, "four")
-				}
-				if tclBool(i + "&0x10") {
-					doc = tclListAppend(doc, "five")
-				}
-				_res = db.Exec(" INSERT INTO t1 VALUES($doc, null) ")
+		tn := _items[_idx+0]
+		create := _items[_idx+1]
+		_ = _idx
+			{ // do_test "2." + tn + ".1"
+				_res = db.Exec(" DROP TABLE t1 ")
+				_ = _res // catchsql
+				_res = db.Exec("CREATE VIRTUAL TABLE t1 USING " + create)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($doc, null) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + create)
 				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
+					var doc = "list"
+					_ = doc // suppress unused warning
+					if tclBool(i + "&0x01") {
+						doc = tclListAppend(doc, "one")
+					}
+					if tclBool(i + "&0x02") {
+						doc = tclListAppend(doc, "two")
+					}
+					if tclBool(i + "&0x04") {
+						doc = tclListAppend(doc, "three")
+					}
+					if tclBool(i + "&0x08") {
+						doc = tclListAppend(doc, "four")
+					}
+					if tclBool(i + "&0x10") {
+						doc = tclListAppend(doc, "five")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($doc, null) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($doc, null) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
 					}
 				}
 			}
-		}
-		// foreach {tn2 expr} "\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  "
-		_items := []string{"\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn2 := _items[_idx+0]
-		expr := _items[_idx+1]
-			t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 2.$tn.2.$tn2 t1 $expr")
-		}
-		}
-	}
-	}
-	// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
-	_items := []string{"\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	create := _items[_idx+1]
-		_res = db.Exec(" DROP TABLE t1 ")
-		_ = _res // catchsql
-		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING " + create)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + create)
-		}
-		{ // "3." + tn + ".1"
-			_res = db.Exec("\n    INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');\n  ")
+			// foreach {tn2 expr} "\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  "
+			_items := tclSplitList("\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  ")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn2 := _items[_idx+0]
+				expr := _items[_idx+1]
+				_ = _idx
+					t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 2.$tn.2.$tn2 t1 $expr")
+				}
 			}
-		}
-		var limit = "fts3_make_deferrable t1 c"
-		_ = limit // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.2.1 t1 {a OR c}")
-		// foreach {tn2 expr def} "\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "
-		_items := []string{"\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn2 := _items[_idx+0]
-		expr := _items[_idx+1]
-		def := _items[_idx+2]
-			t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr")
-		}
-		}
-	}
-	}
-	// foreach {tn create} "\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n"
-	_items := []string{"\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	create := _items[_idx+1]
-		_res = db.Exec("DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.1 t1 {one AND five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.2 t1 {one NEAR five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.3 t1 {one NEAR/1 five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.4 t1 {one NEAR/2 five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.5 t1 {one NEAR/3 five}")
-		{ // do_test "4." + tn + ".2"
-			var limit = "fts3_make_deferrable t1 five"
-			_ = limit // suppress unused warning
-			_res = db.Exec(" INSERT INTO t1(t1) VALUES('optimize') ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
-			}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.3 -deferred five t1 {one NEAR/1 five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.4 -deferred five t1 {one NEAR/2 five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.5 -deferred five t1 {one NEAR/3 five}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.1 -deferred fi* t1 {on* AND fi*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.2 -deferred fi* t1 {on* NEAR fi*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*}")
-	}
-	}
-	var chunkconfig = "fts3_configure_incr_load 1 1"
-	_ = chunkconfig // suppress unused warning
-	// foreach {tn create pending} "\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n"
-	_items := []string{"\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	create := _items[_idx+1]
-	pending := _items[_idx+2]
-		_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
-		}
-		if tclBool(pending) {
-			_res = db.Exec("BEGIN")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-			}
-		}
-		// foreach {a b} "\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  "
-		_items := []string{"\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		a := _items[_idx+0]
-		b := _items[_idx+1]
-			_res = db.Exec("INSERT INTO t1(a, b) VALUES($a, $b)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES($a, $b)")
-			}
-		}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.1 t1 {s*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.2 t1 {so*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.3 t1 {\"s* o*\"}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.4 t1 {b* NEAR/3 a*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.5 t1 {a*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.6 t1 {th* NEAR/5 a* NEAR/5 w*}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.7 t1 {\"b* th* art* fair*\"}")
-		if tclBool(pending) {
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-			}
-		}
-	}
-	}
-	// eval fts3_configure_incr_load $chunkconfig
-	// foreach {tn pending create} "\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n"
-	_items := []string{"\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	pending := _items[_idx+1]
-	create := _items[_idx+2]
-		_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
-		}
-		if tclBool(pending) {
-			_res = db.Exec("BEGIN")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-			}
-		}
-		// foreach {a b c d} "\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  "
-		_items := []string{"\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  "}
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		a := _items[_idx+0]
-		b := _items[_idx+1]
-		c := _items[_idx+2]
-		d := _items[_idx+3]
-			_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, $c, $d) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($a, $b, $c, $d) ")
-			}
-		}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.1 t1 {b:G}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.2 t1 {b:G AND c:I}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.3 t1 {b:G NEAR c:I}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.4 t1 {a:C OR b:G OR c:K OR d:C}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.5 t1 {a:G OR b:G}")
-		_res = db.Exec(" COMMIT ")
-		_ = _res // catchsql
-	}
-	}
-	// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
-	_items := []string{"\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	create := _items[_idx+1]
-		_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
-		}
-		for _, x := range []string{"\n    \"F E N O T K X V A X I E X A P G Q V H U\"\n    \"R V A E T C V Q N I E L O N U G J K L U\"\n    \"U Y I G W M V F J L X I D C H F P J Q B\"\n    \"S G D Z X R P G S S Y B K A S G A I L L\"\n    \"L S I C H T Z S R Q P R N K J X L F M J\"\n    \"C C C D P X B Z C M A D A C X S B T X V\"\n    \"W Y J M D R G V R K B X S A W R I T N C\"\n    \"P K L W T M S P O Y Y V V O E H Q A I R\"\n    \"C D Y I C Z F H J C O Y A Q F L S B D K\"\n    \"P G S C Y C Y V I M B D S Z D D Y W I E\"\n    \"Z K Z U E E S F Y X T U A L W O U J C Q\"\n    \"P A T Z S W L P L Q V Y Y I P W U X S S\"\n    \"I U I H U O F Z F R H R F T N D X A G M\"\n    \"N A B M S H K X S O Y D T X S B R Y H Z\"\n    \"L U D A S K I L S V Z J P U B E B Y H M\"\n  "} {
-			_res = db.Exec(" INSERT INTO t1 VALUES($x) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($x) ")
-			}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts3_make_deferrable t1 B 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.1 t1 {\"M B\"}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.2 t1 {\"B D\"}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.3 -deferred B t1 {\"M B D\"}")
-	}
-	}
-	var sqlite_fts3_enable_parentheses = sfep
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
+			// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
+			_items := tclSplitList("\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				create := _items[_idx+1]
+				_ = _idx
+					_res = db.Exec(" DROP TABLE t1 ")
+					_ = _res // catchsql
+					_res = db.Exec("CREATE VIRTUAL TABLE t1 USING " + create)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + create)
+					}
+					{ // "3." + tn + ".1"
+						_res = db.Exec("\n    INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');\n  ")
+						}
+					}
+					var limit = "fts3_make_deferrable t1 c"
+					_ = limit // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.2.1 t1 {a OR c}")
+					// foreach {tn2 expr def} "\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "
+					_items := tclSplitList("\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  ")
+					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+						tn2 := _items[_idx+0]
+						expr := _items[_idx+1]
+						def := _items[_idx+2]
+						_ = _idx
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr")
+						}
+					}
+					// foreach {tn create} "\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n"
+					_items := tclSplitList("\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n")
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						tn := _items[_idx+0]
+						create := _items[_idx+1]
+						_ = _idx
+							_res = db.Exec("DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.1 t1 {one AND five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.2 t1 {one NEAR five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.3 t1 {one NEAR/1 five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.4 t1 {one NEAR/2 five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.5 t1 {one NEAR/3 five}")
+							{ // do_test "4." + tn + ".2"
+								var limit = "fts3_make_deferrable t1 five"
+								_ = limit // suppress unused warning
+								_res = db.Exec(" INSERT INTO t1(t1) VALUES('optimize') ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.3 -deferred five t1 {one NEAR/1 five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.4 -deferred five t1 {one NEAR/2 five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.5 -deferred five t1 {one NEAR/3 five}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.1 -deferred fi* t1 {on* AND fi*}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.2 -deferred fi* t1 {on* NEAR fi*}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*}")
+							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*}")
+						}
+						var chunkconfig = "fts3_configure_incr_load 1 1"
+						_ = chunkconfig // suppress unused warning
+						// foreach {tn create pending} "\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n"
+						_items := tclSplitList("\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n")
+						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+							tn := _items[_idx+0]
+							create := _items[_idx+1]
+							pending := _items[_idx+2]
+							_ = _idx
+								_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
+								}
+								if tclBool(pending) {
+									_res = db.Exec("BEGIN")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+									}
+								}
+								// foreach {a b} "\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  "
+								_items := tclSplitList("\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  ")
+								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+									a := _items[_idx+0]
+									b := _items[_idx+1]
+									_ = _idx
+										_res = db.Exec("INSERT INTO t1(a, b) VALUES($a, $b)")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES($a, $b)")
+										}
+									}
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.1 t1 {s*}")
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.2 t1 {so*}")
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.3 t1 {\"s* o*\"}")
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.4 t1 {b* NEAR/3 a*}")
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.5 t1 {a*}")
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.6 t1 {th* NEAR/5 a* NEAR/5 w*}")
+									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.7 t1 {\"b* th* art* fair*\"}")
+									if tclBool(pending) {
+										_res = db.Exec("COMMIT")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+										}
+									}
+								}
+								// eval fts3_configure_incr_load $chunkconfig
+								// foreach {tn pending create} "\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n"
+								_items := tclSplitList("\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n")
+								for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+									tn := _items[_idx+0]
+									pending := _items[_idx+1]
+									create := _items[_idx+2]
+									_ = _idx
+										_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
+										}
+										if tclBool(pending) {
+											_res = db.Exec("BEGIN")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+											}
+										}
+										// foreach {a b c d} "\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  "
+										_items := tclSplitList("\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  ")
+										for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+											a := _items[_idx+0]
+											b := _items[_idx+1]
+											c := _items[_idx+2]
+											d := _items[_idx+3]
+											_ = _idx
+												_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, $c, $d) ")
+												if _res.Error != nil {
+													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($a, $b, $c, $d) ")
+												}
+											}
+											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.1 t1 {b:G}")
+											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.2 t1 {b:G AND c:I}")
+											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.3 t1 {b:G NEAR c:I}")
+											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.4 t1 {a:C OR b:G OR c:K OR d:C}")
+											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.5 t1 {a:G OR b:G}")
+											_res = db.Exec(" COMMIT ")
+											_ = _res // catchsql
+										}
+										// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
+										_items := tclSplitList("\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n")
+										for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+											tn := _items[_idx+0]
+											create := _items[_idx+1]
+											_ = _idx
+												_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
+												if _res.Error != nil {
+													t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
+												}
+												for _, x := range tclSplitList("\n    \"F E N O T K X V A X I E X A P G Q V H U\"\n    \"R V A E T C V Q N I E L O N U G J K L U\"\n    \"U Y I G W M V F J L X I D C H F P J Q B\"\n    \"S G D Z X R P G S S Y B K A S G A I L L\"\n    \"L S I C H T Z S R Q P R N K J X L F M J\"\n    \"C C C D P X B Z C M A D A C X S B T X V\"\n    \"W Y J M D R G V R K B X S A W R I T N C\"\n    \"P K L W T M S P O Y Y V V O E H Q A I R\"\n    \"C D Y I C Z F H J C O Y A Q F L S B D K\"\n    \"P G S C Y C Y V I M B D S Z D D Y W I E\"\n    \"Z K Z U E E S F Y X T U A L W O U J C Q\"\n    \"P A T Z S W L P L Q V Y Y I P W U X S S\"\n    \"I U I H U O F Z F R H R F T N D X A G M\"\n    \"N A B M S H K X S O Y D T X S B R Y H Z\"\n    \"L U D A S K I L S V Z J P U B E B Y H M\"\n  ") {
+													_res = db.Exec(" INSERT INTO t1 VALUES($x) ")
+													if _res.Error != nil {
+														t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($x) ")
+													}
+												}
+												t.Skipf("TODO: %s not implemented in frigolite", "fts3_make_deferrable t1 B 2")
+												t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.1 t1 {\"M B\"}")
+												t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.2 t1 {\"B D\"}")
+												t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.3 -deferred B t1 {\"M B D\"}")
+											}
+											var sqlite_fts3_enable_parentheses = sfep
+											_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

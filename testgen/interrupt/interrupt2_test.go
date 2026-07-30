@@ -45,7 +45,7 @@ func Test_interrupt2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	for _, idelay := range []string{"\n  5\n  10\n  15\n  20\n"} {
+	for _, idelay := range tclSplitList("\n  5\n  10\n  15\n  20\n") {
 		var _trigger_interrupt = idelay // TCL namespace variable
 		_ = _trigger_interrupt // suppress unused warning
 		{ // "1." + idelay + ".1"

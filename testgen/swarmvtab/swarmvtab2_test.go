@@ -21,7 +21,7 @@ func Test_swarmvtab2(t *testing.T) {
 	var testprefix = "swarmvtab2"
 	_ = testprefix // suppress unused warning
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	for _, name := range []string{"glob -nocomplain test*.db"} {
+	for _, name := range tclSplitList("glob -nocomplain test*.db") {
 		os.Remove(name)
 	}
 	db, err = frigolite.Open("test.db")

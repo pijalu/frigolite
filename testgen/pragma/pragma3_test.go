@@ -182,41 +182,41 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n"
-	_items := []string{"\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n"}
+	_items := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec(sql)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			}
+			{ // "pragma3-510" + tn
+				r = db.Query("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "pragma3-520" + tn
+				r = db.Query("\n    BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 		}
-		{ // "pragma3-510" + tn
-			r = db.Query("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA data_version;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "pragma3-520" + tn
-			r = db.Query("\n    BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN EXCLUSIVE;\n    COMMIT;\n    PRAGMA data_version;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

@@ -648,186 +648,186 @@ func Test_table(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	// foreach {date time seconds} "\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n"
-	_items := []string{"\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n"}
+	_items := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	date := _items[_idx+0]
-	time := _items[_idx+1]
-	seconds := _items[_idx+2]
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
+		date := _items[_idx+0]
+		time := _items[_idx+1]
+		seconds := _items[_idx+2]
+		_ = _idx
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+			var sqlite_current_time = seconds
+			_ = sqlite_current_time // suppress unused warning
+			{ // do_test "table-13.2." + i
+				r = db.Query("\n      INSERT INTO tablet8(a) VALUES(" + i + ");\n      SELECT tm, dt, dttm FROM tablet8 WHERE a=" + i + ";\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO tablet8(a) VALUES(" + i + ");\n      SELECT tm, dt, dttm FROM tablet8 WHERE a=" + i + ";\n    ")
+				}
 			}
 		}
-		var sqlite_current_time = seconds
+		var sqlite_current_time = "0"
 		_ = sqlite_current_time // suppress unused warning
-		{ // do_test "table-13.2." + i
-			r = db.Query("\n      INSERT INTO tablet8(a) VALUES(" + i + ");\n      SELECT tm, dt, dttm FROM tablet8 WHERE a=" + i + ";\n    ")
+		{ // do_test "table-14.1"
+			var rc = "0"
+			_ = rc // suppress unused warning
+			var result = "list $rc $msg"
+			_ = result // suppress unused warning
+		}
+		{ // do_test "table-14.2"
+			var rc = "0"
+			_ = rc // suppress unused warning
+			var result = "list $rc $msg"
+			_ = result // suppress unused warning
+		}
+		{ // do_test "table-15.1"
+			_res = db.Exec("BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+			}
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
+				_res = db.Exec("CREATE TABLE tbl" + i + " (a, b, c)")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl" + i + " (a, b, c)")
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+		}
+		{ // do_test "table-15.2"
+			_res = db.Exec("BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+			}
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
+				_res = db.Exec("DROP TABLE tbl" + i)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE tbl" + i)
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+		}
+		{ // "table-16.1"
+			r = db.Query("\n  CREATE TABLE t16(x DEFAULT(max(1)));\n  INSERT INTO t16(x) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO tablet8(a) VALUES(" + i + ");\n      SELECT tm, dt, dttm FROM tablet8 WHERE a=" + i + ";\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t16(x DEFAULT(max(1)));\n  INSERT INTO t16(x) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 123"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	var sqlite_current_time = "0"
-	_ = sqlite_current_time // suppress unused warning
-	{ // do_test "table-14.1"
-		var rc = "0"
-		_ = rc // suppress unused warning
-		var result = "list $rc $msg"
-		_ = result // suppress unused warning
-	}
-	{ // do_test "table-14.2"
-		var rc = "0"
-		_ = rc // suppress unused warning
-		var result = "list $rc $msg"
-		_ = result // suppress unused warning
-	}
-	{ // do_test "table-15.1"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
-			_res = db.Exec("CREATE TABLE tbl" + i + " (a, b, c)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl" + i + " (a, b, c)")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+		{ // "table-16.2"
+			_res = db.Exec("\n  INSERT INTO t16(rowid) VALUES(4);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: max()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: max()", _res.Error, "\n  INSERT INTO t16(rowid) VALUES(4);\n")
 			}
 		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	{ // do_test "table-15.2"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
-			_res = db.Exec("DROP TABLE tbl" + i)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE tbl" + i)
+		{ // "table-16.3"
+			r = db.Query("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(abs(1)));\n  INSERT INTO t16(rowid) VALUES(4);\n  SELECT rowid, x FROM t16;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(abs(1)));\n  INSERT INTO t16(rowid) VALUES(4);\n  SELECT rowid, x FROM t16;\n")
+				return
 			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+			got := flatten(r)
+			want := "4 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		{ // "table-16.4"
+			_res = db.Exec("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(avg(1)));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: avg()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: avg()", _res.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(avg(1)));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+			}
 		}
-	}
-	{ // "table-16.1"
-		r = db.Query("\n  CREATE TABLE t16(x DEFAULT(max(1)));\n  INSERT INTO t16(x) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t16(x DEFAULT(max(1)));\n  INSERT INTO t16(x) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
-			return
+		{ // "table-16.5"
+			_res = db.Exec("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(count()));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: count()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: count()", _res.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(count()));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+			}
 		}
-		got := flatten(r)
-		want := "1 123"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "table-16.6"
+			_res = db.Exec("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(string_agg('x',',')));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: string_agg()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: string_agg()", _res.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(string_agg('x',',')));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+			}
 		}
-	}
-	{ // "table-16.2"
-		_res = db.Exec("\n  INSERT INTO t16(rowid) VALUES(4);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: max()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: max()", _res.Error, "\n  INSERT INTO t16(rowid) VALUES(4);\n")
+		{ // "table-16.7"
+			_res = db.Exec("\n  INSERT INTO t16 DEFAULT VALUES;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: string_agg()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: string_agg()", _res.Error, "\n  INSERT INTO t16 DEFAULT VALUES;\n")
+			}
 		}
-	}
-	{ // "table-16.3"
-		r = db.Query("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(abs(1)));\n  INSERT INTO t16(rowid) VALUES(4);\n  SELECT rowid, x FROM t16;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(abs(1)));\n  INSERT INTO t16(rowid) VALUES(4);\n  SELECT rowid, x FROM t16;\n")
-			return
+		{ // "table-17.1"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES(1),(2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x TEXT, y TEXT);\n  INSERT INTO t2(x,y) VALUES(3,4);\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS\n    SELECT a AS p, coalesce(y,a) AS q FROM t1 LEFT JOIN t2 ON a=x;\n  SELECT p, q, '|' FROM t3 ORDER BY p;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES(1),(2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x TEXT, y TEXT);\n  INSERT INTO t2(x,y) VALUES(3,4);\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS\n    SELECT a AS p, coalesce(y,a) AS q FROM t1 LEFT JOIN t2 ON a=x;\n  SELECT p, q, '|' FROM t3 ORDER BY p;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 | 2 2 |"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "4 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "table-18.1"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  BEGIN;\n  CREATE TABLE t1 AS SELECT zeroblob(2e20);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  BEGIN;\n  CREATE TABLE t1 AS SELECT zeroblob(2e20);\n")
+			}
 		}
-	}
-	{ // "table-16.4"
-		_res = db.Exec("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(avg(1)));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: avg()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: avg()", _res.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(avg(1)));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+		{ // "table-18.2"
+			r = db.Query("\n  COMMIT;\n  PRAGMA integrity_check;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  COMMIT;\n  PRAGMA integrity_check;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "table-16.5"
-		_res = db.Exec("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(count()));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: count()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: count()", _res.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(count()));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
+		{ // "table-19.1"
+			r = db.Query("\n  CREATE TABLE t19 AS SELECT * FROM sqlite_master;\n  SELECT name FROM t19 ORDER BY name;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t19 AS SELECT * FROM sqlite_master;\n  SELECT name FROM t19 ORDER BY name;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{} savepoint t10 t11 t12 t13 t16 t2 t3 t3\\\"xyz t4\\\"abc t7 t8 t9 tablet8 test1 weird"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "table-16.6"
-		_res = db.Exec("\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(string_agg('x',',')));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: string_agg()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: string_agg()", _res.Error, "\n  DROP TABLE t16;\n  CREATE TABLE t16(x DEFAULT(string_agg('x',',')));\n  INSERT INTO t16(rowid) VALUES(123);\n  SELECT rowid, x FROM t16;\n")
-		}
-	}
-	{ // "table-16.7"
-		_res = db.Exec("\n  INSERT INTO t16 DEFAULT VALUES;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unknown function: string_agg()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown function: string_agg()", _res.Error, "\n  INSERT INTO t16 DEFAULT VALUES;\n")
-		}
-	}
-	{ // "table-17.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES(1),(2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x TEXT, y TEXT);\n  INSERT INTO t2(x,y) VALUES(3,4);\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS\n    SELECT a AS p, coalesce(y,a) AS q FROM t1 LEFT JOIN t2 ON a=x;\n  SELECT p, q, '|' FROM t3 ORDER BY p;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a TEXT);\n  INSERT INTO t1(a) VALUES(1),(2);\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(x TEXT, y TEXT);\n  INSERT INTO t2(x,y) VALUES(3,4);\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3 AS\n    SELECT a AS p, coalesce(y,a) AS q FROM t1 LEFT JOIN t2 ON a=x;\n  SELECT p, q, '|' FROM t3 ORDER BY p;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 1 | 2 2 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "table-18.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  BEGIN;\n  CREATE TABLE t1 AS SELECT zeroblob(2e20);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  BEGIN;\n  CREATE TABLE t1 AS SELECT zeroblob(2e20);\n")
-		}
-	}
-	{ // "table-18.2"
-		r = db.Query("\n  COMMIT;\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  COMMIT;\n  PRAGMA integrity_check;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "table-19.1"
-		r = db.Query("\n  CREATE TABLE t19 AS SELECT * FROM sqlite_master;\n  SELECT name FROM t19 ORDER BY name;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t19 AS SELECT * FROM sqlite_master;\n  SELECT name FROM t19 ORDER BY name;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} savepoint t10 t11 t12 t13 t16 t2 t3 t3\\\"xyz t4\\\"abc t7 t8 t9 tablet8 test1 weird"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

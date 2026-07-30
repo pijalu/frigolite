@@ -37,239 +37,239 @@ func Test_fts3conf(t *testing.T) {
 	var T4 = "t1 SET docid = CASE WHEN docid = 1 THEN 4 ELSE 3 END WHERE docid <=2"
 	_ = T4 // suppress unused warning
 	// foreach {tn sql uses constraint data} "1    \"INSERT OR ROLLBACK " + T1 + "\"   0 1 {{a b c d} {e f g h}}\n  2    \"INSERT OR ABORT    " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  3    \"INSERT OR FAIL     " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  4    \"INSERT OR IGNORE   " + T1 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  5    \"INSERT OR REPLACE  " + T1 + "\"   0 0 {x {e f g h} {i j k l}}\n\n  6    \"INSERT OR ROLLBACK " + T2 + "\"   1 1 {{a b c d} {e f g h}}\n  7    \"INSERT OR ABORT    " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  8    \"INSERT OR FAIL     " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l} z}\n  9    \"INSERT OR IGNORE   " + T2 + "\"   1 0 {{a b c d} {e f g h} {i j k l} z}\n  10   \"INSERT OR REPLACE  " + T2 + "\"   1 0 {{a b c d} y {i j k l} z}\n\n  11   \"UPDATE OR ROLLBACK " + T3 + "\"   0 1 {{a b c d} {e f g h}}\n  12   \"UPDATE OR ABORT    " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  13   \"UPDATE OR FAIL     " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  14   \"UPDATE OR IGNORE   " + T3 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  15   \"UPDATE OR REPLACE  " + T3 + "\"   0 0 {{a b c d} {i j k l}}\n\n  16   \"UPDATE OR ROLLBACK " + T4 + "\"   1 1 {{a b c d} {e f g h}}\n  17   \"UPDATE OR ABORT    " + T4 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  18   \"UPDATE OR FAIL     " + T4 + "\"   1 1 {{e f g h} {i j k l} {a b c d}}\n  19   \"UPDATE OR IGNORE   " + T4 + "\"   1 0 {{e f g h} {i j k l} {a b c d}}\n  20   \"UPDATE OR REPLACE  " + T4 + "\"   1 0 {{e f g h} {a b c d}}"
-	_items := []string{"1    \"INSERT OR ROLLBACK " + T1 + "\"   0 1 {{a b c d} {e f g h}}\n  2    \"INSERT OR ABORT    " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  3    \"INSERT OR FAIL     " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  4    \"INSERT OR IGNORE   " + T1 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  5    \"INSERT OR REPLACE  " + T1 + "\"   0 0 {x {e f g h} {i j k l}}\n\n  6    \"INSERT OR ROLLBACK " + T2 + "\"   1 1 {{a b c d} {e f g h}}\n  7    \"INSERT OR ABORT    " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  8    \"INSERT OR FAIL     " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l} z}\n  9    \"INSERT OR IGNORE   " + T2 + "\"   1 0 {{a b c d} {e f g h} {i j k l} z}\n  10   \"INSERT OR REPLACE  " + T2 + "\"   1 0 {{a b c d} y {i j k l} z}\n\n  11   \"UPDATE OR ROLLBACK " + T3 + "\"   0 1 {{a b c d} {e f g h}}\n  12   \"UPDATE OR ABORT    " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  13   \"UPDATE OR FAIL     " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  14   \"UPDATE OR IGNORE   " + T3 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  15   \"UPDATE OR REPLACE  " + T3 + "\"   0 0 {{a b c d} {i j k l}}\n\n  16   \"UPDATE OR ROLLBACK " + T4 + "\"   1 1 {{a b c d} {e f g h}}\n  17   \"UPDATE OR ABORT    " + T4 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  18   \"UPDATE OR FAIL     " + T4 + "\"   1 1 {{e f g h} {i j k l} {a b c d}}\n  19   \"UPDATE OR IGNORE   " + T4 + "\"   1 0 {{e f g h} {i j k l} {a b c d}}\n  20   \"UPDATE OR REPLACE  " + T4 + "\"   1 0 {{e f g h} {a b c d}}"}
+	_items := tclSplitList("1    \"INSERT OR ROLLBACK " + T1 + "\"   0 1 {{a b c d} {e f g h}}\n  2    \"INSERT OR ABORT    " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  3    \"INSERT OR FAIL     " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  4    \"INSERT OR IGNORE   " + T1 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  5    \"INSERT OR REPLACE  " + T1 + "\"   0 0 {x {e f g h} {i j k l}}\n\n  6    \"INSERT OR ROLLBACK " + T2 + "\"   1 1 {{a b c d} {e f g h}}\n  7    \"INSERT OR ABORT    " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  8    \"INSERT OR FAIL     " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l} z}\n  9    \"INSERT OR IGNORE   " + T2 + "\"   1 0 {{a b c d} {e f g h} {i j k l} z}\n  10   \"INSERT OR REPLACE  " + T2 + "\"   1 0 {{a b c d} y {i j k l} z}\n\n  11   \"UPDATE OR ROLLBACK " + T3 + "\"   0 1 {{a b c d} {e f g h}}\n  12   \"UPDATE OR ABORT    " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  13   \"UPDATE OR FAIL     " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  14   \"UPDATE OR IGNORE   " + T3 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  15   \"UPDATE OR REPLACE  " + T3 + "\"   0 0 {{a b c d} {i j k l}}\n\n  16   \"UPDATE OR ROLLBACK " + T4 + "\"   1 1 {{a b c d} {e f g h}}\n  17   \"UPDATE OR ABORT    " + T4 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  18   \"UPDATE OR FAIL     " + T4 + "\"   1 1 {{e f g h} {i j k l} {a b c d}}\n  19   \"UPDATE OR IGNORE   " + T4 + "\"   1 0 {{e f g h} {i j k l} {a b c d}}\n  20   \"UPDATE OR REPLACE  " + T4 + "\"   1 0 {{e f g h} {a b c d}}")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	uses := _items[_idx+2]
-	constraint := _items[_idx+3]
-	data := _items[_idx+4]
-		t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
-		}
-		var R_0 = "0 {}"
-		_ = R_0 // suppress unused warning
-		var R_1 = "1 {constraint failed}"
-		_ = R_1 // suppress unused warning
-		{ // "1." + tn + ".1"
-			_res = db.Exec(sql)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
-			}
-		}
-		{ // "1." + tn + ".2"
-			_res = db.Exec(" SELECT * FROM t1 ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t1 ")
-			}
-		}
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-		t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 1.$tn.3 db t1")
-		{ // do_test "1." + tn + ".4"
-			_res = db.Exec("list sql_uses_stmt db $sql")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		uses := _items[_idx+2]
+		constraint := _items[_idx+3]
+		data := _items[_idx+4]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+			_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list sql_uses_stmt db $sql")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
+			}
+			var R_0 = "0 {}"
+			_ = R_0 // suppress unused warning
+			var R_1 = "1 {constraint failed}"
+			_ = R_1 // suppress unused warning
+			{ // "1." + tn + ".1"
+				_res = db.Exec(sql)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", sql)
+				}
+			}
+			{ // "1." + tn + ".2"
+				_res = db.Exec(" SELECT * FROM t1 ")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t1 ")
+				}
+			}
+			_res = db.Exec("COMMIT")
+			_ = _res // catchsql
+			t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 1.$tn.3 db t1")
+			{ // do_test "1." + tn + ".4"
+				_res = db.Exec("list sql_uses_stmt db $sql")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list sql_uses_stmt db $sql")
+				}
 			}
 		}
-	}
-	}
-	{ // "2.1.1"
-		_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
+		{ // "2.1.1"
+			_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
+			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 2.1.2 db t1")
-	{ // "2.2.1"
-		_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
+		t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 2.1.2 db t1")
+		{ // "2.2.1"
+			_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "datatype mismatch", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
+			}
 		}
-	}
-	{ // "2.2.2"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // "2.2.2"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	{ // "2.2.3"
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-			return
-		}
-		got := flatten(r)
-		want := "{a b c} {a b c}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 2.2.4 db t1")
-	if tcl_platform(byteOrder) == "littleEndian" {
-		{ // "3.1"
-			r = db.Query("\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+		{ // "2.2.3"
+			r = db.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 				return
 			}
 			got := flatten(r)
-			want := "X'0100000002000000'"
+			want := "{a b c} {a b c}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "3.2"
-			r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES (2, 'one two three four');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'four'\n  ")
+		t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 2.2.4 db t1")
+		if tcl_platform(byteOrder) == "littleEndian" {
+			{ // "3.1"
+				r = db.Query("\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0100000002000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.2"
+				r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES (2, 'one two three four');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'four'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES (2, 'one two three four');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'four'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0200000003000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.3"
+				r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two three four five six');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two three four five six');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0200000005000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4"
+				r = db.Query("\n    UPDATE OR REPLACE t3 SET docid = 2 WHERE docid=1;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t3 SET docid = 2 WHERE docid=1;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0100000006000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5"
+				r = db.Query("\n    UPDATE OR REPLACE t3 SET docid = 3 WHERE docid=2;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t3 SET docid = 3 WHERE docid=2;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0100000006000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6"
+				r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES (3, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES (3, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0100000002000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7"
+				r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "3 4 5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.8"
+				r = db.Query("\n    UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "X'0200000002000000'"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "4.1.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
+			}
+		}
+		{ // "4.1.2"
+			_res = db.Exec("\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
+			}
+		}
+		{ // "4.1.3"
+			r = db.Query("\n  SELECT * FROM t0 WHERE t0 MATCH 'abc';\n  INSERT INTO t0(t0) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES (2, 'one two three four');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'four'\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE t0 MATCH 'abc';\n  INSERT INTO t0(t0) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
 				return
 			}
 			got := flatten(r)
-			want := "X'0200000003000000'"
+			want := "ok"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "3.3"
-			r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two three four five six');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+		{ // "4.2.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
+			}
+		}
+		{ // "4.2.2"
+			r = db.Query("\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two three four five six');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
 				return
 			}
 			got := flatten(r)
-			want := "X'0200000005000000'"
+			want := "ok"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "3.4"
-			r = db.Query("\n    UPDATE OR REPLACE t3 SET docid = 2 WHERE docid=1;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t3 SET docid = 2 WHERE docid=1;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "X'0100000006000000'"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "4.3.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
 			}
 		}
-		{ // "3.5"
-			r = db.Query("\n    UPDATE OR REPLACE t3 SET docid = 3 WHERE docid=2;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t3 SET docid = 3 WHERE docid=2;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'six'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "X'0100000006000000'"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "4.3.2"
+			_res = db.Exec("\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
 			}
 		}
-		{ // "3.6"
-			r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES (3, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES (3, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "X'0100000002000000'"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "4.4.1"
+			_res = db.Exec("\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
 			}
 		}
-		{ // "3.7"
-			r = db.Query("\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four');\n    REPLACE INTO t3(docid, content) VALUES(NULL,'one two three four five six');\n    SELECT docid FROM t3;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "3 4 5"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "4.4.2"
+			_res = db.Exec("\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
 			}
 		}
-		{ // "3.8"
-			r = db.Query("\n    UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t3 SET docid = 5, content='three four' WHERE docid = 4;\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "X'0200000002000000'"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	{ // "4.1.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  CREATE VIRTUAL TABLE t0 USING fts4;\n  BEGIN;\n    INSERT INTO t0(rowid, content) SELECT\n      1, 'abc' UNION ALL SELECT\n      2, 'def' UNION ALL SELECT\n      1, 'ghi';\n")
-		}
-	}
-	{ // "4.1.2"
-		_res = db.Exec("\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
-		}
-	}
-	{ // "4.1.3"
-		r = db.Query("\n  SELECT * FROM t0 WHERE t0 MATCH 'abc';\n  INSERT INTO t0(t0) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE t0 MATCH 'abc';\n  INSERT INTO t0(t0) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t01 USING fts4;\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
-		}
-	}
-	{ // "4.2.2"
-		r = db.Query("\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n  PRAGMA integrity_check;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.3.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t02 USING fts4;\n  INSERT INTO t01 VALUES('1 1 1');\n  INSERT INTO t02 VALUES('2 2 2');\n  BEGIN;\n    SAVEPOINT abc;\n      INSERT INTO t01 VALUES('a b c');\n      INSERT INTO t02 VALUES('a b c');\n    ROLLBACK TO abc;\n  COMMIT;\n")
-		}
-	}
-	{ // "4.3.2"
-		_res = db.Exec("\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT * FROM t01 WHERE t01 MATCH 'b';\n  INSERT INTO t01(t01) VALUES('integrity-check');\n")
-		}
-	}
-	{ // "4.4.1"
-		_res = db.Exec("\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE A(ID INTEGER PRIMARY KEY, AnotherID INTEGER, Notes TEXT);\n  CREATE VIRTUAL TABLE AFTS USING FTS4 (Notes);\n  CREATE TRIGGER A_DeleteTrigger AFTER DELETE ON A FOR EACH ROW BEGIN \n    DELETE FROM AFTS WHERE rowid=OLD.ID; \n  END;\n  CREATE TABLE B(ID INTEGER PRIMARY KEY,Notes TEXT);\n  CREATE VIRTUAL TABLE BFTS USING FTS3 (Notes);\n  CREATE TRIGGER B_DeleteTrigger AFTER DELETE ON B FOR EACH ROW BEGIN \n    DELETE FROM BFTS WHERE rowid=OLD.ID; \n  END;\n")
-		}
-	}
-	{ // "4.4.2"
-		_res = db.Exec("\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN TRANSACTION;\n    DELETE FROM A WHERE AnotherID=1;\n    DELETE FROM B WHERE ID=1;\n  COMMIT;\n")
-		}
-	}
 }

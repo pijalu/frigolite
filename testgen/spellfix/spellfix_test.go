@@ -28,7 +28,7 @@ func Test_spellfix(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING spellfix1 ")
 		}
-		for _, word := range []string{vocab} {
+		for _, word := range tclSplitList(vocab) {
 			_res = db.Exec(" INSERT INTO t1(word) VALUES($word) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(word) VALUES($word) ")
@@ -36,532 +36,532 @@ func Test_spellfix(t *testing.T) {
 		}
 	}
 	// foreach {tn word res} "\n  1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}\n"
-	_items := []string{"\n  1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}\n"}
+	_items := tclSplitList("\n  1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	word := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "1.2." + tn
-			r = db.Query("\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
-				return
+		tn := _items[_idx+0]
+		word := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // "1.2." + tn
+				r = db.Query("\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
 		}
-	}
-	}
-	{ // do_test "1.10"
-		_res = db.Exec("\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
-		}
-	}
-	{ // "1.11"
-		r = db.Query("\n  SELECT next_char('re','vocab','w');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('re','vocab','w');\n")
-			return
-		}
-		got := flatten(r)
-		want := "a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.11sub"
-		r = db.Query("\n  SELECT next_char('re','(SELECT w AS x FROM vocab)','x');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('re','(SELECT w AS x FROM vocab)','x');\n")
-			return
-		}
-		got := flatten(r)
-		want := "a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.12"
-		r = db.Query("\n  SELECT next_char('r','vocab','w');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('r','vocab','w');\n")
-			return
-		}
-		got := flatten(r)
-		want := "ae"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.13"
-		r = db.Query("\n  SELECT next_char('','vocab','w');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('','vocab','w');\n")
-			return
-		}
-		got := flatten(r)
-		want := "r"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "1.14"
-		_res = db.Exec("SELECT next_char('','xyzzy','a')")
-		_ = _res // catchsql
-	}
-	{ // "1.20"
-		r = db.Query("\n  CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');\n")
-			return
-		}
-		got := flatten(r)
-		want := "cDeF"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.21"
-		r = db.Query("\n  SELECT next_char('ab','vocab2','w',null,null);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('ab','vocab2','w',null,null);\n")
-			return
-		}
-		got := flatten(r)
-		want := "c"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.22"
-		r = db.Query("\n  SELECT next_char('AB','vocab2','w',null,'NOCASE');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('AB','vocab2','w',null,'NOCASE');\n")
-			return
-		}
-		got := flatten(r)
-		want := "cDeF"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.23"
-		r = db.Query("\n  SELECT next_char('ab','vocab2','w',null,'binary');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('ab','vocab2','w',null,'binary');\n")
-			return
-		}
-		got := flatten(r)
-		want := "c"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.30"
-		r = db.Query("\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
-			return
-		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.31"
-		r = db.Query("\n  UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
-			return
-		}
-		got := flatten(r)
-		want := "2000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1.32"
-		r = db.Query("\n  INSERT INTO t1(rowid, word) VALUES(3000,'melody');\n  SELECT rowid, word, matchlen FROM t1 WHERE word MATCH 'melotti'\n   ORDER BY score LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1(rowid, word) VALUES(3000,'melody');\n  SELECT rowid, word, matchlen FROM t1 WHERE word MATCH 'melotti'\n   ORDER BY score LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "3000 melody 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "1.33"
-		_res = db.Exec("INSERT INTO t1(rowid, word) VALUES(3000,'garden');")
-		_ = _res // catchsql
-	}
-	{ // "2.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING spellfix1;\n  INSERT INTO t2 (word, soundslike) VALUES('school', 'skuul');\n  INSERT INTO t2 (word, soundslike) VALUES('psalm', 'sarm');\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'sar*' LIMIT 5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING spellfix1;\n  INSERT INTO t2 (word, soundslike) VALUES('school', 'skuul');\n  INSERT INTO t2 (word, soundslike) VALUES('psalm', 'sarm');\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'sar*' LIMIT 5;\n")
-			return
-		}
-		got := flatten(r)
-		want := "psalm 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.2"
-		r = db.Query("\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'skol*' LIMIT 5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'skol*' LIMIT 5;\n")
-			return
-		}
-		got := flatten(r)
-		want := "school 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var vocab = "\nkangaroo kanji kappa karate keel keeled keeling keels keen keener keenest\nkeenly keenness keep keeper keepers keeping keeps ken kennel kennels kept\nkerchief kerchiefs kern kernel kernels kerosene ketchup kettle\nkettles key keyboard keyboards keyed keyhole keying keynote keypad keypads keys\nkeystroke keystrokes keyword keywords kick kicked kicker kickers kicking\nkickoff kicks kid kidded kiddie kidding kidnap kidnapper kidnappers kidnapping\nkidnappings kidnaps kidney kidneys kids kill killed killer killers killing\nkillingly killings killjoy kills kilobit kilobits kiloblock kilobyte kilobytes\nkilogram kilograms kilohertz kilohm kilojoule kilometer kilometers kiloton\nkilovolt kilowatt kiloword kimono kin kind kinder kindergarten kindest\nkindhearted kindle kindled kindles kindling kindly kindness kindred kinds\nkinetic king kingdom kingdoms kingly kingpin kings kink kinky kinship kinsman\nkiosk kiss kissed kisser kissers kisses kissing kit kitchen kitchenette\nkitchens kite kited kites kiting kits kitten kittenish kittens kitty klaxon\nkludge kludges klystron knack knapsack knapsacks knave knaves knead kneads knee\nkneecap kneed kneeing kneel kneeled kneeling kneels knees knell knells knelt\nknew knife knifed knifes knifing knight knighted knighthood knighting knightly\nknights knit knits knives knob knobs knock knockdown knocked knocker knockers\nknocking knockout knocks knoll knolls knot knots knotted knotting know knowable\nknower knowhow knowing knowingly knowledge knowledgeable known knows knuckle\nknuckled knuckles koala kosher kudo\n"
-	_ = vocab // suppress unused warning
-	{ // "3.1"
-		_res = db.Exec("\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
-		}
-	}
-	{ // do_test "3.2"
-		for _, w := range []string{vocab} {
-			_res = db.Exec(" INSERT INTO t3(word) VALUES($w) ")
+		{ // do_test "1.10"
+			_res = db.Exec("\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(word) VALUES($w) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE vocab(w TEXT PRIMARY KEY);\n    INSERT INTO vocab SELECT word FROM t1;\n  ")
 			}
 		}
-	}
-	// foreach {tn word res} "\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n"
-	_items := []string{"\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	word := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "3.2." + tn
-			r = db.Query("\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+		{ // "1.11"
+			r = db.Query("\n  SELECT next_char('re','vocab','w');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('re','vocab','w');\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "a"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "4.0"
-		_res = db.Exec("\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
-		}
-	}
-	// foreach {tn word res} "\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n"
-	_items := []string{"\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	word := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "4.1." + tn
-			r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+		{ // "1.11sub"
+			r = db.Query("\n  SELECT next_char('re','(SELECT w AS x FROM vocab)','x');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('re','(SELECT w AS x FROM vocab)','x');\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "a"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
-		}
-	}
-	// foreach {tn word res} "\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n"
-	_items := []string{"\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	word := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "5.1." + tn
-			r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
+		{ // "1.12"
+			r = db.Query("\n  SELECT next_char('r','vocab','w');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('r','vocab','w');\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "ae"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "6.1.1"
-		r = db.Query("\n  SELECT word FROM t3 WHERE rowid = 10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM t3 WHERE rowid = 10;\n")
-			return
-		}
-		got := flatten(r)
-		want := "keener"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.1.2"
-		r = db.Query("\n  SELECT word, distance FROM t3 WHERE rowid = 10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM t3 WHERE rowid = 10;\n")
-			return
-		}
-		got := flatten(r)
-		want := "keener {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.1.3"
-		r = db.Query("\n  SELECT word, distance FROM t3 WHERE rowid = 10 AND word MATCH 'kiiner';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM t3 WHERE rowid = 10 AND word MATCH 'kiiner';\n")
-			return
-		}
-		got := flatten(r)
-		want := "keener 300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE t4 USING spellfix1;\n  PRAGMA table_info = t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t4 USING spellfix1;\n  PRAGMA table_info = t4;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  0 word {} 0 {} 0 \n  1 rank {} 0 {} 0 \n  2 distance {} 0 {} 0 \n  3 langid {} 0 {} 0 \n  4 score {} 0 {} 0 \n  5 matchlen {} 0 {} 0\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2.1"
-		r = db.Query("\n  INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 Archilles   2 Apollo   3 Atrides\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2.2"
-		_res = db.Exec("\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
-		}
-	}
-	{ // "7.2.3"
-		_res = db.Exec("\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
-		}
-	}
-	{ // "7.2.4"
-		_res = db.Exec("\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
-		}
-	}
-	{ // "7.2.5"
-		r = db.Query("\n  INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 Archilles   2 Apollo   3 Atrides\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.3.1"
-		r = db.Query("\n  UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 Apollo 3 Archilles"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.3.2"
-		_res = db.Exec("\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
-		}
-	}
-	{ // "7.3.3"
-		_res = db.Exec("\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
-		}
-	}
-	{ // "7.3.4"
-		_res = db.Exec("\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
-		}
-	}
-	{ // "7.3.5"
-		r = db.Query("\n  UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 Apollo  3 Archilles"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.4.1"
-		_res = db.Exec("\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n"
-	_items := []string{"\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n"}
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	tn := _items[_idx+0]
-	conflict := _items[_idx+1]
-	err := _items[_idx+2]
-	bRollback := _items[_idx+3]
-	res := _items[_idx+4]
-		t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		var sql = "INSERT " + conflict + " INTO t4(rowid, word) SELECT i, w FROM t5"
-		_ = sql // suppress unused warning
-		{ // "7.4.2." + tn + ".1"
-			_res = db.Exec(sql)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
-			}
-		}
-		{ // "7.4.2." + tn + ".2"
-			r = db.Query(" SELECT rowid, word FROM t4 ")
+		{ // "1.13"
+			r = db.Query("\n  SELECT next_char('','vocab','w');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, word FROM t4 ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('','vocab','w');\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "r"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "7.4.2." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		{ // do_test "1.14"
+			_res = db.Exec("SELECT next_char('','xyzzy','a')")
+			_ = _res // catchsql
 		}
-		_res = db.Exec("ROLLBACK")
-		_ = _res // catchsql
-	}
-	}
-	// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n"
-	_items := []string{"\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n"}
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	tn := _items[_idx+0]
-	conflict := _items[_idx+1]
-	err := _items[_idx+2]
-	bRollback := _items[_idx+3]
-	res := _items[_idx+4]
-		t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		var sql = "UPDATE " + conflict + " t4 SET rowid=rowid + (rowid/2)"
-		_ = sql // suppress unused warning
-		{ // "7.5.2." + tn + ".1"
-			_res = db.Exec(sql)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
-			}
-		}
-		{ // "7.5.2." + tn + ".2"
-			r = db.Query(" SELECT rowid, word FROM t4 ")
+		{ // "1.20"
+			r = db.Query("\n  CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, word FROM t4 ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE vocab2(w TEXT);\n  CREATE INDEX vocab2w ON vocab2(w COLLATE nocase);\n  INSERT INTO vocab2 VALUES('abc'), ('ABD'), ('aBe'), ('AbF');\n  SELECT next_char('ab', 'vocab2', 'w', null, 'nocase');\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "cDeF"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "7.5.2." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		{ // "1.21"
+			r = db.Query("\n  SELECT next_char('ab','vocab2','w',null,null);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('ab','vocab2','w',null,null);\n")
+				return
+			}
+			got := flatten(r)
+			want := "c"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		_res = db.Exec("ROLLBACK")
-		_ = _res // catchsql
-	}
-	}
-	{ // "8.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
-			return
+		{ // "1.22"
+			r = db.Query("\n  SELECT next_char('AB','vocab2','w',null,'NOCASE');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('AB','vocab2','w',null,'NOCASE');\n")
+				return
+			}
+			got := flatten(r)
+			want := "cDeF"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1.23"
+			r = db.Query("\n  SELECT next_char('ab','vocab2','w',null,'binary');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT next_char('ab','vocab2','w',null,'binary');\n")
+				return
+			}
+			got := flatten(r)
+			want := "c"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(word) VALUES('hello'),('world');\n  SELECT word FROM t1 WHERE word MATCH '';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(word) VALUES('hello'),('world');\n  SELECT word FROM t1 WHERE word MATCH '';\n")
-			return
+		{ // "1.30"
+			r = db.Query("\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
+				return
+			}
+			got := flatten(r)
+			want := "2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "hello world"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1.31"
+			r = db.Query("\n  UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET rowid=2000 WHERE word='rabbit';\n  SELECT rowid FROM t1 WHERE word='rabbit';\n")
+				return
+			}
+			got := flatten(r)
+			want := "2000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.3"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
+		{ // "1.32"
+			r = db.Query("\n  INSERT INTO t1(rowid, word) VALUES(3000,'melody');\n  SELECT rowid, word, matchlen FROM t1 WHERE word MATCH 'melotti'\n   ORDER BY score LIMIT 3;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1(rowid, word) VALUES(3000,'melody');\n  SELECT rowid, word, matchlen FROM t1 WHERE word MATCH 'melotti'\n   ORDER BY score LIMIT 3;\n")
+				return
+			}
+			got := flatten(r)
+			want := "3000 melody 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
+		{ // do_test "1.33"
+			_res = db.Exec("INSERT INTO t1(rowid, word) VALUES(3000,'garden');")
+			_ = _res // catchsql
+		}
+		{ // "2.1"
+			r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING spellfix1;\n  INSERT INTO t2 (word, soundslike) VALUES('school', 'skuul');\n  INSERT INTO t2 (word, soundslike) VALUES('psalm', 'sarm');\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'sar*' LIMIT 5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING spellfix1;\n  INSERT INTO t2 (word, soundslike) VALUES('school', 'skuul');\n  INSERT INTO t2 (word, soundslike) VALUES('psalm', 'sarm');\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'sar*' LIMIT 5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "psalm 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "2.2"
+			r = db.Query("\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'skol*' LIMIT 5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, matchlen FROM t2 WHERE word MATCH 'skol*' LIMIT 5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "school 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		var vocab = "\nkangaroo kanji kappa karate keel keeled keeling keels keen keener keenest\nkeenly keenness keep keeper keepers keeping keeps ken kennel kennels kept\nkerchief kerchiefs kern kernel kernels kerosene ketchup kettle\nkettles key keyboard keyboards keyed keyhole keying keynote keypad keypads keys\nkeystroke keystrokes keyword keywords kick kicked kicker kickers kicking\nkickoff kicks kid kidded kiddie kidding kidnap kidnapper kidnappers kidnapping\nkidnappings kidnaps kidney kidneys kids kill killed killer killers killing\nkillingly killings killjoy kills kilobit kilobits kiloblock kilobyte kilobytes\nkilogram kilograms kilohertz kilohm kilojoule kilometer kilometers kiloton\nkilovolt kilowatt kiloword kimono kin kind kinder kindergarten kindest\nkindhearted kindle kindled kindles kindling kindly kindness kindred kinds\nkinetic king kingdom kingdoms kingly kingpin kings kink kinky kinship kinsman\nkiosk kiss kissed kisser kissers kisses kissing kit kitchen kitchenette\nkitchens kite kited kites kiting kits kitten kittenish kittens kitty klaxon\nkludge kludges klystron knack knapsack knapsacks knave knaves knead kneads knee\nkneecap kneed kneeing kneel kneeled kneeling kneels knees knell knells knelt\nknew knife knifed knifes knifing knight knighted knighthood knighting knightly\nknights knit knits knives knob knobs knock knockdown knocked knocker knockers\nknocking knockout knocks knoll knolls knot knots knotted knotting know knowable\nknower knowhow knowing knowingly knowledge knowledgeable known knows knuckle\nknuckled knuckles koala kosher kudo\n"
+		_ = vocab // suppress unused warning
+		{ // "3.1"
+			_res = db.Exec("\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs VALUES(0, 'a', 'e', 1);\n  INSERT INTO costs VALUES(0, 'e', 'i', 1);\n  INSERT INTO costs VALUES(0, 'i', 'o', 1);\n  INSERT INTO costs VALUES(0, 'o', 'u', 1);\n  INSERT INTO costs VALUES(0, 'u', 'a', 1);\n  CREATE VIRTUAL TABLE t3 USING spellfix1(edit_cost_table=costs);\n")
+			}
+		}
+		{ // do_test "3.2"
+			for _, w := range tclSplitList(vocab) {
+				_res = db.Exec(" INSERT INTO t3(word) VALUES($w) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(word) VALUES($w) ")
+				}
+			}
+		}
+		// foreach {tn word res} "\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n"
+		_items := tclSplitList("\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			word := _items[_idx+1]
+			res := _items[_idx+2]
+			_ = _idx
+				{ // "3.2." + tn
+					r = db.Query("\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+			{ // "4.0"
+				_res = db.Exec("\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(command) VALUES('edit_cost_table=NULL');\n")
+				}
+			}
+			// foreach {tn word res} "\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n"
+			_items := tclSplitList("\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				word := _items[_idx+1]
+				res := _items[_idx+2]
+				_ = _idx
+					{ // "4.1." + tn
+						r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
+							return
+						}
+						got := flatten(r)
+						want := res
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+				{ // "5.0"
+					_res = db.Exec("\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE costs2(iLang, cFrom, cTo, iCost);\n  INSERT INTO costs2 VALUES(0, 'a', 'o', 1);\n  INSERT INTO costs2 VALUES(0, 'e', 'o', 4);\n  INSERT INTO costs2 VALUES(0, 'i', 'o', 8);\n  INSERT INTO costs2 VALUES(0, 'u', 'o', 16);\n  INSERT INTO t3(command) VALUES('edit_cost_table=\"costs2\"');\n")
+					}
+				}
+				// foreach {tn word res} "\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n"
+				_items := tclSplitList("\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n")
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					word := _items[_idx+1]
+					res := _items[_idx+2]
+					_ = _idx
+						{ // "5.1." + tn
+							r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
+								return
+							}
+							got := flatten(r)
+							want := res
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
+						}
+					}
+					{ // "6.1.1"
+						r = db.Query("\n  SELECT word FROM t3 WHERE rowid = 10;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM t3 WHERE rowid = 10;\n")
+							return
+						}
+						got := flatten(r)
+						want := "keener"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "6.1.2"
+						r = db.Query("\n  SELECT word, distance FROM t3 WHERE rowid = 10;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM t3 WHERE rowid = 10;\n")
+							return
+						}
+						got := flatten(r)
+						want := "keener {}"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "6.1.3"
+						r = db.Query("\n  SELECT word, distance FROM t3 WHERE rowid = 10 AND word MATCH 'kiiner';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM t3 WHERE rowid = 10 AND word MATCH 'kiiner';\n")
+							return
+						}
+						got := flatten(r)
+						want := "keener 300"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.1"
+						r = db.Query("\n  CREATE VIRTUAL TABLE t4 USING spellfix1;\n  PRAGMA table_info = t4;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t4 USING spellfix1;\n  PRAGMA table_info = t4;\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  0 word {} 0 {} 0 \n  1 rank {} 0 {} 0 \n  2 distance {} 0 {} 0 \n  3 langid {} 0 {} 0 \n  4 score {} 0 {} 0 \n  5 matchlen {} 0 {} 0\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.2.1"
+						r = db.Query("\n  INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t4(rowid, word) VALUES(1, 'Archilles');\n  INSERT INTO t4(rowid, word) VALUES(2, 'Pluto');\n  INSERT INTO t4(rowid, word) VALUES(3, 'Atrides');\n  INSERT OR REPLACE INTO t4(rowid, word) VALUES(2, 'Apollo');\n  SELECT rowid, word FROM t4;\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  1 Archilles   2 Apollo   3 Atrides\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.2.2"
+						_res = db.Exec("\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR ABORT INTO t4(rowid, word) VALUES(1, 'Leto');\n")
+						}
+					}
+					{ // "7.2.3"
+						_res = db.Exec("\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR ROLLBACK INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
+						}
+					}
+					{ // "7.2.4"
+						_res = db.Exec("\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT OR FAIL INTO t4(rowid, word) VALUES(3, 'Zeus');\n")
+						}
+					}
+					{ // "7.2.5"
+						r = db.Query("\n  INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT OR IGNORE INTO t4(rowid, word) VALUES(3, 'Zeus');\n  SELECT rowid, word FROM t4;\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  1 Archilles   2 Apollo   3 Atrides\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.3.1"
+						r = db.Query("\n  UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE OR REPLACE t4 SET rowid=3 WHERE rowid=1;\n  SELECT rowid, word FROM t4;\n")
+							return
+						}
+						got := flatten(r)
+						want := "2 Apollo 3 Archilles"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.3.2"
+						_res = db.Exec("\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR ABORT t4 SET rowid=3 WHERE rowid=2;\n")
+						}
+					}
+					{ // "7.3.3"
+						_res = db.Exec("\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR ROLLBACK t4 SET rowid=3 WHERE rowid=2;\n")
+						}
+					}
+					{ // "7.3.4"
+						_res = db.Exec("\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE OR FAIL t4 SET rowid=3 WHERE rowid=2;\n")
+						}
+					}
+					{ // "7.3.5"
+						r = db.Query("\n  UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE OR IGNORE t4 SET rowid=3 WHERE rowid=2;\n  SELECT rowid, word FROM t4;\n")
+							return
+						}
+						got := flatten(r)
+						want := "2 Apollo  3 Archilles"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "7.4.1"
+						_res = db.Exec("\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
+					// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n"
+					_items := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n")
+					for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
+						tn := _items[_idx+0]
+						conflict := _items[_idx+1]
+						err := _items[_idx+2]
+						bRollback := _items[_idx+3]
+						res := _items[_idx+4]
+						_ = _idx
+							t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+							t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
+							_res = db.Exec("BEGIN")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+							}
+							var sql = "INSERT " + conflict + " INTO t4(rowid, word) SELECT i, w FROM t5"
+							_ = sql // suppress unused warning
+							{ // "7.4.2." + tn + ".1"
+								_res = db.Exec(sql)
+								if _res.Error == nil {
+									t.Errorf("expected error, got none\n  sql: %s", sql)
+								}
+							}
+							{ // "7.4.2." + tn + ".2"
+								r = db.Query(" SELECT rowid, word FROM t4 ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, word FROM t4 ")
+									return
+								}
+								got := flatten(r)
+								want := res
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // do_test "7.4.2." + tn + ".3"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+							}
+							_res = db.Exec("ROLLBACK")
+							_ = _res // catchsql
+						}
+						// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n"
+						_items := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n")
+						for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
+							tn := _items[_idx+0]
+							conflict := _items[_idx+1]
+							err := _items[_idx+2]
+							bRollback := _items[_idx+3]
+							res := _items[_idx+4]
+							_ = _idx
+								t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+								t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
+								_res = db.Exec("BEGIN")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+								}
+								var sql = "UPDATE " + conflict + " t4 SET rowid=rowid + (rowid/2)"
+								_ = sql // suppress unused warning
+								{ // "7.5.2." + tn + ".1"
+									_res = db.Exec(sql)
+									if _res.Error == nil {
+										t.Errorf("expected error, got none\n  sql: %s", sql)
+									}
+								}
+								{ // "7.5.2." + tn + ".2"
+									r = db.Query(" SELECT rowid, word FROM t4 ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, word FROM t4 ")
+										return
+									}
+									got := flatten(r)
+									want := res
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // do_test "7.5.2." + tn + ".3"
+									t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+								}
+								_res = db.Exec("ROLLBACK")
+								_ = _res // catchsql
+							}
+							{ // "8.1"
+								r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE d(w);\n  INSERT INTO d VALUES(1);\n  WITH RECURSIVE cnt(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM cnt WHERE n<100)\n  SELECT sum(length(next_char(\n    printf('%.*c',1000000,'A'),\n    'd',\n    'substr(printf(''%.*c'',2000000,''A''),1,if(abs(random())%2=0,1000001,1))')))>0\n    FROM cnt;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "8.2"
+								r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(word) VALUES('hello'),('world');\n  SELECT word FROM t1 WHERE word MATCH '';\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(word) VALUES('hello'),('world');\n  SELECT word FROM t1 WHERE word MATCH '';\n")
+									return
+								}
+								got := flatten(r)
+								want := "hello world"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "8.3"
+								_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING spellfix1;\n  INSERT INTO t1(command) VALUES('edit_cost_table=''xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');\n")
+								}
+							}
 }

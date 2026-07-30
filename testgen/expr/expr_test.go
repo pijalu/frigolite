@@ -713,28 +713,88 @@ func Test_expr(t *testing.T) {
 		}
 	}
 	// foreach {tn val} "list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"
-	_items := []string{"list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"}
+	_items := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	val := _items[_idx+1]
-		{ // "expr-15." + tn + ".1"
-			_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
+		tn := _items[_idx+0]
+		val := _items[_idx+1]
+		_ = _idx
+			{ // "expr-15." + tn + ".1"
+				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
+				}
+			}
+			{ // do_test "expr-15." + tn + ".2"
+				var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
+				_ = _STMT // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+			}
+			{ // "expr-15." + tn + ".3"
+				r = db.Query("\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "expr-15." + tn + ".4"
+				r = db.Query("\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (NOT NOT x);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (NOT NOT x);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "expr-15." + tn + ".5"
+				r = db.Query("\n    SELECT sum(NOT x) FROM t1\n     WHERE x\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(NOT x) FROM t1\n     WHERE x\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "expr-15." + tn + ".6"
+				r = db.Query("\n    SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n     WHERE x\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n     WHERE x\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+		{ // "expr-16.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
 			}
 		}
-		{ // do_test "expr-15." + tn + ".2"
-			var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
-			_ = _STMT // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
-		}
-		{ // "expr-15." + tn + ".3"
-			r = db.Query("\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);\n  ")
+		{ // "expr-16.100"
+			r = db.Query("\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND 0),a)\n  FROM dual LEFT JOIN t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (CASE WHEN x THEN 1 ELSE 0 END);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND 0),a)\n  FROM dual LEFT JOIN t1;\n")
 				return
 			}
 			got := flatten(r)
@@ -743,88 +803,28 @@ func Test_expr(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "expr-15." + tn + ".4"
-			r = db.Query("\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (NOT NOT x);\n  ")
+		{ // "expr-16.101"
+			r = db.Query("\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n     WHERE (x OR (8==9)) != (NOT NOT x);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
 				return
 			}
 			got := flatten(r)
-			want := "0"
+			want := "1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "expr-15." + tn + ".5"
-			r = db.Query("\n    SELECT sum(NOT x) FROM t1\n     WHERE x\n  ")
+		{ // "expr-16.102"
+			r = db.Query("\n  SELECT implies_nonnull_row( (b=1 AND a=2)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(NOT x) FROM t1\n     WHERE x\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT implies_nonnull_row( (b=1 AND a=2)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
 				return
 			}
 			got := flatten(r)
-			want := "0"
+			want := "1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "expr-15." + tn + ".6"
-			r = db.Query("\n    SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n     WHERE x\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(CASE WHEN x THEN 0 ELSE 1 END) FROM t1\n     WHERE x\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "0"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
-	{ // "expr-16.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE dual(dummy);\n  INSERT INTO dual VALUES('X');\n")
-		}
-	}
-	{ // "expr-16.100"
-		r = db.Query("\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND 0),a)\n  FROM dual LEFT JOIN t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND 0),a)\n  FROM dual LEFT JOIN t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "expr-16.101"
-		r = db.Query("\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT implies_nonnull_row( (b=1 AND 0)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "expr-16.102"
-		r = db.Query("\n  SELECT implies_nonnull_row( (b=1 AND a=2)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT implies_nonnull_row( (b=1 AND a=2)>(b=3 AND a=4),a)\n  FROM dual LEFT JOIN t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

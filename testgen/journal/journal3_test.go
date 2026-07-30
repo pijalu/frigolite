@@ -28,50 +28,50 @@ func Test_journal3(t *testing.T) {
 			}
 		}
 		// foreach {tn permissions} "\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  "
-		_items := []string{"\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  "}
+		_items := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
-		permissions := _items[_idx+1]
-			var res = "/" + "regsub {^00} $permissions {0.}" + "/"
-			_ = res // suppress unused warning
-			if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n >= 8.7 }() {
-				permissions := tclRegsub("^00", permissions, "0o")
-				_ = permissions // suppress unused warning
-			}
-			var effective = permissions
-			_ = effective // suppress unused warning
-			{ // do_test "journal3-1.2." + tn + ".1"
-				{
-					var _catchErr error
-					_ = _catchErr // suppress unused warning
-					os.Remove("test.db-journal")
+			tn := _items[_idx+0]
+			permissions := _items[_idx+1]
+			_ = _idx
+				var res = "/" + "regsub {^00} $permissions {0.}" + "/"
+				_ = res // suppress unused warning
+				if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n >= 8.7 }() {
+					permissions := tclRegsub("^00", permissions, "0o")
+					_ = permissions // suppress unused warning
 				}
-				// file attributes test.db -permissions $permissions
-				// file attributes test.db -permissions
-			}
-			{ // do_test "journal3-1.2." + tn + ".2"
-				// file exists "test.db-journal"
-			}
-			{ // do_test "journal3-1.2." + tn + ".3"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
-				if err != nil { t.Fatal(err) }
-				_res = db.Exec(" \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
+				var effective = permissions
+				_ = effective // suppress unused warning
+				{ // do_test "journal3-1.2." + tn + ".1"
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+						os.Remove("test.db-journal")
+					}
+					// file attributes test.db -permissions $permissions
+					// file attributes test.db -permissions
 				}
-				// file exists "test.db-journal"
-			}
-			{ // do_test "journal3-1.2." + tn + ".4"
-				// file attr test.db-journal -perm
-			}
-			{ // "journal3-1.2." + tn + ".5"
-				_res = db.Exec(" ROLLBACK ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+				{ // do_test "journal3-1.2." + tn + ".2"
+					// file exists "test.db-journal"
+				}
+				{ // do_test "journal3-1.2." + tn + ".3"
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec(" \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
+					}
+					// file exists "test.db-journal"
+				}
+				{ // do_test "journal3-1.2." + tn + ".4"
+					// file attr test.db-journal -perm
+				}
+				{ // "journal3-1.2." + tn + ".5"
+					_res = db.Exec(" ROLLBACK ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
+					}
 				}
 			}
 		}
-		}
-	}
 }

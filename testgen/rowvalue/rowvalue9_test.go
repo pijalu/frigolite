@@ -267,54 +267,122 @@ func Test_rowvalue9(t *testing.T) {
 		}
 	}
 	// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX idx ON d1(a) }\n  3 { CREATE INDEX idx ON d1(a, c) }\n  4 { CREATE INDEX idx ON d1(c) }\n  5 { CREATE INDEX idx ON d1(c, a) }\n\n  6 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);\n  }\n\n  7 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;\n  }\n\n  8 { \n    CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);\n  }\n\n"
-	_items := []string{"\n  1 {}\n  2 { CREATE INDEX idx ON d1(a) }\n  3 { CREATE INDEX idx ON d1(a, c) }\n  4 { CREATE INDEX idx ON d1(c) }\n  5 { CREATE INDEX idx ON d1(c, a) }\n\n  6 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);\n  }\n\n  7 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;\n  }\n\n  8 { \n    CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);\n  }\n\n"}
+	_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX idx ON d1(a) }\n  3 { CREATE INDEX idx ON d1(a, c) }\n  4 { CREATE INDEX idx ON d1(c) }\n  5 { CREATE INDEX idx ON d1(c, a) }\n\n  6 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);\n  }\n\n  7 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;\n  }\n\n  8 { \n    CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);\n  }\n\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	idx := _items[_idx+1]
-		_res = db.Exec(" DROP INDEX IF EXISTS idx ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx ")
+		tn := _items[_idx+0]
+		idx := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(" DROP INDEX IF EXISTS idx ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx ")
+			}
+			_res = db.Exec(" DROP INDEX IF EXISTS idx2 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx2 ")
+			}
+			_res = db.Exec(" DROP INDEX IF EXISTS idx3 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx3 ")
+			}
+			_res = db.Exec(idx)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+			}
+			{ // "4." + tn + ".1"
+				r = db.Query("\n    SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".2"
+				r = db.Query("\n    SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".3"
+				r = db.Query("\n    SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".4"
+				r = db.Query("\n    SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".5"
+				r = db.Query("\n    SELECT d1.rowid FROM d1, d2 WHERE a = y;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d1.rowid FROM d1, d2 WHERE a = y;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".6"
+				r = db.Query("\n    SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 		}
-		_res = db.Exec(" DROP INDEX IF EXISTS idx2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx2 ")
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);\n")
+			}
 		}
-		_res = db.Exec(" DROP INDEX IF EXISTS idx3 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx3 ")
-		}
-		_res = db.Exec(idx)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-		}
-		{ // "4." + tn + ".1"
-			r = db.Query("\n    SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);\n  ")
+		{ // "5.1"
+			r = db.Query("\n  SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (a, c) IN (SELECT x, y FROM d2);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);\n")
 				return
 			}
 			got := flatten(r)
-			want := "3 4"
+			want := "1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "4." + tn + ".2"
-			r = db.Query("\n    SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);\n  ")
+		{ // "5.2"
+			r = db.Query("\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (c, a) IN (SELECT x, y FROM d2);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "2 4"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "4." + tn + ".3"
-			r = db.Query("\n    SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (+c, a) IN (SELECT x, y FROM d2);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);\n")
 				return
 			}
 			got := flatten(r)
@@ -323,219 +391,151 @@ func Test_rowvalue9(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "4." + tn + ".4"
-			r = db.Query("\n    SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );\n  ")
+		{ // "5.3"
+			r = db.Query("\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT 0+c FROM e1);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM d1 WHERE (c, a) = (\n      SELECT x, y FROM d2 WHERE d2.rowid=d1.rowid\n    );\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT 0+c FROM e1);\n")
 				return
 			}
 			got := flatten(r)
-			want := "2 4"
+			want := "2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "4." + tn + ".5"
-			r = db.Query("\n    SELECT d1.rowid FROM d1, d2 WHERE a = y;\n  ")
+		{ // "6.0"
+			_res = db.Exec("\n  CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);\n")
+			}
+		}
+		{ // "6.1"
+			r = db.Query("\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d1.rowid FROM d1, d2 WHERE a = y;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
+			}
+		}
+		{ // "6.2"
+			r = db.Query("\n  CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
+			}
+		}
+		{ // "7.0"
+			_res = db.Exec("\n  CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);\n")
+			}
+		}
+		{ // "7.1"
+			r = db.Query("\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY +a, +b LIMIT 10\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY +a, +b LIMIT 10\n  );\n")
 				return
 			}
 			got := flatten(r)
-			want := "2 4"
+			want := " 1 4 1 5 "
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "4." + tn + ".6"
-			r = db.Query("\n    SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );\n  ")
+		{ // "7.2"
+			r = db.Query("\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY a, b LIMIT 10\n  );\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT d1.rowid FROM d1 WHERE a = (\n      SELECT y FROM d2 where d2.rowid=d1.rowid\n    );\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY a, b LIMIT 10\n  );\n")
 				return
 			}
 			got := flatten(r)
-			want := "2 4"
+			want := " 1 4 1 5 "
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE e1(a TEXT, c NUMERIC);\n  CREATE TABLE e2(x BLOB, y BLOB);\n\n  INSERT INTO e1 VALUES(2, 2);\n\n  INSERT INTO e2 VALUES ('2', 2);\n  INSERT INTO e2 VALUES ('2', '2');\n  INSERT INTO e2 VALUES ('2', '2.0');\n\n  CREATE INDEX e1c ON e1(c);\n")
+		{ // "7.3"
+			r = db.Query("\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY 1, 2 LIMIT 10\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY 1, 2 LIMIT 10\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := " 1 4 1 5 "
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM e1 WHERE (a, c) IN (SELECT x, y FROM e2);\n")
-			return
+		{ // "8.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n")
+			}
 		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2"
+			_res = db.Exec("\n  SELECT a FROM t1 NATURAL JOIN t1 WHERE (a,b)> (SELECT 2 IN (SELECT 2,2), 2);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n  SELECT a FROM t1 NATURAL JOIN t1 WHERE (a,b)> (SELECT 2 IN (SELECT 2,2), 2);\n")
+			}
 		}
-	}
-	{ // "5.2"
-		r = db.Query("\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT +c FROM e1);\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "9.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);\n")
+			}
 		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "9.1"
+			r = db.Query("\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  2 2 3 3\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "5.3"
-		r = db.Query("\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT 0+c FROM e1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM e2 WHERE rowid IN (SELECT 0+c FROM e1);\n")
-			return
+		{ // "9.2"
+			_res = db.Exec("\n  CREATE INDEX i1 ON t1(a);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(a);\n")
+			}
 		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "9.4"
+			r = db.Query("\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  2 2 3 3\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f1(a, b);\n  CREATE TABLE f2(c, d);\n  CREATE TABLE f3(e, f);\n")
+		{ // "9.4e"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			}
 		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
+		{ // "9.5"
+			r = db.Query("\n  CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  2 2 3 3\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.2"
-		r = db.Query("\n  CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX f3e ON f3(e);\n  SELECT * FROM f3 WHERE (e, f) IN (\n    SELECT a, b FROM f1 UNION ALL SELECT c, d FROM f2\n  );\n")
+		{ // "9.5e"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
+			}
 		}
-	}
-	{ // "7.0"
-		_res = db.Exec("\n  CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE g1(a, b); \n  INSERT INTO g1 VALUES\n      (1, 1), (1, 2), (1, 3), (1, 'i'), (1, 'j'),\n      (1, 6), (1, 7), (1, 8), (1, 9), (1, 10),\n      (1, 4), (1, 5);\n\n  CREATE TABLE g2(x, y);\n  CREATE INDEX g2x ON g2(x);\n\n  INSERT INTO g2 VALUES(1, 4);\n  INSERT INTO g2 VALUES(1, 5);\n")
-		}
-	}
-	{ // "7.1"
-		r = db.Query("\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY +a, +b LIMIT 10\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY +a, +b LIMIT 10\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := " 1 4 1 5 "
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2"
-		r = db.Query("\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY a, b LIMIT 10\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY a, b LIMIT 10\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := " 1 4 1 5 "
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.3"
-		r = db.Query("\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY 1, 2 LIMIT 10\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM g2 WHERE (x, y) IN (\n    SELECT a, b FROM g1 ORDER BY 1, 2 LIMIT 10\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := " 1 4 1 5 "
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a ,b FLOAT);\n  CREATE INDEX t1x1 ON t1(a,b,a,a,a,a,a,a,a,a,a,b);\n")
-		}
-	}
-	{ // "8.2"
-		_res = db.Exec("\n  SELECT a FROM t1 NATURAL JOIN t1 WHERE (a,b)> (SELECT 2 IN (SELECT 2,2), 2);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sub-select returns 2 columns - expected 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sub-select returns 2 columns - expected 1", _res.Error, "\n  SELECT a FROM t1 NATURAL JOIN t1 WHERE (a,b)> (SELECT 2 IN (SELECT 2,2), 2);\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "9.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 4);\n")
-		}
-	}
-	{ // "9.1"
-		r = db.Query("\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  2 2 3 3\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.2"
-		_res = db.Exec("\n  CREATE INDEX i1 ON t1(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(a);\n")
-		}
-	}
-	{ // "9.4"
-		r = db.Query("\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  2 2 3 3\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.4e"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		}
-	}
-	{ // "9.5"
-		r = db.Query("\n  CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX i2 ON t1(b, a);\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  2 2 3 3\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.5e"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE (a, b) IN ( (3, 3), (2, 2) );\n")
-		}
-	}
 }

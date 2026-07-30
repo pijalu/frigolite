@@ -1018,235 +1018,235 @@ func Test_where(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n"
-	_items := []string{"\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n"}
+	_items := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	res := _items[_idx+2]
-		var rev = "list"
-		_ = rev // suppress unused warning
-		for _, r := range []string{res} {
-			var rev = "concat $r $rev"
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			var rev = "list"
 			_ = rev // suppress unused warning
-		}
-		{ // "where-24." + tn + ".1"
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			for _, r := range tclSplitList(res) {
+				var rev = "concat $r $rev"
+				_ = rev // suppress unused warning
+			}
+			{ // "where-24." + tn + ".1"
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+			}
+			{ // "where-24." + tn + ".2"
+				_res = db.Exec(sql + " ORDER BY rowid")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql + " ORDER BY rowid")
+				}
+			}
+			{ // "where-24." + tn + ".3"
+				_res = db.Exec(sql + " ORDER BY rowid DESC")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql + " ORDER BY rowid DESC")
+				}
+			}
+			{ // "where-24-" + tn + ".4"
+				_res = db.Exec("\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
+				}
 			}
 		}
-		{ // "where-24." + tn + ".2"
-			_res = db.Exec(sql + " ORDER BY rowid")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql + " ORDER BY rowid")
-			}
-		}
-		{ // "where-24." + tn + ".3"
-			_res = db.Exec(sql + " ORDER BY rowid DESC")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql + " ORDER BY rowid DESC")
-			}
-		}
-		{ // "where-24-" + tn + ".4"
-			_res = db.Exec("\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM t1;\n      " + sql + ";\n      " + sql + " ORDER BY rowid;\n      " + sql + " ORDER BY rowid DESC;\n    ROLLBACK;\n  ")
-			}
-		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "where-25.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "where-25.1"
-		_res = db.Exec("\n  DELETE FROM t1 WHERE c='iii'\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  DELETE FROM t1 WHERE c='iii'\n")
-		}
-	}
-	{ // "where-25.2"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "where-25.3"
-		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "where-25.4"
-		_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1 WHERE c='iii'\n")
-		}
-	}
-	{ // "where-25.5"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "corrupt database") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "corrupt database", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
-		}
-	}
-	db, err = frigolite.Open(":memory:")
-	if err != nil { t.Fatal(err) }
-	{ // "where-26.1"
-		r = db.Query("\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.2"
-		r = db.Query("\n  SELECT * FROM t1 WHERE '-1' BETWEEN 0 AND t1.c0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE '-1' BETWEEN 0 AND t1.c0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.3"
-		r = db.Query("\n  SELECT * FROM t0 WHERE '-1'>=0 AND '-1'<=t0.c0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE '-1'>=0 AND '-1'<=t0.c0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.4"
-		r = db.Query("\n  SELECT * FROM t1 WHERE '-1'>=0 AND '-1'<=t1.c0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE '-1'>=0 AND '-1'<=t1.c0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.5"
-		r = db.Query("\n  SELECT '-1' BETWEEN 0 AND t0.c0 FROM t0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1' BETWEEN 0 AND t0.c0 FROM t0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.6"
-		r = db.Query("\n  SELECT '-1' BETWEEN 0 AND t1.c0 FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1' BETWEEN 0 AND t1.c0 FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.7"
-		r = db.Query("\n  SELECT '-1'>=0 AND '-1'<=t0.c0 FROM t0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1'>=0 AND '-1'<=t0.c0 FROM t0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "where-26.8"
-		r = db.Query("\n  SELECT '-1'>=0 AND '-1'<=t1.c0 FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1'>=0 AND '-1'<=t1.c0 FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	if tclBool("permutation" + "!=\"valgrind\"") {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		{ // "where-27.1"
-			r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
+		{ // "where-25.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		{ // "where-27.2"
-			r = db.Query("\n    SELECT a>=9223372036854775807+1 FROM t1;\n  ")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "where-25.1"
+			_res = db.Exec("\n  DELETE FROM t1 WHERE c='iii'\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  DELETE FROM t1 WHERE c='iii'\n")
+			}
+		}
+		{ // "where-25.2"
+			_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "where-25.3"
+			_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
+			}
+		}
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "where-25.4"
+			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT * FROM t1 WHERE c='iii'\n")
+			}
+		}
+		{ // "where-25.5"
+			_res = db.Exec("\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "corrupt database") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "corrupt database", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
+			}
+		}
+		db, err = frigolite.Open(":memory:")
+		if err != nil { t.Fatal(err) }
+		{ // "where-26.1"
+			r = db.Query("\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a>=9223372036854775807+1 FROM t1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")
 				return
 			}
 			got := flatten(r)
-			want := "0"
+			want := "1 a"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "where-28.1"
-		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE INDEX t1b ON t1(b,b,b,b,b,b,b,b,b,b,b,b,b);\n  INSERT INTO t1(a,b) VALUES(1,1),(15,2),(19,5);\n  UPDATE t1 SET b=999 WHERE a IN (SELECT 15) AND b IN (1,2);\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE INDEX t1b ON t1(b,b,b,b,b,b,b,b,b,b,b,b,b);\n  INSERT INTO t1(a,b) VALUES(1,1),(15,2),(19,5);\n  UPDATE t1 SET b=999 WHERE a IN (SELECT 15) AND b IN (1,2);\n  SELECT * FROM t1;\n")
-			return
+		{ // "where-26.2"
+			r = db.Query("\n  SELECT * FROM t1 WHERE '-1' BETWEEN 0 AND t1.c0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE '-1' BETWEEN 0 AND t1.c0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 a"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n 1  1\n 15 999\n 19 5\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "where-26.3"
+			r = db.Query("\n  SELECT * FROM t0 WHERE '-1'>=0 AND '-1'<=t0.c0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE '-1'>=0 AND '-1'<=t0.c0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 a"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // do_test "where-30.1"
-		var res = ""
-		_ = res // suppress unused warning
-		_res = db.Exec("CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));")
+		{ // "where-26.4"
+			r = db.Query("\n  SELECT * FROM t1 WHERE '-1'>=0 AND '-1'<=t1.c0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 WHERE '-1'>=0 AND '-1'<=t1.c0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 a"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;\n  ")
+		{ // "where-26.5"
+			r = db.Query("\n  SELECT '-1' BETWEEN 0 AND t0.c0 FROM t0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1' BETWEEN 0 AND t0.c0 FROM t0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
+		{ // "where-26.6"
+			r = db.Query("\n  SELECT '-1' BETWEEN 0 AND t1.c0 FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1' BETWEEN 0 AND t1.c0 FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "where-26.7"
+			r = db.Query("\n  SELECT '-1'>=0 AND '-1'<=t0.c0 FROM t0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1'>=0 AND '-1'<=t0.c0 FROM t0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "where-26.8"
+			r = db.Query("\n  SELECT '-1'>=0 AND '-1'<=t1.c0 FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '-1'>=0 AND '-1'<=t1.c0 FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		if tclBool("permutation" + "!=\"valgrind\"") {
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "where-27.1"
+				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1(a) VALUES(9223372036854775807);\n    SELECT 1 FROM t1 WHERE a>=(9223372036854775807+1);\n  ")
+				}
+			}
+			{ // "where-27.2"
+				r = db.Query("\n    SELECT a>=9223372036854775807+1 FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a>=9223372036854775807+1 FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "where-28.1"
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE INDEX t1b ON t1(b,b,b,b,b,b,b,b,b,b,b,b,b);\n  INSERT INTO t1(a,b) VALUES(1,1),(15,2),(19,5);\n  UPDATE t1 SET b=999 WHERE a IN (SELECT 15) AND b IN (1,2);\n  SELECT * FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  CREATE INDEX t1b ON t1(b,b,b,b,b,b,b,b,b,b,b,b,b);\n  INSERT INTO t1(a,b) VALUES(1,1),(15,2),(19,5);\n  UPDATE t1 SET b=999 WHERE a IN (SELECT 15) AND b IN (1,2);\n  SELECT * FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n 1  1\n 15 999\n 19 5\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // do_test "where-30.1"
+			var res = ""
+			_ = res // suppress unused warning
+			_res = db.Exec("CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));")
+			}
+			_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;\n  ")
+			}
+		}
 }

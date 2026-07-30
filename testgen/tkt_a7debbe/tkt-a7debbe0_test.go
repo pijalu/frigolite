@@ -20,7 +20,7 @@ func Test_tkt_a7debbe0(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-a7debbe0"
 	_ = testprefix // suppress unused warning
-	for _, tn := range []string{"1 2"} {
+	for _, tn := range tclSplitList("1 2") {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

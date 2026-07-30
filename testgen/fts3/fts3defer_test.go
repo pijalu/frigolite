@@ -58,206 +58,206 @@ func Test_fts3defer(t *testing.T) {
 	var zero_long_doclists = "\n  UPDATE t1_segments SET block=zeroblob(length(block)) WHERE length(block)>10000\n"
 	_ = zero_long_doclists // suppress unused warning
 	// foreach {tn setup} "\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n"
-	_items := []string{"\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	setup := _items[_idx+1]
-		_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
-		}
-		// eval $setup
-		var _testprefix = "fts3defer-2." + tn // TCL namespace variable
-		_ = _testprefix // suppress unused warning
-		var DO_MALLOC_TEST = "0"
-		_ = DO_MALLOC_TEST // suppress unused warning
-		{ // "0"
-			r = db.Query(" \n    SELECT count(*) FROM t1_segments WHERE length(block)>10000 \n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1_segments WHERE length(block)>10000 \n  ")
-				return
+		tn := _items[_idx+0]
+		setup := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
 			}
-			got := flatten(r)
-			want := "2"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk xnxhf...} {13 29 40 47 48 52 63 92}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk eh'\n ...} {100}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'duszemmz...} {3 5 8 10 13 18 20 23 32 37 41 43 55 60 65 67 72 74...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'ubwrfqnb...} {7 70 98}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm xnxhf...} {12 13 29 30 40 47 48 52 63 92 93}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm eh'\n ...} {68 100}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.9 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm ubwrf...} {7 70 98}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.10 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'z* vgsld...} {10 13 17 31 35 51 58 88 89 90 93 100}")
-		if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.11 {\n      SELECT rowid FROM t1 \n      WHERE t1 MATCH ...} {10 13 17 31 35 51 58 88 89 90 93 100}")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm agmc...} {3 24 52 53}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm zf\"'...} {33 53 75 88 101}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm aayx...} {48 65 84}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"aayxpmv...} {11 37 84}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk azav...} {16 53}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"xh jk j...} {18}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {13 17}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 3.1 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {zm [zm] [agmckuiu] uhzq nsab jk rrkx duszemm...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 3.2 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {[xnxhf] [jk] [jk] agmckuiu duszemmzl [jk] zm...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.1 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH '\"j...} {\n    {0 0 10 2 0 1 13 6} {0 0 26 2 0 1 29 6}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.2 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'du...} {\n    {0 2 3 8 0 1 36 2 0 0 58 9} \n    {0 0 0 9 0 1...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.3 {\n    SELECT offsets(t1) FROM t1 \n    WHERE t1 MATC...} {{0 0 0 5 0 1 15 7 0 0 36 5}}")
-		for _, DO_MALLOC_TEST := range []string{dmt_modes} {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk mj...} {8 15 36 64 67 72}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH 'duszem...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.3 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayxp...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.4 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] jk [zm] [zm] [zhbrzadb] uenvbm aayxpm...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.5 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 1 3 8} {0 0 38 2 0 1 41 8} {0 0 ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.6 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 0 6 2 0 0 9 2 0 1 12 8}\n    }")
+			// eval $setup
+			var _testprefix = "fts3defer-2." + tn // TCL namespace variable
+			_ = _testprefix // suppress unused warning
 			var DO_MALLOC_TEST = "0"
 			_ = DO_MALLOC_TEST // suppress unused warning
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.1 {\n    SELECT rowid FROM t1 \n    WHERE t1 MATCH 'vgs...} {10}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xduv...} {8}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm azav...} {15 26 92 96}")
-		if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.3 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xd...} {8 15 26 92 96}")
-		}
-		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 1 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 7.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^zm mj...} {56 62}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 7.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^azavw...} {43}")
-		}
-	}
-	}
-	var testprefix = "fts3defer"
-	_ = testprefix // suppress unused warning
-	{ // "3.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
-		}
-	}
-	{ // "3.2"
-		_res = db.Exec("\n  INSERT INTO x1 VALUES(\n    '" + "{d } 3000" + "', '" + "{f } 30000" + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 VALUES(\n    '" + "{d } 3000" + "', '" + "{f } 30000" + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
-		}
-	}
-	{ // "3.3"
-		r = db.Query("\n  SELECT count(*) FROM x1 WHERE x1 MATCH '\"d e f\"'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM x1 WHERE x1 MATCH '\"d e f\"'\n")
-			return
-		}
-		got := flatten(r)
-		want := "16"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
-		}
-	}
-	{ // "4.2"
-		r = db.Query("\n  SELECT * FROM x2 WHERE x2 MATCH 'a b c d e f g h i j k l m n o p q r s';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x2 WHERE x2 MATCH 'a b c d e f g h i j k l m n o p q r s';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{a b c d e f g h i j k l m n o p q r s t u v w x y m}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var tokenizers = "1 simple"
-	_ = tokenizers // suppress unused warning
-	// foreach {tn tokenizer} tokenizers
-	_items := []string{tokenizers}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	tokenizer := _items[_idx+1]
-		{ // "5." + tn + ".1"
-			_res = db.Exec("\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
+			{ // "0"
+				r = db.Query(" \n    SELECT count(*) FROM t1_segments WHERE length(block)>10000 \n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1_segments WHERE length(block)>10000 \n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk xnxhf...} {13 29 40 47 48 52 63 92}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk eh'\n ...} {100}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'duszemmz...} {3 5 8 10 13 18 20 23 32 37 41 43 55 60 65 67 72 74...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'ubwrfqnb...} {7 70 98}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm xnxhf...} {12 13 29 30 40 47 48 52 63 92 93}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm eh'\n ...} {68 100}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.9 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm ubwrf...} {7 70 98}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.10 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'z* vgsld...} {10 13 17 31 35 51 58 88 89 90 93 100}")
+			if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.11 {\n      SELECT rowid FROM t1 \n      WHERE t1 MATCH ...} {10 13 17 31 35 51 58 88 89 90 93 100}")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm agmc...} {3 24 52 53}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm zf\"'...} {33 53 75 88 101}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm aayx...} {48 65 84}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"aayxpmv...} {11 37 84}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk azav...} {16 53}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"xh jk j...} {18}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {13 17}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 3.1 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {zm [zm] [agmckuiu] uhzq nsab jk rrkx duszemm...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 3.2 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {[xnxhf] [jk] [jk] agmckuiu duszemmzl [jk] zm...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.1 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH '\"j...} {\n    {0 0 10 2 0 1 13 6} {0 0 26 2 0 1 29 6}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.2 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'du...} {\n    {0 2 3 8 0 1 36 2 0 0 58 9} \n    {0 0 0 9 0 1...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.3 {\n    SELECT offsets(t1) FROM t1 \n    WHERE t1 MATC...} {{0 0 0 5 0 1 15 7 0 0 36 5}}")
+			for _, DO_MALLOC_TEST := range tclSplitList(dmt_modes) {
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk mj...} {8 15 36 64 67 72}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH 'duszem...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.3 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayxp...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.4 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] jk [zm] [zm] [zhbrzadb] uenvbm aayxpm...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.5 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 1 3 8} {0 0 38 2 0 1 41 8} {0 0 ...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.6 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 0 6 2 0 0 9 2 0 1 12 8}\n    }")
+				var DO_MALLOC_TEST = "0"
+				_ = DO_MALLOC_TEST // suppress unused warning
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.1 {\n    SELECT rowid FROM t1 \n    WHERE t1 MATCH 'vgs...} {10}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xduv...} {8}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm azav...} {15 26 92 96}")
+			if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.3 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xd...} {8 15 26 92 96}")
+			}
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 1 }() {
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 7.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^zm mj...} {56 62}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 7.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^azavw...} {43}")
 			}
 		}
-		{ // "5." + tn + ".2"
-			r = db.Query("\n    BEGIN;\n    INSERT INTO x3 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 VALUES('a b c', NULL);\n    INSERT INTO x3 VALUES('a x c', NULL);\n    COMMIT;\n\n    SELECT * FROM x3 WHERE x3 MATCH 'a b';\n  ")
+		var testprefix = "fts3defer"
+		_ = testprefix // suppress unused warning
+		{ // "3.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(a, b);\n  INSERT INTO x1 VALUES('a b c', 'd e f');\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n  INSERT INTO x1 SELECT * FROM x1;\n")
+			}
+		}
+		{ // "3.2"
+			_res = db.Exec("\n  INSERT INTO x1 VALUES(\n    '" + "{d } 3000" + "', '" + "{f } 30000" + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1 VALUES(\n    '" + "{d } 3000" + "', '" + "{f } 30000" + "'\n  );\n  INSERT INTO x1(x1) VALUES('optimize');\n")
+			}
+		}
+		{ // "3.3"
+			r = db.Query("\n  SELECT count(*) FROM x1 WHERE x1 MATCH '\"d e f\"'\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO x3 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 VALUES('a b c', NULL);\n    INSERT INTO x3 VALUES('a x c', NULL);\n    COMMIT;\n\n    SELECT * FROM x3 WHERE x3 MATCH 'a b';\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM x1 WHERE x1 MATCH '\"d e f\"'\n")
 				return
 			}
 			got := flatten(r)
-			want := "{a b c} {}"
+			want := "16"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "5." + tn + ".3"
-			_res = db.Exec(" DROP TABLE x3 ")
+		{ // "4.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE x3 ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x2 USING FTS4(x);\n  BEGIN;\n  INSERT INTO x2 VALUES('m m m m m m m m m m m m m m m m m m m m m m m m m m');\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 SELECT * FROM x2;\n  INSERT INTO x2 VALUES('a b c d e f g h i j k l m n o p q r s t u v w x y m');\n  COMMIT;\n")
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
+		{ // "4.2"
+			r = db.Query("\n  SELECT * FROM x2 WHERE x2 MATCH 'a b c d e f g h i j k l m n o p q r s';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x2 WHERE x2 MATCH 'a b c d e f g h i j k l m n o p q r s';\n")
+				return
+			}
+			got := flatten(r)
+			want := "{a b c d e f g h i j k l m n o p q r s t u v w x y m}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
-		}
-	}
-	{ // do_test "6.2"
-		var L = "list"
-		_ = L // suppress unused warning
-		var x = "0"
-		_ = x // suppress unused warning
-		for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 125 }() {
-			L = tclListAppend(L, "x" + x)
-			// incr x 1
-			{
-				_n, _err := strconv.Atoi(x)
-				if _err == nil {
-					x = strconv.Itoa(_n + 1)
+		var tokenizers = "1 simple"
+		_ = tokenizers // suppress unused warning
+		// foreach {tn tokenizer} tokenizers
+		_items := tclSplitList(tokenizers)
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			tokenizer := _items[_idx+1]
+			_ = _idx
+				{ // "5." + tn + ".1"
+					_res = db.Exec("\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
+					}
+				}
+				{ // "5." + tn + ".2"
+					r = db.Query("\n    BEGIN;\n    INSERT INTO x3 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 VALUES('a b c', NULL);\n    INSERT INTO x3 VALUES('a x c', NULL);\n    COMMIT;\n\n    SELECT * FROM x3 WHERE x3 MATCH 'a b';\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    INSERT INTO x3 VALUES('b b b b b b b b b b b', 'b b b b b b b b b b b b b');\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 SELECT * FROM x3;\n    INSERT INTO x3 VALUES('a b c', NULL);\n    INSERT INTO x3 VALUES('a x c', NULL);\n    COMMIT;\n\n    SELECT * FROM x3 WHERE x3 MATCH 'a b';\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "{a b c} {}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5." + tn + ".3"
+					_res = db.Exec(" DROP TABLE x3 ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE x3 ")
+					}
 				}
 			}
-		}
-		L = tclListAppend(L, "common", "rare")
-		var val = "join $L \" \""
-		_ = val // suppress unused warning
-		_res = db.Exec("\n      INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;\n  ")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "6.3"
-		r = db.Query("\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "6.0"
+				_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts4(\n      c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16,c17,c18,c19\n  );\n")
+				}
+			}
+			{ // "6.1"
+				r = db.Query("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<20000\n    )\n    INSERT INTO ft(c0) SELECT 'common' FROM s;\n")
+				}
+			}
+			{ // do_test "6.2"
+				var L = "list"
+				_ = L // suppress unused warning
+				var x = "0"
+				_ = x // suppress unused warning
+				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 125 }() {
+					L = tclListAppend(L, "x" + x)
+					// incr x 1
+					{
+						_n, _err := strconv.Atoi(x)
+						if _err == nil {
+							x = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				L = tclListAppend(L, "common", "rare")
+				var val = "join $L \" \""
+				_ = val // suppress unused warning
+				_res = db.Exec("\n      INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val,\n        $val, $val, $val, $val, $val, $val, $val, $val, $val, $val\n      );\n    COMMIT;\n  ")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "6.3"
+				r = db.Query("\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM ft WHERE ft MATCH '\"common rare\"';\n")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

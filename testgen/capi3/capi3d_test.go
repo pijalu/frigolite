@@ -41,7 +41,7 @@ func Test_capi3d(t *testing.T) {
 			tclSort(x)
 		}
 		{ // do_test "capi3-1.2." + i + ".2"
-			for _, p := range []string{"scramble $::stmtlist"} {
+			for _, p := range tclSplitList("scramble $::stmtlist") {
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $p")
 			}
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_next_stmt db 0")

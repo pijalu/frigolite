@@ -20,9 +20,9 @@ func Test_varint(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var cnt = "0"
 	_ = cnt // suppress unused warning
-	for _, start := range []string{"0 100 10000 1000000 0x10000000"} {
-		for _, mult := range []string{"1 0x10 0x100 0x1000 0x10000 0x100000 0x1000000 0x10000000"} {
-			for _, incr := range []string{"1 500 10000 50000000"} {
+	for _, start := range tclSplitList("0 100 10000 1000000 0x10000000") {
+		for _, mult := range tclSplitList("1 0x10 0x100 0x1000 0x10000 0x100000 0x1000000 0x10000000") {
+			for _, incr := range tclSplitList("1 500 10000 50000000") {
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)

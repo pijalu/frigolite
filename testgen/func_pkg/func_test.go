@@ -26,7 +26,7 @@ func Test_func(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl1(t1 text)")
 		}
-		for _, word := range []string{"this program is free software"} {
+		for _, word := range tclSplitList("this program is free software") {
 			_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES('" + word + "')")
@@ -261,7 +261,7 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl1")
 			}
-			for _, word := range []string{"contains UTF-8 characters hi\\u1234ho"} {
+			for _, word := range tclSplitList("contains UTF-8 characters hi\\u1234ho") {
 				_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES('" + word + "')")
@@ -337,7 +337,7 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl1")
 			}
-			for _, word := range []string{"this program is free software"} {
+			for _, word := range tclSplitList("this program is free software") {
 				_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES('" + word + "')")
@@ -857,879 +857,879 @@ func Test_func(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach {name sdx} "\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  "
-		_items := []string{"\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  "}
+		_items := tclSplitList("\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		sdx := _items[_idx+1]
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			name := _items[_idx+0]
+			sdx := _items[_idx+1]
+			_ = _idx
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+				{ // do_test "func-20." + i
+					r = db.Query("SELECT soundex($name)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex($name)")
+					}
 				}
 			}
-			{ // do_test "func-20." + i
-				r = db.Query("SELECT soundex($name)")
+		}
+		{ // do_test "func-21.1"
+			_res = db.Exec("\n    SELECT replace(1,2);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-21.2"
+			_res = db.Exec("\n    SELECT replace(1,2,3,4);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-21.3"
+			r = db.Query("\n    SELECT typeof(replace('This is the main test string', NULL, 'ALT'));\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace('This is the main test string', NULL, 'ALT'));\n  ")
+			}
+		}
+		{ // do_test "func-21.4"
+			r = db.Query("\n    SELECT typeof(replace(NULL, 'main', 'ALT'));\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace(NULL, 'main', 'ALT'));\n  ")
+			}
+		}
+		{ // do_test "func-21.5"
+			r = db.Query("\n    SELECT typeof(replace('This is the main test string', 'main', NULL));\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace('This is the main test string', 'main', NULL));\n  ")
+			}
+		}
+		{ // do_test "func-21.6"
+			r = db.Query("\n    SELECT replace('This is the main test string', 'main', 'ALT');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('This is the main test string', 'main', 'ALT');\n  ")
+			}
+		}
+		{ // do_test "func-21.7"
+			r = db.Query("\n    SELECT replace('This is the main test string', 'main', 'larger-main');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('This is the main test string', 'main', 'larger-main');\n  ")
+			}
+		}
+		{ // do_test "func-21.8"
+			r = db.Query("\n    SELECT replace('aaaaaaa', 'a', '0123456789');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('aaaaaaa', 'a', '0123456789');\n  ")
+			}
+		}
+		{ // "func-21.9"
+			r = db.Query("\n  SELECT typeof(replace(1,'',0));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof(replace(1,'',0));\n")
+				return
+			}
+			got := flatten(r)
+			want := "text"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // do_test "func-22.1"
+			_res = db.Exec("SELECT trim(1,2,3)")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-22.2"
+			_res = db.Exec("SELECT ltrim(1,2,3)")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-22.3"
+			_res = db.Exec("SELECT rtrim(1,2,3)")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-22.4"
+			r = db.Query("SELECT trim('  hi  ');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ');")
+			}
+		}
+		{ // do_test "func-22.5"
+			r = db.Query("SELECT ltrim('  hi  ');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('  hi  ');")
+			}
+		}
+		{ // do_test "func-22.6"
+			r = db.Query("SELECT rtrim('  hi  ');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('  hi  ');")
+			}
+		}
+		{ // do_test "func-22.7"
+			r = db.Query("SELECT trim('  hi  ','xyz');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ','xyz');")
+			}
+		}
+		{ // do_test "func-22.8"
+			r = db.Query("SELECT ltrim('  hi  ','xyz');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('  hi  ','xyz');")
+			}
+		}
+		{ // do_test "func-22.9"
+			r = db.Query("SELECT rtrim('  hi  ','xyz');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('  hi  ','xyz');")
+			}
+		}
+		{ // do_test "func-22.10"
+			r = db.Query("SELECT trim('xyxzy  hi  zzzy','xyz');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('xyxzy  hi  zzzy','xyz');")
+			}
+		}
+		{ // do_test "func-22.11"
+			r = db.Query("SELECT ltrim('xyxzy  hi  zzzy','xyz');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('xyxzy  hi  zzzy','xyz');")
+			}
+		}
+		{ // do_test "func-22.12"
+			r = db.Query("SELECT rtrim('xyxzy  hi  zzzy','xyz');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('xyxzy  hi  zzzy','xyz');")
+			}
+		}
+		{ // do_test "func-22.13"
+			r = db.Query("SELECT trim('  hi  ','');")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ','');")
+			}
+		}
+		if tclBool("db one {PRAGMA encoding}" + "==\"UTF-8\"") {
+			{ // do_test "func-22.14"
+				r = db.Query("SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT soundex($name)")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))")
+				}
+			}
+			{ // do_test "func-22.15"
+				r = db.Query("SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))")
+				}
+			}
+			{ // do_test "func-22.16"
+				r = db.Query("SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));")
 				}
 			}
 		}
-		}
-	}
-	{ // do_test "func-21.1"
-		_res = db.Exec("\n    SELECT replace(1,2);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-21.2"
-		_res = db.Exec("\n    SELECT replace(1,2,3,4);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-21.3"
-		r = db.Query("\n    SELECT typeof(replace('This is the main test string', NULL, 'ALT'));\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace('This is the main test string', NULL, 'ALT'));\n  ")
-		}
-	}
-	{ // do_test "func-21.4"
-		r = db.Query("\n    SELECT typeof(replace(NULL, 'main', 'ALT'));\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace(NULL, 'main', 'ALT'));\n  ")
-		}
-	}
-	{ // do_test "func-21.5"
-		r = db.Query("\n    SELECT typeof(replace('This is the main test string', 'main', NULL));\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(replace('This is the main test string', 'main', NULL));\n  ")
-		}
-	}
-	{ // do_test "func-21.6"
-		r = db.Query("\n    SELECT replace('This is the main test string', 'main', 'ALT');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('This is the main test string', 'main', 'ALT');\n  ")
-		}
-	}
-	{ // do_test "func-21.7"
-		r = db.Query("\n    SELECT replace('This is the main test string', 'main', 'larger-main');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('This is the main test string', 'main', 'larger-main');\n  ")
-		}
-	}
-	{ // do_test "func-21.8"
-		r = db.Query("\n    SELECT replace('aaaaaaa', 'a', '0123456789');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT replace('aaaaaaa', 'a', '0123456789');\n  ")
-		}
-	}
-	{ // "func-21.9"
-		r = db.Query("\n  SELECT typeof(replace(1,'',0));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof(replace(1,'',0));\n")
-			return
-		}
-		got := flatten(r)
-		want := "text"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "func-22.1"
-		_res = db.Exec("SELECT trim(1,2,3)")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-22.2"
-		_res = db.Exec("SELECT ltrim(1,2,3)")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-22.3"
-		_res = db.Exec("SELECT rtrim(1,2,3)")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-22.4"
-		r = db.Query("SELECT trim('  hi  ');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ');")
-		}
-	}
-	{ // do_test "func-22.5"
-		r = db.Query("SELECT ltrim('  hi  ');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('  hi  ');")
-		}
-	}
-	{ // do_test "func-22.6"
-		r = db.Query("SELECT rtrim('  hi  ');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('  hi  ');")
-		}
-	}
-	{ // do_test "func-22.7"
-		r = db.Query("SELECT trim('  hi  ','xyz');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ','xyz');")
-		}
-	}
-	{ // do_test "func-22.8"
-		r = db.Query("SELECT ltrim('  hi  ','xyz');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('  hi  ','xyz');")
-		}
-	}
-	{ // do_test "func-22.9"
-		r = db.Query("SELECT rtrim('  hi  ','xyz');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('  hi  ','xyz');")
-		}
-	}
-	{ // do_test "func-22.10"
-		r = db.Query("SELECT trim('xyxzy  hi  zzzy','xyz');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('xyxzy  hi  zzzy','xyz');")
-		}
-	}
-	{ // do_test "func-22.11"
-		r = db.Query("SELECT ltrim('xyxzy  hi  zzzy','xyz');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT ltrim('xyxzy  hi  zzzy','xyz');")
-		}
-	}
-	{ // do_test "func-22.12"
-		r = db.Query("SELECT rtrim('xyxzy  hi  zzzy','xyz');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rtrim('xyxzy  hi  zzzy','xyz');")
-		}
-	}
-	{ // do_test "func-22.13"
-		r = db.Query("SELECT trim('  hi  ','');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT trim('  hi  ','');")
-		}
-	}
-	if tclBool("db one {PRAGMA encoding}" + "==\"UTF-8\"") {
-		{ // do_test "func-22.14"
-			r = db.Query("SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))")
+		{ // do_test "func-22.20"
+			r = db.Query("SELECT typeof(trim(NULL));")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'c280e1bfbff48fbfbf6869',x'6162e1bfbfc280'))")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim(NULL));")
 			}
 		}
-		{ // do_test "func-22.15"
-			r = db.Query("SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))")
+		{ // do_test "func-22.21"
+			r = db.Query("SELECT typeof(trim(NULL,'xyz'));")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'6869c280e1bfbff48fbfbf61',\n                             x'6162e1bfbfc280f48fbfbf'))")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim(NULL,'xyz'));")
 			}
 		}
-		{ // do_test "func-22.16"
-			r = db.Query("SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));")
+		{ // do_test "func-22.22"
+			r = db.Query("SELECT typeof(trim('hello',NULL));")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT hex(trim(x'ceb1ceb2ceb3',x'ceb1'));")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim('hello',NULL));")
 			}
 		}
-	}
-	{ // do_test "func-22.20"
-		r = db.Query("SELECT typeof(trim(NULL));")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim(NULL));")
+		{ // "func-22.23"
+			r = db.Query("\n  SELECT trim('xyzzy',x'c0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT trim('xyzzy',x'c0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080');\n")
+				return
+			}
+			got := flatten(r)
+			want := "xyzzy"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // do_test "func-22.21"
-		r = db.Query("SELECT typeof(trim(NULL,'xyz'));")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim(NULL,'xyz'));")
+		{ // do_test "func-24.1"
+			r = db.Query("\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
+			}
 		}
-	}
-	{ // do_test "func-22.22"
-		r = db.Query("SELECT typeof(trim('hello',NULL));")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT typeof(trim('hello',NULL));")
+		{ // do_test "func-24.2"
+			r = db.Query("\n    SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1\n  ")
+			}
 		}
-	}
-	{ // "func-22.23"
-		r = db.Query("\n  SELECT trim('xyzzy',x'c0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT trim('xyzzy',x'c0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080');\n")
-			return
+		{ // do_test "func-24.3"
+			r = db.Query("\n    SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1\n  ")
+			}
 		}
-		got := flatten(r)
-		want := "xyzzy"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "func-24.4"
+			r = db.Query("\n    SELECT group_concat(NULL,t1) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(NULL,t1) FROM tbl1\n  ")
+			}
 		}
-	}
-	{ // do_test "func-24.1"
-		r = db.Query("\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1), string_agg(t1,',') FROM tbl1\n  ")
+		{ // do_test "func-24.5"
+			r = db.Query("\n    SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1\n  ")
+			}
 		}
-	}
-	{ // do_test "func-24.2"
-		r = db.Query("\n    SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,' '), string_agg(t1,' ') FROM tbl1\n  ")
+		{ // do_test "func-24.6"
+			r = db.Query("\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
+			}
 		}
-	}
-	{ // do_test "func-24.3"
-		r = db.Query("\n    SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,' ' || rowid || ' ') FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.4"
-		r = db.Query("\n    SELECT group_concat(NULL,t1) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(NULL,t1) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.5"
-		r = db.Query("\n    SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(t1,NULL), string_agg(t1,NULL) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.6"
-		r = db.Query("\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
-		}
-	}
-	var midargs = ""
-	_ = midargs // suppress unused warning
-	var midres = ""
-	_ = midres // suppress unused warning
-	var limit = "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1"
-	_ = limit // suppress unused warning
-	if func() bool { limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return limit_n > 400 }() {
-		var limit = "400"
+		var midargs = ""
+		_ = midargs // suppress unused warning
+		var midres = ""
+		_ = midres // suppress unused warning
+		var limit = "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1"
 		_ = limit // suppress unused warning
-	}
-	var i = "1"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
-		midargs += ",'/" + i + "'"
-		midres += "/" + i
-		var result = "md5 \\\n     \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
-		_ = result // suppress unused warning
-		var sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
-		_ = sql // suppress unused warning
-		{ // do_test "func-24.7." + i
-			_res = db.Exec(_sql)
+		if func() bool { limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return limit_n > 400 }() {
+			var limit = "400"
+			_ = limit // suppress unused warning
+		}
+		var i = "1"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
+			midargs += ",'/" + i + "'"
+			midres += "/" + i
+			var result = "md5 \\\n     \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
+			_ = result // suppress unused warning
+			var sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
+			_ = sql // suppress unused warning
+			{ // do_test "func-24.7." + i
+				_res = db.Exec(_sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+				}
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		{ // do_test "func-24.8"
+			r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1\n  ")
+			}
+		}
+		{ // do_test "func-24.9"
+			r = db.Query("\n    SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1\n  ")
+			}
+		}
+		{ // do_test "func-24.10"
+			r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1\n  ")
+			}
+		}
+		{ // do_test "func-24.11"
+			r = db.Query("\n   SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1\n  ")
+			}
+		}
+		{ // do_test "func-24.12"
+			r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1\n  ")
+			}
+		}
+		{ // do_test "func-24.13"
+			r = db.Query("\n    SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);\n  ")
+			}
+		}
+		{ // do_test "func-24.14"
+			r = db.Query("\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
+			}
+		}
+		{ // do_test "func-25.1"
+			r = db.Query("SELECT test_isolation(t1,t1) FROM tbl1")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT test_isolation(t1,t1) FROM tbl1")
+			}
+		}
+		{ // do_test "func-26.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "abuse_create_function db")
+		}
+		{ // do_test "func-26.2"
+			var a = ""
+			_ = a // suppress unused warning
+			var limit = _SQLITE_MAX_FUNCTION_ARG
+			_ = limit // suppress unused warning
+			var i = "1"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
+				a = tclListAppend(a, i)
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
 			}
 		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	{ // do_test "func-24.8"
-		r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN '' ELSE t1 END) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.9"
-		r = db.Query("\n    SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE WHEN t1!='software' THEN '' ELSE t1 END) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.10"
-		r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN null ELSE t1 END) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.11"
-		r = db.Query("\n   SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n   SELECT group_concat(CASE WHEN t1!='software' THEN null ELSE t1 END) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.12"
-		r = db.Query("\n    SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT group_concat(CASE t1 WHEN 'this' THEN ''\n                          WHEN 'program' THEN null ELSE t1 END) FROM tbl1\n  ")
-		}
-	}
-	{ // do_test "func-24.13"
-		r = db.Query("\n    SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x)) FROM (SELECT '' AS x);\n  ")
-		}
-	}
-	{ // do_test "func-24.14"
-		r = db.Query("\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT typeof(group_concat(x,''))\n      FROM (SELECT '' AS x UNION ALL SELECT '');\n  ")
-		}
-	}
-	{ // do_test "func-25.1"
-		r = db.Query("SELECT test_isolation(t1,t1) FROM tbl1")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT test_isolation(t1,t1) FROM tbl1")
-		}
-	}
-	{ // do_test "func-26.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "abuse_create_function db")
-	}
-	{ // do_test "func-26.2"
-		var a = ""
-		_ = a // suppress unused warning
-		var limit = _SQLITE_MAX_FUNCTION_ARG
-		_ = limit // suppress unused warning
-		var i = "1"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
-			a = tclListAppend(a, i)
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+		{ // do_test "func-26.3"
+			var a = ""
+			_ = a // suppress unused warning
+			var i = "1"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _SQLITE_MAX_FUNCTION_ARG_n, __SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(_SQLITE_MAX_FUNCTION_ARG); if __SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return i_n <= _SQLITE_MAX_FUNCTION_ARG_n+1 }() {
+				a = tclListAppend(a, i)
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
 				}
 			}
+			_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
+			_ = _res // catchsql
 		}
-		_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
-		}
-	}
-	{ // do_test "func-26.3"
-		var a = ""
-		_ = a // suppress unused warning
-		var i = "1"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _SQLITE_MAX_FUNCTION_ARG_n, __SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(_SQLITE_MAX_FUNCTION_ARG); if __SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return i_n <= _SQLITE_MAX_FUNCTION_ARG_n+1 }() {
-			a = tclListAppend(a, i)
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+		{ // do_test "func-26.4"
+			var a = ""
+			_ = a // suppress unused warning
+			limit := "$::SQLITE_MAX_FUNCTION_ARG-1"
+			var i = "1"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
+				a = tclListAppend(a, i)
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
 				}
 			}
+			_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
+			_ = _res // catchsql
 		}
-		_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-26.4"
-		var a = ""
-		_ = a // suppress unused warning
-		limit := "$::SQLITE_MAX_FUNCTION_ARG-1"
-		var i = "1"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
-			a = tclListAppend(a, i)
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+		{ // do_test "func-26.5"
+			_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_12345678a(0);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-26.6"
+			_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789a(0);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-27.1"
+			_res = db.Exec("SELECT coalesce()")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-27.2"
+			_res = db.Exec("SELECT coalesce(1)")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-27.3"
+			_res = db.Exec("SELECT coalesce(1,2)")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-28.1"
+			_res = db.Exec("\n    CREATE TABLE t28(x, y DEFAULT(nosuchfunc(1)));\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t28(x, y DEFAULT(nosuchfunc(1)));\n  ")
+			}
+			_res = db.Exec("\n    INSERT INTO t28(x) VALUES(1);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "func-29.1"
+			_res = db.Exec("\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
+			}
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
+			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
 			}
 		}
-		_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789(" + "join $a ," + ");\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-26.5"
-		_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_12345678a(0);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-26.6"
-		_res = db.Exec("\n     SELECT nullx_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789a(0);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-27.1"
-		_res = db.Exec("SELECT coalesce()")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-27.2"
-		_res = db.Exec("SELECT coalesce(1)")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-27.3"
-		_res = db.Exec("SELECT coalesce(1,2)")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-28.1"
-		_res = db.Exec("\n    CREATE TABLE t28(x, y DEFAULT(nosuchfunc(1)));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t28(x, y DEFAULT(nosuchfunc(1)));\n  ")
-		}
-		_res = db.Exec("\n    INSERT INTO t28(x) VALUES(1);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "func-29.1"
-		_res = db.Exec("\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
-		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
-		_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
-		}
-	}
-	{ // do_test "func-29.2"
-		var x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
-		_ = x // suppress unused warning
-		if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
-			var x = "1"
+		{ // do_test "func-29.2"
+			var x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
 			_ = x // suppress unused warning
+			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
+				var x = "1"
+				_ = x // suppress unused warning
+			}
 		}
-	}
-	{ // do_test "func-29.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
-		_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(+x) FROM t29 ORDER BY id")
+		{ // do_test "func-29.3"
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
+			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(+x) FROM t29 ORDER BY id")
+			}
 		}
-	}
-	if tclBool("permutation" + " != \"mmap\"") {
-	}
-	{ // do_test "func-29.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
-		_res = db.Exec("SELECT sum(length(x)) FROM t29")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT sum(length(x)) FROM t29")
+		if tclBool("permutation" + " != \"mmap\"") {
 		}
-	}
-	{ // do_test "func-29.6"
-		var x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
-		_ = x // suppress unused warning
-		if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
-			var x = "1"
+		{ // do_test "func-29.5"
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
+			_res = db.Exec("SELECT sum(length(x)) FROM t29")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT sum(length(x)) FROM t29")
+			}
+		}
+		{ // do_test "func-29.6"
+			var x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
 			_ = x // suppress unused warning
+			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
+				var x = "1"
+				_ = x // suppress unused warning
+			}
 		}
-	}
-	{ // "func-29.10"
-		r = db.Query("\n  CREATE TABLE t29b(a,b,c,d,e,f,g,h,i);\n  INSERT INTO t29b \n   VALUES(1, hex(randomblob(2000)), null, 0, 1, '', zeroblob(0),'x',x'01');\n  SELECT typeof(c), typeof(d), typeof(e), typeof(f),\n         typeof(g), typeof(h), typeof(i) FROM t29b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t29b(a,b,c,d,e,f,g,h,i);\n  INSERT INTO t29b \n   VALUES(1, hex(randomblob(2000)), null, 0, 1, '', zeroblob(0),'x',x'01');\n  SELECT typeof(c), typeof(d), typeof(e), typeof(f),\n         typeof(g), typeof(h), typeof(i) FROM t29b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "null integer integer text blob text blob"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-29.11"
-		r = db.Query("\n  SELECT length(f), length(g), length(h), length(i) FROM t29b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(f), length(g), length(h), length(i) FROM t29b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 0 1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-29.12"
-		r = db.Query("\n  SELECT quote(f), quote(g), quote(h), quote(i) FROM t29b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT quote(f), quote(g), quote(h), quote(i) FROM t29b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "'' X'' 'x' X'01'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-30.1"
-		r = db.Query("SELECT unicode('$');")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode('$');")
-			return
-		}
-		got := flatten(r)
-		want := "36"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-30.2"
-		_res = db.Exec("SELECT unicode('\\u00A2');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT unicode('\\u00A2');")
-		}
-	}
-	{ // "func-30.3"
-		_res = db.Exec("SELECT unicode('\\u20AC');")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT unicode('\\u20AC');")
-		}
-	}
-	{ // "func-30.4"
-		r = db.Query("SELECT char(36,162,8364);")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT char(36,162,8364);")
-			return
-		}
-		got := flatten(r)
-		want := "$\\u00A2\\u20AC"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var i = "1"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 0xd800 }() {
-		{ // "func-30.5." + i
-			r = db.Query("SELECT unicode(char($i))")
+		{ // "func-29.10"
+			r = db.Query("\n  CREATE TABLE t29b(a,b,c,d,e,f,g,h,i);\n  INSERT INTO t29b \n   VALUES(1, hex(randomblob(2000)), null, 0, 1, '', zeroblob(0),'x',x'01');\n  SELECT typeof(c), typeof(d), typeof(e), typeof(f),\n         typeof(g), typeof(h), typeof(i) FROM t29b;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t29b(a,b,c,d,e,f,g,h,i);\n  INSERT INTO t29b \n   VALUES(1, hex(randomblob(2000)), null, 0, 1, '', zeroblob(0),'x',x'01');\n  SELECT typeof(c), typeof(d), typeof(e), typeof(f),\n         typeof(g), typeof(h), typeof(i) FROM t29b;\n")
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := "null integer integer text blob text blob"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// incr i 13
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 13)
-			}
-		}
-	}
-	var i = "57344"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0xfffd }() {
-		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 0xfeff }() {
-		}
-		{ // "func-30.5." + i
-			r = db.Query("SELECT unicode(char($i))")
+		{ // "func-29.11"
+			r = db.Query("\n  SELECT length(f), length(g), length(h), length(i) FROM t29b;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(f), length(g), length(h), length(i) FROM t29b;\n")
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := "0 0 1 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// incr i 17
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 17)
-			}
-		}
-	}
-	var i = "65536"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0x10ffff }() {
-		{ // "func-30.5." + i
-			r = db.Query("SELECT unicode(char($i))")
+		{ // "func-29.12"
+			r = db.Query("\n  SELECT quote(f), quote(g), quote(h), quote(i) FROM t29b;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT quote(f), quote(g), quote(h), quote(i) FROM t29b;\n")
 				return
 			}
 			got := flatten(r)
-			want := i
+			want := "'' X'' 'x' X'01'"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// incr i 139
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 139)
-			}
-		}
-	}
-	{ // "func-31.1"
-		r = db.Query(" \n  SELECT char(), length(char()), typeof(char()) \n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT char(), length(char()), typeof(char()) \n")
-			return
-		}
-		got := flatten(r)
-		want := "{} 0 text"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-32.100"
-		r = db.Query("\n  SELECT test_frombind(1,2,3,4);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(1,2,3,4);\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-32.110"
-		r = db.Query("\n  SELECT test_frombind(1,2,?,4);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(1,2,?,4);\n")
-			return
-		}
-		got := flatten(r)
-		want := "4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-32.120"
-		r = db.Query("\n  SELECT test_frombind(1,(?),4,?+7);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(1,(?),4,?+7);\n")
-			return
-		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-32.130"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "32"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-32.140"
-		r = db.Query("\n  SELECT test_frombind(a,b,c,e,f,$xyz+f) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(a,b,c,e,f,$xyz+f) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-32.150"
-		r = db.Query("\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f,$xyz+y.f) FROM t1 x, t1 y;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f,$xyz+y.f) FROM t1 x, t1 y;\n")
-			return
-		}
-		got := flatten(r)
-		want := "8"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// proc definition (not transpiled)
-	{ // do_test "func-33.1"
-		_res = db.Exec("SELECT testdirectonly(15)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT testdirectonly(15)")
-		}
-	}
-	{ // "func-33.2"
-		_res = db.Exec("\n  CREATE VIEW v33(y) AS SELECT testdirectonly(15);\n  SELECT * FROM v33;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of testdirectonly()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of testdirectonly()", _res.Error, "\n  CREATE VIEW v33(y) AS SELECT testdirectonly(15);\n  SELECT * FROM v33;\n")
-		}
-	}
-	{ // "func-33.3"
-		r = db.Query("\n  SELECT * FROM (SELECT testdirectonly(15)) AS v33;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT testdirectonly(15)) AS v33;\n")
-			return
-		}
-		got := flatten(r)
-		want := "30"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-33.4"
-		r = db.Query("\n  WITH c(x) AS (SELECT testdirectonly(15))\n  SELECT * FROM c;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (SELECT testdirectonly(15))\n  SELECT * FROM c;\n")
-			return
-		}
-		got := flatten(r)
-		want := "30"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-33.5"
-		_res = db.Exec("\n  WITH c(x) AS (SELECT * FROM v33)\n  SELECT * FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of testdirectonly()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of testdirectonly()", _res.Error, "\n  WITH c(x) AS (SELECT * FROM v33)\n  SELECT * FROM c;\n")
-		}
-	}
-	{ // "func-33.10"
-		_res = db.Exec("\n  CREATE TABLE t33a(a,b);\n  CREATE TABLE t33b(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.a),new.b);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t33a(a,b);\n  CREATE TABLE t33b(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.a),new.b);\n  END;\n")
-		}
-	}
-	{ // "func-33.11"
-		_res = db.Exec("\n  INSERT INTO t33a VALUES(1,2);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of testdirectonly()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of testdirectonly()", _res.Error, "\n  INSERT INTO t33a VALUES(1,2);\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "func-34.10"
-		r = db.Query("\n  CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "func-35.100"
-		r = db.Query("\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
-		}
-	}
-	{ // "func-35.110"
-		r = db.Query("\n  SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;\n")
-		}
-	}
-	{ // "func-35.200"
-		r = db.Query("\n  CREATE TABLE t0(c0 CHECK(ABS(-9223372036854775808)));\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(c0 CHECK(ABS(-9223372036854775808)));\n  PRAGMA integrity_check;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
-	{ // "func-36.100"
-		r = db.Query("\n  SELECT 123 -> 456\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 -> 456\n")
-			return
-		}
-		got := flatten(r)
-		want := "123->456"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-36.110"
-		r = db.Query("\n  SELECT 123 ->> 456\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 ->> 456\n")
-			return
-		}
-		got := flatten(r)
-		want := "123->>456"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "func-37.100"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
-		}
-	}
-	{ // "func-37.110"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
-		}
-	}
-	{ // "func-37.120"
-		_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
-		}
-	}
-	{ // "func-38.100"
-		r = db.Query("\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "Inf Inf Inf -Inf -Inf -Inf"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "func-39.101"
-		r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1.79769313486232e+308 1.79769313486232e+308 1.79769313486232e+308"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var i = "2"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-		{ // "func-39." + "10*$i+100"
-			r = db.Query("\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<$i)\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+		{ // "func-30.1"
+			r = db.Query("SELECT unicode('$');")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<$i)\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode('$');")
 				return
 			}
 			got := flatten(r)
-			want := "Inf Inf Inf"
+			want := "36"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
+		{ // "func-30.2"
+			_res = db.Exec("SELECT unicode('\\u00A2');")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT unicode('\\u00A2');")
 			}
 		}
-	}
+		{ // "func-30.3"
+			_res = db.Exec("SELECT unicode('\\u20AC');")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT unicode('\\u20AC');")
+			}
+		}
+		{ // "func-30.4"
+			r = db.Query("SELECT char(36,162,8364);")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT char(36,162,8364);")
+				return
+			}
+			got := flatten(r)
+			want := "$\\u00A2\\u20AC"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		var i = "1"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 0xd800 }() {
+			{ // "func-30.5." + i
+				r = db.Query("SELECT unicode(char($i))")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+					return
+				}
+				got := flatten(r)
+				want := i
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// incr i 13
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 13)
+				}
+			}
+		}
+		var i = "57344"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0xfffd }() {
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 0xfeff }() {
+			}
+			{ // "func-30.5." + i
+				r = db.Query("SELECT unicode(char($i))")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+					return
+				}
+				got := flatten(r)
+				want := i
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// incr i 17
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 17)
+				}
+			}
+		}
+		var i = "65536"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0x10ffff }() {
+			{ // "func-30.5." + i
+				r = db.Query("SELECT unicode(char($i))")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT unicode(char($i))")
+					return
+				}
+				got := flatten(r)
+				want := i
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// incr i 139
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 139)
+				}
+			}
+		}
+		{ // "func-31.1"
+			r = db.Query(" \n  SELECT char(), length(char()), typeof(char()) \n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT char(), length(char()), typeof(char()) \n")
+				return
+			}
+			got := flatten(r)
+			want := "{} 0 text"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-32.100"
+			r = db.Query("\n  SELECT test_frombind(1,2,3,4);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(1,2,3,4);\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-32.110"
+			r = db.Query("\n  SELECT test_frombind(1,2,?,4);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(1,2,?,4);\n")
+				return
+			}
+			got := flatten(r)
+			want := "4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-32.120"
+			r = db.Query("\n  SELECT test_frombind(1,(?),4,?+7);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(1,(?),4,?+7);\n")
+				return
+			}
+			got := flatten(r)
+			want := "2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-32.130"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c,e,f);\n  INSERT INTO t1 VALUES(1,2.5,'xyz',x'e0c1b2a3',null);\n  SELECT test_frombind(a,b,c,e,f,$xyz) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "32"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-32.140"
+			r = db.Query("\n  SELECT test_frombind(a,b,c,e,f,$xyz+f) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(a,b,c,e,f,$xyz+f) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-32.150"
+			r = db.Query("\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f,$xyz+y.f) FROM t1 x, t1 y;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT test_frombind(x.a,y.b,x.c,:123,y.e,x.f,$xyz+y.f) FROM t1 x, t1 y;\n")
+				return
+			}
+			got := flatten(r)
+			want := "8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// proc definition (not transpiled)
+		{ // do_test "func-33.1"
+			_res = db.Exec("SELECT testdirectonly(15)")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT testdirectonly(15)")
+			}
+		}
+		{ // "func-33.2"
+			_res = db.Exec("\n  CREATE VIEW v33(y) AS SELECT testdirectonly(15);\n  SELECT * FROM v33;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of testdirectonly()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of testdirectonly()", _res.Error, "\n  CREATE VIEW v33(y) AS SELECT testdirectonly(15);\n  SELECT * FROM v33;\n")
+			}
+		}
+		{ // "func-33.3"
+			r = db.Query("\n  SELECT * FROM (SELECT testdirectonly(15)) AS v33;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT testdirectonly(15)) AS v33;\n")
+				return
+			}
+			got := flatten(r)
+			want := "30"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-33.4"
+			r = db.Query("\n  WITH c(x) AS (SELECT testdirectonly(15))\n  SELECT * FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (SELECT testdirectonly(15))\n  SELECT * FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "30"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-33.5"
+			_res = db.Exec("\n  WITH c(x) AS (SELECT * FROM v33)\n  SELECT * FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of testdirectonly()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of testdirectonly()", _res.Error, "\n  WITH c(x) AS (SELECT * FROM v33)\n  SELECT * FROM c;\n")
+			}
+		}
+		{ // "func-33.10"
+			_res = db.Exec("\n  CREATE TABLE t33a(a,b);\n  CREATE TABLE t33b(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.a),new.b);\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t33a(a,b);\n  CREATE TABLE t33b(x,y);\n  CREATE TRIGGER r1 AFTER INSERT ON t33a BEGIN\n    INSERT INTO t33b(x,y) VALUES(testdirectonly(new.a),new.b);\n  END;\n")
+			}
+		}
+		{ // "func-33.11"
+			_res = db.Exec("\n  INSERT INTO t33a VALUES(1,2);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of testdirectonly()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of testdirectonly()", _res.Error, "\n  INSERT INTO t33a VALUES(1,2);\n")
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "func-34.10"
+			r = db.Query("\n  CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT CHECK(\n     datetime( 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,\n              10,11,12,13,14,15,16,17,18,19,\n              20,21,22,23,24,25,26,27,28,29,\n              30,31,32,33,34,35,36,37,38,39,\n              40,41,42,43,44,45,46,47,48,a)\n   )\n  );\n  INSERT INTO t1(a) VALUES(1),(2);\n  SELECT * FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "func-35.100"
+			r = db.Query("\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x);\n  SELECT coalesce(x, abs(-9223372036854775808)) FROM t1;\n")
+			}
+		}
+		{ // "func-35.110"
+			r = db.Query("\n  SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT coalesce(x, 'xyz' LIKE printf('%.1000000c','y')) FROM t1;\n")
+			}
+		}
+		{ // "func-35.200"
+			r = db.Query("\n  CREATE TABLE t0(c0 CHECK(ABS(-9223372036854775808)));\n  PRAGMA integrity_check;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t0(c0 CHECK(ABS(-9223372036854775808)));\n  PRAGMA integrity_check;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// proc definition (not transpiled)
+		// proc definition (not transpiled)
+		{ // "func-36.100"
+			r = db.Query("\n  SELECT 123 -> 456\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 -> 456\n")
+				return
+			}
+			got := flatten(r)
+			want := "123->456"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-36.110"
+			r = db.Query("\n  SELECT 123 ->> 456\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 123 ->> 456\n")
+				return
+			}
+			got := flatten(r)
+			want := "123->>456"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "func-37.100"
+			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(9223372036854775807),\n                      (123),(-9223372036854775807),(-9223372036854775807))\n  SELECT sum(x) FROM c;\n")
+			}
+		}
+		{ // "func-37.110"
+			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(1))\n  SELECT sum(x) FROM c;\n")
+			}
+		}
+		{ // "func-37.120"
+			_res = db.Exec("\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "integer overflow") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "integer overflow", _res.Error, "\n  WITH c(x) AS (VALUES(9223372036854775807),(10000),(-10010))\n  SELECT sum(x) FROM c;\n")
+			}
+		}
+		{ // "func-38.100"
+			r = db.Query("\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t1(x) AS (VALUES(9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n  WITH t1(x) AS (VALUES(-9e+999)) SELECT sum(x), avg(x), total(x) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "Inf Inf Inf -Inf -Inf -Inf"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "func-39.101"
+			r = db.Query("\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1)\n  SELECT sum(1.7976931348623157e308),\n         avg(1.7976931348623157e308),\n         total(1.7976931348623157e308)\n    FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1.79769313486232e+308 1.79769313486232e+308 1.79769313486232e+308"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		var i = "2"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+			{ // "func-39." + "10*$i+100"
+				r = db.Query("\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<$i)\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<$i)\n    SELECT sum(1.7976931348623157e308),\n           avg(1.7976931348623157e308),\n           total(1.7976931348623157e308)\n      FROM c;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "Inf Inf Inf"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
 }

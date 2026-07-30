@@ -30,94 +30,75 @@ func Test_e_vacuum(t *testing.T) {
 		}
 	}
 	// foreach {tn avmode sz} "\n  1 none        7 \n  2 full        8 \n  3 incremental 8\n"
-	_items := []string{"\n  1 none        7 \n  2 full        8 \n  3 incremental 8\n"}
+	_items := tclSplitList("\n  1 none        7 \n  2 full        8 \n  3 incremental 8\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	avmode := _items[_idx+1]
-	sz := _items[_idx+2]
-		var nPage = "create_db \"PRAGMA auto_vacuum = $avmode\""
-		_ = nPage // suppress unused warning
-		{ // "e_vacuum-1.1." + tn + ".1"
-			_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
-			}
-		}
-		if avmode == "full" {
-			{ // "e_vacuum-1.1." + tn + ".2"
-				r = db.Query("PRAGMA freelist_count")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA freelist_count")
-					return
-				}
-				got := flatten(r)
-				want := "0"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		tn := _items[_idx+0]
+		avmode := _items[_idx+1]
+		sz := _items[_idx+2]
+		_ = _idx
+			var nPage = "create_db \"PRAGMA auto_vacuum = $avmode\""
+			_ = nPage // suppress unused warning
+			{ // "e_vacuum-1.1." + tn + ".1"
+				_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
 				}
 			}
-		} else {
-			freelist := "$nPage - $sz"
-			if avmode == "incremental" {
-				// incr freelist -2
-				{
-					_n, _err := strconv.Atoi(freelist)
-					if _err == nil {
-						freelist = strconv.Itoa(_n + -2)
+			if avmode == "full" {
+				{ // "e_vacuum-1.1." + tn + ".2"
+					r = db.Query("PRAGMA freelist_count")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA freelist_count")
+						return
+					}
+					got := flatten(r)
+					want := "0"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			} else {
+				freelist := "$nPage - $sz"
+				if avmode == "incremental" {
+					// incr freelist -2
+					{
+						_n, _err := strconv.Atoi(freelist)
+						if _err == nil {
+							freelist = strconv.Itoa(_n + -2)
+						}
+					}
+				}
+				{ // "e_vacuum-1.1." + tn + ".3"
+					r = db.Query("PRAGMA freelist_count")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA freelist_count")
+						return
+					}
+					got := flatten(r)
+					want := freelist
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "e_vacuum-1.1." + tn + ".4"
+					_res = db.Exec("VACUUM")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 					}
 				}
 			}
-			{ // "e_vacuum-1.1." + tn + ".3"
-				r = db.Query("PRAGMA freelist_count")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA freelist_count")
-					return
-				}
-				got := flatten(r)
-				want := freelist
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			{ // "e_vacuum-1.1." + tn + ".4"
-				_res = db.Exec("VACUUM")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-				}
+			{ // do_test "e_vacuum-1.1." + tn + ".5"
+				// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 			}
 		}
-		{ // do_test "e_vacuum-1.1." + tn + ".5"
-			// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
-		}
-	}
-	}
-	{ // do_test "e_vacuum-1.3.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_db PRAGMA page_size = 1024 ; PRAGMA auto_vacuum = FUL...")
-		r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
-		}
-	}
-	{ // do_test "e_vacuum-1.3.1.2"
-		r = db.Query(" PRAGMA page_size = 2048 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 2048 ")
-		}
-		r = db.Query(" PRAGMA auto_vacuum = NONE ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = NONE ")
-		}
-		r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
-		}
-	}
-	if tclBool("!" + "nonzero_reserved_bytes") {
-		{ // do_test "e_vacuum-1.3.2.1"
-			r = db.Query(" PRAGMA journal_mode = delete ")
+		{ // do_test "e_vacuum-1.3.1.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "create_db PRAGMA page_size = 1024 ; PRAGMA auto_vacuum = FUL...")
+			r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
 			}
+		}
+		{ // do_test "e_vacuum-1.3.1.2"
 			r = db.Query(" PRAGMA page_size = 2048 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 2048 ")
@@ -126,34 +107,24 @@ func Test_e_vacuum(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = NONE ")
 			}
-			_res = db.Exec("VACUUM")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
-			}
 			r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
 			}
 		}
-		if tclBool("wal_is_capable") {
-			{ // do_test "e_vacuum-1.3.3.1"
-				r = db.Query(" PRAGMA journal_mode = wal ")
+		if tclBool("!" + "nonzero_reserved_bytes") {
+			{ // do_test "e_vacuum-1.3.2.1"
+				r = db.Query(" PRAGMA journal_mode = delete ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = wal ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = delete ")
 				}
-				r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
+				r = db.Query(" PRAGMA page_size = 2048 ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 2048 ")
 				}
-			}
-			{ // do_test "e_vacuum-1.3.3.2"
-				r = db.Query(" PRAGMA page_size = 1024 ")
+				r = db.Query(" PRAGMA auto_vacuum = NONE ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 1024 ")
-				}
-				r = db.Query(" PRAGMA auto_vacuum = FULL ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = FULL ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = NONE ")
 				}
 				_res = db.Exec("VACUUM")
 				if _res.Error != nil {
@@ -164,205 +135,234 @@ func Test_e_vacuum(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
 				}
 			}
+			if tclBool("wal_is_capable") {
+				{ // do_test "e_vacuum-1.3.3.1"
+					r = db.Query(" PRAGMA journal_mode = wal ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = wal ")
+					}
+					r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
+					}
+				}
+				{ // do_test "e_vacuum-1.3.3.2"
+					r = db.Query(" PRAGMA page_size = 1024 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 1024 ")
+					}
+					r = db.Query(" PRAGMA auto_vacuum = FULL ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = FULL ")
+					}
+					_res = db.Exec("VACUUM")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+					}
+					r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
+					}
+				}
+			}
 		}
-	}
-	os.Remove("test.db2")
-	t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = NONE }")
-	{ // "e_vacuum-2.1.1"
-		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
+		os.Remove("test.db2")
+		t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = NONE }")
+		{ // "e_vacuum-2.1.1"
+			_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
+			}
 		}
-	}
-	var original_size = "file size test.db2"
-	_ = original_size // suppress unused warning
-	{ // "e_vacuum-2.1.3"
-		_res = db.Exec(" VACUUM ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+		var original_size = "file size test.db2"
+		_ = original_size // suppress unused warning
+		{ // "e_vacuum-2.1.3"
+			_res = db.Exec(" VACUUM ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+			}
 		}
-	}
-	{ // do_test "e_vacuum-2.1.6"
-		// expr [file size test.db2]==$::original_size → "[file size test.db2]==$::original_size"
-	}
-	{ // "e_vacuum-2.1.7"
-		_res = db.Exec(" VACUUM aux; ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM aux; ")
+		{ // do_test "e_vacuum-2.1.6"
+			// expr [file size test.db2]==$::original_size → "[file size test.db2]==$::original_size"
 		}
-	}
-	{ // do_test "e_vacuum-2.1.8"
-		// expr [file size test.db2]<$::original_size → "[file size test.db2]<$::original_size"
-	}
-	{ // "e_vacuum-3.1.1"
-		r = db.Query("\n  CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;\n")
-			return
+		{ // "e_vacuum-2.1.7"
+			_res = db.Exec(" VACUUM aux; ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM aux; ")
+			}
 		}
-		got := flatten(r)
-		want := "1 x 3 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "e_vacuum-2.1.8"
+			// expr [file size test.db2]<$::original_size → "[file size test.db2]<$::original_size"
 		}
-	}
-	{ // "e_vacuum-3.1.2"
-		r = db.Query("\n  VACUUM;\n  SELECT rowid, x FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, x FROM t4;\n")
-			return
+		{ // "e_vacuum-3.1.1"
+			r = db.Query("\n  CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(x);\n  INSERT INTO t4(x) VALUES('x');\n  INSERT INTO t4(x) VALUES('y');\n  INSERT INTO t4(x) VALUES('z');\n  DELETE FROM t4 WHERE x = 'y';\n  SELECT rowid, x FROM t4;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 x 2 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "e_vacuum-3.1.2"
+			r = db.Query("\n  VACUUM;\n  SELECT rowid, x FROM t4;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, x FROM t4;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 2 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "e_vacuum-3.1.3"
-		r = db.Query("\n  CREATE TABLE t5(x, y INTEGER PRIMARY KEY);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(x, y INTEGER PRIMARY KEY);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
-			return
+		{ // "e_vacuum-3.1.3"
+			r = db.Query("\n  CREATE TABLE t5(x, y INTEGER PRIMARY KEY);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(x, y INTEGER PRIMARY KEY);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 x 3 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "e_vacuum-3.1.4"
+			r = db.Query("\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "e_vacuum-3.1.4"
-		r = db.Query("\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
-			return
+		{ // "e_vacuum-3.1.5"
+			r = db.Query("\n  DROP TABLE t5;\n  CREATE TABLE t5(x);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t5;\n  CREATE TABLE t5(x);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 x 3 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		os.Remove("test2.db")
+		{ // "e_vacuum-3.1.6"
+			_res = db.Exec("\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "x 3 z") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "x 3 z", _res.Error, "\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
+			}
 		}
-	}
-	{ // "e_vacuum-3.1.5"
-		r = db.Query("\n  DROP TABLE t5;\n  CREATE TABLE t5(x);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t5;\n  CREATE TABLE t5(x);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  DELETE FROM t5 WHERE x = 'y';\n  SELECT rowid, x FROM t5;\n")
-			return
+		{ // "e_vacuum-3.1.7"
+			r = db.Query("\n  DROP TABLE t5;\n  CREATE TABLE t5(x,y,z);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  UPDATE t5 SET y=x, z=random();\n  DELETE FROM t5 WHERE x = 'y';\n  CREATE INDEX t5x ON t5(x);\n  CREATE UNIQUE INDEX t5y ON t5(y);\n  CREATE INDEX t5zxy ON t5(z,x,y);\n  SELECT rowid, x FROM t5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t5;\n  CREATE TABLE t5(x,y,z);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  UPDATE t5 SET y=x, z=random();\n  DELETE FROM t5 WHERE x = 'y';\n  CREATE INDEX t5x ON t5(x);\n  CREATE UNIQUE INDEX t5y ON t5(y);\n  CREATE INDEX t5zxy ON t5(z,x,y);\n  SELECT rowid, x FROM t5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 x 3 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "e_vacuum-3.1.8"
+			r = db.Query("\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 x 3 z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	os.Remove("test2.db")
-	{ // "e_vacuum-3.1.6"
-		_res = db.Exec("\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "x 3 z") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "x 3 z", _res.Error, "\n  VACUUM INTO 'test2.db';\n  ATTACH 'test2.db' AS aux1;\n  SELECT rowid, x FROM aux1.t5;\n  DETACH aux1;\n")
+		{ // "e_vacuum-3.2.1.1"
+			_res = db.Exec(" BEGIN ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.1.7"
-		r = db.Query("\n  DROP TABLE t5;\n  CREATE TABLE t5(x,y,z);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  UPDATE t5 SET y=x, z=random();\n  DELETE FROM t5 WHERE x = 'y';\n  CREATE INDEX t5x ON t5(x);\n  CREATE UNIQUE INDEX t5y ON t5(y);\n  CREATE INDEX t5zxy ON t5(z,x,y);\n  SELECT rowid, x FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t5;\n  CREATE TABLE t5(x,y,z);\n  INSERT INTO t5(x) VALUES('x');\n  INSERT INTO t5(x) VALUES('y');\n  INSERT INTO t5(x) VALUES('z');\n  UPDATE t5 SET y=x, z=random();\n  DELETE FROM t5 WHERE x = 'y';\n  CREATE INDEX t5x ON t5(x);\n  CREATE UNIQUE INDEX t5y ON t5(y);\n  CREATE INDEX t5zxy ON t5(z,x,y);\n  SELECT rowid, x FROM t5;\n")
-			return
+		{ // "e_vacuum-3.2.1.2"
+			_res = db.Exec(" \n  VACUUM \n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot VACUUM from within a transaction") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot VACUUM from within a transaction", _res.Error, " \n  VACUUM \n")
+			}
 		}
-		got := flatten(r)
-		want := "1 x 3 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "e_vacuum-3.2.1.3"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.1.8"
-		r = db.Query("\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, x FROM t5;\n")
-			return
+		{ // "e_vacuum-3.2.1.4"
+			_res = db.Exec(" VACUUM ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+			}
 		}
-		got := flatten(r)
-		want := "1 x 3 z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "e_vacuum-3.2.1.5"
+			_res = db.Exec(" SAVEPOINT x ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT x ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.2.1.1"
-		_res = db.Exec(" BEGIN ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
+		{ // "e_vacuum-3.2.1.6"
+			_res = db.Exec(" \n  VACUUM \n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot VACUUM from within a transaction") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot VACUUM from within a transaction", _res.Error, " \n  VACUUM \n")
+			}
 		}
-	}
-	{ // "e_vacuum-3.2.1.2"
-		_res = db.Exec(" \n  VACUUM \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot VACUUM from within a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot VACUUM from within a transaction", _res.Error, " \n  VACUUM \n")
+		{ // "e_vacuum-3.2.1.7"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.2.1.3"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // "e_vacuum-3.2.1.8"
+			_res = db.Exec(" VACUUM ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.2.1.4"
-		_res = db.Exec(" VACUUM ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
+		t.Skipf("TODO: %s not implemented in frigolite", "create_db")
+		{ // do_test "e_vacuum-3.2.2.1"
+			var res = ""
+			_ = res // suppress unused warning
+			_res = db.Exec(" SELECT a FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t1 ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.2.1.5"
-		_res = db.Exec(" SAVEPOINT x ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT x ")
+		{ // do_test "e_vacuum-3.3.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = FULL }")
+			r = db.Query(" PRAGMA auto_vacuum ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
+			}
 		}
-	}
-	{ // "e_vacuum-3.2.1.6"
-		_res = db.Exec(" \n  VACUUM \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot VACUUM from within a transaction") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot VACUUM from within a transaction", _res.Error, " \n  VACUUM \n")
+		{ // do_test "e_vacuum-3.3.2.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = FULL }")
+			_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
+			}
+			// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 		}
-	}
-	{ // "e_vacuum-3.2.1.7"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "e_vacuum-3.3.2.2"
+			t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = INCREMENTAL }")
+			r = db.Query("\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")
+			}
+			// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 		}
-	}
-	{ // "e_vacuum-3.2.1.8"
-		_res = db.Exec(" VACUUM ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "create_db")
-	{ // do_test "e_vacuum-3.2.2.1"
-		var res = ""
-		_ = res // suppress unused warning
-		_res = db.Exec(" SELECT a FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t1 ")
-		}
-	}
-	{ // do_test "e_vacuum-3.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = FULL }")
-		r = db.Query(" PRAGMA auto_vacuum ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
-		}
-	}
-	{ // do_test "e_vacuum-3.3.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = FULL }")
-		_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
-		}
-		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
-	}
-	{ // do_test "e_vacuum-3.3.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = INCREMENTAL }")
-		r = db.Query("\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")
-		}
-		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
-	}
 }

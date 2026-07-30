@@ -21,21 +21,21 @@ func Test_pager3(t *testing.T) {
 		return
 	}
 	// foreach {tn sql res j} "\n  1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0\n"
-	_items := []string{"\n  1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0\n"}
+	_items := tclSplitList("\n  1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	res := _items[_idx+2]
-	j := _items[_idx+3]
-		{ // "pager3-1." + tn + ".1"
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		res := _items[_idx+2]
+		j := _items[_idx+3]
+		_ = _idx
+			{ // "pager3-1." + tn + ".1"
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+			}
+			{ // do_test "pager3-1." + tn + ".2"
+				// file exists "test.db-journal"
 			}
 		}
-		{ // do_test "pager3-1." + tn + ".2"
-			// file exists "test.db-journal"
-		}
-	}
-	}
 }

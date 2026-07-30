@@ -182,31 +182,31 @@ func Test_cost(t *testing.T) {
 	var L = "list a=? b=? c=? d=? e=? f=? g=? h=? i=? j=?"
 	_ = L // suppress unused warning
 	// foreach {tn nTerm nRow} "\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n"
-	_items := []string{"\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n"}
+	_items := tclSplitList("\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	nTerm := _items[_idx+1]
-	nRow := _items[_idx+2]
-		var w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
-		_ = w // suppress unused warning
-		p1 := "($nRow-1) / 100.0"
-		p2 := "($nRow+1) / 100.0"
-		var sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
-		_ = sql1 // suppress unused warning
-		var sql2 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p2 + ") AND " + w
-		_ = sql2 // suppress unused warning
-		{ // "9.3." + tn + ".1"
-			r = db.Query("EXPLAIN QUERY PLAN " + sql1)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql1)
+		tn := _items[_idx+0]
+		nTerm := _items[_idx+1]
+		nRow := _items[_idx+2]
+		_ = _idx
+			var w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
+			_ = w // suppress unused warning
+			p1 := "($nRow-1) / 100.0"
+			p2 := "($nRow+1) / 100.0"
+			var sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
+			_ = sql1 // suppress unused warning
+			var sql2 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p2 + ") AND " + w
+			_ = sql2 // suppress unused warning
+			{ // "9.3." + tn + ".1"
+				r = db.Query("EXPLAIN QUERY PLAN " + sql1)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql1)
+				}
+			}
+			{ // "9.3." + tn + ".2"
+				r = db.Query("EXPLAIN QUERY PLAN " + sql2)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql2)
+				}
 			}
 		}
-		{ // "9.3." + tn + ".2"
-			r = db.Query("EXPLAIN QUERY PLAN " + sql2)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql2)
-			}
-		}
-	}
-	}
 }

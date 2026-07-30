@@ -147,7 +147,7 @@ func Test_notify1(t *testing.T) {
 	{ // do_test "notify1-2.3.1"
 		db2.Close()
 		os.Remove("test.db")
-		for _, con := range []string{"db db2 db3"} {
+		for _, con := range tclSplitList("db db2 db3") {
 			con, err := frigolite.Open("test.db")
 			defer con.Close()
 			if err != nil { t.Fatal(err) }
@@ -244,61 +244,40 @@ func Test_notify1(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn nConn} "3 20 4 76"
-	_items := []string{"3 20 4 76"}
+	_items := tclSplitList("3 20 4 76")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	nConn := _items[_idx+1]
-		{ // do_test "notify1-" + tn + ".1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
-			}
-		}
-		var lUnlock = "list"
-		_ = lUnlock // suppress unused warning
-		var lUnlockFinal = "list"
-		_ = lUnlockFinal // suppress unused warning
-		var ii = "1"
-		_ = ii // suppress unused warning
-		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return ii_n <= nConn_n }() {
-			{ // do_test "notify1-" + tn + ".2." + ii + ".1"
-				var cmd = "db" + ii
-				_ = cmd // suppress unused warning
-				cmd, err := frigolite.Open("test.db")
-				defer cmd.Close()
+		tn := _items[_idx+0]
+		nConn := _items[_idx+1]
+		_ = _idx
+			{ // do_test "notify1-" + tn + ".1"
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec(" SELECT * FROM t1 ")
-				_ = _res // catchsql
-			}
-			{ // do_test "notify1-" + tn + ".2." + ii + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "$cmd unlock_notify lappend lUnlock $ii")
-			}
-			lUnlockFinal = tclListAppend(lUnlockFinal, ii)
-			// incr ii 1
-			{
-				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
+				_res = db.Exec("\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
 				}
 			}
-		}
-		{ // do_test "notify1-" + tn + ".3"
-		}
-		{ // do_test "notify1-" + tn + ".4"
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-			}
-			tclSort("-integer")
-		}
-		{ // do_test "notify1-" + tn + ".5"
+			var lUnlock = "list"
+			_ = lUnlock // suppress unused warning
+			var lUnlockFinal = "list"
+			_ = lUnlockFinal // suppress unused warning
 			var ii = "1"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return ii_n <= nConn_n }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "db$ii close")
+				{ // do_test "notify1-" + tn + ".2." + ii + ".1"
+					var cmd = "db" + ii
+					_ = cmd // suppress unused warning
+					cmd, err := frigolite.Open("test.db")
+					defer cmd.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec(" SELECT * FROM t1 ")
+					_ = _res // catchsql
+				}
+				{ // do_test "notify1-" + tn + ".2." + ii + ".2"
+					t.Skipf("TODO: %s not implemented in frigolite", "$cmd unlock_notify lappend lUnlock $ii")
+				}
+				lUnlockFinal = tclListAppend(lUnlockFinal, ii)
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -307,237 +286,258 @@ func Test_notify1(t *testing.T) {
 					}
 				}
 			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE TAB...} -sqlbody {\n  COMMIT;\n} -cleanup {\n  # One of two things should have happened:\n  #\n ...}")
-	{ // do_test "notify1-6.1.1"
-		os.Remove("test.db")
-		for _, conn := range []string{"db db2 db3"} {
-			conn, err := frigolite.Open("test.db")
-			defer conn.Close()
-			if err != nil { t.Fatal(err) }
-			_res = db.Exec(" ATTACH 'test2.db' AS two ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test2.db' AS two ")
+			{ // do_test "notify1-" + tn + ".3"
+			}
+			{ // do_test "notify1-" + tn + ".4"
+				_res = db.Exec("COMMIT")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+				}
+				tclSort("-integer")
+			}
+			{ // do_test "notify1-" + tn + ".5"
+				var ii = "1"
+				_ = ii // suppress unused warning
+				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return ii_n <= nConn_n }() {
+					t.Skipf("TODO: %s not implemented in frigolite", "db$ii close")
+					// incr ii 1
+					{
+						_n, _err := strconv.Atoi(ii)
+						if _err == nil {
+							ii = strconv.Itoa(_n + 1)
+						}
+					}
+				}
 			}
 		}
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n  ")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE TAB...} -sqlbody {\n  COMMIT;\n} -cleanup {\n  # One of two things should have happened:\n  #\n ...}")
+		{ // do_test "notify1-6.1.1"
+			os.Remove("test.db")
+			for _, conn := range tclSplitList("db db2 db3") {
+				conn, err := frigolite.Open("test.db")
+				defer conn.Close()
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec(" ATTACH 'test2.db' AS two ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test2.db' AS two ")
+				}
+			}
+			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE TABLE two.t2(a, b);\n  ")
+			}
+			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+			}
+			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t2 VALUES(1, 2);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t2 VALUES(1, 2);\n  ")
+			}
 		}
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		{ // do_test "notify1-6.1.2"
+			_res = db.Exec(" SELECT * FROM t2 ")
+			_ = _res // catchsql
 		}
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t2 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t2 VALUES(1, 2);\n  ")
+		{ // do_test "notify1-6.1.3"
+			_res = db.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-6.1.2"
-		_res = db.Exec(" SELECT * FROM t2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-6.1.3"
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-6.2.1"
-		var unlocked = "0"
-		_ = unlocked // suppress unused warning
-	}
-	{ // do_test "notify1-6.2.2"
-		_res = db.Exec(" SELECT * FROM t2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-6.2.3"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-6.2.1"
+			var unlocked = "0"
+			_ = unlocked // suppress unused warning
 		}
-	}
-	{ // do_test "notify1-6.3.1"
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+		{ // do_test "notify1-6.2.2"
+			_res = db.Exec(" SELECT * FROM t2 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-6.3.2"
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-6.3.3"
-		var unlocked = "0"
-		_ = unlocked // suppress unused warning
-	}
-	{ // do_test "notify1-6.3.4"
-		_res = db.Exec(" SELECT * FROM t2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-6.3.5"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-6.2.3"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	{ // do_test "notify1-6.4.1"
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+		{ // do_test "notify1-6.3.1"
+			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			}
 		}
-		_res = db.Exec(" SELECT * FROM t2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-6.4.2"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-6.3.2"
+			_res = db.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-6.4.3"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-6.3.3"
+			var unlocked = "0"
+			_ = unlocked // suppress unused warning
 		}
-	}
-	db2.Close()
-	db3.Close()
-	// proc definition (not transpiled)
-	{ // do_test "notify1-7.1"
-		for _, conn := range []string{"db db2 db3"} {
-			conn, err := frigolite.Open("test.db")
-			defer conn.Close()
-			if err != nil { t.Fatal(err) }
+		{ // do_test "notify1-6.3.4"
+			_res = db.Exec(" SELECT * FROM t2 ")
+			_ = _res // catchsql
 		}
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
+		{ // do_test "notify1-6.3.5"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	{ // do_test "notify1-7.2"
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-7.3"
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-7.4"
-		var unlock_notify = "0"
-		_ = unlock_notify // suppress unused warning
-		// db2.unlock_notify (db command)
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_unlock_notify db3")
-	}
-	{ // do_test "notify1-7.5"
-	}
-	{ // do_test "notify1-7.6"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-6.4.1"
+			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+			}
+			_res = db.Exec(" SELECT * FROM t2 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-8.1"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+		{ // do_test "notify1-6.4.2"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-8.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
-	}
-	{ // do_test "notify1-8.3"
-		_res = db.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
+		{ // do_test "notify1-6.4.3"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-		_res = db.Exec(" SELECT * FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
-	}
-	{ // do_test "notify1-8.X"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		db2.Close()
+		db3.Close()
+		// proc definition (not transpiled)
+		{ // do_test "notify1-7.1"
+			for _, conn := range tclSplitList("db db2 db3") {
+				conn, err := frigolite.Open("test.db")
+				defer conn.Close()
+				if err != nil { t.Fatal(err) }
+			}
+			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
+			}
 		}
-	}
-	{ // do_test "notify1-9.1"
-		r = db.Query("\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		{ // do_test "notify1-7.2"
+			_res = db.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-9.2"
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		{ // do_test "notify1-7.3"
+			_res = db.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-9.3"
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-9.4"
-		_res = db.Exec(" SELECT * FROM t2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-9.5"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-7.4"
+			var unlock_notify = "0"
+			_ = unlock_notify // suppress unused warning
+			// db2.unlock_notify (db command)
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_unlock_notify db3")
 		}
-		r = db.Query(" SELECT * FROM t2 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
+		{ // do_test "notify1-7.5"
 		}
-	}
-	{ // do_test "notify1-9.6"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-7.6"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	{ // do_test "notify1-9.7"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+		{ // do_test "notify1-8.1"
+			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
+			}
+			_res = db.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-	}
-	{ // do_test "notify1-9.8"
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		{ // do_test "notify1-8.2"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
 		}
-	}
-	{ // do_test "notify1-9.9"
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-9.10"
-		_res = db.Exec(" SELECT * FROM t2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "notify1-9.11"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-8.3"
+			_res = db.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
+			}
+			_res = db.Exec(" SELECT * FROM t1 ")
+			_ = _res // catchsql
 		}
-		r = db.Query(" SELECT * FROM t2 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
+		{ // do_test "notify1-8.4"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
 		}
-	}
-	{ // do_test "notify1-9.12"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+		{ // do_test "notify1-8.X"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
 		}
-	}
-	db2.Close()
-	db3.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		{ // do_test "notify1-9.1"
+			r = db.Query("\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			}
+		}
+		{ // do_test "notify1-9.2"
+			r = db.Query(" SELECT * FROM t1 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "notify1-9.3"
+			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "notify1-9.4"
+			_res = db.Exec(" SELECT * FROM t2 ")
+			_ = _res // catchsql
+		}
+		{ // do_test "notify1-9.5"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
+			r = db.Query(" SELECT * FROM t2 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
+			}
+		}
+		{ // do_test "notify1-9.6"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
+		}
+		{ // do_test "notify1-9.7"
+			r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			}
+		}
+		{ // do_test "notify1-9.8"
+			r = db.Query(" SELECT * FROM t1 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "notify1-9.9"
+			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n  ")
+			_ = _res // catchsql
+		}
+		{ // do_test "notify1-9.10"
+			_res = db.Exec(" SELECT * FROM t2 ")
+			_ = _res // catchsql
+		}
+		{ // do_test "notify1-9.11"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
+			r = db.Query(" SELECT * FROM t2 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
+			}
+		}
+		{ // do_test "notify1-9.12"
+			_res = db.Exec(" COMMIT ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+			}
+		}
+		db2.Close()
+		db3.Close()
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

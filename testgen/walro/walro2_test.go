@@ -31,7 +31,7 @@ func Test_walro2(t *testing.T) {
 	_ = MINSHMSZ // suppress unused warning
 	var dfltpgsz = "db one {PRAGMA page_size}"
 	_ = dfltpgsz // suppress unused warning
-	for _, bZeroShm := range []string{"0 1"} {
+	for _, bZeroShm := range tclSplitList("0 1") {
 		var pgsz = "512"
 		_ = pgsz // suppress unused warning
 		for func() bool { pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return pgsz_n <= 65536 }() {

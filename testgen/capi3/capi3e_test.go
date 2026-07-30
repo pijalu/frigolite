@@ -26,7 +26,7 @@ func Test_capi3e(t *testing.T) {
 	_ = names // suppress unused warning
 	var i = "0"
 	_ = i // suppress unused warning
-	for _, name := range []string{names} {
+	for _, name := range tclSplitList(names) {
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -47,7 +47,7 @@ func Test_capi3e(t *testing.T) {
 		}
 	}
 	os.Remove("base.db")
-	for _, name := range []string{names} {
+	for _, name := range tclSplitList(names) {
 		os.Remove(name)
 	}
 }

@@ -176,7 +176,7 @@ func Test_multiplex(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
 	os.Remove("test.x")
-	for _, f := range []string{"glob -nocomplain {test.x*[0-9][0-9][0-9]}"} {
+	for _, f := range tclSplitList("glob -nocomplain {test.x*[0-9][0-9][0-9]}") {
 		os.Remove(f)
 	}
 	{ // do_test "multiplex-2.1.2"
@@ -337,7 +337,7 @@ func Test_multiplex(t *testing.T) {
 	}
 	var all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning
-	for _, jmode := range []string{all_journal_modes} {
+	for _, jmode := range tclSplitList(all_journal_modes) {
 		var sz = "151"
 		_ = sz // suppress unused warning
 		for func() bool { sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return sz_n < 8000 }() {
@@ -478,7 +478,7 @@ func Test_multiplex(t *testing.T) {
 		db2a, err := frigolite.Open("test2.db")
 		defer db2a.Close()
 		if err != nil { t.Fatal(err) }
-		for _, db := range []string{"db1a db2a"} {
+		for _, db := range tclSplitList("db1a db2a") {
 			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
@@ -562,7 +562,7 @@ func Test_multiplex(t *testing.T) {
 		}
 	}
 	{ // do_test "multiplex-3.2.X"
-		for _, db := range []string{"db1a db2a db2b db1b"} {
+		for _, db := range tclSplitList("db1a db2a db2b db1b") {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning

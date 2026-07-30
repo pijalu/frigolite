@@ -26,60 +26,60 @@ func Test_fts4umlaut(t *testing.T) {
 		}
 	}
 	// foreach {tn q res1 res2} "\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n"
-	_items := []string{"\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n"}
+	_items := tclSplitList("\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	q := _items[_idx+1]
-	res1 := _items[_idx+2]
-	res2 := _items[_idx+3]
-		{ // "1." + tn + ".1"
-			r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
-				return
+		tn := _items[_idx+0]
+		q := _items[_idx+1]
+		res1 := _items[_idx+2]
+		res2 := _items[_idx+3]
+		_ = _idx
+			{ // "1." + tn + ".1"
+				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res1
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			got := flatten(r)
-			want := res1
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res1
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".3"
+				r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res2
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".4"
+				r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res2
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "1." + tn + ".2"
-			r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t1 WHERE t1 MATCH 'Ha Noi'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res1
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "1." + tn + ".3"
-			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t2 WHERE t2 MATCH $q\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res2
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "1." + tn + ".4"
-			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2(rowid, x) VALUES (1, $q);\n    SELECT count(*) FROM t2 WHERE t2 MATCH 'Ha Noi'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res2
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

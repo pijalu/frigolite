@@ -42,7 +42,7 @@ func Test_literal2(t *testing.T) {
 	{ // do_test "2.1"
 		var myres = ""
 		_ = myres // suppress unused warning
-		for _, r := range []string{"db eval {SELECT 1.0e1_2}"} {
+		for _, r := range tclSplitList("db eval {SELECT 1.0e1_2}") {
 			myres = tclListAppend(myres, "format %.4f [set r]")
 		}
 		var res2 = "1000000000000.0000"

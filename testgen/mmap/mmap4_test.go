@@ -21,12 +21,12 @@ func Test_mmap4(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// foreach {tn1 mmap1 mmap2} "\n     1 6144       167773\n     2 18432      140399\n     3 43008      401302\n     4 92160      253899\n     5 190464          2\n     6 387072     752431\n     7 780288     291143\n     8 1566720    594306\n     9 3139584    829137\n     10 6285312   793963\n     11 12576768 1015590\n"
-	_items := []string{"\n     1 6144       167773\n     2 18432      140399\n     3 43008      401302\n     4 92160      253899\n     5 190464          2\n     6 387072     752431\n     7 780288     291143\n     8 1566720    594306\n     9 3139584    829137\n     10 6285312   793963\n     11 12576768 1015590\n"}
+	_items := tclSplitList("\n     1 6144       167773\n     2 18432      140399\n     3 43008      401302\n     4 92160      253899\n     5 190464          2\n     6 387072     752431\n     7 780288     291143\n     8 1566720    594306\n     9 3139584    829137\n     10 6285312   793963\n     11 12576768 1015590\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn1 := _items[_idx+0]
-	mmap1 := _items[_idx+1]
-	mmap2 := _items[_idx+2]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {\n      CREATE TABLE t1(a PRIMARY KEY);\n...}")
-	}
-	}
+		tn1 := _items[_idx+0]
+		mmap1 := _items[_idx+1]
+		mmap2 := _items[_idx+2]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {\n      CREATE TABLE t1(a PRIMARY KEY);\n...}")
+		}
 }

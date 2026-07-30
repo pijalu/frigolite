@@ -75,8 +75,8 @@ func Test_bitvec(t *testing.T) {
 	{ // do_test "bitvec-1.18"
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 5000 100000 1 2 400000 1 37 0}")
 	}
-	for _, start := range []string{"1 2 3 4 5 6 7 8"} {
-		for _, incr := range []string{"124 125"} {
+	for _, start := range tclSplitList("1 2 3 4 5 6 7 8") {
+		for _, incr := range tclSplitList("124 125") {
 			{ // do_test "bitvec-1.20." + start + "." + incr
 				var prog = "list 1 60 $::start $::incr 2 5000 1 1 0"
 				_ = prog // suppress unused warning

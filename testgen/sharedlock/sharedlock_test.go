@@ -41,40 +41,40 @@ func Test_sharedlock(t *testing.T) {
 		}
 	}
 	// foreach {tn delete_sql} "\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n"
-	_items := []string{"\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n"}
+	_items := tclSplitList("\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	delete_sql := _items[_idx+1]
-		{ // "2.1"
-			_res = db.Exec("\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+		tn := _items[_idx+0]
+		delete_sql := _items[_idx+1]
+		_ = _idx
+			{ // "2.1"
+				_res = db.Exec("\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
+				}
+			}
+			{ // do_test "2.2"
+				r = db.Query(" SELECT * FROM t2 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
+				}
+			}
+			{ // "2.3"
+				_res = db.Exec(" BEGIN; " + delete_sql + "; ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; " + delete_sql + "; ")
+				}
+			}
+			{ // do_test "2.4"
+				_res = db.Exec(" SELECT * FROM t2 ")
+				_ = _res // catchsql
+			}
+			{ // "2.5"
+				_res = db.Exec("COMMIT")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+				}
 			}
 		}
-		{ // do_test "2.2"
-			r = db.Query(" SELECT * FROM t2 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
-			}
-		}
-		{ // "2.3"
-			_res = db.Exec(" BEGIN; " + delete_sql + "; ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; " + delete_sql + "; ")
-			}
-		}
-		{ // do_test "2.4"
-			_res = db.Exec(" SELECT * FROM t2 ")
-			_ = _res // catchsql
-		}
-		{ // "2.5"
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-			}
-		}
-	}
-	}
-	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		db2.Close()
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

@@ -390,142 +390,142 @@ func Test_sort(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore coremutex fakeheap softheaplimit} "\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n"
-	_items := []string{"\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n"}
+	_items := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
 	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
-	tn := _items[_idx+0]
-	mmap_limit := _items[_idx+1]
-	nWorker := _items[_idx+2]
-	tmpstore := _items[_idx+3]
-	coremutex := _items[_idx+4]
-	fakeheap := _items[_idx+5]
-	softheaplimit := _items[_idx+6]
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		if tclBool(coremutex) {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config multithread")
-		} else {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
+		tn := _items[_idx+0]
+		mmap_limit := _items[_idx+1]
+		nWorker := _items[_idx+2]
+		tmpstore := _items[_idx+3]
+		coremutex := _items[_idx+4]
+		fakeheap := _items[_idx+5]
+		softheaplimit := _items[_idx+6]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+			if tclBool(coremutex) {
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config multithread")
+			} else {
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+			t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $softheaplimit")
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
+			r = db.Query("PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
+			}
+			var ten = "X 10300"
+			_ = ten // suppress unused warning
+			var one = "y   200"
+			_ = one // suppress unused warning
+			if tclBool(softheaplimit) {
+				r = db.Query(" PRAGMA cache_size = 20 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 20 ")
+				}
+			} else {
+				r = db.Query(" PRAGMA cache_size = 5 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
+				}
+			}
+			{ // "15." + tn + ".1"
+				r = db.Query("\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one UNION ALL\n      SELECT 1, $ten UNION ALL\n      SELECT 3, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one UNION ALL\n      SELECT 1, $ten UNION ALL\n      SELECT 3, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list 1 $ten 2 $one 3 $one 4 $ten"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15." + tn + ".2"
+				r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(1);\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1 ORDER BY a;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(1);\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1 ORDER BY a;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15." + tn + ".3"
+				r = db.Query("\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list 2 $one 4 $ten"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap 0")
 		}
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		var t_0 = "singlethread"
+		_ = t_0 // suppress unused warning
+		var t_1 = "multithread"
+		_ = t_1 // suppress unused warning
+		var t_2 = "serialized"
+		_ = t_2 // suppress unused warning
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $softheaplimit")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
-		r = db.Query("PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
-		}
-		var ten = "X 10300"
-		_ = ten // suppress unused warning
-		var one = "y   200"
-		_ = one // suppress unused warning
-		if tclBool(softheaplimit) {
-			r = db.Query(" PRAGMA cache_size = 20 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 20 ")
-			}
-		} else {
-			r = db.Query(" PRAGMA cache_size = 5 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
+		{ // "16.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
 			}
 		}
-		{ // "15." + tn + ".1"
-			r = db.Query("\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one UNION ALL\n      SELECT 1, $ten UNION ALL\n      SELECT 3, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "16.2"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.b, t1.a, t1.c") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b, t1.a, t1.c", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "17.1"
+			r = db.Query("\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one UNION ALL\n      SELECT 1, $ten UNION ALL\n      SELECT 3, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "18.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
+			}
+		}
+		{ // "18.2"
+			r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t1 JOIN t2\n   WHERE a IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)\n     AND a=CASE WHEN d IS NOT NULL THEN e ELSE f END\n   ORDER BY a;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t1 JOIN t2\n   WHERE a IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)\n     AND a=CASE WHEN d IS NOT NULL THEN e ELSE f END\n   ORDER BY a;\n")
 				return
 			}
 			got := flatten(r)
-			want := "list 1 $ten 2 $one 3 $one 4 $ten"
+			want := "/.*SCAN t2.*SEARCH t1.*/"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "15." + tn + ".2"
-			r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(1);\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1 ORDER BY a;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(4);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(1);\n    CREATE INDEX i1 ON t1(a);\n    SELECT * FROM t1 ORDER BY a;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1 2 3 4 5 6"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "15." + tn + ".3"
-			r = db.Query("\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH rr AS (\n      SELECT 4, $ten UNION ALL\n      SELECT 2, $one\n    )\n    SELECT * FROM rr ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list 2 $one 4 $ten"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap 0")
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	var t_0 = "singlethread"
-	_ = t_0 // suppress unused warning
-	var t_1 = "multithread"
-	_ = t_1 // suppress unused warning
-	var t_2 = "serialized"
-	_ = t_2 // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "16.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(NULL, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "16.2"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.b, t1.a, t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.b, t1.a, t1.c", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, NULL, 3);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(1, 2, NULL);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  CREATE UNIQUE INDEX i1 ON t1(b, a, c);\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "17.1"
-		r = db.Query("\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sqlite_master ORDER BY sql;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "18.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<50)\n                           -- increase to 5000 for actual test data ----^^\n    INSERT INTO t1(a,b,c) SELECT x, random()%5000, random()%5000 FROM c;\n  CREATE TABLE t2(d,e,f);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500)\n                         -- increase to 50000 for actual test data -----^^^\n    INSERT INTO t2(d,e,f) SELECT\n       NULLIF(0, random()%2), random()%5000, random()%5000\n       FROM c;\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat='50000' WHERE tbl='t2';\n  UPDATE sqlite_stat1 SET stat='5000' WHERE tbl='t1';\n  ANALYZE sqlite_schema;\n")
-		}
-	}
-	{ // "18.2"
-		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t1 JOIN t2\n   WHERE a IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)\n     AND a=CASE WHEN d IS NOT NULL THEN e ELSE f END\n   ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t1 JOIN t2\n   WHERE a IN (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20)\n     AND a=CASE WHEN d IS NOT NULL THEN e ELSE f END\n   ORDER BY a;\n")
-			return
-		}
-		got := flatten(r)
-		want := "/.*SCAN t2.*SEARCH t1.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

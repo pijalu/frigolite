@@ -27,7 +27,7 @@ func Test_backcompat(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_allbackcompat_test {\n\n  # Test that database files are backwards compa...}")
-	for _, k := range []string{"lsort [array names ::incompatible]"} {
+	for _, k := range tclSplitList("lsort [array names ::incompatible]") {
 		t.Log("ERROR: Detected journal incompatibility with version " + k)
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "do_allbackcompat_test {\n  if {[code1 {sqlite3 -version}] >= \"3.7.0\"\n   &&...}")

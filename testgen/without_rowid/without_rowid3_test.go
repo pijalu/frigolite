@@ -32,1551 +32,1551 @@ func Test_without_rowid3(t *testing.T) {
 		}
 	}
 	// foreach {tn zSql res} FkeySimpleTests
-	_items := []string{FkeySimpleTests}
+	_items := tclSplitList(FkeySimpleTests)
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zSql := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // do_test "without_rowid3-1.1." + tn + ".1"
-			_res = db.Exec(zSql)
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-1.1." + tn + ".2"
-			r = db.Query("PRAGMA foreign_key_check(t1)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t1)")
+		tn := _items[_idx+0]
+		zSql := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // do_test "without_rowid3-1.1." + tn + ".1"
+				_res = db.Exec(zSql)
+				_ = _res // catchsql
+			}
+			{ // do_test "without_rowid3-1.1." + tn + ".2"
+				r = db.Query("PRAGMA foreign_key_check(t1)")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t1)")
+				}
+			}
+			{ // do_test "without_rowid3-1.1." + tn + ".3"
+				r = db.Query("PRAGMA foreign_key_check(t2)")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t2)")
+				}
+			}
+			{ // do_test "without_rowid3-1.1." + tn + ".4"
+				r = db.Query("PRAGMA foreign_key_check(t3)")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t3)")
+				}
+			}
+			{ // do_test "without_rowid3-1.1." + tn + ".5"
+				r = db.Query("PRAGMA foreign_key_check(t4)")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t4)")
+				}
+			}
+			{ // do_test "without_rowid3-1.1." + tn + ".6"
+				r = db.Query("PRAGMA foreign_key_check(t7)")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t7)")
+				}
+			}
+			{ // do_test "without_rowid3-1.1." + tn + ".7"
+				r = db.Query("PRAGMA foreign_key_check(t8)")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t8)")
+				}
 			}
 		}
-		{ // do_test "without_rowid3-1.1." + tn + ".3"
-			r = db.Query("PRAGMA foreign_key_check(t2)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t2)")
-			}
-		}
-		{ // do_test "without_rowid3-1.1." + tn + ".4"
-			r = db.Query("PRAGMA foreign_key_check(t3)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t3)")
-			}
-		}
-		{ // do_test "without_rowid3-1.1." + tn + ".5"
-			r = db.Query("PRAGMA foreign_key_check(t4)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t4)")
-			}
-		}
-		{ // do_test "without_rowid3-1.1." + tn + ".6"
-			r = db.Query("PRAGMA foreign_key_check(t7)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t7)")
-			}
-		}
-		{ // do_test "without_rowid3-1.1." + tn + ".7"
-			r = db.Query("PRAGMA foreign_key_check(t8)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t8)")
-			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.2.0"
-		_res = db.Exec("{/D/ {DEFERRABLE INITIALLY DEFERRED}} $FkeySimpleSchema")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {DEFERRABLE INITIALLY DEFERRED}} $FkeySimpleSchema")
-		}
-	}
-	// foreach {tn zSql res} FkeySimpleTests
-	_items := []string{FkeySimpleTests}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zSql := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // do_test "without_rowid3-1.2." + tn
-			_res = db.Exec(zSql)
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-1.2." + tn + ".2"
-			r = db.Query("PRAGMA foreign_key_check(t1)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t1)")
-			}
-		}
-		{ // do_test "without_rowid3-1.2." + tn + ".3"
-			r = db.Query("PRAGMA foreign_key_check(t2)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t2)")
-			}
-		}
-		{ // do_test "without_rowid3-1.2." + tn + ".4"
-			r = db.Query("PRAGMA foreign_key_check(t3)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t3)")
-			}
-		}
-		{ // do_test "without_rowid3-1.2." + tn + ".5"
-			r = db.Query("PRAGMA foreign_key_check(t4)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t4)")
-			}
-		}
-		{ // do_test "without_rowid3-1.2." + tn + ".6"
-			r = db.Query("PRAGMA foreign_key_check(t7)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t7)")
-			}
-		}
-		{ // do_test "without_rowid3-1.2." + tn + ".7"
-			r = db.Query("PRAGMA foreign_key_check(t8)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t8)")
-			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.3.0"
-		_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
-		}
-		r = db.Query(" PRAGMA count_changes = 1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 1 ")
-		}
-	}
-	// foreach {tn zSql res} FkeySimpleTests
-	_items := []string{FkeySimpleTests}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zSql := _items[_idx+1]
-	res := _items[_idx+2]
-		if res == "0 {}" {
-			var res = "0 1"
-			_ = res // suppress unused warning
-		}
-		{ // do_test "without_rowid3-1.3." + tn
-			_res = db.Exec(zSql)
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-1.3." + tn + ".2"
-			r = db.Query("PRAGMA foreign_key_check(t1)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t1)")
-			}
-		}
-		{ // do_test "without_rowid3-1.3." + tn + ".3"
-			r = db.Query("PRAGMA foreign_key_check(t2)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t2)")
-			}
-		}
-		{ // do_test "without_rowid3-1.3." + tn + ".4"
-			r = db.Query("PRAGMA foreign_key_check(t3)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t3)")
-			}
-		}
-		{ // do_test "without_rowid3-1.3." + tn + ".5"
-			r = db.Query("PRAGMA foreign_key_check(t4)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t4)")
-			}
-		}
-		{ // do_test "without_rowid3-1.3." + tn + ".6"
-			r = db.Query("PRAGMA foreign_key_check(t7)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t7)")
-			}
-		}
-		{ // do_test "without_rowid3-1.3." + tn + ".7"
-			r = db.Query("PRAGMA foreign_key_check(t8)")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t8)")
-			}
-		}
-	}
-	}
-	r = db.Query(" PRAGMA count_changes = 0 ")
-	if r.Error != nil {
-		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.4.0"
-		_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
-		}
-		r = db.Query(" PRAGMA count_changes = 1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 1 ")
-		}
-	}
-	// foreach {tn zSql res} FkeySimpleTests
-	_items := []string{FkeySimpleTests}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zSql := _items[_idx+1]
-	res := _items[_idx+2]
-		if res == "0 {}" {
-			var res = "0 1"
-			_ = res // suppress unused warning
-		}
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		{ // do_test "without_rowid3-1.4." + tn
-			_res = db.Exec(zSql)
-			_ = _res // catchsql
-		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	}
-	r = db.Query(" PRAGMA count_changes = 0 ")
-	if r.Error != nil {
-		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.5.1"
-		r = db.Query("\n    CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-1.5.2"
-		_res = db.Exec(" DELETE FROM i ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.6.1"
-		r = db.Query("\n    CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-1.6.2"
-		_res = db.Exec(" DELETE FROM i ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.7.1"
-		_res = db.Exec("\n    CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');\n  ")
-		}
-		_res = db.Exec(" DELETE FROM i ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-1.7.2"
-		_res = db.Exec("\n    CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n  ")
-		}
-		_res = db.Exec(" INSERT INTO j VALUES('sqlite') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-1.7.3"
-		_res = db.Exec("\n    INSERT INTO i VALUES('sqlite');\n    INSERT INTO j VALUES('sqlite');\n    DELETE FROM i WHERE i = 'SQLite';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO i VALUES('sqlite');\n    INSERT INTO j VALUES('sqlite');\n    DELETE FROM i WHERE i = 'SQLite';\n  ")
-		}
-		_res = db.Exec(" DELETE FROM i WHERE i = 'sqlite' ")
-		_ = _res // catchsql
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 1 0 {\n  CREATE TABLE node(\n    nodeid PRIMARY KEY,\n    ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 1 0 INSERT INTO node VALUES(1, 0) FKV")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 2 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 3 1 INSERT INTO node VALUES(1, 0)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 4 0 UPDATE node SET parent = NULL")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 5 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 6 0 SELECT * FROM node {1 {}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 7 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 8 1 INSERT INTO leaf VALUES('a', 2)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 9 1 INSERT INTO node VALUES(2, 0)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 10 0 UPDATE node SET parent = 1 WHERE nodeid = 2")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 11 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 12 0 SELECT * FROM node {1 {} 2 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 13 0 SELECT * FROM leaf {a 2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 14 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 15 1 DELETE FROM node WHERE nodeid = 2")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 16 0 INSERT INTO node VALUES(2, NULL)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 17 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 18 0 SELECT * FROM node {1 {} 2 {}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 19 0 SELECT * FROM leaf {a 2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 20 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 21 0 INSERT INTO leaf VALUES('b', 1)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 22 0 SAVEPOINT save")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 23 0 DELETE FROM node WHERE nodeid = 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 24 0 ROLLBACK TO save")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 25 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 26 0 SELECT * FROM node {1 {} 2 {}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 27 0 SELECT * FROM leaf {a 2 b 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 28 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 29 0 INSERT INTO leaf VALUES('c', 1)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 30 0 SAVEPOINT save")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 31 0 DELETE FROM node WHERE nodeid = 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 32 1 RELEASE save")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 33 1 DELETE FROM leaf WHERE cellid = 'b'")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 34 0 DELETE FROM leaf WHERE cellid = 'c'")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 35 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 36 0 SELECT * FROM node {2 {}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 37 0 SELECT * FROM leaf {a 2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 38 0 SAVEPOINT outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 39 1 INSERT INTO leaf VALUES('d', 3)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 40 1 RELEASE outer FKV")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 41 1 INSERT INTO leaf VALUES('e', 3)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 42 0 INSERT INTO node VALUES(3, 2)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 43 0 RELEASE outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 44 0 SAVEPOINT outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 45 1 DELETE FROM node WHERE nodeid=3")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 47 0 INSERT INTO node VALUES(3, 2)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 48 0 ROLLBACK TO outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 49 0 RELEASE outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 50 0 SAVEPOINT outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 51 1 INSERT INTO leaf VALUES('f', 4)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 52 1 SAVEPOINT inner")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 53 1 INSERT INTO leaf VALUES('g', 4)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 54 1 RELEASE outer FKV")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 55 1 ROLLBACK TO inner")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 56 0 COMMIT FKV")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 57 0 INSERT INTO node VALUES(4, NULL)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 58 0 RELEASE outer")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 59 0 SELECT * FROM node {2 {} 3 2 4 {}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 60 0 SELECT * FROM leaf {a 2 d 3 e 3 f 4}")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 61 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 62 0 DELETE FROM leaf")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 63 0 DELETE FROM node")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 64 1 INSERT INTO leaf VALUES('a', 1)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 65 1 INSERT INTO leaf VALUES('b', 2)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 66 1 INSERT INTO leaf VALUES('c', 1)")
-	{ // do_test "without_rowid3-2-test-67"
-		_res = db.Exec("INSERT INTO node SELECT parent, 3 FROM leaf")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 68 0 COMMIT FKV")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 69 1 INSERT INTO node VALUES(1, NULL)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 70 0 INSERT INTO node VALUES(2, NULL)")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 71 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 72 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 73 1 DELETE FROM node")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 74 0 INSERT INTO node(nodeid) SELECT DISTINCT parent FR...")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 75 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-3.1.1"
-		_res = db.Exec("\n    CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-3.1.2"
-		_res = db.Exec("\n    INSERT INTO ab VALUES(1, 'b');\n    INSERT INTO cd VALUES(1, 'd');\n    INSERT INTO ef VALUES(1, 'e');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO ab VALUES(1, 'b');\n    INSERT INTO cd VALUES(1, 'd');\n    INSERT INTO ef VALUES(1, 'e');\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-3.1.3"
-		_res = db.Exec(" UPDATE ab SET a = 5 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-3.1.4"
-		r = db.Query(" SELECT * FROM ab ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab ")
-		}
-	}
-	{ // do_test "without_rowid3-3.1.4"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		_res = db.Exec(" UPDATE ab SET a = 5 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-3.1.5"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		r = db.Query(" SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
-		}
-	}
-	{ // do_test "without_rowid3-3.2.1"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		_res = db.Exec(" DELETE FROM ab ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-3.2.2"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		r = db.Query(" SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-4.1"
-		_res = db.Exec("\n    CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-4.2"
-		r = db.Query(" PRAGMA recursive_triggers = off ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA recursive_triggers = off ")
-		}
-		r = db.Query(" \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-4.3"
-		_res = db.Exec(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-4.4"
-		r = db.Query(" PRAGMA recursive_triggers = on ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA recursive_triggers = on ")
-		}
-		r = db.Query(" \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-4.3"
-		_res = db.Exec(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-7.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-7.2"
-		_res = db.Exec(" INSERT INTO t2 VALUES(1, 'A'); ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-7.3"
-		_res = db.Exec(" \n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 3);\n    INSERT INTO t2 VALUES(1, 'A');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 3);\n    INSERT INTO t2 VALUES(1, 'A');\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-7.4"
-		_res = db.Exec(" UPDATE t2 SET c = 2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET c = 2 ")
-		}
-	}
-	{ // do_test "without_rowid3-7.5"
-		_res = db.Exec(" UPDATE t2 SET c = 3 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-7.6"
-		_res = db.Exec(" DELETE FROM t1 WHERE a = 2 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-7.7"
-		_res = db.Exec(" DELETE FROM t1 WHERE a = 1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a = 1 ")
-		}
-	}
-	{ // do_test "without_rowid3-7.8"
-		_res = db.Exec(" UPDATE t1 SET a = 3 ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 1 { PRAGMA foreign_keys = 0     } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 2 { PRAGMA foreign_keys = 1     } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 3 { BEGIN                       } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 4 { PRAGMA foreign_keys = 0     } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 5 { COMMIT                      } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 6 { PRAGMA foreign_keys = 0     } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 7 { BEGIN                       } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 8 { PRAGMA foreign_keys = 1     } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 9 { COMMIT                      } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 10 { PRAGMA foreign_keys = 1     } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 11 { PRAGMA foreign_keys = off   } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 12 { PRAGMA foreign_keys = on    } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 13 { PRAGMA foreign_keys = no    } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 14 { PRAGMA foreign_keys = yes   } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 15 { PRAGMA foreign_keys = false } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 16 { PRAGMA foreign_keys = true  } 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-9.1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-9.1.2"
-		r = db.Query("\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t2;\n    DELETE FROM t1 WHERE a = 2;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t2;\n    DELETE FROM t1 WHERE a = 2;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-9.1.3"
-		r = db.Query("\n    INSERT INTO t1 VALUES(2, 'two');\n    UPDATE t2 SET d = 2;\n    DELETE FROM t1 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2, 'two');\n    UPDATE t2 SET d = 2;\n    DELETE FROM t1 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-9.1.4"
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-		}
-	}
-	{ // do_test "without_rowid3-9.1.5"
-		_res = db.Exec(" DELETE FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-9.2.1"
-		_res = db.Exec("\n    CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INSERT INTO pp VALUES(7, 8, 9);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INSERT INTO pp VALUES(7, 8, 9);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-9.2.2"
-		r = db.Query("\n    INSERT INTO cc VALUES(6, 'A', 5);\n    INSERT INTO cc VALUES(6, 'B', 5);\n    INSERT INTO cc VALUES(9, 'A', 8);\n    INSERT INTO cc VALUES(9, 'B', 8);\n    UPDATE pp SET b = 1 WHERE a = 7;\n    SELECT * FROM cc;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO cc VALUES(6, 'A', 5);\n    INSERT INTO cc VALUES(6, 'B', 5);\n    INSERT INTO cc VALUES(9, 'A', 8);\n    INSERT INTO cc VALUES(9, 'B', 8);\n    UPDATE pp SET b = 1 WHERE a = 7;\n    SELECT * FROM cc;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-9.2.3"
-		r = db.Query("\n    DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;\n  ")
-		}
-	}
-	var tn = "0"
-	_ = tn // suppress unused warning
-	for _, zSql := range []string{"list {\n  CREATE TABLE p(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b)) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}"} {
 		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "without_rowid3-10.1." + "incr tn"
-			_res = db.Exec(zSql)
+		{ // do_test "without_rowid3-1.2.0"
+			_res = db.Exec("{/D/ {DEFERRABLE INITIALLY DEFERRED}} $FkeySimpleSchema")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, zSql)
-			}
-			_res = db.Exec(" INSERT INTO c DEFAULT VALUES ")
-			_ = _res // catchsql
-		}
-	}
-	{ // do_test "without_rowid3-10.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-10.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(rowid, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-10.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, a, b) VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-10.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE t1(rowid PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, b) VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-11.1.1"
-		r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-12.1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-12.1.2"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		_res = db.Exec("INSERT INTO t2 VALUES('two')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('two')")
-		}
-	}
-	{ // do_test "without_rowid3-12.1.3"
-		_res = db.Exec("UPDATE t1 SET b = 'four' WHERE b = 'one'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET b = 'four' WHERE b = 'one'")
-		}
-	}
-	{ // do_test "without_rowid3-12.1.4"
-		_res = db.Exec("UPDATE t1 SET b = 'five' WHERE b = 'two'")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-12.1.5"
-		_res = db.Exec("DELETE FROM t1 WHERE b = 'two'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE b = 'two'")
-		}
-	}
-	{ // do_test "without_rowid3-12.1.6"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-12.1.7"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-12.2.1"
-		r = db.Query("\n    CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-12.2.2"
-		_res = db.Exec(" DELETE FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
-		}
-		r = db.Query("\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-12.2.3"
-		_res = db.Exec("\n    DROP TABLE t2;\n    CREATE TABLE t2(y REFERENCES t1 ON DELETE RESTRICT);\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(y REFERENCES t1 ON DELETE RESTRICT);\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n  ")
-		}
-		_res = db.Exec(" DELETE FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-12.2.4"
-		r = db.Query("\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-12.3.1"
-		_res = db.Exec("\n    CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-12.3.2"
-		_res = db.Exec("\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-12.3.3"
-		_res = db.Exec(" INSERT INTO down(c39, c38) VALUES('yes', 'no') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-12.3.4"
-		_res = db.Exec(" \n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n  ")
-		}
-		_res = db.Exec(" DELETE FROM up WHERE c34 = 'yes' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-12.3.5"
-		r = db.Query(" \n    DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-13.1.1"
-		_res = db.Exec("\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
-		}
-	}
-	// foreach {tn stmt} "\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n"
-	_items := []string{"\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	stmt := _items[_idx+1]
-		{ // do_test "without_rowid3-13.1." + tn + ".1"
-			_res = db.Exec(stmt)
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-13.1." + tn + ".2"
-			r = db.Query("\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {DEFERRABLE INITIALLY DEFERRED}} $FkeySimpleSchema")
 			}
 		}
-		{ // do_test "without_rowid3-13.1." + tn + ".3"
-			_res = db.Exec("BEGIN")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		// foreach {tn zSql res} FkeySimpleTests
+		_items := tclSplitList(FkeySimpleTests)
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			zSql := _items[_idx+1]
+			res := _items[_idx+2]
+			_ = _idx
+				{ // do_test "without_rowid3-1.2." + tn
+					_res = db.Exec(zSql)
+					_ = _res // catchsql
+				}
+				{ // do_test "without_rowid3-1.2." + tn + ".2"
+					r = db.Query("PRAGMA foreign_key_check(t1)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t1)")
+					}
+				}
+				{ // do_test "without_rowid3-1.2." + tn + ".3"
+					r = db.Query("PRAGMA foreign_key_check(t2)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t2)")
+					}
+				}
+				{ // do_test "without_rowid3-1.2." + tn + ".4"
+					r = db.Query("PRAGMA foreign_key_check(t3)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t3)")
+					}
+				}
+				{ // do_test "without_rowid3-1.2." + tn + ".5"
+					r = db.Query("PRAGMA foreign_key_check(t4)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t4)")
+					}
+				}
+				{ // do_test "without_rowid3-1.2." + tn + ".6"
+					r = db.Query("PRAGMA foreign_key_check(t7)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t7)")
+					}
+				}
+				{ // do_test "without_rowid3-1.2." + tn + ".7"
+					r = db.Query("PRAGMA foreign_key_check(t8)")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t8)")
+					}
+				}
 			}
-			_res = db.Exec(stmt)
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-13.1." + tn + ".4"
-			r = db.Query("\n      COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // do_test "without_rowid3-1.3.0"
+				_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
+				}
+				r = db.Query(" PRAGMA count_changes = 1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 1 ")
+				}
 			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-2.14.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.2"
-		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    INSERT INTO t1 VALUES('a', 1);\n    CREATE TABLE t2(x REFERENCES t1);\n    INSERT INTO t2 VALUES('a');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    INSERT INTO t1 VALUES('a', 1);\n    CREATE TABLE t2(x REFERENCES t1);\n    INSERT INTO t2 VALUES('a');\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.3"
-		_res = db.Exec(" DROP TABLE t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-2.14.3.4"
-		_res = db.Exec("\n    DELETE FROM t2;\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2;\n    DROP TABLE t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.4"
-		_res = db.Exec(" INSERT INTO t2 VALUES('x') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-2.14.3.5"
-		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY) WITHOUT rowid;\n    INSERT INTO t1 VALUES('x');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY) WITHOUT rowid;\n    INSERT INTO t1 VALUES('x');\n  ")
-		}
-		_res = db.Exec(" INSERT INTO t2 VALUES('x') ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('x') ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.6"
-		_res = db.Exec(" DROP TABLE t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-2.14.3.7"
-		_res = db.Exec("\n    DROP TABLE t2;\n    DROP TABLE t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    DROP TABLE t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.8"
-		_res = db.Exec("\n    CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));\n  ")
-		}
-		_res = db.Exec(" INSERT INTO cc VALUES(1, 2) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-2.14.3.9"
-		_res = db.Exec(" DROP TABLE cc ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE cc ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.10"
-		_res = db.Exec("\n    CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		}
-		_res = db.Exec("\n    INSERT INTO pp VALUES('a', 'b');\n    INSERT INTO cc VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE pp;\n      CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n      INSERT INTO pp VALUES(1, 'a', 'b');\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO pp VALUES('a', 'b');\n    INSERT INTO cc VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE pp;\n      CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n      INSERT INTO pp VALUES(1, 'a', 'b');\n    COMMIT;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.11"
-		_res = db.Exec(" \n    BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.12"
-		_res = db.Exec("\n    CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.3.13"
-		_res = db.Exec("\n    CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-2.14.4.1"
-		_res = db.Exec("\n    CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-2.14.4.2"
-		_res = db.Exec("\n    DROP VIEW v;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW v;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	// proc definition (not transpiled)
-	{ // do_test "without_rowid3-15.1.1"
-		_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-15.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(3, 'three') }")
-	}
-	{ // do_test "without_rowid3-15.1.3"
-		_res = db.Exec("\n    BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(5, 'five') }")
-	}
-	{ // do_test "without_rowid3-15.1.4"
-		_res = db.Exec(" DELETE FROM cc WHERE x = 'see' ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc WHERE x = 'see' ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(6, 'six') }")
-	}
-	{ // do_test "without_rowid3-15.1.5"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	{ // do_test "without_rowid3-15.1.6"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
-	}
-	{ // do_test "without_rowid3-15.1.7"
-		_res = db.Exec(" \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
-	}
-	// foreach {tn zSchema} "\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n"
-	_items := []string{"\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	zSchema := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "without_rowid3-16.1." + tn + ".1"
-			_res = db.Exec(zSchema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, zSchema)
-			}
-			_res = db.Exec(" INSERT INTO self VALUES(13, 13) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO self VALUES(13, 13) ")
-			}
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".2"
-			_res = db.Exec(" UPDATE self SET a = 14, b = 14 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE self SET a = 14, b = 14 ")
-			}
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".3"
-			_res = db.Exec(" UPDATE self SET b = 15 ")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".4"
-			_res = db.Exec(" UPDATE self SET a = 15 ")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".5"
-			_res = db.Exec(" UPDATE self SET a = 15, b = 16 ")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".6"
-			_res = db.Exec(" UPDATE self SET a = 17, b = 17 ")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".7"
-			_res = db.Exec(" DELETE FROM self ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM self ")
-			}
-		}
-		{ // do_test "without_rowid3-16.1." + tn + ".8"
-			_res = db.Exec(" INSERT INTO self VALUES(20, 21) ")
-			_ = _res // catchsql
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // "without_rowid3-16.4.1.1"
-		r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     UNIQUE (a,b),\n     PRIMARY KEY (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     UNIQUE (a,b),\n     PRIMARY KEY (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "without_rowid3-16.4.1.2"
-		r = db.Query("\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "without_rowid3-16.4.1.3"
-		r = db.Query("\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "without_rowid3-16.4.1.4"
-		_res = db.Exec("\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-16.4.1.5"
-		_res = db.Exec("\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // "without_rowid3-16.4.1.6"
-		r = db.Query("\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "without_rowid3-16.4.2.1"
-		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     PRIMARY KEY (a,b),\n     UNIQUE (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     PRIMARY KEY (a,b),\n     UNIQUE (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "without_rowid3-16.4.2.2"
-		r = db.Query("\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "without_rowid3-16.4.2.3"
-		r = db.Query("\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "without_rowid3-16.4.2.4"
-		_res = db.Exec("\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-16.4.2.5"
-		_res = db.Exec("\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // "without_rowid3-16.4.2.6"
-		r = db.Query("\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-17.1.1"
-		r = db.Query(" PRAGMA count_changes = 1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 1 ")
-		}
-		_res = db.Exec(" \n    CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-17.1.2"
-		var STMT = ""
-		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY")
-	{ // do_test "without_rowid3-17.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.4b SQLITE_CONSTRAINT_FOREIGNKEY")
-	{ // do_test "without_rowid3-17.1.5"
-		_res = db.Exec("\n    INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-17.1.6"
-		_res = db.Exec("\n    BEGIN;\n      INSERT INTO one VALUES(0, 0, 0);\n      UPDATE two SET e=e+1, f=f+1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-17.1.7"
-		r = db.Query(" SELECT * FROM one ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM one ")
-		}
-	}
-	{ // do_test "without_rowid3-17.1.8"
-		r = db.Query(" SELECT * FROM two ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM two ")
-		}
-	}
-	{ // do_test "without_rowid3-17.1.9"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	{ // do_test "without_rowid3-17.1.10"
-		_res = db.Exec("\n    CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-17.1.11"
-		var STMT = ""
-		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-	}
-	{ // do_test "without_rowid3-17.1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
-	}
-	{ // do_test "without_rowid3-17.1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY")
-	{ // do_test "without_rowid3-17.1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-17.2.1"
-		_res = db.Exec("\n    CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-17.2.2"
-		_res = db.Exec("\n    INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');\n  ")
-		}
-	}
-	var nTotal = "db total_changes"
-	_ = nTotal // suppress unused warning
-	{ // do_test "without_rowid3-17.2.3"
-		_res = db.Exec(" UPDATE high SET \"a'b!\" = 'c' ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE high SET \"a'b!\" = 'c' ")
-		}
-	}
-	{ // do_test "without_rowid3-17.2.4"
-	}
-	{ // do_test "without_rowid3-17.2.5"
-		// expr [db total_changes] → "[db total_changes]"
-	}
-	{ // do_test "without_rowid3-17.2.6"
-		r = db.Query(" SELECT * FROM high ; SELECT * FROM low ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM high ; SELECT * FROM low ")
-		}
-	}
-	{ // do_test "without_rowid3-17.2.7"
-		_res = db.Exec(" DELETE FROM high ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM high ")
-		}
-	}
-	{ // do_test "without_rowid3-17.2.8"
-	}
-	{ // do_test "without_rowid3-17.2.9"
-		// expr [db total_changes] → "[db total_changes]"
-	}
-	{ // do_test "without_rowid3-17.2.10"
-		r = db.Query(" SELECT * FROM high ; SELECT * FROM low ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM high ; SELECT * FROM low ")
-		}
-	}
-	r = db.Query(" PRAGMA count_changes = 0 ")
-	if r.Error != nil {
-		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
-	}
-	{ // do_test "without_rowid3-19.1"
-		_res = db.Exec("\n    CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-19.2"
-		var S = ""
-		_ = S // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $S 1 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-19.2b SQLITE_CONSTRAINT_FOREIGNKEY")
-	{ // do_test "without_rowid3-19.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-19.3b SQLITE_CONSTRAINT_FOREIGNKEY")
-	{ // do_test "without_rowid3-19.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $S 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-	}
-	{ // do_test "without_rowid3-19.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-20.1"
-		_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;\n  ")
-		}
-	}
-	// foreach {tn insert} "\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n"
-	_items := []string{"\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	insert := _items[_idx+1]
-		{ // do_test "without_rowid3-20.2." + tn + ".1"
-			_res = db.Exec(insert + " INTO cc VALUES(1, 2)")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-20.2." + tn + ".2"
-			r = db.Query(" SELECT * FROM cc ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM cc ")
-			}
-		}
-		{ // do_test "without_rowid3-20.2." + tn + ".3"
-			_res = db.Exec("\n      BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);\n    ")
-			}
-			_res = db.Exec(insert + " INTO cc VALUES(3, 4)")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-20.2." + tn + ".4"
-			r = db.Query(" COMMIT ; SELECT * FROM cc ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM cc ")
-			}
-		}
-		{ // do_test "without_rowid3-20.2." + tn + ".5"
-			_res = db.Exec(" DELETE FROM cc ; DELETE FROM pp ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc ; DELETE FROM pp ")
-			}
-		}
-	}
-	}
-	// foreach {tn update} "\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n"
-	_items := []string{"\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	update := _items[_idx+1]
-		{ // do_test "without_rowid3-20.3." + tn + ".1"
-			_res = db.Exec("\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")
-			}
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".2"
-			_res = db.Exec(update + " pp SET a = 1")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".3"
-			r = db.Query(" SELECT * FROM pp ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pp ")
-			}
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".4"
-			_res = db.Exec(update + " cc SET d = 1")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".5"
-			r = db.Query(" SELECT * FROM cc ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM cc ")
-			}
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".6"
-			_res = db.Exec("\n      BEGIN;\n        INSERT INTO pp VALUES(3, 'three');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO pp VALUES(3, 'three');\n    ")
-			}
-			_res = db.Exec(update + " pp SET a = 1 WHERE a = 2")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".7"
-			r = db.Query(" COMMIT ; SELECT * FROM pp ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM pp ")
-			}
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".8"
-			_res = db.Exec("\n      BEGIN;\n        INSERT INTO cc VALUES(2, 2);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO cc VALUES(2, 2);\n    ")
-			}
-			_res = db.Exec(update + " cc SET d = 1 WHERE c = 1")
-			_ = _res // catchsql
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".9"
-			r = db.Query(" COMMIT ; SELECT * FROM cc ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM cc ")
-			}
-		}
-		{ // do_test "without_rowid3-20.3." + tn + ".10"
-			_res = db.Exec(" DELETE FROM cc ; DELETE FROM pp ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc ; DELETE FROM pp ")
-			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-genfkey.1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.2"
-		_res = db.Exec(" INSERT INTO t2 VALUES(1, 2) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.3"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 2);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.4"
-		_res = db.Exec(" INSERT INTO t2 VALUES(NULL, 3) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(NULL, 3) ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.5"
-		_res = db.Exec(" UPDATE t2 SET e = 5 WHERE e IS NULL ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.6"
-		_res = db.Exec(" UPDATE t2 SET e = 1 WHERE e IS NULL ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET e = 1 WHERE e IS NULL ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.7"
-		_res = db.Exec(" UPDATE t2 SET e = NULL WHERE f = 3 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET e = NULL WHERE f = 3 ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.8"
-		_res = db.Exec(" UPDATE t1 SET a = 10 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.9"
-		_res = db.Exec(" UPDATE t1 SET a = NULL ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.10"
-		_res = db.Exec(" DELETE FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.11"
-		_res = db.Exec(" UPDATE t2 SET e = NULL ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET e = NULL ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.12"
-		_res = db.Exec(" \n    UPDATE t1 SET a = 10;\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET a = 10;\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.13"
-		_res = db.Exec("\n    INSERT INTO t3 VALUES(1, NULL, NULL);\n    INSERT INTO t3 VALUES(1, 2, NULL);\n    INSERT INTO t3 VALUES(1, NULL, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3 VALUES(1, NULL, NULL);\n    INSERT INTO t3 VALUES(1, 2, NULL);\n    INSERT INTO t3 VALUES(1, NULL, 3);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.14"
-		_res = db.Exec(" INSERT INTO t3 VALUES(3, 1, 4) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.15"
-		_res = db.Exec(" \n    INSERT INTO t1 VALUES(1, 1, 4);\n    INSERT INTO t3 VALUES(3, 1, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t1 VALUES(1, 1, 4);\n    INSERT INTO t3 VALUES(3, 1, 4);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.16"
-		_res = db.Exec(" DELETE FROM t1 ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.17"
-		_res = db.Exec(" UPDATE t1 SET b = 10")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-genfkey.1.18"
-		_res = db.Exec(" UPDATE t1 SET a = 10")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a = 10")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.1.19"
-		_res = db.Exec(" UPDATE t3 SET h = 'hello' WHERE i = 3")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-genfkey.2.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.2.2"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.2.3"
-		r = db.Query("\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.2.4"
-		r = db.Query("\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.2.5"
-		r = db.Query("\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.2.6"
-		r = db.Query("\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "without_rowid3-genfkey.3.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.3.2"
-		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.3.3"
-		r = db.Query("\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.3.4"
-		r = db.Query("\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.3.5"
-		r = db.Query("\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-genfkey.3.6"
-		r = db.Query("\n    UPDATE t3 SET h = 2, i = 2;\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t3 SET h = 2, i = 2;\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-dd08e5.1.1"
-		_res = db.Exec("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-dd08e5.1.2"
-		_res = db.Exec("\n    DELETE FROM tdd08;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-dd08e5.1.3"
-		r = db.Query("\n    SELECT * FROM tdd08;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tdd08;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-dd08e5.1.4"
-		_res = db.Exec("\n    INSERT INTO tdd08_b VALUES(400,500,300);\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-dd08e5.1.5"
-		_res = db.Exec("\n    UPDATE tdd08_b SET x=x+1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-dd08e5.1.6"
-		_res = db.Exec("\n    UPDATE tdd08 SET a=a+1;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-ce7c13.1.1"
-		r = db.Query("\n    CREATE TABLE tce71(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX ice71 ON tce71(a,b);\n    INSERT INTO tce71 VALUES(100,200);\n    CREATE TABLE tce72(w, x, y, FOREIGN KEY(x,y) REFERENCES tce71(a,b));\n    INSERT INTO tce72 VALUES(300,100,200);\n    UPDATE tce71 set b = 200 where a = 100;\n    SELECT * FROM tce71, tce72;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tce71(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX ice71 ON tce71(a,b);\n    INSERT INTO tce71 VALUES(100,200);\n    CREATE TABLE tce72(w, x, y, FOREIGN KEY(x,y) REFERENCES tce71(a,b));\n    INSERT INTO tce72 VALUES(300,100,200);\n    UPDATE tce71 set b = 200 where a = 100;\n    SELECT * FROM tce71, tce72;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-ce7c13.1.2"
-		_res = db.Exec("\n    UPDATE tce71 set b = 201 where a = 100;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-ce7c13.1.3"
-		_res = db.Exec("\n    UPDATE tce71 set a = 101 where a = 100;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-ce7c13.1.4"
-		r = db.Query("\n    CREATE TABLE tce73(a INTEGER PRIMARY KEY, b, UNIQUE(a,b)) WITHOUT rowid;\n    INSERT INTO tce73 VALUES(100,200);\n    CREATE TABLE tce74(w, x, y, FOREIGN KEY(x,y) REFERENCES tce73(a,b));\n    INSERT INTO tce74 VALUES(300,100,200);\n    UPDATE tce73 set b = 200 where a = 100;\n    SELECT * FROM tce73, tce74;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tce73(a INTEGER PRIMARY KEY, b, UNIQUE(a,b)) WITHOUT rowid;\n    INSERT INTO tce73 VALUES(100,200);\n    CREATE TABLE tce74(w, x, y, FOREIGN KEY(x,y) REFERENCES tce73(a,b));\n    INSERT INTO tce74 VALUES(300,100,200);\n    UPDATE tce73 set b = 200 where a = 100;\n    SELECT * FROM tce73, tce74;\n  ")
-		}
-	}
-	{ // do_test "without_rowid3-ce7c13.1.5"
-		_res = db.Exec("\n    UPDATE tce73 set b = 201 where a = 100;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "without_rowid3-ce7c13.1.6"
-		_res = db.Exec("\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
-		_ = _res // catchsql
-	}
-	db, err = frigolite.Open(":memory:")
-	if err != nil { t.Fatal(err) }
-	{ // "without_rowid3-30.1"
-		r = db.Query("\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")
-			return
-		}
-		got := flatten(r)
-		want := "3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "without_rowid3-30.2"
-		r = db.Query("\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT changes();\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT changes();\n")
-			return
-		}
-		got := flatten(r)
-		want := "3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			// foreach {tn zSql res} FkeySimpleTests
+			_items := tclSplitList(FkeySimpleTests)
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				zSql := _items[_idx+1]
+				res := _items[_idx+2]
+				_ = _idx
+					if res == "0 {}" {
+						var res = "0 1"
+						_ = res // suppress unused warning
+					}
+					{ // do_test "without_rowid3-1.3." + tn
+						_res = db.Exec(zSql)
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-1.3." + tn + ".2"
+						r = db.Query("PRAGMA foreign_key_check(t1)")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t1)")
+						}
+					}
+					{ // do_test "without_rowid3-1.3." + tn + ".3"
+						r = db.Query("PRAGMA foreign_key_check(t2)")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t2)")
+						}
+					}
+					{ // do_test "without_rowid3-1.3." + tn + ".4"
+						r = db.Query("PRAGMA foreign_key_check(t3)")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t3)")
+						}
+					}
+					{ // do_test "without_rowid3-1.3." + tn + ".5"
+						r = db.Query("PRAGMA foreign_key_check(t4)")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t4)")
+						}
+					}
+					{ // do_test "without_rowid3-1.3." + tn + ".6"
+						r = db.Query("PRAGMA foreign_key_check(t7)")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t7)")
+						}
+					}
+					{ // do_test "without_rowid3-1.3." + tn + ".7"
+						r = db.Query("PRAGMA foreign_key_check(t8)")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_check(t8)")
+						}
+					}
+				}
+				r = db.Query(" PRAGMA count_changes = 0 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				{ // do_test "without_rowid3-1.4.0"
+					_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
+					}
+					r = db.Query(" PRAGMA count_changes = 1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 1 ")
+					}
+				}
+				// foreach {tn zSql res} FkeySimpleTests
+				_items := tclSplitList(FkeySimpleTests)
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					zSql := _items[_idx+1]
+					res := _items[_idx+2]
+					_ = _idx
+						if res == "0 {}" {
+							var res = "0 1"
+							_ = res // suppress unused warning
+						}
+						_res = db.Exec("BEGIN")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+						}
+						{ // do_test "without_rowid3-1.4." + tn
+							_res = db.Exec(zSql)
+							_ = _res // catchsql
+						}
+						_res = db.Exec("COMMIT")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+						}
+					}
+					r = db.Query(" PRAGMA count_changes = 0 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-1.5.1"
+						r = db.Query("\n    CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-1.5.2"
+						_res = db.Exec(" DELETE FROM i ")
+						_ = _res // catchsql
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-1.6.1"
+						r = db.Query("\n    CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-1.6.2"
+						_res = db.Exec(" DELETE FROM i ")
+						_ = _res // catchsql
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-1.7.1"
+						_res = db.Exec("\n    CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');\n  ")
+						}
+						_res = db.Exec(" DELETE FROM i ")
+						_ = _res // catchsql
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-1.7.2"
+						_res = db.Exec("\n    CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n  ")
+						}
+						_res = db.Exec(" INSERT INTO j VALUES('sqlite') ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-1.7.3"
+						_res = db.Exec("\n    INSERT INTO i VALUES('sqlite');\n    INSERT INTO j VALUES('sqlite');\n    DELETE FROM i WHERE i = 'SQLite';\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO i VALUES('sqlite');\n    INSERT INTO j VALUES('sqlite');\n    DELETE FROM i WHERE i = 'SQLite';\n  ")
+						}
+						_res = db.Exec(" DELETE FROM i WHERE i = 'sqlite' ")
+						_ = _res // catchsql
+					}
+					// proc definition (not transpiled)
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 1 0 {\n  CREATE TABLE node(\n    nodeid PRIMARY KEY,\n    ...}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 1 0 INSERT INTO node VALUES(1, 0) FKV")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 2 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 3 1 INSERT INTO node VALUES(1, 0)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 4 0 UPDATE node SET parent = NULL")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 5 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 6 0 SELECT * FROM node {1 {}}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 7 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 8 1 INSERT INTO leaf VALUES('a', 2)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 9 1 INSERT INTO node VALUES(2, 0)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 10 0 UPDATE node SET parent = 1 WHERE nodeid = 2")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 11 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 12 0 SELECT * FROM node {1 {} 2 1}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 13 0 SELECT * FROM leaf {a 2}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 14 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 15 1 DELETE FROM node WHERE nodeid = 2")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 16 0 INSERT INTO node VALUES(2, NULL)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 17 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 18 0 SELECT * FROM node {1 {} 2 {}}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 19 0 SELECT * FROM leaf {a 2}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 20 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 21 0 INSERT INTO leaf VALUES('b', 1)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 22 0 SAVEPOINT save")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 23 0 DELETE FROM node WHERE nodeid = 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 24 0 ROLLBACK TO save")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 25 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 26 0 SELECT * FROM node {1 {} 2 {}}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 27 0 SELECT * FROM leaf {a 2 b 1}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 28 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 29 0 INSERT INTO leaf VALUES('c', 1)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 30 0 SAVEPOINT save")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 31 0 DELETE FROM node WHERE nodeid = 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 32 1 RELEASE save")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 33 1 DELETE FROM leaf WHERE cellid = 'b'")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 34 0 DELETE FROM leaf WHERE cellid = 'c'")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 35 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 36 0 SELECT * FROM node {2 {}}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 37 0 SELECT * FROM leaf {a 2}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 38 0 SAVEPOINT outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 39 1 INSERT INTO leaf VALUES('d', 3)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 40 1 RELEASE outer FKV")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 41 1 INSERT INTO leaf VALUES('e', 3)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 42 0 INSERT INTO node VALUES(3, 2)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 43 0 RELEASE outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 44 0 SAVEPOINT outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 45 1 DELETE FROM node WHERE nodeid=3")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 47 0 INSERT INTO node VALUES(3, 2)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 48 0 ROLLBACK TO outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 49 0 RELEASE outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 50 0 SAVEPOINT outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 51 1 INSERT INTO leaf VALUES('f', 4)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 52 1 SAVEPOINT inner")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 53 1 INSERT INTO leaf VALUES('g', 4)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 54 1 RELEASE outer FKV")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 55 1 ROLLBACK TO inner")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 56 0 COMMIT FKV")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 57 0 INSERT INTO node VALUES(4, NULL)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 58 0 RELEASE outer")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 59 0 SELECT * FROM node {2 {} 3 2 4 {}}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 60 0 SELECT * FROM leaf {a 2 d 3 e 3 f 4}")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 61 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 62 0 DELETE FROM leaf")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 63 0 DELETE FROM node")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 64 1 INSERT INTO leaf VALUES('a', 1)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 65 1 INSERT INTO leaf VALUES('b', 2)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 66 1 INSERT INTO leaf VALUES('c', 1)")
+					{ // do_test "without_rowid3-2-test-67"
+						_res = db.Exec("INSERT INTO node SELECT parent, 3 FROM leaf")
+						_ = _res // catchsql
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 68 0 COMMIT FKV")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 69 1 INSERT INTO node VALUES(1, NULL)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 70 0 INSERT INTO node VALUES(2, NULL)")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 71 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 72 0 BEGIN")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 73 1 DELETE FROM node")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 74 0 INSERT INTO node(nodeid) SELECT DISTINCT parent FR...")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 75 0 COMMIT")
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-3.1.1"
+						_res = db.Exec("\n    CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-3.1.2"
+						_res = db.Exec("\n    INSERT INTO ab VALUES(1, 'b');\n    INSERT INTO cd VALUES(1, 'd');\n    INSERT INTO ef VALUES(1, 'e');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO ab VALUES(1, 'b');\n    INSERT INTO cd VALUES(1, 'd');\n    INSERT INTO ef VALUES(1, 'e');\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-3.1.3"
+						_res = db.Exec(" UPDATE ab SET a = 5 ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-3.1.4"
+						r = db.Query(" SELECT * FROM ab ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab ")
+						}
+					}
+					{ // do_test "without_rowid3-3.1.4"
+						_res = db.Exec("BEGIN")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+						}
+						_res = db.Exec(" UPDATE ab SET a = 5 ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-3.1.5"
+						_res = db.Exec("COMMIT")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+						}
+						r = db.Query(" SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
+						}
+					}
+					{ // do_test "without_rowid3-3.2.1"
+						_res = db.Exec("BEGIN")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+						}
+						_res = db.Exec(" DELETE FROM ab ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-3.2.2"
+						_res = db.Exec("COMMIT")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+						}
+						r = db.Query(" SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-4.1"
+						_res = db.Exec("\n    CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-4.2"
+						r = db.Query(" PRAGMA recursive_triggers = off ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA recursive_triggers = off ")
+						}
+						r = db.Query(" \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-4.3"
+						_res = db.Exec(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-4.4"
+						r = db.Query(" PRAGMA recursive_triggers = on ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA recursive_triggers = on ")
+						}
+						r = db.Query(" \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n      DELETE FROM t1 WHERE node = 1;\n      SELECT node FROM t1;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-4.3"
+						_res = db.Exec(" \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-7.1"
+						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-7.2"
+						_res = db.Exec(" INSERT INTO t2 VALUES(1, 'A'); ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-7.3"
+						_res = db.Exec(" \n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 3);\n    INSERT INTO t2 VALUES(1, 'A');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 3);\n    INSERT INTO t2 VALUES(1, 'A');\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-7.4"
+						_res = db.Exec(" UPDATE t2 SET c = 2 ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET c = 2 ")
+						}
+					}
+					{ // do_test "without_rowid3-7.5"
+						_res = db.Exec(" UPDATE t2 SET c = 3 ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-7.6"
+						_res = db.Exec(" DELETE FROM t1 WHERE a = 2 ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-7.7"
+						_res = db.Exec(" DELETE FROM t1 WHERE a = 1 ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a = 1 ")
+						}
+					}
+					{ // do_test "without_rowid3-7.8"
+						_res = db.Exec(" UPDATE t1 SET a = 3 ")
+						_ = _res // catchsql
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// proc definition (not transpiled)
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 1 { PRAGMA foreign_keys = 0     } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 2 { PRAGMA foreign_keys = 1     } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 3 { BEGIN                       } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 4 { PRAGMA foreign_keys = 0     } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 5 { COMMIT                      } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 6 { PRAGMA foreign_keys = 0     } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 7 { BEGIN                       } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 8 { PRAGMA foreign_keys = 1     } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 9 { COMMIT                      } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 10 { PRAGMA foreign_keys = 1     } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 11 { PRAGMA foreign_keys = off   } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 12 { PRAGMA foreign_keys = on    } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 13 { PRAGMA foreign_keys = no    } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 14 { PRAGMA foreign_keys = yes   } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 15 { PRAGMA foreign_keys = false } 0")
+					t.Skipf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 16 { PRAGMA foreign_keys = true  } 1")
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-9.1.1"
+						_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-9.1.2"
+						r = db.Query("\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t2;\n    DELETE FROM t1 WHERE a = 2;\n    SELECT * FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t2 VALUES(1, 2);\n    SELECT * FROM t2;\n    DELETE FROM t1 WHERE a = 2;\n    SELECT * FROM t2;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-9.1.3"
+						r = db.Query("\n    INSERT INTO t1 VALUES(2, 'two');\n    UPDATE t2 SET d = 2;\n    DELETE FROM t1 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(2, 'two');\n    UPDATE t2 SET d = 2;\n    DELETE FROM t1 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-9.1.4"
+						r = db.Query(" SELECT * FROM t1 ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+						}
+					}
+					{ // do_test "without_rowid3-9.1.5"
+						_res = db.Exec(" DELETE FROM t1 ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-9.2.1"
+						_res = db.Exec("\n    CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INSERT INTO pp VALUES(7, 8, 9);\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d DEFAULT 3, e DEFAULT 1, f DEFAULT 2,\n        FOREIGN KEY(f, d) REFERENCES pp \n        ON UPDATE SET DEFAULT \n        ON DELETE SET NULL\n    );\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO pp VALUES(4, 5, 6);\n    INSERT INTO pp VALUES(7, 8, 9);\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-9.2.2"
+						r = db.Query("\n    INSERT INTO cc VALUES(6, 'A', 5);\n    INSERT INTO cc VALUES(6, 'B', 5);\n    INSERT INTO cc VALUES(9, 'A', 8);\n    INSERT INTO cc VALUES(9, 'B', 8);\n    UPDATE pp SET b = 1 WHERE a = 7;\n    SELECT * FROM cc;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO cc VALUES(6, 'A', 5);\n    INSERT INTO cc VALUES(6, 'B', 5);\n    INSERT INTO cc VALUES(9, 'A', 8);\n    INSERT INTO cc VALUES(9, 'B', 8);\n    UPDATE pp SET b = 1 WHERE a = 7;\n    SELECT * FROM cc;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-9.2.3"
+						r = db.Query("\n    DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;\n  ")
+						}
+					}
+					var tn = "0"
+					_ = tn // suppress unused warning
+					for _, zSql := range tclSplitList("list {\n  CREATE TABLE p(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b)) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "without_rowid3-10.1." + "incr tn"
+							_res = db.Exec(zSql)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, zSql)
+							}
+							_res = db.Exec(" INSERT INTO c DEFAULT VALUES ")
+							_ = _res // catchsql
+						}
+					}
+					{ // do_test "without_rowid3-10.2.1"
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-10.2.2"
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(rowid, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-10.2.1"
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, a, b) VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-10.2.2"
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						_res = db.Exec("\n    CREATE TABLE t1(rowid PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, b) VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
+						_ = _res // catchsql
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-11.1.1"
+						r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-12.1.1"
+						_res = db.Exec("\n    CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-12.1.2"
+						_res = db.Exec("BEGIN")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+						}
+						_res = db.Exec("INSERT INTO t2 VALUES('two')")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES('two')")
+						}
+					}
+					{ // do_test "without_rowid3-12.1.3"
+						_res = db.Exec("UPDATE t1 SET b = 'four' WHERE b = 'one'")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET b = 'four' WHERE b = 'one'")
+						}
+					}
+					{ // do_test "without_rowid3-12.1.4"
+						_res = db.Exec("UPDATE t1 SET b = 'five' WHERE b = 'two'")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-12.1.5"
+						_res = db.Exec("DELETE FROM t1 WHERE b = 'two'")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE b = 'two'")
+						}
+					}
+					{ // do_test "without_rowid3-12.1.6"
+						_res = db.Exec("COMMIT")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-12.1.7"
+						_res = db.Exec("\n    INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;\n  ")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-12.2.1"
+						r = db.Query("\n    CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-12.2.2"
+						_res = db.Exec(" DELETE FROM t1 ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
+						}
+						r = db.Query("\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-12.2.3"
+						_res = db.Exec("\n    DROP TABLE t2;\n    CREATE TABLE t2(y REFERENCES t1 ON DELETE RESTRICT);\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(y REFERENCES t1 ON DELETE RESTRICT);\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n  ")
+						}
+						_res = db.Exec(" DELETE FROM t1 ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-12.2.4"
+						r = db.Query("\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-12.3.1"
+						_res = db.Exec("\n    CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-12.3.2"
+						_res = db.Exec("\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n    UPDATE up SET c34 = 'possibly';\n    SELECT c38, c39 FROM down;\n    DELETE FROM down;\n  ")
+						}
+					}
+					{ // do_test "without_rowid3-12.3.3"
+						_res = db.Exec(" INSERT INTO down(c39, c38) VALUES('yes', 'no') ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-12.3.4"
+						_res = db.Exec(" \n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO up(c34, c35) VALUES('yes', 'no');\n    INSERT INTO down(c39, c38) VALUES('yes', 'no');\n  ")
+						}
+						_res = db.Exec(" DELETE FROM up WHERE c34 = 'yes' ")
+						_ = _res // catchsql
+					}
+					{ // do_test "without_rowid3-12.3.5"
+						r = db.Query(" \n    DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;\n  ")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "without_rowid3-13.1.1"
+						_res = db.Exec("\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
+						}
+					}
+					// foreach {tn stmt} "\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n"
+					_items := tclSplitList("\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n")
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						tn := _items[_idx+0]
+						stmt := _items[_idx+1]
+						_ = _idx
+							{ // do_test "without_rowid3-13.1." + tn + ".1"
+								_res = db.Exec(stmt)
+								_ = _res // catchsql
+							}
+							{ // do_test "without_rowid3-13.1." + tn + ".2"
+								r = db.Query("\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
+								}
+							}
+							{ // do_test "without_rowid3-13.1." + tn + ".3"
+								_res = db.Exec("BEGIN")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+								}
+								_res = db.Exec(stmt)
+								_ = _res // catchsql
+							}
+							{ // do_test "without_rowid3-13.1." + tn + ".4"
+								r = db.Query("\n      COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      SELECT * FROM pp;\n      SELECT * FROM cc;\n    ")
+								}
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "without_rowid3-2.14.3.1"
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							_res = db.Exec("\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.2"
+							_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    INSERT INTO t1 VALUES('a', 1);\n    CREATE TABLE t2(x REFERENCES t1);\n    INSERT INTO t2 VALUES('a');\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    INSERT INTO t1 VALUES('a', 1);\n    CREATE TABLE t2(x REFERENCES t1);\n    INSERT INTO t2 VALUES('a');\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.3"
+							_res = db.Exec(" DROP TABLE t1 ")
+							_ = _res // catchsql
+						}
+						{ // do_test "without_rowid3-2.14.3.4"
+							_res = db.Exec("\n    DELETE FROM t2;\n    DROP TABLE t1;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2;\n    DROP TABLE t1;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.4"
+							_res = db.Exec(" INSERT INTO t2 VALUES('x') ")
+							_ = _res // catchsql
+						}
+						{ // do_test "without_rowid3-2.14.3.5"
+							_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY) WITHOUT rowid;\n    INSERT INTO t1 VALUES('x');\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY) WITHOUT rowid;\n    INSERT INTO t1 VALUES('x');\n  ")
+							}
+							_res = db.Exec(" INSERT INTO t2 VALUES('x') ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('x') ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.6"
+							_res = db.Exec(" DROP TABLE t1 ")
+							_ = _res // catchsql
+						}
+						{ // do_test "without_rowid3-2.14.3.7"
+							_res = db.Exec("\n    DROP TABLE t2;\n    DROP TABLE t1;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    DROP TABLE t1;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.8"
+							_res = db.Exec("\n    CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(x, y, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE TABLE cc(a, b, FOREIGN KEY(a, b) REFERENCES pp(x, z));\n  ")
+							}
+							_res = db.Exec(" INSERT INTO cc VALUES(1, 2) ")
+							_ = _res // catchsql
+						}
+						{ // do_test "without_rowid3-2.14.3.9"
+							_res = db.Exec(" DROP TABLE cc ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE cc ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.10"
+							_res = db.Exec("\n    CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE cc(a, b, \n      FOREIGN KEY(a, b) REFERENCES pp DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+							}
+							_res = db.Exec("\n    INSERT INTO pp VALUES('a', 'b');\n    INSERT INTO cc VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE pp;\n      CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n      INSERT INTO pp VALUES(1, 'a', 'b');\n    COMMIT;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO pp VALUES('a', 'b');\n    INSERT INTO cc VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE pp;\n      CREATE TABLE pp(a, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n      INSERT INTO pp VALUES(1, 'a', 'b');\n    COMMIT;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.11"
+							_res = db.Exec(" \n    BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      DROP TABLE cc;\n      DROP TABLE pp;\n    COMMIT;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.12"
+							_res = db.Exec("\n    CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE b1(a, b);\n    CREATE TABLE b2(a, b REFERENCES b1);\n    DROP TABLE b1;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.3.13"
+							_res = db.Exec("\n    CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;\n  ")
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "without_rowid3-2.14.4.1"
+							_res = db.Exec("\n    CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-2.14.4.2"
+							_res = db.Exec("\n    DROP VIEW v;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW v;\n  ")
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// proc definition (not transpiled)
+						{ // do_test "without_rowid3-15.1.1"
+							_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);\n  ")
+							}
+						}
+						{ // do_test "without_rowid3-15.1.2"
+							t.Skipf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(3, 'three') }")
+						}
+						{ // do_test "without_rowid3-15.1.3"
+							_res = db.Exec("\n    BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint\n  ")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(5, 'five') }")
+						}
+						{ // do_test "without_rowid3-15.1.4"
+							_res = db.Exec(" DELETE FROM cc WHERE x = 'see' ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc WHERE x = 'see' ")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(6, 'six') }")
+						}
+						{ // do_test "without_rowid3-15.1.5"
+							_res = db.Exec("COMMIT")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+							}
+						}
+						{ // do_test "without_rowid3-15.1.6"
+							_res = db.Exec("BEGIN")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
+						}
+						{ // do_test "without_rowid3-15.1.7"
+							_res = db.Exec(" \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
+						}
+						// foreach {tn zSchema} "\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n"
+						_items := tclSplitList("\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n")
+						for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+							tn := _items[_idx+0]
+							zSchema := _items[_idx+1]
+							_ = _idx
+								t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+								{ // do_test "without_rowid3-16.1." + tn + ".1"
+									_res = db.Exec(zSchema)
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, zSchema)
+									}
+									_res = db.Exec(" INSERT INTO self VALUES(13, 13) ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO self VALUES(13, 13) ")
+									}
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".2"
+									_res = db.Exec(" UPDATE self SET a = 14, b = 14 ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE self SET a = 14, b = 14 ")
+									}
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".3"
+									_res = db.Exec(" UPDATE self SET b = 15 ")
+									_ = _res // catchsql
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".4"
+									_res = db.Exec(" UPDATE self SET a = 15 ")
+									_ = _res // catchsql
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".5"
+									_res = db.Exec(" UPDATE self SET a = 15, b = 16 ")
+									_ = _res // catchsql
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".6"
+									_res = db.Exec(" UPDATE self SET a = 17, b = 17 ")
+									_ = _res // catchsql
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".7"
+									_res = db.Exec(" DELETE FROM self ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM self ")
+									}
+								}
+								{ // do_test "without_rowid3-16.1." + tn + ".8"
+									_res = db.Exec(" INSERT INTO self VALUES(20, 21) ")
+									_ = _res // catchsql
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // "without_rowid3-16.4.1.1"
+								r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     UNIQUE (a,b),\n     PRIMARY KEY (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     UNIQUE (a,b),\n     PRIMARY KEY (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "without_rowid3-16.4.1.2"
+								r = db.Query("\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "without_rowid3-16.4.1.3"
+								r = db.Query("\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // do_test "without_rowid3-16.4.1.4"
+								_res = db.Exec("\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "without_rowid3-16.4.1.5"
+								_res = db.Exec("\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
+								_ = _res // catchsql
+							}
+							{ // "without_rowid3-16.4.1.6"
+								r = db.Query("\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "without_rowid3-16.4.2.1"
+								r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     PRIMARY KEY (a,b),\n     UNIQUE (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     PRIMARY KEY (a,b),\n     UNIQUE (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "without_rowid3-16.4.2.2"
+								r = db.Query("\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET c=99, f=99 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "without_rowid3-16.4.2.3"
+								r = db.Query("\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET e=876, d=876 WHERE a=2;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // do_test "without_rowid3-16.4.2.4"
+								_res = db.Exec("\n    UPDATE t1 SET c=11, e=22 WHERE a=1;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "without_rowid3-16.4.2.5"
+								_res = db.Exec("\n    UPDATE t1 SET d=11, f=22 WHERE a=1;\n  ")
+								_ = _res // catchsql
+							}
+							{ // "without_rowid3-16.4.2.6"
+								r = db.Query("\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1 WHERE a=1;\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
+									return
+								}
+								got := flatten(r)
+								want := "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "without_rowid3-17.1.1"
+								r = db.Query(" PRAGMA count_changes = 1 ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 1 ")
+								}
+								_res = db.Exec(" \n    CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE one(a, b, c, UNIQUE(b, c));\n    CREATE TABLE two(d, e, f, FOREIGN KEY(e, f) REFERENCES one(b, c));\n    INSERT INTO one VALUES(1, 2, 3);\n  ")
+								}
+							}
+							{ // do_test "without_rowid3-17.1.2"
+								var STMT = ""
+								_ = STMT // suppress unused warning
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY")
+							{ // do_test "without_rowid3-17.1.4"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.4b SQLITE_CONSTRAINT_FOREIGNKEY")
+							{ // do_test "without_rowid3-17.1.5"
+								_res = db.Exec("\n    INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);\n  ")
+								}
+							}
+							{ // do_test "without_rowid3-17.1.6"
+								_res = db.Exec("\n    BEGIN;\n      INSERT INTO one VALUES(0, 0, 0);\n      UPDATE two SET e=e+1, f=f+1;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "without_rowid3-17.1.7"
+								r = db.Query(" SELECT * FROM one ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM one ")
+								}
+							}
+							{ // do_test "without_rowid3-17.1.8"
+								r = db.Query(" SELECT * FROM two ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM two ")
+								}
+							}
+							{ // do_test "without_rowid3-17.1.9"
+								_res = db.Exec("COMMIT")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+								}
+							}
+							{ // do_test "without_rowid3-17.1.10"
+								_res = db.Exec("\n    CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE three(\n      g, h, i, \n      FOREIGN KEY(h, i) REFERENCES one(b, c) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+								}
+							}
+							{ // do_test "without_rowid3-17.1.11"
+								var STMT = ""
+								_ = STMT // suppress unused warning
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+							}
+							{ // do_test "without_rowid3-17.1.12"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
+							}
+							{ // do_test "without_rowid3-17.1.13"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY")
+							{ // do_test "without_rowid3-17.1.14"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY")
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "without_rowid3-17.2.1"
+								_res = db.Exec("\n    CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
+								}
+							}
+							{ // do_test "without_rowid3-17.2.2"
+								_res = db.Exec("\n    INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');\n  ")
+								}
+							}
+							var nTotal = "db total_changes"
+							_ = nTotal // suppress unused warning
+							{ // do_test "without_rowid3-17.2.3"
+								_res = db.Exec(" UPDATE high SET \"a'b!\" = 'c' ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE high SET \"a'b!\" = 'c' ")
+								}
+							}
+							{ // do_test "without_rowid3-17.2.4"
+							}
+							{ // do_test "without_rowid3-17.2.5"
+								// expr [db total_changes] → "[db total_changes]"
+							}
+							{ // do_test "without_rowid3-17.2.6"
+								r = db.Query(" SELECT * FROM high ; SELECT * FROM low ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM high ; SELECT * FROM low ")
+								}
+							}
+							{ // do_test "without_rowid3-17.2.7"
+								_res = db.Exec(" DELETE FROM high ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM high ")
+								}
+							}
+							{ // do_test "without_rowid3-17.2.8"
+							}
+							{ // do_test "without_rowid3-17.2.9"
+								// expr [db total_changes] → "[db total_changes]"
+							}
+							{ // do_test "without_rowid3-17.2.10"
+								r = db.Query(" SELECT * FROM high ; SELECT * FROM low ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM high ; SELECT * FROM low ")
+								}
+							}
+							r = db.Query(" PRAGMA count_changes = 0 ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
+							}
+							{ // do_test "without_rowid3-19.1"
+								_res = db.Exec("\n    CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE main(id INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE sub(id INT REFERENCES main(id));\n    INSERT INTO main VALUES(1);\n    INSERT INTO main VALUES(2);\n    INSERT INTO sub VALUES(2);\n  ")
+								}
+							}
+							{ // do_test "without_rowid3-19.2"
+								var S = ""
+								_ = S // suppress unused warning
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $S 1 2")
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-19.2b SQLITE_CONSTRAINT_FOREIGNKEY")
+							{ // do_test "without_rowid3-19.3"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-19.3b SQLITE_CONSTRAINT_FOREIGNKEY")
+							{ // do_test "without_rowid3-19.4"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $S 1 1")
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+							}
+							{ // do_test "without_rowid3-19.4"
+								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "without_rowid3-20.1"
+								_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;\n  ")
+								}
+							}
+							// foreach {tn insert} "\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n"
+							_items := tclSplitList("\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n")
+							for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+								tn := _items[_idx+0]
+								insert := _items[_idx+1]
+								_ = _idx
+									{ // do_test "without_rowid3-20.2." + tn + ".1"
+										_res = db.Exec(insert + " INTO cc VALUES(1, 2)")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-20.2." + tn + ".2"
+										r = db.Query(" SELECT * FROM cc ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM cc ")
+										}
+									}
+									{ // do_test "without_rowid3-20.2." + tn + ".3"
+										_res = db.Exec("\n      BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);\n    ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO pp VALUES(2, 'two');\n        INSERT INTO cc VALUES(1, 2);\n    ")
+										}
+										_res = db.Exec(insert + " INTO cc VALUES(3, 4)")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-20.2." + tn + ".4"
+										r = db.Query(" COMMIT ; SELECT * FROM cc ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM cc ")
+										}
+									}
+									{ // do_test "without_rowid3-20.2." + tn + ".5"
+										_res = db.Exec(" DELETE FROM cc ; DELETE FROM pp ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc ; DELETE FROM pp ")
+										}
+									}
+								}
+								// foreach {tn update} "\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n"
+								_items := tclSplitList("\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n")
+								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+									tn := _items[_idx+0]
+									update := _items[_idx+1]
+									_ = _idx
+										{ // do_test "without_rowid3-20.3." + tn + ".1"
+											_res = db.Exec("\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")
+											}
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".2"
+											_res = db.Exec(update + " pp SET a = 1")
+											_ = _res // catchsql
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".3"
+											r = db.Query(" SELECT * FROM pp ")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM pp ")
+											}
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".4"
+											_res = db.Exec(update + " cc SET d = 1")
+											_ = _res // catchsql
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".5"
+											r = db.Query(" SELECT * FROM cc ")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM cc ")
+											}
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".6"
+											_res = db.Exec("\n      BEGIN;\n        INSERT INTO pp VALUES(3, 'three');\n    ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO pp VALUES(3, 'three');\n    ")
+											}
+											_res = db.Exec(update + " pp SET a = 1 WHERE a = 2")
+											_ = _res // catchsql
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".7"
+											r = db.Query(" COMMIT ; SELECT * FROM pp ")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM pp ")
+											}
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".8"
+											_res = db.Exec("\n      BEGIN;\n        INSERT INTO cc VALUES(2, 2);\n    ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO cc VALUES(2, 2);\n    ")
+											}
+											_res = db.Exec(update + " cc SET d = 1 WHERE c = 1")
+											_ = _res // catchsql
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".9"
+											r = db.Query(" COMMIT ; SELECT * FROM cc ")
+											if r.Error != nil {
+												t.Errorf("query error: %v\n  sql: %s", r.Error, " COMMIT ; SELECT * FROM cc ")
+											}
+										}
+										{ // do_test "without_rowid3-20.3." + tn + ".10"
+											_res = db.Exec(" DELETE FROM cc ; DELETE FROM pp ")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc ; DELETE FROM pp ")
+											}
+										}
+									}
+									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									{ // do_test "without_rowid3-genfkey.1.1"
+										_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.2"
+										_res = db.Exec(" INSERT INTO t2 VALUES(1, 2) ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.3"
+										_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 2);\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(1, 2);\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.4"
+										_res = db.Exec(" INSERT INTO t2 VALUES(NULL, 3) ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES(NULL, 3) ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.5"
+										_res = db.Exec(" UPDATE t2 SET e = 5 WHERE e IS NULL ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.6"
+										_res = db.Exec(" UPDATE t2 SET e = 1 WHERE e IS NULL ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET e = 1 WHERE e IS NULL ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.7"
+										_res = db.Exec(" UPDATE t2 SET e = NULL WHERE f = 3 ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET e = NULL WHERE f = 3 ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.8"
+										_res = db.Exec(" UPDATE t1 SET a = 10 ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.9"
+										_res = db.Exec(" UPDATE t1 SET a = NULL ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.10"
+										_res = db.Exec(" DELETE FROM t1 ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.11"
+										_res = db.Exec(" UPDATE t2 SET e = NULL ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2 SET e = NULL ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.12"
+										_res = db.Exec(" \n    UPDATE t1 SET a = 10;\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    UPDATE t1 SET a = 10;\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.13"
+										_res = db.Exec("\n    INSERT INTO t3 VALUES(1, NULL, NULL);\n    INSERT INTO t3 VALUES(1, 2, NULL);\n    INSERT INTO t3 VALUES(1, NULL, 3);\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t3 VALUES(1, NULL, NULL);\n    INSERT INTO t3 VALUES(1, 2, NULL);\n    INSERT INTO t3 VALUES(1, NULL, 3);\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.14"
+										_res = db.Exec(" INSERT INTO t3 VALUES(3, 1, 4) ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.15"
+										_res = db.Exec(" \n    INSERT INTO t1 VALUES(1, 1, 4);\n    INSERT INTO t3 VALUES(3, 1, 4);\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO t1 VALUES(1, 1, 4);\n    INSERT INTO t3 VALUES(3, 1, 4);\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.16"
+										_res = db.Exec(" DELETE FROM t1 ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.17"
+										_res = db.Exec(" UPDATE t1 SET b = 10")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-genfkey.1.18"
+										_res = db.Exec(" UPDATE t1 SET a = 10")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a = 10")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.1.19"
+										_res = db.Exec(" UPDATE t3 SET h = 'hello' WHERE i = 3")
+										_ = _res // catchsql
+									}
+									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									{ // do_test "without_rowid3-genfkey.2.1"
+										_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.2.2"
+										_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.2.3"
+										r = db.Query("\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.2.4"
+										r = db.Query("\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.2.5"
+										r = db.Query("\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.2.6"
+										r = db.Query("\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
+										}
+									}
+									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									{ // do_test "without_rowid3-genfkey.3.1"
+										_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.3.2"
+										_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(4, 'four');\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.3.3"
+										r = db.Query("\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t1 SET a = 2 WHERE a = 1;\n    SELECT * FROM t2;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.3.4"
+										r = db.Query("\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a = 4;\n    SELECT * FROM t2;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.3.5"
+										r = db.Query("\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t3 VALUES('hello', 2, 3);\n    UPDATE t1 SET c = 2;\n    SELECT * FROM t3;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-genfkey.3.6"
+										r = db.Query("\n    UPDATE t3 SET h = 2, i = 2;\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE t3 SET h = 2, i = 2;\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-dd08e5.1.1"
+										_res = db.Exec("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE tdd08(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX idd08 ON tdd08(a,b);\n    INSERT INTO tdd08 VALUES(200,300);\n\n    CREATE TABLE tdd08_b(w,x,y, FOREIGN KEY(x,y) REFERENCES tdd08(a,b));\n    INSERT INTO tdd08_b VALUES(100,200,300);\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-dd08e5.1.2"
+										_res = db.Exec("\n    DELETE FROM tdd08;\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-dd08e5.1.3"
+										r = db.Query("\n    SELECT * FROM tdd08;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM tdd08;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-dd08e5.1.4"
+										_res = db.Exec("\n    INSERT INTO tdd08_b VALUES(400,500,300);\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-dd08e5.1.5"
+										_res = db.Exec("\n    UPDATE tdd08_b SET x=x+1;\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-dd08e5.1.6"
+										_res = db.Exec("\n    UPDATE tdd08 SET a=a+1;\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-ce7c13.1.1"
+										r = db.Query("\n    CREATE TABLE tce71(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX ice71 ON tce71(a,b);\n    INSERT INTO tce71 VALUES(100,200);\n    CREATE TABLE tce72(w, x, y, FOREIGN KEY(x,y) REFERENCES tce71(a,b));\n    INSERT INTO tce72 VALUES(300,100,200);\n    UPDATE tce71 set b = 200 where a = 100;\n    SELECT * FROM tce71, tce72;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tce71(a INTEGER PRIMARY KEY, b) WITHOUT rowid;\n    CREATE UNIQUE INDEX ice71 ON tce71(a,b);\n    INSERT INTO tce71 VALUES(100,200);\n    CREATE TABLE tce72(w, x, y, FOREIGN KEY(x,y) REFERENCES tce71(a,b));\n    INSERT INTO tce72 VALUES(300,100,200);\n    UPDATE tce71 set b = 200 where a = 100;\n    SELECT * FROM tce71, tce72;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-ce7c13.1.2"
+										_res = db.Exec("\n    UPDATE tce71 set b = 201 where a = 100;\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-ce7c13.1.3"
+										_res = db.Exec("\n    UPDATE tce71 set a = 101 where a = 100;\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-ce7c13.1.4"
+										r = db.Query("\n    CREATE TABLE tce73(a INTEGER PRIMARY KEY, b, UNIQUE(a,b)) WITHOUT rowid;\n    INSERT INTO tce73 VALUES(100,200);\n    CREATE TABLE tce74(w, x, y, FOREIGN KEY(x,y) REFERENCES tce73(a,b));\n    INSERT INTO tce74 VALUES(300,100,200);\n    UPDATE tce73 set b = 200 where a = 100;\n    SELECT * FROM tce73, tce74;\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tce73(a INTEGER PRIMARY KEY, b, UNIQUE(a,b)) WITHOUT rowid;\n    INSERT INTO tce73 VALUES(100,200);\n    CREATE TABLE tce74(w, x, y, FOREIGN KEY(x,y) REFERENCES tce73(a,b));\n    INSERT INTO tce74 VALUES(300,100,200);\n    UPDATE tce73 set b = 200 where a = 100;\n    SELECT * FROM tce73, tce74;\n  ")
+										}
+									}
+									{ // do_test "without_rowid3-ce7c13.1.5"
+										_res = db.Exec("\n    UPDATE tce73 set b = 201 where a = 100;\n  ")
+										_ = _res // catchsql
+									}
+									{ // do_test "without_rowid3-ce7c13.1.6"
+										_res = db.Exec("\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
+										_ = _res // catchsql
+									}
+									db, err = frigolite.Open(":memory:")
+									if err != nil { t.Fatal(err) }
+									{ // "without_rowid3-30.1"
+										r = db.Query("\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")
+											return
+										}
+										got := flatten(r)
+										want := "3"
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										}
+									}
+									{ // "without_rowid3-30.2"
+										r = db.Query("\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT changes();\n")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT changes();\n")
+											return
+										}
+										got := flatten(r)
+										want := "3"
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										}
+									}
 }

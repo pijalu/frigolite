@@ -73,210 +73,210 @@ func Test_incrblob3(t *testing.T) {
 		}
 	}
 	// foreach {tn rowid type} "\n  1 3 integer\n  2 4 real\n  3 5 null\n"
-	_items := []string{"\n  1 3 integer\n  2 4 real\n  3 5 null\n"}
+	_items := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	rowid := _items[_idx+1]
-	_type := _items[_idx+2]
-		{ // do_test "incrblob3-2.2." + tn + ".1"
+		tn := _items[_idx+0]
+		rowid := _items[_idx+1]
+		_type := _items[_idx+2]
+		_ = _idx
+			{ // do_test "incrblob3-2.2." + tn + ".1"
+				var _blob = "db incrblob blobs v 1" // TCL namespace variable
+				_ = _blob // suppress unused warning
+				_list := tclList([]string{"0", msg})
+				_ = _list
+			}
+			{ // do_test "incrblob3-2.2." + tn + ".2"
+				_list := tclList([]string{"0", ""})
+				_ = _list
+			}
+			{ // do_test "incrblob3-2.2." + tn + ".3"
+				_list := tclList([]string{"0", msg})
+				_ = _list
+			}
+			{ // do_test "incrblob3-2.2." + tn + ".4"
+				_list := tclList([]string{"0", msg})
+				_ = _list
+			}
+			{ // do_test "incrblob3-2.2." + tn + ".5"
+				_list := tclList([]string{"0", msg})
+				_ = _list
+			}
+			{ // do_test "incrblob3-2.2." + tn + ".6"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+			}
+			{ // do_test "incrblob3-2.2." + tn + ".7"
+				// close $::blob
+			}
+		}
+		{ // do_test "incrblob3-3.1"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-3.2"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-3.3"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-3.4"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes {}")
+		}
+		{ // do_test "incrblob3-3.5"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close {}")
+		}
+		{ // do_test "incrblob3-4.1"
 			var _blob = "db incrblob blobs v 1" // TCL namespace variable
 			_ = _blob // suppress unused warning
-			_list := tclList([]string{"0", msg})
-			_ = _list
-		}
-		{ // do_test "incrblob3-2.2." + tn + ".2"
-			_list := tclList([]string{"0", ""})
-			_ = _list
-		}
-		{ // do_test "incrblob3-2.2." + tn + ".3"
-			_list := tclList([]string{"0", msg})
-			_ = _list
-		}
-		{ // do_test "incrblob3-2.2." + tn + ".4"
-			_list := tclList([]string{"0", msg})
-			_ = _list
-		}
-		{ // do_test "incrblob3-2.2." + tn + ".5"
-			_list := tclList([]string{"0", msg})
-			_ = _list
-		}
-		{ // do_test "incrblob3-2.2." + tn + ".6"
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
 		}
-		{ // do_test "incrblob3-2.2." + tn + ".7"
+		{ // do_test "incrblob3-4.2"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-4.3"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-4.4"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-4.5"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-4.6"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-4.7"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-4.8"
 			// close $::blob
 		}
-	}
-	}
-	{ // do_test "incrblob3-3.1"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-3.2"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-3.3"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes {}")
-	}
-	{ // do_test "incrblob3-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close {}")
-	}
-	{ // do_test "incrblob3-4.1"
-		var _blob = "db incrblob blobs v 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
-	}
-	{ // do_test "incrblob3-4.2"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-4.3"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-4.4"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-4.5"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-4.6"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-4.7"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-4.8"
-		// close $::blob
-	}
-	{ // do_test "incrblob3-5.1"
-		var _blob = "db incrblob blobs v 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
-	}
-	{ // do_test "incrblob3-5.2"
-		_res = db.Exec(" UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
+		{ // do_test "incrblob3-5.1"
+			var _blob = "db incrblob blobs v 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
 		}
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-6.3"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-6.4.1"
-		_res = db.Exec(" \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+		{ // do_test "incrblob3-5.2"
+			_res = db.Exec(" UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
+			}
+			_list := tclList([]string{"0", msg})
+			_ = _list
 		}
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-6.4.2"
-		var _blob = "db incrblob t1 a 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		// close $::blob
-	}
-	{ // do_test "incrblob3-6.4.3"
-		var _blob = "db incrblob -readonly t1 b 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		// close $::blob
-	}
-	{ // do_test "incrblob3-6.5.1"
-		_res = db.Exec(" \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+		{ // do_test "incrblob3-6.3"
+			_list := tclList([]string{"0", msg})
+			_ = _list
 		}
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	{ // do_test "incrblob3-6.5.2"
-		var _blob = "db incrblob c1 a 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		// close $::blob
-	}
-	{ // do_test "incrblob3-6.5.3"
-		var _blob = "db incrblob -readonly c1 b 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		// close $::blob
-	}
-	{ // do_test "incrblob3-6.5.4"
-		r = db.Query(" PRAGMA foreign_keys = 0 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = 0 ")
+		{ // do_test "incrblob3-6.4.1"
+			_res = db.Exec(" \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+			}
+			_list := tclList([]string{"0", msg})
+			_ = _list
 		}
-		var _blob = "db incrblob c1 b 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		// close $::blob
-	}
-	{ // do_test "incrblob3-7.1"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		{ // do_test "incrblob3-6.4.2"
+			var _blob = "db incrblob t1 a 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			// close $::blob
+		}
+		{ // do_test "incrblob3-6.4.3"
+			var _blob = "db incrblob -readonly t1 b 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			// close $::blob
+		}
+		{ // do_test "incrblob3-6.5.1"
+			_res = db.Exec(" \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(a, b REFERENCES p1);\n    PRAGMA foreign_keys = 1;\n    INSERT INTO p1 VALUES(zeroblob(100));\n    INSERT INTO c1 VALUES(zeroblob(100), zeroblob(100));\n  ")
+			}
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		{ // do_test "incrblob3-6.5.2"
+			var _blob = "db incrblob c1 a 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			// close $::blob
+		}
+		{ // do_test "incrblob3-6.5.3"
+			var _blob = "db incrblob -readonly c1 b 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			// close $::blob
+		}
+		{ // do_test "incrblob3-6.5.4"
+			r = db.Query(" PRAGMA foreign_keys = 0 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = 0 ")
+			}
+			var _blob = "db incrblob c1 b 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			// close $::blob
+		}
+		{ // do_test "incrblob3-7.1"
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db2 0 0 0")
+			_res = db.Exec(" CREATE TABLE t2(x) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
+			}
+			var _blob = "db incrblob blobs v 1" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			// close $::blob
+		}
+		db2.Close()
+		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
+		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script access_method")
+		// proc definition (not transpiled)
+		{ // do_test "incrblob3-7.2"
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+		db.Close()
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db2 0 0 0")
-		_res = db.Exec(" CREATE TABLE t2(x) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
+		os.Remove("test.db2")
+		{ // "8.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
+			}
 		}
-		var _blob = "db incrblob blobs v 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
+		{ // do_test "8.2"
+			var _blob = "db incrblob -readonly main t1 b 4" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
+		}
 		// close $::blob
-	}
-	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script access_method")
-	// proc definition (not transpiled)
-	{ // do_test "incrblob3-7.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	os.Remove("test.db2")
-	{ // "8.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n\n  INSERT INTO t1 VALUES(4, 'hello');\n  INSERT INTO aux.t1 VALUES(4, 'world');\n")
+		{ // do_test "8.3"
+			var _blob = "db incrblob -readonly aux t1 b 4" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
 		}
-	}
-	{ // do_test "8.2"
-		var _blob = "db incrblob -readonly main t1 b 4" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
-	}
-	// close $::blob
-	{ // do_test "8.3"
-		var _blob = "db incrblob -readonly aux t1 b 4" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
-	}
-	// close $::blob
-	{ // do_test "8.4"
-		var _blob = "db incrblob -readonly t1 b 4" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
-	}
-	// close $::blob
-	{ // do_test "8.5"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
+		// close $::blob
+		{ // do_test "8.4"
+			var _blob = "db incrblob -readonly t1 b 4" // TCL namespace variable
+			_ = _blob // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
+		}
+		// close $::blob
+		{ // do_test "8.5"
+			_list := tclList([]string{"0", msg})
+			_ = _list
+		}
 }

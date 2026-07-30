@@ -31,7 +31,7 @@ func Test_types(t *testing.T) {
 	_ = values // suppress unused warning
 	var tnum = "1"
 	_ = tnum // suppress unused warning
-	for _, val := range []string{values} {
+	for _, val := range tclSplitList(values) {
 		var lit = "lindex $val 0"
 		_ = lit // suppress unused warning
 		_res = db.Exec("DELETE FROM t1;")
@@ -58,7 +58,7 @@ func Test_types(t *testing.T) {
 	}
 	var tnum = "1"
 	_ = tnum // suppress unused warning
-	for _, val := range []string{values} {
+	for _, val := range tclSplitList(values) {
 		var lit = "lindex $val 0"
 		_ = lit // suppress unused warning
 		_res = db.Exec("DELETE FROM t1;")
@@ -85,7 +85,7 @@ func Test_types(t *testing.T) {
 	}
 	var tnum = "1"
 	_ = tnum // suppress unused warning
-	for _, val := range []string{values} {
+	for _, val := range tclSplitList(values) {
 		var lit = "lindex $val 0"
 		_ = lit // suppress unused warning
 		_res = db.Exec("UPDATE t1 SET i = " + lit + ", n = " + lit + ", t = " + lit + ", o = " + lit + ";")

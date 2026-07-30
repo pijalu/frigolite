@@ -22,7 +22,7 @@ func Test_vtab6(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
 	}
-	for _, t := range []string{"list t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t21 t22"} {
+	for _, t := range tclSplitList("list t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t21 t22") {
 		_res = db.Exec("CREATE VIRTUAL TABLE " + t + " USING echo(real_" + t + ")")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + t + " USING echo(real_" + t + ")")

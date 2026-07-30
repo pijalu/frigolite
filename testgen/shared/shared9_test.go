@@ -52,7 +52,7 @@ func Test_shared9(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	for _, x := range []string{"collate1 collate2 collate3"} {
+	for _, x := range tclSplitList("collate1 collate2 collate3") {
 		// proc definition (not transpiled)
 	}
 	{ // do_test "2.1"

@@ -964,16 +964,19 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	}
 
 	if len(varNames) == 1 {
-		tp.emitLine("for _, %s := range []string{%s} {", tclVarToGo(varNames[0]), listExpr)
+		tp.emitLine("for _, %s := range tclSplitList(%s) {", tclVarToGo(varNames[0]), listExpr)
 	} else {
 		tp.emitLine("// foreach {%s} %s", strings.Join(varNames, " "), listExpr)
-		tp.emitLine("_items := []string{%s}", listExpr)
+		tp.emitLine("_items := tclSplitList(%s)", listExpr)
 		numVars := len(varNames)
 		tp.emitLine("for _idx := 0; _idx+%d <= len(_items); _idx += %d {", numVars, numVars)
+		tp.indent++
 		for i, vn := range varNames {
 			tp.emitLine("%s := _items[_idx+%d]", tclVarToGo(vn), i)
 		}
+		tp.emitLine("_ = _idx") // suppress unused warning
 	}
+	_ = listExpr // suppress unused warning if body is empty
 
 	tp.indent++
 	bodyTP := &transpiler{
@@ -991,7 +994,6 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	if len(varNames) == 1 {
 		tp.emitLine("}")
 	} else {
-		tp.emitLine("}")
 		tp.emitLine("}")
 	}
 }

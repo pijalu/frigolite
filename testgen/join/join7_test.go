@@ -18,367 +18,367 @@ func Test_join7(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// foreach {id schema} "\n  1 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  2 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2cd ON t2(c,d);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  3 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  4 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  5 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  6 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE VIEW t2(c,d) AS VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  7 {\n    CREATE VIEW t1(a,b) AS VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  8 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  9 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n  }\n  10 {\n    CREATE TABLE t1(a INT, b INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n  }\n"
-	_items := []string{"\n  1 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  2 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2cd ON t2(c,d);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  3 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  4 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  5 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  6 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE VIEW t2(c,d) AS VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  7 {\n    CREATE VIEW t1(a,b) AS VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  8 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  9 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n  }\n  10 {\n    CREATE TABLE t1(a INT, b INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  2 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2cd ON t2(c,d);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  3 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE INDEX t1a ON t1(a);\n    CREATE TABLE t2(c INT, d INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE INDEX t2c ON t2(c);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  4 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  5 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT PRIMARY KEY, d INT) WITHOUT ROWID;\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  6 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE VIEW t2(c,d) AS VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  7 {\n    CREATE VIEW t1(a,b) AS VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INTEGER PRIMARY KEY, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  8 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2(c INT, d INT);\n    INSERT INTO t2 VALUES(3,33),(4,44),(5,55);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n  }\n  9 {\n    CREATE TABLE t1(a INT, b INT);\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n  }\n  10 {\n    CREATE TABLE t1(a INT, b INT, PRIMARY KEY(a,b)) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(1,2),(1,3),(1,4);\n    CREATE TABLE t2a(c INTEGER PRIMARY KEY, i1 INT);\n    CREATE TABLE t2b(i1 INTEGER PRIMARY KEY, d INT);\n    CREATE VIEW t2(c,d) AS SELECT c, d FROM t2a NATURAL JOIN t2b;\n    INSERT INTO t2a VALUES(3,93),(4,94),(5,95),(6,96),(7,97);\n    INSERT INTO t2b VALUES(91,11),(92,22),(93,33),(94,44),(95,55);\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	id := _items[_idx+0]
-	schema := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "join7-" + id + ".setup"
-			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+		id := _items[_idx+0]
+		schema := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "join7-" + id + ".setup"
+				_res = db.Exec(schema)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+				}
+			}
+			{ // "join7-" + id + ".10"
+				r = db.Query("\n    SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".20"
+				r = db.Query("\n    SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".30"
+				r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".31"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".32"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".33"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0\n     ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0\n     ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".34"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0 OR b IS NULL\n     ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0 OR b IS NULL\n     ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".35"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".36"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 WHERE c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 WHERE c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".37"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".38"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 OR c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 OR c>4\n     ORDER BY coalesce(b,c,0);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    4    4    44\n    NULL NULL 5    55\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".39"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b>3 OR c>4)\n     ORDER BY coalesce(b,c,0);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b>3 OR c>4)\n     ORDER BY coalesce(b,c,0);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".40"
+				r = db.Query("\n    SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".50"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".60"
+				r = db.Query("\n    SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".70"
+				r = db.Query("\n    SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".80"
+				r = db.Query("\n    SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".81"
+				r = db.Query("\n    SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".90"
+				r = db.Query("\n    SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".100"
+				r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".101"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".110"
+				r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".111"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".115"
+				r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".116"
+				r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".120"
+				r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".130"
+				r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".140"
+				r = db.Query("\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join7-" + id + ".141"
+				r = db.Query("\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "join7-" + id + ".10"
-			r = db.Query("\n    SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b, d FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL 55\n    2    NULL\n    3    33\n    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".20"
-			r = db.Query("\n    SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, c FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL  5\n    1     NULL\n    1     3\n    1     4\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".30"
-			r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".31"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".32"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b=c\n     ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".33"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0\n     ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0\n     ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".34"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0 OR b IS NULL\n     ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE b>0 OR b IS NULL\n     ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".35"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    NULL NULL 4    44\n    1    4    NULL NULL\n    NULL NULL 5    55\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".36"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 WHERE c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND b>3 WHERE c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".37"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 AND c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".38"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 OR c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE b>3 OR c>4\n     ORDER BY coalesce(b,c,0);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    4    4    44\n    NULL NULL 5    55\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".39"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b>3 OR c>4)\n     ORDER BY coalesce(b,c,0);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND (b>3 OR c>4)\n     ORDER BY coalesce(b,c,0);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    2    NULL NULL\n    NULL NULL 3    33\n    1    3    NULL NULL\n    1    4    4    44\n    NULL NULL 5    55\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".40"
-			r = db.Query("\n    SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".50"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 LEFT OUTER JOIN t1 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".60"
-			r = db.Query("\n    SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM dual JOIN t1 ON true RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".70"
-			r = db.Query("\n    SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* \n      FROM t2 LEFT JOIN (dual JOIN t1 ON true) ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".80"
-			r = db.Query("\n    SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM dual CROSS JOIN t1 RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".81"
-			r = db.Query("\n    SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT dual.*, t1.*, t2.*\n      FROM t1 CROSS JOIN dual RIGHT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL NULL 5    55\n    x    1    3    3    33\n    x    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".90"
-			r = db.Query("\n    SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT OUTER JOIN t2 ON b=c ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".100"
-			r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND a=1 ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".101"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c AND a=1 ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".110"
-			r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a=1 ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".111"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c WHERE a=1 ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".115"
-			r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".116"
-			r = db.Query("\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT t1.*, t2.* FROM t2 FULL OUTER JOIN t1 ON b=c\n     WHERE a=1 OR a IS NULL ORDER BY +b;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    3    33\n    1    4    4    44\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".120"
-			r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c WHERE a IS NULL ORDER BY +d;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".130"
-			r = db.Query("\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 FULL OUTER JOIN t2 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".140"
-			r = db.Query("\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0 ORDER BY +b, +d;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 3    33\n    NULL NULL 4    44\n    NULL NULL 5    55\n    1    2    NULL NULL\n    1    3    NULL NULL\n    1    4    NULL NULL\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join7-" + id + ".141"
-			r = db.Query("\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c, d\n      FROM t2 FULL OUTER JOIN t1 ON b=c AND d<=0\n     ORDER BY +b, +d LIMIT 2 OFFSET 2\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    NULL NULL 5    55\n    1    2    NULL NULL\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

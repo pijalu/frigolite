@@ -26,170 +26,170 @@ func Test_rowvalue3(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}\n"
-	_items := []string{"\n  1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}\n"}
+	_items := tclSplitList("\n  1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "1." + tn
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-			}
-		}
-	}
-	}
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
-		}
-	}
-	// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n"
-	_items := []string{"\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	idx := _items[_idx+1]
-		_res = db.Exec("DROP INDEX IF EXISTS z1idx")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX IF EXISTS z1idx")
-		}
-		_res = db.Exec(idx)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-		}
-		{ // "2." + tn + ".1"
-			r = db.Query("\n    SELECT * FROM z1 WHERE x IN (SELECT a FROM kk)\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE x IN (SELECT a FROM kk)\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "d e f"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "2." + tn + ".2"
-			r = db.Query("\n    SELECT * FROM z1 WHERE (x,y) IN (SELECT a, b FROM kk)\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x,y) IN (SELECT a, b FROM kk)\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "d e f"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "2." + tn + ".3"
-			r = db.Query("\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b FROM kk)\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b FROM kk)\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "d e f"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "2." + tn + ".4"
-			r = db.Query("\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)\n  ")
-			}
-		}
-		{ // "2." + tn + ".5"
-			r = db.Query("\n    SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "d e f"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "3.0"
-		_res = db.Exec("\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
-		}
-	}
-	// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n"
-	_items := []string{"\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	idx := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
-		// foreach {tn2 sql res} "\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  "
-		_items := []string{"\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  "}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn2 := _items[_idx+0]
+		tn := _items[_idx+0]
 		sql := _items[_idx+1]
 		res := _items[_idx+2]
-			{ // "3." + tn + "." + tn2
+		_ = _idx
+			{ // "1." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
 		}
-		}
-	}
-	}
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
-		}
-	}
-	// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n"
-	_items := []string{"\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	idx := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
-		_res = db.Exec(idx)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-		}
-		// foreach {tn2 orderby res} "\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  "
-		_items := []string{"\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  "}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn2 := _items[_idx+0]
-		orderby := _items[_idx+1]
-		res := _items[_idx+2]
-			{ // "4." + tn + "." + tn2
-				r = db.Query("\n      SELECT c FROM hh WHERE (a, b) in (SELECT x, y FROM k1) ORDER BY " + orderby + "\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM hh WHERE (a, b) in (SELECT x, y FROM k1) ORDER BY " + orderby + "\n    ")
-					return
-				}
-				got := flatten(r)
-				want := res
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(x, y, z);\n  CREATE TABLE kk(a, b);\n\n  INSERT INTO z1 VALUES('a', 'b', 'c');\n  INSERT INTO z1 VALUES('d', 'e', 'f');\n  INSERT INTO z1 VALUES('g', 'h', 'i');\n\n  -- INSERT INTO kk VALUES('y', 'y');\n  INSERT INTO kk VALUES('d', 'e');\n  -- INSERT INTO kk VALUES('x', 'x');\n\n")
 			}
 		}
-		}
-	}
-	}
-	{ // "5.0"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);\n")
-			return
-		}
-		got := flatten(r)
-		want := "aaa 0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n"
+		_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			idx := _items[_idx+1]
+			_ = _idx
+				_res = db.Exec("DROP INDEX IF EXISTS z1idx")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX IF EXISTS z1idx")
+				}
+				_res = db.Exec(idx)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+				}
+				{ // "2." + tn + ".1"
+					r = db.Query("\n    SELECT * FROM z1 WHERE x IN (SELECT a FROM kk)\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE x IN (SELECT a FROM kk)\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "d e f"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "2." + tn + ".2"
+					r = db.Query("\n    SELECT * FROM z1 WHERE (x,y) IN (SELECT a, b FROM kk)\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x,y) IN (SELECT a, b FROM kk)\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "d e f"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "2." + tn + ".3"
+					r = db.Query("\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b FROM kk)\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b FROM kk)\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "d e f"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "2." + tn + ".4"
+					r = db.Query("\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (x, +y) IN (SELECT a, b||'x' FROM kk)\n  ")
+					}
+				}
+				{ // "2." + tn + ".5"
+					r = db.Query("\n    SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM z1 WHERE (+x, y) IN (SELECT a, b FROM kk)\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "d e f"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+			{ // "3.0"
+				_res = db.Exec("\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(a, b, c, d);\n  INSERT INTO c1(rowid, a, b) VALUES(1,   NULL, 1);\n  INSERT INTO c1(rowid, a, b) VALUES(2,   2, NULL);\n  INSERT INTO c1(rowid, a, b) VALUES(3,   2, 2);\n  INSERT INTO c1(rowid, a, b) VALUES(4,   3, 3);\n\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(101, 'a', 'b', 1, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(102, 'a', 'b', 1, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(103, 'a', 'b', 1, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(104, 'a', 'b', 2, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(105, 'a', 'b', 2, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(106, 'a', 'b', 2, 3);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(107, 'a', 'b', 3, 1);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(108, 'a', 'b', 3, 2);\n  INSERT INTO c1(rowid, a, b, c, d) VALUES(109, 'a', 'b', 3, 3);\n")
+				}
+			}
+			// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n"
+			_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				idx := _items[_idx+1]
+				_ = _idx
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+					// foreach {tn2 sql res} "\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  "
+					_items := tclSplitList("\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  ")
+					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+						tn2 := _items[_idx+0]
+						sql := _items[_idx+1]
+						res := _items[_idx+2]
+						_ = _idx
+							{ // "3." + tn + "." + tn2
+								_res = db.Exec(sql)
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+								}
+							}
+						}
+					}
+					{ // "4.0"
+						_res = db.Exec("\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE hh(a, b, c);\n\n  INSERT INTO hh VALUES('a', 'a', 1);\n  INSERT INTO hh VALUES('a', 'b', 2);\n  INSERT INTO hh VALUES('b', 'a', 3);\n  INSERT INTO hh VALUES('b', 'b', 4);\n\n  CREATE TABLE k1(x, y);\n  INSERT INTO k1 VALUES('a', 'a');\n  INSERT INTO k1 VALUES('b', 'b');\n  INSERT INTO k1 VALUES('a', 'b');\n  INSERT INTO k1 VALUES('b', 'a');\n")
+						}
+					}
+					// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n"
+					_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n")
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						tn := _items[_idx+0]
+						idx := _items[_idx+1]
+						_ = _idx
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+							_res = db.Exec(idx)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+							}
+							// foreach {tn2 orderby res} "\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  "
+							_items := tclSplitList("\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  ")
+							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+								tn2 := _items[_idx+0]
+								orderby := _items[_idx+1]
+								res := _items[_idx+2]
+								_ = _idx
+									{ // "4." + tn + "." + tn2
+										r = db.Query("\n      SELECT c FROM hh WHERE (a, b) in (SELECT x, y FROM k1) ORDER BY " + orderby + "\n    ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT c FROM hh WHERE (a, b) in (SELECT x, y FROM k1) ORDER BY " + orderby + "\n    ")
+											return
+										}
+										got := flatten(r)
+										want := res
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										}
+									}
+								}
+							}
+							{ // "5.0"
+								r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE T1(a TEXT);\n  INSERT INTO T1(a) VALUES ('aaa');\n  CREATE TABLE T2(a TEXT PRIMARY KEY,n INT);\n  INSERT INTO T2(a, n) VALUES('aaa',0);\n  SELECT * FROM T2\n   WHERE (a,n) IN (SELECT T1.a, V.n\n                     FROM T1, (SELECT * FROM (SELECT 0 n) T3) V);\n")
+									return
+								}
+								got := flatten(r)
+								want := "aaa 0"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
 }

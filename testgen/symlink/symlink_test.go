@@ -133,176 +133,176 @@ func Test_symlink(t *testing.T) {
 		_ =  // suppress unused warning
 	}
 	// foreach {tn f} "1 test.db2 2 test.db3"
-	_items := []string{"1 test.db2 2 test.db3"}
+	_items := tclSplitList("1 test.db2 2 test.db3")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	f := _items[_idx+1]
-		{ // do_test "2." + tn + ".1"
-			db2, err := frigolite.Open(f)
-			defer db2.Close()
-			if err != nil { t.Fatal(err) }
-			// file exists "test.db-journal"
-		}
-		{ // do_test "2." + tn + ".2"
-			_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
+		tn := _items[_idx+0]
+		f := _items[_idx+1]
+		_ = _idx
+			{ // do_test "2." + tn + ".1"
+				db2, err := frigolite.Open(f)
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				// file exists "test.db-journal"
 			}
-			// file exists "test.db-journal"
-		}
-		{ // do_test "2." + tn + ".3"
-			_list := tclList([]string{"file exists test2.db-journal", "file exists test3.db-journal"})
-			_ = _list
-		}
-		{ // do_test "2." + tn + ".4"
-			_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
+			{ // do_test "2." + tn + ".2"
+				_res = db.Exec("\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        INSERT INTO t1 VALUES(1);\n    ")
+				}
+				// file exists "test.db-journal"
 			}
-			// file exists "test.db-wal"
-		}
-		{ // do_test "2." + tn + ".5"
-			_list := tclList([]string{"file exists test2.db-wal", "file exists test3.db-wal"})
-			_ = _list
-		}
-		{ // "2." + tn + ".6"
-			r = db.Query("\n    SELECT * FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
-				return
+			{ // do_test "2." + tn + ".3"
+				_list := tclList([]string{"file exists test2.db-journal", "file exists test3.db-journal"})
+				_ = _list
 			}
-			got := flatten(r)
-			want := "1 2"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "2." + tn + ".4"
+				_res = db.Exec("\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(2);\n    ")
+				}
+				// file exists "test.db-wal"
+			}
+			{ // do_test "2." + tn + ".5"
+				_list := tclList([]string{"file exists test2.db-wal", "file exists test3.db-wal"})
+				_ = _list
+			}
+			{ // "2." + tn + ".6"
+				r = db.Query("\n    SELECT * FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db2.Close()
+			{ // "2." + tn + ".7"
+				r = db.Query("\n    DELETE FROM t1;\n    PRAGMA journal_mode = delete;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    PRAGMA journal_mode = delete;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		db2.Close()
-		{ // "2." + tn + ".7"
-			r = db.Query("\n    DELETE FROM t1;\n    PRAGMA journal_mode = delete;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    PRAGMA journal_mode = delete;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "delete"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "3.1"
+			{
+				var res string // catch result ("0"=ok, "1"=error)
+				var _catchErrMsg string // catch error message
+				var _catchErr error
+				db, err := frigolite.Open("[string repeat x 100]/ 6")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				if _catchErr != nil {
+					res = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					res = "0"
+					_catchErrMsg = ""
+				}
 			}
 		}
-	}
-	}
-	{ // do_test "3.1"
-		{
-			var res string // catch result ("0"=ok, "1"=error)
-			var _catchErrMsg string // catch error message
-			var _catchErr error
-			db, err := frigolite.Open("[string repeat x 100]/ 6")
+		{ // do_test "4.1"
+			os.Remove("x")
+			// file mkdir x
+			// file mkdir y
+			// file mkdir z
+			db, err := frigolite.Open("x/test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			if _catchErr != nil {
-				res = "1"
-				_catchErrMsg = _catchErr.Error()
-			} else {
-				res = "0"
-				_catchErrMsg = ""
+			// file link y/test.db ../x/test.db
+			// file link z/test.db ../y/test.db
+			_res = db.Exec("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
 			}
 		}
-	}
-	{ // do_test "4.1"
-		os.Remove("x")
-		// file mkdir x
-		// file mkdir y
-		// file mkdir z
-		db, err := frigolite.Open("x/test.db")
-		defer db.Close()
+		{ // do_test "4.2.1"
+			db, err := frigolite.Open("y/test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec(" SELECT * FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "4.2.2"
+			_list := tclList([]string{"file exists x/test.db-wal", "file exists y/test.db-wal"})
+			_ = _list
+		}
+		{ // do_test "4.3.1"
+			db, err := frigolite.Open("z/test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec(" SELECT * FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "4.3.2"
+			_list := tclList([]string{"file exists x/test.db-wal", "file exists y/test.db-wal", "file exists z/test.db-wal"})
+			_ = _list
+		}
+		{ // do_test "4.4.0"
+			os.Remove("w")
+			// file mkdir w
+			// file link w/test.db [file join [pwd] x/test.db]
+			var  = ""
+			_ =  // suppress unused warning
+		}
+		{ // do_test "4.4.1"
+			db, err := frigolite.Open("w/test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec(" SELECT * FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "4.4.2"
+			_list := tclList([]string{"file exists x/test.db-wal", "file exists w/test.db-wal"})
+			_ = _list
+		}
+		db.Close()
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		// file link y/test.db ../x/test.db
-		// file link z/test.db ../y/test.db
-		_res = db.Exec("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('hello', 'world');\n  ")
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
+			}
 		}
-	}
-	{ // do_test "4.2.1"
-		db, err := frigolite.Open("y/test.db")
-		defer db.Close()
+		var path = "pwd"
+		_ = path // suppress unused warning
+		var nLink = "llength [split $path /]"
+		_ = nLink // suppress unused warning
+		var path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
+		_ = path // suppress unused warning
+		db2, err := frigolite.Open(path)
+		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+		{ // "-db"
+			_res = db.Exec("db2")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			}
 		}
-	}
-	{ // do_test "4.2.2"
-		_list := tclList([]string{"file exists x/test.db-wal", "file exists y/test.db-wal"})
-		_ = _list
-	}
-	{ // do_test "4.3.1"
-		db, err := frigolite.Open("z/test.db")
-		defer db.Close()
+		os.Remove("test.db2")
+		// file link test.db2 $path
+		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+		{ // "-db"
+			_res = db.Exec("db2")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			}
 		}
-	}
-	{ // do_test "4.3.2"
-		_list := tclList([]string{"file exists x/test.db-wal", "file exists y/test.db-wal", "file exists z/test.db-wal"})
-		_ = _list
-	}
-	{ // do_test "4.4.0"
-		os.Remove("w")
-		// file mkdir w
-		// file link w/test.db [file join [pwd] x/test.db]
-		var  = ""
-		_ =  // suppress unused warning
-	}
-	{ // do_test "4.4.1"
-		db, err := frigolite.Open("w/test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
-		}
-	}
-	{ // do_test "4.4.2"
-		_list := tclList([]string{"file exists x/test.db-wal", "file exists w/test.db-wal"})
-		_ = _list
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
-		}
-	}
-	var path = "pwd"
-	_ = path // suppress unused warning
-	var nLink = "llength [split $path /]"
-	_ = nLink // suppress unused warning
-	var path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
-	_ = path // suppress unused warning
-	db2, err := frigolite.Open(path)
-	defer db2.Close()
-	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
-		}
-	}
-	os.Remove("test.db2")
-	// file link test.db2 $path
-	db2, err = frigolite.Open("test.db2")
-	if err != nil { t.Fatal(err) }
-	{ // "-db"
-		_res = db.Exec("db2")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
-		}
-	}
-	os.Remove("test.db2")
+		os.Remove("test.db2")
 }

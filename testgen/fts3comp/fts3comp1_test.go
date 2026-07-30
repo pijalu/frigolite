@@ -26,229 +26,229 @@ func Test_fts3comp1(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn zip unzip} "\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n"
-	_items := []string{"\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n"}
+	_items := tclSplitList("\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zip := _items[_idx+1]
-	unzip := _items[_idx+2]
-		var next_x = "0"
-		_ = next_x // suppress unused warning
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
+		tn := _items[_idx+0]
+		zip := _items[_idx+1]
+		unzip := _items[_idx+2]
+		_ = _idx
+			var next_x = "0"
+			_ = next_x // suppress unused warning
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+			}
+			os.Remove("test.db")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			{ // "1." + tn + ".0"
+				_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
+				}
+			}
+			{ // "1." + tn + ".1"
+				r = db.Query("\n    INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{one two three} {two four six}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    SELECT c0a, c1b FROM t1_content;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c0a, c1b FROM t1_content;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".3"
+				r = db.Query("\n    INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{one two three} {two four six} {three six nine} {four eight twelve}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".4"
+				r = db.Query("\n    SELECT c0a, c1b FROM t1_content;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c0a, c1b FROM t1_content;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".5"
+				r = db.Query("\n    SELECT a, b FROM t1 WHERE docid = 2\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 WHERE docid = 2\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{three six nine} {four eight twelve}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".6"
+				r = db.Query("\n    SELECT a, b FROM t1 WHERE t1 MATCH 'two'\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 WHERE t1 MATCH 'two'\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{one two three} {two four six}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".7"
+				r = db.Query("\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    eight 1 1    four 2 2    nine 1 1    one 1 1 \n    six 2 2      three 2 2   twelve 1 1  two 1 2\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".8"
+				r = db.Query("\n    DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    eight 1 1   four 1 1    nine 1 1 \n    six 1 1     three 1 1   twelve 1 1\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".9"
+				r = db.Query(" SELECT c0a, c1b FROM t1_content ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT c0a, c1b FROM t1_content ")
+					return
+				}
+				got := flatten(r)
+				want := "3 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 		}
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		{ // "2.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing uncompress parameter in fts4 constructor") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing uncompress parameter in fts4 constructor", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
+			}
+		}
+		{ // "2.2"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing compress parameter in fts4 constructor") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing compress parameter in fts4 constructor", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		{ // "1." + tn + ".0"
-			_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
+		{ // "3.0"
+			r = db.Query("\n  PRAGMA trusted_schema = OFF;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema = OFF;\n")
+			}
+		}
+		var _myfunc_invoked = "0" // TCL namespace variable
+		_ = _myfunc_invoked // suppress unused warning
+		// proc definition (not transpiled)
+		{ // "3.1"
+			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
 			}
 		}
-		{ // "1." + tn + ".1"
-			r = db.Query("\n    INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('one two three', 'two four six');\n    SELECT a, b FROM t1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "{one two three} {two four six}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.2"
+			_res = db.Exec("\n  SELECT * FROM v1\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of myfunc()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", _res.Error, "\n  SELECT * FROM v1\n")
 			}
 		}
-		{ // "1." + tn + ".2"
-			r = db.Query("\n    SELECT c0a, c1b FROM t1_content;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c0a, c1b FROM t1_content;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1 2"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.3"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
 			}
 		}
-		{ // "1." + tn + ".3"
-			r = db.Query("\n    INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES('three six nine', 'four eight twelve');\n    SELECT a, b FROM t1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "{one two three} {two four six} {three six nine} {four eight twelve}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.4"
+			_res = db.Exec("\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
 			}
 		}
-		{ // "1." + tn + ".4"
-			r = db.Query("\n    SELECT c0a, c1b FROM t1_content;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT c0a, c1b FROM t1_content;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1 2 3 4"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "3.5"
+			_ = _myfunc_invoked // TCL namespace variable (query)
+		}
+		{ // "3.6.1"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
 			}
 		}
-		{ // "1." + tn + ".5"
-			r = db.Query("\n    SELECT a, b FROM t1 WHERE docid = 2\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 WHERE docid = 2\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "{three six nine} {four eight twelve}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.6.2"
+			_res = db.Exec("\n  INSERT INTO t1 VALUES('hello world');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of myfunc()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", _res.Error, "\n  INSERT INTO t1 VALUES('hello world');\n")
 			}
 		}
-		{ // "1." + tn + ".6"
-			r = db.Query("\n    SELECT a, b FROM t1 WHERE t1 MATCH 'two'\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 WHERE t1 MATCH 'two'\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "{one two three} {two four six}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "4.0"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
 			}
 		}
-		{ // "1." + tn + ".7"
-			r = db.Query("\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    eight 1 1    four 2 2    nine 1 1    one 1 1 \n    six 2 2      three 2 2   twelve 1 1  two 1 2\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		// proc definition (not transpiled)
+		// proc definition (not transpiled)
+		{ // "4.1"
+			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
-		{ // "1." + tn + ".8"
-			r = db.Query("\n    DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE docid = 1;\n    SELECT term, documents, occurrences FROM terms WHERE col = '*';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    eight 1 1   four 1 1    nine 1 1 \n    six 1 1     three 1 1   twelve 1 1\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "4.2"
+			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
-		{ // "1." + tn + ".9"
-			r = db.Query(" SELECT c0a, c1b FROM t1_content ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT c0a, c1b FROM t1_content ")
-				return
-			}
-			got := flatten(r)
-			want := "3 4"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "4.3"
+			_res = db.Exec("\n  SELECT * FROM v1\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM v1\n")
 			}
 		}
-	}
-	}
-	{ // "2.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing uncompress parameter in fts4 constructor") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing uncompress parameter in fts4 constructor", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, compress=zip)\n")
-		}
-	}
-	{ // "2.2"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "missing compress parameter in fts4 constructor") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "missing compress parameter in fts4 constructor", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(x, uncompress=unzip)\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "3.0"
-		r = db.Query("\n  PRAGMA trusted_schema = OFF;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema = OFF;\n")
-		}
-	}
-	var _myfunc_invoked = "0" // TCL namespace variable
-	_ = _myfunc_invoked // suppress unused warning
-	// proc definition (not transpiled)
-	{ // "3.1"
-		_res = db.Exec("\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
-		}
-	}
-	{ // "3.2"
-		_res = db.Exec("\n  SELECT * FROM v1\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of myfunc()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", _res.Error, "\n  SELECT * FROM v1\n")
-		}
-	}
-	{ // "3.3"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE f1 USING fts4(x, compress=myfunc, uncompress=myfunc);\n")
-		}
-	}
-	{ // "3.4"
-		_res = db.Exec("\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO f1(rowid, x) VALUES(123, 'one two three');\n")
-		}
-	}
-	{ // do_test "3.5"
-		_ = _myfunc_invoked // TCL namespace variable (query)
-	}
-	{ // "3.6.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
-		}
-	}
-	{ // "3.6.2"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES('hello world');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsafe use of myfunc()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsafe use of myfunc()", _res.Error, "\n  INSERT INTO t1 VALUES('hello world');\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE v1 USING fts4(x, compress=comp, uncompress=uncomp);\n")
-		}
-	}
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
-	{ // "4.1"
-		_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO v1 VALUES('one two three');\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "4.2"
-		_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO v1 VALUES('one two three');\n")
-		}
-	}
-	{ // "4.3"
-		_res = db.Exec("\n  SELECT * FROM v1\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM v1\n")
-		}
-	}
 }

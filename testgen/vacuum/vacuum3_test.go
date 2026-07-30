@@ -36,224 +36,224 @@ func Test_vacuum3(t *testing.T) {
 	var I = "4"
 	_ = I // suppress unused warning
 	// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\"
-	_items := []string{"list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\"}
+	_items := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	request := _items[_idx+0]
-	actual := _items[_idx+1]
-	database := _items[_idx+2]
-		{ // do_test "vacuum3-1." + I + ".1"
-			_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+		request := _items[_idx+0]
+		actual := _items[_idx+1]
+		database := _items[_idx+2]
+		_ = _idx
+			{ // do_test "vacuum3-1." + I + ".1"
+				_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+				}
+				r = db.Query(" PRAGMA page_size ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+				}
 			}
-			r = db.Query(" PRAGMA page_size ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+			{ // do_test "vacuum3-1." + I + ".2"
+				// file size test.db
+			}
+			{ // do_test "vacuum3-1." + I + ".3"
+				r = db.Query(" SELECT * FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				}
+			}
+			_res = db.Exec("PRAGMA integrity_check")
+			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+			// incr I 1
+			{
+				_n, _err := strconv.Atoi(I)
+				if _err == nil {
+					I = strconv.Itoa(_n + 1)
+				}
 			}
 		}
-		{ // do_test "vacuum3-1." + I + ".2"
+		{ // do_test "vacuum3-2.1"
+			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
+			}
+			_res = db.Exec("\n    UPDATE t1 SET d = randomblob(1000);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = randomblob(1000);\n  ")
+			}
 			// file size test.db
 		}
-		{ // do_test "vacuum3-1." + I + ".3"
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-			}
-		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-		// incr I 1
-		{
-			_n, _err := strconv.Atoi(I)
-			if _err == nil {
-				I = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	}
-	{ // do_test "vacuum3-2.1"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
-		}
-		_res = db.Exec("\n    UPDATE t1 SET d = randomblob(1000);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = randomblob(1000);\n  ")
-		}
-		// file size test.db
-	}
-	{ // do_test "vacuum3-2.2"
-		r = db.Query(" PRAGMA page_size ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
-		}
-	}
-	{ // do_test "vacuum3-2.3"
-		var blob = "db one {select d from t1}"
-		_ = blob // suppress unused warning
-		len(blob)
-	}
-	var I = "4"
-	_ = I // suppress unused warning
-	// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\"
-	_items := []string{"list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	request := _items[_idx+0]
-	actual := _items[_idx+1]
-	database := _items[_idx+2]
-		{ // do_test "vacuum3-2." + I + ".1"
-			_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-			}
+		{ // do_test "vacuum3-2.2"
 			r = db.Query(" PRAGMA page_size ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 			}
 		}
-		{ // do_test "vacuum3-2." + I + ".2"
-			// file size test.db
+		{ // do_test "vacuum3-2.3"
+			var blob = "db one {select d from t1}"
+			_ = blob // suppress unused warning
+			len(blob)
 		}
-		{ // do_test "vacuum3-2." + I + ".3"
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+		var I = "4"
+		_ = I // suppress unused warning
+		// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\"
+		_items := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			request := _items[_idx+0]
+			actual := _items[_idx+1]
+			database := _items[_idx+2]
+			_ = _idx
+				{ // do_test "vacuum3-2." + I + ".1"
+					_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+					}
+					r = db.Query(" PRAGMA page_size ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+					}
+				}
+				{ // do_test "vacuum3-2." + I + ".2"
+					// file size test.db
+				}
+				{ // do_test "vacuum3-2." + I + ".3"
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				_res = db.Exec("PRAGMA integrity_check")
+				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+				// incr I 1
+				{
+					_n, _err := strconv.Atoi(I)
+					if _err == nil {
+						I = strconv.Itoa(_n + 1)
+					}
+				}
 			}
-		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-		// incr I 1
-		{
-			_n, _err := strconv.Atoi(I)
-			if _err == nil {
-				I = strconv.Itoa(_n + 1)
+			// proc definition (not transpiled)
+			{ // do_test "vacuum3-3.1"
+				_res = db.Exec("\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
+				}
 			}
-		}
-	}
-	}
-	// proc definition (not transpiled)
-	{ // do_test "vacuum3-3.1"
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n    INSERT INTO abc \n        SELECT randomblob(1000), randomblob(200), randomblob(100)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(100), randomblob(200), randomblob(1000)\n        FROM abc;\n    INSERT INTO abc \n        SELECT randomblob(25), randomblob(45), randomblob(9456)\n        FROM abc;\n    COMMIT;\n  ")
-		}
-	}
-	{ // do_test "vacuum3-3.2"
-		r = db.Query(" PRAGMA page_size ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
-		}
-	}
-	var _sig = "signature" // TCL namespace variable
-	_ = _sig // suppress unused warning
-	var I = "3"
-	_ = I // suppress unused warning
-	// foreach {request actual} "list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"
-	_items := []string{"list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	request := _items[_idx+0]
-	actual := _items[_idx+1]
-		{ // do_test "vacuum3-3." + I + ".1"
-			_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+			{ // do_test "vacuum3-3.2"
+				r = db.Query(" PRAGMA page_size ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+				}
 			}
-			r = db.Query(" PRAGMA page_size ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
-			}
-		}
-		{ // do_test "vacuum3-3." + I + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
-		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-		// incr I 1
-		{
-			_n, _err := strconv.Atoi(I)
-			if _err == nil {
-				I = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	}
-	{ // do_test "vacuum3-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
-		}
-		r = db.Query(" SELECT * FROM abc ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-		}
-	}
-	{ // do_test "vacuum3-4.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT * FROM abc ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-		}
-	}
-	{ // do_test "vacuum3-4.3"
-		_res = db.Exec(" \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
-		}
-		r = db.Query(" SELECT * FROM abc ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-		}
-	}
-	{ // do_test "vacuum3-4.4"
-		r = db.Query(" SELECT * FROM abc ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-		}
-	}
-	{ // do_test "vacuum3-4.5"
-		_res = db.Exec("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
-		}
-		r = db.Query(" SELECT * FROM abc ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-		}
-	}
-	{ // do_test "vacuum3-4.6"
-		_res = db.Exec("\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
-		}
-		r = db.Query(" SELECT * FROM abc ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
-		}
-	}
-	db2.Close()
-	db2, err := frigolite.Open(":memory:")
-	defer db2.Close()
-	if err != nil { t.Fatal(err) }
-	{ // do_test "vacuum3-5.1"
-		db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	}
-	{ // do_test "vacuum3-5.2"
-		db2.Exec("\n    PRAGMA page_size\n  ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	}
-	var create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
-	_ = create_database_sql // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_database_sql... -sqlbody {\n  PRAGMA page_size = 4096;\n  VACUUM;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_database_sq... -sqlbody {\n  PRAGMA page_size = 512;\n  VACUUM;\n}")
-	if tclBool(MEMDEBUG) {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    CRE...} -sqlbody {\n    PRAGMA page_size = 512;\n    VACUUM;\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a...} -sqlbody {\n    VACUUM;\n  }")
-	}
+			var _sig = "signature" // TCL namespace variable
+			_ = _sig // suppress unused warning
+			var I = "3"
+			_ = I // suppress unused warning
+			// foreach {request actual} "list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"
+			_items := tclSplitList("list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				request := _items[_idx+0]
+				actual := _items[_idx+1]
+				_ = _idx
+					{ // do_test "vacuum3-3." + I + ".1"
+						_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
+						}
+						r = db.Query(" PRAGMA page_size ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
+						}
+					}
+					{ // do_test "vacuum3-3." + I + ".2"
+						t.Skipf("TODO: %s not implemented in frigolite", "signature")
+					}
+					_res = db.Exec("PRAGMA integrity_check")
+					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+					// incr I 1
+					{
+						_n, _err := strconv.Atoi(I)
+						if _err == nil {
+							I = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				{ // do_test "vacuum3-4.1"
+					t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
+					}
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.2"
+					db2, err := frigolite.Open("test.db")
+					defer db2.Close()
+					if err != nil { t.Fatal(err) }
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.3"
+					_res = db.Exec(" \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 2048;\n    VACUUM;\n  ")
+					}
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.4"
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.5"
+					_res = db.Exec("\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=16384;\n    VACUUM;\n  ")
+					}
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				{ // do_test "vacuum3-4.6"
+					_res = db.Exec("\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    VACUUM;\n  ")
+					}
+					r = db.Query(" SELECT * FROM abc ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
+					}
+				}
+				db2.Close()
+				db2, err := frigolite.Open(":memory:")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				{ // do_test "vacuum3-5.1"
+					db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				}
+				{ // do_test "vacuum3-5.2"
+					db2.Exec("\n    PRAGMA page_size\n  ")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				}
+				var create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
+				_ = create_database_sql // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_database_sql... -sqlbody {\n  PRAGMA page_size = 4096;\n  VACUUM;\n}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_database_sq... -sqlbody {\n  PRAGMA page_size = 512;\n  VACUUM;\n}")
+				if tclBool(MEMDEBUG) {
+					t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    CRE...} -sqlbody {\n    PRAGMA page_size = 512;\n    VACUUM;\n  }")
+					t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a...} -sqlbody {\n    VACUUM;\n  }")
+				}
 }

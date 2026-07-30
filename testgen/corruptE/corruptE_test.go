@@ -75,7 +75,7 @@ func Test_corruptE(t *testing.T) {
 	_ = tests // suppress unused warning
 	var tc = "1"
 	_ = tc // suppress unused warning
-	for _, test := range []string{tests} {
+	for _, test := range tclSplitList(tests) {
 		{ // do_test "corruptE-3." + tc
 			tclFileCopy("test.bu", "test.db")
 			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [lindex $test 0] [format %02x [lindex $test 1]]")

@@ -26,790 +26,790 @@ func Test_conflict(t *testing.T) {
 		}
 	}
 	// foreach {i cmd t0 t1 t2 t3} "\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n"
-	_items := []string{"\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n"}
+	_items := tclSplitList("\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n")
 	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-	i := _items[_idx+0]
-	cmd := _items[_idx+1]
-	t0 := _items[_idx+2]
-	t1 := _items[_idx+3]
-	t2 := _items[_idx+4]
-	t3 := _items[_idx+5]
-		{ // do_test "conflict-1." + i
-			var _sqlite_opentemp_count = "0" // TCL namespace variable
-			_ = _sqlite_opentemp_count // suppress unused warning
-			var r0 string
-			var r1 string
-			_ = r1 // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
-				if _res.Error != nil { _catchErr = _res.Error }
-				if _catchErr != nil {
-					r0 = "1"
-					r1 = _catchErr.Error()
-				} else {
-					r0 = "0"
-					r1 = ""
-				}
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil { _catchErr = _res.Error }
-			}
-			if tclBool(r0) {
-				var r1 = ""
+		i := _items[_idx+0]
+		cmd := _items[_idx+1]
+		t0 := _items[_idx+2]
+		t1 := _items[_idx+3]
+		t2 := _items[_idx+4]
+		t3 := _items[_idx+5]
+		_ = _idx
+			{ // do_test "conflict-1." + i
+				var _sqlite_opentemp_count = "0" // TCL namespace variable
+				_ = _sqlite_opentemp_count // suppress unused warning
+				var r0 string
+				var r1 string
 				_ = r1 // suppress unused warning
-			} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
-			}
-			var r2 = "execsql {SELECT x FROM t2}"
-			_ = r2 // suppress unused warning
-			var r3 = _sqlite_opentemp_count
-			_ = r3 // suppress unused warning
-			_list := tclList([]string{r0, r1, r2, r3})
-			_ = _list
-		}
-	}
-	}
-	{ // do_test "conflict-2.0"
-		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
-		}
-	}
-	// foreach {i cmd t0 t1 t2} "\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"
-	_items := []string{"\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"}
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	i := _items[_idx+0]
-	cmd := _items[_idx+1]
-	t0 := _items[_idx+2]
-	t1 := _items[_idx+3]
-	t2 := _items[_idx+4]
-		{ // do_test "conflict-2." + i
-			var r0 string
-			var r1 string
-			_ = r1 // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
-				if _res.Error != nil { _catchErr = _res.Error }
-				if _catchErr != nil {
-					r0 = "1"
-					r1 = _catchErr.Error()
-				} else {
-					r0 = "0"
-					r1 = ""
+				{ // catch block
+					var _catchErr error
+					_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
+					if _res.Error != nil { _catchErr = _res.Error }
+					if _catchErr != nil {
+						r0 = "1"
+						r1 = _catchErr.Error()
+					} else {
+						r0 = "0"
+						r1 = ""
+					}
 				}
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil { _catchErr = _res.Error }
-			}
-			if tclBool(r0) {
-				var r1 = ""
-				_ = r1 // suppress unused warning
-			} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
-			}
-			var r2 = "execsql {SELECT x FROM t2}"
-			_ = r2 // suppress unused warning
-			_list := tclList([]string{r0, r1, r2})
-			_ = _list
-		}
-	}
-	}
-	{ // do_test "conflict-3.0"
-		r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
-		}
-	}
-	// foreach {i cmd t0 t1 t2} "\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"
-	_items := []string{"\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"}
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	i := _items[_idx+0]
-	cmd := _items[_idx+1]
-	t0 := _items[_idx+2]
-	t1 := _items[_idx+3]
-	t2 := _items[_idx+4]
-		{ // do_test "conflict-3." + i
-			var r0 string
-			var r1 string
-			_ = r1 // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
-				if _res.Error != nil { _catchErr = _res.Error }
-				if _catchErr != nil {
-					r0 = "1"
-					r1 = _catchErr.Error()
-				} else {
-					r0 = "0"
-					r1 = ""
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					_res = db.Exec("COMMIT")
+					if _res.Error != nil { _catchErr = _res.Error }
 				}
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil { _catchErr = _res.Error }
-			}
-			if tclBool(r0) {
-				var r1 = ""
-				_ = r1 // suppress unused warning
-			} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
-			}
-			var r2 = "execsql {SELECT x FROM t2}"
-			_ = r2 // suppress unused warning
-			_list := tclList([]string{r0, r1, r2})
-			_ = _list
-		}
-	}
-	}
-	{ // do_test "conflict-4.0"
-		r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
-		}
-	}
-	// foreach {i conf1 cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n"
-	_items := []string{"\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n"}
-	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-	i := _items[_idx+0]
-	conf1 := _items[_idx+1]
-	cmd := _items[_idx+2]
-	t0 := _items[_idx+3]
-	t1 := _items[_idx+4]
-	t2 := _items[_idx+5]
-		{ // do_test "conflict-4." + i
-			if conf1 != "" {
-				var conf1 = "ON CONFLICT " + conf1
-				_ = conf1 // suppress unused warning
-			}
-			var r0 string
-			var r1 string
-			_ = r1 // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c,UNIQUE(a,b) " + conf1 + ");\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
-				if _res.Error != nil { _catchErr = _res.Error }
-				if _catchErr != nil {
-					r0 = "1"
-					r1 = _catchErr.Error()
-				} else {
-					r0 = "0"
-					r1 = ""
+				if tclBool(r0) {
+					var r1 = ""
+					_ = r1 // suppress unused warning
+				} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
 				}
+				var r2 = "execsql {SELECT x FROM t2}"
+				_ = r2 // suppress unused warning
+				var r3 = _sqlite_opentemp_count
+				_ = r3 // suppress unused warning
+				_list := tclList([]string{r0, r1, r2, r3})
+				_ = _list
 			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil { _catchErr = _res.Error }
-			}
-			if tclBool(r0) {
-				var r1 = ""
-				_ = r1 // suppress unused warning
-			} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
-			}
-			var r2 = "execsql {SELECT x FROM t2}"
-			_ = r2 // suppress unused warning
-			_list := tclList([]string{r0, r1, r2})
-			_ = _list
 		}
-	}
-	}
-	{ // do_test "conflict-5.0"
-		r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
-		}
-	}
-	// foreach {i conf1 cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n"
-	_items := []string{"\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n"}
-	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-	i := _items[_idx+0]
-	conf1 := _items[_idx+1]
-	cmd := _items[_idx+2]
-	t0 := _items[_idx+3]
-	t1 := _items[_idx+4]
-	t2 := _items[_idx+5]
-		if tclBool(t0) {
-			var t1 = "NOT NULL constraint failed: t1.c"
-			_ = t1 // suppress unused warning
-		}
-		{ // do_test "conflict-5." + i
-			if conf1 != "" {
-				var conf1 = "ON CONFLICT " + conf1
-				_ = conf1 // suppress unused warning
-			}
-			var r0 string
-			var r1 string
-			_ = r1 // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c NOT NULL " + conf1 + " DEFAULT 5);\n      DELETE FROM t2;\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,NULL);")
-				if _res.Error != nil { _catchErr = _res.Error }
-				if _catchErr != nil {
-					r0 = "1"
-					r1 = _catchErr.Error()
-				} else {
-					r0 = "0"
-					r1 = ""
-				}
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil { _catchErr = _res.Error }
-			}
-			if tclBool("!" + r0) {
-				var r1 = "execsql {SELECT c FROM t1}"
-				_ = r1 // suppress unused warning
-			}
-			var r2 = "execsql {SELECT x FROM t2}"
-			_ = r2 // suppress unused warning
-			_list := tclList([]string{r0, r1, r2})
-			_ = _list
-		}
-	}
-	}
-	{ // do_test "conflict-6.0"
-		_res = db.Exec("\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
-		}
-	}
-	// foreach {i conf1 cmd t0 t1 t2 t3 t4} "\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n"
-	_items := []string{"\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n"}
-	for _idx := 0; _idx+8 <= len(_items); _idx += 8 {
-	i := _items[_idx+0]
-	conf1 := _items[_idx+1]
-	cmd := _items[_idx+2]
-	t0 := _items[_idx+3]
-	t1 := _items[_idx+4]
-	t2 := _items[_idx+5]
-	t3 := _items[_idx+6]
-	t4 := _items[_idx+7]
-		if tclBool(t0) {
-			var t1 = "UNIQUE constraint failed: t1.a"
-			_ = t1 // suppress unused warning
-		}
-		if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + "==3") {
-			var t3 = "0"
-			_ = t3 // suppress unused warning
-		} else {
-			t3 := "$t3+$t4"
-		}
-		{ // do_test "conflict-6." + i
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-			if conf1 != "" {
-				var conf1 = "ON CONFLICT " + conf1
-				_ = conf1 // suppress unused warning
-			}
-			r = db.Query("pragma temp_store=file")
+		{ // do_test "conflict-2.0"
+			r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store=file")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 			}
-			var _sqlite_opentemp_count = "0" // TCL namespace variable
-			_ = _sqlite_opentemp_count // suppress unused warning
-			var r0 string
-			var r1 string
-			_ = r1 // suppress unused warning
-			{ // catch block
-				var _catchErr error
-				_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) " + conf1 + ");\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN;\n      " + cmd + " t3 SET x=1;\n      " + cmd + " t1 SET b=b*2;\n      " + cmd + " t1 SET a=c+5;")
-				if _res.Error != nil { _catchErr = _res.Error }
-				if _catchErr != nil {
-					r0 = "1"
-					r1 = _catchErr.Error()
-				} else {
-					r0 = "0"
-					r1 = ""
+		}
+		// foreach {i cmd t0 t1 t2} "\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"
+		_items := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
+		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
+			i := _items[_idx+0]
+			cmd := _items[_idx+1]
+			t0 := _items[_idx+2]
+			t1 := _items[_idx+3]
+			t2 := _items[_idx+4]
+			_ = _idx
+				{ // do_test "conflict-2." + i
+					var r0 string
+					var r1 string
+					_ = r1 // suppress unused warning
+					{ // catch block
+						var _catchErr error
+						_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
+						if _res.Error != nil { _catchErr = _res.Error }
+						if _catchErr != nil {
+							r0 = "1"
+							r1 = _catchErr.Error()
+						} else {
+							r0 = "0"
+							r1 = ""
+						}
+					}
+					{
+						var _catchErr error
+						_ = _catchErr // suppress unused warning
+						_res = db.Exec("COMMIT")
+						if _res.Error != nil { _catchErr = _res.Error }
+					}
+					if tclBool(r0) {
+						var r1 = ""
+						_ = r1 // suppress unused warning
+					} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
+					}
+					var r2 = "execsql {SELECT x FROM t2}"
+					_ = r2 // suppress unused warning
+					_list := tclList([]string{r0, r1, r2})
+					_ = _list
 				}
 			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil { _catchErr = _res.Error }
-			}
-			if tclBool("!" + r0) {
-				var r1 = "execsql {SELECT a FROM t1 ORDER BY b}"
-				_ = r1 // suppress unused warning
-			}
-			var r2 = "execsql {SELECT x FROM t3}"
-			_ = r2 // suppress unused warning
-			_list := tclList([]string{r0, r1, r2, _sqlite_opentemp_count})
-			_ = _list
-		}
-	}
-	}
-	{ // do_test "conflict-7.1"
-		_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a unique, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a unique, b);\n  ")
-		}
-		var i = "1"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
-			_res = db.Exec("INSERT into t1 values(" + i + "," + "$i+1" + ");")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT into t1 values(" + i + "," + "$i+1" + ");")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			{ // do_test "conflict-3.0"
+				r = db.Query("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    CREATE TABLE t1(a, b, c INTEGER, PRIMARY KEY(c), UNIQUE(a,b));\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
 				}
 			}
-		}
-		r = db.Query("\n    SELECT count(*), min(a), max(b) FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*), min(a), max(b) FROM t1;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.2"
-		_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.2.1"
-	}
-	{ // do_test "conflict-7.3"
-		r = db.Query("\n    SELECT b FROM t1 WHERE a=1000;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1000;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.4"
-		r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.5"
-		_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.5.1"
-	}
-	{ // do_test "conflict-7.6"
-		r = db.Query("\n    SELECT b FROM t1 WHERE a=1001;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1001;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.7"
-		r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
-		}
-	}
-	{ // do_test "conflict-7.7.1"
-	}
-	{ // do_test "conflict-8.1"
-		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);\n  ")
-		}
-		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 VALUES(2,3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(2,3);\n  ")
-		}
-	}
-	{ // do_test "conflict-8.1.1"
-	}
-	{ // do_test "conflict-8.2"
-		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 VALUES(2,4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(2,4);\n  ")
-		}
-	}
-	{ // do_test "conflict-8.2.1"
-	}
-	{ // do_test "conflict-8.3"
-		_res = db.Exec("\n    INSERT OR REPLACE INTO t1 VALUES(2,4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR REPLACE INTO t1 VALUES(2,4);\n  ")
-		}
-	}
-	{ // do_test "conflict-8.3.1"
-	}
-	{ // do_test "conflict-8.4"
-		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 SELECT * FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "conflict-8.4.1"
-	}
-	{ // do_test "conflict-8.5"
-		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;\n  ")
-		}
-	}
-	{ // do_test "conflict-8.5.1"
-	}
-	{ // do_test "conflict-8.6"
-		_res = db.Exec("\n    INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;\n  ")
-		}
-	}
-	{ // do_test "conflict-8.6.1"
-	}
-	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	{ // do_test "conflict-9.1"
-		r = db.Query("\n    PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER UNIQUE ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    );\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER UNIQUE ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    );\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "conflict-9.2"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(1,1,1,1,1);\n    INSERT INTO t2 VALUES(2,2,2,2,2);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.3"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(1,3,3,3,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.4"
-		_res = db.Exec("\n    UPDATE t2 SET a=a+1 WHERE a=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.5"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.6"
-		_res = db.Exec("\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.7"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.8"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-9.9"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.10"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-9.11"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.12"
-		_res = db.Exec("\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.13"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.14"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-9.15"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.16"
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-9.17"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.18"
-		_res = db.Exec("\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.19"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
-	{ // do_test "conflict-9.20"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil { _catchErr = _res.Error }
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-9.21"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
-	{ // do_test "conflict-9.22"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil { _catchErr = _res.Error }
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-9.23"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.24"
-		_res = db.Exec("\n    UPDATE t2 SET c=c-1 WHERE c=2;\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.25"
-		_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "conflict-9.26"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			_res = db.Exec("COMMIT")
-			if _res.Error != nil { _catchErr = _res.Error }
-		}
-		r = db.Query("SELECT * FROM t3")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
-		}
-	}
-	{ // do_test "conflict-10.1"
-		_res = db.Exec("\n    DELETE FROM t1;\n    BEGIN;\n    INSERT OR ROLLBACK INTO t1 VALUES(1,2);\n    INSERT OR ROLLBACK INTO t1 VALUES(1,3);\n    COMMIT;\n  ")
-		_ = _res // catchsql
-		r = db.Query("SELECT * FROM t1")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
-		}
-	}
-	{ // do_test "conflict-10.2"
-		_res = db.Exec("\n    CREATE TABLE t4(x);\n    CREATE UNIQUE INDEX t4x ON t4(x);\n    BEGIN;\n    INSERT OR ROLLBACK INTO t4 VALUES(1);\n    INSERT OR ROLLBACK INTO t4 VALUES(1);\n    COMMIT;\n  ")
-		_ = _res // catchsql
-		r = db.Query("SELECT * FROM t4")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t4")
-		}
-	}
-	{ // do_test "conflict-11.1"
-		_res = db.Exec("\n    -- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a UNIQUE, b, c);\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    -- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a UNIQUE, b, c);\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;\n  ")
-		}
-		r = db.Query("\n    PRAGMA cache_size = 10;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n  ")
-		}
-		_res = db.Exec("\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
-		}
-		_res = db.Exec("\n    INSERT INTO abc SELECT 10, 20, 30 FROM def;\n  ")
-		_ = _res // catchsql
-		r = db.Query("\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
-		}
-	}
-	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	{ // do_test "conflict-11.3"
-		_res = db.Exec("\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
-		}
-		_res = db.Exec("\n    INSERT INTO abc SELECT 10, 20, 30 FROM def;\n  ")
-		_ = _res // catchsql
-		r = db.Query("\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
-		}
-	}
-	{ // do_test "conflict-11.5"
-		_res = db.Exec("\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
-		}
-		_res = db.Exec("\n    INSERT INTO abc SELECT 10, 20, 30 FROM def;\n  ")
-		_ = _res // catchsql
-		r = db.Query("\n    COMMIT;\n    SELECT * FROM abc;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM abc;\n  ")
-		}
-	}
-	_res = db.Exec("PRAGMA integrity_check")
-	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	{ // do_test "conflict-12.1"
-		r = db.Query("\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b text);\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b text);\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5\n  ")
-		}
-	}
-	{ // do_test "conflict-12.2"
-		r = db.Query("\n    UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
-		}
-	}
-	{ // do_test "conflict-12.3"
-		_res = db.Exec("\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
-	{ // do_test "conflict-12.4"
-		r = db.Query("\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
-		}
-	}
-	{ // do_test "conflict-12.5"
-		_res = db.Exec("\n    CREATE TABLE t5b(x);\n    INSERT INTO t5b(rowid, x) VALUES(1,10),(2,11);\n    UPDATE t5b SET rowid=rowid+1 WHERE x=10;\n  ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.5b SQLITE_CONSTRAINT_ROWID")
-	{ // do_test "conflict-13.1"
-		_res = db.Exec("\n    CREATE TABLE t13(a CHECK(a!=2));\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t13(a CHECK(a!=2));\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);\n  ")
-		}
-		_res = db.Exec("\n    REPLACE INTO t13 VALUES(2);\n  ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-13.1b SQLITE_CONSTRAINT_CHECK")
-	{ // do_test "conflict-13.2"
-		r = db.Query("\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
-		}
-	}
-	{ // "conflict-14.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x NOT NULL DEFAULT NULL);\n  REPLACE INTO t1 DEFAULT VALUES;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.x", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x NOT NULL DEFAULT NULL);\n  REPLACE INTO t1 DEFAULT VALUES;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "conflict-15.10"
-		r = db.Query("\n  CREATE TABLE t1(\n    x PRIMARY KEY,\n    UNIQUE(x,x),\n    UNIQUE(x,x) ON CONFLICT REPLACE\n  );\n  INSERT INTO t1(x) VALUES(1);\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(\n    x PRIMARY KEY,\n    UNIQUE(x,x),\n    UNIQUE(x,x) ON CONFLICT REPLACE\n  );\n  INSERT INTO t1(x) VALUES(1);\n  SELECT * FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "conflict-15.20"
-		_res = db.Exec("\n  INSERT INTO t1(x) VALUES(1);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.x") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.x", _res.Error, "\n  INSERT INTO t1(x) VALUES(1);\n")
-		}
-	}
-	{ // "conflict-15.30"
-		r = db.Query("\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "conflict-16.1"
-		_res = db.Exec("\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"ON\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"ON\\\": syntax error", _res.Error, "\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
-		}
-	}
-	{ // "conflict-16.2"
-		_res = db.Exec("\n  -- ON CONFLICT is allowed on table CHECK constraints\n  CREATE TABLE t1(a INT, CHECK( a!=5 ) ON CONFLICT ignore);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- ON CONFLICT is allowed on table CHECK constraints\n  CREATE TABLE t1(a INT, CHECK( a!=5 ) ON CONFLICT ignore);\n")
-		}
-	}
-	{ // "conflict-16.3"
-		_res = db.Exec("\n  -- The ON CONFLICT clause is in-op\n  INSERT INTO t1(a) VALUES(4),(5),(6);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a!=5") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a!=5", _res.Error, "\n  -- The ON CONFLICT clause is in-op\n  INSERT INTO t1(a) VALUES(4),(5),(6);\n")
-		}
-	}
-	{ // "conflict-16.4"
-		r = db.Query("\n  SELECT a FROM t1 ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a FROM t1 ORDER BY a;\n")
-		}
-	}
-	{ // "conflict-16.5"
-		r = db.Query("\n  INSERT OR IGNORE INTO t1(a) VALUES(4),(5),(6);\n  SELECT a FROM t1 ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT OR IGNORE INTO t1(a) VALUES(4),(5),(6);\n  SELECT a FROM t1 ORDER BY a;\n")
-			return
-		}
-		got := flatten(r)
-		want := "4 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			// foreach {i cmd t0 t1 t2} "\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"
+			_items := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
+			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
+				i := _items[_idx+0]
+				cmd := _items[_idx+1]
+				t0 := _items[_idx+2]
+				t1 := _items[_idx+3]
+				t2 := _items[_idx+4]
+				_ = _idx
+					{ // do_test "conflict-3." + i
+						var r0 string
+						var r1 string
+						_ = r1 // suppress unused warning
+						{ // catch block
+							var _catchErr error
+							_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
+							if _res.Error != nil { _catchErr = _res.Error }
+							if _catchErr != nil {
+								r0 = "1"
+								r1 = _catchErr.Error()
+							} else {
+								r0 = "0"
+								r1 = ""
+							}
+						}
+						{
+							var _catchErr error
+							_ = _catchErr // suppress unused warning
+							_res = db.Exec("COMMIT")
+							if _res.Error != nil { _catchErr = _res.Error }
+						}
+						if tclBool(r0) {
+							var r1 = ""
+							_ = r1 // suppress unused warning
+						} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
+						}
+						var r2 = "execsql {SELECT x FROM t2}"
+						_ = r2 // suppress unused warning
+						_list := tclList([]string{r0, r1, r2})
+						_ = _list
+					}
+				}
+				{ // do_test "conflict-4.0"
+					r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
+					}
+				}
+				// foreach {i conf1 cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n"
+				_items := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n")
+				for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
+					i := _items[_idx+0]
+					conf1 := _items[_idx+1]
+					cmd := _items[_idx+2]
+					t0 := _items[_idx+3]
+					t1 := _items[_idx+4]
+					t2 := _items[_idx+5]
+					_ = _idx
+						{ // do_test "conflict-4." + i
+							if conf1 != "" {
+								var conf1 = "ON CONFLICT " + conf1
+								_ = conf1 // suppress unused warning
+							}
+							var r0 string
+							var r1 string
+							_ = r1 // suppress unused warning
+							{ // catch block
+								var _catchErr error
+								_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c,UNIQUE(a,b) " + conf1 + ");\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
+								if _res.Error != nil { _catchErr = _res.Error }
+								if _catchErr != nil {
+									r0 = "1"
+									r1 = _catchErr.Error()
+								} else {
+									r0 = "0"
+									r1 = ""
+								}
+							}
+							{
+								var _catchErr error
+								_ = _catchErr // suppress unused warning
+								_res = db.Exec("COMMIT")
+								if _res.Error != nil { _catchErr = _res.Error }
+							}
+							if tclBool(r0) {
+								var r1 = ""
+								_ = r1 // suppress unused warning
+							} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
+							}
+							var r2 = "execsql {SELECT x FROM t2}"
+							_ = r2 // suppress unused warning
+							_list := tclList([]string{r0, r1, r2})
+							_ = _list
+						}
+					}
+					{ // do_test "conflict-5.0"
+						r = db.Query("\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(x);\n    SELECT x FROM t2;\n  ")
+						}
+					}
+					// foreach {i conf1 cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n"
+					_items := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n")
+					for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
+						i := _items[_idx+0]
+						conf1 := _items[_idx+1]
+						cmd := _items[_idx+2]
+						t0 := _items[_idx+3]
+						t1 := _items[_idx+4]
+						t2 := _items[_idx+5]
+						_ = _idx
+							if tclBool(t0) {
+								var t1 = "NOT NULL constraint failed: t1.c"
+								_ = t1 // suppress unused warning
+							}
+							{ // do_test "conflict-5." + i
+								if conf1 != "" {
+									var conf1 = "ON CONFLICT " + conf1
+									_ = conf1 // suppress unused warning
+								}
+								var r0 string
+								var r1 string
+								_ = r1 // suppress unused warning
+								{ // catch block
+									var _catchErr error
+									_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c NOT NULL " + conf1 + " DEFAULT 5);\n      DELETE FROM t2;\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,NULL);")
+									if _res.Error != nil { _catchErr = _res.Error }
+									if _catchErr != nil {
+										r0 = "1"
+										r1 = _catchErr.Error()
+									} else {
+										r0 = "0"
+										r1 = ""
+									}
+								}
+								{
+									var _catchErr error
+									_ = _catchErr // suppress unused warning
+									_res = db.Exec("COMMIT")
+									if _res.Error != nil { _catchErr = _res.Error }
+								}
+								if tclBool("!" + r0) {
+									var r1 = "execsql {SELECT c FROM t1}"
+									_ = r1 // suppress unused warning
+								}
+								var r2 = "execsql {SELECT x FROM t2}"
+								_ = r2 // suppress unused warning
+								_list := tclList([]string{r0, r1, r2})
+								_ = _list
+							}
+						}
+						{ // do_test "conflict-6.0"
+							_res = db.Exec("\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t2;\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,2,1);\n    INSERT INTO t2 VALUES(2,3,2);\n    INSERT INTO t2 VALUES(3,4,1);\n    INSERT INTO t2 VALUES(4,5,4);\n    SELECT c FROM t2 ORDER BY b;\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n  ")
+							}
+						}
+						// foreach {i conf1 cmd t0 t1 t2 t3 t4} "\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n"
+						_items := tclSplitList("\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n")
+						for _idx := 0; _idx+8 <= len(_items); _idx += 8 {
+							i := _items[_idx+0]
+							conf1 := _items[_idx+1]
+							cmd := _items[_idx+2]
+							t0 := _items[_idx+3]
+							t1 := _items[_idx+4]
+							t2 := _items[_idx+5]
+							t3 := _items[_idx+6]
+							t4 := _items[_idx+7]
+							_ = _idx
+								if tclBool(t0) {
+									var t1 = "UNIQUE constraint failed: t1.a"
+									_ = t1 // suppress unused warning
+								}
+								if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + "==3") {
+									var t3 = "0"
+									_ = t3 // suppress unused warning
+								} else {
+									t3 := "$t3+$t4"
+								}
+								{ // do_test "conflict-6." + i
+									db, err := frigolite.Open("test.db")
+									defer db.Close()
+									if err != nil { t.Fatal(err) }
+									if conf1 != "" {
+										var conf1 = "ON CONFLICT " + conf1
+										_ = conf1 // suppress unused warning
+									}
+									r = db.Query("pragma temp_store=file")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store=file")
+									}
+									var _sqlite_opentemp_count = "0" // TCL namespace variable
+									_ = _sqlite_opentemp_count // suppress unused warning
+									var r0 string
+									var r1 string
+									_ = r1 // suppress unused warning
+									{ // catch block
+										var _catchErr error
+										_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, UNIQUE(a) " + conf1 + ");\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN;\n      " + cmd + " t3 SET x=1;\n      " + cmd + " t1 SET b=b*2;\n      " + cmd + " t1 SET a=c+5;")
+										if _res.Error != nil { _catchErr = _res.Error }
+										if _catchErr != nil {
+											r0 = "1"
+											r1 = _catchErr.Error()
+										} else {
+											r0 = "0"
+											r1 = ""
+										}
+									}
+									{
+										var _catchErr error
+										_ = _catchErr // suppress unused warning
+										_res = db.Exec("COMMIT")
+										if _res.Error != nil { _catchErr = _res.Error }
+									}
+									if tclBool("!" + r0) {
+										var r1 = "execsql {SELECT a FROM t1 ORDER BY b}"
+										_ = r1 // suppress unused warning
+									}
+									var r2 = "execsql {SELECT x FROM t3}"
+									_ = r2 // suppress unused warning
+									_list := tclList([]string{r0, r1, r2, _sqlite_opentemp_count})
+									_ = _list
+								}
+							}
+							{ // do_test "conflict-7.1"
+								_res = db.Exec("\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a unique, b);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a unique, b);\n  ")
+								}
+								var i = "1"
+								_ = i // suppress unused warning
+								for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
+									_res = db.Exec("INSERT into t1 values(" + i + "," + "$i+1" + ");")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT into t1 values(" + i + "," + "$i+1" + ");")
+									}
+									// incr i 1
+									{
+										_n, _err := strconv.Atoi(i)
+										if _err == nil {
+											i = strconv.Itoa(_n + 1)
+										}
+									}
+								}
+								r = db.Query("\n    SELECT count(*), min(a), max(b) FROM t1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*), min(a), max(b) FROM t1;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.2"
+								_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR IGNORE t1 SET a=1000;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.2.1"
+							}
+							{ // do_test "conflict-7.3"
+								r = db.Query("\n    SELECT b FROM t1 WHERE a=1000;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1000;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.4"
+								r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.5"
+								_res = db.Exec("\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA count_changes=on;\n    UPDATE OR REPLACE t1 SET a=1001;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.5.1"
+							}
+							{ // do_test "conflict-7.6"
+								r = db.Query("\n    SELECT b FROM t1 WHERE a=1001;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a=1001;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.7"
+								r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1;\n  ")
+								}
+							}
+							{ // do_test "conflict-7.7.1"
+							}
+							{ // do_test "conflict-8.1"
+								_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2);\n  ")
+								}
+								_res = db.Exec("\n    INSERT OR IGNORE INTO t1 VALUES(2,3);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(2,3);\n  ")
+								}
+							}
+							{ // do_test "conflict-8.1.1"
+							}
+							{ // do_test "conflict-8.2"
+								_res = db.Exec("\n    INSERT OR IGNORE INTO t1 VALUES(2,4);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 VALUES(2,4);\n  ")
+								}
+							}
+							{ // do_test "conflict-8.2.1"
+							}
+							{ // do_test "conflict-8.3"
+								_res = db.Exec("\n    INSERT OR REPLACE INTO t1 VALUES(2,4);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR REPLACE INTO t1 VALUES(2,4);\n  ")
+								}
+							}
+							{ // do_test "conflict-8.3.1"
+							}
+							{ // do_test "conflict-8.4"
+								_res = db.Exec("\n    INSERT OR IGNORE INTO t1 SELECT * FROM t1;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 SELECT * FROM t1;\n  ")
+								}
+							}
+							{ // do_test "conflict-8.4.1"
+							}
+							{ // do_test "conflict-8.5"
+								_res = db.Exec("\n    INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 SELECT a+2,b+2 FROM t1;\n  ")
+								}
+							}
+							{ // do_test "conflict-8.5.1"
+							}
+							{ // do_test "conflict-8.6"
+								_res = db.Exec("\n    INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO t1 SELECT a+3,b+3 FROM t1;\n  ")
+								}
+							}
+							{ // do_test "conflict-8.6.1"
+							}
+							_res = db.Exec("PRAGMA integrity_check")
+							if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+							{ // do_test "conflict-9.1"
+								r = db.Query("\n    PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER UNIQUE ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    );\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA count_changes=0;\n    CREATE TABLE t2(\n      a INTEGER UNIQUE ON CONFLICT IGNORE,\n      b INTEGER UNIQUE ON CONFLICT FAIL,\n      c INTEGER UNIQUE ON CONFLICT REPLACE,\n      d INTEGER UNIQUE ON CONFLICT ABORT,\n      e INTEGER UNIQUE ON CONFLICT ROLLBACK\n    );\n    CREATE TABLE t3(x);\n    INSERT INTO t3 VALUES(1);\n    SELECT * FROM t3;\n  ")
+								}
+							}
+							{ // do_test "conflict-9.2"
+								_res = db.Exec("\n    INSERT INTO t2 VALUES(1,1,1,1,1);\n    INSERT INTO t2 VALUES(2,2,2,2,2);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.3"
+								_res = db.Exec("\n    INSERT INTO t2 VALUES(1,3,3,3,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.4"
+								_res = db.Exec("\n    UPDATE t2 SET a=a+1 WHERE a=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.5"
+								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.6"
+								_res = db.Exec("\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.7"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,1,3,3,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.8"
+								_res = db.Exec("COMMIT")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-9.9"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET b=b+1 WHERE b=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.10"
+								_res = db.Exec("COMMIT")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-9.11"
+								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.12"
+								_res = db.Exec("\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.13"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,1,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.14"
+								_res = db.Exec("COMMIT")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-9.15"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET d=d+1 WHERE d=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.16"
+								_res = db.Exec("COMMIT")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-9.17"
+								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.18"
+								_res = db.Exec("\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.19"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							{ // do_test "conflict-9.20"
+								{
+									var _catchErr error
+									_ = _catchErr // suppress unused warning
+									_res = db.Exec("COMMIT")
+									if _res.Error != nil { _catchErr = _res.Error }
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-9.21"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							{ // do_test "conflict-9.22"
+								{
+									var _catchErr error
+									_ = _catchErr // suppress unused warning
+									_res = db.Exec("COMMIT")
+									if _res.Error != nil { _catchErr = _res.Error }
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-9.23"
+								_res = db.Exec("\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.24"
+								_res = db.Exec("\n    UPDATE t2 SET c=c-1 WHERE c=2;\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.25"
+								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,1,3,3);\n    SELECT * FROM t2;\n  ")
+								_ = _res // catchsql
+							}
+							{ // do_test "conflict-9.26"
+								{
+									var _catchErr error
+									_ = _catchErr // suppress unused warning
+									_res = db.Exec("COMMIT")
+									if _res.Error != nil { _catchErr = _res.Error }
+								}
+								r = db.Query("SELECT * FROM t3")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+								}
+							}
+							{ // do_test "conflict-10.1"
+								_res = db.Exec("\n    DELETE FROM t1;\n    BEGIN;\n    INSERT OR ROLLBACK INTO t1 VALUES(1,2);\n    INSERT OR ROLLBACK INTO t1 VALUES(1,3);\n    COMMIT;\n  ")
+								_ = _res // catchsql
+								r = db.Query("SELECT * FROM t1")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
+								}
+							}
+							{ // do_test "conflict-10.2"
+								_res = db.Exec("\n    CREATE TABLE t4(x);\n    CREATE UNIQUE INDEX t4x ON t4(x);\n    BEGIN;\n    INSERT OR ROLLBACK INTO t4 VALUES(1);\n    INSERT OR ROLLBACK INTO t4 VALUES(1);\n    COMMIT;\n  ")
+								_ = _res // catchsql
+								r = db.Query("SELECT * FROM t4")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t4")
+								}
+							}
+							{ // do_test "conflict-11.1"
+								_res = db.Exec("\n    -- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a UNIQUE, b, c);\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    -- Create a database object (pages 2, 3 of the file)\n    BEGIN;\n      CREATE TABLE abc(a UNIQUE, b, c);\n      INSERT INTO abc VALUES(1, 2, 3);\n      INSERT INTO abc VALUES(4, 5, 6);\n      INSERT INTO abc VALUES(7, 8, 9);\n    COMMIT;\n  ")
+								}
+								r = db.Query("\n    PRAGMA cache_size = 10;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 10;\n  ")
+								}
+								_res = db.Exec("\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
+								}
+								_res = db.Exec("\n    INSERT INTO abc SELECT 10, 20, 30 FROM def;\n  ")
+								_ = _res // catchsql
+								r = db.Query("\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
+								}
+							}
+							_res = db.Exec("PRAGMA integrity_check")
+							if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+							{ // do_test "conflict-11.3"
+								_res = db.Exec("\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      UPDATE abc SET a=a+1;\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
+								}
+								_res = db.Exec("\n    INSERT INTO abc SELECT 10, 20, 30 FROM def;\n  ")
+								_ = _res // catchsql
+								r = db.Query("\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    SELECT * FROM abc;\n  ")
+								}
+							}
+							{ // do_test "conflict-11.5"
+								_res = db.Exec("\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      -- Make sure the pager is in EXCLUSIVE state.\n      CREATE TABLE def(d, e, f);\n      INSERT INTO def VALUES\n          ('xxxxxxxxxxxxxxx', 'yyyyyyyyyyyyyyyy', 'zzzzzzzzzzzzzzzz');\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      INSERT INTO def SELECT * FROM def;\n      DELETE FROM abc WHERE a = 4;\n  ")
+								}
+								_res = db.Exec("\n    INSERT INTO abc SELECT 10, 20, 30 FROM def;\n  ")
+								_ = _res // catchsql
+								r = db.Query("\n    COMMIT;\n    SELECT * FROM abc;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM abc;\n  ")
+								}
+							}
+							_res = db.Exec("PRAGMA integrity_check")
+							if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+							{ // do_test "conflict-12.1"
+								r = db.Query("\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b text);\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t5(a INTEGER PRIMARY KEY, b text);\n    INSERT INTO t5 VALUES(1,'one');\n    INSERT INTO t5 VALUES(2,'two');\n    SELECT * FROM t5\n  ")
+								}
+							}
+							{ // do_test "conflict-12.2"
+								r = db.Query("\n    UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR IGNORE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
+								}
+							}
+							{ // do_test "conflict-12.3"
+								_res = db.Exec("\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
+							{ // do_test "conflict-12.4"
+								r = db.Query("\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
+								}
+							}
+							{ // do_test "conflict-12.5"
+								_res = db.Exec("\n    CREATE TABLE t5b(x);\n    INSERT INTO t5b(rowid, x) VALUES(1,10),(2,11);\n    UPDATE t5b SET rowid=rowid+1 WHERE x=10;\n  ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.5b SQLITE_CONSTRAINT_ROWID")
+							{ // do_test "conflict-13.1"
+								_res = db.Exec("\n    CREATE TABLE t13(a CHECK(a!=2));\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t13(a CHECK(a!=2));\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);\n  ")
+								}
+								_res = db.Exec("\n    REPLACE INTO t13 VALUES(2);\n  ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-13.1b SQLITE_CONSTRAINT_CHECK")
+							{ // do_test "conflict-13.2"
+								r = db.Query("\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
+								}
+							}
+							{ // "conflict-14.1"
+								_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x NOT NULL DEFAULT NULL);\n  REPLACE INTO t1 DEFAULT VALUES;\n")
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "NOT NULL constraint failed: t1.x") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t1.x", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x NOT NULL DEFAULT NULL);\n  REPLACE INTO t1 DEFAULT VALUES;\n")
+								}
+							}
+							db.Close()
+							db, err = frigolite.Open("")
+							if err != nil { t.Fatal(err) }
+							{ // "conflict-15.10"
+								r = db.Query("\n  CREATE TABLE t1(\n    x PRIMARY KEY,\n    UNIQUE(x,x),\n    UNIQUE(x,x) ON CONFLICT REPLACE\n  );\n  INSERT INTO t1(x) VALUES(1);\n  SELECT * FROM t1;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(\n    x PRIMARY KEY,\n    UNIQUE(x,x),\n    UNIQUE(x,x) ON CONFLICT REPLACE\n  );\n  INSERT INTO t1(x) VALUES(1);\n  SELECT * FROM t1;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "conflict-15.20"
+								_res = db.Exec("\n  INSERT INTO t1(x) VALUES(1);\n")
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.x") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.x", _res.Error, "\n  INSERT INTO t1(x) VALUES(1);\n")
+								}
+							}
+							{ // "conflict-15.30"
+								r = db.Query("\n  SELECT * FROM t1;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
+									return
+								}
+								got := flatten(r)
+								want := "1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							db.Close()
+							db, err = frigolite.Open("")
+							if err != nil { t.Fatal(err) }
+							{ // "conflict-16.1"
+								_res = db.Exec("\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"ON\\\": syntax error") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"ON\\\": syntax error", _res.Error, "\n  -- ON CONFLICT clauses are not allowed on column CHECK constraints\n  CREATE TABLE t1(a INT CHECK( a!=5 ) ON CONFLICT ignore);\n")
+								}
+							}
+							{ // "conflict-16.2"
+								_res = db.Exec("\n  -- ON CONFLICT is allowed on table CHECK constraints\n  CREATE TABLE t1(a INT, CHECK( a!=5 ) ON CONFLICT ignore);\n")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  -- ON CONFLICT is allowed on table CHECK constraints\n  CREATE TABLE t1(a INT, CHECK( a!=5 ) ON CONFLICT ignore);\n")
+								}
+							}
+							{ // "conflict-16.3"
+								_res = db.Exec("\n  -- The ON CONFLICT clause is in-op\n  INSERT INTO t1(a) VALUES(4),(5),(6);\n")
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: a!=5") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: a!=5", _res.Error, "\n  -- The ON CONFLICT clause is in-op\n  INSERT INTO t1(a) VALUES(4),(5),(6);\n")
+								}
+							}
+							{ // "conflict-16.4"
+								r = db.Query("\n  SELECT a FROM t1 ORDER BY a;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a FROM t1 ORDER BY a;\n")
+								}
+							}
+							{ // "conflict-16.5"
+								r = db.Query("\n  INSERT OR IGNORE INTO t1(a) VALUES(4),(5),(6);\n  SELECT a FROM t1 ORDER BY a;\n")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT OR IGNORE INTO t1(a) VALUES(4),(5),(6);\n  SELECT a FROM t1 ORDER BY a;\n")
+									return
+								}
+								got := flatten(r)
+								want := "4 6"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
 }

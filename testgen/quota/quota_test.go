@@ -172,7 +172,7 @@ func Test_quota(t *testing.T) {
 		db2a, err := frigolite.Open("test2.db")
 		defer db2a.Close()
 		if err != nil { t.Fatal(err) }
-		for _, db := range []string{"db1a db2a"} {
+		for _, db := range tclSplitList("db1a db2a") {
 			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = delete;\n      PRAGMA auto_vacuum = off;\n      CREATE TABLE t1(a, b);\n    ")
@@ -255,7 +255,7 @@ func Test_quota(t *testing.T) {
 		_ = _quota // TCL namespace variable (query)
 	}
 	{ // do_test "quota-3.2.X"
-		for _, db := range []string{"db1a db2a db2b db1b"} {
+		for _, db := range tclSplitList("db1a db2a db2b db1b") {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -373,7 +373,7 @@ func Test_quota(t *testing.T) {
 		var quotagroup = "*/quota-test-A?.db"
 		_ = quotagroup // suppress unused warning
 	}
-	for _, file := range []string{"glob -nocomplain quota-test-A*"} {
+	for _, file := range tclSplitList("glob -nocomplain quota-test-A*") {
 		os.Remove(file)
 	}
 	{ // do_test "quota-4.4.1"
@@ -432,7 +432,7 @@ func Test_quota(t *testing.T) {
 		var quotagroup = "*/quota-test-B*"
 		_ = quotagroup // suppress unused warning
 	}
-	for _, file := range []string{"glob -nocomplain quota-test-B*"} {
+	for _, file := range tclSplitList("glob -nocomplain quota-test-B*") {
 		os.Remove(file)
 	}
 	{ // do_test "quota-4.5.1"

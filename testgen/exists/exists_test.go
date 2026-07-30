@@ -17,7 +17,7 @@ func Test_exists(t *testing.T) {
 	var r *frigolite.Result
 
 	// set testdir: test directory (not used in Go test context)
-	for _, jm := range []string{"rollback wal"} {
+	for _, jm := range tclSplitList("rollback wal") {
 		if tclBool("!" + "wal_is_capable" + " && " + jm + "==\"wal\"") {
 		}
 		var testprefix = "exists-" + jm

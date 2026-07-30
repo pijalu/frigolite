@@ -26,7 +26,7 @@ func Test_mmap2(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
 	// proc definition (not transpiled)
-	for _, syscall := range []string{"mmap mremap"} {
+	for _, syscall := range tclSplitList("mmap mremap") {
 		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
 		if false {
 		}

@@ -559,32 +559,695 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n"
-	_items := []string{"\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	schema := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "11." + tn + ".1"
-			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+		tn := _items[_idx+0]
+		schema := _items[_idx+1]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // do_test "11." + tn + ".1"
+				_res = db.Exec(schema)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+				}
+			}
+			{ // do_test "11." + tn + ".2"
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
+						var a = "ABC"
+						_ = a // suppress unused warning
+					} else {
+						var a = "DEF"
+						_ = a // suppress unused warning
+					}
+					b := "$i % 5"
+					_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES($a, $b) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				_res = db.Exec("ANALYZE")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+				}
+			}
+			{ // "11." + tn + ".3"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t4 WHERE a = 'def' AND b = 3;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t4 WHERE a = 'def' AND b = 3;\n  ")
+				}
+			}
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
+				var sql = "SELECT * FROM t4 WHERE a = 'abc' AND b = 3;"
+				_ = sql // suppress unused warning
+				{ // "11." + tn + ".4"
+					r = db.Query("EXPLAIN QUERY PLAN " + sql)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+					}
+				}
+			} else {
+				var sql = "SELECT * FROM t4 WHERE a = 'abc' COLLATE nocase AND b = 3;"
+				_ = sql // suppress unused warning
+				{ // "11." + tn + ".5"
+					r = db.Query("EXPLAIN QUERY PLAN " + sql)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+					}
+				}
+				var sql = "SELECT * FROM t4 WHERE a COLLATE nocase = 'abc' AND b = 3;"
+				_ = sql // suppress unused warning
+				{ // "11." + tn + ".6"
+					r = db.Query("EXPLAIN QUERY PLAN " + sql)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+					}
+				}
 			}
 		}
-		{ // do_test "11." + tn + ".2"
+		// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n"
+		_items := tclSplitList("\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			schema := _items[_idx+1]
+			_ = _idx
+				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				{ // do_test "12." + tn + ".1"
+					_res = db.Exec(schema)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+					}
+				}
+				{ // do_test "12." + tn + ".2"
+					var i = "0"
+					_ = i // suppress unused warning
+					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+						if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
+							var a = "ABC"
+							_ = a // suppress unused warning
+						} else {
+							var a = "DEF"
+							_ = a // suppress unused warning
+						}
+						b := "$i % 5"
+						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
+						}
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					_res = db.Exec("ANALYZE")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+					}
+				}
+				{ // "12." + tn + ".3"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'def' AND b = 3;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'def' AND b = 3;\n  ")
+					}
+				}
+				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
+					var sql = "SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' AND b = 3;"
+					_ = sql // suppress unused warning
+					{ // "12." + tn + ".4"
+						r = db.Query("EXPLAIN QUERY PLAN " + sql)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+						}
+					}
+				} else {
+					var sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' COLLATE nocase AND b = 3\n    "
+					_ = sql // suppress unused warning
+					{ // "12." + tn + ".5"
+						r = db.Query("EXPLAIN QUERY PLAN " + sql)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+						}
+					}
+					var sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a COLLATE nocase = 'abc' AND b = 3\n    "
+					_ = sql // suppress unused warning
+					{ // "12." + tn + ".6"
+						r = db.Query("EXPLAIN QUERY PLAN " + sql)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+						}
+					}
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // do_test "13.1"
+				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+					if tclBool(i + " %2") {
+						var a = "abc"
+						_ = a // suppress unused warning
+					} else {
+						var a = "def"
+						_ = a // suppress unused warning
+					}
+					_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				_res = db.Exec("ANALYZE")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+				}
+			}
+			{ // "13.2.1"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<15 AND b<12\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<15 AND b<12\n")
+				}
+			}
+			{ // "13.2.2"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'15' AND b<12\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'15' AND b<12\n")
+				}
+			}
+			{ // "13.3.1"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<100 AND b<12\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<100 AND b<12\n")
+				}
+			}
+			{ // "13.3.2"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // do_test "14.1"
+				_res = db.Exec(" CREATE TABLE t1(a, b INTEGER, c) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b INTEGER, c) ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+					c := "$i % 3"
+					_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', $i, $c) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				_res = db.Exec("\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;\n  ")
+				}
+			}
+			{ // "13.2.1"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='ott' AND b<10 AND c=1\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='ott' AND b<10 AND c=1\n")
+				}
+			}
+			{ // "13.2.2"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='ott' AND b<'10' AND c=1\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='ott' AND b<'10' AND c=1\n")
+				}
+			}
+			// proc definition (not transpiled)
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // do_test "14.1.1"
+				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+					}
+					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
+						_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+						}
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.1.2")
+			{ // do_test "14.2.1"
+				_res = db.Exec(" DELETE FROM t1 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1600 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.2.2")
+			{ // do_test "14.3.1"
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.3.2")
+			{ // do_test "14.4.1"
+				_res = db.Exec("DELETE FROM t1")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
+				}
+				var i = "1"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
+					b := "$i % 10"
+					if func() bool { b_n, _b_e := strconv.Atoi(b); if _b_e != nil { return false }; return b_n == 0 || b_n==2 }() {
+						var b = "1"
+						_ = b // suppress unused warning
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.4.2")
+			{ // "14.4.3"
+				r = db.Query("\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
+					return
+				}
+				got := flatten(r)
+				want := "\n  {0 1} {1 1} {2 1} {3 1} \n  {4 1} {5 1} {6 1} {7 1} \n  {8 1} {9 1} {10 1} {11 1} \n  {12 1} {13 1} {14 1} {15 1}\n"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // "15.1"
+				_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "15.2"
+				r = db.Query(" SELECT * FROM x1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15.3"
+				_res = db.Exec("\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "15.4"
+				r = db.Query(" SELECT * FROM x1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15.5"
+				_res = db.Exec("\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "15.6"
+				r = db.Query(" SELECT * FROM x1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15.7"
+				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "15.8"
+				r = db.Query(" SELECT * FROM x1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15.9"
+				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "15.10"
+				r = db.Query(" SELECT * FROM x1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "15.11"
+				_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "15.12"
+				r = db.Query(" SELECT * FROM x1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 6"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			var one = "x 1000"
+			_ = one // suppress unused warning
+			var two = "x 2000"
+			_ = two // suppress unused warning
+			{ // do_test "16.1"
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
+				}
+				var nByte = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
+				_ = nByte // suppress unused warning
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
+				}
+				var nByte2 = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
+				_ = nByte2 // suppress unused warning
+				t.Log("-nonewline")
+				// expr $nByte2 > $nByte+900 && $nByte2 < $nByte+1100 → "$nByte2 > $nByte+900 && $nByte2 < $nByte+1100"
+			}
+			{ // do_test "17.1"
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
+					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 8 }() {
+						var b = "0"
+						_ = b // suppress unused warning
+					} else {
+						var b = i
+						_ = b // suppress unused warning
+					}
+					_res = db.Exec(" INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				_res = db.Exec("ANALYZE main.t1")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE main.t1")
+				}
+			}
+			{ // "17.1.2"
+				_res = db.Exec("\n  ANALYZE temp.t1;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.t1") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.t1", _res.Error, "\n  ANALYZE temp.t1;\n")
+				}
+			}
+			{ // "17.2"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
+				}
+			}
+			{ // "17.3"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
+				}
+			}
+			{ // "17.4"
+				_res = db.Exec("\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
+				}
+			}
+			{ // "17.5"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
+				}
+			}
+			{ // "17.6"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
+				}
+			}
+			{ // do_test "18.1"
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
+					_res = db.Exec("\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				_res = db.Exec("ANALYZE")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
+				}
+				r = db.Query(" SELECT count(*) FROM sqlite_stat4 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM sqlite_stat4 ")
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			// proc definition (not transpiled)
+			{ // do_test "20.1"
+				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
+					_res = db.Exec("\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+			}
+			{ // "20.2"
+				_res = db.Exec(" ANALYZE ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ANALYZE ")
+				}
+			}
 			var i = "0"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-					var a = "ABC"
-					_ = a // suppress unused warning
-				} else {
-					var a = "DEF"
-					_ = a // suppress unused warning
-				}
-				b := "$i % 5"
-				_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES($a, $b) ")
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
+				var val = i + " " + i + " " + i + " " + i
+				_ = val // suppress unused warning
+				{ // "20.3." + i
+					r = db.Query("\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
+						return
+					}
+					got := flatten(r)
+					want := "1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
 				}
 				// incr i 1
 				{
@@ -594,865 +1257,202 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			_res = db.Exec("ANALYZE")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-			}
-		}
-		{ // "11." + tn + ".3"
-			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t4 WHERE a = 'def' AND b = 3;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t4 WHERE a = 'def' AND b = 3;\n  ")
-			}
-		}
-		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-			var sql = "SELECT * FROM t4 WHERE a = 'abc' AND b = 3;"
-			_ = sql // suppress unused warning
-			{ // "11." + tn + ".4"
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
-				}
-			}
-		} else {
-			var sql = "SELECT * FROM t4 WHERE a = 'abc' COLLATE nocase AND b = 3;"
-			_ = sql // suppress unused warning
-			{ // "11." + tn + ".5"
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
-				}
-			}
-			var sql = "SELECT * FROM t4 WHERE a COLLATE nocase = 'abc' AND b = 3;"
-			_ = sql // suppress unused warning
-			{ // "11." + tn + ".6"
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
-				}
-			}
-		}
-	}
-	}
-	// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n"
-	_items := []string{"\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	schema := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "12." + tn + ".1"
-			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
-			}
-		}
-		{ // do_test "12." + tn + ".2"
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-					var a = "ABC"
-					_ = a // suppress unused warning
-				} else {
-					var a = "DEF"
-					_ = a // suppress unused warning
-				}
-				b := "$i % 5"
-				_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "21.0"
+				_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
 				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
+			}
+			{ // do_test "21.1"
+				var i = "1"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+					_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
 					}
 				}
-			}
-			_res = db.Exec("ANALYZE")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-			}
-		}
-		{ // "12." + tn + ".3"
-			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'def' AND b = 3;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n    SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'def' AND b = 3;\n  ")
-			}
-		}
-		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-			var sql = "SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' AND b = 3;"
-			_ = sql // suppress unused warning
-			{ // "12." + tn + ".4"
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
-				}
-			}
-		} else {
-			var sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' COLLATE nocase AND b = 3\n    "
-			_ = sql // suppress unused warning
-			{ // "12." + tn + ".5"
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
-				}
-			}
-			var sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a COLLATE nocase = 'abc' AND b = 3\n    "
-			_ = sql // suppress unused warning
-			{ // "12." + tn + ".6"
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
-				}
-			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "13.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			if tclBool(i + " %2") {
-				var a = "abc"
-				_ = a // suppress unused warning
-			} else {
-				var a = "def"
-				_ = a // suppress unused warning
-			}
-			_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
-			}
-		}
-		_res = db.Exec("ANALYZE")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-		}
-	}
-	{ // "13.2.1"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<15 AND b<12\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<15 AND b<12\n")
-		}
-	}
-	{ // "13.2.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'15' AND b<12\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'15' AND b<12\n")
-		}
-	}
-	{ // "13.3.1"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<100 AND b<12\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<100 AND b<12\n")
-		}
-	}
-	{ // "13.3.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "14.1"
-		_res = db.Exec(" CREATE TABLE t1(a, b INTEGER, c) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b INTEGER, c) ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			c := "$i % 3"
-			_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', $i, $c) ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
-			}
-		}
-		_res = db.Exec("\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE INDEX i2 ON t1(c);\n    ANALYZE;\n  ")
-		}
-	}
-	{ // "13.2.1"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='ott' AND b<10 AND c=1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='ott' AND b<10 AND c=1\n")
-		}
-	}
-	{ // "13.2.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='ott' AND b<'10' AND c=1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='ott' AND b<'10' AND c=1\n")
-		}
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "14.1.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i,$i,$i,$i) ")
-			}
-			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-				_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+				_res = db.Exec("ANALYZE")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i,$i,$i,$i) ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
 				}
 			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			{ // "21.2"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE a='one' AND rowid < 10\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE a='one' AND rowid < 10\n")
 				}
 			}
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.1.2")
-	{ // do_test "14.2.1"
-		_res = db.Exec(" DELETE FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1600 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			{ // "21.3"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE a='one' AND rowid < 50\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE a='one' AND rowid < 50\n")
 				}
 			}
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.2.2")
-	{ // do_test "14.3.1"
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "22.0"
+				r = db.Query("\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
 				}
 			}
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.3.2")
-	{ // do_test "14.4.1"
-		_res = db.Exec("DELETE FROM t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
-		}
-		var i = "1"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-			b := "$i % 10"
-			if func() bool { b_n, _b_e := strconv.Atoi(b); if _b_e != nil { return false }; return b_n == 0 || b_n==2 }() {
-				var b = "1"
-				_ = b // suppress unused warning
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			{ // "22.1"
+				_res = db.Exec("\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
 				}
 			}
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.4.2")
-	{ // "14.4.3"
-		r = db.Query("\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {0 1} {1 1} {2 1} {3 1} \n  {4 1} {5 1} {6 1} {7 1} \n  {8 1} {9 1} {10 1} {11 1} \n  {12 1} {13 1} {14 1} {15 1}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // "15.1"
-		_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "15.2"
-		r = db.Query(" SELECT * FROM x1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "15.3"
-		_res = db.Exec("\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "15.4"
-		r = db.Query(" SELECT * FROM x1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "15.5"
-		_res = db.Exec("\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "15.6"
-		r = db.Query(" SELECT * FROM x1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "15.7"
-		_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "15.8"
-		r = db.Query(" SELECT * FROM x1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "15.9"
-		_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "15.10"
-		r = db.Query(" SELECT * FROM x1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "15.11"
-		_res = db.Exec("\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "15.12"
-		r = db.Query(" SELECT * FROM x1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var one = "x 1000"
-	_ = one // suppress unused warning
-	var two = "x 2000"
-	_ = two // suppress unused warning
-	{ // do_test "16.1"
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
-		}
-		var nByte = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
-		_ = nByte // suppress unused warning
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
-		}
-		var nByte2 = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
-		_ = nByte2 // suppress unused warning
-		t.Log("-nonewline")
-		// expr $nByte2 > $nByte+900 && $nByte2 < $nByte+1100 → "$nByte2 > $nByte+900 && $nByte2 < $nByte+1100"
-	}
-	{ // do_test "17.1"
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 8 }() {
-				var b = "0"
-				_ = b // suppress unused warning
-			} else {
-				var b = i
-				_ = b // suppress unused warning
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			// foreach {tn where res} "\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"
+			_items := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				where := _items[_idx+1]
+				res := _items[_idx+2]
+				_ = _idx
+					{ // "22.2." + tn
+						r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SELECT * FROM t3 WHERE " + where)
+						}
+					}
 				}
-			}
-		}
-		_res = db.Exec("ANALYZE main.t1")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE main.t1")
-		}
-	}
-	{ // "17.1.2"
-		_res = db.Exec("\n  ANALYZE temp.t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: temp.t1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: temp.t1", _res.Error, "\n  ANALYZE temp.t1;\n")
-		}
-	}
-	{ // "17.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
-		}
-	}
-	{ // "17.3"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
-		}
-	}
-	{ // "17.4"
-		_res = db.Exec("\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i2 ON t1(c, d);\n  ANALYZE main.i2;\n")
-		}
-	}
-	{ // "17.5"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=10 AND c=10;\n")
-		}
-	}
-	{ // "17.6"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE d IS NOT NULL AND a=0 AND b=0 AND c=10;\n")
-		}
-	}
-	{ // do_test "18.1"
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
-			_res = db.Exec("\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+				// proc definition (not transpiled)
+				{ // "23.0"
+					_res = db.Exec("\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
+					}
 				}
-			}
-		}
-		_res = db.Exec("ANALYZE")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-		}
-		r = db.Query(" SELECT count(*) FROM sqlite_stat4 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM sqlite_stat4 ")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	// proc definition (not transpiled)
-	{ // do_test "20.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
-			_res = db.Exec("\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+				{ // "23.1"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'AEA') AND f<300\n  -- Formerly used index i41.  But i41 is not a covering index whereas\n  -- the PRIMARY KEY is a covering index, and so as of 2017-10-15, the\n  -- PRIMARY KEY is preferred.\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'AEA') AND f<300\n  -- Formerly used index i41.  But i41 is not a covering index whereas\n  -- the PRIMARY KEY is a covering index, and so as of 2017-10-15, the\n  -- PRIMARY KEY is preferred.\n")
+					}
 				}
-			}
-		}
-	}
-	{ // "20.2"
-		_res = db.Exec(" ANALYZE ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ANALYZE ")
-		}
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
-		var val = i + " " + i + " " + i + " " + i
-		_ = val // suppress unused warning
-		{ // "20.3." + i
-			r = db.Query("\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
-				return
-			}
-			got := flatten(r)
-			want := "1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "21.0"
-		_res = db.Exec("\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b);\n  CREATE INDEX i2 ON t2(a);\n")
-		}
-	}
-	{ // do_test "21.1"
-		var i = "1"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+				{ // "23.2"
+					r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'JJJ') AND f<300\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'JJJ') AND f<300\n")
+					}
 				}
-			}
-		}
-		_res = db.Exec("ANALYZE")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
-		}
-	}
-	{ // "21.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE a='one' AND rowid < 10\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE a='one' AND rowid < 10\n")
-		}
-	}
-	{ // "21.3"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t2 WHERE a='one' AND rowid < 50\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t2 WHERE a='one' AND rowid < 50\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "22.0"
-		r = db.Query("\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  SELECT * FROM t3;\n")
-		}
-	}
-	{ // "22.1"
-		_res = db.Exec("\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH r(x) AS (\n    SELECT 1\n    UNION ALL\n    SELECT x+1 FROM r WHERE x<=100\n  )\n\n  INSERT INTO t3 SELECT\n    CASE WHEN (x>45 AND x<96) THEN 'B' ELSE 'A' END,  /* Column \"a\" */\n    x,                                                /* Column \"b\" */\n    CASE WHEN (x<51) THEN 'one' ELSE 'two' END,       /* Column \"c\" */\n    x                                                 /* Column \"d\" */\n  FROM r;\n\n  CREATE INDEX i3 ON t3(c);\n  CREATE INDEX i4 ON t3(d);\n  ANALYZE;\n")
-		}
-	}
-	// foreach {tn where res} "\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"
-	_items := []string{"\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	where := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "22.2." + tn
-			r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SELECT * FROM t3 WHERE " + where)
-			}
-		}
-	}
-	}
-	// proc definition (not transpiled)
-	{ // "23.0"
-		_res = db.Exec("\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(\n    a COLLATE nocase, b, c, \n    d, e, f, \n    PRIMARY KEY(c, b, a)\n  ) WITHOUT ROWID;\n  CREATE INDEX i41 ON t4(e);\n  CREATE INDEX i42 ON t4(f);\n\n  WITH data(a, b, c, d, e, f) AS (\n    SELECT int_to_char(0), 'xyz', 'zyx', '*', 0, 0\n    UNION ALL\n    SELECT \n      int_to_char(f+1), b, c, d, (e+1) % 2, f+1\n    FROM data WHERE f<1024\n  )\n  INSERT INTO t4 SELECT a, b, c, d, e, f FROM data;\n  ANALYZE;\n")
-		}
-	}
-	{ // "23.1"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'AEA') AND f<300\n  -- Formerly used index i41.  But i41 is not a covering index whereas\n  -- the PRIMARY KEY is a covering index, and so as of 2017-10-15, the\n  -- PRIMARY KEY is preferred.\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'AEA') AND f<300\n  -- Formerly used index i41.  But i41 is not a covering index whereas\n  -- the PRIMARY KEY is a covering index, and so as of 2017-10-15, the\n  -- PRIMARY KEY is preferred.\n")
-		}
-	}
-	{ // "23.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'JJJ') AND f<300\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t4 WHERE \n    (e=1 AND b='xyz' AND c='zyx' AND a<'JJJ') AND f<300\n")
-		}
-	}
-	{ // "24.0"
-		_res = db.Exec("\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
-		}
-	}
-	// foreach {tn where eqp} "\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"
-	_items := []string{"\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	where := _items[_idx+1]
-	eqp := _items[_idx+2]
-		{ // "24." + tn
-			r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SeLeCt * FROM t5 WHERE " + where)
-			}
-		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // do_test "26.1.1"
-		_res = db.Exec(" \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-			_res = db.Exec(" INSERT INTO t1(x, y) VALUES($i, $i) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(x, y) VALUES($i, $i) ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+				{ // "24.0"
+					_res = db.Exec("\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(c, d, b, e, a, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  WITH data(a, b, c, d, e) AS (\n    SELECT 'z', 'y', 0, 0, 0\n    UNION ALL\n    SELECT \n      a, CASE WHEN b='y' THEN 'n' ELSE 'y' END, c+1, e/250, e+1 \n    FROM data\n    WHERE e<1000\n  )\n  INSERT INTO t5(a, b, c, d, e) SELECT * FROM data;\n  CREATE INDEX t5d ON t5(d);\n  CREATE INDEX t5e ON t5(e);\n  ANALYZE;\n")
+					}
 				}
-			}
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-			_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
-			}
-		}
-		_res = db.Exec("\n      UPDATE t1 SET z = rowid / 20;\n      ANALYZE;\n    ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET z = rowid / 20;\n      ANALYZE;\n    ")
-		}
-	}
-	{ // "26.1.2"
-		r = db.Query("\n  SELECT count(*) FROM t1 WHERE x = 10000 AND y < 50;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 WHERE x = 10000 AND y < 50;\n")
-			return
-		}
-		got := flatten(r)
-		want := "49"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "26.1.3"
-		r = db.Query("\n  SELECT count(*) FROM t1 WHERE z = 444;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 WHERE z = 444;\n")
-			return
-		}
-		got := flatten(r)
-		want := "20"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "26.1.4"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE x = 10000 AND y < 50 AND z = 444;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE x = 10000 AND y < 50 AND z = 444;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "26.2.1"
-		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
-		}
-	}
-	{ // "26.2.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE x='B' AND y>25 AND z=?;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE x='B' AND y>25 AND z=?;\n")
-		}
-	}
+				// foreach {tn where eqp} "\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"
+				_items := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					where := _items[_idx+1]
+					eqp := _items[_idx+2]
+					_ = _idx
+						{ // "24." + tn
+							r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SeLeCt * FROM t5 WHERE " + where)
+							}
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // do_test "26.1.1"
+						_res = db.Exec(" \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
+						}
+						var i = "0"
+						_ = i // suppress unused warning
+						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
+							_res = db.Exec(" INSERT INTO t1(x, y) VALUES($i, $i) ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(x, y) VALUES($i, $i) ")
+							}
+							// incr i 1
+							{
+								_n, _err := strconv.Atoi(i)
+								if _err == nil {
+									i = strconv.Itoa(_n + 1)
+								}
+							}
+						}
+						var i = "0"
+						_ = i // suppress unused warning
+						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")
+							}
+							// incr i 1
+							{
+								_n, _err := strconv.Atoi(i)
+								if _err == nil {
+									i = strconv.Itoa(_n + 1)
+								}
+							}
+						}
+						_res = db.Exec("\n      UPDATE t1 SET z = rowid / 20;\n      ANALYZE;\n    ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET z = rowid / 20;\n      ANALYZE;\n    ")
+						}
+					}
+					{ // "26.1.2"
+						r = db.Query("\n  SELECT count(*) FROM t1 WHERE x = 10000 AND y < 50;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 WHERE x = 10000 AND y < 50;\n")
+							return
+						}
+						got := flatten(r)
+						want := "49"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "26.1.3"
+						r = db.Query("\n  SELECT count(*) FROM t1 WHERE z = 444;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1 WHERE z = 444;\n")
+							return
+						}
+						got := flatten(r)
+						want := "20"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "26.1.4"
+						r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE x = 10000 AND y < 50 AND z = 444;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE x = 10000 AND y < 50 AND z = 444;\n")
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // "26.2.1"
+						_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t1(x, y, z);\n    CREATE INDEX i1 ON t1(x, y);\n    CREATE INDEX i2 ON t1(z);\n  \n    WITH \n    cnt(y) AS (SELECT 0 UNION ALL SELECT y+1 FROM cnt WHERE y<99),\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, y FROM letters, cnt;\n  \n    WITH\n    letters(x) AS (\n      SELECT 'A' UNION SELECT 'B' UNION SELECT 'C' UNION SELECT 'D'\n    )\n    INSERT INTO t1(x, y) SELECT x, 70 FROM letters;\n  \n    WITH\n    cnt(i) AS (SELECT 0 UNION ALL SELECT i+1 FROM cnt WHERE i<9999)\n    INSERT INTO t1(x, y) SELECT i, i FROM cnt;\n  \n    UPDATE t1 SET z = (rowid / 95);\n    ANALYZE;\n  COMMIT;\n")
+						}
+					}
+					{ // "26.2.2"
+						r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE x='B' AND y>25 AND z=?;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE x='B' AND y>25 AND z=?;\n")
+						}
+					}
 }

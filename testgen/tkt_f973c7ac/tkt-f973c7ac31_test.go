@@ -24,74 +24,74 @@ func Test_tkt_f973c7ac31(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"\n"
-	_items := []string{"\n  1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"\n"}
+	_items := tclSplitList("\n  1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".1"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC \n    ")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(sql)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".1"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 DESC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".2"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".3"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".4"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".5"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".6"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".7"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".8"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".9"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC \n    ")
+				}
+			}
+			{ // do_test "tkt-f973c7ac3-1." + tn + ".10"
+				r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC \n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC \n    ")
+				}
 			}
 		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".2"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 DESC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".3"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 DESC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".4"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 DESC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".5"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 DESC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".6"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='2' ORDER BY c2 ASC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".7"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<=5 ORDER BY c2 ASC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".8"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>0 AND c2<='5' ORDER BY c2 ASC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".9"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<=5 ORDER BY c2 ASC \n    ")
-			}
-		}
-		{ // do_test "tkt-f973c7ac3-1." + tn + ".10"
-			r = db.Query(" \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC \n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t WHERE c1 = 5 AND c2>'0' AND c2<='5' ORDER BY c2 ASC \n    ")
-			}
-		}
-	}
-	}
 }

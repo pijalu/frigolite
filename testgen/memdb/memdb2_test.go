@@ -23,61 +23,61 @@ func Test_memdb2(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// foreach {tn fname} "\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n"
-	_items := []string{"\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n"}
+	_items := tclSplitList("\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	fname := _items[_idx+1]
-		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
-		}
-		db, err := frigolite.Open(fname)
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open(fname)
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		{ // "1." + tn + ".1"
-			_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+		tn := _items[_idx+0]
+		fname := _items[_idx+1]
+		_ = _idx
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 			}
-		}
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			db, err := frigolite.Open(fname)
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			db2, err := frigolite.Open(fname)
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			{ // "1." + tn + ".1"
+				_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+				}
 			}
-		}
-		{ // "1." + tn + ".3"
-			_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+			{ // "-db"
+				_res = db.Exec("db2")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+				}
 			}
-		}
-		{ // "1." + tn + ".4"
-			_res = db.Exec("\n    COMMIT\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    COMMIT\n  ")
+			{ // "1." + tn + ".3"
+				_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n  ")
+				}
 			}
-		}
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			{ // "1." + tn + ".4"
+				_res = db.Exec("\n    COMMIT\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n    COMMIT\n  ")
+				}
 			}
-		}
-		{ // "1." + tn + ".6"
-			_res = db.Exec("\n    COMMIT\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
+			{ // "-db"
+				_res = db.Exec("db2")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+				}
 			}
-		}
-		{ // "-db"
-			_res = db.Exec("db2")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+			{ // "1." + tn + ".6"
+				_res = db.Exec("\n    COMMIT\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT\n  ")
+				}
 			}
+			{ // "-db"
+				_res = db.Exec("db2")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
+				}
+			}
+			db2.Close()
 		}
-		db2.Close()
-	}
-	}
 }

@@ -918,107 +918,107 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// foreach {id dual} "\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n"
-	_items := []string{"\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n"}
+	_items := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	id := _items[_idx+0]
-	dual := _items[_idx+1]
+		id := _items[_idx+0]
+		dual := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec(dual)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, dual)
+			}
+			{ // "25." + id
+				r = db.Query("\n    WITH cte1 AS (\n      SELECT TRUE, (\n        WITH cte2 AS (SELECT avg(DISTINCT TRUE) FROM dual)\n        SELECT 2571 FROM cte2\n      ) AS subquery1\n      FROM dual\n      GROUP BY 1\n    )\n    SELECT (SELECT 1324 FROM cte1) FROM cte1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH cte1 AS (\n      SELECT TRUE, (\n        WITH cte2 AS (SELECT avg(DISTINCT TRUE) FROM dual)\n        SELECT 2571 FROM cte2\n      ) AS subquery1\n      FROM dual\n      GROUP BY 1\n    )\n    SELECT (SELECT 1324 FROM cte1) FROM cte1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1324"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "26.0"
+			_res = db.Exec("\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"O\\\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"O\\\": syntax error", _res.Error, "\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
+			}
+		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec(dual)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, dual)
-		}
-		{ // "25." + id
-			r = db.Query("\n    WITH cte1 AS (\n      SELECT TRUE, (\n        WITH cte2 AS (SELECT avg(DISTINCT TRUE) FROM dual)\n        SELECT 2571 FROM cte2\n      ) AS subquery1\n      FROM dual\n      GROUP BY 1\n    )\n    SELECT (SELECT 1324 FROM cte1) FROM cte1;\n  ")
+		{ // "26.1"
+			r = db.Query("\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH cte1 AS (\n      SELECT TRUE, (\n        WITH cte2 AS (SELECT avg(DISTINCT TRUE) FROM dual)\n        SELECT 2571 FROM cte2\n      ) AS subquery1\n      FROM dual\n      GROUP BY 1\n    )\n    SELECT (SELECT 1324 FROM cte1) FROM cte1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
 				return
 			}
 			got := flatten(r)
-			want := "1324"
+			want := "a 1 a 2 a 3 b 1 b 2 b 3"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "26.0"
-		_res = db.Exec("\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"O\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"O\\\": syntax error", _res.Error, "\n  WITH i(x) AS ( \n    VALUES(1) UNION ALL SELECT x+1 FRO, a.b,O. * ,I¬i O, a.b,O. * ORDER BY 1\n  )\n  SELECT x,O. * O FROM i ¬I,I? 10;\n")
+		{ // "26.2"
+			r = db.Query("\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 a 2 a 3 b 1 b 2 b 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "26.1"
-		r = db.Query("\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t (label VARCHAR(10), step INTEGER);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('a', 1);\n  INSERT INTO T VALUES('b', 1);\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT DISTINCT * FROM t \n    UNION ALL \n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-			return
+		{ // "26.3"
+			r = db.Query("\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 a 2 a 3 b 1 b 2 b 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a 1 a 2 a 3 b 1 b 2 b 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "27.1"
+			r = db.Query("\n  CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 cte1 main1 | 2 cte2 main2 |"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "26.2"
-		r = db.Query("\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t \n    UNION\n      SELECT label, step + 1 FROM cte WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-			return
+		{ // "28.1"
+			r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1),(4),(999);\n  SELECT (\n    WITH RECURSIVE t2(y) AS (\n      SELECT 4\n      UNION\n      SELECT NULL\n      UNION\n      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1\n    )\n    SELECT 1 FROM t2 WHERE y=x\n  ) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1),(4),(999);\n  SELECT (\n    WITH RECURSIVE t2(y) AS (\n      SELECT 4\n      UNION\n      SELECT NULL\n      UNION\n      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1\n    )\n    SELECT 1 FROM t2 WHERE y=x\n  ) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL 1 NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a 1 a 2 a 3 b 1 b 2 b 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "29.1"
+			_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'cte1' is not a function") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'cte1' is not a function", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
+			}
 		}
-	}
-	{ // "26.3"
-		r = db.Query("\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tworow(x);\n  INSERT INTO tworow(x) VALUES(1),(2);\n  DELETE FROM t WHERE rowid=2;\n  WITH RECURSIVE cte(label, step) AS (\n      SELECT * FROM t\n    UNION ALL\n      SELECT DISTINCT label, step + 1 FROM cte, tworow WHERE step < 3\n  )\n  SELECT * FROM cte ORDER BY +label, +step;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a 1 a 2 a 3 b 1 b 2 b 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "27.1"
-		r = db.Query("\n  CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(k);\n  CREATE TABLE log(k, cte_map, main_map);\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'main1'), (2, 'main2');\n  \n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO log\n        WITH map(k,v) AS (VALUES(1,'cte1'),(2,'cte2'))\n        SELECT\n          new.k,\n          (SELECT v FROM map WHERE k=new.k),\n          (SELECT v FROM main.map WHERE k=new.k);\n  END;\n  \n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  SELECT k, cte_map, main_map, '|' FROM log ORDER BY k;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 cte1 main1 | 2 cte2 main2 |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "28.1"
-		r = db.Query("\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1),(4),(999);\n  SELECT (\n    WITH RECURSIVE t2(y) AS (\n      SELECT 4\n      UNION\n      SELECT NULL\n      UNION\n      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1\n    )\n    SELECT 1 FROM t2 WHERE y=x\n  ) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(1),(4),(999);\n  SELECT (\n    WITH RECURSIVE t2(y) AS (\n      SELECT 4\n      UNION\n      SELECT NULL\n      UNION\n      SELECT y+1 FROM t2 WHERE y=4 ORDER BY 1\n    )\n    SELECT 1 FROM t2 WHERE y=x\n  ) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL 1 NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "29.1"
-		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "'cte1' is not a function") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "'cte1' is not a function", _res.Error, "\n  DROP TABLE t1;\n  CREATE TABLE t1(a);\n  WITH RECURSIVE cte1(x,y,z) AS (\n      VALUES(1,2,3) UNION ALL SELECT x,4,5 FROM t1 RIGHT JOIN cte1(x)\n  )\n  SELECT * FROM cte1;\n")
-		}
-	}
 }

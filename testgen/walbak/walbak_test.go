@@ -189,153 +189,153 @@ func Test_walbak(t *testing.T) {
 	}
 	db2.Close()
 	// foreach {tn setup} "\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n"
-	_items := []string{"\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n"}
+	_items := tclSplitList("\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	setup := _items[_idx+1]
-		if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
-		}
-		for _, f := range []string{"glob -nocomplain test.db*"} {
-			os.Remove(f)
-		}
-		// eval $setup
-		{ // do_test "walbak-3." + tn + ".1"
-			r = db.Query("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;\n    ")
+		tn := _items[_idx+0]
+		setup := _items[_idx+1]
+		_ = _idx
+			if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
 			}
-		}
-		{ // do_test "walbak-3." + tn + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 10000")
-			t.Skipf("TODO: %s not implemented in frigolite", "B finish")
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			for _, f := range tclSplitList("glob -nocomplain test.db*") {
+				os.Remove(f)
 			}
-		}
-		{ // do_test "walbak-3." + tn + ".3"
-			r = db.Query("\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
+			// eval $setup
+			{ // do_test "walbak-3." + tn + ".1"
+				r = db.Query("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;\n    ")
+				}
 			}
-		}
-		{ // do_test "walbak-3." + tn + ".4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 10000")
-			t.Skipf("TODO: %s not implemented in frigolite", "B finish")
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			{ // do_test "walbak-3." + tn + ".2"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Skipf("TODO: %s not implemented in frigolite", "B step 10000")
+				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				r = db.Query(" SELECT * FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				}
 			}
-		}
-		{ // do_test "walbak-3." + tn + ".5"
-			r = db.Query(" PRAGMA journal_mode ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+			{ // do_test "walbak-3." + tn + ".3"
+				r = db.Query("\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(5, 6);\n      INSERT INTO t1 VALUES(7, 8);\n      SELECT * FROM t1;\n    ")
+				}
 			}
-		}
-		{ // do_test "walbak-3." + tn + ".6"
-			r = db.Query(" PRAGMA wal_checkpoint ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			{ // do_test "walbak-3." + tn + ".4"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
+				t.Skipf("TODO: %s not implemented in frigolite", "B step 10000")
+				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				r = db.Query(" SELECT * FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
-		}
-		if tclBool("file exists test.db2") {
-			{ // do_test "walbak-3." + tn + ".7"
+			{ // do_test "walbak-3." + tn + ".5"
 				r = db.Query(" PRAGMA journal_mode ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
 				}
 			}
-			{ // do_test "walbak-3." + tn + ".8"
+			{ // do_test "walbak-3." + tn + ".6"
 				r = db.Query(" PRAGMA wal_checkpoint ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 				}
 				t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 			}
-		}
-		db2.Close()
-	}
-	}
-	// foreach {tn src dest dest_final} "\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n"
-	_items := []string{"\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	src := _items[_idx+1]
-	dest := _items[_idx+2]
-	dest_final := _items[_idx+3]
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
+			if tclBool("file exists test.db2") {
+				{ // do_test "walbak-3." + tn + ".7"
+					r = db.Query(" PRAGMA journal_mode ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+				}
+				{ // do_test "walbak-3." + tn + ".8"
+					r = db.Query(" PRAGMA wal_checkpoint ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+				}
+			}
 			db2.Close()
 		}
-		os.Remove("test.db")
-		{ // do_test "walbak-4." + tn + ".1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-			_res = db.Exec("PRAGMA journal_mode = " + src)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode = " + src)
+		// foreach {tn src dest dest_final} "\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n"
+		_items := tclSplitList("\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n")
+		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+			tn := _items[_idx+0]
+			src := _items[_idx+1]
+			dest := _items[_idx+2]
+			dest_final := _items[_idx+3]
+			_ = _idx
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					db2.Close()
+				}
+				os.Remove("test.db")
+				{ // do_test "walbak-4." + tn + ".1"
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec("PRAGMA journal_mode = " + src)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode = " + src)
+					}
+					_res = db.Exec("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('I', 'II');\n      INSERT INTO t1 VALUES('III', 'IV');\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('I', 'II');\n      INSERT INTO t1 VALUES('III', 'IV');\n    ")
+					}
+					db2, err := frigolite.Open("test.db2")
+					defer db2.Close()
+					if err != nil { t.Fatal(err) }
+					db2.Exec("PRAGMA journal_mode = " + dest)
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+					db2.Exec("\n      CREATE TABLE t2(x, y);\n      INSERT INTO t2 VALUES('1', '2');\n      INSERT INTO t2 VALUES('3', '4');\n    ")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				}
+				{ // do_test "walbak-4." + tn + ".2"
+					r = db.Query(" PRAGMA journal_mode ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+				}
+				{ // do_test "walbak-4." + tn + ".3"
+					r = db.Query(" PRAGMA journal_mode ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+				}
+				{ // do_test "walbak-4." + tn + ".4"
+				}
+				{ // do_test "walbak-4." + tn + ".5"
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				{ // do_test "walbak-4." + tn + ".5"
+					r = db.Query(" PRAGMA journal_mode ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+				}
+				db2.Close()
+				{ // do_test "walbak-4." + tn + ".6"
+					// file exists "test.db2-wal"
+				}
+				db2, err := frigolite.Open("test.db2")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				{ // do_test "walbak-4." + tn + ".7"
+					r = db.Query(" PRAGMA journal_mode ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
+					}
+				}
 			}
-			_res = db.Exec("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('I', 'II');\n      INSERT INTO t1 VALUES('III', 'IV');\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('I', 'II');\n      INSERT INTO t1 VALUES('III', 'IV');\n    ")
-			}
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
-			if err != nil { t.Fatal(err) }
-			db2.Exec("PRAGMA journal_mode = " + dest)
-			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			db2.Exec("\n      CREATE TABLE t2(x, y);\n      INSERT INTO t2 VALUES('1', '2');\n      INSERT INTO t2 VALUES('3', '4');\n    ")
-			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		}
-		{ // do_test "walbak-4." + tn + ".2"
-			r = db.Query(" PRAGMA journal_mode ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
-			}
-		}
-		{ // do_test "walbak-4." + tn + ".3"
-			r = db.Query(" PRAGMA journal_mode ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
-			}
-		}
-		{ // do_test "walbak-4." + tn + ".4"
-		}
-		{ // do_test "walbak-4." + tn + ".5"
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-			}
-		}
-		{ // do_test "walbak-4." + tn + ".5"
-			r = db.Query(" PRAGMA journal_mode ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
-			}
-		}
-		db2.Close()
-		{ // do_test "walbak-4." + tn + ".6"
-			// file exists "test.db2-wal"
-		}
-		db2, err := frigolite.Open("test.db2")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		{ // do_test "walbak-4." + tn + ".7"
-			r = db.Query(" PRAGMA journal_mode ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode ")
-			}
-		}
-	}
-	}
 }

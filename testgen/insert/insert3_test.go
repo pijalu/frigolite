@@ -30,7 +30,7 @@ func Test_insert3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;\n  ")
 		}
 	}
-	for _, tab := range []string{"db eval {SELECT name FROM sqlite_master WHERE type = 'table'}"} {
+	for _, tab := range tclSplitList("db eval {SELECT name FROM sqlite_master WHERE type = 'table'}") {
 		_res = db.Exec("DROP TABLE " + tab)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + tab)

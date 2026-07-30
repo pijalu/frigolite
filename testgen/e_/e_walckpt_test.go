@@ -25,342 +25,342 @@ func Test_e_walckpt(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn script} "\n  1 {\n    proc checkpoint {db mode args} {\n      eval wal_checkpoint_v2 [list $db] [list $mode] $args\n    }\n  }\n\n  2 {\n    proc checkpoint {db mode args} {\n      set sql \"PRAGMA wal_checkpoint = $mode\"\n      if {[llength $args] && [lindex $args 0]!=\"\"} {\n        set sql \"PRAGMA [lindex $args 0].wal_checkpoint = $mode\"\n      }\n      set rc [catch { $db eval $sql } msg]\n      if {$rc} {\n        regsub {database} $msg {database:} msg\n        error \"[sqlite3_errcode $db] - $msg\"\n      }\n      set msg\n    }\n  }\n\n  3 {\n    proc checkpoint {db mode args} {\n      if {$mode == \"passive\"} {\n        set rc [eval sqlite3_wal_checkpoint [list $db] $args]\n        if {$rc != \"SQLITE_OK\"} {\n          error \"$rc - [sqlite3_errmsg $db]\"\n        }\n      } else {\n        eval wal_checkpoint_v2 [list $db] [list $mode] $args\n      }\n    }\n  }\n\n"
-	_items := []string{"\n  1 {\n    proc checkpoint {db mode args} {\n      eval wal_checkpoint_v2 [list $db] [list $mode] $args\n    }\n  }\n\n  2 {\n    proc checkpoint {db mode args} {\n      set sql \"PRAGMA wal_checkpoint = $mode\"\n      if {[llength $args] && [lindex $args 0]!=\"\"} {\n        set sql \"PRAGMA [lindex $args 0].wal_checkpoint = $mode\"\n      }\n      set rc [catch { $db eval $sql } msg]\n      if {$rc} {\n        regsub {database} $msg {database:} msg\n        error \"[sqlite3_errcode $db] - $msg\"\n      }\n      set msg\n    }\n  }\n\n  3 {\n    proc checkpoint {db mode args} {\n      if {$mode == \"passive\"} {\n        set rc [eval sqlite3_wal_checkpoint [list $db] $args]\n        if {$rc != \"SQLITE_OK\"} {\n          error \"$rc - [sqlite3_errmsg $db]\"\n        }\n      } else {\n        eval wal_checkpoint_v2 [list $db] [list $mode] $args\n      }\n    }\n  }\n\n"}
+	_items := tclSplitList("\n  1 {\n    proc checkpoint {db mode args} {\n      eval wal_checkpoint_v2 [list $db] [list $mode] $args\n    }\n  }\n\n  2 {\n    proc checkpoint {db mode args} {\n      set sql \"PRAGMA wal_checkpoint = $mode\"\n      if {[llength $args] && [lindex $args 0]!=\"\"} {\n        set sql \"PRAGMA [lindex $args 0].wal_checkpoint = $mode\"\n      }\n      set rc [catch { $db eval $sql } msg]\n      if {$rc} {\n        regsub {database} $msg {database:} msg\n        error \"[sqlite3_errcode $db] - $msg\"\n      }\n      set msg\n    }\n  }\n\n  3 {\n    proc checkpoint {db mode args} {\n      if {$mode == \"passive\"} {\n        set rc [eval sqlite3_wal_checkpoint [list $db] $args]\n        if {$rc != \"SQLITE_OK\"} {\n          error \"$rc - [sqlite3_errmsg $db]\"\n        }\n      } else {\n        eval wal_checkpoint_v2 [list $db] [list $mode] $args\n      }\n    }\n  }\n\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	script := _items[_idx+1]
-		// eval $script
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		os.Remove("test.db2")
-		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    /* Leave aux4 in rollback mode */\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    /* Leave aux4 in rollback mode */\n  ")
-		}
-		// foreach {tn2 zDb dblist} "\n    1 main  test.db\n    2 aux   test.db2\n    3 aux2  test.db3\n    4 \"\"    {test.db test.db2 test.db3}\n    5 -     {test.db test.db2 test.db3}\n    6 temp  {}\n  "
-		_items := []string{"\n    1 main  test.db\n    2 aux   test.db2\n    3 aux2  test.db3\n    4 \"\"    {test.db test.db2 test.db3}\n    5 -     {test.db test.db2 test.db3}\n    6 temp  {}\n  "}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn2 := _items[_idx+0]
-		zDb := _items[_idx+1]
-		dblist := _items[_idx+2]
-			{ // do_test tn + ".1." + tn2
-				_res = db.Exec("\n        INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);\n      ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);\n      ")
-				}
-				t.Skipf("TODO: %s not implemented in frigolite", "save_db_hashes")
-				if zDb == "-" {
-					t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive")
-				} else {
-					t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive $zDb")
-				}
-				t.Skipf("TODO: %s not implemented in frigolite", "compare_db_hashes")
-			}
-		}
-		}
-		{ // do_test tn + ".2.1"
-			_list := tclList([]string{"0", msg})
-			_ = _list
-		}
-		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 3 }() {
-			{ // do_test tn + ".2.2.a"
-				t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive aux3")
-			}
-		} else {
-			{ // do_test tn + ".2.2.b"
-				t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive aux3")
-			}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script filelock")
-		// proc definition (not transpiled)
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		{ // do_test tn + ".3.1"
-			_res = db.Exec(" INSERT INTO t1 VALUES('xyz') ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('xyz') ")
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive")
-			_ = _seen_checkpoint_lock // TCL namespace variable (query)
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-		db, err = frigolite.Open("test.db")
-		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		{ // do_test tn + ".3.2.1"
-			db2.Exec("\n      PRAGMA auto_vacuum = 0;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x, y);\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t1 VALUES(3,4);\n      INSERT INTO t1 VALUES(5,6);\n    ")
-			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			// file size test.db-wal
-		}
-		var _write_count = "0" // TCL namespace variable
-		_ = _write_count // suppress unused warning
-		var _write_errors = "list" // TCL namespace variable
-		_ = _write_errors // suppress unused warning
-		// proc definition (not transpiled)
-		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script write_callback")
-		{ // do_test tn + ".3.2.2"
-			_res = db.Exec("SELECT * FROM sqlite_master")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db full")
-			_ = _write_count // TCL namespace variable (query)
-		}
-		{ // do_test tn + ".3.2.3"
-			_ = _write_errors // TCL namespace variable (query)
-		}
-		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-		// proc definition (not transpiled)
-		// foreach {mode busy_handler_mode} " \n    passive  1\n    full     1       full     2       full    3\n    restart  1       restart  2       restart  3\n    truncate 1       truncate 2       truncate 3\n  "
-		_items := []string{" \n    passive  1\n    full     1       full     2       full    3\n    restart  1       restart  2       restart  3\n    truncate 1       truncate 2       truncate 3\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		mode := _items[_idx+0]
-		busy_handler_mode := _items[_idx+1]
-			var tp = tn + "." + mode + "." + busy_handler_mode
-			_ = tp // suppress unused warning
-			var _sync_counter = "0" // TCL namespace variable
-			_ = _sync_counter // suppress unused warning
-			var _checkpoint_ongoing = "0" // TCL namespace variable
-			_ = _checkpoint_ongoing // suppress unused warning
-			// proc definition (not transpiled)
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-			}
-			os.Remove("test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+		tn := _items[_idx+0]
+		script := _items[_idx+1]
+		_ = _idx
+			// eval $script
+			db.Close()
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
-			{ // tp + ".0"
-				_res = db.Exec("\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    ")
-				}
+			os.Remove("test.db2")
+			_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    /* Leave aux4 in rollback mode */\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    ATTACH 'test.db3' AS aux2;\n    ATTACH 'test.db4' AS aux3;\n    CREATE TABLE t1(x);\n    CREATE TABLE aux.t2(x);\n    CREATE TABLE aux2.t3(x);\n    CREATE TABLE aux3.t4(x);\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    /* Leave aux4 in rollback mode */\n  ")
 			}
-			{ // do_test tp + ".1"
+			// foreach {tn2 zDb dblist} "\n    1 main  test.db\n    2 aux   test.db2\n    3 aux2  test.db3\n    4 \"\"    {test.db test.db2 test.db3}\n    5 -     {test.db test.db2 test.db3}\n    6 temp  {}\n  "
+			_items := tclSplitList("\n    1 main  test.db\n    2 aux   test.db2\n    3 aux2  test.db3\n    4 \"\"    {test.db test.db2 test.db3}\n    5 -     {test.db test.db2 test.db3}\n    6 temp  {}\n  ")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn2 := _items[_idx+0]
+				zDb := _items[_idx+1]
+				dblist := _items[_idx+2]
+				_ = _idx
+					{ // do_test tn + ".1." + tn2
+						_res = db.Exec("\n        INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);\n      ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);\n      ")
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "save_db_hashes")
+						if zDb == "-" {
+							t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive")
+						} else {
+							t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive $zDb")
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "compare_db_hashes")
+					}
+				}
+				{ // do_test tn + ".2.1"
+					_list := tclList([]string{"0", msg})
+					_ = _list
+				}
+				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 3 }() {
+					{ // do_test tn + ".2.2.a"
+						t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive aux3")
+					}
+				} else {
+					{ // do_test tn + ".2.2.b"
+						t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive aux3")
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+				t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
+				t.Skipf("TODO: %s not implemented in frigolite", "tvfs script filelock")
+				// proc definition (not transpiled)
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				{ // do_test tn + ".3.1"
+					_res = db.Exec(" INSERT INTO t1 VALUES('xyz') ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('xyz') ")
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db passive")
+					_ = _seen_checkpoint_lock // TCL namespace variable (query)
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+				t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
 				db2, err := frigolite.Open("test.db")
 				defer db2.Close()
 				if err != nil { t.Fatal(err) }
-				r = db.Query("\n        BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
+				{ // do_test tn + ".3.2.1"
+					db2.Exec("\n      PRAGMA auto_vacuum = 0;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x, y);\n      INSERT INTO t1 VALUES(1,2);\n      INSERT INTO t1 VALUES(3,4);\n      INSERT INTO t1 VALUES(5,6);\n    ")
+					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+					// file size test.db-wal
 				}
-			}
-			{ // do_test tp + ".2"
-				db3, err := frigolite.Open("test.db")
-				defer db3.Close()
+				var _write_count = "0" // TCL namespace variable
+				_ = _write_count // suppress unused warning
+				var _write_errors = "list" // TCL namespace variable
+				_ = _write_errors // suppress unused warning
+				// proc definition (not transpiled)
+				// proc definition (not transpiled)
+				t.Skipf("TODO: %s not implemented in frigolite", "tvfs script write_callback")
+				{ // do_test tn + ".3.2.2"
+					_res = db.Exec("SELECT * FROM sqlite_master")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_master")
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db full")
+					_ = _write_count // TCL namespace variable (query)
+				}
+				{ // do_test tn + ".3.2.3"
+					_ = _write_errors // TCL namespace variable (query)
+				}
+				db2.Close()
+				t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+				// proc definition (not transpiled)
+				// foreach {mode busy_handler_mode} " \n    passive  1\n    full     1       full     2       full    3\n    restart  1       restart  2       restart  3\n    truncate 1       truncate 2       truncate 3\n  "
+				_items := tclSplitList(" \n    passive  1\n    full     1       full     2       full    3\n    restart  1       restart  2       restart  3\n    truncate 1       truncate 2       truncate 3\n  ")
+				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+					mode := _items[_idx+0]
+					busy_handler_mode := _items[_idx+1]
+					_ = _idx
+						var tp = tn + "." + mode + "." + busy_handler_mode
+						_ = tp // suppress unused warning
+						var _sync_counter = "0" // TCL namespace variable
+						_ = _sync_counter // suppress unused warning
+						var _checkpoint_ongoing = "0" // TCL namespace variable
+						_ = _checkpoint_ongoing // suppress unused warning
+						// proc definition (not transpiled)
+						{
+							var _catchErr error
+							_ = _catchErr // suppress unused warning
+						}
+						os.Remove("test.db")
+						t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+						db, err := frigolite.Open("test.db")
+						defer db.Close()
+						if err != nil { t.Fatal(err) }
+						t.Skipf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
+						{ // tp + ".0"
+							_res = db.Exec("\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      PRAGMA journal_mode = wal;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    ")
+							}
+						}
+						{ // do_test tp + ".1"
+							db2, err := frigolite.Open("test.db")
+							defer db2.Close()
+							if err != nil { t.Fatal(err) }
+							r = db.Query("\n        BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        BEGIN;\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
+							}
+						}
+						{ // do_test tp + ".2"
+							db3, err := frigolite.Open("test.db")
+							defer db3.Close()
+							if err != nil { t.Fatal(err) }
+							r = db.Query("\n        INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
+							}
+						}
+						db5, err := frigolite.Open("test.db")
+						defer db5.Close()
+						if err != nil { t.Fatal(err) }
+						db6, err := frigolite.Open("test.db")
+						defer db6.Close()
+						if err != nil { t.Fatal(err) }
+						var _sync_counter = "0" // TCL namespace variable
+						_ = _sync_counter // suppress unused warning
+						var _busy_handler_counter = "0" // TCL namespace variable
+						_ = _busy_handler_counter // suppress unused warning
+						var _read_ok = "-1" // TCL namespace variable
+						_ = _read_ok // suppress unused warning
+						var _write_ok = "-1" // TCL namespace variable
+						_ = _write_ok // suppress unused warning
+						var _seen_writer_lock = "0" // TCL namespace variable
+						_ = _seen_writer_lock // suppress unused warning
+						var _checkpoint_ongoing = "1" // TCL namespace variable
+						_ = _checkpoint_ongoing // suppress unused warning
+						{ // do_test tp + ".3"
+							t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db $mode main")
+							var  = ""
+							_ =  // suppress unused warning
+						}
+						var _checkpoint_ongoing = "0" // TCL namespace variable
+						_ = _checkpoint_ongoing // suppress unused warning
+						var _did_restart_blocking = "[catch {db6 eval commit}]" // TCL namespace variable
+						_ = _did_restart_blocking // suppress unused warning
+						if mode == "passive" {
+							{ // do_test tp + ".4"
+								tclFileCopy("test.db", "abc.db")
+								db4, err := frigolite.Open("abc.db")
+								defer db4.Close()
+								if err != nil { t.Fatal(err) }
+								db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
+								if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+							}
+							{ // do_test tp + ".5"
+								_ = _sync_counter // TCL namespace variable (query)
+							}
+							{ // do_test tp + ".6"
+								_ = _busy_handler_counter // TCL namespace variable (query)
+							}
+							db4.Close()
+							db2.Exec("COMMIT")
+							if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+							db3.Exec("COMMIT")
+							if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+							var _checkpoint_ongoing = "1" // TCL namespace variable
+							_ = _checkpoint_ongoing // suppress unused warning
+							{ // do_test tp + ".7"
+								t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db $mode main")
+								tclFileCopy("test.db", "abc.db")
+								db4, err := frigolite.Open("abc.db")
+								defer db4.Close()
+								if err != nil { t.Fatal(err) }
+								db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
+								if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+							}
+							var _checkpoint_ongoing = "0" // TCL namespace variable
+							_ = _checkpoint_ongoing // suppress unused warning
+							{ // do_test tp + ".7"
+								_ = _sync_counter // TCL namespace variable (query)
+							}
+							{ // do_test tp + ".8"
+								_ = _busy_handler_counter // TCL namespace variable (query)
+							}
+							db4.Close()
+						}
+						if mode == "full" || mode=="restart" || mode=="truncate" {
+							{ // do_test tp + ".9"
+								_ = _seen_writer_lock // TCL namespace variable (query)
+							}
+							if func() bool { busy_handler_mode_n, _busy_handler_mode_e := strconv.Atoi(busy_handler_mode); if _busy_handler_mode_e != nil { return false }; return busy_handler_mode_n == 2 || busy_handler_mode_n==3 }() {
+								{ // do_test tp + ".7"
+									_list := tclList([]string{"catchsql COMMIT db2", "catchsql COMMIT db3"})
+									_ = _list
+								}
+								{ // do_test tp + ".8"
+									tclFileCopy("test.db", "abc.db")
+									db4, err := frigolite.Open("abc.db")
+									defer db4.Close()
+									if err != nil { t.Fatal(err) }
+									db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
+									if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+								}
+								{ // do_test tp + ".9"
+									_ = _sync_counter // TCL namespace variable (query)
+								}
+								db4.Close()
+								{ // do_test tp + ".10.1"
+									_list := tclList([]string{_write_ok, _read_ok})
+									_ = _list
+								}
+								{ // do_test tp + ".11"
+									_ = _did_restart_blocking // TCL namespace variable (query)
+								}
+								if func() bool { mode_n, _mode_e := strconv.Atoi(mode); if _mode_e != nil { return false }; busy_handler_mode_n, _busy_handler_mode_e := strconv.Atoi(busy_handler_mode); if _busy_handler_mode_e != nil { return false }; return mode_n == "truncate" && busy_handler_mode_n==3 }() {
+									{ // do_test tp + ".12"
+										// file size test.db-wal
+									}
+								}
+							} else if func() bool { busy_handler_mode_n, _busy_handler_mode_e := strconv.Atoi(busy_handler_mode); if _busy_handler_mode_e != nil { return false }; return busy_handler_mode_n == 1 }() {
+								if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n != 2 }() {
+									{ // do_test tp + ".13"
+										t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+									}
+								}
+								{ // do_test tp + ".14"
+									tclFileCopy("test.db", "abc.db")
+									db4, err := frigolite.Open("abc.db")
+									defer db4.Close()
+									if err != nil { t.Fatal(err) }
+									db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
+									if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+								}
+								{ // do_test tp + ".15"
+									_ = _sync_counter // TCL namespace variable (query)
+								}
+								{ // do_test tp + ".16"
+									_ = _busy_handler_counter // TCL namespace variable (query)
+								}
+								db4.Close()
+							}
+						}
+						db2.Close()
+						db3.Close()
+						db5.Close()
+						db6.Close()
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+				}
+				db, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				r = db.Query("\n        INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        INSERT INTO t2 VALUES(7, 8);\n        BEGIN;\n          INSERT INTO t2 VALUES(9, 10);\n          SELECT * FROM t1 UNION ALL SELECT * FROM t2;\n      ")
-				}
-			}
-			db5, err := frigolite.Open("test.db")
-			defer db5.Close()
-			if err != nil { t.Fatal(err) }
-			db6, err := frigolite.Open("test.db")
-			defer db6.Close()
-			if err != nil { t.Fatal(err) }
-			var _sync_counter = "0" // TCL namespace variable
-			_ = _sync_counter // suppress unused warning
-			var _busy_handler_counter = "0" // TCL namespace variable
-			_ = _busy_handler_counter // suppress unused warning
-			var _read_ok = "-1" // TCL namespace variable
-			_ = _read_ok // suppress unused warning
-			var _write_ok = "-1" // TCL namespace variable
-			_ = _write_ok // suppress unused warning
-			var _seen_writer_lock = "0" // TCL namespace variable
-			_ = _seen_writer_lock // suppress unused warning
-			var _checkpoint_ongoing = "1" // TCL namespace variable
-			_ = _checkpoint_ongoing // suppress unused warning
-			{ // do_test tp + ".3"
-				t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db $mode main")
-				var  = ""
-				_ =  // suppress unused warning
-			}
-			var _checkpoint_ongoing = "0" // TCL namespace variable
-			_ = _checkpoint_ongoing // suppress unused warning
-			var _did_restart_blocking = "[catch {db6 eval commit}]" // TCL namespace variable
-			_ = _did_restart_blocking // suppress unused warning
-			if mode == "passive" {
-				{ // do_test tp + ".4"
-					tclFileCopy("test.db", "abc.db")
-					db4, err := frigolite.Open("abc.db")
-					defer db4.Close()
-					if err != nil { t.Fatal(err) }
-					db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
-					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				}
-				{ // do_test tp + ".5"
-					_ = _sync_counter // TCL namespace variable (query)
-				}
-				{ // do_test tp + ".6"
-					_ = _busy_handler_counter // TCL namespace variable (query)
-				}
-				db4.Close()
-				db2.Exec("COMMIT")
-				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				db3.Exec("COMMIT")
-				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				var _checkpoint_ongoing = "1" // TCL namespace variable
-				_ = _checkpoint_ongoing // suppress unused warning
-				{ // do_test tp + ".7"
-					t.Skipf("TODO: %s not implemented in frigolite", "checkpoint db $mode main")
-					tclFileCopy("test.db", "abc.db")
-					db4, err := frigolite.Open("abc.db")
-					defer db4.Close()
-					if err != nil { t.Fatal(err) }
-					db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
-					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				}
-				var _checkpoint_ongoing = "0" // TCL namespace variable
-				_ = _checkpoint_ongoing // suppress unused warning
-				{ // do_test tp + ".7"
-					_ = _sync_counter // TCL namespace variable (query)
-				}
-				{ // do_test tp + ".8"
-					_ = _busy_handler_counter // TCL namespace variable (query)
-				}
-				db4.Close()
-			}
-			if mode == "full" || mode=="restart" || mode=="truncate" {
-				{ // do_test tp + ".9"
-					_ = _seen_writer_lock // TCL namespace variable (query)
-				}
-				if func() bool { busy_handler_mode_n, _busy_handler_mode_e := strconv.Atoi(busy_handler_mode); if _busy_handler_mode_e != nil { return false }; return busy_handler_mode_n == 2 || busy_handler_mode_n==3 }() {
-					{ // do_test tp + ".7"
-						_list := tclList([]string{"catchsql COMMIT db2", "catchsql COMMIT db3"})
-						_ = _list
-					}
-					{ // do_test tp + ".8"
-						tclFileCopy("test.db", "abc.db")
-						db4, err := frigolite.Open("abc.db")
-						defer db4.Close()
-						if err != nil { t.Fatal(err) }
-						db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
-						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-					}
-					{ // do_test tp + ".9"
-						_ = _sync_counter // TCL namespace variable (query)
-					}
-					db4.Close()
-					{ // do_test tp + ".10.1"
-						_list := tclList([]string{_write_ok, _read_ok})
-						_ = _list
-					}
-					{ // do_test tp + ".11"
-						_ = _did_restart_blocking // TCL namespace variable (query)
-					}
-					if func() bool { mode_n, _mode_e := strconv.Atoi(mode); if _mode_e != nil { return false }; busy_handler_mode_n, _busy_handler_mode_e := strconv.Atoi(busy_handler_mode); if _busy_handler_mode_e != nil { return false }; return mode_n == "truncate" && busy_handler_mode_n==3 }() {
-						{ // do_test tp + ".12"
-							// file size test.db-wal
+				// foreach {tn mode res} "\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"
+				_items := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					mode := _items[_idx+1]
+					res := _items[_idx+2]
+					_ = _idx
+						{ // do_test "4." + tn
+							_list := tclList([]string{"0", msg})
+							_ = _list
 						}
 					}
-				} else if func() bool { busy_handler_mode_n, _busy_handler_mode_e := strconv.Atoi(busy_handler_mode); if _busy_handler_mode_e != nil { return false }; return busy_handler_mode_n == 1 }() {
-					if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n != 2 }() {
-						{ // do_test tp + ".13"
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
-						}
-					}
-					{ // do_test tp + ".14"
-						tclFileCopy("test.db", "abc.db")
-						db4, err := frigolite.Open("abc.db")
-						defer db4.Close()
+					for _, tn := range tclSplitList("1 2 3") {
+						os.Remove("test.db")
+						t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+						db, err := frigolite.Open("test.db")
+						defer db.Close()
 						if err != nil { t.Fatal(err) }
-						db4.Exec(" SELECT * FROM t1 UNION ALL SELECT * FROM t2 ")
+						_res = db.Exec("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
+						}
+						db2, err := frigolite.Open("test.db2")
+						defer db2.Close()
+						if err != nil { t.Fatal(err) }
+						t.Skipf("TODO: %s not implemented in frigolite", "switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If no ...}")
+						db2.Close()
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					db2, err := frigolite.Open("test.db")
+					defer db2.Close()
+					if err != nil { t.Fatal(err) }
+					{ // do_test "6.1"
+						_res = db.Exec("\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+						}
+						// file size test.db-wal
+					}
+					{ // do_test "6.2"
+						db2.Exec(" BEGIN; SELECT * FROM t1; ")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+						_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, 4) ")
+						}
+						// file size test.db-wal
 					}
-					{ // do_test tp + ".15"
-						_ = _sync_counter // TCL namespace variable (query)
+					{ // do_test "6.4"
+						tclLRange("wal_checkpoint_v2 db passive", "1", "2")
 					}
-					{ // do_test tp + ".16"
-						_ = _busy_handler_counter // TCL namespace variable (query)
+					{ // do_test "6.5"
+						db2.Exec("COMMIT")
+						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+						t.Skipf("TODO: %s not implemented in frigolite", "wal_checkpoint_v2 db truncate")
 					}
-					db4.Close()
-				}
-			}
-			db2.Close()
-			db3.Close()
-			db5.Close()
-			db6.Close()
-		}
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-	}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	// foreach {tn mode res} "\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"
-	_items := []string{"\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	mode := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // do_test "4." + tn
-			_list := tclList([]string{"0", msg})
-			_ = _list
-		}
-	}
-	}
-	for _, tn := range []string{"1 2 3"} {
-		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
-		}
-		db2, err := frigolite.Open("test.db2")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If no ...}")
-		db2.Close()
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
-	if err != nil { t.Fatal(err) }
-	{ // do_test "6.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-		}
-		// file size test.db-wal
-	}
-	{ // do_test "6.2"
-		db2.Exec(" BEGIN; SELECT * FROM t1; ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, 4) ")
-		}
-		// file size test.db-wal
-	}
-	{ // do_test "6.4"
-		tclLRange("wal_checkpoint_v2 db passive", "1", "2")
-	}
-	{ // do_test "6.5"
-		db2.Exec("COMMIT")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_checkpoint_v2 db truncate")
-	}
 }

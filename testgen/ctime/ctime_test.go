@@ -142,7 +142,7 @@ func Test_ctime(t *testing.T) {
 	_ = opts // suppress unused warning
 	var tc = "1"
 	_ = tc // suppress unused warning
-	for _, opt := range []string{opts} {
+	for _, opt := range tclSplitList(opts) {
 		{ // do_test "ctime-2.5." + tc
 			N := "expr"
 			var ans1 string

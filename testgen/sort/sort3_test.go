@@ -27,53 +27,53 @@ func Test_sort3(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit} "\n  1 0\n  2 1000000\n"
-	_items := []string{"\n  1 0\n  2 1000000\n"}
+	_items := tclSplitList("\n  1 0\n  2 1000000\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	mmap_limit := _items[_idx+1]
-		{ // do_test "1." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
-			var prev = ""
-			_ = prev // suppress unused warning
-			_res = db.Exec(" SELECT * FROM t11 ORDER BY b ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t11 ORDER BY b ")
-			}
-			var  = ""
-			_ =  // suppress unused warning
-		}
-	}
-	}
-	// foreach {itest limit} "\n  1 5000000\n  2 0x7FFFFFFF\n"
-	_items := []string{"\n  1 5000000\n  2 0x7FFFFFFF\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	itest := _items[_idx+0]
-	limit := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit")
-		{ // "2." + itest
-			r = db.Query("\n    WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		tn := _items[_idx+0]
+		mmap_limit := _items[_idx+1]
+		_ = _idx
+			{ // do_test "1." + tn
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
+				var prev = ""
+				_ = prev // suppress unused warning
+				_res = db.Exec(" SELECT * FROM t11 ORDER BY b ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t11 ORDER BY b ")
+				}
+				var  = ""
+				_ =  // suppress unused warning
 			}
 		}
-	}
-	}
-	{ // "3"
-		r = db.Query("\n  PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// foreach {itest limit} "\n  1 5000000\n  2 0x7FFFFFFF\n"
+		_items := tclSplitList("\n  1 5000000\n  2 0x7FFFFFFF\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			itest := _items[_idx+0]
+			limit := _items[_idx+1]
+			_ = _idx
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit")
+				{ // "2." + itest
+					r = db.Query("\n    WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "\n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000 \n    4000 4000000\n  "
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+			{ // "3"
+				r = db.Query("\n  PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 20000;\n  WITH r(x,y) AS (\n    SELECT 1, randomblob(1000)\n    UNION ALL\n    SELECT x+1, randomblob(1000) FROM r\n    LIMIT 2200000\n  )\n  SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n")
+					return
+				}
+				got := flatten(r)
+				want := "\n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000 \n  440000 440000000\n"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

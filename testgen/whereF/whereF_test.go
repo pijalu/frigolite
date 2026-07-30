@@ -26,156 +26,156 @@ func Test_whereF(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n"
-	_items := []string{"\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n"}
+	_items := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "1." + tn
-			_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			{ // do_test "1." + tn
+				_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+				}
 			}
 		}
-	}
-	}
-	{ // "2.0"
-		_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
-		}
-	}
-	// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n"
-	_items := []string{"\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "2." + tn
-			_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
+		{ // "2.0"
+			_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a);\n  CREATE UNIQUE INDEX i2 ON t1(b);\n  CREATE UNIQUE INDEX i3 ON t2(d);\n")
 			}
 		}
-	}
-	}
-	{ // "3.0"
-		_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
-		}
-	}
-	// foreach {tn sql} "\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n"
-	_items := []string{"\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "3." + tn
-			_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+		// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n"
+		_items := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			_ = _idx
+				{ // do_test "2." + tn
+					_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+					}
+				}
 			}
-		}
-	}
-	}
-	{ // "4.0"
-		r = db.Query("\n  CREATE TABLE t4(a,b,c,d,e, PRIMARY KEY(a,b,c));\n  CREATE INDEX t4adc ON t4(a,d,c);\n  CREATE UNIQUE INDEX t4aebc ON t4(a,e,b,c);\n  EXPLAIN QUERY PLAN SELECT rowid FROM t4 WHERE a=? AND b=?;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a,b,c,d,e, PRIMARY KEY(a,b,c));\n  CREATE INDEX t4adc ON t4(a,d,c);\n  CREATE UNIQUE INDEX t4aebc ON t4(a,e,b,c);\n  EXPLAIN QUERY PLAN SELECT rowid FROM t4 WHERE a=? AND b=?;\n")
-			return
-		}
-		got := flatten(r)
-		want := "/a=. AND b=./"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		r = db.Query("\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
-		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE t2.rowid = +t1.rowid\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1, t2 WHERE t2.rowid = +t1.rowid\n")
-			return
-		}
-		got := flatten(r)
-		want := "4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "5.2"
-		// expr [db status vmstep]<200 → "[db status vmstep]<200"
-	}
-	{ // "5.3"
-		r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR t2.f2 = t1.f1\n  )\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR t2.f2 = t1.f1\n  )\n")
-			return
-		}
-		got := flatten(r)
-		want := "4000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "5.4"
-		// expr [db status vmstep]>1000 → "[db status vmstep]>1000"
-	}
-	{ // "5.5"
-		r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR (t2.f2 = t1.f1 AND t1.f1!=-1)\n  )\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR (t2.f2 = t1.f1 AND t1.f1!=-1)\n  )\n")
-			return
-		}
-		got := flatten(r)
-		want := "4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "5.6"
-		// expr [db status vmstep]<200 → "[db status vmstep]<200"
-	}
-	{ // "7.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := "4 5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb < t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa > t1.a )\n    )\n    FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb < t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa > t1.a )\n    )\n    FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.3"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "~/ (Lt|Ge) /"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			{ // "3.0"
+				_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n\n  CREATE UNIQUE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t2(d);\n")
+				}
+			}
+			// foreach {tn sql} "\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n"
+			_items := tclSplitList("\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				sql := _items[_idx+1]
+				_ = _idx
+					{ // do_test "3." + tn
+						_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN QUERY PLAN " + sql)
+						}
+					}
+				}
+				{ // "4.0"
+					r = db.Query("\n  CREATE TABLE t4(a,b,c,d,e, PRIMARY KEY(a,b,c));\n  CREATE INDEX t4adc ON t4(a,d,c);\n  CREATE UNIQUE INDEX t4aebc ON t4(a,e,b,c);\n  EXPLAIN QUERY PLAN SELECT rowid FROM t4 WHERE a=? AND b=?;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a,b,c,d,e, PRIMARY KEY(a,b,c));\n  CREATE INDEX t4adc ON t4(a,d,c);\n  CREATE UNIQUE INDEX t4aebc ON t4(a,e,b,c);\n  EXPLAIN QUERY PLAN SELECT rowid FROM t4 WHERE a=? AND b=?;\n")
+						return
+					}
+					got := flatten(r)
+					want := "/a=. AND b=./"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				{ // "5.0"
+					r = db.Query("\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(f1);\n  CREATE TABLE t2(f2);\n  CREATE INDEX t2f ON t2(f2);\n\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n  INSERT INTO t1 VALUES(-1);\n\n  WITH w(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM w WHERE i<1000\n  )\n  INSERT INTO t2 SELECT -1 FROM w;\n")
+					}
+				}
+				{ // "5.1"
+					r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE t2.rowid = +t1.rowid\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1, t2 WHERE t2.rowid = +t1.rowid\n")
+						return
+					}
+					got := flatten(r)
+					want := "4"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "5.2"
+					// expr [db status vmstep]<200 → "[db status vmstep]<200"
+				}
+				{ // "5.3"
+					r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR t2.f2 = t1.f1\n  )\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR t2.f2 = t1.f1\n  )\n")
+						return
+					}
+					got := flatten(r)
+					want := "4000"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "5.4"
+					// expr [db status vmstep]>1000 → "[db status vmstep]>1000"
+				}
+				{ // "5.5"
+					r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR (t2.f2 = t1.f1 AND t1.f1!=-1)\n  )\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t1, t2 WHERE (\n    t2.rowid = +t1.rowid OR (t2.f2 = t1.f1 AND t1.f1!=-1)\n  )\n")
+						return
+					}
+					got := flatten(r)
+					want := "4"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "5.6"
+					// expr [db status vmstep]<200 → "[db status vmstep]<200"
+				}
+				{ // "7.1"
+					r = db.Query("\n  DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS cd;\n  CREATE TABLE cd ( cdid INTEGER PRIMARY KEY NOT NULL, genreid integer );\n  CREATE INDEX cd_idx_genreid ON cd (genreid);\n  INSERT INTO cd  ( cdid, genreid ) VALUES\n                     ( 1,    1 ),\n                     ( 2, NULL ),\n                     ( 3, NULL ),\n                     ( 4, NULL ),\n                     ( 5, NULL );\n  \n  SELECT cdid\n    FROM cd me\n  WHERE 2 > (\n    SELECT COUNT( * )\n      FROM cd rownum__emulation\n    WHERE\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NULL\n      )\n        OR\n      (\n        me.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid IS NOT NULL\n          AND\n        rownum__emulation.genreid < me.genreid\n      )\n        OR\n      (\n        ( me.genreid = rownum__emulation.genreid OR ( me.genreid IS NULL\n  AND rownum__emulation.genreid IS NULL ) )\n          AND\n        rownum__emulation.cdid > me.cdid\n      )\n  );\n")
+						return
+					}
+					got := flatten(r)
+					want := "4 5"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.2"
+					r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb < t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa > t1.a )\n    )\n    FROM t1;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1(a,b) VALUES(1,1);\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb);\n  INSERT INTO t2(aa,bb) VALUES(1,1),(2,NULL),(3,NULL);\n  SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b IS NOT NULL AND t2.bb IS NULL )\n        OR ( t2.bb < t1.b )\n        OR ( t1.b IS t2.bb AND t2.aa > t1.a )\n    )\n    FROM t1;\n")
+						return
+					}
+					got := flatten(r)
+					want := "2"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3"
+					r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1(a,b) VALUES(1,'abcxyz');\n  CREATE TABLE t2(aa INTEGER PRIMARY KEY, bb TEXT);\n  INSERT INTO t2(aa,bb) VALUES(1,'abc'),(2,'wxyz'),(3,'xyz');\n  CREATE INDEX t2bb ON t2(bb);\n  EXPLAIN SELECT (\n    SELECT COUNT(*) FROM t2\n     WHERE ( t1.b GLOB 'a*z' AND t2.bb='xyz' )\n        OR ( t2.bb = t1.b )\n        OR ( t2.aa = t1.a )\n    )\n    FROM t1;\n")
+						return
+					}
+					got := flatten(r)
+					want := "~/ (Lt|Ge) /"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 }

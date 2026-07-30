@@ -24,13 +24,13 @@ func Test_permutations(t *testing.T) {
 	// proc definition (not transpiled)
 	var alltests = "list"
 	_ = alltests // suppress unused warning
-	for _, f := range []string{"glob $testdir/*.test"} {
+	for _, f := range tclSplitList("glob $testdir/*.test") {
 		alltests = tclListAppend(alltests, "file tail $f")
 	}
-	for _, f := range []string{"glob -nocomplain            \\\n    $testdir/../ext/rtree/*.test       \\\n    $testdir/../ext/fts5/test/*.test   \\\n    $testdir/../ext/expert/*.test      \\\n    $testdir/../ext/lsm1/test/*.test   \\\n    $testdir/../ext/recover/*.test     \\\n    $testdir/../ext/rbu/*.test         \\\n    $testdir/../ext/intck/*.test       \\"} {
+	for _, f := range tclSplitList("glob -nocomplain            \\\n    $testdir/../ext/rtree/*.test       \\\n    $testdir/../ext/fts5/test/*.test   \\\n    $testdir/../ext/expert/*.test      \\\n    $testdir/../ext/lsm1/test/*.test   \\\n    $testdir/../ext/recover/*.test     \\\n    $testdir/../ext/rbu/*.test         \\\n    $testdir/../ext/intck/*.test       \\") {
 		alltests = tclListAppend(alltests, f)
 	}
-	for _, f := range []string{"glob -nocomplain $testdir/../ext/session/*.test"} {
+	for _, f := range tclSplitList("glob -nocomplain $testdir/../ext/session/*.test") {
 		alltests = tclListAppend(alltests, f)
 	}
 	if _tcl_platform(platform) != "unix" {
@@ -48,10 +48,10 @@ func Test_permutations(t *testing.T) {
 	if tclBool("info exists ::env(QUICKTEST_OMIT)") {
 		var all = "list"
 		_ = all // suppress unused warning
-		for _, a := range []string{allquicktests} {
+		for _, a := range tclSplitList(allquicktests) {
 			var bIn = "1"
 			_ = bIn // suppress unused warning
-			for _, x := range []string{"split $::env(QUICKTEST_OMIT) ,"} {
+			for _, x := range tclSplitList("split $::env(QUICKTEST_OMIT) ,") {
 				if tclBool("regexp $x [file tail $a]") {
 					var bIn = "0"
 					_ = bIn // suppress unused warning
@@ -120,7 +120,7 @@ func Test_permutations(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "test_suite safe_append -description {\n  Run some tests on a SAFE_APPEND file-system.\n} -initialize {\n  set ::G(perm:sqlite3_args) [list -vfs devsym]\n ...} -files [\n  test_set $::allquicktests shared_err.test\n]")
 	var perm_alt_pcache_testset = "\n  attach.test\n  delete.test delete2.test\n  index.test\n  insert.test insert2.test\n  join.test join2.test\n  rollback.test\n  select1.test select2.test\n  trans.test\n  update.test\n"
 	_ = perm_alt_pcache_testset // suppress unused warning
-	for _, discard_rate := range []string{"0 10 50 90 100"} {
+	for _, discard_rate := range tclSplitList("0 10 50 90 100") {
 		t.Skipf("TODO: %s not implemented in frigolite", "test_suite pcache${discard_rate} -description \n    Alternative pcache implementation with ${disc... -initialize \n    catch {db close}\n    sqlite3_shutdown\n    sql... -shutdown {\n    catch {db close}\n    sqlite3_shutdown\n    sql...} -files $ {perm-alt-pcache-testset}")
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "test_suite journaltest -description {\n  Check that pages are synced before being writte...} -initialize {\n  catch {db close}\n  register_jt_vfs -default \"\"\n} -shutdown {\n  unregister_jt_vfs\n} -files [test_set $::allquicktests -exclude {\n  wal* incrv...")

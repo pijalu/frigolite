@@ -40,89 +40,89 @@ func Test_fts4incr(t *testing.T) {
 		}
 	}
 	// foreach {tn q res} "\n  1 { SELECT count(*) FROM t1 WHERE t1 MATCH 'and' AND docid < 1010000} 224\n  2 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"in the\"' AND docid < 1010000} 47\n  3 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"And God\"' AND docid < 1010000} 33\n  4 { SELECT count(*) FROM t1 WHERE t1 \n      MATCH '\"land of canaan\"' AND docid < 1030000 } 7\n"
-	_items := []string{"\n  1 { SELECT count(*) FROM t1 WHERE t1 MATCH 'and' AND docid < 1010000} 224\n  2 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"in the\"' AND docid < 1010000} 47\n  3 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"And God\"' AND docid < 1010000} 33\n  4 { SELECT count(*) FROM t1 WHERE t1 \n      MATCH '\"land of canaan\"' AND docid < 1030000 } 7\n"}
+	_items := tclSplitList("\n  1 { SELECT count(*) FROM t1 WHERE t1 MATCH 'and' AND docid < 1010000} 224\n  2 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"in the\"' AND docid < 1010000} 47\n  3 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"And God\"' AND docid < 1010000} 33\n  4 { SELECT count(*) FROM t1 WHERE t1 \n      MATCH '\"land of canaan\"' AND docid < 1030000 } 7\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	q := _items[_idx+1]
-	res := _items[_idx+2]
-		for _, s := range []string{"0 1"} {
-			_res = db.Exec("INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")
-			}
-			{ // "2." + tn + "." + s
-				_res = db.Exec(q)
+		tn := _items[_idx+0]
+		q := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			for _, s := range tclSplitList("0 1") {
+				_res = db.Exec("INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")
 				}
+				{ // "2." + tn + "." + s
+					_res = db.Exec(q)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+					}
+				}
+				var t_$s = "lindex [time [list execsql $q] 100] 0"
+				_ = t_$s // suppress unused warning
 			}
-			var t_$s = "lindex [time [list execsql $q] 100] 0"
-			_ = t_$s // suppress unused warning
+			if false {
+				t.Log("with optimization: " + t + "(0)    without: " + t + "(1)")
+			}
 		}
-		if false {
-			t.Log("with optimization: " + t + "(0)    without: " + t + "(1)")
-		}
-	}
-	}
-	{ // do_test "2.1"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);\n  ")
-		}
-		var num = "list one two three four five six seven eight nine ten"
-		_ = num // suppress unused warning
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-			var x = "lindex $num [expr $i%10]" + " zero"
-			_ = x // suppress unused warning
-			_res = db.Exec(" INSERT INTO t2(docid, content) VALUES($i, $x) ")
+		{ // do_test "2.1"
+			_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(docid, content) VALUES($i, $x) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);\n  ")
 			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			var num = "list one two three four five six seven eight nine ten"
+			_ = num // suppress unused warning
+			_res = db.Exec("BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+			}
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
+				var x = "lindex $num [expr $i%10]" + " zero"
+				_ = x // suppress unused warning
+				_res = db.Exec(" INSERT INTO t2(docid, content) VALUES($i, $x) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(docid, content) VALUES($i, $x) ")
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
 				}
 			}
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+			_res = db.Exec(" INSERT INTO t2(t2) VALUES('optimize') ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('optimize') ")
+			}
 		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+		{ // "2.2"
+			r = db.Query("\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"never zero\"'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"never zero\"'\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		_res = db.Exec(" INSERT INTO t2(t2) VALUES('optimize') ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('optimize') ")
+		{ // "2.3"
+			r = db.Query("\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"two zero\"'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"two zero\"'\n")
+				return
+			}
+			got := flatten(r)
+			want := "1000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "2.2"
-		r = db.Query("\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"never zero\"'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"never zero\"'\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.3"
-		r = db.Query("\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"two zero\"'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM t2 WHERE t2 MATCH '\"two zero\"'\n")
-			return
-		}
-		got := flatten(r)
-		want := "1000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

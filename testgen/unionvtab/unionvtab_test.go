@@ -217,1005 +217,1005 @@ func Test_unionvtab(t *testing.T) {
 		}
 	}
 	// foreach {tn dbs res} "\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n"
-	_items := []string{"\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n"}
+	_items := tclSplitList("\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	dbs := _items[_idx+1]
-	res := _items[_idx+2]
-		var L = "list"
-		_ = L // suppress unused warning
-		var iMin = "0"
-		_ = iMin // suppress unused warning
-		for _, e := range []string{dbs} {
-			var E = "split $e ."
-			_ = E // suppress unused warning
-			if tclBool("llength $E" + ">1") {
-				L = tclListAppend(L, "('" + "lindex $E 0" + "', '" + "lindex $E 1" + "', " + iMin + ", " + iMin + ")")
-			} else {
-				L = tclListAppend(L, "(NULL, '" + e + "', " + iMin + ", " + iMin + ")")
+		tn := _items[_idx+0]
+		dbs := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			var L = "list"
+			_ = L // suppress unused warning
+			var iMin = "0"
+			_ = iMin // suppress unused warning
+			for _, e := range tclSplitList(dbs) {
+				var E = "split $e ."
+				_ = E // suppress unused warning
+				if tclBool("llength $E" + ">1") {
+					L = tclListAppend(L, "('" + "lindex $E 0" + "', '" + "lindex $E 1" + "', " + iMin + ", " + iMin + ")")
+				} else {
+					L = tclListAppend(L, "(NULL, '" + e + "', " + iMin + ", " + iMin + ")")
+				}
+				// incr iMin 1
+				{
+					_n, _err := strconv.Atoi(iMin)
+					if _err == nil {
+						iMin = strconv.Itoa(_n + 1)
+					}
+				}
 			}
-			// incr iMin 1
-			{
-				_n, _err := strconv.Atoi(iMin)
-				if _err == nil {
-					iMin = strconv.Itoa(_n + 1)
+			var sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\")"
+			_ = sql // suppress unused warning
+			{ // "2.4." + tn
+				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\");\n  ")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\");\n  ")
 				}
 			}
 		}
-		var sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\")"
-		_ = sql // suppress unused warning
-		{ // "2.4." + tn
-			_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\");\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\");\n  ")
+		{ // "2.5"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no source tables configured") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
 			}
 		}
-	}
-	}
-	{ // "2.5"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no source tables configured") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no source tables configured", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(\n    [SELECT 'main', 'b1', 0, 100 WHERE 0]\n  )\n")
-		}
-	}
-	// foreach {tn sql} "\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n"
-	_items := []string{"\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // "2.6." + tn
-			_res = db.Exec("\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "rowid range mismatch error") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rowid range mismatch error", _res.Error, "\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
+		// foreach {tn sql} "\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n"
+		_items := tclSplitList("\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			_ = _idx
+				{ // "2.6." + tn
+					_res = db.Exec("\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "rowid range mismatch error") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "rowid range mismatch error", _res.Error, "\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
+					}
+				}
 			}
-		}
-	}
-	}
-	{ // "2.7.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments for unionvtab") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments for unionvtab", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
-	{ // "3.0"
-		_res = db.Exec("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
-		}
-	}
-	{ // "3.1"
-		r = db.Query("\n  SELECT * FROM uu WHERE rowid = 10;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM uu WHERE rowid = 10;\n")
-			return
-		}
-		got := flatten(r)
-		want := "10 {1.10}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.2"
-		r = db.Query("\n  SELECT * FROM uu WHERE rowid = 25;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM uu WHERE rowid = 25;\n")
-			return
-		}
-		got := flatten(r)
-		want := "25 {1.25}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 24 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 24 ")
-			return
-		}
-		got := flatten(r)
-		want := "24"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 25 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 25 ")
-			return
-		}
-		got := flatten(r)
-		want := "100"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 26 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 26 ")
-			return
-		}
-		got := flatten(r)
-		want := "126"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 73 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 73 ")
-			return
-		}
-		got := flatten(r)
-		want := "173"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 74 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 74 ")
-			return
-		}
-		got := flatten(r)
-		want := "200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.5"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 75 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 75 ")
-			return
-		}
-		got := flatten(r)
-		want := "275"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.6"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 99 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 99 ")
-			return
-		}
-		got := flatten(r)
-		want := "299"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.7"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 100 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 100 ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.8"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 101 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 101 ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 25 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 25 ")
-			return
-		}
-		got := flatten(r)
-		want := "24"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 26 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 26 ")
-			return
-		}
-		got := flatten(r)
-		want := "100"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 27 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 27 ")
-			return
-		}
-		got := flatten(r)
-		want := "126"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 73 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 73 ")
-			return
-		}
-		got := flatten(r)
-		want := "172"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.5"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 74 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 74 ")
-			return
-		}
-		got := flatten(r)
-		want := "173"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.6"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 75 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 75 ")
-			return
-		}
-		got := flatten(r)
-		want := "200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.7"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 76 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 76 ")
-			return
-		}
-		got := flatten(r)
-		want := "275"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.8"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 99 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 99 ")
-			return
-		}
-		got := flatten(r)
-		want := "298"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.9"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 100 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 100 ")
-			return
-		}
-		got := flatten(r)
-		want := "299"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5.10"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 101 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 101 ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 24 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 24 ")
-			return
-		}
-		got := flatten(r)
-		want := "276"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 25 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 25 ")
-			return
-		}
-		got := flatten(r)
-		want := "200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 26 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 26 ")
-			return
-		}
-		got := flatten(r)
-		want := "174"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 27 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 27 ")
-			return
-		}
-		got := flatten(r)
-		want := "173"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 73 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 73 ")
-			return
-		}
-		got := flatten(r)
-		want := "127"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.5"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 74 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 74 ")
-			return
-		}
-		got := flatten(r)
-		want := "100"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.6"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 75 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 75 ")
-			return
-		}
-		got := flatten(r)
-		want := "25"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.7"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 76 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 76 ")
-			return
-		}
-		got := flatten(r)
-		want := "24"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.8"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 99 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 99 ")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.9"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 100 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 100 ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6.10"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 101 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 101 ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 24 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 24 ")
-			return
-		}
-		got := flatten(r)
-		want := "277"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 25 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 25 ")
-			return
-		}
-		got := flatten(r)
-		want := "276"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 26 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 26 ")
-			return
-		}
-		got := flatten(r)
-		want := "200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 27 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 27 ")
-			return
-		}
-		got := flatten(r)
-		want := "174"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 73 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 73 ")
-			return
-		}
-		got := flatten(r)
-		want := "128"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.5"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 74 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 74 ")
-			return
-		}
-		got := flatten(r)
-		want := "127"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.6"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 75 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 75 ")
-			return
-		}
-		got := flatten(r)
-		want := "100"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.7"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 76 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 76 ")
-			return
-		}
-		got := flatten(r)
-		want := "25"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.8"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 99 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 99 ")
-			return
-		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.9"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 100 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 100 ")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7.10"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 101 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 101 ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	L := "9.223372036854776e+18"
-	S := "-9.223372036854776e+18"
-	{ // "3.8.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $S ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= $S ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.8.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  $S ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  $S ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.8.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= $S ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= $S ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.8.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  $S ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  $S ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.9.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $L ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= $L ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.9.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  $L ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  $L ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.9.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= $L ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= $L ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.9.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  $L ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  $L ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.1"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 25 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 25 ")
-			return
-		}
-		got := flatten(r)
-		want := "24"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.2"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 26 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 26 ")
-			return
-		}
-		got := flatten(r)
-		want := "100"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.3"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 27 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 27 ")
-			return
-		}
-		got := flatten(r)
-		want := "126"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.4"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 73 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 73 ")
-			return
-		}
-		got := flatten(r)
-		want := "172"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.5"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 74 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 74 ")
-			return
-		}
-		got := flatten(r)
-		want := "173"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.6"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 75 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 75 ")
-			return
-		}
-		got := flatten(r)
-		want := "200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.7"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 76 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 76 ")
-			return
-		}
-		got := flatten(r)
-		want := "275"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.8"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 99 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 99 ")
-			return
-		}
-		got := flatten(r)
-		want := "298"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.9"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 100 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 100 ")
-			return
-		}
-		got := flatten(r)
-		want := "299"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.10.10"
-		r = db.Query(" SELECT count(*) FROM uu WHERE a < 101 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 101 ")
-			return
-		}
-		got := flatten(r)
-		want := "300"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES($S, 'one');\n  INSERT INTO s1 VALUES($S+1, 'two');\n  INSERT INTO s1 VALUES($S+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES($L, 'six');\n  INSERT INTO l1 VALUES($L-1, 'five');\n  INSERT INTO l1 VALUES($L-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES($S, 'one');\n  INSERT INTO s1 VALUES($S+1, 'two');\n  INSERT INTO s1 VALUES($S+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES($L, 'six');\n  INSERT INTO l1 VALUES($L-1, 'five');\n  INSERT INTO l1 VALUES($L-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
-		}
-	}
-	{ // "4.1"
-		r = db.Query("\n  SELECT * FROM sl;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// foreach {k v} "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-	_items := []string{"\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	k := _items[_idx+0]
-	v := _items[_idx+1]
-		{ // "4.2." + v
-			r = db.Query(" SELECT * FROM sl WHERE rowid=$k ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sl WHERE rowid=$k ")
-				return
+			{ // "2.7.1"
+				_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments for unionvtab") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments for unionvtab", _res.Error, "\n  CREATE VIRTUAL TABLE temp.b1 USING unionvtab(1, 2, 3, 4)\n")
+				}
 			}
-			got := flatten(r)
-			want := "list $k $v"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+			{ // "3.0"
+				_res = db.Exec("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
+				}
 			}
-		}
-	}
-	}
-	{ // "4.3.1"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid>-9223372036854775808\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>-9223372036854775808\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.3.2"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid>=-9223372036854775808\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>=-9223372036854775808\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.3.3"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid<=-9223372036854775808\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<=-9223372036854775808\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  -9223372036854775808 one\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.3.4"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid<-9223372036854775808\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<-9223372036854775808\n")
-		}
-	}
-	{ // "4.4.1"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid<9223372036854775807\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<9223372036854775807\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.4.2"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid<=9223372036854775807\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<=9223372036854775807\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.4.3"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid>=9223372036854775807\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>=9223372036854775807\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  9223372036854775807 six\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.4.4"
-		r = db.Query("\n  SELECT * FROM sl WHERE rowid>9223372036854775807\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>9223372036854775807\n")
-		}
-	}
-	{ // "5.0"
-		r = db.Query("\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab([\n    SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0\n  ]);\n\n  SELECT sum(two) FROM cc;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab([\n    SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0\n  ]);\n\n  SELECT sum(two) FROM cc;\n")
-			return
-		}
-		got := flatten(r)
-		want := "45"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT one FROM cc WHERE one>='seven'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT one FROM cc WHERE one>='seven'\n")
-			return
-		}
-		got := flatten(r)
-		want := "zero two three six seven"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.2"
-		r = db.Query("\n  SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid>5\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid>5\n")
-			return
-		}
-		got := flatten(r)
-		want := "six seven eight nine"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.3"
-		r = db.Query("\n  SELECT cc.one FROM c4, cc WHERE cc.rowid>c4.rowid\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cc.one FROM c4, cc WHERE cc.rowid>c4.rowid\n")
-			return
-		}
-		got := flatten(r)
-		want := "five six seven eight nine"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.4"
-		r = db.Query("\n  SELECT * FROM cc WHERE two LIKE '6'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM cc WHERE two LIKE '6'\n")
-			return
-		}
-		got := flatten(r)
-		want := "six 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.xyz") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.xyz", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
-		}
-	}
-	{ // "6.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
-		}
-	}
+			{ // "3.1"
+				r = db.Query("\n  SELECT * FROM uu WHERE rowid = 10;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM uu WHERE rowid = 10;\n")
+					return
+				}
+				got := flatten(r)
+				want := "10 {1.10}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.2"
+				r = db.Query("\n  SELECT * FROM uu WHERE rowid = 25;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM uu WHERE rowid = 25;\n")
+					return
+				}
+				got := flatten(r)
+				want := "25 {1.25}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 24 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 24 ")
+					return
+				}
+				got := flatten(r)
+				want := "24"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 25 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 25 ")
+					return
+				}
+				got := flatten(r)
+				want := "100"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 26 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 26 ")
+					return
+				}
+				got := flatten(r)
+				want := "126"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 73 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 73 ")
+					return
+				}
+				got := flatten(r)
+				want := "173"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 74 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 74 ")
+					return
+				}
+				got := flatten(r)
+				want := "200"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.5"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 75 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 75 ")
+					return
+				}
+				got := flatten(r)
+				want := "275"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.6"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 99 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 99 ")
+					return
+				}
+				got := flatten(r)
+				want := "299"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.7"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 100 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 100 ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.4.8"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= 101 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= 101 ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 25 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 25 ")
+					return
+				}
+				got := flatten(r)
+				want := "24"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 26 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 26 ")
+					return
+				}
+				got := flatten(r)
+				want := "100"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 27 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 27 ")
+					return
+				}
+				got := flatten(r)
+				want := "126"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 73 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 73 ")
+					return
+				}
+				got := flatten(r)
+				want := "172"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.5"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 74 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 74 ")
+					return
+				}
+				got := flatten(r)
+				want := "173"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.6"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 75 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 75 ")
+					return
+				}
+				got := flatten(r)
+				want := "200"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.7"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 76 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 76 ")
+					return
+				}
+				got := flatten(r)
+				want := "275"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.8"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 99 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 99 ")
+					return
+				}
+				got := flatten(r)
+				want := "298"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.9"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 100 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 100 ")
+					return
+				}
+				got := flatten(r)
+				want := "299"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.5.10"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid < 101 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid < 101 ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 24 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 24 ")
+					return
+				}
+				got := flatten(r)
+				want := "276"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 25 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 25 ")
+					return
+				}
+				got := flatten(r)
+				want := "200"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 26 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 26 ")
+					return
+				}
+				got := flatten(r)
+				want := "174"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 27 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 27 ")
+					return
+				}
+				got := flatten(r)
+				want := "173"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 73 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 73 ")
+					return
+				}
+				got := flatten(r)
+				want := "127"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.5"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 74 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 74 ")
+					return
+				}
+				got := flatten(r)
+				want := "100"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.6"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 75 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 75 ")
+					return
+				}
+				got := flatten(r)
+				want := "25"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.7"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 76 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 76 ")
+					return
+				}
+				got := flatten(r)
+				want := "24"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.8"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 99 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 99 ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.9"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 100 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 100 ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.6.10"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid > 101 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid > 101 ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 24 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 24 ")
+					return
+				}
+				got := flatten(r)
+				want := "277"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 25 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 25 ")
+					return
+				}
+				got := flatten(r)
+				want := "276"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 26 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 26 ")
+					return
+				}
+				got := flatten(r)
+				want := "200"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 27 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 27 ")
+					return
+				}
+				got := flatten(r)
+				want := "174"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 73 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 73 ")
+					return
+				}
+				got := flatten(r)
+				want := "128"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.5"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 74 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 74 ")
+					return
+				}
+				got := flatten(r)
+				want := "127"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.6"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 75 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 75 ")
+					return
+				}
+				got := flatten(r)
+				want := "100"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.7"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 76 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 76 ")
+					return
+				}
+				got := flatten(r)
+				want := "25"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.8"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 99 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 99 ")
+					return
+				}
+				got := flatten(r)
+				want := "2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.9"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 100 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 100 ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.7.10"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= 101 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= 101 ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			L := "9.223372036854776e+18"
+			S := "-9.223372036854776e+18"
+			{ // "3.8.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $S ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= $S ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.8.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  $S ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  $S ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.8.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= $S ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= $S ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.8.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  $S ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  $S ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.9.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $L ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >= $L ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.9.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >  $L ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid >  $L ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.9.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <= $L ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <= $L ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.9.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE rowid <  $L ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE rowid <  $L ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.1"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 25 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 25 ")
+					return
+				}
+				got := flatten(r)
+				want := "24"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.2"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 26 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 26 ")
+					return
+				}
+				got := flatten(r)
+				want := "100"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.3"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 27 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 27 ")
+					return
+				}
+				got := flatten(r)
+				want := "126"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.4"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 73 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 73 ")
+					return
+				}
+				got := flatten(r)
+				want := "172"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.5"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 74 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 74 ")
+					return
+				}
+				got := flatten(r)
+				want := "173"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.6"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 75 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 75 ")
+					return
+				}
+				got := flatten(r)
+				want := "200"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.7"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 76 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 76 ")
+					return
+				}
+				got := flatten(r)
+				want := "275"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.8"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 99 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 99 ")
+					return
+				}
+				got := flatten(r)
+				want := "298"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.9"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 100 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 100 ")
+					return
+				}
+				got := flatten(r)
+				want := "299"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3.10.10"
+				r = db.Query(" SELECT count(*) FROM uu WHERE a < 101 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM uu WHERE a < 101 ")
+					return
+				}
+				got := flatten(r)
+				want := "300"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4.0"
+				_res = db.Exec("\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES($S, 'one');\n  INSERT INTO s1 VALUES($S+1, 'two');\n  INSERT INTO s1 VALUES($S+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES($L, 'six');\n  INSERT INTO l1 VALUES($L-1, 'five');\n  INSERT INTO l1 VALUES($L-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO s1 VALUES($S, 'one');\n  INSERT INTO s1 VALUES($S+1, 'two');\n  INSERT INTO s1 VALUES($S+2, 'three');\n\n  CREATE TABLE l1(k INTEGER PRIMARY KEY, v);\n  INSERT INTO l1 VALUES($L, 'six');\n  INSERT INTO l1 VALUES($L-1, 'five');\n  INSERT INTO l1 VALUES($L-2, 'four');\n\n  CREATE VIRTUAL TABLE temp.sl USING unionvtab(\n    \"SELECT NULL, 'l1', 0, 9223372036854775807\n     UNION ALL\n     SELECT NULL, 's1', -9223372036854775808, -1\"\n  );\n")
+				}
+			}
+			{ // "4.1"
+				r = db.Query("\n  SELECT * FROM sl;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl;\n")
+					return
+				}
+				got := flatten(r)
+				want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// foreach {k v} "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+			_items := tclSplitList("\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				k := _items[_idx+0]
+				v := _items[_idx+1]
+				_ = _idx
+					{ // "4.2." + v
+						r = db.Query(" SELECT * FROM sl WHERE rowid=$k ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM sl WHERE rowid=$k ")
+							return
+						}
+						got := flatten(r)
+						want := "list $k $v"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+				{ // "4.3.1"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid>-9223372036854775808\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>-9223372036854775808\n")
+						return
+					}
+					got := flatten(r)
+					want := "\n  -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.3.2"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid>=-9223372036854775808\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>=-9223372036854775808\n")
+						return
+					}
+					got := flatten(r)
+					want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.3.3"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid<=-9223372036854775808\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<=-9223372036854775808\n")
+						return
+					}
+					got := flatten(r)
+					want := "\n  -9223372036854775808 one\n"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.3.4"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid<-9223372036854775808\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<-9223372036854775808\n")
+					}
+				}
+				{ // "4.4.1"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid<9223372036854775807\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<9223372036854775807\n")
+						return
+					}
+					got := flatten(r)
+					want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five\n"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.4.2"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid<=9223372036854775807\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid<=9223372036854775807\n")
+						return
+					}
+					got := flatten(r)
+					want := "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.4.3"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid>=9223372036854775807\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>=9223372036854775807\n")
+						return
+					}
+					got := flatten(r)
+					want := "\n  9223372036854775807 six\n"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "4.4.4"
+					r = db.Query("\n  SELECT * FROM sl WHERE rowid>9223372036854775807\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM sl WHERE rowid>9223372036854775807\n")
+					}
+				}
+				{ // "5.0"
+					r = db.Query("\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab([\n    SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0\n  ]);\n\n  SELECT sum(two) FROM cc;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE c0(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c1(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c2(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c3(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c4(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c5(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c6(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c7(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c8(one, two INTEGER PRIMARY KEY);\n  CREATE TABLE c9(one, two INTEGER PRIMARY KEY);\n\n  INSERT INTO c0 VALUES('zero', 0);\n  INSERT INTO c1 VALUES('one', 1);\n  INSERT INTO c2 VALUES('two', 2);\n  INSERT INTO c3 VALUES('three', 3);\n  INSERT INTO c4 VALUES('four', 4);\n  INSERT INTO c5 VALUES('five', 5);\n  INSERT INTO c6 VALUES('six', 6);\n  INSERT INTO c7 VALUES('seven', 7);\n  INSERT INTO c8 VALUES('eight', 8);\n  INSERT INTO c9 VALUES('nine', 9);\n\n  CREATE VIRTUAL TABLE temp.cc USING unionvtab([\n    SELECT 'main', 'c9', 9, 9 UNION ALL\n    SELECT 'main', 'c8', 8, 8 UNION ALL\n    SELECT 'main', 'c7', 7, 7 UNION ALL\n    SELECT 'main', 'c6', 6, 6 UNION ALL\n    SELECT 'main', 'c5', 5, 5 UNION ALL\n    SELECT 'main', 'c4', 4, 4 UNION ALL\n    SELECT 'main', 'c3', 3, 3 UNION ALL\n    SELECT 'main', 'c2', 2, 2 UNION ALL\n    SELECT 'main', 'c1', 1, 1 UNION ALL\n    SELECT 'main', 'c0', 0, 0\n  ]);\n\n  SELECT sum(two) FROM cc;\n")
+						return
+					}
+					got := flatten(r)
+					want := "45"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5.1"
+					r = db.Query("\n  SELECT one FROM cc WHERE one>='seven'\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT one FROM cc WHERE one>='seven'\n")
+						return
+					}
+					got := flatten(r)
+					want := "zero two three six seven"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5.2"
+					r = db.Query("\n  SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid>5\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y.one FROM cc AS x, cc AS y WHERE x.one=y.one AND x.rowid>5\n")
+						return
+					}
+					got := flatten(r)
+					want := "six seven eight nine"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5.3"
+					r = db.Query("\n  SELECT cc.one FROM c4, cc WHERE cc.rowid>c4.rowid\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cc.one FROM c4, cc WHERE cc.rowid>c4.rowid\n")
+						return
+					}
+					got := flatten(r)
+					want := "five six seven eight nine"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5.4"
+					r = db.Query("\n  SELECT * FROM cc WHERE two LIKE '6'\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM cc WHERE two LIKE '6'\n")
+						return
+					}
+					got := flatten(r)
+					want := "six 6"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+				{ // "6.0"
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.xyz") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.xyz", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
+					}
+				}
+				{ // "6.1"
+					_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such rowid table: main.", _res.Error, "\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', NULL, 1, 2');\n")
+					}
+				}
 }

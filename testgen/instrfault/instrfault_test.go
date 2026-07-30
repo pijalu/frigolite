@@ -23,7 +23,7 @@ func Test_instrfault(t *testing.T) {
 	_ = _NEEDLE // suppress unused warning
 	var _HAYSTACK = "123 10" + NEEDLE + "456 10" // TCL namespace variable
 	_ = _HAYSTACK // suppress unused warning
-	for _, enc := range []string{"\n  utf8\n  utf16\n"} {
+	for _, enc := range tclSplitList("\n  utf8\n  utf16\n") {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

@@ -17,7 +17,7 @@ func Test_numcast(t *testing.T) {
 	var r *frigolite.Result
 
 	// set testdir: test directory (not used in Go test context)
-	for _, enc := range []string{"utf8 utf16le utf16be"} {
+	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
 		{ // do_test "numcast-" + enc + ".0"
 			db, err := frigolite.Open(":memory:")
 			defer db.Close()
@@ -31,25 +31,25 @@ func Test_numcast(t *testing.T) {
 			// string map {- {}} [string tolower $x]
 		}
 		// foreach {idx str rval ival} "\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  "
-		_items := []string{"\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  "}
+		_items := tclSplitList("\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  ")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		idx := _items[_idx+0]
-		str := _items[_idx+1]
-		rval := _items[_idx+2]
-		ival := _items[_idx+3]
-			{ // do_test "numcast-" + enc + "." + idx + ".1"
-				_res = db.Exec("SELECT CAST($str AS real)")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST($str AS real)")
+			idx := _items[_idx+0]
+			str := _items[_idx+1]
+			rval := _items[_idx+2]
+			ival := _items[_idx+3]
+			_ = _idx
+				{ // do_test "numcast-" + enc + "." + idx + ".1"
+					_res = db.Exec("SELECT CAST($str AS real)")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST($str AS real)")
+					}
 				}
-			}
-			{ // do_test "numcast-" + enc + "." + idx + ".2"
-				_res = db.Exec("SELECT CAST($str AS integer)")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST($str AS integer)")
+				{ // do_test "numcast-" + enc + "." + idx + ".2"
+					_res = db.Exec("SELECT CAST($str AS integer)")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST($str AS integer)")
+					}
 				}
 			}
 		}
-		}
-	}
 }

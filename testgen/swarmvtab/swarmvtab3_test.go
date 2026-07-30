@@ -63,109 +63,61 @@ func Test_swarmvtab3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn nMaxOpen cvt} "\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n"
-	_items := []string{"\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n"}
+	_items := tclSplitList("\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	nMaxOpen := _items[_idx+1]
-	cvt := _items[_idx+2]
+		tn := _items[_idx+0]
+		nMaxOpen := _items[_idx+1]
+		cvt := _items[_idx+2]
+		_ = _idx
+			_res = db.Exec(" DROP TABLE IF EXISTS s ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
+			}
+			{ // "1." + tn + ".1"
+				_res = db.Exec(cvt)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, cvt)
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    SELECT b FROM s WHERE a<10;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE a<10;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0 1 2 3 4 5 6 7 8 9"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "1." + tn + ".3"
+				t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+			}
+			{ // "1." + tn + ".4"
+				r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0 10 20 30 40 50 60 70 80 90"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "1." + tn + ".5"
+				t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+			}
+		}
 		_res = db.Exec(" DROP TABLE IF EXISTS s ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
 		}
-		{ // "1." + tn + ".1"
-			_res = db.Exec(cvt)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, cvt)
-			}
-		}
-		{ // "1." + tn + ".2"
-			r = db.Query("\n    SELECT b FROM s WHERE a<10;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE a<10;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "0 1 2 3 4 5 6 7 8 9"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // do_test "1." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
-		}
-		{ // "1." + tn + ".4"
-			r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "0 10 20 30 40 50 60 70 80 90"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // do_test "1." + tn + ".5"
-			t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
-		}
-	}
-	}
-	_res = db.Exec(" DROP TABLE IF EXISTS s ")
-	if _res.Error != nil {
-		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		os.Remove("remote_test.db" + i)
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	{ // "2.0"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);\n")
-		}
-	}
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
-	{ // do_test "2.1"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			for true {
-				ctx := "0"
-				if tclBool("info exists ctx_used($ctx)" + "==0") {
-				}
-			}
-			var ctx_used_$ctx = "1"
-			_ = ctx_used_$ctx // suppress unused warning
-			var file = "test_remote.db" + ctx
-			_ = file // suppress unused warning
-			os.Remove(file)
-			os.Remove("test.db" + i)
-			rrr, err := frigolite.Open(file)
-			defer rrr.Close()
-			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "rrr close")
-			_res = db.Exec("\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
-			}
-			var _dbcache_test_db$i = "0" // TCL namespace variable
-			_ = _dbcache_test_db$i // suppress unused warning
+			os.Remove("remote_test.db" + i)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -174,58 +126,106 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 			}
 		}
-	}
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
-	// foreach {tn nMaxOpen cvt} "\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n"
-	_items := []string{"\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	nMaxOpen := _items[_idx+1]
-	cvt := _items[_idx+2]
-		_res = db.Exec(" DROP TABLE IF EXISTS s ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
-		}
-		{ // "3." + tn + ".1"
-			_res = db.Exec(cvt)
+		{ // "2.0"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, cvt)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS swarm;\n  CREATE TEMP TABLE swarm(file, tbl, minval, maxval, ctx);\n")
 			}
 		}
-		{ // "3." + tn + ".2"
-			r = db.Query("\n    SELECT b FROM s WHERE a<10;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE a<10;\n  ")
-				return
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		{ // do_test "2.1"
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
 			}
-			got := flatten(r)
-			want := "0 1 2 3 4 5 6 7 8 9"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+				for true {
+					ctx := "0"
+					if tclBool("info exists ctx_used($ctx)" + "==0") {
+					}
+				}
+				var ctx_used_$ctx = "1"
+				_ = ctx_used_$ctx // suppress unused warning
+				var file = "test_remote.db" + ctx
+				_ = file // suppress unused warning
+				os.Remove(file)
+				os.Remove("test.db" + i)
+				rrr, err := frigolite.Open(file)
+				defer rrr.Close()
+				if err != nil { t.Fatal(err) }
+				t.Skipf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "rrr close")
+				_res = db.Exec("\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
+				}
+				var _dbcache_test_db$i = "0" // TCL namespace variable
+				_ = _dbcache_test_db$i // suppress unused warning
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
 			}
 		}
-		{ // do_test "3." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
-		}
-		{ // "3." + tn + ".4"
-			r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
-				return
+		// proc definition (not transpiled)
+		// proc definition (not transpiled)
+		// proc definition (not transpiled)
+		// foreach {tn nMaxOpen cvt} "\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n"
+		_items := tclSplitList("\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			nMaxOpen := _items[_idx+1]
+			cvt := _items[_idx+2]
+			_ = _idx
+				_res = db.Exec(" DROP TABLE IF EXISTS s ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
+				}
+				{ // "3." + tn + ".1"
+					_res = db.Exec(cvt)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, cvt)
+					}
+				}
+				{ // "3." + tn + ".2"
+					r = db.Query("\n    SELECT b FROM s WHERE a<10;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE a<10;\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "0 1 2 3 4 5 6 7 8 9"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "3." + tn + ".3"
+					t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+				}
+				{ // "3." + tn + ".4"
+					r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "0 10 20 30 40 50 60 70 80 90"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // do_test "3." + tn + ".5"
+					t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+				}
 			}
-			got := flatten(r)
-			want := "0 10 20 30 40 50 60 70 80 90"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // do_test "3." + tn + ".5"
-			t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
-		}
-	}
-	}
-	os.Remove("*")
-	os.Remove("*")
+			os.Remove("*")
+			os.Remove("*")
 }

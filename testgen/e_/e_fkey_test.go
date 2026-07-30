@@ -351,1270 +351,1270 @@ func Test_e_fkey(t *testing.T) {
 		}
 	}
 	// foreach {tn tbl ptbl err} "\n  2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"\n"
-	_items := []string{"\n  2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"\n"}
+	_items := tclSplitList("\n  2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	tbl := _items[_idx+1]
-	ptbl := _items[_idx+2]
-	err := _items[_idx+3]
-		{ // do_test "e_fkey-20." + tn + ".1"
-			_res = db.Exec("INSERT INTO " + tbl + " VALUES('a', 'b')")
-			_ = _res // catchsql
-		}
-		{ // do_test "e_fkey-20." + tn + ".2"
-			_res = db.Exec("UPDATE " + tbl + " SET c = ?, d = ?")
-			_ = _res // catchsql
-		}
-		{ // do_test "e_fkey-20." + tn + ".3"
-			_res = db.Exec("INSERT INTO " + tbl + " SELECT ?, ?")
-			_ = _res // catchsql
-		}
-		if ptbl != "" {
-			{ // do_test "e_fkey-20." + tn + ".4"
-				_res = db.Exec("DELETE FROM " + ptbl)
+		tn := _items[_idx+0]
+		tbl := _items[_idx+1]
+		ptbl := _items[_idx+2]
+		err := _items[_idx+3]
+		_ = _idx
+			{ // do_test "e_fkey-20." + tn + ".1"
+				_res = db.Exec("INSERT INTO " + tbl + " VALUES('a', 'b')")
 				_ = _res // catchsql
 			}
-			{ // do_test "e_fkey-20." + tn + ".5"
-				_res = db.Exec("UPDATE " + ptbl + " SET a = ?, b = ?")
+			{ // do_test "e_fkey-20." + tn + ".2"
+				_res = db.Exec("UPDATE " + tbl + " SET c = ?, d = ?")
 				_ = _res // catchsql
 			}
-			{ // do_test "e_fkey-20." + tn + ".6"
-				_res = db.Exec("INSERT INTO " + ptbl + " SELECT ?, ?")
+			{ // do_test "e_fkey-20." + tn + ".3"
+				_res = db.Exec("INSERT INTO " + tbl + " SELECT ?, ?")
 				_ = _res // catchsql
 			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-21.1"
-		_res = db.Exec("\n    CREATE TABLE parent2(a, b, PRIMARY KEY(a,b));\n\n    CREATE TABLE child8(x, y, FOREIGN KEY(x,y) REFERENCES parent2);     -- Ok\n    CREATE TABLE child9(x REFERENCES parent2);                          -- Err\n    CREATE TABLE child10(x,y,z, FOREIGN KEY(x,y,z) REFERENCES parent2); -- Err\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent2(a, b, PRIMARY KEY(a,b));\n\n    CREATE TABLE child8(x, y, FOREIGN KEY(x,y) REFERENCES parent2);     -- Ok\n    CREATE TABLE child9(x REFERENCES parent2);                          -- Err\n    CREATE TABLE child10(x,y,z, FOREIGN KEY(x,y,z) REFERENCES parent2); -- Err\n  ")
-		}
-	}
-	{ // do_test "e_fkey-21.2"
-		_res = db.Exec("\n    INSERT INTO parent2 VALUES('I', 'II');\n    INSERT INTO child8 VALUES('I', 'II');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO parent2 VALUES('I', 'II');\n    INSERT INTO child8 VALUES('I', 'II');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-21.3"
-		_res = db.Exec(" INSERT INTO child9 VALUES('I') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-21.4"
-		_res = db.Exec(" INSERT INTO child9 VALUES('II') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-21.5"
-		_res = db.Exec(" INSERT INTO child9 VALUES(NULL) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-21.6"
-		_res = db.Exec(" INSERT INTO child10 VALUES('I', 'II', 'III') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-21.7"
-		_res = db.Exec(" INSERT INTO child10 VALUES(1, 2, 3) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-21.8"
-		_res = db.Exec(" INSERT INTO child10 VALUES(NULL, NULL, NULL) ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	for _, fk := range []string{"list OFF ON"} {
-		r = db.Query("PRAGMA foreign_keys = " + fk)
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = " + fk)
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		// foreach {sql error} "\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  "
-		_items := []string{"\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		sql := _items[_idx+0]
-		error := _items[_idx+1]
-			{ // do_test "e_fkey-22." + fk + "." + "incr i"
-				_res = db.Exec(sql)
-				_ = _res // catchsql
+			if ptbl != "" {
+				{ // do_test "e_fkey-20." + tn + ".4"
+					_res = db.Exec("DELETE FROM " + ptbl)
+					_ = _res // catchsql
+				}
+				{ // do_test "e_fkey-20." + tn + ".5"
+					_res = db.Exec("UPDATE " + ptbl + " SET a = ?, b = ?")
+					_ = _res // catchsql
+				}
+				{ // do_test "e_fkey-20." + tn + ".6"
+					_res = db.Exec("INSERT INTO " + ptbl + " SELECT ?, ?")
+					_ = _res // catchsql
+				}
 			}
 		}
-		}
-	}
-	{ // do_test "e_fkey-23.1"
-		_res = db.Exec("\n    CREATE TABLE p1(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE p2(a, b PRIMARY KEY);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p1);\n    CREATE TABLE c2(a, b REFERENCES p2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p1(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE p2(a, b PRIMARY KEY);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p1);\n    CREATE TABLE c2(a, b REFERENCES p2);\n  ")
-		}
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 2 1 INSERT INTO c1 VALUES(239, 231)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 3 0 INSERT INTO p1 VALUES(239, 231)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 4 0 INSERT INTO c1 VALUES(239, 231)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 5 1 INSERT INTO c2 VALUES(239, 231)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 6 0 INSERT INTO p2 VALUES(239, 231)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 7 0 INSERT INTO c2 VALUES(239, 231)")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-24.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x, y, UNIQUE(y, x));\n    CREATE TABLE c1(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c2(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c3(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX c2i ON c2(a, b);\n    CREATE UNIQUE INDEX c3i ON c2(b, a);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x, y, UNIQUE(y, x));\n    CREATE TABLE c1(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c2(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c3(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX c2i ON c2(a, b);\n    CREATE UNIQUE INDEX c3i ON c2(b, a);\n  ")
-		}
-	}
-	// proc definition (not transpiled)
-	// foreach {tn c} "list 2 c1 3 c2 4 c3"
-	_items := []string{"list 2 c1 3 c2 4 c3"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	c := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.1 1 INSERT INTO $c VALUES(1, 2)")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.2 0 INSERT INTO parent VALUES(1, 2)")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.3 0 INSERT INTO $c VALUES(1, 2)")
-		_res = db.Exec("DELETE FROM " + c + " ; DELETE FROM parent")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + c + " ; DELETE FROM parent")
-		}
-	}
-	}
-	{ // do_test "e_fkey-25.1"
-		_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-25.2 {\n  PRAGMA foreign_keys = OFF;\n  EXPLAIN QUERY PLAN...} {\n  {SCAN artist} \n  {SCAN track}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-25.3 {\n  PRAGMA foreign_keys = ON;\n  EXPLAIN QUERY PLAN ...} {\n  {SCAN artist} \n  {SCAN track}\n}")
-	{ // do_test "e_fkey-25.4"
-		_res = db.Exec("\n    INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-25.5"
-		_r := tclList(append([]string{}, tclSplitList("execsql { SELECT rowid FROM track WHERE trackartist = 5 }")..., tclSplitList("catchsql { DELETE FROM artist WHERE artistid = 5 }")...))
-		_ = _r
-	}
-	{ // do_test "e_fkey-25.6"
-		_r := tclList(append([]string{}, tclSplitList("execsql { SELECT rowid FROM track WHERE trackartist = 7 }")..., tclSplitList("catchsql { DELETE FROM artist WHERE artistid = 7 }")...))
-		_ = _r
-	}
-	{ // do_test "e_fkey-25.7"
-		_r := tclList(append([]string{}, tclSplitList("execsql { SELECT rowid FROM track WHERE trackartist = 6 }")..., tclSplitList("catchsql { DELETE FROM artist WHERE artistid = 6 }")...))
-		_ = _r
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-26.1"
-		_res = db.Exec(" CREATE TABLE parent(x, y, UNIQUE(y, x)) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE parent(x, y, UNIQUE(y, x)) ")
-		}
-	}
-	// foreach {tn sql} "\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n"
-	_items := []string{"\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		r = db.Query("PRAGMA foreign_keys = OFF")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = OFF")
-		}
-		var delete = "concat \\\n      [eqp \"DELETE FROM parent WHERE 1\"] \\\n      [eqp \"SELECT rowid FROM child WHERE a = ? AND b = ?\"]"
-		_ = delete // suppress unused warning
-		var update = "concat \\\n      [eqp \"UPDATE parent SET x=?, y=?\"] \\\n      [eqp \"SELECT rowid FROM child WHERE a = ? AND b = ?\"] \\\n      [eqp \"SELECT rowid FROM child WHERE a = ? AND b = ?\"]"
-		_ = update // suppress unused warning
-		r = db.Query("PRAGMA foreign_keys = ON")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = ON")
-		}
-		{ // do_test "e_fkey-26." + tn + ".1"
-			t.Skipf("TODO: %s not implemented in frigolite", "eqp DELETE FROM parent WHERE 1")
-		}
-		{ // do_test "e_fkey-26." + tn + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "eqp UPDATE parent set x=?, y=?")
-		}
-		_res = db.Exec("DROP TABLE child")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE child")
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-27.1"
-		_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-27.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp { INSERT INTO artist VALUES(?, ?) }")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-27.3 {\n  EXPLAIN QUERY PLAN UPDATE artist SET artistid =...} {\n  {SCAN artist} \n  {SEARCH track USING COVERING I...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-27.4 {\n  EXPLAIN QUERY PLAN DELETE FROM artist\n} {\n  {SCAN artist} \n  {SEARCH track USING COVERING I...}")
-	// foreach {tn sql err} "\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n"
-	_items := []string{"\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	err := _items[_idx+2]
 		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "e_fkey-28." + tn
-			_res = db.Exec("list catchsql $sql")
+		{ // do_test "e_fkey-21.1"
+			_res = db.Exec("\n    CREATE TABLE parent2(a, b, PRIMARY KEY(a,b));\n\n    CREATE TABLE child8(x, y, FOREIGN KEY(x,y) REFERENCES parent2);     -- Ok\n    CREATE TABLE child9(x REFERENCES parent2);                          -- Err\n    CREATE TABLE child10(x,y,z, FOREIGN KEY(x,y,z) REFERENCES parent2); -- Err\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list catchsql $sql")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent2(a, b, PRIMARY KEY(a,b));\n\n    CREATE TABLE child8(x, y, FOREIGN KEY(x,y) REFERENCES parent2);     -- Ok\n    CREATE TABLE child9(x REFERENCES parent2);                          -- Err\n    CREATE TABLE child10(x,y,z, FOREIGN KEY(x,y,z) REFERENCES parent2); -- Err\n  ")
 			}
 		}
-	}
-	}
-	{ // do_test "e_fkey-28.8"
+		{ // do_test "e_fkey-21.2"
+			_res = db.Exec("\n    INSERT INTO parent2 VALUES('I', 'II');\n    INSERT INTO child8 VALUES('I', 'II');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO parent2 VALUES('I', 'II');\n    INSERT INTO child8 VALUES('I', 'II');\n  ")
+			}
+		}
+		{ // do_test "e_fkey-21.3"
+			_res = db.Exec(" INSERT INTO child9 VALUES('I') ")
+			_ = _res // catchsql
+		}
+		{ // do_test "e_fkey-21.4"
+			_res = db.Exec(" INSERT INTO child9 VALUES('II') ")
+			_ = _res // catchsql
+		}
+		{ // do_test "e_fkey-21.5"
+			_res = db.Exec(" INSERT INTO child9 VALUES(NULL) ")
+			_ = _res // catchsql
+		}
+		{ // do_test "e_fkey-21.6"
+			_res = db.Exec(" INSERT INTO child10 VALUES('I', 'II', 'III') ")
+			_ = _res // catchsql
+		}
+		{ // do_test "e_fkey-21.7"
+			_res = db.Exec(" INSERT INTO child10 VALUES(1, 2, 3) ")
+			_ = _res // catchsql
+		}
+		{ // do_test "e_fkey-21.8"
+			_res = db.Exec(" INSERT INTO child10 VALUES(NULL, NULL, NULL) ")
+			_ = _res // catchsql
+		}
 		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);\n  ")
-		}
-		_res = db.Exec("DELETE FROM p")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-28.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);\n  ")
-		}
-		_res = db.Exec("DELETE FROM p")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-29.1"
-		_res = db.Exec("\n    CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songalbum) REFERENCES album(albumartist,albumname)\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songalbum) REFERENCES album(albumartist,albumname)\n    );\n  ")
-		}
-	}
-	{ // do_test "e_fkey-29.2"
-		_res = db.Exec("\n    INSERT INTO album VALUES('Elvis Presley', 'Elvis'' Christmas Album', NULL);\n    INSERT INTO song VALUES(\n      1, 'Elvis Presley', 'Elvis'' Christmas Album', 'Here Comes Santa Clause'\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO album VALUES('Elvis Presley', 'Elvis'' Christmas Album', NULL);\n    INSERT INTO song VALUES(\n      1, 'Elvis Presley', 'Elvis'' Christmas Album', 'Here Comes Santa Clause'\n    );\n  ")
-		}
-	}
-	{ // do_test "e_fkey-29.3"
-		_res = db.Exec("\n    INSERT INTO song VALUES(2, 'Elvis Presley', 'Elvis Is Back!', 'Fever');\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-30.1"
-		_res = db.Exec("\n    INSERT INTO song VALUES(2, 'Elvis Presley', NULL, 'Fever');\n    INSERT INTO song VALUES(3, NULL, 'Elvis Is Back', 'Soldier Boy');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO song VALUES(2, 'Elvis Presley', NULL, 'Fever');\n    INSERT INTO song VALUES(3, NULL, 'Elvis Is Back', 'Soldier Boy');\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-31.1"
-		_res = db.Exec("\n    CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-31.2"
-		_res = db.Exec(" INSERT INTO prince VALUES(1, 2) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-31.3"
-		_res = db.Exec("\n    CREATE TRIGGER kt AFTER INSERT ON prince WHEN\n      NOT EXISTS (SELECT a FROM king WHERE a = new.c)\n    BEGIN\n      INSERT INTO king VALUES(new.c, NULL);\n    END\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER kt AFTER INSERT ON prince WHEN\n      NOT EXISTS (SELECT a FROM king WHERE a = new.c)\n    BEGIN\n      INSERT INTO king VALUES(new.c, NULL);\n    END\n  ")
-		}
-		_res = db.Exec(" INSERT INTO prince VALUES(1, 2) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO prince VALUES(1, 2) ")
-		}
-	}
-	{ // do_test "e_fkey-31.4"
-		_res = db.Exec("\n    BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;\n  ")
-		}
-		_res = db.Exec(" INSERT INTO prince VALUES(3, 4) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-31.5"
-		r = db.Query("\n    COMMIT;\n    SELECT * FROM king;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM king;\n  ")
-		}
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 1 0 {\n  CREATE TABLE ll(k PRIMARY KEY);\n  CREATE TABLE ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 2 0 BEGIN")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 3 0 INSERT INTO kk VALUES(5)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 4 0 INSERT INTO kk VALUES(10)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 5 1 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 6 0 INSERT INTO ll VALUES(10)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 7 1 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 8 0 INSERT INTO ll VALUES(5)")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 9 0 COMMIT")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	// proc definition (not transpiled)
-	{ // do_test "e_fkey-33.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x, y);\n    CREATE UNIQUE INDEX pi ON parent(x, y);\n    CREATE TABLE child(a, b,\n      FOREIGN KEY(a, b) REFERENCES parent(x, y) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x, y);\n    CREATE UNIQUE INDEX pi ON parent(x, y);\n    CREATE TABLE child(a, b,\n      FOREIGN KEY(a, b) REFERENCES parent(x, y) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_35 2 1 INSERT INTO child  VALUES('x', 'y')")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_35 3 0 INSERT INTO parent VALUES('x', 'y')")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_35 4 0 INSERT INTO child  VALUES('x', 'y')")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-34.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x, y, z, PRIMARY KEY(x,y,z));\n    CREATE TABLE c1(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c2(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c3(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE\n    );\n    CREATE TABLE c4(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c5(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE\n    );\n    CREATE TABLE c6(a, b, c, FOREIGN KEY(a, b, c) REFERENCES parent);\n\n    -- This FK constraint is the only deferrable one.\n    CREATE TABLE c7(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('a', 'b', 'c');\n    INSERT INTO parent VALUES('d', 'e', 'f');\n    INSERT INTO parent VALUES('g', 'h', 'i');\n    INSERT INTO parent VALUES('j', 'k', 'l');\n    INSERT INTO parent VALUES('m', 'n', 'o');\n    INSERT INTO parent VALUES('p', 'q', 'r');\n    INSERT INTO parent VALUES('s', 't', 'u');\n\n    INSERT INTO c1 VALUES('a', 'b', 'c');\n    INSERT INTO c2 VALUES('d', 'e', 'f');\n    INSERT INTO c3 VALUES('g', 'h', 'i');\n    INSERT INTO c4 VALUES('j', 'k', 'l');\n    INSERT INTO c5 VALUES('m', 'n', 'o');\n    INSERT INTO c6 VALUES('p', 'q', 'r');\n    INSERT INTO c7 VALUES('s', 't', 'u');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x, y, z, PRIMARY KEY(x,y,z));\n    CREATE TABLE c1(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c2(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c3(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE\n    );\n    CREATE TABLE c4(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c5(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE\n    );\n    CREATE TABLE c6(a, b, c, FOREIGN KEY(a, b, c) REFERENCES parent);\n\n    -- This FK constraint is the only deferrable one.\n    CREATE TABLE c7(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('a', 'b', 'c');\n    INSERT INTO parent VALUES('d', 'e', 'f');\n    INSERT INTO parent VALUES('g', 'h', 'i');\n    INSERT INTO parent VALUES('j', 'k', 'l');\n    INSERT INTO parent VALUES('m', 'n', 'o');\n    INSERT INTO parent VALUES('p', 'q', 'r');\n    INSERT INTO parent VALUES('s', 't', 'u');\n\n    INSERT INTO c1 VALUES('a', 'b', 'c');\n    INSERT INTO c2 VALUES('d', 'e', 'f');\n    INSERT INTO c3 VALUES('g', 'h', 'i');\n    INSERT INTO c4 VALUES('j', 'k', 'l');\n    INSERT INTO c5 VALUES('m', 'n', 'o');\n    INSERT INTO c6 VALUES('p', 'q', 'r');\n    INSERT INTO c7 VALUES('s', 't', 'u');\n  ")
-		}
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 2 BEGIN 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 3 DELETE FROM parent WHERE x = 'a' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 4 DELETE FROM parent WHERE x = 'd' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 5 DELETE FROM parent WHERE x = 'g' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 6 DELETE FROM parent WHERE x = 'j' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 7 DELETE FROM parent WHERE x = 'm' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 8 DELETE FROM parent WHERE x = 'p' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 9 DELETE FROM parent WHERE x = 's' 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 10 COMMIT 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 11 ROLLBACK 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 9 BEGIN 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 10 UPDATE parent SET z = 'z' WHERE z = 'c' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 11 UPDATE parent SET z = 'z' WHERE z = 'f' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 12 UPDATE parent SET z = 'z' WHERE z = 'i' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 13 UPDATE parent SET z = 'z' WHERE z = 'l' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 14 UPDATE parent SET z = 'z' WHERE z = 'o' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 15 UPDATE parent SET z = 'z' WHERE z = 'r' 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 16 UPDATE parent SET z = 'z' WHERE z = 'u' 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 17 COMMIT 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 18 ROLLBACK 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 17 BEGIN 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 18 INSERT INTO c1 VALUES(1, 2, 3) 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 19 INSERT INTO c2 VALUES(1, 2, 3) 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 20 INSERT INTO c3 VALUES(1, 2, 3) 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 21 INSERT INTO c4 VALUES(1, 2, 3) 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 22 INSERT INTO c5 VALUES(1, 2, 3) 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 22 INSERT INTO c6 VALUES(1, 2, 3) 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 22 INSERT INTO c7 VALUES(1, 2, 3) 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 23 COMMIT 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 24 INSERT INTO parent VALUES(1, 2, 3) 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 25 COMMIT 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 26 BEGIN 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 27 UPDATE c1 SET a = 10 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 28 UPDATE c2 SET a = 10 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 29 UPDATE c3 SET a = 10 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 30 UPDATE c4 SET a = 10 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 31 UPDATE c5 SET a = 10 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 31 UPDATE c6 SET a = 10 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 31 UPDATE c7 SET a = 10 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 32 COMMIT 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 33 ROLLBACK 0")
-	{ // do_test "e_fkey-35.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
-		}
-	}
-	{ // do_test "e_fkey-35.2"
-		_res = db.Exec("\n    BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);\n  ")
-		}
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-35.3"
-		_res = db.Exec("\n    INSERT INTO artist VALUES(5, 'Bing Crosby');\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO artist VALUES(5, 'Bing Crosby');\n    COMMIT;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-36.1"
-		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY,\n      b REFERENCES t1 DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY,\n      b REFERENCES t1 DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-36.2"
-		_res = db.Exec("\n    BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-36.3"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-36.4"
-		_res = db.Exec("\n    UPDATE t1 SET a = 5 WHERE a = 4;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a = 5 WHERE a = 4;\n    COMMIT;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-37.1"
-		_res = db.Exec("\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(6, 7);\n      RELEASE two;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(6, 7);\n      RELEASE two;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-37.2"
-		_res = db.Exec("RELEASE one")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-37.3"
-		_res = db.Exec("\n      UPDATE t1 SET a = 7 WHERE a = 6;\n    RELEASE one;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET a = 7 WHERE a = 6;\n    RELEASE one;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-37.4"
-		_res = db.Exec("\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(9, 10);\n      RELEASE two;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(9, 10);\n      RELEASE two;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-37.5"
-		_res = db.Exec("RELEASE one")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-37.6"
-		_res = db.Exec("ROLLBACK TO one ; RELEASE one")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO one ; RELEASE one")
-		}
-	}
-	{ // do_test "e_fkey-38.1"
-		r = db.Query("\n    DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-38.2"
-		r = db.Query("\n    BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-38.3"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-38.4"
-		r = db.Query("\n    ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-38.5"
-		_res = db.Exec("\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES(5, 5);\n      SAVEPOINT b;\n        INSERT INTO t1 VALUES(6, 7);\n        SAVEPOINT c;\n          INSERT INTO t1 VALUES(7, 8);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES(5, 5);\n      SAVEPOINT b;\n        INSERT INTO t1 VALUES(6, 7);\n        SAVEPOINT c;\n          INSERT INTO t1 VALUES(7, 8);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-38.6"
-		_res = db.Exec("RELEASE a")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-38.7"
-		_res = db.Exec("ROLLBACK TO c")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO c")
-		}
-		_res = db.Exec("RELEASE a")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-38.8"
-		r = db.Query("\n    ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-39.1"
-		_res = db.Exec("\n    CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO p VALUES(3, 'k3', 'III');\n\n    INSERT INTO c1 VALUES(1, 'xx', 'k1');\n    INSERT INTO c1 VALUES(2, 'xx', 'k2');\n    INSERT INTO c1 VALUES(3, 'xx', 'k3');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO p VALUES(3, 'k3', 'III');\n\n    INSERT INTO c1 VALUES(1, 'xx', 'k1');\n    INSERT INTO c1 VALUES(2, 'xx', 'k2');\n    INSERT INTO c1 VALUES(3, 'xx', 'k3');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-39.2"
-		r = db.Query("\n    UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-39.3"
-		r = db.Query("\n    DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-39.4"
-		r = db.Query("\n    CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-40.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);\n  ")
-		}
-	}
-	// foreach {tn zTab lRes} "\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n"
-	_items := []string{"\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zTab := _items[_idx+1]
-	lRes := _items[_idx+2]
-		{ // do_test "e_fkey-40." + tn
-			r = db.Query("PRAGMA foreign_key_list(" + zTab + ")")
+		for _, fk := range tclSplitList("list OFF ON") {
+			r = db.Query("PRAGMA foreign_keys = " + fk)
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_list(" + zTab + ")")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = " + fk)
 			}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-41.1"
-		_res = db.Exec("\n    CREATE TABLE parent(p1, p2, PRIMARY KEY(p1, p2));\n    CREATE TABLE child(c1, c2, \n      FOREIGN KEY(c1, c2) REFERENCES parent\n      ON UPDATE NO ACTION\n      ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO parent VALUES('j', 'k');\n    INSERT INTO parent VALUES('l', 'm');\n    INSERT INTO child VALUES('j', 'k');\n    INSERT INTO child VALUES('l', 'm');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(p1, p2, PRIMARY KEY(p1, p2));\n    CREATE TABLE child(c1, c2, \n      FOREIGN KEY(c1, c2) REFERENCES parent\n      ON UPDATE NO ACTION\n      ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO parent VALUES('j', 'k');\n    INSERT INTO parent VALUES('l', 'm');\n    INSERT INTO child VALUES('j', 'k');\n    INSERT INTO child VALUES('l', 'm');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-41.2"
-		r = db.Query("\n    BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-41.3"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-41.4"
-		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-41.1"
-		_res = db.Exec("\n    CREATE TABLE parent(p1, p2);\n    CREATE UNIQUE INDEX parent_i ON parent(p1, p2);\n    CREATE TABLE child1(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON UPDATE RESTRICT\n    );\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(p1, p2);\n    CREATE UNIQUE INDEX parent_i ON parent(p1, p2);\n    CREATE TABLE child1(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON UPDATE RESTRICT\n    );\n  ")
-		}
-	}
-	{ // do_test "e_fkey-41.2"
-		_res = db.Exec("\n    INSERT INTO parent VALUES('a', 'b');\n    INSERT INTO parent VALUES('c', 'd');\n    INSERT INTO child1 VALUES('b', 'a');\n    INSERT INTO child2 VALUES('d', 'c');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO parent VALUES('a', 'b');\n    INSERT INTO parent VALUES('c', 'd');\n    INSERT INTO child1 VALUES('b', 'a');\n    INSERT INTO child2 VALUES('d', 'c');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-41.3"
-		_res = db.Exec(" DELETE FROM parent WHERE p1 = 'a' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-41.4"
-		_res = db.Exec(" UPDATE parent SET p2 = 'e' WHERE p1 = 'c' ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-42.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER UPDATE ON parent BEGIN\n      UPDATE child1 set c = new.x WHERE c = old.x;\n      UPDATE child2 set c = new.x WHERE c = old.x;\n    END;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER UPDATE ON parent BEGIN\n      UPDATE child1 set c = new.x WHERE c = old.x;\n      UPDATE child2 set c = new.x WHERE c = old.x;\n    END;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-42.2"
-		_res = db.Exec(" UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-42.3"
-		r = db.Query(" \n    UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-42.4"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER DELETE ON parent BEGIN\n      UPDATE child1 SET c = NULL WHERE c = old.x;\n      UPDATE child2 SET c = NULL WHERE c = old.x;\n    END;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER DELETE ON parent BEGIN\n      UPDATE child1 SET c = NULL WHERE c = old.x;\n      UPDATE child2 SET c = NULL WHERE c = old.x;\n    END;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-42.5"
-		_res = db.Exec(" DELETE FROM parent WHERE x = 'key1' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-42.6"
-		r = db.Query(" \n    DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-42.7"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-42.8"
-		_res = db.Exec(" REPLACE INTO parent VALUES('key1') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-42.9"
-		r = db.Query(" \n    REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-43.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-43.2"
-		_res = db.Exec(" UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-43.3"
-		_res = db.Exec(" UPDATE parent SET x = 'key two' WHERE x = 'key2' ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE parent SET x = 'key two' WHERE x = 'key2' ")
-		}
-	}
-	{ // do_test "e_fkey-43.4"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-43.5"
-		_res = db.Exec("\n    UPDATE child2 SET c = 'key two';\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE child2 SET c = 'key two';\n    COMMIT;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-43.6"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-43.7"
-		_res = db.Exec(" DELETE FROM parent WHERE x = 'key1' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-43.8"
-		_res = db.Exec(" DELETE FROM parent WHERE x = 'key2' ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM parent WHERE x = 'key2' ")
-		}
-	}
-	{ // do_test "e_fkey-43.9"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-43.10"
-		_res = db.Exec("\n    UPDATE child2 SET c = NULL;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE child2 SET c = NULL;\n    COMMIT;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-44.1"
-		_res = db.Exec("\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c REFERENCES pA ON DELETE SET NULL);\n    CREATE TABLE cB(c REFERENCES pA ON UPDATE SET NULL);\n\n    INSERT INTO pA VALUES(X'ABCD');\n    INSERT INTO pA VALUES(X'1234');\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c REFERENCES pA ON DELETE SET NULL);\n    CREATE TABLE cB(c REFERENCES pA ON UPDATE SET NULL);\n\n    INSERT INTO pA VALUES(X'ABCD');\n    INSERT INTO pA VALUES(X'1234');\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-44.2"
-		r = db.Query("\n    DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-44.3"
-		r = db.Query("\n    SELECT quote(c) FROM cA;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(c) FROM cA;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-44.4"
-		r = db.Query("\n    UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-44.5"
-		r = db.Query(" SELECT quote(c) FROM cB ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cB ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-45.1"
-		_res = db.Exec("\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c DEFAULT X'0000' REFERENCES pA ON DELETE SET DEFAULT);\n    CREATE TABLE cB(c DEFAULT X'9999' REFERENCES pA ON UPDATE SET DEFAULT);\n\n    INSERT INTO pA(rowid, x) VALUES(1, X'0000');\n    INSERT INTO pA(rowid, x) VALUES(2, X'9999');\n    INSERT INTO pA(rowid, x) VALUES(3, X'ABCD');\n    INSERT INTO pA(rowid, x) VALUES(4, X'1234');\n\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c DEFAULT X'0000' REFERENCES pA ON DELETE SET DEFAULT);\n    CREATE TABLE cB(c DEFAULT X'9999' REFERENCES pA ON UPDATE SET DEFAULT);\n\n    INSERT INTO pA(rowid, x) VALUES(1, X'0000');\n    INSERT INTO pA(rowid, x) VALUES(2, X'9999');\n    INSERT INTO pA(rowid, x) VALUES(3, X'ABCD');\n    INSERT INTO pA(rowid, x) VALUES(4, X'1234');\n\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-45.2"
-		r = db.Query("\n    DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-45.3"
-		r = db.Query(" SELECT quote(c) FROM cA ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cA ")
-		}
-	}
-	{ // do_test "e_fkey-45.4"
-		r = db.Query("\n    UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-45.5"
-		r = db.Query(" SELECT quote(c) FROM cB ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cB ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-46.1"
-		r = db.Query("\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-46.2"
-		r = db.Query("\n    DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-46.3"
-		r = db.Query("\n    DELETE FROM p1;\n    SELECT d, c FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p1;\n    SELECT d, c FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-46.4"
-		r = db.Query(" SELECT * FROM p1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p1 ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-47.1"
-		r = db.Query("\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-47.2"
-		r = db.Query("\n    UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-47.3"
-		r = db.Query("\n    UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-47.4"
-		r = db.Query(" \n    UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-46.5"
-		r = db.Query(" SELECT * FROM p1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p1 ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-48.1"
-		_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-48.2"
-		_res = db.Exec("\n    UPDATE artist SET artistid = 100 WHERE artistname = 'Dean Martin';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE artist SET artistid = 100 WHERE artistname = 'Dean Martin';\n  ")
-		}
-	}
-	{ // do_test "e_fkey-48.3"
-		r = db.Query(" SELECT * FROM artist ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
-		}
-	}
-	{ // do_test "e_fkey-48.4"
-		r = db.Query(" SELECT * FROM track ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM track ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-49.1"
-		_res = db.Exec("\n    CREATE TABLE parent(a COLLATE nocase, b, c, PRIMARY KEY(c, a));\n    CREATE TABLE child(d DEFAULT 'a', e, f DEFAULT 'c',\n      FOREIGN KEY(f, d) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n\n    INSERT INTO parent VALUES('A', 'b', 'c');\n    INSERT INTO parent VALUES('ONE', 'two', 'three');\n    INSERT INTO child VALUES('one', 'two', 'three');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(a COLLATE nocase, b, c, PRIMARY KEY(c, a));\n    CREATE TABLE child(d DEFAULT 'a', e, f DEFAULT 'c',\n      FOREIGN KEY(f, d) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n\n    INSERT INTO parent VALUES('A', 'b', 'c');\n    INSERT INTO parent VALUES('ONE', 'two', 'three');\n    INSERT INTO child VALUES('one', 'two', 'three');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-49.2"
-		r = db.Query("\n    BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-49.3"
-		r = db.Query("\n    ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-49.4"
-		_res = db.Exec(" UPDATE parent SET a = '' WHERE a = 'oNe' ")
-		_ = _res // catchsql
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-50.1"
-		_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    INSERT INTO track VALUES(14, 'Mr. Bojangles', 3);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    INSERT INTO track VALUES(14, 'Mr. Bojangles', 3);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-50.2"
-		_res = db.Exec(" DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.' ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-50.3"
-		_res = db.Exec("\n    INSERT INTO artist VALUES(0, 'Unknown Artist');\n    DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.';\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO artist VALUES(0, 'Unknown Artist');\n    DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.';\n  ")
-		}
-	}
-	{ // do_test "e_fkey-50.4"
-		r = db.Query(" SELECT * FROM artist ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
-		}
-	}
-	{ // do_test "e_fkey-50.5"
-		r = db.Query(" SELECT * FROM track ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM track ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-51.1"
-		// proc definition (not transpiled)
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-51.2"
-		r = db.Query("\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-51.3"
-		r = db.Query("\n    DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-52.1"
-		_res = db.Exec("\n    CREATE TABLE zeus(a INTEGER COLLATE NOCASE, b, PRIMARY KEY(a, b));\n    CREATE TABLE apollo(c, d, \n      FOREIGN KEY(c, d) REFERENCES zeus ON UPDATE CASCADE\n    );\n    INSERT INTO zeus VALUES('abc', 'xyz');\n    INSERT INTO apollo VALUES('ABC', 'xyz');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE zeus(a INTEGER COLLATE NOCASE, b, PRIMARY KEY(a, b));\n    CREATE TABLE apollo(c, d, \n      FOREIGN KEY(c, d) REFERENCES zeus ON UPDATE CASCADE\n    );\n    INSERT INTO zeus VALUES('abc', 'xyz');\n    INSERT INTO apollo VALUES('ABC', 'xyz');\n  ")
-		}
-		r = db.Query("\n    UPDATE zeus SET a = 'aBc';\n    SELECT * FROM apollo;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 'aBc';\n    SELECT * FROM apollo;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-52.2"
-		r = db.Query("\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-52.3"
-		r = db.Query("\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-52.4"
-		r = db.Query("\n    UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-52.5"
-		r = db.Query("\n    UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-52.6"
-		r = db.Query("\n    UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-53.1"
-		_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child(y REFERENCES parent ON UPDATE SET NULL);\n    INSERT INTO parent VALUES('key');\n    INSERT INTO child VALUES('key');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child(y REFERENCES parent ON UPDATE SET NULL);\n    INSERT INTO parent VALUES('key');\n    INSERT INTO child VALUES('key');\n  ")
-		}
-	}
-	{ // do_test "e_fkey-53.2"
-		r = db.Query("\n    UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-53.3"
-		r = db.Query("\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
-		}
-	}
-	// foreach {tn zCreateTbl lRes} "\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n"
-	_items := []string{"\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	zCreateTbl := _items[_idx+1]
-	lRes := _items[_idx+2]
-		{ // do_test "e_fkey-54." + tn + ".off"
+			var i = "0"
+			_ = i // suppress unused warning
+			// foreach {sql error} "\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  "
+			_items := tclSplitList("\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  ")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				sql := _items[_idx+0]
+				error := _items[_idx+1]
+				_ = _idx
+					{ // do_test "e_fkey-22." + fk + "." + "incr i"
+						_res = db.Exec(sql)
+						_ = _res // catchsql
+					}
+				}
+			}
+			{ // do_test "e_fkey-23.1"
+				_res = db.Exec("\n    CREATE TABLE p1(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE p2(a, b PRIMARY KEY);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p1);\n    CREATE TABLE c2(a, b REFERENCES p2);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p1(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE p2(a, b PRIMARY KEY);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p1);\n    CREATE TABLE c2(a, b REFERENCES p2);\n  ")
+				}
+			}
+			// proc definition (not transpiled)
+			t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 2 1 INSERT INTO c1 VALUES(239, 231)")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 3 0 INSERT INTO p1 VALUES(239, 231)")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 4 0 INSERT INTO c1 VALUES(239, 231)")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 5 1 INSERT INTO c2 VALUES(239, 231)")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 6 0 INSERT INTO p2 VALUES(239, 231)")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_60 7 0 INSERT INTO c2 VALUES(239, 231)")
 			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-			r = db.Query("PRAGMA foreign_keys = OFF")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = OFF")
+			{ // do_test "e_fkey-24.1"
+				_res = db.Exec("\n    CREATE TABLE parent(x, y, UNIQUE(y, x));\n    CREATE TABLE c1(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c2(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c3(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX c2i ON c2(a, b);\n    CREATE UNIQUE INDEX c3i ON c2(b, a);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x, y, UNIQUE(y, x));\n    CREATE TABLE c1(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c2(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE TABLE c3(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX c2i ON c2(a, b);\n    CREATE UNIQUE INDEX c3i ON c2(b, a);\n  ")
+				}
 			}
-			_res = db.Exec(zCreateTbl)
-			_ = _res // catchsql
-		}
-		{ // do_test "e_fkey-54." + tn + ".on"
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-			r = db.Query("PRAGMA foreign_keys = ON")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = ON")
-			}
-			_res = db.Exec(zCreateTbl)
-			_ = _res // catchsql
-		}
-	}
-	}
-	// proc definition (not transpiled)
-	{ // do_test "e_fkey-57.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		_res = db.Exec("\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-57.2"
-		r = db.Query("\n    INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-57.3"
-		r = db.Query(" SELECT * FROM c2 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c2 ")
-		}
-	}
-	{ // do_test "e_fkey-57.4"
-		r = db.Query(" SELECT * FROM c3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c3 ")
-		}
-	}
-	{ // do_test "e_fkey-57.5"
-		r = db.Query(" SELECT * FROM log ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM log ")
-		}
-	}
-	{ // do_test "e_fkey-57.6"
-		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-		}
-	}
-	{ // do_test "e_fkey-57.7"
-		_res = db.Exec("\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-58.1"
-		_res = db.Exec(" \n    DELETE FROM c1;\n    DELETE FROM c2;\n    DELETE FROM c3;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM c1;\n    DELETE FROM c2;\n    DELETE FROM c3;\n  ")
-		}
-		_res = db.Exec(" INSERT INTO c5 VALUES('a', 'b') ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c5 VALUES('a', 'b') ")
-		}
-		_res = db.Exec(" DROP TABLE p ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-58.2"
-		r = db.Query(" SELECT * FROM p ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p ")
-		}
-	}
-	{ // do_test "e_fkey-58.3"
-		_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-58.4"
-		_res = db.Exec("\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-59.1"
-		_res = db.Exec(" \n    DELETE FROM c1 ; DELETE FROM c2 ; DELETE FROM c3 ;\n    DELETE FROM c4 ; DELETE FROM c5 ; DELETE FROM c6 ;\n    DELETE FROM c7 \n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM c1 ; DELETE FROM c2 ; DELETE FROM c3 ;\n    DELETE FROM c4 ; DELETE FROM c5 ; DELETE FROM c6 ;\n    DELETE FROM c7 \n  ")
-		}
-	}
-	{ // do_test "e_fkey-59.2"
-		_res = db.Exec(" INSERT INTO c7 VALUES('a', 'b') ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c7 VALUES('a', 'b') ")
-		}
-		_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE p;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-59.3"
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-59.4"
-		_res = db.Exec(" CREATE TABLE p(a, b, PRIMARY KEY(a, b)) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE p(a, b, PRIMARY KEY(a, b)) ")
-		}
-		_res = db.Exec("COMMIT")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-59.5"
-		_res = db.Exec(" INSERT INTO p VALUES('a', 'b') ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO p VALUES('a', 'b') ")
-		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-60.1"
-		_res = db.Exec("\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
-		}
-	}
-	{ // do_test "e_fkey-60.2"
-		r = db.Query(" PRAGMA foreign_keys = ON ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
-		}
-		_res = db.Exec(" DELETE FROM p ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-60.3"
-		_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-60.4"
-		_res = db.Exec(" CREATE TABLE nosuchtable(x PRIMARY KEY) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE nosuchtable(x PRIMARY KEY) ")
-		}
-		_res = db.Exec(" DELETE FROM p ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-60.5"
-		_res = db.Exec(" DROP TABLE c1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c1 ")
-		}
-		_res = db.Exec(" DELETE FROM p ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-60.6"
-		_res = db.Exec(" DROP TABLE c2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c2 ")
-		}
-		_res = db.Exec(" DELETE FROM p ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p ")
-		}
-	}
-	for _, zMatch := range []string{"list SIMPLE PARTIAL FULL Simple parTIAL FuLL"} {
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "e_fkey-62." + zMatch + ".1"
-			_res = db.Exec("\n      CREATE TABLE p(a, b, c, PRIMARY KEY(b, c));\n      CREATE TABLE c(d, e, f, FOREIGN KEY(e, f) REFERENCES p MATCH " + zMatch + ");\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE p(a, b, c, PRIMARY KEY(b, c));\n      CREATE TABLE c(d, e, f, FOREIGN KEY(e, f) REFERENCES p MATCH " + zMatch + ");\n    ")
-			}
-		}
-		{ // do_test "e_fkey-62." + zMatch + ".2"
-			_res = db.Exec(" INSERT INTO p VALUES(1, 2, 3)         ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO p VALUES(1, 2, 3)         ")
-			}
-			_res = db.Exec(" INSERT INTO c VALUES('w', 2, 3)       ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('w', 2, 3)       ")
-			}
-			_res = db.Exec(" INSERT INTO c VALUES('x', 'x', NULL)  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('x', 'x', NULL)  ")
-			}
-			_res = db.Exec(" INSERT INTO c VALUES('y', NULL, 'x')  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('y', NULL, 'x')  ")
-			}
-			_res = db.Exec(" INSERT INTO c VALUES('z', NULL, NULL) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('z', NULL, NULL) ")
-			}
-			_res = db.Exec(" INSERT INTO c VALUES('a', 2, 4) ")
-			_ = _res // catchsql
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	{ // do_test "e_fkey-62.1"
-		_res = db.Exec(" SET CONSTRAINTS ALL IMMEDIATE ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-62.2"
-		_res = db.Exec(" SET CONSTRAINTS ALL DEFERRED ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-62.3"
-		_res = db.Exec("\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;\n  ")
-		}
-	}
-	{ // do_test "e_fkey-62.4"
-		_res = db.Exec(" INSERT INTO ci VALUES('x', 'y') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-62.5"
-		_res = db.Exec(" INSERT INTO cd VALUES('x', 'y') ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-62.6"
-		_res = db.Exec(" COMMIT ")
-		_ = _res // catchsql
-	}
-	{ // do_test "e_fkey-62.7"
-		_res = db.Exec(" \n    DELETE FROM cd;\n    COMMIT;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM cd;\n    COMMIT;\n  ")
-		}
-	}
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
-	if tclBool("clang_sanitize_address" + "==0") {
-		{ // do_test "e_fkey-63.1.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion $SQLITE_MAX_TRIGGER_DEPTH")
-		}
-		{ // do_test "e_fkey-63.1.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion [expr $SQLITE_MAX_TRIGGER_DEPTH+1]")
-		}
-		{ // do_test "e_fkey-63.1.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 5")
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion 5")
-		}
-		{ // do_test "e_fkey-63.1.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion 6")
-		}
-		{ // do_test "e_fkey-63.1.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1000000")
-		}
-		{ // do_test "e_fkey-63.2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion $SQLITE_MAX_TRIGGER_DEPTH")
-		}
-		{ // do_test "e_fkey-63.2.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion [expr $SQLITE_MAX_TRIGGER_DEPTH+1]")
-		}
-		{ // do_test "e_fkey-63.2.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 5")
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion 5")
-		}
-		{ // do_test "e_fkey-63.2.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion 6")
-		}
-		{ // do_test "e_fkey-63.2.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1000000")
-		}
-	}
-	for _, recursive_triggers_setting := range []string{"list 0 1 ON OFF"} {
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		r = db.Query("PRAGMA recursive_triggers = " + recursive_triggers_setting)
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA recursive_triggers = " + recursive_triggers_setting)
-		}
-		{ // do_test "e_fkey-64." + recursive_triggers_setting + ".1"
-			r = db.Query("\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;\n    ")
-			}
-		}
-		{ // do_test "e_fkey-64." + recursive_triggers_setting + ".2"
-			r = db.Query(" SELECT count(*) FROM t1 WHERE a = 1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE a = 1 ")
-			}
-		}
-		{ // do_test "e_fkey-64." + recursive_triggers_setting + ".3"
-			r = db.Query(" \n      DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;\n    ")
-			}
-		}
-	}
+			// proc definition (not transpiled)
+			// foreach {tn c} "list 2 c1 3 c2 4 c3"
+			_items := tclSplitList("list 2 c1 3 c2 4 c3")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				c := _items[_idx+1]
+				_ = _idx
+					t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.1 1 INSERT INTO $c VALUES(1, 2)")
+					t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.2 0 INSERT INTO parent VALUES(1, 2)")
+					t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.3 0 INSERT INTO $c VALUES(1, 2)")
+					_res = db.Exec("DELETE FROM " + c + " ; DELETE FROM parent")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + c + " ; DELETE FROM parent")
+					}
+				}
+				{ // do_test "e_fkey-25.1"
+					_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER, \n      trackname   TEXT, \n      trackartist INTEGER,\n      FOREIGN KEY(trackartist) REFERENCES artist(artistid)\n    );\n  ")
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-25.2 {\n  PRAGMA foreign_keys = OFF;\n  EXPLAIN QUERY PLAN...} {\n  {SCAN artist} \n  {SCAN track}\n}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-25.3 {\n  PRAGMA foreign_keys = ON;\n  EXPLAIN QUERY PLAN ...} {\n  {SCAN artist} \n  {SCAN track}\n}")
+				{ // do_test "e_fkey-25.4"
+					_res = db.Exec("\n    INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO artist VALUES(5, 'artist 5');\n    INSERT INTO artist VALUES(6, 'artist 6');\n    INSERT INTO artist VALUES(7, 'artist 7');\n    INSERT INTO track VALUES(1, 'track 1', 5);\n    INSERT INTO track VALUES(2, 'track 2', 6);\n  ")
+					}
+				}
+				{ // do_test "e_fkey-25.5"
+					_r := tclList(append([]string{}, tclSplitList("execsql { SELECT rowid FROM track WHERE trackartist = 5 }")..., tclSplitList("catchsql { DELETE FROM artist WHERE artistid = 5 }")...))
+					_ = _r
+				}
+				{ // do_test "e_fkey-25.6"
+					_r := tclList(append([]string{}, tclSplitList("execsql { SELECT rowid FROM track WHERE trackartist = 7 }")..., tclSplitList("catchsql { DELETE FROM artist WHERE artistid = 7 }")...))
+					_ = _r
+				}
+				{ // do_test "e_fkey-25.7"
+					_r := tclList(append([]string{}, tclSplitList("execsql { SELECT rowid FROM track WHERE trackartist = 6 }")..., tclSplitList("catchsql { DELETE FROM artist WHERE artistid = 6 }")...))
+					_ = _r
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				{ // do_test "e_fkey-26.1"
+					_res = db.Exec(" CREATE TABLE parent(x, y, UNIQUE(y, x)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE parent(x, y, UNIQUE(y, x)) ")
+					}
+				}
+				// foreach {tn sql} "\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n"
+				_items := tclSplitList("\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n")
+				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+					tn := _items[_idx+0]
+					sql := _items[_idx+1]
+					_ = _idx
+						_res = db.Exec(sql)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						}
+						r = db.Query("PRAGMA foreign_keys = OFF")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = OFF")
+						}
+						var delete = "concat \\\n      [eqp \"DELETE FROM parent WHERE 1\"] \\\n      [eqp \"SELECT rowid FROM child WHERE a = ? AND b = ?\"]"
+						_ = delete // suppress unused warning
+						var update = "concat \\\n      [eqp \"UPDATE parent SET x=?, y=?\"] \\\n      [eqp \"SELECT rowid FROM child WHERE a = ? AND b = ?\"] \\\n      [eqp \"SELECT rowid FROM child WHERE a = ? AND b = ?\"]"
+						_ = update // suppress unused warning
+						r = db.Query("PRAGMA foreign_keys = ON")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = ON")
+						}
+						{ // do_test "e_fkey-26." + tn + ".1"
+							t.Skipf("TODO: %s not implemented in frigolite", "eqp DELETE FROM parent WHERE 1")
+						}
+						{ // do_test "e_fkey-26." + tn + ".2"
+							t.Skipf("TODO: %s not implemented in frigolite", "eqp UPDATE parent set x=?, y=?")
+						}
+						_res = db.Exec("DROP TABLE child")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE child")
+						}
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					{ // do_test "e_fkey-27.1"
+						_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist\n    );\n    CREATE INDEX trackindex ON track(trackartist);\n  ")
+						}
+					}
+					{ // do_test "e_fkey-27.2"
+						t.Skipf("TODO: %s not implemented in frigolite", "eqp { INSERT INTO artist VALUES(?, ?) }")
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-27.3 {\n  EXPLAIN QUERY PLAN UPDATE artist SET artistid =...} {\n  {SCAN artist} \n  {SEARCH track USING COVERING I...}")
+					t.Skipf("TODO: %s not implemented in frigolite", "do_detail_test e_fkey-27.4 {\n  EXPLAIN QUERY PLAN DELETE FROM artist\n} {\n  {SCAN artist} \n  {SEARCH track USING COVERING I...}")
+					// foreach {tn sql err} "\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n"
+					_items := tclSplitList("\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n")
+					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+						tn := _items[_idx+0]
+						sql := _items[_idx+1]
+						err := _items[_idx+2]
+						_ = _idx
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-28." + tn
+								_res = db.Exec("list catchsql $sql")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list catchsql $sql")
+								}
+							}
+						}
+						{ // do_test "e_fkey-28.8"
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							_res = db.Exec("\n    CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(x PRIMARY KEY);\n    CREATE TABLE c(a, b, FOREIGN KEY(a,b) REFERENCES p);\n  ")
+							}
+							_res = db.Exec("DELETE FROM p")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-28.9"
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							_res = db.Exec("\n    CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(x, y, PRIMARY KEY(x,y));\n    CREATE TABLE c(a REFERENCES p);\n  ")
+							}
+							_res = db.Exec("DELETE FROM p")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-29.1"
+							_res = db.Exec("\n    CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songalbum) REFERENCES album(albumartist,albumname)\n    );\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE album(\n      albumartist TEXT,\n      albumname TEXT,\n      albumcover BINARY,\n      PRIMARY KEY(albumartist, albumname)\n    );\n    CREATE TABLE song(\n      songid INTEGER,\n      songartist TEXT,\n      songalbum TEXT,\n      songname TEXT,\n      FOREIGN KEY(songartist, songalbum) REFERENCES album(albumartist,albumname)\n    );\n  ")
+							}
+						}
+						{ // do_test "e_fkey-29.2"
+							_res = db.Exec("\n    INSERT INTO album VALUES('Elvis Presley', 'Elvis'' Christmas Album', NULL);\n    INSERT INTO song VALUES(\n      1, 'Elvis Presley', 'Elvis'' Christmas Album', 'Here Comes Santa Clause'\n    );\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO album VALUES('Elvis Presley', 'Elvis'' Christmas Album', NULL);\n    INSERT INTO song VALUES(\n      1, 'Elvis Presley', 'Elvis'' Christmas Album', 'Here Comes Santa Clause'\n    );\n  ")
+							}
+						}
+						{ // do_test "e_fkey-29.3"
+							_res = db.Exec("\n    INSERT INTO song VALUES(2, 'Elvis Presley', 'Elvis Is Back!', 'Fever');\n  ")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-30.1"
+							_res = db.Exec("\n    INSERT INTO song VALUES(2, 'Elvis Presley', NULL, 'Fever');\n    INSERT INTO song VALUES(3, NULL, 'Elvis Is Back', 'Soldier Boy');\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO song VALUES(2, 'Elvis Presley', NULL, 'Fever');\n    INSERT INTO song VALUES(3, NULL, 'Elvis Is Back', 'Soldier Boy');\n  ")
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "e_fkey-31.1"
+							_res = db.Exec("\n    CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE king(a, b, PRIMARY KEY(a));\n    CREATE TABLE prince(c REFERENCES king, d);\n  ")
+							}
+						}
+						{ // do_test "e_fkey-31.2"
+							_res = db.Exec(" INSERT INTO prince VALUES(1, 2) ")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-31.3"
+							_res = db.Exec("\n    CREATE TRIGGER kt AFTER INSERT ON prince WHEN\n      NOT EXISTS (SELECT a FROM king WHERE a = new.c)\n    BEGIN\n      INSERT INTO king VALUES(new.c, NULL);\n    END\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER kt AFTER INSERT ON prince WHEN\n      NOT EXISTS (SELECT a FROM king WHERE a = new.c)\n    BEGIN\n      INSERT INTO king VALUES(new.c, NULL);\n    END\n  ")
+							}
+							_res = db.Exec(" INSERT INTO prince VALUES(1, 2) ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO prince VALUES(1, 2) ")
+							}
+						}
+						{ // do_test "e_fkey-31.4"
+							_res = db.Exec("\n    BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO prince VALUES(2, 3);\n    DROP TRIGGER kt;\n  ")
+							}
+							_res = db.Exec(" INSERT INTO prince VALUES(3, 4) ")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-31.5"
+							r = db.Query("\n    COMMIT;\n    SELECT * FROM king;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    SELECT * FROM king;\n  ")
+							}
+						}
+						// proc definition (not transpiled)
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 1 0 {\n  CREATE TABLE ll(k PRIMARY KEY);\n  CREATE TABLE ...}")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 2 0 BEGIN")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 3 0 INSERT INTO kk VALUES(5)")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 4 0 INSERT INTO kk VALUES(10)")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 5 1 COMMIT")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 6 0 INSERT INTO ll VALUES(10)")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 7 1 COMMIT")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 8 0 INSERT INTO ll VALUES(5)")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_34 9 0 COMMIT")
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// proc definition (not transpiled)
+						{ // do_test "e_fkey-33.1"
+							_res = db.Exec("\n    CREATE TABLE parent(x, y);\n    CREATE UNIQUE INDEX pi ON parent(x, y);\n    CREATE TABLE child(a, b,\n      FOREIGN KEY(a, b) REFERENCES parent(x, y) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x, y);\n    CREATE UNIQUE INDEX pi ON parent(x, y);\n    CREATE TABLE child(a, b,\n      FOREIGN KEY(a, b) REFERENCES parent(x, y) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_35 2 1 INSERT INTO child  VALUES('x', 'y')")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_35 3 0 INSERT INTO parent VALUES('x', 'y')")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_35 4 0 INSERT INTO child  VALUES('x', 'y')")
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "e_fkey-34.1"
+							_res = db.Exec("\n    CREATE TABLE parent(x, y, z, PRIMARY KEY(x,y,z));\n    CREATE TABLE c1(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c2(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c3(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE\n    );\n    CREATE TABLE c4(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c5(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE\n    );\n    CREATE TABLE c6(a, b, c, FOREIGN KEY(a, b, c) REFERENCES parent);\n\n    -- This FK constraint is the only deferrable one.\n    CREATE TABLE c7(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('a', 'b', 'c');\n    INSERT INTO parent VALUES('d', 'e', 'f');\n    INSERT INTO parent VALUES('g', 'h', 'i');\n    INSERT INTO parent VALUES('j', 'k', 'l');\n    INSERT INTO parent VALUES('m', 'n', 'o');\n    INSERT INTO parent VALUES('p', 'q', 'r');\n    INSERT INTO parent VALUES('s', 't', 'u');\n\n    INSERT INTO c1 VALUES('a', 'b', 'c');\n    INSERT INTO c2 VALUES('d', 'e', 'f');\n    INSERT INTO c3 VALUES('g', 'h', 'i');\n    INSERT INTO c4 VALUES('j', 'k', 'l');\n    INSERT INTO c5 VALUES('m', 'n', 'o');\n    INSERT INTO c6 VALUES('p', 'q', 'r');\n    INSERT INTO c7 VALUES('s', 't', 'u');\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x, y, z, PRIMARY KEY(x,y,z));\n    CREATE TABLE c1(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c2(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c3(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent NOT DEFERRABLE\n    );\n    CREATE TABLE c4(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY IMMEDIATE\n    );\n    CREATE TABLE c5(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE\n    );\n    CREATE TABLE c6(a, b, c, FOREIGN KEY(a, b, c) REFERENCES parent);\n\n    -- This FK constraint is the only deferrable one.\n    CREATE TABLE c7(a, b, c,\n      FOREIGN KEY(a, b, c) REFERENCES parent DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('a', 'b', 'c');\n    INSERT INTO parent VALUES('d', 'e', 'f');\n    INSERT INTO parent VALUES('g', 'h', 'i');\n    INSERT INTO parent VALUES('j', 'k', 'l');\n    INSERT INTO parent VALUES('m', 'n', 'o');\n    INSERT INTO parent VALUES('p', 'q', 'r');\n    INSERT INTO parent VALUES('s', 't', 'u');\n\n    INSERT INTO c1 VALUES('a', 'b', 'c');\n    INSERT INTO c2 VALUES('d', 'e', 'f');\n    INSERT INTO c3 VALUES('g', 'h', 'i');\n    INSERT INTO c4 VALUES('j', 'k', 'l');\n    INSERT INTO c5 VALUES('m', 'n', 'o');\n    INSERT INTO c6 VALUES('p', 'q', 'r');\n    INSERT INTO c7 VALUES('s', 't', 'u');\n  ")
+							}
+						}
+						// proc definition (not transpiled)
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 2 BEGIN 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 3 DELETE FROM parent WHERE x = 'a' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 4 DELETE FROM parent WHERE x = 'd' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 5 DELETE FROM parent WHERE x = 'g' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 6 DELETE FROM parent WHERE x = 'j' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 7 DELETE FROM parent WHERE x = 'm' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 8 DELETE FROM parent WHERE x = 'p' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 9 DELETE FROM parent WHERE x = 's' 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 10 COMMIT 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 11 ROLLBACK 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 9 BEGIN 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 10 UPDATE parent SET z = 'z' WHERE z = 'c' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 11 UPDATE parent SET z = 'z' WHERE z = 'f' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 12 UPDATE parent SET z = 'z' WHERE z = 'i' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 13 UPDATE parent SET z = 'z' WHERE z = 'l' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 14 UPDATE parent SET z = 'z' WHERE z = 'o' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 15 UPDATE parent SET z = 'z' WHERE z = 'r' 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 16 UPDATE parent SET z = 'z' WHERE z = 'u' 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 17 COMMIT 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 18 ROLLBACK 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 17 BEGIN 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 18 INSERT INTO c1 VALUES(1, 2, 3) 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 19 INSERT INTO c2 VALUES(1, 2, 3) 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 20 INSERT INTO c3 VALUES(1, 2, 3) 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 21 INSERT INTO c4 VALUES(1, 2, 3) 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 22 INSERT INTO c5 VALUES(1, 2, 3) 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 22 INSERT INTO c6 VALUES(1, 2, 3) 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 22 INSERT INTO c7 VALUES(1, 2, 3) 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 23 COMMIT 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 24 INSERT INTO parent VALUES(1, 2, 3) 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 25 COMMIT 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 26 BEGIN 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 27 UPDATE c1 SET a = 10 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 28 UPDATE c2 SET a = 10 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 29 UPDATE c3 SET a = 10 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 30 UPDATE c4 SET a = 10 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 31 UPDATE c5 SET a = 10 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 31 UPDATE c6 SET a = 10 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 31 UPDATE c7 SET a = 10 0")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 32 COMMIT 1")
+						t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_29 33 ROLLBACK 0")
+						{ // do_test "e_fkey-35.1"
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) DEFERRABLE INITIALLY DEFERRED\n    );\n  ")
+							}
+						}
+						{ // do_test "e_fkey-35.2"
+							_res = db.Exec("\n    BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO track VALUES(1, 'White Christmas', 5);\n  ")
+							}
+							_res = db.Exec("COMMIT")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-35.3"
+							_res = db.Exec("\n    INSERT INTO artist VALUES(5, 'Bing Crosby');\n    COMMIT;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO artist VALUES(5, 'Bing Crosby');\n    COMMIT;\n  ")
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "e_fkey-36.1"
+							_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY,\n      b REFERENCES t1 DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY,\n      b REFERENCES t1 DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n  ")
+							}
+						}
+						{ // do_test "e_fkey-36.2"
+							_res = db.Exec("\n    BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(4, 5);\n      RELEASE one;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-36.3"
+							_res = db.Exec("COMMIT")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-36.4"
+							_res = db.Exec("\n    UPDATE t1 SET a = 5 WHERE a = 4;\n    COMMIT;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a = 5 WHERE a = 4;\n    COMMIT;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-37.1"
+							_res = db.Exec("\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(6, 7);\n      RELEASE two;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(6, 7);\n      RELEASE two;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-37.2"
+							_res = db.Exec("RELEASE one")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-37.3"
+							_res = db.Exec("\n      UPDATE t1 SET a = 7 WHERE a = 6;\n    RELEASE one;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET a = 7 WHERE a = 6;\n    RELEASE one;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-37.4"
+							_res = db.Exec("\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(9, 10);\n      RELEASE two;\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT one;\n      SAVEPOINT two;\n        INSERT INTO t1 VALUES(9, 10);\n      RELEASE two;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-37.5"
+							_res = db.Exec("RELEASE one")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-37.6"
+							_res = db.Exec("ROLLBACK TO one ; RELEASE one")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO one ; RELEASE one")
+							}
+						}
+						{ // do_test "e_fkey-38.1"
+							r = db.Query("\n    DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a>3;\n    SELECT * FROM t1;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-38.2"
+							r = db.Query("\n    BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(4, 4);\n      SAVEPOINT one;\n        INSERT INTO t1 VALUES(5, 6);\n        SELECT * FROM t1;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-38.3"
+							_res = db.Exec("COMMIT")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-38.4"
+							r = db.Query("\n    ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK TO one;\n    COMMIT;\n    SELECT * FROM t1;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-38.5"
+							_res = db.Exec("\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES(5, 5);\n      SAVEPOINT b;\n        INSERT INTO t1 VALUES(6, 7);\n        SAVEPOINT c;\n          INSERT INTO t1 VALUES(7, 8);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES(5, 5);\n      SAVEPOINT b;\n        INSERT INTO t1 VALUES(6, 7);\n        SAVEPOINT c;\n          INSERT INTO t1 VALUES(7, 8);\n  ")
+							}
+						}
+						{ // do_test "e_fkey-38.6"
+							_res = db.Exec("RELEASE a")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-38.7"
+							_res = db.Exec("ROLLBACK TO c")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO c")
+							}
+							_res = db.Exec("RELEASE a")
+							_ = _res // catchsql
+						}
+						{ // do_test "e_fkey-38.8"
+							r = db.Query("\n    ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK TO b;\n    RELEASE a;\n    SELECT * FROM t1;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-39.1"
+							_res = db.Exec("\n    CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO p VALUES(3, 'k3', 'III');\n\n    INSERT INTO c1 VALUES(1, 'xx', 'k1');\n    INSERT INTO c1 VALUES(2, 'xx', 'k2');\n    INSERT INTO c1 VALUES(3, 'xx', 'k3');\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a, b PRIMARY KEY, c);\n    CREATE TABLE c1(d, e, f DEFAULT 'k0' REFERENCES p \n      ON UPDATE SET DEFAULT\n      ON DELETE SET NULL\n    );\n\n    INSERT INTO p VALUES(0, 'k0', '');\n    INSERT INTO p VALUES(1, 'k1', 'I');\n    INSERT INTO p VALUES(2, 'k2', 'II');\n    INSERT INTO p VALUES(3, 'k3', 'III');\n\n    INSERT INTO c1 VALUES(1, 'xx', 'k1');\n    INSERT INTO c1 VALUES(2, 'xx', 'k2');\n    INSERT INTO c1 VALUES(3, 'xx', 'k3');\n  ")
+							}
+						}
+						{ // do_test "e_fkey-39.2"
+							r = db.Query("\n    UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p SET b = 'k4' WHERE a = 1;\n    SELECT * FROM c1;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-39.3"
+							r = db.Query("\n    DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p WHERE a = 2;\n    SELECT * FROM c1;\n  ")
+							}
+						}
+						{ // do_test "e_fkey-39.4"
+							r = db.Query("\n    CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE UNIQUE INDEX pi ON p(c);\n    REPLACE INTO p VALUES(5, 'k5', 'III');\n    SELECT * FROM c1;\n  ")
+							}
+						}
+						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						{ // do_test "e_fkey-40.1"
+							_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);\n  ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY, y);\n    CREATE TABLE child1(a, \n      b REFERENCES parent ON UPDATE NO ACTION ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(a, \n      b REFERENCES parent ON UPDATE RESTRICT ON DELETE SET NULL\n    );\n    CREATE TABLE child3(a, \n      b REFERENCES parent ON UPDATE SET NULL ON DELETE SET DEFAULT\n    );\n    CREATE TABLE child4(a, \n      b REFERENCES parent ON UPDATE SET DEFAULT ON DELETE CASCADE\n    );\n\n    -- Create some foreign keys that use the default action - \"NO ACTION\"\n    CREATE TABLE child5(a, b REFERENCES parent ON UPDATE CASCADE);\n    CREATE TABLE child6(a, b REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child7(a, b REFERENCES parent ON DELETE NO ACTION);\n    CREATE TABLE child8(a, b REFERENCES parent ON UPDATE NO ACTION);\n  ")
+							}
+						}
+						// foreach {tn zTab lRes} "\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n"
+						_items := tclSplitList("\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n")
+						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+							tn := _items[_idx+0]
+							zTab := _items[_idx+1]
+							lRes := _items[_idx+2]
+							_ = _idx
+								{ // do_test "e_fkey-40." + tn
+									r = db.Query("PRAGMA foreign_key_list(" + zTab + ")")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_key_list(" + zTab + ")")
+									}
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-41.1"
+								_res = db.Exec("\n    CREATE TABLE parent(p1, p2, PRIMARY KEY(p1, p2));\n    CREATE TABLE child(c1, c2, \n      FOREIGN KEY(c1, c2) REFERENCES parent\n      ON UPDATE NO ACTION\n      ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO parent VALUES('j', 'k');\n    INSERT INTO parent VALUES('l', 'm');\n    INSERT INTO child VALUES('j', 'k');\n    INSERT INTO child VALUES('l', 'm');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(p1, p2, PRIMARY KEY(p1, p2));\n    CREATE TABLE child(c1, c2, \n      FOREIGN KEY(c1, c2) REFERENCES parent\n      ON UPDATE NO ACTION\n      ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    INSERT INTO parent VALUES('j', 'k');\n    INSERT INTO parent VALUES('l', 'm');\n    INSERT INTO child VALUES('j', 'k');\n    INSERT INTO child VALUES('l', 'm');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-41.2"
+								r = db.Query("\n    BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE parent SET p1='k' WHERE p1='j';\n      DELETE FROM parent WHERE p1='l';\n      SELECT * FROM child;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-41.3"
+								_res = db.Exec("COMMIT")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-41.4"
+								_res = db.Exec("ROLLBACK")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-41.1"
+								_res = db.Exec("\n    CREATE TABLE parent(p1, p2);\n    CREATE UNIQUE INDEX parent_i ON parent(p1, p2);\n    CREATE TABLE child1(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON UPDATE RESTRICT\n    );\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(p1, p2);\n    CREATE UNIQUE INDEX parent_i ON parent(p1, p2);\n    CREATE TABLE child1(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON DELETE RESTRICT\n    );\n    CREATE TABLE child2(c1, c2, \n      FOREIGN KEY(c2, c1) REFERENCES parent(p1, p2) ON UPDATE RESTRICT\n    );\n  ")
+								}
+							}
+							{ // do_test "e_fkey-41.2"
+								_res = db.Exec("\n    INSERT INTO parent VALUES('a', 'b');\n    INSERT INTO parent VALUES('c', 'd');\n    INSERT INTO child1 VALUES('b', 'a');\n    INSERT INTO child2 VALUES('d', 'c');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO parent VALUES('a', 'b');\n    INSERT INTO parent VALUES('c', 'd');\n    INSERT INTO child1 VALUES('b', 'a');\n    INSERT INTO child2 VALUES('d', 'c');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-41.3"
+								_res = db.Exec(" DELETE FROM parent WHERE p1 = 'a' ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-41.4"
+								_res = db.Exec(" UPDATE parent SET p2 = 'e' WHERE p1 = 'c' ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-42.1"
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER UPDATE ON parent BEGIN\n      UPDATE child1 set c = new.x WHERE c = old.x;\n      UPDATE child2 set c = new.x WHERE c = old.x;\n    END;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER UPDATE ON parent BEGIN\n      UPDATE child1 set c = new.x WHERE c = old.x;\n      UPDATE child2 set c = new.x WHERE c = old.x;\n    END;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-42.2"
+								_res = db.Exec(" UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-42.3"
+								r = db.Query(" \n    UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE parent SET x = 'key two' WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-42.4"
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER DELETE ON parent BEGIN\n      UPDATE child1 SET c = NULL WHERE c = old.x;\n      UPDATE child2 SET c = NULL WHERE c = old.x;\n    END;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n\n    CREATE TRIGGER parent_t AFTER DELETE ON parent BEGIN\n      UPDATE child1 SET c = NULL WHERE c = old.x;\n      UPDATE child2 SET c = NULL WHERE c = old.x;\n    END;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-42.5"
+								_res = db.Exec(" DELETE FROM parent WHERE x = 'key1' ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-42.6"
+								r = db.Query(" \n    DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM parent WHERE x = 'key2';\n    SELECT * FROM child2;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-42.7"
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT);\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION);\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-42.8"
+								_res = db.Exec(" REPLACE INTO parent VALUES('key1') ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-42.9"
+								r = db.Query(" \n    REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    REPLACE INTO parent VALUES('key2');\n    SELECT * FROM child2;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-43.1"
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON UPDATE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON UPDATE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-43.2"
+								_res = db.Exec(" UPDATE parent SET x = 'key one' WHERE x = 'key1' ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-43.3"
+								_res = db.Exec(" UPDATE parent SET x = 'key two' WHERE x = 'key2' ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE parent SET x = 'key two' WHERE x = 'key2' ")
+								}
+							}
+							{ // do_test "e_fkey-43.4"
+								_res = db.Exec("COMMIT")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-43.5"
+								_res = db.Exec("\n    UPDATE child2 SET c = 'key two';\n    COMMIT;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE child2 SET c = 'key two';\n    COMMIT;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-43.6"
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child1(c REFERENCES parent ON DELETE RESTRICT\n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE child2(c REFERENCES parent ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    INSERT INTO parent VALUES('key1');\n    INSERT INTO parent VALUES('key2');\n    INSERT INTO child1 VALUES('key1');\n    INSERT INTO child2 VALUES('key2');\n    BEGIN;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-43.7"
+								_res = db.Exec(" DELETE FROM parent WHERE x = 'key1' ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-43.8"
+								_res = db.Exec(" DELETE FROM parent WHERE x = 'key2' ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM parent WHERE x = 'key2' ")
+								}
+							}
+							{ // do_test "e_fkey-43.9"
+								_res = db.Exec("COMMIT")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-43.10"
+								_res = db.Exec("\n    UPDATE child2 SET c = NULL;\n    COMMIT;\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE child2 SET c = NULL;\n    COMMIT;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-44.1"
+								_res = db.Exec("\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c REFERENCES pA ON DELETE SET NULL);\n    CREATE TABLE cB(c REFERENCES pA ON UPDATE SET NULL);\n\n    INSERT INTO pA VALUES(X'ABCD');\n    INSERT INTO pA VALUES(X'1234');\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c REFERENCES pA ON DELETE SET NULL);\n    CREATE TABLE cB(c REFERENCES pA ON UPDATE SET NULL);\n\n    INSERT INTO pA VALUES(X'ABCD');\n    INSERT INTO pA VALUES(X'1234');\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-44.2"
+								r = db.Query("\n    DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pA WHERE rowid = 1;\n    SELECT quote(x) FROM pA;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-44.3"
+								r = db.Query("\n    SELECT quote(c) FROM cA;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(c) FROM cA;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-44.4"
+								r = db.Query("\n    UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE pA SET x = X'8765' WHERE rowid = 2;\n    SELECT quote(x) FROM pA;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-44.5"
+								r = db.Query(" SELECT quote(c) FROM cB ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cB ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-45.1"
+								_res = db.Exec("\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c DEFAULT X'0000' REFERENCES pA ON DELETE SET DEFAULT);\n    CREATE TABLE cB(c DEFAULT X'9999' REFERENCES pA ON UPDATE SET DEFAULT);\n\n    INSERT INTO pA(rowid, x) VALUES(1, X'0000');\n    INSERT INTO pA(rowid, x) VALUES(2, X'9999');\n    INSERT INTO pA(rowid, x) VALUES(3, X'ABCD');\n    INSERT INTO pA(rowid, x) VALUES(4, X'1234');\n\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE pA(x PRIMARY KEY);\n    CREATE TABLE cA(c DEFAULT X'0000' REFERENCES pA ON DELETE SET DEFAULT);\n    CREATE TABLE cB(c DEFAULT X'9999' REFERENCES pA ON UPDATE SET DEFAULT);\n\n    INSERT INTO pA(rowid, x) VALUES(1, X'0000');\n    INSERT INTO pA(rowid, x) VALUES(2, X'9999');\n    INSERT INTO pA(rowid, x) VALUES(3, X'ABCD');\n    INSERT INTO pA(rowid, x) VALUES(4, X'1234');\n\n    INSERT INTO cA VALUES(X'ABCD');\n    INSERT INTO cB VALUES(X'1234');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-45.2"
+								r = db.Query("\n    DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pA WHERE rowid = 3;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-45.3"
+								r = db.Query(" SELECT quote(c) FROM cA ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cA ")
+								}
+							}
+							{ // do_test "e_fkey-45.4"
+								r = db.Query("\n    UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE pA SET x = X'8765' WHERE rowid = 4;\n    SELECT quote(x) FROM pA ORDER BY rowid;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-45.5"
+								r = db.Query(" SELECT quote(c) FROM cB ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT quote(c) FROM cB ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-46.1"
+								r = db.Query("\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON DELETE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-46.2"
+								r = db.Query("\n    DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p1 WHERE a = 4;\n    SELECT d, c FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-46.3"
+								r = db.Query("\n    DELETE FROM p1;\n    SELECT d, c FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM p1;\n    SELECT d, c FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-46.4"
+								r = db.Query(" SELECT * FROM p1 ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p1 ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-47.1"
+								r = db.Query("\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(c REFERENCES p1(b) ON UPDATE CASCADE, d);\n    INSERT INTO p1 VALUES(NULL, NULL);\n    INSERT INTO p1 VALUES(4, 4);\n    INSERT INTO p1 VALUES(5, 5);\n    INSERT INTO c1 VALUES(NULL, NULL);\n    INSERT INTO c1 VALUES(4, 4);\n    INSERT INTO c1 VALUES(5, 5);\n    SELECT count(*) FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-47.2"
+								r = db.Query("\n    UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p1 SET b = 10 WHERE b = 5;\n    SELECT d, c FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-47.3"
+								r = db.Query("\n    UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE p1 SET b = 11 WHERE b = 4;\n    SELECT d, c FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-47.4"
+								r = db.Query(" \n    UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE p1 SET b = 6 WHERE b IS NULL;\n    SELECT d, c FROM c1;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-46.5"
+								r = db.Query(" SELECT * FROM p1 ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p1 ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-48.1"
+								_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER REFERENCES artist(artistid) ON UPDATE CASCADE\n    );\n\n    INSERT INTO artist VALUES(1, 'Dean Martin');\n    INSERT INTO artist VALUES(2, 'Frank Sinatra');\n    INSERT INTO track VALUES(11, 'That''s Amore', 1);\n    INSERT INTO track VALUES(12, 'Christmas Blues', 1);\n    INSERT INTO track VALUES(13, 'My Way', 2);\n  ")
+								}
+							}
+							{ // do_test "e_fkey-48.2"
+								_res = db.Exec("\n    UPDATE artist SET artistid = 100 WHERE artistname = 'Dean Martin';\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE artist SET artistid = 100 WHERE artistname = 'Dean Martin';\n  ")
+								}
+							}
+							{ // do_test "e_fkey-48.3"
+								r = db.Query(" SELECT * FROM artist ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
+								}
+							}
+							{ // do_test "e_fkey-48.4"
+								r = db.Query(" SELECT * FROM track ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM track ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-49.1"
+								_res = db.Exec("\n    CREATE TABLE parent(a COLLATE nocase, b, c, PRIMARY KEY(c, a));\n    CREATE TABLE child(d DEFAULT 'a', e, f DEFAULT 'c',\n      FOREIGN KEY(f, d) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n\n    INSERT INTO parent VALUES('A', 'b', 'c');\n    INSERT INTO parent VALUES('ONE', 'two', 'three');\n    INSERT INTO child VALUES('one', 'two', 'three');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(a COLLATE nocase, b, c, PRIMARY KEY(c, a));\n    CREATE TABLE child(d DEFAULT 'a', e, f DEFAULT 'c',\n      FOREIGN KEY(f, d) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n\n    INSERT INTO parent VALUES('A', 'b', 'c');\n    INSERT INTO parent VALUES('ONE', 'two', 'three');\n    INSERT INTO child VALUES('one', 'two', 'three');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-49.2"
+								r = db.Query("\n    BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n      UPDATE parent SET a = '' WHERE a = 'oNe';\n      SELECT * FROM child;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-49.3"
+								r = db.Query("\n    ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ROLLBACK;\n    DELETE FROM parent WHERE a = 'A';\n    SELECT * FROM parent;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-49.4"
+								_res = db.Exec(" UPDATE parent SET a = '' WHERE a = 'oNe' ")
+								_ = _res // catchsql
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-50.1"
+								_res = db.Exec("\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    INSERT INTO track VALUES(14, 'Mr. Bojangles', 3);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE artist(\n      artistid    INTEGER PRIMARY KEY, \n      artistname  TEXT\n    );\n    CREATE TABLE track(\n      trackid     INTEGER,\n      trackname   TEXT, \n      trackartist INTEGER DEFAULT 0 REFERENCES artist(artistid) ON DELETE SET DEFAULT\n    );\n    INSERT INTO artist VALUES(3, 'Sammy Davis Jr.');\n    INSERT INTO track VALUES(14, 'Mr. Bojangles', 3);\n  ")
+								}
+							}
+							{ // do_test "e_fkey-50.2"
+								_res = db.Exec(" DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.' ")
+								_ = _res // catchsql
+							}
+							{ // do_test "e_fkey-50.3"
+								_res = db.Exec("\n    INSERT INTO artist VALUES(0, 'Unknown Artist');\n    DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.';\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO artist VALUES(0, 'Unknown Artist');\n    DELETE FROM artist WHERE artistname = 'Sammy Davis Jr.';\n  ")
+								}
+							}
+							{ // do_test "e_fkey-50.4"
+								r = db.Query(" SELECT * FROM artist ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM artist ")
+								}
+							}
+							{ // do_test "e_fkey-50.5"
+								r = db.Query(" SELECT * FROM track ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM track ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-51.1"
+								// proc definition (not transpiled)
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n\n    CREATE TRIGGER bu BEFORE UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x-old.x);\n    END;\n    CREATE TABLE child(\n      a DEFAULT (maxparent()) REFERENCES parent ON UPDATE SET DEFAULT\n    );\n    CREATE TRIGGER au AFTER UPDATE ON parent BEGIN\n      INSERT INTO parent VALUES(new.x+old.x);\n    END;\n\n    INSERT INTO parent VALUES(1);\n    INSERT INTO child VALUES(1);\n  ")
+								}
+							}
+							{ // do_test "e_fkey-51.2"
+								r = db.Query("\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-51.3"
+								r = db.Query("\n    DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM child;\n    DELETE FROM parent;\n    INSERT INTO parent VALUES(-1);\n    INSERT INTO child VALUES(-1);\n    UPDATE parent SET x = 22;\n    SELECT * FROM parent ORDER BY rowid; SELECT 'xxx' ; SELECT a FROM child;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-52.1"
+								_res = db.Exec("\n    CREATE TABLE zeus(a INTEGER COLLATE NOCASE, b, PRIMARY KEY(a, b));\n    CREATE TABLE apollo(c, d, \n      FOREIGN KEY(c, d) REFERENCES zeus ON UPDATE CASCADE\n    );\n    INSERT INTO zeus VALUES('abc', 'xyz');\n    INSERT INTO apollo VALUES('ABC', 'xyz');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE zeus(a INTEGER COLLATE NOCASE, b, PRIMARY KEY(a, b));\n    CREATE TABLE apollo(c, d, \n      FOREIGN KEY(c, d) REFERENCES zeus ON UPDATE CASCADE\n    );\n    INSERT INTO zeus VALUES('abc', 'xyz');\n    INSERT INTO apollo VALUES('ABC', 'xyz');\n  ")
+								}
+								r = db.Query("\n    UPDATE zeus SET a = 'aBc';\n    SELECT * FROM apollo;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 'aBc';\n    SELECT * FROM apollo;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-52.2"
+								r = db.Query("\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT * FROM apollo;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-52.3"
+								r = db.Query("\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = 1, b = 1;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-52.4"
+								r = db.Query("\n    UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET a = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-52.5"
+								r = db.Query("\n    UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET b = '1';\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-52.6"
+								r = db.Query("\n    UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE zeus SET b = NULL;\n    SELECT typeof(c), c, typeof(d), d FROM apollo;\n  ")
+								}
+							}
+							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							{ // do_test "e_fkey-53.1"
+								_res = db.Exec("\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child(y REFERENCES parent ON UPDATE SET NULL);\n    INSERT INTO parent VALUES('key');\n    INSERT INTO child VALUES('key');\n  ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE parent(x PRIMARY KEY);\n    CREATE TABLE child(y REFERENCES parent ON UPDATE SET NULL);\n    INSERT INTO parent VALUES('key');\n    INSERT INTO child VALUES('key');\n  ")
+								}
+							}
+							{ // do_test "e_fkey-53.2"
+								r = db.Query("\n    UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
+								}
+							}
+							{ // do_test "e_fkey-53.3"
+								r = db.Query("\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE parent SET x = 'key2';\n    SELECT IFNULL(y, 'null') FROM child;\n  ")
+								}
+							}
+							// foreach {tn zCreateTbl lRes} "\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n"
+							_items := tclSplitList("\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n")
+							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+								tn := _items[_idx+0]
+								zCreateTbl := _items[_idx+1]
+								lRes := _items[_idx+2]
+								_ = _idx
+									{ // do_test "e_fkey-54." + tn + ".off"
+										t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+										r = db.Query("PRAGMA foreign_keys = OFF")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = OFF")
+										}
+										_res = db.Exec(zCreateTbl)
+										_ = _res // catchsql
+									}
+									{ // do_test "e_fkey-54." + tn + ".on"
+										t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+										r = db.Query("PRAGMA foreign_keys = ON")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = ON")
+										}
+										_res = db.Exec(zCreateTbl)
+										_ = _res // catchsql
+									}
+								}
+								// proc definition (not transpiled)
+								{ // do_test "e_fkey-57.1"
+									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									_res = db.Exec("\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET NULL);\n    CREATE TABLE c2(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE SET DEFAULT);\n    CREATE TABLE c3(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE CASCADE);\n    CREATE TABLE c4(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT);\n    CREATE TABLE c5(c, d, FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION);\n\n    CREATE TABLE c6(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE RESTRICT \n      DEFERRABLE INITIALLY DEFERRED\n    );\n    CREATE TABLE c7(c, d, \n      FOREIGN KEY(c, d) REFERENCES p ON DELETE NO ACTION\n      DEFERRABLE INITIALLY DEFERRED\n    );\n\n    CREATE TABLE log(msg);\n    CREATE TRIGGER tt AFTER DELETE ON p BEGIN\n      INSERT INTO log VALUES('delete ' || old.rowid);\n    END;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-57.2"
+									r = db.Query("\n    INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO p VALUES('a', 'b');\n    INSERT INTO c1 VALUES('a', 'b');\n    INSERT INTO c2 VALUES('a', 'b');\n    INSERT INTO c3 VALUES('a', 'b');\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c1;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-57.3"
+									r = db.Query(" SELECT * FROM c2 ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c2 ")
+									}
+								}
+								{ // do_test "e_fkey-57.4"
+									r = db.Query(" SELECT * FROM c3 ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM c3 ")
+									}
+								}
+								{ // do_test "e_fkey-57.5"
+									r = db.Query(" SELECT * FROM log ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM log ")
+									}
+								}
+								{ // do_test "e_fkey-57.6"
+									_res = db.Exec("ROLLBACK")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+									}
+								}
+								{ // do_test "e_fkey-57.7"
+									_res = db.Exec("\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DELETE FROM p;\n      SELECT * FROM log;\n    ROLLBACK;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-58.1"
+									_res = db.Exec(" \n    DELETE FROM c1;\n    DELETE FROM c2;\n    DELETE FROM c3;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM c1;\n    DELETE FROM c2;\n    DELETE FROM c3;\n  ")
+									}
+									_res = db.Exec(" INSERT INTO c5 VALUES('a', 'b') ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c5 VALUES('a', 'b') ")
+									}
+									_res = db.Exec(" DROP TABLE p ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-58.2"
+									r = db.Query(" SELECT * FROM p ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM p ")
+									}
+								}
+								{ // do_test "e_fkey-58.3"
+									_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n  ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-58.4"
+									_res = db.Exec("\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM p;\n    SELECT * FROM c5;\n    ROLLBACK;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-59.1"
+									_res = db.Exec(" \n    DELETE FROM c1 ; DELETE FROM c2 ; DELETE FROM c3 ;\n    DELETE FROM c4 ; DELETE FROM c5 ; DELETE FROM c6 ;\n    DELETE FROM c7 \n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM c1 ; DELETE FROM c2 ; DELETE FROM c3 ;\n    DELETE FROM c4 ; DELETE FROM c5 ; DELETE FROM c6 ;\n    DELETE FROM c7 \n  ")
+									}
+								}
+								{ // do_test "e_fkey-59.2"
+									_res = db.Exec(" INSERT INTO c7 VALUES('a', 'b') ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c7 VALUES('a', 'b') ")
+									}
+									_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE p;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-59.3"
+									_res = db.Exec("COMMIT")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-59.4"
+									_res = db.Exec(" CREATE TABLE p(a, b, PRIMARY KEY(a, b)) ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE p(a, b, PRIMARY KEY(a, b)) ")
+									}
+									_res = db.Exec("COMMIT")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-59.5"
+									_res = db.Exec(" INSERT INTO p VALUES('a', 'b') ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO p VALUES('a', 'b') ")
+									}
+									_res = db.Exec("COMMIT")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+									}
+								}
+								t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+								{ // do_test "e_fkey-60.1"
+									_res = db.Exec("\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA foreign_keys = OFF;\n\n    CREATE TABLE p(a PRIMARY KEY, b REFERENCES nosuchtable);\n    CREATE TABLE c1(c, d, FOREIGN KEY(c, d) REFERENCES a);\n    CREATE TABLE c2(c REFERENCES p(b), d);\n    CREATE TABLE c3(c REFERENCES p ON DELETE SET NULL, d);\n\n    INSERT INTO p VALUES(1, 2);\n    INSERT INTO c1 VALUES(1, 2);\n    INSERT INTO c2 VALUES(1, 2);\n    INSERT INTO c3 VALUES(1, 2);\n  ")
+									}
+								}
+								{ // do_test "e_fkey-60.2"
+									r = db.Query(" PRAGMA foreign_keys = ON ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
+									}
+									_res = db.Exec(" DELETE FROM p ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-60.3"
+									_res = db.Exec("\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE p;\n      SELECT * FROM c3;\n    ROLLBACK;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-60.4"
+									_res = db.Exec(" CREATE TABLE nosuchtable(x PRIMARY KEY) ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE nosuchtable(x PRIMARY KEY) ")
+									}
+									_res = db.Exec(" DELETE FROM p ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-60.5"
+									_res = db.Exec(" DROP TABLE c1 ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c1 ")
+									}
+									_res = db.Exec(" DELETE FROM p ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-60.6"
+									_res = db.Exec(" DROP TABLE c2 ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE c2 ")
+									}
+									_res = db.Exec(" DELETE FROM p ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p ")
+									}
+								}
+								for _, zMatch := range tclSplitList("list SIMPLE PARTIAL FULL Simple parTIAL FuLL") {
+									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									{ // do_test "e_fkey-62." + zMatch + ".1"
+										_res = db.Exec("\n      CREATE TABLE p(a, b, c, PRIMARY KEY(b, c));\n      CREATE TABLE c(d, e, f, FOREIGN KEY(e, f) REFERENCES p MATCH " + zMatch + ");\n    ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE p(a, b, c, PRIMARY KEY(b, c));\n      CREATE TABLE c(d, e, f, FOREIGN KEY(e, f) REFERENCES p MATCH " + zMatch + ");\n    ")
+										}
+									}
+									{ // do_test "e_fkey-62." + zMatch + ".2"
+										_res = db.Exec(" INSERT INTO p VALUES(1, 2, 3)         ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO p VALUES(1, 2, 3)         ")
+										}
+										_res = db.Exec(" INSERT INTO c VALUES('w', 2, 3)       ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('w', 2, 3)       ")
+										}
+										_res = db.Exec(" INSERT INTO c VALUES('x', 'x', NULL)  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('x', 'x', NULL)  ")
+										}
+										_res = db.Exec(" INSERT INTO c VALUES('y', NULL, 'x')  ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('y', NULL, 'x')  ")
+										}
+										_res = db.Exec(" INSERT INTO c VALUES('z', NULL, NULL) ")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO c VALUES('z', NULL, NULL) ")
+										}
+										_res = db.Exec(" INSERT INTO c VALUES('a', 2, 4) ")
+										_ = _res // catchsql
+									}
+								}
+								t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+								{ // do_test "e_fkey-62.1"
+									_res = db.Exec(" SET CONSTRAINTS ALL IMMEDIATE ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-62.2"
+									_res = db.Exec(" SET CONSTRAINTS ALL DEFERRED ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-62.3"
+									_res = db.Exec("\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE p(a, b, PRIMARY KEY(a, b));\n    CREATE TABLE cd(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY DEFERRED);\n    CREATE TABLE ci(c, d, \n      FOREIGN KEY(c, d) REFERENCES p DEFERRABLE INITIALLY IMMEDIATE);\n    BEGIN;\n  ")
+									}
+								}
+								{ // do_test "e_fkey-62.4"
+									_res = db.Exec(" INSERT INTO ci VALUES('x', 'y') ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-62.5"
+									_res = db.Exec(" INSERT INTO cd VALUES('x', 'y') ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-62.6"
+									_res = db.Exec(" COMMIT ")
+									_ = _res // catchsql
+								}
+								{ // do_test "e_fkey-62.7"
+									_res = db.Exec(" \n    DELETE FROM cd;\n    COMMIT;\n  ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    DELETE FROM cd;\n    COMMIT;\n  ")
+									}
+								}
+								// proc definition (not transpiled)
+								// proc definition (not transpiled)
+								if tclBool("clang_sanitize_address" + "==0") {
+									{ // do_test "e_fkey-63.1.1"
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion $SQLITE_MAX_TRIGGER_DEPTH")
+									}
+									{ // do_test "e_fkey-63.1.2"
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion [expr $SQLITE_MAX_TRIGGER_DEPTH+1]")
+									}
+									{ // do_test "e_fkey-63.1.3"
+										t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 5")
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion 5")
+									}
+									{ // do_test "e_fkey-63.1.4"
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_delete_recursion 6")
+									}
+									{ // do_test "e_fkey-63.1.5"
+										t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1000000")
+									}
+									{ // do_test "e_fkey-63.2.1"
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion $SQLITE_MAX_TRIGGER_DEPTH")
+									}
+									{ // do_test "e_fkey-63.2.2"
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion [expr $SQLITE_MAX_TRIGGER_DEPTH+1]")
+									}
+									{ // do_test "e_fkey-63.2.3"
+										t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 5")
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion 5")
+									}
+									{ // do_test "e_fkey-63.2.4"
+										t.Skipf("TODO: %s not implemented in frigolite", "test_on_update_recursion 6")
+									}
+									{ // do_test "e_fkey-63.2.5"
+										t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1000000")
+									}
+								}
+								for _, recursive_triggers_setting := range tclSplitList("list 0 1 ON OFF") {
+									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									r = db.Query("PRAGMA recursive_triggers = " + recursive_triggers_setting)
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA recursive_triggers = " + recursive_triggers_setting)
+									}
+									{ // do_test "e_fkey-64." + recursive_triggers_setting + ".1"
+										r = db.Query("\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;\n    ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1 ON DELETE CASCADE);\n      INSERT INTO t1 VALUES(1, NULL);\n      INSERT INTO t1 VALUES(2, 1);\n      INSERT INTO t1 VALUES(3, 2);\n      INSERT INTO t1 VALUES(4, 3);\n      INSERT INTO t1 VALUES(5, 4);\n      SELECT count(*) FROM t1;\n    ")
+										}
+									}
+									{ // do_test "e_fkey-64." + recursive_triggers_setting + ".2"
+										r = db.Query(" SELECT count(*) FROM t1 WHERE a = 1 ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE a = 1 ")
+										}
+									}
+									{ // do_test "e_fkey-64." + recursive_triggers_setting + ".3"
+										r = db.Query(" \n      DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;\n    ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t1 WHERE a = 1;\n      SELECT count(*) FROM t1;\n    ")
+										}
+									}
+								}
 }

@@ -32,109 +32,109 @@ func Test_sortfault(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore threadsmode fakeheap lookaside} "\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n"
-	_items := []string{"\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n"}
+	_items := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
 	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
-	tn := _items[_idx+0]
-	mmap_limit := _items[_idx+1]
-	nWorker := _items[_idx+2]
-	tmpstore := _items[_idx+3]
-	threadsmode := _items[_idx+4]
-	fakeheap := _items[_idx+5]
-	lookaside := _items[_idx+6]
-		if tclBool(sqlite_options + "(threadsafe)") {
-			var threadsmode = "singlethread"
-			_ = threadsmode // suppress unused warning
-		}
-		_res = db.Exec("PRAGMA threads=" + nWorker)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=" + nWorker)
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $threadsmode")
-		if tclBool(lookaside) {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
-		} else {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
-		var str = "a 1000"
-		_ = str // suppress unused warning
-		t.Log(threadsmode)
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {40 1000 40 1000 40 1...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {20 1000 20 1000 20 1...}")
-		if func() bool { mmap_limit_n, _mmap_limit_e := strconv.Atoi(mmap_limit); if _mmap_limit_e != nil { return false }; return mmap_limit_n > 1000000 }() {
-			var str2 = "$str 10"
-			_ = str2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit")
-			r = db.Query(" PRAGMA cache_size = 5 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
+		tn := _items[_idx+0]
+		mmap_limit := _items[_idx+1]
+		nWorker := _items[_idx+2]
+		tmpstore := _items[_idx+3]
+		threadsmode := _items[_idx+4]
+		fakeheap := _items[_idx+5]
+		lookaside := _items[_idx+6]
+		_ = _idx
+			if tclBool(sqlite_options + "(threadsafe)") {
+				var threadsmode = "singlethread"
+				_ = threadsmode // suppress unused warning
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.$tn -faults oom-trans* -body {\n      execsql { \n        WITH r(x,y) AS (\n       ...} -test {\n      faultsim_test_result {0 {60 10000 60 10000 ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
-		}
-	}
-	}
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	var t_0 = "singlethread"
-	_ = t_0 // suppress unused warning
-	var t_1 = "multithread"
-	_ = t_1 // suppress unused warning
-	var t_2 = "serialized"
-	_ = t_2 // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.0"
-		_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
-		}
-	}
-	{ // do_test "4.1"
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
-			_res = db.Exec(" \n      INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;\n    ")
+			_res = db.Exec("PRAGMA threads=" + nWorker)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=" + nWorker)
 			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $threadsmode")
+			if tclBool(lookaside) {
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
+			} else {
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+			t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
+			var str = "a 1000"
+			_ = str // suppress unused warning
+			t.Log(threadsmode)
+			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {40 1000 40 1000 40 1...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {20 1000 20 1000 20 1...}")
+			if func() bool { mmap_limit_n, _mmap_limit_e := strconv.Atoi(mmap_limit); if _mmap_limit_e != nil { return false }; return mmap_limit_n > 1000000 }() {
+				var str2 = "$str 10"
+				_ = str2 // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit")
+				r = db.Query(" PRAGMA cache_size = 5 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.$tn -faults oom-trans* -body {\n      execsql { \n        WITH r(x,y) AS (\n       ...} -test {\n      faultsim_test_result {0 {60 10000 60 10000 ...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
+			}
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		var t_0 = "singlethread"
+		_ = t_0 // suppress unused warning
+		var t_1 = "multithread"
+		_ = t_1 // suppress unused warning
+		var t_2 = "serialized"
+		_ = t_2 // suppress unused warning
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "4.0"
+			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, 2, 3);\n")
+			}
+		}
+		{ // do_test "4.1"
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
+				_res = db.Exec(" \n      INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;\n    ")
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
 				}
 			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {\n  faultsim_test_result {0 {}}\n}")
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	var a = "a 500"
-	_ = a // suppress unused warning
-	var b = "b 500"
-	_ = b // suppress unused warning
-	var c = "c 500"
-	_ = c // suppress unused warning
-	{ // "5.0"
-		_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
+		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {\n  faultsim_test_result {0 {}}\n}")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		var a = "a 500"
+		_ = a // suppress unused warning
+		var b = "b 500"
+		_ = b // suppress unused warning
+		var c = "c 500"
+		_ = c // suppress unused warning
+		{ // "5.0"
+			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
+			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n  faultsim_test_result [list 0 [list $::a $::b $:...}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n  faultsim_test_result [list 0 [list $::a $::b $:...}")
 }

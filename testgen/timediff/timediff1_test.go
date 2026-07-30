@@ -53,111 +53,111 @@ func Test_timediff1(t *testing.T) {
 	var p2 = "\n  A   {1066-10-14}\n  B   {1900-02-28 11:00}\n  C   {1900-03-01 12:00}\n  D   {1904-02-29 11:25}\n  E   {2000-02-29 13:00}\n  E   {2000-03-01 14:00}\n  F   {2001-03-31 15:15}\n  G   {2002-04-01 16:59}\n  H   {2003-04-30 17:00}\n  I   {2004-05-01 23:59:59}\n  J   {2005-06-01}\n  K   {2006-06-30 01:23:45}\n  L   {2007-12-31 02:00}\n  M   {2008-01-01 01:59}\n  N   {3152-07-04 12:00}\n  P   {9999-12-31 23:59:59}\n"
 	_ = p2 // suppress unused warning
 	// foreach {x1 d1} p1
-	_items := []string{p1}
+	_items := tclSplitList(p1)
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	x1 := _items[_idx+0]
-	d1 := _items[_idx+1]
-		// foreach {x2 d2} p2
-		_items := []string{p2}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		x2 := _items[_idx+0]
-		d2 := _items[_idx+1]
-			var r1 = "db one {SELECT datetime($d1)}"
-			_ = r1 // suppress unused warning
-			{ // "timediff-4-" + x1 + x2
-				r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
-					return
-				}
-				got := flatten(r)
-				want := "list $r1"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			var r2 = "db one {SELECT datetime($d2)}"
-			_ = r2 // suppress unused warning
-			{ // "timediff-4-" + x2 + x1
-				r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
-					return
-				}
-				got := flatten(r)
-				want := "list $r2"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-		}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-1 {datetime('2000-01-01','+0001-02-03')} {2001-03-04 00:00:00}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-2 {datetime('2000-01-01','+0001-02-03x')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-3 {datetime('2000-01-01','+0001-11-03')} {2001-12-04 00:00:00}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-4 {datetime('2000-01-01','+0001-12-03')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-5 {datetime('2000-01-01','+0001-02-30')} {2001-03-31 00:00:00}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-6 {datetime('2000-01-01','+0001-02-31')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-7 {datetime('2000-01-01','+0001-02-03 0')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-8 {datetime('2000-01-01','+0001-02-03 01')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-9 {datetime('2000-01-01','+0001-02-03 01:')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-10 {datetime('2000-01-01','+0001-02-03 01:0')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-11 {datetime('2000-01-01','+0001-02-03 01:02')} {2001-03-04 01:02:00}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-12 {datetime('2000-01-01','+0001-02-03 01:02:')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-13 {datetime('2000-01-01','+0001-02-03 01:02:0')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-14 {datetime('2000-01-01','+0001-02-03 01:02:03')} {2001-03-04 01:02:03}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-15 {datetime('2000-01-01','+0001-02-03 01:02:03.')} NULL")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-16 {datetime('2000-01-01','+0001-02-03 01:02:03.5')} {2001-03-04 01:02:03}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-17 {datetime('2000-01-01','+0001-02-03 01:02:03.50')} {2001-03-04 01:02:03}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-18 {datetime('2000-01-01','+0001-02-03 01:02:03.500')} {2001-03-04 01:02:03}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-19 {datetime('2000-01-01','+0001-02-03 01:02:03.500x')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-20 {datetime('2000-01-01','+0001-02-03 01:02:03.500 x'...} {NULL}")
-	var p1 = "\n  a   {2000-01-01 00:00:00}\n  b   {2000-01-31 23:59:59}\n  c   {2000-02-01 00:00:00}\n  d   {2000-02-29 23:59:59}\n  e   {2000-03-01 00:00:00}\n  f   {2000-03-31 23:59:59}\n  g   {2000-04-01 00:00:00}\n  h   {2000-04-30 23:59:59}\n  i   {2000-05-01 00:00:00}\n  j   {2000-05-31 23:59:59}\n  k   {2000-06-01 00:00:00}\n  l   {2000-06-30 23:59:59}\n  m   {2000-07-01 00:00:00}\n  n   {2000-07-31 23:59:59}\n  o   {2000-08-01 00:00:00}\n  p   {2000-08-31 23:59:59}\n  q   {2000-09-01 00:00:00}\n  r   {2000-09-30 23:59:59}\n  s   {2000-10-01 00:00:00}\n  t   {2000-10-31 23:59:59}\n  u   {2000-11-01 00:00:00}\n  v   {2000-11-30 23:59:59}\n  w   {2000-12-01 00:00:00}\n  x   {2000-12-31 23:59:59}\n"
-	_ = p1 // suppress unused warning
-	var p2 = "\n  A   {2001-01-01 00:00:00}\n  B   {2001-01-31 23:59:59}\n  C   {2001-02-01 00:00:00}\n  D   {2001-02-28 23:59:59}\n  E   {2001-03-01 00:00:00}\n  F   {2001-03-31 23:59:59}\n  G   {2001-04-01 00:00:00}\n  H   {2001-04-30 23:59:59}\n  I   {2001-05-01 00:00:00}\n  J   {2001-05-31 23:59:59}\n  K   {2001-06-01 00:00:00}\n  L   {2001-06-30 23:59:59}\n  M   {2001-07-01 00:00:00}\n  N   {2001-07-31 23:59:59}\n  O   {2001-08-01 00:00:00}\n  P   {2001-08-31 23:59:59}\n  Q   {2001-09-01 00:00:00}\n  R   {2001-09-30 23:59:59}\n  S   {2001-10-01 00:00:00}\n  T   {2001-10-31 23:59:59}\n  U   {2001-11-01 00:00:00}\n  V   {2001-11-30 23:59:59}\n  W   {2001-12-01 00:00:00}\n  X   {2001-12-31 23:59:59}\n"
-	_ = p2 // suppress unused warning
-	// foreach {x1 d1} p1
-	_items := []string{p1}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	x1 := _items[_idx+0]
-	d1 := _items[_idx+1]
-		// foreach {x2 d2} p2
-		_items := []string{p2}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		x2 := _items[_idx+0]
-		d2 := _items[_idx+1]
-			var r1 = "db one {SELECT datetime($d1)}"
-			_ = r1 // suppress unused warning
-			{ // "timediff-6-" + x1 + x2
-				r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
-					return
-				}
-				got := flatten(r)
-				want := "list $r1"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		x1 := _items[_idx+0]
+		d1 := _items[_idx+1]
+		_ = _idx
+			// foreach {x2 d2} p2
+			_items := tclSplitList(p2)
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				x2 := _items[_idx+0]
+				d2 := _items[_idx+1]
+				_ = _idx
+					var r1 = "db one {SELECT datetime($d1)}"
+					_ = r1 // suppress unused warning
+					{ // "timediff-4-" + x1 + x2
+						r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+							return
+						}
+						got := flatten(r)
+						want := "list $r1"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					var r2 = "db one {SELECT datetime($d2)}"
+					_ = r2 // suppress unused warning
+					{ // "timediff-4-" + x2 + x1
+						r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+							return
+						}
+						got := flatten(r)
+						want := "list $r2"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
 				}
 			}
-			var r2 = "db one {SELECT datetime($d2)}"
-			_ = r2 // suppress unused warning
-			{ // "timediff-6-" + x2 + x1
-				r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
-					return
-				}
-				got := flatten(r)
-				want := "list $r2"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-		}
-		}
-	}
-	}
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-1 {datetime('2000-01-01','+0001-02-03')} {2001-03-04 00:00:00}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-2 {datetime('2000-01-01','+0001-02-03x')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-3 {datetime('2000-01-01','+0001-11-03')} {2001-12-04 00:00:00}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-4 {datetime('2000-01-01','+0001-12-03')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-5 {datetime('2000-01-01','+0001-02-30')} {2001-03-31 00:00:00}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-6 {datetime('2000-01-01','+0001-02-31')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-7 {datetime('2000-01-01','+0001-02-03 0')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-8 {datetime('2000-01-01','+0001-02-03 01')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-9 {datetime('2000-01-01','+0001-02-03 01:')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-10 {datetime('2000-01-01','+0001-02-03 01:0')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-11 {datetime('2000-01-01','+0001-02-03 01:02')} {2001-03-04 01:02:00}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-12 {datetime('2000-01-01','+0001-02-03 01:02:')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-13 {datetime('2000-01-01','+0001-02-03 01:02:0')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-14 {datetime('2000-01-01','+0001-02-03 01:02:03')} {2001-03-04 01:02:03}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-15 {datetime('2000-01-01','+0001-02-03 01:02:03.')} NULL")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-16 {datetime('2000-01-01','+0001-02-03 01:02:03.5')} {2001-03-04 01:02:03}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-17 {datetime('2000-01-01','+0001-02-03 01:02:03.50')} {2001-03-04 01:02:03}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-18 {datetime('2000-01-01','+0001-02-03 01:02:03.500')} {2001-03-04 01:02:03}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-19 {datetime('2000-01-01','+0001-02-03 01:02:03.500x')} {NULL}")
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest 5-20 {datetime('2000-01-01','+0001-02-03 01:02:03.500 x'...} {NULL}")
+			var p1 = "\n  a   {2000-01-01 00:00:00}\n  b   {2000-01-31 23:59:59}\n  c   {2000-02-01 00:00:00}\n  d   {2000-02-29 23:59:59}\n  e   {2000-03-01 00:00:00}\n  f   {2000-03-31 23:59:59}\n  g   {2000-04-01 00:00:00}\n  h   {2000-04-30 23:59:59}\n  i   {2000-05-01 00:00:00}\n  j   {2000-05-31 23:59:59}\n  k   {2000-06-01 00:00:00}\n  l   {2000-06-30 23:59:59}\n  m   {2000-07-01 00:00:00}\n  n   {2000-07-31 23:59:59}\n  o   {2000-08-01 00:00:00}\n  p   {2000-08-31 23:59:59}\n  q   {2000-09-01 00:00:00}\n  r   {2000-09-30 23:59:59}\n  s   {2000-10-01 00:00:00}\n  t   {2000-10-31 23:59:59}\n  u   {2000-11-01 00:00:00}\n  v   {2000-11-30 23:59:59}\n  w   {2000-12-01 00:00:00}\n  x   {2000-12-31 23:59:59}\n"
+			_ = p1 // suppress unused warning
+			var p2 = "\n  A   {2001-01-01 00:00:00}\n  B   {2001-01-31 23:59:59}\n  C   {2001-02-01 00:00:00}\n  D   {2001-02-28 23:59:59}\n  E   {2001-03-01 00:00:00}\n  F   {2001-03-31 23:59:59}\n  G   {2001-04-01 00:00:00}\n  H   {2001-04-30 23:59:59}\n  I   {2001-05-01 00:00:00}\n  J   {2001-05-31 23:59:59}\n  K   {2001-06-01 00:00:00}\n  L   {2001-06-30 23:59:59}\n  M   {2001-07-01 00:00:00}\n  N   {2001-07-31 23:59:59}\n  O   {2001-08-01 00:00:00}\n  P   {2001-08-31 23:59:59}\n  Q   {2001-09-01 00:00:00}\n  R   {2001-09-30 23:59:59}\n  S   {2001-10-01 00:00:00}\n  T   {2001-10-31 23:59:59}\n  U   {2001-11-01 00:00:00}\n  V   {2001-11-30 23:59:59}\n  W   {2001-12-01 00:00:00}\n  X   {2001-12-31 23:59:59}\n"
+			_ = p2 // suppress unused warning
+			// foreach {x1 d1} p1
+			_items := tclSplitList(p1)
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				x1 := _items[_idx+0]
+				d1 := _items[_idx+1]
+				_ = _idx
+					// foreach {x2 d2} p2
+					_items := tclSplitList(p2)
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						x2 := _items[_idx+0]
+						d2 := _items[_idx+1]
+						_ = _idx
+							var r1 = "db one {SELECT datetime($d1)}"
+							_ = r1 // suppress unused warning
+							{ // "timediff-6-" + x1 + x2
+								r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
+									return
+								}
+								got := flatten(r)
+								want := "list $r1"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							var r2 = "db one {SELECT datetime($d2)}"
+							_ = r2 // suppress unused warning
+							{ // "timediff-6-" + x2 + x1
+								r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
+									return
+								}
+								got := flatten(r)
+								want := "list $r2"
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+						}
+					}
 }

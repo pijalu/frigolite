@@ -24,7 +24,7 @@ func Test_incrblob2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE blobs(id INTEGER PRIMARY KEY, data BLOB);\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n  ")
 		}
 	}
-	for _, iOffset := range []string{"list 0 256 4094"} {
+	for _, iOffset := range tclSplitList("list 0 256 4094") {
 		{ // do_test "incrblob2-1." + iOffset + ".1"
 			var fd = "db incrblob blobs data 1"
 			_ = fd // suppress unused warning
@@ -69,7 +69,7 @@ func Test_incrblob2(t *testing.T) {
 			// close $fd2
 		}
 	}
-	for _, iOffset := range []string{"list 0 256 4094"} {
+	for _, iOffset := range tclSplitList("list 0 256 4094") {
 		{ // do_test "incrblob2-2." + iOffset + ".1"
 			var fd1 = "db incrblob blobs data 1"
 			_ = fd1 // suppress unused warning

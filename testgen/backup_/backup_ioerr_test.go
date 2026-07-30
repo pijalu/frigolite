@@ -36,9 +36,9 @@ func Test_backup_ioerr(t *testing.T) {
 	// proc definition (not transpiled)
 	var iTest = "1"
 	_ = iTest // suppress unused warning
-	for _, bPersist := range []string{"0 1"} {
-		for _, iDestPagesize := range []string{"512 1024 4096"} {
-			for _, zSetupBak := range []string{"list \"\" {populate_database ddb 1}"} {
+	for _, bPersist := range tclSplitList("0 1") {
+		for _, iDestPagesize := range tclSplitList("512 1024 4096") {
+			for _, zSetupBak := range tclSplitList("list \"\" {populate_database ddb 1}") {
 				// incr iTest 1
 				{
 					_n, _err := strconv.Atoi(iTest)

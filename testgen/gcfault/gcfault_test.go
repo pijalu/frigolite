@@ -19,7 +19,7 @@ func Test_gcfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "gcfault"
 	_ = testprefix // suppress unused warning
-	for _, enc := range []string{"\n  utf16\n  utf8\n"} {
+	for _, enc := range tclSplitList("\n  utf16\n  utf8\n") {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

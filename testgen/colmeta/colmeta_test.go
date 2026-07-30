@@ -26,60 +26,60 @@ func Test_colmeta(t *testing.T) {
 	var tests = "\n  1  {main abc a}                {0 {{} BINARY 0 0 0}}\n  2  {{} abc a}                  {0 {{} BINARY 0 0 0}}\n  3  {{} abc2 b}                 {0 {VARCHAR(32) BINARY 0 0 0}}\n  4  {main abc2 b}               {0 {VARCHAR(32) BINARY 0 0 0}}\n  5  {{} abc2 a}                 {0 {{} NOCASE 0 1 0}}\n  6  {{} abc3 a}                 {0 {{} BINARY 1 0 0}}\n  7  {{} abc3 b}                 {0 {INTEGER BINARY 0 1 0}}\n  13 {main abc rowid}            {0 {INTEGER BINARY 0 1 0}}\n  14 {main abc3 rowid}           {0 {INTEGER BINARY 0 1 0}}\n  16 {main abc d}                {1 {no such table column: abc.d}}\n  20 {main abc5 w}               {0 {{} BINARY 0 0 0}}\n  21 {main abc5 x}               {0 {{} BINARY 1 1 0}}\n  22 {main abc5 y}               {0 {{} BINARY 0 0 0}}\n  23 {main abc5 z}               {0 {{} BINARY 1 1 0}}\n  24 {main abc5 rowid}           {1 {no such table column: abc5.rowid}}\n  30 {main abc6 rowid}           {0 {TEXT rtrim 0 0 0}}\n  31 {main abc6 oid}             {0 {REAL BINARY 0 0 0}}\n  32 {main abc6 _rowid_}         {0 {BLOB BINARY 0 0 0}}\n"
 	_ = tests // suppress unused warning
 	// foreach {tn params results} tests
-	_items := []string{tests}
+	_items := tclSplitList(tests)
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	params := _items[_idx+1]
-	results := _items[_idx+2]
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
-		var tstbody = "concat sqlite3_table_column_metadata $::DB $params"
-		_ = tstbody // suppress unused warning
-		{ // do_test "colmeta-" + tn + ".1"
-			_list := tclList([]string{"0", "set msg"})
-			_ = _list
-		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
-		var tstbody = "concat sqlite3_table_column_metadata $::DB $params"
-		_ = tstbody // suppress unused warning
-		{ // do_test "colmeta-" + tn + ".2"
-			_list := tclList([]string{"0", "set msg"})
-			_ = _list
-		}
-	}
-	}
-	{ // do_test "colmeta-300"
-		{
-			var res string // catch result ("0"=ok, "1"=error)
-			var _catchErrMsg string // catch error message
-			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main xyzzy")
-			if _catchErr != nil {
-				res = "1"
-				_catchErrMsg = _catchErr.Error()
-			} else {
-				res = "0"
-				_catchErrMsg = ""
+		tn := _items[_idx+0]
+		params := _items[_idx+1]
+		results := _items[_idx+2]
+		_ = _idx
+			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
+			_ = _DB // suppress unused warning
+			var tstbody = "concat sqlite3_table_column_metadata $::DB $params"
+			_ = tstbody // suppress unused warning
+			{ // do_test "colmeta-" + tn + ".1"
+				_list := tclList([]string{"0", "set msg"})
+				_ = _list
+			}
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
+			_ = _DB // suppress unused warning
+			var tstbody = "concat sqlite3_table_column_metadata $::DB $params"
+			_ = tstbody // suppress unused warning
+			{ // do_test "colmeta-" + tn + ".2"
+				_list := tclList([]string{"0", "set msg"})
+				_ = _list
 			}
 		}
-	}
-	{ // do_test "colmeta-301"
-		{
-			var res string // catch result ("0"=ok, "1"=error)
-			var _catchErrMsg string // catch error message
-			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main abc")
-			if _catchErr != nil {
-				res = "1"
-				_catchErrMsg = _catchErr.Error()
-			} else {
-				res = "0"
-				_catchErrMsg = ""
+		{ // do_test "colmeta-300"
+			{
+				var res string // catch result ("0"=ok, "1"=error)
+				var _catchErrMsg string // catch error message
+				var _catchErr error
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main xyzzy")
+				if _catchErr != nil {
+					res = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					res = "0"
+					_catchErrMsg = ""
+				}
 			}
 		}
-	}
+		{ // do_test "colmeta-301"
+			{
+				var res string // catch result ("0"=ok, "1"=error)
+				var _catchErrMsg string // catch error message
+				var _catchErr error
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main abc")
+				if _catchErr != nil {
+					res = "1"
+					_catchErrMsg = _catchErr.Error()
+				} else {
+					res = "0"
+					_catchErrMsg = ""
+				}
+			}
+		}
 }

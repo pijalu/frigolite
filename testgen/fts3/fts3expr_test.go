@@ -346,82 +346,82 @@ func Test_fts3expr(t *testing.T) {
 		}
 	}
 	// foreach {id expr res} "\n\n  2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \\\"one two three\\\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}\n\n"
-	_items := []string{"\n\n  2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \\\"one two three\\\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}\n\n"}
+	_items := tclSplitList("\n\n  2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \\\"one two three\\\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	id := _items[_idx+0]
-	expr := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // do_test "fts3expr-6.1." + id
-			r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+		id := _items[_idx+0]
+		expr := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // do_test "fts3expr-6.1." + id
+				r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+				}
 			}
 		}
-	}
-	}
-	var sqlite_fts3_enable_parentheses = "0"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	// foreach {id expr res} "\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n"
-	_items := []string{"\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	id := _items[_idx+0]
-	expr := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // do_test "fts3expr-6.2." + id
-			r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+		var sqlite_fts3_enable_parentheses = "0"
+		_ = sqlite_fts3_enable_parentheses // suppress unused warning
+		// foreach {id expr res} "\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n"
+		_items := tclSplitList("\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			id := _items[_idx+0]
+			expr := _items[_idx+1]
+			res := _items[_idx+2]
+			_ = _idx
+				{ // do_test "fts3expr-6.2." + id
+					r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
+					}
+				}
 			}
-		}
-	}
-	}
-	var sqlite_fts3_enable_parentheses = "1"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	{ // do_test "fts3expr-7.1"
-		r = db.Query("\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
-		}
-	}
-	{ // do_test "fts3expr-8.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah)")
-	}
-	{ // do_test "fts3expr-8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah.)")
-	}
-	{ // do_test "fts3expr-8.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah,)")
-	}
-	{ // do_test "fts3expr-8.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah!)")
-	}
-	{ // do_test "fts3expr-8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah-)")
-	}
-	{ // do_test "fts3expr-8.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ((blah.))")
-	}
-	{ // do_test "fts3expr-8.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (((blah,)))")
-	}
-	{ // do_test "fts3expr-8.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ((((blah!))))")
-	}
-	{ // do_test "fts3expr-8.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (,(blah-),)")
-	}
-	var sqlite_fts3_enable_parentheses = "0"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	{ // do_test "fts3expr-9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr f (e NEAR/2 a)")
-	}
-	{ // do_test "fts3expr-10.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abc *")
-	}
-	{ // do_test "fts3expr-10.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr *")
-	}
-	{ // do_test "fts3expr-10.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abc*")
-	}
+			var sqlite_fts3_enable_parentheses = "1"
+			_ = sqlite_fts3_enable_parentheses // suppress unused warning
+			{ // do_test "fts3expr-7.1"
+				r = db.Query("\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
+				}
+			}
+			{ // do_test "fts3expr-8.0"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah)")
+			}
+			{ // do_test "fts3expr-8.1"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah.)")
+			}
+			{ // do_test "fts3expr-8.2"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah,)")
+			}
+			{ // do_test "fts3expr-8.3"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah!)")
+			}
+			{ // do_test "fts3expr-8.4"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah-)")
+			}
+			{ // do_test "fts3expr-8.5"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ((blah.))")
+			}
+			{ // do_test "fts3expr-8.6"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (((blah,)))")
+			}
+			{ // do_test "fts3expr-8.7"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ((((blah!))))")
+			}
+			{ // do_test "fts3expr-8.8"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (,(blah-),)")
+			}
+			var sqlite_fts3_enable_parentheses = "0"
+			_ = sqlite_fts3_enable_parentheses // suppress unused warning
+			{ // do_test "fts3expr-9.1"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr f (e NEAR/2 a)")
+			}
+			{ // do_test "fts3expr-10.1"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abc *")
+			}
+			{ // do_test "fts3expr-10.2"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr *")
+			}
+			{ // do_test "fts3expr-10.3"
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abc*")
+			}
 }

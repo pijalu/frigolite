@@ -927,41 +927,41 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	// foreach {key value} "array get saved"
-	_items := []string{"array get saved"}
+	_items := tclSplitList("array get saved")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	key := _items[_idx+0]
-	value := _items[_idx+1]
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-			var key = value
-			_ = key // suppress unused warning
+		key := _items[_idx+0]
+		value := _items[_idx+1]
+		_ = _idx
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+				var key = value
+				_ = key // suppress unused warning
+			}
 		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 10000")
-	var nm = "x 10000"
-	_ = nm // suppress unused warning
-	{ // "sqllimits1-17.1"
-		_res = db.Exec("\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 10000")
+		var nm = "x 10000"
+		_ = nm // suppress unused warning
+		{ // "sqllimits1-17.1"
+			_res = db.Exec("\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "string or blob too big") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
+			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
-	{ // "sqllimits1-18.1"
-		_res = db.Exec("\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
+		{ // "sqllimits1-18.1"
+			_res = db.Exec("\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
+			}
 		}
-	}
-	{ // "sqllimits1-18.2"
-		_res = db.Exec("\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
+		{ // "sqllimits1-18.2"
+			_res = db.Exec("\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10)\n    UNION VALUES(11);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
 }

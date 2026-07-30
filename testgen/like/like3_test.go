@@ -398,90 +398,90 @@ func Test_like3(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	for _, enc := range []string{"\n  UTF-8\n  UTF-16le \n  UTF-16be\n"} {
+	for _, enc := range tclSplitList("\n  UTF-8\n  UTF-16le \n  UTF-16be\n") {
 		// foreach {tn expr} "\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  "
-		_items := []string{"\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  "}
+		_items := tclSplitList("\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
-		expr := _items[_idx+1]
-			db.Close()
-			db, err = frigolite.Open("")
-			if err != nil { t.Fatal(err) }
-			r = db.Query("PRAGMA encoding = '" + enc + "'")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = '" + enc + "'")
-			}
-			var tn = "utf" + "$enc 4 end" + "." + tn
-			_ = tn // suppress unused warning
-			{ // "like3-8." + tn + ".1"
-				_res = db.Exec("\n      CREATE TABLE t1(x);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n    ")
-				}
-			}
-			{ // "like3-8." + tn + ".2"
-				r = db.Query("\n      PRAGMA encoding\n    ")
+			tn := _items[_idx+0]
+			expr := _items[_idx+1]
+			_ = _idx
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				r = db.Query("PRAGMA encoding = '" + enc + "'")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding\n    ")
-					return
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = '" + enc + "'")
 				}
-				got := flatten(r)
-				want := enc
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				var tn = "utf" + "$enc 4 end" + "." + tn
+				_ = tn // suppress unused warning
+				{ // "like3-8." + tn + ".1"
+					_res = db.Exec("\n      CREATE TABLE t1(x);\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n    ")
+					}
 				}
-			}
-			{ // "like3-8." + tn + ".3"
-				_res = db.Exec("\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
+				{ // "like3-8." + tn + ".2"
+					r = db.Query("\n      PRAGMA encoding\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA encoding\n    ")
+						return
+					}
+					got := flatten(r)
+					want := enc
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
 				}
-			}
-			{ // "like3-8." + tn + ".4"
-				r = db.Query("\n      SELECT typeof(x) FROM t1\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(x) FROM t1\n    ")
-					return
+				{ // "like3-8." + tn + ".3"
+					_res = db.Exec("\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES( " + expr + " )\n    ")
+					}
 				}
-				got := flatten(r)
-				want := "text"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				{ // "like3-8." + tn + ".4"
+					r = db.Query("\n      SELECT typeof(x) FROM t1\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(x) FROM t1\n    ")
+						return
+					}
+					got := flatten(r)
+					want := "text"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
 				}
-			}
-			var x = "db one {SELECT x || '%' FROM t1}"
-			_ = x // suppress unused warning
-			{ // "like3-8." + tn + ".5"
-				r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
-					return
+				var x = "db one {SELECT x || '%' FROM t1}"
+				_ = x // suppress unused warning
+				{ // "like3-8." + tn + ".5"
+					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+						return
+					}
+					got := flatten(r)
+					want := "1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
 				}
-				got := flatten(r)
-				want := "1"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				{ // "like3-8." + tn + ".6"
+					_res = db.Exec("\n      CREATE INDEX i1 ON t1(x);\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE INDEX i1 ON t1(x);\n    ")
+					}
 				}
-			}
-			{ // "like3-8." + tn + ".6"
-				_res = db.Exec("\n      CREATE INDEX i1 ON t1(x);\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE INDEX i1 ON t1(x);\n    ")
-				}
-			}
-			{ // "like3-8." + tn + ".7"
-				r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
-					return
-				}
-				got := flatten(r)
-				want := "1"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				{ // "like3-8." + tn + ".7"
+					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")
+						return
+					}
+					got := flatten(r)
+					want := "1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
 				}
 			}
 		}
-		}
-	}
 }

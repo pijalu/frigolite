@@ -625,1758 +625,155 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	// foreach {tn isvalid ws} "\n  7.1  1  char(0x20)\n  7.2  1  char(0x09)\n  7.3  1  char(0x0A)\n  7.4  1  char(0x0D)\n  7.5  0  char(0x0C)\n  7.6  1  char(0x20,0x09,0x0a,0x0d,0x20)\n  7.7  0  char(0x20,0x09,0x0a,0x0c,0x0d,0x20)\n"
-	_items := []string{"\n  7.1  1  char(0x20)\n  7.2  1  char(0x09)\n  7.3  1  char(0x0A)\n  7.4  1  char(0x0D)\n  7.5  0  char(0x0C)\n  7.6  1  char(0x20,0x09,0x0a,0x0d,0x20)\n  7.7  0  char(0x20,0x09,0x0a,0x0c,0x0d,0x20)\n"}
+	_items := tclSplitList("\n  7.1  1  char(0x20)\n  7.2  1  char(0x09)\n  7.3  1  char(0x0A)\n  7.4  1  char(0x0D)\n  7.5  0  char(0x0C)\n  7.6  1  char(0x20,0x09,0x0a,0x0d,0x20)\n  7.7  0  char(0x20,0x09,0x0a,0x0c,0x0d,0x20)\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	isvalid := _items[_idx+1]
-	ws := _items[_idx+2]
-		{ // "json101-" + tn + ".1"
-			r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
+		tn := _items[_idx+0]
+		isvalid := _items[_idx+1]
+		ws := _items[_idx+2]
+		_ = _idx
+			{ // "json101-" + tn + ".1"
+				r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
+					return
+				}
+				got := flatten(r)
+				want := isvalid
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "json101-8.1"
+			r = db.Query("\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=json_array(a);\n  SELECT b FROM t8;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=json_array(a);\n  SELECT b FROM t8;\n")
 				return
 			}
 			got := flatten(r)
-			want := isvalid
+			want := "{[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "json101-8.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=json_array(a);\n  SELECT b FROM t8;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=json_array(a);\n  SELECT b FROM t8;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-8.1b"
-		r = db.Query("\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=jsonb_array(a);\n  SELECT json(b) FROM t8;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=jsonb_array(a);\n  SELECT json(b) FROM t8;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-8.2"
-		r = db.Query("\n  SELECT a=json_extract(b,'$[0]') FROM t8;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a=json_extract(b,'$[0]') FROM t8;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-8.3"
-		r = db.Query("\n  SELECT json_valid(char(0x22,0xe4,0x22));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid(char(0x22,0xe4,0x22));\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-8.4"
-		r = db.Query("\n  SELECT unicode(json_extract(char(0x22,228,0x22),'$'));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT unicode(json_extract(char(0x22,228,0x22),'$'));\n")
-			return
-		}
-		got := flatten(r)
-		want := "228"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-9.1"
-		r = db.Query("\n  SELECT json_quote('abc\"xyz');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote('abc\"xyz');\n")
-			return
-		}
-		got := flatten(r)
-		want := "{\"abc\\\"xyz\"}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-9.2"
-		r = db.Query("\n  SELECT json_quote(3.14159);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(3.14159);\n")
-			return
-		}
-		got := flatten(r)
-		want := "3.14159"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-9.3"
-		r = db.Query("\n  SELECT json_quote(12345);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(12345);\n")
-			return
-		}
-		got := flatten(r)
-		want := "12345"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-9.4"
-		r = db.Query("\n  SELECT json_quote(null);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(null);\n")
-			return
-		}
-		got := flatten(r)
-		want := "\"null\""
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-9.5"
-		_res = db.Exec("\n  SELECT json_quote(x'3031323334');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_quote(x'3031323334');\n")
-		}
-	}
-	{ // "json101-9.6"
-		_res = db.Exec("\n  SELECT json_quote(123,456)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function json_quote()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", _res.Error, "\n  SELECT json_quote(123,456)\n")
-		}
-	}
-	{ // "json101-9.7"
-		_res = db.Exec("\n  SELECT json_quote()\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function json_quote()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", _res.Error, "\n  SELECT json_quote()\n")
-		}
-	}
-	{ // "json101-10.1"
-		r = db.Query("\n  SELECT json_valid('\" \\  \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\  \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.2"
-		r = db.Query("\n  SELECT json_valid('\" \\! \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\! \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.3"
-		r = db.Query("\n  SELECT json_valid('\" \\\" \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\\" \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.4"
-		r = db.Query("\n  SELECT json_valid('\" \\# \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\# \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.5"
-		r = db.Query("\n  SELECT json_valid('\" \\$ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\$ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.6"
-		r = db.Query("\n  SELECT json_valid('\" \\% \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\% \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.7"
-		r = db.Query("\n  SELECT json_valid('\" \\& \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\& \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.8"
-		r = db.Query("\n  SELECT json_valid('\" \\'' \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\'' \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.9"
-		r = db.Query("\n  SELECT json_valid('\" \\( \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\( \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.10"
-		r = db.Query("\n  SELECT json_valid('\" \\) \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\) \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.11"
-		r = db.Query("\n  SELECT json_valid('\" \\* \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\* \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.12"
-		r = db.Query("\n  SELECT json_valid('\" \\+ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\+ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.13"
-		r = db.Query("\n  SELECT json_valid('\" \\, \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\, \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.14"
-		r = db.Query("\n  SELECT json_valid('\" \\- \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\- \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.15"
-		r = db.Query("\n  SELECT json_valid('\" \\. \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\. \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.16"
-		r = db.Query("\n  SELECT json_valid('\" \\/ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\/ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.17"
-		r = db.Query("\n  SELECT json_valid('\" \\0 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\0 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.18"
-		r = db.Query("\n  SELECT json_valid('\" \\1 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\1 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.19"
-		r = db.Query("\n  SELECT json_valid('\" \\2 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\2 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.20"
-		r = db.Query("\n  SELECT json_valid('\" \\3 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\3 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.21"
-		r = db.Query("\n  SELECT json_valid('\" \\4 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\4 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.22"
-		r = db.Query("\n  SELECT json_valid('\" \\5 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\5 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.23"
-		r = db.Query("\n  SELECT json_valid('\" \\6 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\6 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.24"
-		r = db.Query("\n  SELECT json_valid('\" \\7 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\7 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.25"
-		r = db.Query("\n  SELECT json_valid('\" \\8 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\8 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.26"
-		r = db.Query("\n  SELECT json_valid('\" \\9 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\9 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.27"
-		r = db.Query("\n  SELECT json_valid('\" \\: \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\: \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.28"
-		_res = db.Exec("\n  SELECT json_valid('\" \\; \"');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT json_valid('\" \\; \"');\n")
-		}
-	}
-	{ // "json101-10.29"
-		r = db.Query("\n  SELECT json_valid('\" \\< \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\< \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.30"
-		r = db.Query("\n  SELECT json_valid('\" \\= \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\= \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.31"
-		r = db.Query("\n  SELECT json_valid('\" \\> \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\> \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.32"
-		r = db.Query("\n  SELECT json_valid('\" \\? \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\? \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.33"
-		r = db.Query("\n  SELECT json_valid('\" \\@ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\@ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.34"
-		r = db.Query("\n  SELECT json_valid('\" \\A \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\A \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.35"
-		r = db.Query("\n  SELECT json_valid('\" \\B \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\B \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.36"
-		r = db.Query("\n  SELECT json_valid('\" \\C \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\C \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.37"
-		r = db.Query("\n  SELECT json_valid('\" \\D \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\D \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.38"
-		r = db.Query("\n  SELECT json_valid('\" \\E \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\E \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.39"
-		r = db.Query("\n  SELECT json_valid('\" \\F \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\F \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.40"
-		r = db.Query("\n  SELECT json_valid('\" \\G \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\G \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.41"
-		r = db.Query("\n  SELECT json_valid('\" \\H \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\H \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.42"
-		r = db.Query("\n  SELECT json_valid('\" \\I \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\I \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.43"
-		r = db.Query("\n  SELECT json_valid('\" \\J \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\J \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.44"
-		r = db.Query("\n  SELECT json_valid('\" \\K \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\K \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.45"
-		r = db.Query("\n  SELECT json_valid('\" \\L \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\L \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.46"
-		r = db.Query("\n  SELECT json_valid('\" \\M \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\M \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.47"
-		r = db.Query("\n  SELECT json_valid('\" \\N \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\N \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.48"
-		r = db.Query("\n  SELECT json_valid('\" \\O \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\O \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.49"
-		r = db.Query("\n  SELECT json_valid('\" \\P \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\P \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.50"
-		r = db.Query("\n  SELECT json_valid('\" \\Q \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\Q \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.51"
-		r = db.Query("\n  SELECT json_valid('\" \\R \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\R \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.52"
-		r = db.Query("\n  SELECT json_valid('\" \\S \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\S \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.53"
-		r = db.Query("\n  SELECT json_valid('\" \\T \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\T \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.54"
-		r = db.Query("\n  SELECT json_valid('\" \\U \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\U \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.55"
-		r = db.Query("\n  SELECT json_valid('\" \\V \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\V \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.56"
-		r = db.Query("\n  SELECT json_valid('\" \\W \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\W \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.57"
-		r = db.Query("\n  SELECT json_valid('\" \\X \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\X \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.58"
-		r = db.Query("\n  SELECT json_valid('\" \\Y \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\Y \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.59"
-		r = db.Query("\n  SELECT json_valid('\" \\Z \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\Z \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.60"
-		r = db.Query("\n  SELECT json_valid('\" \\[ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\[ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.61"
-		r = db.Query("\n  SELECT json_valid('\" \\\\ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\\\ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.62"
-		r = db.Query("\n  SELECT json_valid('\" \\] \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\] \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.63"
-		r = db.Query("\n  SELECT json_valid('\" \\^ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\^ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.64"
-		r = db.Query("\n  SELECT json_valid('\" \\_ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\_ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.65"
-		r = db.Query("\n  SELECT json_valid('\" \\` \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\` \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.66"
-		r = db.Query("\n  SELECT json_valid('\" \\a \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\a \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.67"
-		r = db.Query("\n  SELECT json_valid('\" \\b \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\b \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.68"
-		r = db.Query("\n  SELECT json_valid('\" \\c \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\c \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.69"
-		r = db.Query("\n  SELECT json_valid('\" \\d \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\d \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.70"
-		r = db.Query("\n  SELECT json_valid('\" \\e \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\e \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.71"
-		r = db.Query("\n  SELECT json_valid('\" \\f \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\f \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.72"
-		r = db.Query("\n  SELECT json_valid('\" \\g \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\g \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.73"
-		r = db.Query("\n  SELECT json_valid('\" \\h \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\h \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.74"
-		r = db.Query("\n  SELECT json_valid('\" \\i \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\i \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.75"
-		r = db.Query("\n  SELECT json_valid('\" \\j \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\j \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.76"
-		r = db.Query("\n  SELECT json_valid('\" \\k \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\k \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.77"
-		r = db.Query("\n  SELECT json_valid('\" \\l \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\l \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.78"
-		r = db.Query("\n  SELECT json_valid('\" \\m \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\m \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.79"
-		r = db.Query("\n  SELECT json_valid('\" \\n \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\n \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.80"
-		r = db.Query("\n  SELECT json_valid('\" \\o \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\o \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.81"
-		r = db.Query("\n  SELECT json_valid('\" \\p \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\p \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.82"
-		r = db.Query("\n  SELECT json_valid('\" \\q \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\q \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.83"
-		r = db.Query("\n  SELECT json_valid('\" \\r \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\r \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.84"
-		r = db.Query("\n  SELECT json_valid('\" \\s \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\s \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.85"
-		r = db.Query("\n  SELECT json_valid('\" \\t \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\t \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.0"
-		r = db.Query("\n  SELECT json_valid('\" \\u \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\u \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.1"
-		r = db.Query("\n  SELECT json_valid('\" \\ua \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\ua \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.2"
-		r = db.Query("\n  SELECT json_valid('\" \\uab \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uab \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.3"
-		r = db.Query("\n  SELECT json_valid('\" \\uabc \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uabc \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.4"
-		r = db.Query("\n  SELECT json_valid('\" \\uabcd \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uabcd \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.5"
-		r = db.Query("\n  SELECT json_valid('\" \\uFEDC \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uFEDC \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.86.6"
-		r = db.Query("\n  SELECT json_valid('\" \\u1234 \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\u1234 \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.87"
-		r = db.Query("\n  SELECT json_valid('\" \\v \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\v \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.88"
-		r = db.Query("\n  SELECT json_valid('\" \\w \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\w \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.89"
-		r = db.Query("\n  SELECT json_valid('\" \\x \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\x \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.90"
-		r = db.Query("\n  SELECT json_valid('\" \\y \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\y \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.91"
-		r = db.Query("\n  SELECT json_valid('\" \\z \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\z \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.92"
-		r = db.Query("\n  SELECT json_valid('\" \\{ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\{ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.93"
-		r = db.Query("\n  SELECT json_valid('\" \\| \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\| \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.94"
-		r = db.Query("\n  SELECT json_valid('\" \\} \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\} \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-10.95"
-		r = db.Query("\n  SELECT json_valid('\" \\~ \"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\~ \"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-11.0"
-		_res = db.Exec("\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
-		}
-	}
-	{ // "json101-11.1"
-		_res = db.Exec("\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
-		}
-	}
-	{ // "json101-11.2"
-		_res = db.Exec("\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
-		}
-	}
-	{ // "json101-11.3"
-		_res = db.Exec("\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
-		}
-	}
-	{ // "json101-12.100"
-		_res = db.Exec("\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
-		}
-	}
-	{ // "json101-12.110"
-		r = db.Query("\n  SELECT json_remove(x, '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(x, '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-12.110b"
-		r = db.Query("\n  SELECT json_remove(jsonb(x), '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb(x), '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-12.120"
-		r = db.Query("\n  SELECT json_extract(x, '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(x, '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-12.120b"
-		r = db.Query("\n  SELECT json_extract(jsonb(x), '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb(x), '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-13.100"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":[3,5]}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":[3,5]}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {{\"items\":[3,5]}} 3 {{\"value\":3}} NL 1 {{\"items\":[3,5]}} 5 {{\"value\":5}} NL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-13.110"
-		r = db.Query("\n  SELECT *, 'NL' FROM t2 CROSS JOIN t1\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, 'NL' FROM t2 CROSS JOIN t1\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
-			return
-		}
-		got := flatten(r)
-		want := "3 {{\"value\":3}} 1 {{\"items\":[3,5]}} NL 5 {{\"value\":5}} 1 {{\"items\":[3,5]}} NL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.100"
-		r = db.Query("\n  SELECT fullkey FROM json_each('123');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('123');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.110"
-		r = db.Query("\n  SELECT fullkey FROM json_each('123.56');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('123.56');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.120"
-		r = db.Query("\n  SELECT fullkey FROM json_each('\"hello\"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('\"hello\"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.130"
-		r = db.Query("\n  SELECT fullkey FROM json_each('null');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('null');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.140"
-		r = db.Query("\n  SELECT fullkey FROM json_tree('123');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('123');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.150"
-		r = db.Query("\n  SELECT fullkey FROM json_tree('123.56');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('123.56');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.160"
-		r = db.Query("\n  SELECT fullkey FROM json_tree('\"hello\"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('\"hello\"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-14.170"
-		r = db.Query("\n  SELECT fullkey FROM json_tree('null');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('null');\n")
-			return
-		}
-		got := flatten(r)
-		want := "$"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-15.100"
-		r = db.Query("\n  SELECT * FROM JSON_EACH('{\"a\":1, \"b\":2}');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM JSON_EACH('{\"a\":1, \"b\":2}');\n")
-			return
-		}
-		got := flatten(r)
-		want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-15.110"
-		r = db.Query("\n  SELECT xyz.* FROM JSON_EACH('{\"a\":1, \"b\":2}') AS xyz;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT xyz.* FROM JSON_EACH('{\"a\":1, \"b\":2}') AS xyz;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-15.120"
-		r = db.Query("\n  SELECT * FROM (JSON_EACH('{\"a\":1, \"b\":2}'));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (JSON_EACH('{\"a\":1, \"b\":2}'));\n")
-			return
-		}
-		got := flatten(r)
-		want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-15.130"
-		r = db.Query("\n  SELECT xyz.* FROM (JSON_EACH('{\"a\":1, \"b\":2}')) AS xyz;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT xyz.* FROM (JSON_EACH('{\"a\":1, \"b\":2}')) AS xyz;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-16.10"
-		r = db.Query("\n  SELECT length(json_extract('\"abc\\uD834\\uDD1Exyz\"','$'));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(json_extract('\"abc\\uD834\\uDD1Exyz\"','$'));\n")
-			return
-		}
-		got := flatten(r)
-		want := "7"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-16.20"
-		r = db.Query("\n  SELECT length(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-16.30"
-		r = db.Query("\n  SELECT unicode(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT unicode(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
-			return
-		}
-		got := flatten(r)
-		want := "119070"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-17.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(d);\n  SELECT * FROM t1 LEFT JOIN t2 ON (SELECT b FROM json_each ORDER BY 1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(d);\n  SELECT * FROM t1 LEFT JOIN t2 ON (SELECT b FROM json_each ORDER BY 1);\n")
-		}
-	}
-	{ // "json101-18.1"
-		r = db.Query("\n  SELECT json_valid('{\"\":5}');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('{\"\":5}');\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-18.2"
-		r = db.Query("\n  SELECT json_extract('{\"\":5}', '$.\"\"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"\":5}', '$.\"\"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "5"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-18.3"
-		r = db.Query("\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].hi');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].hi');\n")
-			return
-		}
-		got := flatten(r)
-		want := "6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-18.4"
-		r = db.Query("\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].\"hi\"');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].\"hi\"');\n")
-			return
-		}
-		got := flatten(r)
-		want := "6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-18.5"
-		_res = db.Exec("\n  SELECT json_extract('{\"\":8}', '$.');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.'") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.'", _res.Error, "\n  SELECT json_extract('{\"\":8}', '$.');\n")
-		}
-	}
-	{ // "json101-19.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
-		}
-	}
-	{ // "json101-19.2"
-		_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
-		}
-	}
-	{ // "json101-19.3"
-		r = db.Query("\n  COMMIT;\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  COMMIT;\n  SELECT * FROM t1;\n")
-		}
-	}
-	{ // "json101-20.1"
-		r = db.Query("\n  SELECT json_object('a',2e370,'b',-3e380);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('a',2e370,'b',-3e380);\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"a\":9.0e+999,\"b\":-9.0e+999}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-20.2"
-		r = db.Query("\n  SELECT json_object('a',2e370,'b',-3e380)->>'a';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('a',2e370,'b',-3e380)->>'a';\n")
-			return
-		}
-		got := flatten(r)
-		want := "Inf"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-20.3"
-		r = db.Query("\n  SELECT json_object('a',2e370,'b',-3e380)->>'b';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('a',2e370,'b',-3e380)->>'b';\n")
-			return
-		}
-		got := flatten(r)
-		want := "-Inf"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	if tclBool("db exists {SELECT * FROM pragma_compile_options WHERE compile_options LIKE '%legacy_json_valid%'}") {
-		{ // "json101-21.1-legacy"
-			r = db.Query("\n    SELECT json_valid(NULL);\n  ")
+		{ // "json101-8.1b"
+			r = db.Query("\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=jsonb_array(a);\n  SELECT json(b) FROM t8;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_valid(NULL);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t8;\n  CREATE TABLE t8(a,b);\n  INSERT INTO t8(a) VALUES('abc' || char(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35) || 'xyz');\n  UPDATE t8 SET b=jsonb_array(a);\n  SELECT json(b) FROM t8;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{[\"abc\\u0001\\u0002\\u0003\\u0004\\u0005\\u0006\\u0007\\b\\t\\n\\u000b\\f\\r\\u000e\\u000f\\u0010\\u0011\\u0012\\u0013\\u0014\\u0015\\u0016\\u0017\\u0018\\u0019\\u001a\\u001b\\u001c\\u001d\\u001e\\u001f !\\\"#xyz\"]}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-8.2"
+			r = db.Query("\n  SELECT a=json_extract(b,'$[0]') FROM t8;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a=json_extract(b,'$[0]') FROM t8;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-8.3"
+			r = db.Query("\n  SELECT json_valid(char(0x22,0xe4,0x22));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid(char(0x22,0xe4,0x22));\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-8.4"
+			r = db.Query("\n  SELECT unicode(json_extract(char(0x22,228,0x22),'$'));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT unicode(json_extract(char(0x22,228,0x22),'$'));\n")
+				return
+			}
+			got := flatten(r)
+			want := "228"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-9.1"
+			r = db.Query("\n  SELECT json_quote('abc\"xyz');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote('abc\"xyz');\n")
+				return
+			}
+			got := flatten(r)
+			want := "{\"abc\\\"xyz\"}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-9.2"
+			r = db.Query("\n  SELECT json_quote(3.14159);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(3.14159);\n")
+				return
+			}
+			got := flatten(r)
+			want := "3.14159"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-9.3"
+			r = db.Query("\n  SELECT json_quote(12345);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(12345);\n")
+				return
+			}
+			got := flatten(r)
+			want := "12345"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-9.4"
+			r = db.Query("\n  SELECT json_quote(null);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(null);\n")
+				return
+			}
+			got := flatten(r)
+			want := "\"null\""
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-9.5"
+			_res = db.Exec("\n  SELECT json_quote(x'3031323334');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "JSON cannot hold BLOB values") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "JSON cannot hold BLOB values", _res.Error, "\n  SELECT json_quote(x'3031323334');\n")
+			}
+		}
+		{ // "json101-9.6"
+			_res = db.Exec("\n  SELECT json_quote(123,456)\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function json_quote()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", _res.Error, "\n  SELECT json_quote(123,456)\n")
+			}
+		}
+		{ // "json101-9.7"
+			_res = db.Exec("\n  SELECT json_quote()\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function json_quote()") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function json_quote()", _res.Error, "\n  SELECT json_quote()\n")
+			}
+		}
+		{ // "json101-10.1"
+			r = db.Query("\n  SELECT json_valid('\" \\  \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\  \"');\n")
 				return
 			}
 			got := flatten(r)
@@ -2385,11 +782,1627 @@ func Test_json101(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	} else {
-		{ // "json101-21.1-correct"
-			r = db.Query("\n    SELECT json_valid(NULL);\n  ")
+		{ // "json101-10.2"
+			r = db.Query("\n  SELECT json_valid('\" \\! \"');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_valid(NULL);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\! \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.3"
+			r = db.Query("\n  SELECT json_valid('\" \\\" \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\\" \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.4"
+			r = db.Query("\n  SELECT json_valid('\" \\# \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\# \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.5"
+			r = db.Query("\n  SELECT json_valid('\" \\$ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\$ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.6"
+			r = db.Query("\n  SELECT json_valid('\" \\% \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\% \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.7"
+			r = db.Query("\n  SELECT json_valid('\" \\& \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\& \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.8"
+			r = db.Query("\n  SELECT json_valid('\" \\'' \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\'' \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.9"
+			r = db.Query("\n  SELECT json_valid('\" \\( \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\( \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.10"
+			r = db.Query("\n  SELECT json_valid('\" \\) \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\) \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.11"
+			r = db.Query("\n  SELECT json_valid('\" \\* \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\* \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.12"
+			r = db.Query("\n  SELECT json_valid('\" \\+ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\+ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.13"
+			r = db.Query("\n  SELECT json_valid('\" \\, \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\, \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.14"
+			r = db.Query("\n  SELECT json_valid('\" \\- \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\- \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.15"
+			r = db.Query("\n  SELECT json_valid('\" \\. \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\. \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.16"
+			r = db.Query("\n  SELECT json_valid('\" \\/ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\/ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.17"
+			r = db.Query("\n  SELECT json_valid('\" \\0 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\0 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.18"
+			r = db.Query("\n  SELECT json_valid('\" \\1 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\1 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.19"
+			r = db.Query("\n  SELECT json_valid('\" \\2 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\2 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.20"
+			r = db.Query("\n  SELECT json_valid('\" \\3 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\3 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.21"
+			r = db.Query("\n  SELECT json_valid('\" \\4 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\4 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.22"
+			r = db.Query("\n  SELECT json_valid('\" \\5 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\5 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.23"
+			r = db.Query("\n  SELECT json_valid('\" \\6 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\6 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.24"
+			r = db.Query("\n  SELECT json_valid('\" \\7 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\7 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.25"
+			r = db.Query("\n  SELECT json_valid('\" \\8 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\8 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.26"
+			r = db.Query("\n  SELECT json_valid('\" \\9 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\9 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.27"
+			r = db.Query("\n  SELECT json_valid('\" \\: \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\: \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.28"
+			_res = db.Exec("\n  SELECT json_valid('\" \\; \"');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT json_valid('\" \\; \"');\n")
+			}
+		}
+		{ // "json101-10.29"
+			r = db.Query("\n  SELECT json_valid('\" \\< \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\< \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.30"
+			r = db.Query("\n  SELECT json_valid('\" \\= \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\= \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.31"
+			r = db.Query("\n  SELECT json_valid('\" \\> \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\> \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.32"
+			r = db.Query("\n  SELECT json_valid('\" \\? \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\? \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.33"
+			r = db.Query("\n  SELECT json_valid('\" \\@ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\@ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.34"
+			r = db.Query("\n  SELECT json_valid('\" \\A \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\A \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.35"
+			r = db.Query("\n  SELECT json_valid('\" \\B \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\B \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.36"
+			r = db.Query("\n  SELECT json_valid('\" \\C \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\C \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.37"
+			r = db.Query("\n  SELECT json_valid('\" \\D \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\D \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.38"
+			r = db.Query("\n  SELECT json_valid('\" \\E \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\E \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.39"
+			r = db.Query("\n  SELECT json_valid('\" \\F \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\F \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.40"
+			r = db.Query("\n  SELECT json_valid('\" \\G \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\G \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.41"
+			r = db.Query("\n  SELECT json_valid('\" \\H \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\H \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.42"
+			r = db.Query("\n  SELECT json_valid('\" \\I \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\I \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.43"
+			r = db.Query("\n  SELECT json_valid('\" \\J \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\J \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.44"
+			r = db.Query("\n  SELECT json_valid('\" \\K \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\K \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.45"
+			r = db.Query("\n  SELECT json_valid('\" \\L \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\L \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.46"
+			r = db.Query("\n  SELECT json_valid('\" \\M \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\M \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.47"
+			r = db.Query("\n  SELECT json_valid('\" \\N \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\N \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.48"
+			r = db.Query("\n  SELECT json_valid('\" \\O \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\O \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.49"
+			r = db.Query("\n  SELECT json_valid('\" \\P \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\P \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.50"
+			r = db.Query("\n  SELECT json_valid('\" \\Q \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\Q \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.51"
+			r = db.Query("\n  SELECT json_valid('\" \\R \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\R \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.52"
+			r = db.Query("\n  SELECT json_valid('\" \\S \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\S \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.53"
+			r = db.Query("\n  SELECT json_valid('\" \\T \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\T \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.54"
+			r = db.Query("\n  SELECT json_valid('\" \\U \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\U \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.55"
+			r = db.Query("\n  SELECT json_valid('\" \\V \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\V \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.56"
+			r = db.Query("\n  SELECT json_valid('\" \\W \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\W \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.57"
+			r = db.Query("\n  SELECT json_valid('\" \\X \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\X \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.58"
+			r = db.Query("\n  SELECT json_valid('\" \\Y \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\Y \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.59"
+			r = db.Query("\n  SELECT json_valid('\" \\Z \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\Z \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.60"
+			r = db.Query("\n  SELECT json_valid('\" \\[ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\[ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.61"
+			r = db.Query("\n  SELECT json_valid('\" \\\\ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\\\ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.62"
+			r = db.Query("\n  SELECT json_valid('\" \\] \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\] \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.63"
+			r = db.Query("\n  SELECT json_valid('\" \\^ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\^ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.64"
+			r = db.Query("\n  SELECT json_valid('\" \\_ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\_ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.65"
+			r = db.Query("\n  SELECT json_valid('\" \\` \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\` \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.66"
+			r = db.Query("\n  SELECT json_valid('\" \\a \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\a \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.67"
+			r = db.Query("\n  SELECT json_valid('\" \\b \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\b \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.68"
+			r = db.Query("\n  SELECT json_valid('\" \\c \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\c \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.69"
+			r = db.Query("\n  SELECT json_valid('\" \\d \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\d \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.70"
+			r = db.Query("\n  SELECT json_valid('\" \\e \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\e \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.71"
+			r = db.Query("\n  SELECT json_valid('\" \\f \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\f \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.72"
+			r = db.Query("\n  SELECT json_valid('\" \\g \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\g \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.73"
+			r = db.Query("\n  SELECT json_valid('\" \\h \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\h \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.74"
+			r = db.Query("\n  SELECT json_valid('\" \\i \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\i \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.75"
+			r = db.Query("\n  SELECT json_valid('\" \\j \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\j \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.76"
+			r = db.Query("\n  SELECT json_valid('\" \\k \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\k \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.77"
+			r = db.Query("\n  SELECT json_valid('\" \\l \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\l \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.78"
+			r = db.Query("\n  SELECT json_valid('\" \\m \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\m \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.79"
+			r = db.Query("\n  SELECT json_valid('\" \\n \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\n \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.80"
+			r = db.Query("\n  SELECT json_valid('\" \\o \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\o \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.81"
+			r = db.Query("\n  SELECT json_valid('\" \\p \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\p \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.82"
+			r = db.Query("\n  SELECT json_valid('\" \\q \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\q \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.83"
+			r = db.Query("\n  SELECT json_valid('\" \\r \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\r \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.84"
+			r = db.Query("\n  SELECT json_valid('\" \\s \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\s \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.85"
+			r = db.Query("\n  SELECT json_valid('\" \\t \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\t \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.0"
+			r = db.Query("\n  SELECT json_valid('\" \\u \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\u \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.1"
+			r = db.Query("\n  SELECT json_valid('\" \\ua \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\ua \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.2"
+			r = db.Query("\n  SELECT json_valid('\" \\uab \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uab \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.3"
+			r = db.Query("\n  SELECT json_valid('\" \\uabc \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uabc \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.4"
+			r = db.Query("\n  SELECT json_valid('\" \\uabcd \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uabcd \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.5"
+			r = db.Query("\n  SELECT json_valid('\" \\uFEDC \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\uFEDC \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.86.6"
+			r = db.Query("\n  SELECT json_valid('\" \\u1234 \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\u1234 \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.87"
+			r = db.Query("\n  SELECT json_valid('\" \\v \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\v \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.88"
+			r = db.Query("\n  SELECT json_valid('\" \\w \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\w \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.89"
+			r = db.Query("\n  SELECT json_valid('\" \\x \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\x \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.90"
+			r = db.Query("\n  SELECT json_valid('\" \\y \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\y \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.91"
+			r = db.Query("\n  SELECT json_valid('\" \\z \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\z \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.92"
+			r = db.Query("\n  SELECT json_valid('\" \\{ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\{ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.93"
+			r = db.Query("\n  SELECT json_valid('\" \\| \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\| \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.94"
+			r = db.Query("\n  SELECT json_valid('\" \\} \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\} \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-10.95"
+			r = db.Query("\n  SELECT json_valid('\" \\~ \"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('\" \\~ \"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-11.0"
+			_res = db.Exec("\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed */\n  SELECT json_valid(printf('%.1000c0%.1000c','[',']'));\n")
+			}
+		}
+		{ // "json101-11.1"
+			_res = db.Exec("\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one */\n  SELECT json_valid(printf('%.1001c0%.1001c','[',']'));\n")
+			}
+		}
+		{ // "json101-11.2"
+			_res = db.Exec("\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Shallow enough to be parsed { */\n  SELECT json_valid(replace(printf('%.1000c0%.1000c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+			}
+		}
+		{ // "json101-11.3"
+			_res = db.Exec("\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  /* Too deep by one { */\n  SELECT json_valid(replace(printf('%.1001c0%.1001c','[','}'),'[','{\"a\":'));\n  /* } */\n")
+			}
+		}
+		{ // "json101-12.100"
+			_res = db.Exec("\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t12(x);\n  INSERT INTO t12(x) VALUES(\n    '{\"settings\":\n        {\"layer2\":\n           {\"hapax.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":true,\n               \"add.footnote\":true,\n               \"summary.report\":true},\n            \"dis.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":true},\n            \"tris.legomenon\":\n              {\"forceDisplay\":true,\n               \"transliterate\":false,\n               \"add.footnote\":false,\n               \"summary.report\":false}\n           }\n        }\n     }');\n")
+			}
+		}
+		{ // "json101-12.110"
+			r = db.Query("\n  SELECT json_remove(x, '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(x, '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-12.110b"
+			r = db.Query("\n  SELECT json_remove(jsonb(x), '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(jsonb(x), '$.settings.layer2.\"dis.legomenon\".forceDisplay')\n    FROM t12;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"settings\":{\"layer2\":{\"hapax.legomenon\":{\"forceDisplay\":true,\"transliterate\":true,\"add.footnote\":true,\"summary.report\":true},\"dis.legomenon\":{\"transliterate\":false,\"add.footnote\":false,\"summary.report\":true},\"tris.legomenon\":{\"forceDisplay\":true,\"transliterate\":false,\"add.footnote\":false,\"summary.report\":false}}}}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-12.120"
+			r = db.Query("\n  SELECT json_extract(x, '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(x, '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-12.120b"
+			r = db.Query("\n  SELECT json_extract(jsonb(x), '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(jsonb(x), '$.settings.layer2.\"tris.legomenon\".\"summary.report\"')\n    FROM t12;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-13.100"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":[3,5]}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(id, json);\n  INSERT INTO t1(id,json) VALUES(1,'{\"items\":[3,5]}');\n  CREATE TABLE t2(id, json);\n  INSERT INTO t2(id,json) VALUES(2,'{\"value\":2}');\n  INSERT INTO t2(id,json) VALUES(3,'{\"value\":3}');\n  INSERT INTO t2(id,json) VALUES(4,'{\"value\":4}');\n  INSERT INTO t2(id,json) VALUES(5,'{\"value\":5}');\n  INSERT INTO t2(id,json) VALUES(6,'{\"value\":6}');\n  SELECT *, 'NL' FROM t1 CROSS JOIN t2\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 {{\"items\":[3,5]}} 3 {{\"value\":3}} NL 1 {{\"items\":[3,5]}} 5 {{\"value\":5}} NL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-13.110"
+			r = db.Query("\n  SELECT *, 'NL' FROM t2 CROSS JOIN t1\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT *, 'NL' FROM t2 CROSS JOIN t1\n   WHERE EXISTS(SELECT 1 FROM json_each(t1.json,'$.items') AS Z\n                 WHERE Z.value==t2.id);\n")
+				return
+			}
+			got := flatten(r)
+			want := "3 {{\"value\":3}} 1 {{\"items\":[3,5]}} NL 5 {{\"value\":5}} 1 {{\"items\":[3,5]}} NL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.100"
+			r = db.Query("\n  SELECT fullkey FROM json_each('123');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('123');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.110"
+			r = db.Query("\n  SELECT fullkey FROM json_each('123.56');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('123.56');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.120"
+			r = db.Query("\n  SELECT fullkey FROM json_each('\"hello\"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('\"hello\"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.130"
+			r = db.Query("\n  SELECT fullkey FROM json_each('null');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_each('null');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.140"
+			r = db.Query("\n  SELECT fullkey FROM json_tree('123');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('123');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.150"
+			r = db.Query("\n  SELECT fullkey FROM json_tree('123.56');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('123.56');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.160"
+			r = db.Query("\n  SELECT fullkey FROM json_tree('\"hello\"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('\"hello\"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-14.170"
+			r = db.Query("\n  SELECT fullkey FROM json_tree('null');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT fullkey FROM json_tree('null');\n")
+				return
+			}
+			got := flatten(r)
+			want := "$"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-15.100"
+			r = db.Query("\n  SELECT * FROM JSON_EACH('{\"a\":1, \"b\":2}');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM JSON_EACH('{\"a\":1, \"b\":2}');\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-15.110"
+			r = db.Query("\n  SELECT xyz.* FROM JSON_EACH('{\"a\":1, \"b\":2}') AS xyz;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT xyz.* FROM JSON_EACH('{\"a\":1, \"b\":2}') AS xyz;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-15.120"
+			r = db.Query("\n  SELECT * FROM (JSON_EACH('{\"a\":1, \"b\":2}'));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (JSON_EACH('{\"a\":1, \"b\":2}'));\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-15.130"
+			r = db.Query("\n  SELECT xyz.* FROM (JSON_EACH('{\"a\":1, \"b\":2}')) AS xyz;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT xyz.* FROM (JSON_EACH('{\"a\":1, \"b\":2}')) AS xyz;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a 1 integer 1 1 {} {$.a} {$} b 2 integer 2 5 {} {$.b} {$}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-16.10"
+			r = db.Query("\n  SELECT length(json_extract('\"abc\\uD834\\uDD1Exyz\"','$'));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(json_extract('\"abc\\uD834\\uDD1Exyz\"','$'));\n")
+				return
+			}
+			got := flatten(r)
+			want := "7"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-16.20"
+			r = db.Query("\n  SELECT length(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-16.30"
+			r = db.Query("\n  SELECT unicode(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT unicode(json_extract('\"\\uD834\\uDD1E\"','$'));\n")
+				return
+			}
+			got := flatten(r)
+			want := "119070"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-17.1"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(d);\n  SELECT * FROM t1 LEFT JOIN t2 ON (SELECT b FROM json_each ORDER BY 1);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(d);\n  SELECT * FROM t1 LEFT JOIN t2 ON (SELECT b FROM json_each ORDER BY 1);\n")
+			}
+		}
+		{ // "json101-18.1"
+			r = db.Query("\n  SELECT json_valid('{\"\":5}');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid('{\"\":5}');\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-18.2"
+			r = db.Query("\n  SELECT json_extract('{\"\":5}', '$.\"\"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('{\"\":5}', '$.\"\"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "5"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-18.3"
+			r = db.Query("\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].hi');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].hi');\n")
+				return
+			}
+			got := flatten(r)
+			want := "6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-18.4"
+			r = db.Query("\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].\"hi\"');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract('[3,{\"a\":4,\"\":[5,{\"hi\":6},7]},8]', '$[1].\"\"[1].\"hi\"');\n")
+				return
+			}
+			got := flatten(r)
+			want := "6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-18.5"
+			_res = db.Exec("\n  SELECT json_extract('{\"\":8}', '$.');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "bad JSON path: '$.'") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "bad JSON path: '$.'", _res.Error, "\n  SELECT json_extract('{\"\":8}', '$.');\n")
+			}
+		}
+		{ // "json101-19.1"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n")
+			}
+		}
+		{ // "json101-19.2"
+			_res = db.Exec("\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  BEGIN;\n  INSERT INTO t1 VALUES(0), (json('not-valid-json'));\n")
+			}
+		}
+		{ // "json101-19.3"
+			r = db.Query("\n  COMMIT;\n  SELECT * FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  COMMIT;\n  SELECT * FROM t1;\n")
+			}
+		}
+		{ // "json101-20.1"
+			r = db.Query("\n  SELECT json_object('a',2e370,'b',-3e380);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('a',2e370,'b',-3e380);\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"a\":9.0e+999,\"b\":-9.0e+999}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-20.2"
+			r = db.Query("\n  SELECT json_object('a',2e370,'b',-3e380)->>'a';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('a',2e370,'b',-3e380)->>'a';\n")
+				return
+			}
+			got := flatten(r)
+			want := "Inf"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-20.3"
+			r = db.Query("\n  SELECT json_object('a',2e370,'b',-3e380)->>'b';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_object('a',2e370,'b',-3e380)->>'b';\n")
+				return
+			}
+			got := flatten(r)
+			want := "-Inf"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		if tclBool("db exists {SELECT * FROM pragma_compile_options WHERE compile_options LIKE '%legacy_json_valid%'}") {
+			{ // "json101-21.1-legacy"
+				r = db.Query("\n    SELECT json_valid(NULL);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_valid(NULL);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		} else {
+			{ // "json101-21.1-correct"
+				r = db.Query("\n    SELECT json_valid(NULL);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_valid(NULL);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "NULL"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "json101-21.2"
+			r = db.Query("\n  SELECT json_error_position(NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position(NULL);\n")
 				return
 			}
 			got := flatten(r)
@@ -2398,456 +2411,443 @@ func Test_json101(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	{ // "json101-21.2"
-		r = db.Query("\n  SELECT json_error_position(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_error_position(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.3"
-		r = db.Query("\n  SELECT json(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.4"
-		r = db.Query("\n  SELECT json_array(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "[null]"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.5"
-		r = db.Query("\n  SELECT json_extract(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.6"
-		r = db.Query("\n  SELECT json_insert(NULL,'$',123);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_insert(NULL,'$',123);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.7"
-		r = db.Query("\n  SELECT NULL->0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT NULL->0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.8"
-		r = db.Query("\n  SELECT NULL->>0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT NULL->>0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.9"
-		r = db.Query("\n  SELECT '{a:5}'->NULL;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{a:5}'->NULL;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.10"
-		r = db.Query("\n  SELECT '{a:5}'->>NULL;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{a:5}'->>NULL;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.11"
-		_res = db.Exec("\n  SELECT json_object(NULL,5);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "json_object() labels must be TEXT") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", _res.Error, "\n  SELECT json_object(NULL,5);\n")
-		}
-	}
-	{ // "json101-21.12"
-		r = db.Query("\n  SELECT json_patch(NULL,'{a:5}');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch(NULL,'{a:5}');\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.13"
-		r = db.Query("\n  SELECT json_patch('{a:5}',NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{a:5}',NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.14"
-		r = db.Query("\n  SELECT json_patch(NULL,NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch(NULL,NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.15"
-		r = db.Query("\n  SELECT json_remove(NULL,'$');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(NULL,'$');\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.16"
-		r = db.Query("\n  SELECT json_remove('{a:5,b:7}',NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('{a:5,b:7}',NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.17"
-		r = db.Query("\n  SELECT json_replace(NULL,'$.a',123);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace(NULL,'$.a',123);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.18"
-		r = db.Query("\n  SELECT json_replace('{a:5,b:7}',NULL,NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{a:5,b:7}',NULL,NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"a\":5,\"b\":7}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.19"
-		r = db.Query("\n  SELECT json_set(NULL,'$.a',123);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(NULL,'$.a',123);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.20"
-		r = db.Query("\n  SELECT json_set('{a:5,b:7}',NULL,NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{a:5,b:7}',NULL,NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"a\":5,\"b\":7}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.21"
-		r = db.Query("\n  SELECT json_type(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.22"
-		r = db.Query("\n  SELECT json_type('{a:5,b:7}',NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{a:5,b:7}',NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.23"
-		r = db.Query("\n  SELECT json_quote(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.24"
-		r = db.Query("\n  SELECT count(*) FROM json_each(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM json_each(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.25"
-		r = db.Query("\n  SELECT count(*) FROM json_tree(NULL);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM json_tree(NULL);\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.26"
-		r = db.Query("\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
-			return
-		}
-		got := flatten(r)
-		want := "[1,2.0,null,\"three\"]"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-21.27"
-		r = db.Query("\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"a\":1,\"b\":2.0,\"c\":null,\"e\":\"four\"}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-22.1"
-		r = db.Query("\n  SELECT json_set(\n    '{}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(\n    '{}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"a\":2,\"b\":4,\"c\":6}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-22.2"
-		r = db.Query("\n  SELECT json_replace(\n    '{\"a\":7,\"b\":8,\"c\":9}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace(\n    '{\"a\":7,\"b\":8,\"c\":9}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := "{{\"a\":2,\"b\":4,\"c\":6}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-23.1"
-		r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);\n")
-			return
-		}
-		got := flatten(r)
-		want := "{[0,1]} 0 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json101-23.2"
-		r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);\n")
-			return
-		}
-		got := flatten(r)
-		want := "{[0,1]} 0 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// proc definition (not transpiled)
-	// foreach {id start path ins set repl} "\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n"
-	_items := []string{"\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n"}
-	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-	id := _items[_idx+0]
-	start := _items[_idx+1]
-	path := _items[_idx+2]
-	ins := _items[_idx+3]
-	set := _items[_idx+4]
-	repl := _items[_idx+5]
-		{ // "json101-24." + id + ".insert"
-			r = db.Query("\n    SELECT json_insert($start,$path,9);\n  ")
+		{ // "json101-21.3"
+			r = db.Query("\n  SELECT json(NULL);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_insert($start,$path,9);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json(NULL);\n")
 				return
 			}
 			got := flatten(r)
-			want := "list [tx $ins]"
+			want := "NULL"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "json101-24." + id + ".set"
-			r = db.Query("\n    SELECT json_set($start,$path,9);\n  ")
+		{ // "json101-21.4"
+			r = db.Query("\n  SELECT json_array(NULL);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_set($start,$path,9);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(NULL);\n")
 				return
 			}
 			got := flatten(r)
-			want := "list [tx $set]"
+			want := "[null]"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "json101-24." + id + ".replace"
-			r = db.Query("\n    SELECT json_replace($start,$path,9);\n  ")
+		{ // "json101-21.5"
+			r = db.Query("\n  SELECT json_extract(NULL);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_replace($start,$path,9);\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_extract(NULL);\n")
 				return
 			}
 			got := flatten(r)
-			want := "list [tx $repl]"
+			want := "NULL"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "json101-25.1"
-		r = db.Query("\n  SELECT json_array(0.1234567890123456789)->>0 = 0.1234567890123456789;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(0.1234567890123456789)->>0 = 0.1234567890123456789;\n")
-			return
+		{ // "json101-21.6"
+			r = db.Query("\n  SELECT json_insert(NULL,'$',123);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_insert(NULL,'$',123);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json101-21.7"
+			r = db.Query("\n  SELECT NULL->0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT NULL->0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json101-26.1"
-		r = db.Query("\n  SELECT value FROM json_each(x'CC141761133117621332176313331764133437656565') WHERE key='eee';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM json_each(x'CC141761133117621332176313331764133437656565') WHERE key='eee';\n")
-			return
+		{ // "json101-21.8"
+			r = db.Query("\n  SELECT NULL->>0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT NULL->>0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "eee"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json101-21.9"
+			r = db.Query("\n  SELECT '{a:5}'->NULL;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{a:5}'->NULL;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
-	{ // "json101-26.1b"
-		r = db.Query("\n  SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';\n")
-			return
+		{ // "json101-21.10"
+			r = db.Query("\n  SELECT '{a:5}'->>NULL;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{a:5}'->>NULL;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "eee"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json101-21.11"
+			_res = db.Exec("\n  SELECT json_object(NULL,5);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "json_object() labels must be TEXT") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "json_object() labels must be TEXT", _res.Error, "\n  SELECT json_object(NULL,5);\n")
+			}
 		}
-	}
-	{ // "json101-26.2"
-		r = db.Query("\n  SELECT json_valid(x'CC141761133117621332176313331764133437656565',8);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid(x'CC141761133117621332176313331764133437656565',8);\n")
-			return
+		{ // "json101-21.12"
+			r = db.Query("\n  SELECT json_patch(NULL,'{a:5}');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch(NULL,'{a:5}');\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json101-21.13"
+			r = db.Query("\n  SELECT json_patch('{a:5}',NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch('{a:5}',NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
+		{ // "json101-21.14"
+			r = db.Query("\n  SELECT json_patch(NULL,NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_patch(NULL,NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.15"
+			r = db.Query("\n  SELECT json_remove(NULL,'$');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove(NULL,'$');\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.16"
+			r = db.Query("\n  SELECT json_remove('{a:5,b:7}',NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_remove('{a:5,b:7}',NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.17"
+			r = db.Query("\n  SELECT json_replace(NULL,'$.a',123);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace(NULL,'$.a',123);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.18"
+			r = db.Query("\n  SELECT json_replace('{a:5,b:7}',NULL,NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace('{a:5,b:7}',NULL,NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"a\":5,\"b\":7}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.19"
+			r = db.Query("\n  SELECT json_set(NULL,'$.a',123);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(NULL,'$.a',123);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.20"
+			r = db.Query("\n  SELECT json_set('{a:5,b:7}',NULL,NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set('{a:5,b:7}',NULL,NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"a\":5,\"b\":7}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.21"
+			r = db.Query("\n  SELECT json_type(NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type(NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.22"
+			r = db.Query("\n  SELECT json_type('{a:5,b:7}',NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_type('{a:5,b:7}',NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.23"
+			r = db.Query("\n  SELECT json_quote(NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_quote(NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.24"
+			r = db.Query("\n  SELECT count(*) FROM json_each(NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM json_each(NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.25"
+			r = db.Query("\n  SELECT count(*) FROM json_tree(NULL);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) FROM json_tree(NULL);\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.26"
+			r = db.Query("\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x) AS (VALUES(1),(2.0),(NULL),('three'))\n  SELECT json_group_array(x) FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "[1,2.0,null,\"three\"]"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-21.27"
+			r = db.Query("\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH c(x,y) AS (VALUES('a',1),('b',2.0),('c',NULL),(NULL,'three'),('e','four'))\n  SELECT json_group_object(x,y) FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"a\":1,\"b\":2.0,\"c\":null,\"e\":\"four\"}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-22.1"
+			r = db.Query("\n  SELECT json_set(\n    '{}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_set(\n    '{}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"a\":2,\"b\":4,\"c\":6}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-22.2"
+			r = db.Query("\n  SELECT json_replace(\n    '{\"a\":7,\"b\":8,\"c\":9}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_replace(\n    '{\"a\":7,\"b\":8,\"c\":9}',\n    '$.a', json('1'),\n    '$.a', json('2'),\n    '$.b', json('3'),\n    '$.b', json('4'),\n    '$.c', json('5'),\n    '$.c', json('6')\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{{\"a\":2,\"b\":4,\"c\":6}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-23.1"
+			r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set(json_set('[]','$[#]',0), '$[#]',1) AS j);\n")
+				return
+			}
+			got := flatten(r)
+			want := "{[0,1]} 0 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "json101-23.2"
+			r = db.Query("\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT j, j->>0, j->>1\n    FROM (SELECT json_set('[]','$[#]',0,'$[#]',1) AS j);\n")
+				return
+			}
+			got := flatten(r)
+			want := "{[0,1]} 0 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// proc definition (not transpiled)
+		// foreach {id start path ins set repl} "\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n"
+		_items := tclSplitList("\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n")
+		for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
+			id := _items[_idx+0]
+			start := _items[_idx+1]
+			path := _items[_idx+2]
+			ins := _items[_idx+3]
+			set := _items[_idx+4]
+			repl := _items[_idx+5]
+			_ = _idx
+				{ // "json101-24." + id + ".insert"
+					r = db.Query("\n    SELECT json_insert($start,$path,9);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_insert($start,$path,9);\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "list [tx $ins]"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "json101-24." + id + ".set"
+					r = db.Query("\n    SELECT json_set($start,$path,9);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_set($start,$path,9);\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "list [tx $set]"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "json101-24." + id + ".replace"
+					r = db.Query("\n    SELECT json_replace($start,$path,9);\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT json_replace($start,$path,9);\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "list [tx $repl]"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+			{ // "json101-25.1"
+				r = db.Query("\n  SELECT json_array(0.1234567890123456789)->>0 = 0.1234567890123456789;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_array(0.1234567890123456789)->>0 = 0.1234567890123456789;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "json101-26.1"
+				r = db.Query("\n  SELECT value FROM json_each(x'CC141761133117621332176313331764133437656565') WHERE key='eee';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM json_each(x'CC141761133117621332176313331764133437656565') WHERE key='eee';\n")
+					return
+				}
+				got := flatten(r)
+				want := "eee"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
+			{ // "json101-26.1b"
+				r = db.Query("\n  SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';\n")
+					return
+				}
+				got := flatten(r)
+				want := "eee"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "json101-26.2"
+				r = db.Query("\n  SELECT json_valid(x'CC141761133117621332176313331764133437656565',8);\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT json_valid(x'CC141761133117621332176313331764133437656565',8);\n")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

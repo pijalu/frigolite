@@ -29,7 +29,7 @@ func Test_walblock(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
-	for _, f := range []string{"glob test.db*"} {
+	for _, f := range tclSplitList("glob test.db*") {
 		os.Remove(f)
 	}
 	db, err = frigolite.Open("test.db")

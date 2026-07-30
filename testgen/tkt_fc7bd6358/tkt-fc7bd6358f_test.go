@@ -24,37 +24,37 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 		}
 	}
 	// foreach {a from} "\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n"
-	_items := []string{"\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n"}
+	_items := tclSplitList("\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	a := _items[_idx+0]
-	from := _items[_idx+1]
-		// foreach {b where} "\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  "
-		_items := []string{"\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		b := _items[_idx+0]
-		where := _items[_idx+1]
-			{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".1"
-				_res = db.Exec("PRAGMA automatic_index=ON")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON")
-				}
-				_res = db.Exec("SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
+		a := _items[_idx+0]
+		from := _items[_idx+1]
+		_ = _idx
+			// foreach {b where} "\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  "
+			_items := tclSplitList("\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  ")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				b := _items[_idx+0]
+				where := _items[_idx+1]
+				_ = _idx
+					{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".1"
+						_res = db.Exec("PRAGMA automatic_index=ON")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON")
+						}
+						_res = db.Exec("SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
+						}
+					}
+					{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".2"
+						_res = db.Exec("PRAGMA automatic_index=OFF")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=OFF")
+						}
+						_res = db.Exec("SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
+						}
+					}
 				}
 			}
-			{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".2"
-				_res = db.Exec("PRAGMA automatic_index=OFF")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=OFF")
-				}
-				_res = db.Exec("SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT t1.textid, i.intid, t2.textid " + from + " " + where)
-				}
-			}
-		}
-		}
-	}
-	}
 }

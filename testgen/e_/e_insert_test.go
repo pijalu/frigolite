@@ -57,55 +57,55 @@ func Test_e_insert(t *testing.T) {
 		}
 	}
 	// foreach {tn sql error ac data} "\n  1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}\n"
-	_items := []string{"\n  1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}\n"}
+	_items := tclSplitList("\n  1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	error := _items[_idx+2]
-	ac := _items[_idx+3]
-	data := _items[_idx+4]
-		{ // "e_insert-4.1." + tn + ".1"
-			_res = db.Exec(sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		error := _items[_idx+2]
+		ac := _items[_idx+3]
+		data := _items[_idx+4]
+		_ = _idx
+			{ // "e_insert-4.1." + tn + ".1"
+				_res = db.Exec(sql)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", sql)
+				}
+			}
+			{ // "e_insert-4.1." + tn + ".2"
+				r = db.Query("SELECT * FROM a4")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM a4")
+					return
+				}
+				got := flatten(r)
+				want := "list {*}$data"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "e_insert-4.1." + tn + ".3"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+			}
+		}
+		var err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+		_ = err // suppress unused warning
+		{ // "e_insert-5.1.1"
+			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
+				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			}
 		}
-		{ // "e_insert-4.1." + tn + ".2"
-			r = db.Query("SELECT * FROM a4")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM a4")
-				return
-			}
-			got := flatten(r)
-			want := "list {*}$data"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "e_insert-5.1.2"
+			_res = db.Exec("\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
 			}
 		}
-		{ // do_test "e_insert-4.1." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		{ // "e_insert-5.2.1"
+			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"DEFAULT\\\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"DEFAULT\\\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
+			}
 		}
-	}
-	}
-	var err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
-	_ = err // suppress unused warning
-	{ // "e_insert-5.1.1"
-		_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
-		}
-	}
-	{ // "e_insert-5.1.2"
-		_res = db.Exec("\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TEMP TABLE IF NOT EXISTS tmptable(a, b);\n  CREATE TRIGGER AFTER DELETE ON a3 BEGIN\n    INSERT INTO temp.tmptable VALUES(1, 2);\n  END;\n")
-		}
-	}
-	{ // "e_insert-5.2.1"
-		_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"DEFAULT\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"DEFAULT\\\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
+		t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
 }

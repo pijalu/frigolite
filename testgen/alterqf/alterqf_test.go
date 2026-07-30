@@ -29,46 +29,46 @@ func Test_alterqf(t *testing.T) {
 		}
 	}
 	// foreach {tn before after} "\n  1 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"notacolumn!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'notacolumn!', \"c\" FROM t1}\n\n  2 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not'a'column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not''a''column!', \"c\" FROM t1}\n\n  3 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not\"\"a\"\"column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not\"a\"column!', \"c\" FROM t1}\n\n  4 {CREATE VIEW v1 AS SELECT \"val\", count(\"b\") FROM t1 GROUP BY \"abc\"}\n    {CREATE VIEW v1 AS SELECT 'val', count(\"b\") FROM t1 GROUP BY 'abc'}\n\n  5 {CREATE TABLE xyz(a CHECK (a!=\"str\"), b AS (a||\"str\"))}\n    {CREATE TABLE xyz(a CHECK (a!='str'), b AS (a||'str'))}\n\n  6 {CREATE INDEX i1 ON t1(a || \"str\", \"b\", \"val\")}\n    {CREATE INDEX i1 ON t1(a || 'str', \"b\", 'val')}\n\n  7 {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT \"abcd\"; END}\n    {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT 'abcd'; END}\n\n  8 {CREATE VIEW v1 AS SELECT \"string\"'alias' FROM t1}\n    {CREATE VIEW v1 AS SELECT 'string' 'alias' FROM t1}\n\n  9 {CREATE INDEX i1 ON t1(a) WHERE \"b\"=\"bb\"}\n    {CREATE INDEX i1 ON t1(a) WHERE \"b\"='bb'}\n\n 10 {CREATE TABLE t2(abc, xyz CHECK (xyz != \"123\"))} \n    {CREATE TABLE t2(abc, xyz CHECK (xyz != '123'))} \n\n 11 {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max(\"str\", new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", \",\") OVER (ORDER BY c||\"str\");\n      UPDATE t1 SET c= b + \"str\";\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = \"o.a\" AND t1.b IN(\"t1.b\")\n      );\n    END;\n } {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max('str', new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", ',') OVER (ORDER BY c||'str');\n      UPDATE t1 SET c= b + 'str';\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = 'o.a' AND t1.b IN('t1.b')\n      );\n    END;\n }\n\n"
-	_items := []string{"\n  1 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"notacolumn!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'notacolumn!', \"c\" FROM t1}\n\n  2 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not'a'column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not''a''column!', \"c\" FROM t1}\n\n  3 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not\"\"a\"\"column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not\"a\"column!', \"c\" FROM t1}\n\n  4 {CREATE VIEW v1 AS SELECT \"val\", count(\"b\") FROM t1 GROUP BY \"abc\"}\n    {CREATE VIEW v1 AS SELECT 'val', count(\"b\") FROM t1 GROUP BY 'abc'}\n\n  5 {CREATE TABLE xyz(a CHECK (a!=\"str\"), b AS (a||\"str\"))}\n    {CREATE TABLE xyz(a CHECK (a!='str'), b AS (a||'str'))}\n\n  6 {CREATE INDEX i1 ON t1(a || \"str\", \"b\", \"val\")}\n    {CREATE INDEX i1 ON t1(a || 'str', \"b\", 'val')}\n\n  7 {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT \"abcd\"; END}\n    {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT 'abcd'; END}\n\n  8 {CREATE VIEW v1 AS SELECT \"string\"'alias' FROM t1}\n    {CREATE VIEW v1 AS SELECT 'string' 'alias' FROM t1}\n\n  9 {CREATE INDEX i1 ON t1(a) WHERE \"b\"=\"bb\"}\n    {CREATE INDEX i1 ON t1(a) WHERE \"b\"='bb'}\n\n 10 {CREATE TABLE t2(abc, xyz CHECK (xyz != \"123\"))} \n    {CREATE TABLE t2(abc, xyz CHECK (xyz != '123'))} \n\n 11 {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max(\"str\", new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", \",\") OVER (ORDER BY c||\"str\");\n      UPDATE t1 SET c= b + \"str\";\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = \"o.a\" AND t1.b IN(\"t1.b\")\n      );\n    END;\n } {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max('str', new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", ',') OVER (ORDER BY c||'str');\n      UPDATE t1 SET c= b + 'str';\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = 'o.a' AND t1.b IN('t1.b')\n      );\n    END;\n }\n\n"}
+	_items := tclSplitList("\n  1 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"notacolumn!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'notacolumn!', \"c\" FROM t1}\n\n  2 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not'a'column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not''a''column!', \"c\" FROM t1}\n\n  3 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not\"\"a\"\"column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not\"a\"column!', \"c\" FROM t1}\n\n  4 {CREATE VIEW v1 AS SELECT \"val\", count(\"b\") FROM t1 GROUP BY \"abc\"}\n    {CREATE VIEW v1 AS SELECT 'val', count(\"b\") FROM t1 GROUP BY 'abc'}\n\n  5 {CREATE TABLE xyz(a CHECK (a!=\"str\"), b AS (a||\"str\"))}\n    {CREATE TABLE xyz(a CHECK (a!='str'), b AS (a||'str'))}\n\n  6 {CREATE INDEX i1 ON t1(a || \"str\", \"b\", \"val\")}\n    {CREATE INDEX i1 ON t1(a || 'str', \"b\", 'val')}\n\n  7 {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT \"abcd\"; END}\n    {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT 'abcd'; END}\n\n  8 {CREATE VIEW v1 AS SELECT \"string\"'alias' FROM t1}\n    {CREATE VIEW v1 AS SELECT 'string' 'alias' FROM t1}\n\n  9 {CREATE INDEX i1 ON t1(a) WHERE \"b\"=\"bb\"}\n    {CREATE INDEX i1 ON t1(a) WHERE \"b\"='bb'}\n\n 10 {CREATE TABLE t2(abc, xyz CHECK (xyz != \"123\"))} \n    {CREATE TABLE t2(abc, xyz CHECK (xyz != '123'))} \n\n 11 {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max(\"str\", new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", \",\") OVER (ORDER BY c||\"str\");\n      UPDATE t1 SET c= b + \"str\";\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = \"o.a\" AND t1.b IN(\"t1.b\")\n      );\n    END;\n } {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max('str', new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", ',') OVER (ORDER BY c||'str');\n      UPDATE t1 SET c= b + 'str';\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = 'o.a' AND t1.b IN('t1.b')\n      );\n    END;\n }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	before := _items[_idx+1]
-	after := _items[_idx+2]
-		{ // "1." + tn
-			r = db.Query("\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")
+		tn := _items[_idx+0]
+		before := _items[_idx+1]
+		after := _items[_idx+2]
+		_ = _idx
+			{ // "1." + tn
+				r = db.Query("\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list $after"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
+			}
+		}
+		{ // "2.1"
+			r = db.Query("\n  ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;\n")
 				return
 			}
 			got := flatten(r)
-			want := "list $after"
+			want := "{CREATE TABLE x1(\n      one, \"four\", three, PRIMARY KEY(one), \n      CHECK (three!='xyz'), CHECK (\"four\"!=\"one\")\n  ) WITHOUT ROWID}\n  {CREATE INDEX x1i ON x1(one+\"four\"+'four') WHERE 'five'}\n  {CREATE TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET \"four\"=new.three || 'new' WHERE one=new.one||'';\n  END}\n"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
-		}
-	}
-	{ // "2.1"
-		r = db.Query("\n  ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE x1 RENAME two TO 'four';\n  SELECT sql FROM sqlite_schema;\n  SELECT sql FROM sqlite_temp_schema;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE x1(\n      one, \"four\", three, PRIMARY KEY(one), \n      CHECK (three!='xyz'), CHECK (\"four\"!=\"one\")\n  ) WITHOUT ROWID}\n  {CREATE INDEX x1i ON x1(one+\"four\"+'four') WHERE 'five'}\n  {CREATE TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET \"four\"=new.three || 'new' WHERE one=new.one||'';\n  END}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

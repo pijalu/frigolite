@@ -20,63 +20,63 @@ func Test_changes(t *testing.T) {
 	var testprefix = "changes"
 	_ = testprefix // suppress unused warning
 	// foreach {tn nRow wor} "\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n"
-	_items := []string{"\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n"}
+	_items := tclSplitList("\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	nRow := _items[_idx+1]
-	wor := _items[_idx+2]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		nBig := "$nRow"
-		{ // "1." + tn + ".0"
-			_res = db.Exec("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
+		tn := _items[_idx+0]
+		nRow := _items[_idx+1]
+		wor := _items[_idx+2]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			nBig := "$nRow"
+			{ // "1." + tn + ".0"
+				_res = db.Exec("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
+				}
+			}
+			{ // "1." + tn + ".1"
+				r = db.Query("\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
+				}
+			}
+			{ // do_test "1." + tn + ".2"
+			}
+			{ // do_test "1." + tn + ".3"
+			}
+			{ // "1." + tn + ".4"
+				_res = db.Exec("\n    INSERT INTO t1 VALUES(-1)\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(-1)\n  ")
+				}
+			}
+			{ // do_test "1." + tn + ".5"
+			}
+			{ // do_test "1." + tn + ".6"
+			}
+			{ // "1." + tn + ".7a"
+				r = db.Query("\n    SELECT count(*) FROM t1\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "$nBig+1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".7"
+				_res = db.Exec("\n    DELETE FROM t1\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1\n  ")
+				}
+			}
+			{ // do_test "1." + tn + ".8"
+			}
+			{ // do_test "1." + tn + ".9"
 			}
 		}
-		{ // "1." + tn + ".1"
-			r = db.Query("\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < $nBig\n    )\n    INSERT INTO t1 SELECT i FROM s;\n  ")
-			}
-		}
-		{ // do_test "1." + tn + ".2"
-		}
-		{ // do_test "1." + tn + ".3"
-		}
-		{ // "1." + tn + ".4"
-			_res = db.Exec("\n    INSERT INTO t1 VALUES(-1)\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(-1)\n  ")
-			}
-		}
-		{ // do_test "1." + tn + ".5"
-		}
-		{ // do_test "1." + tn + ".6"
-		}
-		{ // "1." + tn + ".7a"
-			r = db.Query("\n    SELECT count(*) FROM t1\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "$nBig+1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "1." + tn + ".7"
-			_res = db.Exec("\n    DELETE FROM t1\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1\n  ")
-			}
-		}
-		{ // do_test "1." + tn + ".8"
-		}
-		{ // do_test "1." + tn + ".9"
-		}
-	}
-	}
 }

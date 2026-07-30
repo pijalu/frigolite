@@ -38,7 +38,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-1.2"
-		for _, w := range []string{"a b c d e f g h i j k l m n o"} {
+		for _, w := range tclSplitList("a b c d e f g h i j k l m n o") {
 			_res = db.Exec(" INSERT INTO t1 VALUES($w) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($w) ")
@@ -121,7 +121,7 @@ func Test_fts3corrupt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		for _, s := range []string{"\n     \"amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm\"\n     \"ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul\"\n     \"amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu\"\n     \"apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou\"\n     \"aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt\"\n  "} {
+		for _, s := range tclSplitList("\n     \"amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm\"\n     \"ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul\"\n     \"amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu\"\n     \"apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou\"\n     \"aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt\"\n  ") {
 			_res = db.Exec(" INSERT INTO t1 VALUES($s) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($s) ")

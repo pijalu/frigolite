@@ -38,7 +38,7 @@ func Test_rollbackfault(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(i, h);\n  CREATE INDEX i1 ON t1(h);\n  WITH data(a, b) AS (\n    SELECT 1, int2hex(1)\n      UNION ALL\n    SELECT a+1, int2hex(a+1) FROM data WHERE a<40\n  )\n  INSERT INTO t1 SELECT * FROM data;\n")
 		}
 	}
-	for _, f := range []string{"oom ioerr"} {
+	for _, f := range tclSplitList("oom ioerr") {
 		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults $f* -prep {\n    set sql1 { SELECT i FROM t1 WHERE (i%2)==0 }\n...} -body {\n    execsql { ROLLBACK }\n  } -test {\n  \n    set res1 [list]\n    set res2 [list]\n    wh...}")
 	}
 }

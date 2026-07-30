@@ -36,34 +36,34 @@ func Test_altertrig(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "do_whitespace_sql_test 1.3 {\n  ALTER TABLE t5 RENAME TO t3;\n  SELECT sql FROM ...} {{\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDA...}")
 	// foreach {tn alter update final} "\n  1 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t3)\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM \"t10\")\n  }\n\n  2 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM \"t10\", (SELECT * FROM (SELECT e FROM \"t10\"))\n  }\n\n  3 {\n    ALTER TABLE t3 RENAME e TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT abc FROM t3))\n  }\n\n  4 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE c)\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE abc)\n  }\n\n  5 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2\n  }\n\n  6 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2, t3\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2, t3\n  }\n\n  7 {\n    ALTER TABLE t4 RENAME e TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.abc=a\n  }\n\n  8 {\n    ALTER TABLE t4 RENAME TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN \"abc\" WHERE \"abc\".e=a\n  }\n \n"
-	_items := []string{"\n  1 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t3)\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM \"t10\")\n  }\n\n  2 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM \"t10\", (SELECT * FROM (SELECT e FROM \"t10\"))\n  }\n\n  3 {\n    ALTER TABLE t3 RENAME e TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT abc FROM t3))\n  }\n\n  4 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE c)\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE abc)\n  }\n\n  5 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2\n  }\n\n  6 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2, t3\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2, t3\n  }\n\n  7 {\n    ALTER TABLE t4 RENAME e TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.abc=a\n  }\n\n  8 {\n    ALTER TABLE t4 RENAME TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN \"abc\" WHERE \"abc\".e=a\n  }\n \n"}
+	_items := tclSplitList("\n  1 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t3)\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM \"t10\")\n  }\n\n  2 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM \"t10\", (SELECT * FROM (SELECT e FROM \"t10\"))\n  }\n\n  3 {\n    ALTER TABLE t3 RENAME e TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT abc FROM t3))\n  }\n\n  4 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE c)\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE abc)\n  }\n\n  5 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2\n  }\n\n  6 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2, t3\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2, t3\n  }\n\n  7 {\n    ALTER TABLE t4 RENAME e TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.abc=a\n  }\n\n  8 {\n    ALTER TABLE t4 RENAME TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN \"abc\" WHERE \"abc\".e=a\n  }\n \n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	alter := _items[_idx+1]
-	update := _items[_idx+2]
-	final := _items[_idx+3]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "2." + tn + ".1"
-			_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
+		tn := _items[_idx+0]
+		alter := _items[_idx+1]
+		update := _items[_idx+2]
+		final := _items[_idx+3]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "2." + tn + ".1"
+				_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(c,d);\n    CREATE TABLE t3(e,f);\n    CREATE TABLE t4(e,f);\n  ")
+				}
 			}
-		}
-		{ // "2." + tn + ".2"
-			_res = db.Exec("\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
+			{ // "2." + tn + ".2"
+				_res = db.Exec("\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      " + update + ";\n    END\n  ")
+				}
 			}
-		}
-		{ // "2." + tn + ".3"
-			_res = db.Exec(alter)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
+			{ // "2." + tn + ".3"
+				_res = db.Exec(alter)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, alter)
+				}
 			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_whitespace_sql_test 2.$tn.4 {\n    SELECT sqL FROM sqlite_schema WHERE type='tri...} {\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      ...")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_whitespace_sql_test 2.$tn.4 {\n    SELECT sqL FROM sqlite_schema WHERE type='tri...} {\n    CREATE TRIGGER r1 INSERT ON t1 BEGIN \n      ...")
-	}
-	}
 }

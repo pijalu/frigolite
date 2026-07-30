@@ -26,129 +26,129 @@ func Test_having(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}\n"
-	_items := []string{"\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}\n"}
+	_items := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "1." + tn
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // "1." + tn
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
 			}
 		}
-	}
-	}
-	// proc definition (not transpiled)
-	// proc definition (not transpiled)
-	// foreach {tn sql1 sql2} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n"
-	_items := []string{"\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql1 := _items[_idx+1]
-	sql2 := _items[_idx+2]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 2.$tn $sql1 $sql2 1")
-	}
-	}
-	{ // "2.4a"
-		r = db.Query("\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    GROUP BY a\n  ) WHERE x BETWEEN 2 AND 9999\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    GROUP BY a\n  ) WHERE x BETWEEN 2 AND 9999\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 12"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.4b"
-		r = db.Query("\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    WHERE x BETWEEN 2 AND 9999 \n    GROUP BY a\n  )\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    WHERE x BETWEEN 2 AND 9999 \n    GROUP BY a\n  )\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 12"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// foreach {tn sql1 sql2} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n"
-	_items := []string{"\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql1 := _items[_idx+1]
-	sql2 := _items[_idx+2]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 3.$tn $sql1 $sql2 0")
-	}
-	}
-	{ // "4.1"
-		_res = db.Exec("\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
-		}
-	}
-	// proc definition (not transpiled)
-	var _nondeter_ret = "0" // TCL namespace variable
-	_ = _nondeter_ret // suppress unused warning
-	{ // "4.2"
-		r = db.Query("\n  SELECT a, sum(b) FROM t3 GROUP BY a HAVING nondeter(a)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(b) FROM t3 GROUP BY a HAVING nondeter(a)\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var _nondeter_ret = "0" // TCL namespace variable
-	_ = _nondeter_ret // suppress unused warning
-	{ // "4.3"
-		r = db.Query("\n  SELECT a, sum(b) FROM t3 WHERE nondeter(a) GROUP BY a\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(b) FROM t3 WHERE nondeter(a) GROUP BY a\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 4 2 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
-		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT min(b), (\n    SELECT x FROM t2 WHERE a=2 GROUP BY y HAVING 0\n  ) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(b), (\n    SELECT x FROM t2 WHERE a=2 GROUP BY y HAVING 0\n  ) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "b {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.2"
-		r = db.Query("\n  SELECT EXISTS (\n    SELECT * FROM (\n      SELECT * FROM (\n        SELECT 1\n      ) WHERE Col0 = 1   GROUP BY 1\n    )   WHERE 0\n  )\n  FROM (SELECT 1 Col0)   GROUP BY 1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT EXISTS (\n    SELECT * FROM (\n      SELECT * FROM (\n        SELECT 1\n      ) WHERE Col0 = 1   GROUP BY 1\n    )   WHERE 0\n  )\n  FROM (SELECT 1 Col0)   GROUP BY 1\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// proc definition (not transpiled)
+		// proc definition (not transpiled)
+		// foreach {tn sql1 sql2} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n"
+		_items := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			sql1 := _items[_idx+1]
+			sql2 := _items[_idx+2]
+			_ = _idx
+				t.Skipf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 2.$tn $sql1 $sql2 1")
+			}
+			{ // "2.4a"
+				r = db.Query("\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    GROUP BY a\n  ) WHERE x BETWEEN 2 AND 9999\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    GROUP BY a\n  ) WHERE x BETWEEN 2 AND 9999\n")
+					return
+				}
+				got := flatten(r)
+				want := "2 12"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.4b"
+				r = db.Query("\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    WHERE x BETWEEN 2 AND 9999 \n    GROUP BY a\n  )\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    WHERE x BETWEEN 2 AND 9999 \n    GROUP BY a\n  )\n")
+					return
+				}
+				got := flatten(r)
+				want := "2 12"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// foreach {tn sql1 sql2} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n"
+			_items := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				sql1 := _items[_idx+1]
+				sql2 := _items[_idx+2]
+				_ = _idx
+					t.Skipf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 3.$tn $sql1 $sql2 0")
+				}
+				{ // "4.1"
+					_res = db.Exec("\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
+					}
+				}
+				// proc definition (not transpiled)
+				var _nondeter_ret = "0" // TCL namespace variable
+				_ = _nondeter_ret // suppress unused warning
+				{ // "4.2"
+					r = db.Query("\n  SELECT a, sum(b) FROM t3 GROUP BY a HAVING nondeter(a)\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(b) FROM t3 GROUP BY a HAVING nondeter(a)\n")
+						return
+					}
+					got := flatten(r)
+					want := "1 6"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				var _nondeter_ret = "0" // TCL namespace variable
+				_ = _nondeter_ret // suppress unused warning
+				{ // "4.3"
+					r = db.Query("\n  SELECT a, sum(b) FROM t3 WHERE nondeter(a) GROUP BY a\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(b) FROM t3 WHERE nondeter(a) GROUP BY a\n")
+						return
+					}
+					got := flatten(r)
+					want := "1 4 2 2"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				{ // "5.0"
+					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES('a', 'b');\n")
+					}
+				}
+				{ // "5.1"
+					r = db.Query("\n  SELECT min(b), (\n    SELECT x FROM t2 WHERE a=2 GROUP BY y HAVING 0\n  ) FROM t1;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(b), (\n    SELECT x FROM t2 WHERE a=2 GROUP BY y HAVING 0\n  ) FROM t1;\n")
+						return
+					}
+					got := flatten(r)
+					want := "b {}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5.2"
+					r = db.Query("\n  SELECT EXISTS (\n    SELECT * FROM (\n      SELECT * FROM (\n        SELECT 1\n      ) WHERE Col0 = 1   GROUP BY 1\n    )   WHERE 0\n  )\n  FROM (SELECT 1 Col0)   GROUP BY 1\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT EXISTS (\n    SELECT * FROM (\n      SELECT * FROM (\n        SELECT 1\n      ) WHERE Col0 = 1   GROUP BY 1\n    )   WHERE 0\n  )\n  FROM (SELECT 1 Col0)   GROUP BY 1\n")
+						return
+					}
+					got := flatten(r)
+					want := "0"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 }

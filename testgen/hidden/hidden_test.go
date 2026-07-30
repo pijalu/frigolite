@@ -50,199 +50,199 @@ func Test_hidden(t *testing.T) {
 		}
 	}
 	// foreach {tn view} "\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n"
-	_items := []string{"\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n"}
+	_items := tclSplitList("\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	view := _items[_idx+1]
-		{ // "2." + tn + ".1"
-			_res = db.Exec("\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
+		tn := _items[_idx+0]
+		view := _items[_idx+1]
+		_ = _idx
+			{ // "2." + tn + ".1"
+				_res = db.Exec("\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
+				}
+			}
+			_res = db.Exec(" DROP VIEW v1 ")
+			_ = _res // catchsql
+			_res = db.Exec(view)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, view)
+			}
+			{ // "2." + tn + ".2"
+				r = db.Query("\n    SELECT a, b, __hidden__c FROM v1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, __hidden__c FROM v1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2." + tn + ".3"
+				r = db.Query("\n    SELECT * FROM v1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2." + tn + ".4"
+				r = db.Query("\n    CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 {}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2." + tn + ".5"
+				r = db.Query("\n    INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1 2 3 4 5 {} 7 8 9"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		_res = db.Exec(" DROP VIEW v1 ")
-		_ = _res // catchsql
-		_res = db.Exec(view)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, view)
-		}
-		{ // "2." + tn + ".2"
-			r = db.Query("\n    SELECT a, b, __hidden__c FROM v1;\n  ")
+		{ // "3.1"
+			r = db.Query("\n  CREATE TABLE t4(a, __hidden__b, c);\n  INSERT INTO t4 SELECT 1, 2;\n  SELECT a, __hidden__b, c FROM t4;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, __hidden__c FROM v1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a, __hidden__b, c);\n  INSERT INTO t4 SELECT 1, 2;\n  SELECT a, __hidden__b, c FROM t4;\n")
 				return
 			}
 			got := flatten(r)
-			want := "1 2 3"
+			want := "1 {} 2"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "2." + tn + ".3"
-			r = db.Query("\n    SELECT * FROM v1;\n  ")
+		{ // "3.2.1"
+			_res = db.Exec("\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
+			}
+		}
+		{ // "3.2.2"
+			r = db.Query("\n  INSERT INTO t5 SELECT * FROM t6;\n  SELECT * FROM t5;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM v1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5 SELECT * FROM t6;\n  SELECT * FROM t5;\n")
 				return
 			}
 			got := flatten(r)
-			want := "1 2"
+			want := "2 3   5 6   8 9"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "2." + tn + ".4"
-			r = db.Query("\n    CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;\n  ")
+		{ // "3.2.3"
+			r = db.Query("\n  SELECT __hidden__a FROM t5;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n      INSERT INTO x1 VALUES(new.a, new.b, new.__hidden__c);\n    END;\n  \n    INSERT INTO v1 VALUES(4, 5);\n    SELECT * FROM x1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT __hidden__a FROM t5;\n")
 				return
 			}
 			got := flatten(r)
-			want := "1 2 3 4 5 {}"
+			want := "{} {} {}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "2." + tn + ".5"
-			r = db.Query("\n    INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;\n  ")
+		{ // "3.3.1"
+			_res = db.Exec("\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
+			}
+		}
+		{ // "3.3.2"
+			r = db.Query("\n  INSERT INTO t5a SELECT * FROM t6a;\n  SELECT * FROM t5a;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO v1(a, b, __hidden__c) VALUES(7, 8, 9);\n    SELECT * FROM x1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5a SELECT * FROM t6a;\n  SELECT * FROM t5a;\n")
 				return
 			}
 			got := flatten(r)
-			want := "1 2 3 4 5 {} 7 8 9"
+			want := "1 2   4 5   7 8"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "3.1"
-		r = db.Query("\n  CREATE TABLE t4(a, __hidden__b, c);\n  INSERT INTO t4 SELECT 1, 2;\n  SELECT a, __hidden__b, c FROM t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t4(a, __hidden__b, c);\n  INSERT INTO t4 SELECT 1, 2;\n  SELECT a, __hidden__b, c FROM t4;\n")
-			return
+		{ // "3.3.3"
+			r = db.Query("\n  SELECT __hidden__c FROM t5a;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT __hidden__c FROM t5a;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{} {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 {} 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.4.1"
+			_res = db.Exec("\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
+			}
 		}
-	}
-	{ // "3.2.1"
-		_res = db.Exec("\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(__hidden__a, b, c);\n  CREATE TABLE t6(__hidden__a, b, c);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(1, 2, 3);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(4, 5, 6);\n  INSERT INTO t6(__hidden__a, b, c) VALUES(7, 8, 9);\n")
+		{ // "3.4.2"
+			r = db.Query("\n  INSERT INTO t5b SELECT * FROM t6b;\n  SELECT * FROM t5b;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5b SELECT * FROM t6b;\n  SELECT * FROM t5b;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2   4 5   7 8"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "3.2.2"
-		r = db.Query("\n  INSERT INTO t5 SELECT * FROM t6;\n  SELECT * FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5 SELECT * FROM t6;\n  SELECT * FROM t5;\n")
-			return
+		{ // "3.4.3"
+			r = db.Query("\n  SELECT __hidden__b FROM t5b;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT __hidden__b FROM t5b;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{} {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "2 3   5 6   8 9"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "4.1"
+			r = db.Query("\n  CREATE TABLE t1(a, __hidden__b, c UNIQUE);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(1, 2, 3);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(4, 5, 6);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(7, 8, 9);\n  DELETE FROM t1 WHERE __hidden__b = 5;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, __hidden__b, c UNIQUE);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(1, 2, 3);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(4, 5, 6);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(7, 8, 9);\n  DELETE FROM t1 WHERE __hidden__b = 5;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 2 3   3 7 8 9"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "3.2.3"
-		r = db.Query("\n  SELECT __hidden__a FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT __hidden__a FROM t5;\n")
-			return
+		{ // "4.2"
+			r = db.Query("\n  VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 2 3   3 7 8 9"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "{} {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.3.1"
-		_res = db.Exec("\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5a(a, b, __hidden__c);\n  CREATE TABLE t6a(a, b, __hidden__c);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6a(a, b, __hidden__c) VALUES(7, 8, 9);\n")
-		}
-	}
-	{ // "3.3.2"
-		r = db.Query("\n  INSERT INTO t5a SELECT * FROM t6a;\n  SELECT * FROM t5a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5a SELECT * FROM t6a;\n  SELECT * FROM t5a;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2   4 5   7 8"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.3.3"
-		r = db.Query("\n  SELECT __hidden__c FROM t5a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT __hidden__c FROM t5a;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.1"
-		_res = db.Exec("\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5b(a, __hidden__b, c);\n  CREATE TABLE t6b(a, b, __hidden__c);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(1, 2, 3);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(4, 5, 6);\n  INSERT INTO t6b(a, b, __hidden__c) VALUES(7, 8, 9);\n")
-		}
-	}
-	{ // "3.4.2"
-		r = db.Query("\n  INSERT INTO t5b SELECT * FROM t6b;\n  SELECT * FROM t5b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5b SELECT * FROM t6b;\n  SELECT * FROM t5b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2   4 5   7 8"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4.3"
-		r = db.Query("\n  SELECT __hidden__b FROM t5b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT __hidden__b FROM t5b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.1"
-		r = db.Query("\n  CREATE TABLE t1(a, __hidden__b, c UNIQUE);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(1, 2, 3);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(4, 5, 6);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(7, 8, 9);\n  DELETE FROM t1 WHERE __hidden__b = 5;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, __hidden__b, c UNIQUE);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(1, 2, 3);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(4, 5, 6);\n  INSERT INTO t1(a, __hidden__b, c) VALUES(7, 8, 9);\n  DELETE FROM t1 WHERE __hidden__b = 5;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 1 2 3   3 7 8 9"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2"
-		r = db.Query("\n  VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  VACUUM;\n  SELECT rowid, a, __hidden__b, c FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 1 2 3   3 7 8 9"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

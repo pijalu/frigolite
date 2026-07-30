@@ -42,42 +42,42 @@ func Test_date3(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "datetest 1.8 {unixepoch('2022-01-27 12:59:28.052')} {1643288368}")
 	// foreach {tn jd date} "\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n"
-	_items := []string{"\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n"}
+	_items := tclSplitList("\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	jd := _items[_idx+1]
-	date := _items[_idx+2]
-		t.Skipf("TODO: %s not implemented in frigolite", "datetest $tn datetime($jd,'auto') $date")
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 2.30 {date('2022-01-29','auto')==date('2022-01-29')} {1}")
-	{ // "date3-2.40"
-		r = db.Query("\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
-			return
+		tn := _items[_idx+0]
+		jd := _items[_idx+1]
+		date := _items[_idx+2]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "datetest $tn datetime($jd,'auto') $date")
 		}
-		got := flatten(r)
-		want := "1 1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		t.Skipf("TODO: %s not implemented in frigolite", "datetest 2.30 {date('2022-01-29','auto')==date('2022-01-29')} {1}")
+		{ // "date3-2.40"
+			r = db.Query("\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH tx(timeval,datetime) AS (\n     VALUES('2022-01-27 13:15:44','2022-01-27 13:15:44'),\n           (2459607.05260275,'2022-01-27 13:15:44'),\n           (1643289344,'2022-01-27 13:15:44')\n  )\n  SELECT datetime(timeval,'auto') == datetime FROM tx;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 3.1 {datetime(2459607.05,'+1 hour','unixepoch')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 3.2 {datetime(2459607.05,'unixepoch','+1 hour')} {1970-01-29 12:13:27}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 4.1 {datetime(2459607,'julianday')} {2022-01-27 12:00:00}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 4.2 {datetime(2459607,'+1 hour','julianday')} {NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "datetest 4.3 {datetime('2022-01-27','julianday')} {NULL}")
-	{ // "date3-5.0"
-		r = db.Query("\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
-			return
+		t.Skipf("TODO: %s not implemented in frigolite", "datetest 3.1 {datetime(2459607.05,'+1 hour','unixepoch')} {NULL}")
+		t.Skipf("TODO: %s not implemented in frigolite", "datetest 3.2 {datetime(2459607.05,'unixepoch','+1 hour')} {1970-01-29 12:13:27}")
+		t.Skipf("TODO: %s not implemented in frigolite", "datetest 4.1 {datetime(2459607,'julianday')} {2022-01-27 12:00:00}")
+		t.Skipf("TODO: %s not implemented in frigolite", "datetest 4.2 {datetime(2459607,'+1 hour','julianday')} {NULL}")
+		t.Skipf("TODO: %s not implemented in frigolite", "datetest 4.3 {datetime('2022-01-27','julianday')} {NULL}")
+		{ // "date3-5.0"
+			r = db.Query("\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH inc(x) AS (VALUES(-10) UNION ALL SELECT x+1 FROM inc WHERE x<100)\n  SELECT count(*) FROM inc\n  WHERE datetime('1970-01-01',format('%+d days',x))\n     <> datetime(unixepoch('1970-01-01',format('%+d days',x)),'auto');\n")
+				return
+			}
+			got := flatten(r)
+			want := "63"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "63"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

@@ -105,166 +105,166 @@ func Test_update2(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n"
-	_items := []string{"\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n"}
+	_items := tclSplitList("\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		_res = db.Exec(" DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")
-		}
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		{ // "4." + tn + ".0"
-			_res = db.Exec("\n    CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);\n  ")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(" DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")
 			}
-		}
-		{ // "4." + tn + ".1"
-			r = db.Query("\n    UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1 a 1\n    3 c 3\n    4 d 14\n    5 e 15\n    6 f 16\n    7 g 17\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "4." + tn + ".2"
-			_res = db.Exec("\n    CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n  ")
+			_res = db.Exec(sql)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			}
+			{ // "4." + tn + ".0"
+				_res = db.Exec("\n    CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);\n  ")
+				}
+			}
+			{ // "4." + tn + ".1"
+				r = db.Query("\n    UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1 a 1\n    3 c 3\n    4 d 14\n    5 e 15\n    6 f 16\n    7 g 17\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".2"
+				_res = db.Exec("\n    CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n  ")
+				}
+			}
+			{ // "4." + tn + ".3"
+				r = db.Query("\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".4"
+				r = db.Query(" PRAGMA integrity_check ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "4." + tn + ".5"
+				_res = db.Exec("\n    DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);\n  ")
+				}
+			}
+			{ // "4." + tn + ".6"
+				r = db.Query("\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "4." + tn + ".3"
-			r = db.Query("\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "4." + tn + ".4"
-			r = db.Query(" PRAGMA integrity_check ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-				return
-			}
-			got := flatten(r)
-			want := "ok"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "4." + tn + ".5"
-			_res = db.Exec("\n    DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);\n  ")
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1c ON x1(b, c);\n  INSERT INTO x1 VALUES(1, 'a', 1);\n  INSERT INTO x1 VALUES(2, 'a', 2);\n  INSERT INTO x1 VALUES(3, 'a', 3);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1c ON x1(b, c);\n  INSERT INTO x1 VALUES(1, 'a', 1);\n  INSERT INTO x1 VALUES(2, 'a', 2);\n  INSERT INTO x1 VALUES(3, 'a', 3);\n")
 			}
 		}
-		{ // "4." + tn + ".6"
-			r = db.Query("\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
+		{ // "5.1.1"
+			_res = db.Exec("\n  UPDATE x1 SET c=c+1 WHERE b='a';\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET c=c+1 WHERE b='a';\n")
+			}
+		}
+		{ // "5.1.2"
+			r = db.Query("\n  SELECT * FROM x1;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x1;\n")
 				return
 			}
 			got := flatten(r)
-			want := "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+			want := "1 a 2 2 a 3 3 a 4"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1c ON x1(b, c);\n  INSERT INTO x1 VALUES(1, 'a', 1);\n  INSERT INTO x1 VALUES(2, 'a', 2);\n  INSERT INTO x1 VALUES(3, 'a', 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1c ON x1(b, c);\n  INSERT INTO x1 VALUES(1, 'a', 1);\n  INSERT INTO x1 VALUES(2, 'a', 2);\n  INSERT INTO x1 VALUES(3, 'a', 3);\n")
+		{ // do_test "5.2"
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+			}
+			_res = db.Exec(" EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
+			}
 		}
-	}
-	{ // "5.1.1"
-		_res = db.Exec("\n  UPDATE x1 SET c=c+1 WHERE b='a';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE x1 SET c=c+1 WHERE b='a';\n")
+		{ // "6.0"
+			_res = db.Exec("\n  CREATE TABLE d1(a,b);\n  CREATE INDEX d1b ON d1(a);\n  CREATE INDEX d1c ON d1(b);\n  INSERT INTO d1 VALUES(1,2);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d1(a,b);\n  CREATE INDEX d1b ON d1(a);\n  CREATE INDEX d1c ON d1(b);\n  INSERT INTO d1 VALUES(1,2);\n")
+			}
 		}
-	}
-	{ // "5.1.2"
-		r = db.Query("\n  SELECT * FROM x1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x1;\n")
-			return
+		{ // "6.1"
+			_res = db.Exec("\n  UPDATE d1 SET a = a+2 WHERE a>0 OR b>0;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE d1 SET a = a+2 WHERE a>0 OR b>0;\n")
+			}
 		}
-		got := flatten(r)
-		want := "1 a 2 2 a 3 3 a 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "6.2"
+			r = db.Query("\n  SELECT * FROM d1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM d1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "3 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // do_test "5.2"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
+		{ // "7.100"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  CREATE UNIQUE INDEX t1x1 ON t1(x) WHERE x IS NOT NULL;\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE INDEX t1x2 ON t1(y);\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  CREATE UNIQUE INDEX t1x1 ON t1(x) WHERE x IS NOT NULL;\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE INDEX t1x2 ON t1(y);\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL NULL | NULL NULL |"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		_res = db.Exec(" EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a' ")
+		{ // "7.110"
+			r = db.Query("\n  UPDATE OR REPLACE t1 SET x=1;\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE OR REPLACE t1 SET x=1;\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 NULL |"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE TABLE d1(a,b);\n  CREATE INDEX d1b ON d1(a);\n  CREATE INDEX d1c ON d1(b);\n  INSERT INTO d1 VALUES(1,2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d1(a,b);\n  CREATE INDEX d1b ON d1(a);\n  CREATE INDEX d1c ON d1(b);\n  INSERT INTO d1 VALUES(1,2);\n")
-		}
-	}
-	{ // "6.1"
-		_res = db.Exec("\n  UPDATE d1 SET a = a+2 WHERE a>0 OR b>0;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE d1 SET a = a+2 WHERE a>0 OR b>0;\n")
-		}
-	}
-	{ // "6.2"
-		r = db.Query("\n  SELECT * FROM d1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM d1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "3 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.100"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  CREATE UNIQUE INDEX t1x1 ON t1(x) WHERE x IS NOT NULL;\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE INDEX t1x2 ON t1(y);\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x,y);\n  CREATE UNIQUE INDEX t1x1 ON t1(x) WHERE x IS NOT NULL;\n  INSERT INTO t1(x) VALUES(NULL),(NULL);\n  CREATE INDEX t1x2 ON t1(y);\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL NULL | NULL NULL |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.110"
-		r = db.Query("\n  UPDATE OR REPLACE t1 SET x=1;\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE OR REPLACE t1 SET x=1;\n  SELECT quote(x), quote(y), '|' FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 NULL |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

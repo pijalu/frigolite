@@ -535,186 +535,186 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	// foreach {tn sort orderby} "\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n"
-	_items := []string{"\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n"}
+	_items := tclSplitList("\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sort := _items[_idx+1]
-	orderby := _items[_idx+2]
-		var res = "SCAN terms VIRTUAL TABLE INDEX 0:"
-		_ = res // suppress unused warning
-		if tclBool(sort) {
-			res += "*USE TEMP B-TREE FOR ORDER BY"
+		tn := _items[_idx+0]
+		sort := _items[_idx+1]
+		orderby := _items[_idx+2]
+		_ = _idx
+			var res = "SCAN terms VIRTUAL TABLE INDEX 0:"
+			_ = res // suppress unused warning
+			if tclBool(sort) {
+				res += "*USE TEMP B-TREE FOR ORDER BY"
+			}
+			var res = "/*" + res + "*/"
+			_ = res // suppress unused warning
+			var sql = "SELECT * FROM terms " + orderby
+			_ = sql // suppress unused warning
+			{ // "2.3.1." + tn
+				r = db.Query("EXPLAIN QUERY PLAN " + sql)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 		}
-		var res = "/*" + res + "*/"
-		_ = res // suppress unused warning
-		var sql = "SELECT * FROM terms " + orderby
-		_ = sql // suppress unused warning
-		{ // "2.3.1." + tn
-			r = db.Query("EXPLAIN QUERY PLAN " + sql)
+		{ // "3.1.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4;\n")
+			}
+		}
+		{ // "3.1.2"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE terms2 USING fts4aux;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid arguments to fts4aux constructor") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid arguments to fts4aux constructor", _res.Error, "\n  CREATE VIRTUAL TABLE terms2 USING fts4aux;\n")
+			}
+		}
+		{ // "3.1.3"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE terms2 USING fts4aux(t2, t2);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid arguments to fts4aux constructor") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid arguments to fts4aux constructor", _res.Error, "\n  CREATE VIRTUAL TABLE terms2 USING fts4aux(t2, t2);\n")
+			}
+		}
+		{ // "3.2.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(does_not_exist)\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(does_not_exist)\n")
+			}
+		}
+		{ // "3.2.2"
+			_res = db.Exec("\n  SELECT * FROM terms3\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM terms3\n")
+			}
+		}
+		{ // "3.2.3"
+			_res = db.Exec("\n  SELECT * FROM terms3 WHERE term = 'abc'\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM terms3 WHERE term = 'abc'\n")
+			}
+		}
+		{ // "3.3.1"
+			_res = db.Exec("\n  INSERT INTO terms VALUES(1,2,3);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table terms may not be modified") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  INSERT INTO terms VALUES(1,2,3);\n")
+			}
+		}
+		{ // "3.3.2"
+			_res = db.Exec("\n  DELETE FROM terms\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table terms may not be modified") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  DELETE FROM terms\n")
+			}
+		}
+		{ // "3.3.3"
+			_res = db.Exec("\n  UPDATE terms set documents = documents+1;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table terms may not be modified") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  UPDATE terms set documents = documents+1;\n")
+			}
+		}
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "4.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")
+			}
+		}
+		// proc definition (not transpiled)
+		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.2 {\n  SELECT y FROM x2, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.3 {\n  SELECT y FROM terms, x2 WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.4 {\n  SELECT y FROM x3, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a b c d e f g h i j k l\n}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.5 {\n  SELECT y FROM terms, x3 WHERE y = term AND occu...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a k l\n}")
+		{ // "5.1"
+			r = db.Query("\n  CREATE VIRTUAL TABLE \"abc '!' def\" USING fts4(x, y);\n  INSERT INTO \"abc '!' def\" VALUES('XX', 'YY');\n\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(\"abc '!' def\");\n  SELECT * FROM terms3;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE \"abc '!' def\" USING fts4(x, y);\n  INSERT INTO \"abc '!' def\" VALUES('XX', 'YY');\n\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(\"abc '!' def\");\n  SELECT * FROM terms3;\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "xx * 1 1 xx 0 1 1 yy * 1 1 yy 1 1 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "3.1.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4;\n")
-		}
-	}
-	{ // "3.1.2"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE terms2 USING fts4aux;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid arguments to fts4aux constructor") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid arguments to fts4aux constructor", _res.Error, "\n  CREATE VIRTUAL TABLE terms2 USING fts4aux;\n")
-		}
-	}
-	{ // "3.1.3"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE terms2 USING fts4aux(t2, t2);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "invalid arguments to fts4aux constructor") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "invalid arguments to fts4aux constructor", _res.Error, "\n  CREATE VIRTUAL TABLE terms2 USING fts4aux(t2, t2);\n")
-		}
-	}
-	{ // "3.2.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(does_not_exist)\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(does_not_exist)\n")
-		}
-	}
-	{ // "3.2.2"
-		_res = db.Exec("\n  SELECT * FROM terms3\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM terms3\n")
-		}
-	}
-	{ // "3.2.3"
-		_res = db.Exec("\n  SELECT * FROM terms3 WHERE term = 'abc'\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM terms3 WHERE term = 'abc'\n")
-		}
-	}
-	{ // "3.3.1"
-		_res = db.Exec("\n  INSERT INTO terms VALUES(1,2,3);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table terms may not be modified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  INSERT INTO terms VALUES(1,2,3);\n")
-		}
-	}
-	{ // "3.3.2"
-		_res = db.Exec("\n  DELETE FROM terms\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table terms may not be modified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  DELETE FROM terms\n")
-		}
-	}
-	{ // "3.3.3"
-		_res = db.Exec("\n  UPDATE terms set documents = documents+1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table terms may not be modified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table terms may not be modified", _res.Error, "\n  UPDATE terms set documents = documents+1;\n")
-		}
-	}
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "4.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")
-		}
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.2 {\n  SELECT y FROM x2, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.3 {\n  SELECT y FROM terms, x2 WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.4 {\n  SELECT y FROM x3, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a b c d e f g h i j k l\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.5 {\n  SELECT y FROM terms, x3 WHERE y = term AND occu...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a k l\n}")
-	{ // "5.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE \"abc '!' def\" USING fts4(x, y);\n  INSERT INTO \"abc '!' def\" VALUES('XX', 'YY');\n\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(\"abc '!' def\");\n  SELECT * FROM terms3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE \"abc '!' def\" USING fts4(x, y);\n  INSERT INTO \"abc '!' def\" VALUES('XX', 'YY');\n\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(\"abc '!' def\");\n  SELECT * FROM terms3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "xx * 1 1 xx 0 1 1 yy * 1 1 yy 1 1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.2"
-		r = db.Query("\n  CREATE VIRTUAL TABLE \"%%^^%%\" USING fts4aux('abc ''!'' def');\n  SELECT * FROM \"%%^^%%\";\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE \"%%^^%%\" USING fts4aux('abc ''!'' def');\n  SELECT * FROM \"%%^^%%\";\n")
-			return
-		}
-		got := flatten(r)
-		want := "xx * 1 1 xx 0 1 1 yy * 1 1 yy 1 1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	os.Remove("test.db2")
-	{ // "6.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE ft1 USING fts4(x, y);\n  INSERT INTO ft1 VALUES('a b', 'c d');\n  INSERT INTO ft1 VALUES('e e', 'c d');\n  INSERT INTO ft1 VALUES('a a', 'b b');\n  CREATE VIRTUAL TABLE temp.aux1 USING fts4aux(main, ft1);\n  SELECT * FROM aux1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft1 USING fts4(x, y);\n  INSERT INTO ft1 VALUES('a b', 'c d');\n  INSERT INTO ft1 VALUES('e e', 'c d');\n  INSERT INTO ft1 VALUES('a a', 'b b');\n  CREATE VIRTUAL TABLE temp.aux1 USING fts4aux(main, ft1);\n  SELECT * FROM aux1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n    a * 2 3 a 0 2 3 \n    b * 2 3 b 0 1 1 b 1 1 2 \n    c * 2 2 c 1 2 2 \n    d * 2 2 d 1 2 2 \n    e * 1 2 e 0 1 2\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2"
-		r = db.Query("\n  ATTACH 'test.db2' AS att;\n  CREATE VIRTUAL TABLE att.ft1 USING fts4(x, y);\n  INSERT INTO att.ft1 VALUES('v w', 'x y');\n  INSERT INTO att.ft1 VALUES('z z', 'x y');\n  INSERT INTO att.ft1 VALUES('v v', 'w w');\n  CREATE VIRTUAL TABLE temp.aux2 USING fts4aux(att, ft1);\n  SELECT * FROM aux2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ATTACH 'test.db2' AS att;\n  CREATE VIRTUAL TABLE att.ft1 USING fts4(x, y);\n  INSERT INTO att.ft1 VALUES('v w', 'x y');\n  INSERT INTO att.ft1 VALUES('z z', 'x y');\n  INSERT INTO att.ft1 VALUES('v v', 'w w');\n  CREATE VIRTUAL TABLE temp.aux2 USING fts4aux(att, ft1);\n  SELECT * FROM aux2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n    v * 2 3 v 0 2 3 \n    w * 2 3 w 0 1 1 w 1 1 2 \n    x * 2 2 x 1 2 2 \n    y * 2 2 y 1 2 2 \n    z * 1 2 z 0 1 2\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// foreach {tn q res1 res2} "\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"
-	_items := []string{"\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	q := _items[_idx+1]
-	res1 := _items[_idx+2]
-	res2 := _items[_idx+3]
-		var sql1 = "{%%% aux1} $q"
-		_ = sql1 // suppress unused warning
-		var sql2 = "{%%% aux2} $q"
-		_ = sql2 // suppress unused warning
-		{ // "7." + tn + ".1"
-			_res = db.Exec(sql1)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql1)
+		{ // "5.2"
+			r = db.Query("\n  CREATE VIRTUAL TABLE \"%%^^%%\" USING fts4aux('abc ''!'' def');\n  SELECT * FROM \"%%^^%%\";\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE \"%%^^%%\" USING fts4aux('abc ''!'' def');\n  SELECT * FROM \"%%^^%%\";\n")
+				return
+			}
+			got := flatten(r)
+			want := "xx * 1 1 xx 0 1 1 yy * 1 1 yy 1 1 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "7." + tn + ".2"
-			_res = db.Exec(sql2)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql2)
+		os.Remove("test.db2")
+		{ // "6.1"
+			r = db.Query("\n  CREATE VIRTUAL TABLE ft1 USING fts4(x, y);\n  INSERT INTO ft1 VALUES('a b', 'c d');\n  INSERT INTO ft1 VALUES('e e', 'c d');\n  INSERT INTO ft1 VALUES('a a', 'b b');\n  CREATE VIRTUAL TABLE temp.aux1 USING fts4aux(main, ft1);\n  SELECT * FROM aux1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft1 USING fts4(x, y);\n  INSERT INTO ft1 VALUES('a b', 'c d');\n  INSERT INTO ft1 VALUES('e e', 'c d');\n  INSERT INTO ft1 VALUES('a a', 'b b');\n  CREATE VIRTUAL TABLE temp.aux1 USING fts4aux(main, ft1);\n  SELECT * FROM aux1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n    a * 2 3 a 0 2 3 \n    b * 2 3 b 0 1 1 b 1 1 2 \n    c * 2 2 c 1 2 2 \n    d * 2 2 d 1 2 2 \n    e * 1 2 e 0 1 2\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // do_test "8.1"
-		_res = db.Exec(" CREATE VIRTUAL TABLE att.aux3 USING fts4aux(main, ft1) ")
-		_ = _res // catchsql
-	}
-	{ // do_test "8.2"
-		_res = db.Exec("DETACH att")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH att")
+		{ // "6.2"
+			r = db.Query("\n  ATTACH 'test.db2' AS att;\n  CREATE VIRTUAL TABLE att.ft1 USING fts4(x, y);\n  INSERT INTO att.ft1 VALUES('v w', 'x y');\n  INSERT INTO att.ft1 VALUES('z z', 'x y');\n  INSERT INTO att.ft1 VALUES('v v', 'w w');\n  CREATE VIRTUAL TABLE temp.aux2 USING fts4aux(att, ft1);\n  SELECT * FROM aux2;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ATTACH 'test.db2' AS att;\n  CREATE VIRTUAL TABLE att.ft1 USING fts4(x, y);\n  INSERT INTO att.ft1 VALUES('v w', 'x y');\n  INSERT INTO att.ft1 VALUES('z z', 'x y');\n  INSERT INTO att.ft1 VALUES('v v', 'w w');\n  CREATE VIRTUAL TABLE temp.aux2 USING fts4aux(att, ft1);\n  SELECT * FROM aux2;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n    v * 2 3 v 0 2 3 \n    w * 2 3 w 0 1 1 w 1 1 2 \n    x * 2 2 x 1 2 2 \n    y * 2 2 y 1 2 2 \n    z * 1 2 z 0 1 2\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		_res = db.Exec(" SELECT * FROM aux2 ")
-		_ = _res // catchsql
-	}
+		// foreach {tn q res1 res2} "\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"
+		_items := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
+		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+			tn := _items[_idx+0]
+			q := _items[_idx+1]
+			res1 := _items[_idx+2]
+			res2 := _items[_idx+3]
+			_ = _idx
+				var sql1 = "{%%% aux1} $q"
+				_ = sql1 // suppress unused warning
+				var sql2 = "{%%% aux2} $q"
+				_ = sql2 // suppress unused warning
+				{ // "7." + tn + ".1"
+					_res = db.Exec(sql1)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql1)
+					}
+				}
+				{ // "7." + tn + ".2"
+					_res = db.Exec(sql2)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql2)
+					}
+				}
+			}
+			{ // do_test "8.1"
+				_res = db.Exec(" CREATE VIRTUAL TABLE att.aux3 USING fts4aux(main, ft1) ")
+				_ = _res // catchsql
+			}
+			{ // do_test "8.2"
+				_res = db.Exec("DETACH att")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH att")
+				}
+				_res = db.Exec(" SELECT * FROM aux2 ")
+				_ = _res // catchsql
+			}
 }

@@ -30,7 +30,7 @@ func Test_ioerr2(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "check_db ioerr2-2")
 	var sql = "\n  PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;\n"
 	_ = sql // suppress unused warning
-	for _, bPersist := range []string{"list 0 1"} {
+	for _, bPersist := range tclSplitList("list 0 1") {
 		var _go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
 		var _N = "1" // TCL namespace variable
@@ -56,7 +56,7 @@ func Test_ioerr2(t *testing.T) {
 			}
 		}
 	}
-	for _, bPersist := range []string{"list 0 1"} {
+	for _, bPersist := range tclSplitList("list 0 1") {
 		var _go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
 		var _N = "1" // TCL namespace variable

@@ -32,48 +32,48 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 		}
 	}
 	// foreach {n idx} "\n  1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }\n"
-	_items := []string{"\n  1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }\n"}
+	_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	n := _items[_idx+0]
-	idx := _items[_idx+1]
-		_res = db.Exec(" DROP INDEX i1 ")
-		_ = _res // catchsql
-		_res = db.Exec(idx)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-		}
-		// foreach {tn q res} "\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  "
-		_items := []string{"\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  "}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
-		q := _items[_idx+1]
-		res := _items[_idx+2]
-			{ // "1." + n + "." + tn
-				r = db.Query("SELECT * FROM t1 " + q)
+		n := _items[_idx+0]
+		idx := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(" DROP INDEX i1 ")
+			_ = _res // catchsql
+			_res = db.Exec(idx)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+			}
+			// foreach {tn q res} "\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  "
+			_items := tclSplitList("\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  ")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				q := _items[_idx+1]
+				res := _items[_idx+2]
+				_ = _idx
+					{ // "1." + n + "." + tn
+						r = db.Query("SELECT * FROM t1 " + q)
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 " + q)
+							return
+						}
+						got := flatten(r)
+						want := res
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+			}
+			{ // "2.0"
+				r = db.Query("\n  drop table if exists t1;\n  create table t1(id int);\n  insert into t1(id) values(1),(2),(3),(4),(5);\n  create index t1_idx_id on t1(id asc);\n  select * from t1 group by id order by id;\n  select * from t1 group by id order by id asc;\n  select * from t1 group by id order by id desc;\n")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1 " + q)
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  drop table if exists t1;\n  create table t1(id int);\n  insert into t1(id) values(1),(2),(3),(4),(5);\n  create index t1_idx_id on t1(id asc);\n  select * from t1 group by id order by id;\n  select * from t1 group by id order by id asc;\n  select * from t1 group by id order by id desc;\n")
 					return
 				}
 				got := flatten(r)
-				want := res
+				want := "\n  1 2 3 4 5   1 2 3 4 5   5 4 3 2 1\n"
 				if got != want {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-		}
-		}
-	}
-	}
-	{ // "2.0"
-		r = db.Query("\n  drop table if exists t1;\n  create table t1(id int);\n  insert into t1(id) values(1),(2),(3),(4),(5);\n  create index t1_idx_id on t1(id asc);\n  select * from t1 group by id order by id;\n  select * from t1 group by id order by id asc;\n  select * from t1 group by id order by id desc;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  drop table if exists t1;\n  create table t1(id int);\n  insert into t1(id) values(1),(2),(3),(4),(5);\n  create index t1_idx_id on t1(id asc);\n  select * from t1 group by id order by id;\n  select * from t1 group by id order by id asc;\n  select * from t1 group by id order by id desc;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 2 3 4 5   1 2 3 4 5   5 4 3 2 1\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

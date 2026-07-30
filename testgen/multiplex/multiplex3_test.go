@@ -56,7 +56,7 @@ func Test_multiplex3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      UPDATE t1 SET a=randomblob(12), b=randomblob(1400) WHERE rowid=5*$iTest\n    ")
 			}
-			for _, f := range []string{"glob -nocomplain test.*"} {
+			for _, f := range tclSplitList("glob -nocomplain test.*") {
 				tclFileCopy(f, "xx_" + f)
 			}
 			db2, err := frigolite.Open("file:xx_test.db?8_3_names=1")

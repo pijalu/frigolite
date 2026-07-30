@@ -406,125 +406,125 @@ func Test_indexexpr2(t *testing.T) {
 		}
 	}
 	// foreach {tn expr} "\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n"
-	_items := []string{"\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n"}
+	_items := tclSplitList("\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	expr := _items[_idx+1]
-		{ // "8.3." + tn + ".1"
-			r = db.Query("SELECT * FROM t0 WHERE " + expr + " ORDER BY c0")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t0 WHERE " + expr + " ORDER BY c0")
-				return
+		tn := _items[_idx+0]
+		expr := _items[_idx+1]
+		_ = _idx
+			{ // "8.3." + tn + ".1"
+				r = db.Query("SELECT * FROM t0 WHERE " + expr + " ORDER BY c0")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t0 WHERE " + expr + " ORDER BY c0")
+					return
+				}
+				got := flatten(r)
+				want := " {} "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			got := flatten(r)
-			want := " {} "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "8.3." + tn + ".2"
-			r = db.Query("SELECT (" + expr + ") IS TRUE FROM t0")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT (" + expr + ") IS TRUE FROM t0")
-				return
-			}
-			got := flatten(r)
-			want := " 1 "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "8.4"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
-		}
-	}
-	// foreach {tn expr} "\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n"
-	_items := []string{"\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	expr := _items[_idx+1]
-		{ // "8.5." + tn + ".1"
-			r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 WHERE " + expr + "\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 WHERE " + expr + "\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1 2 {} {} 3 4 {} {}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "8.3." + tn + ".2"
+				r = db.Query("SELECT (" + expr + ") IS TRUE FROM t0")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT (" + expr + ") IS TRUE FROM t0")
+					return
+				}
+				got := flatten(r)
+				want := " 1 "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "8.5." + tn + ".2"
-			r = db.Query("\n    SELECT (" + expr + ") IS TRUE FROM t1 LEFT JOIN t2\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (" + expr + ") IS TRUE FROM t1 LEFT JOIN t2\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1 1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.4"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  CREATE TABLE t2(x, y);\n")
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "9.0"
-		r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a, abs(b));\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t1(a,b) VALUES(4,4),(5,-5),(5,20),(6,6);\n  INSERT INTO t2(c,d) VALUES(100,1),(200,1),(300,2);\n  SELECT *,\n    (SELECT max(c+abs(b)) FROM t2 GROUP BY d ORDER BY d LIMIT 1) AS subq\n   FROM t1 WHERE a=5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a, abs(b));\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t1(a,b) VALUES(4,4),(5,-5),(5,20),(6,6);\n  INSERT INTO t2(c,d) VALUES(100,1),(200,1),(300,2);\n  SELECT *,\n    (SELECT max(c+abs(b)) FROM t2 GROUP BY d ORDER BY d LIMIT 1) AS subq\n   FROM t1 WHERE a=5;\n")
-			return
-		}
-		got := flatten(r)
-		want := "5 -5 205 5 20 220"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "10.0"
-		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE INDEX t1x ON t1 (b, +b COLLATE NOCASE);\n  INSERT INTO t1(a,b) VALUES(1,'abcde');\n  SELECT * FROM t1 AS a0\n   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)\n   ORDER BY a0.b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE INDEX t1x ON t1 (b, +b COLLATE NOCASE);\n  INSERT INTO t1(a,b) VALUES(1,'abcde');\n  SELECT * FROM t1 AS a0\n   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)\n   ORDER BY a0.b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 abcde"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.1"
-		r = db.Query("\n  CREATE TABLE t2(a TEXT);\n  INSERT INTO t2 VALUES('alice'),('bob'),('cindy'),('david');\n  CREATE INDEX t2x ON t2 (+a COLLATE NOCASE);\n  SELECT count(+a COLLATE NOCASE IN (SELECT 1)) AS x\n    FROM t2\n   GROUP BY SUBSTR(0,0);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(a TEXT);\n  INSERT INTO t2 VALUES('alice'),('bob'),('cindy'),('david');\n  CREATE INDEX t2x ON t2 (+a COLLATE NOCASE);\n  SELECT count(+a COLLATE NOCASE IN (SELECT 1)) AS x\n    FROM t2\n   GROUP BY SUBSTR(0,0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "11.0"
-		r = db.Query("\n  CREATE TABLE t3 (a INT, b AS (-a));\n  CREATE INDEX t3x ON t3(b, a);\n  INSERT INTO t3(a) VALUES(44);\n  SELECT * FROM t3 AS a0\n   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)\n   GROUP BY b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3 (a INT, b AS (-a));\n  CREATE INDEX t3x ON t3(b, a);\n  INSERT INTO t3(a) VALUES(44);\n  SELECT * FROM t3 AS a0\n   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)\n   GROUP BY b;\n")
-			return
-		}
-		got := flatten(r)
-		want := "44 -44"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// foreach {tn expr} "\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n"
+		_items := tclSplitList("\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			expr := _items[_idx+1]
+			_ = _idx
+				{ // "8.5." + tn + ".1"
+					r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 WHERE " + expr + "\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LEFT JOIN t2 WHERE " + expr + "\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 2 {} {} 3 4 {} {}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "8.5." + tn + ".2"
+					r = db.Query("\n    SELECT (" + expr + ") IS TRUE FROM t1 LEFT JOIN t2\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT (" + expr + ") IS TRUE FROM t1 LEFT JOIN t2\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "9.0"
+				r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a, abs(b));\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t1(a,b) VALUES(4,4),(5,-5),(5,20),(6,6);\n  INSERT INTO t2(c,d) VALUES(100,1),(200,1),(300,2);\n  SELECT *,\n    (SELECT max(c+abs(b)) FROM t2 GROUP BY d ORDER BY d LIMIT 1) AS subq\n   FROM t1 WHERE a=5;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE INDEX t1x ON t1(a, abs(b));\n  CREATE TABLE t2(c INT, d INT);\n  INSERT INTO t1(a,b) VALUES(4,4),(5,-5),(5,20),(6,6);\n  INSERT INTO t2(c,d) VALUES(100,1),(200,1),(300,2);\n  SELECT *,\n    (SELECT max(c+abs(b)) FROM t2 GROUP BY d ORDER BY d LIMIT 1) AS subq\n   FROM t1 WHERE a=5;\n")
+					return
+				}
+				got := flatten(r)
+				want := "5 -5 205 5 20 220"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "10.0"
+				r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE INDEX t1x ON t1 (b, +b COLLATE NOCASE);\n  INSERT INTO t1(a,b) VALUES(1,'abcde');\n  SELECT * FROM t1 AS a0\n   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)\n   ORDER BY a0.b;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE INDEX t1x ON t1 (b, +b COLLATE NOCASE);\n  INSERT INTO t1(a,b) VALUES(1,'abcde');\n  SELECT * FROM t1 AS a0\n   WHERE (SELECT count(a0.b=+a0.b COLLATE NOCASE IN (b)) FROM t1 GROUP BY 2.5)\n   ORDER BY a0.b;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 abcde"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "10.1"
+				r = db.Query("\n  CREATE TABLE t2(a TEXT);\n  INSERT INTO t2 VALUES('alice'),('bob'),('cindy'),('david');\n  CREATE INDEX t2x ON t2 (+a COLLATE NOCASE);\n  SELECT count(+a COLLATE NOCASE IN (SELECT 1)) AS x\n    FROM t2\n   GROUP BY SUBSTR(0,0);\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t2(a TEXT);\n  INSERT INTO t2 VALUES('alice'),('bob'),('cindy'),('david');\n  CREATE INDEX t2x ON t2 (+a COLLATE NOCASE);\n  SELECT count(+a COLLATE NOCASE IN (SELECT 1)) AS x\n    FROM t2\n   GROUP BY SUBSTR(0,0);\n")
+					return
+				}
+				got := flatten(r)
+				want := "4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "11.0"
+				r = db.Query("\n  CREATE TABLE t3 (a INT, b AS (-a));\n  CREATE INDEX t3x ON t3(b, a);\n  INSERT INTO t3(a) VALUES(44);\n  SELECT * FROM t3 AS a0\n   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)\n   GROUP BY b;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t3 (a INT, b AS (-a));\n  CREATE INDEX t3x ON t3(b, a);\n  INSERT INTO t3(a) VALUES(44);\n  SELECT * FROM t3 AS a0\n   WHERE (SELECT sum(-a0.a=b) FROM t3 GROUP BY b)\n   GROUP BY b;\n")
+					return
+				}
+				got := flatten(r)
+				want := "44 -44"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

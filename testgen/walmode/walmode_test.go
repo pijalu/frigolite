@@ -321,317 +321,317 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	// foreach {tn mode} "\n  1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate\n"
-	_items := []string{"\n  1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate\n"}
+	_items := tclSplitList("\n  1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	mode := _items[_idx+1]
-		{ // do_test "walmode-6." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-			r = db.Query("\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
+		tn := _items[_idx+0]
+		mode := _items[_idx+1]
+		_ = _idx
+			{ // do_test "walmode-6." + tn
+				t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+				r = db.Query("\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
+				}
 			}
 		}
-	}
-	}
-	{ // do_test "walmode-7.0"
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
-		}
-	}
-	// foreach {tn sql result} "\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n"
-	_items := []string{"\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	result := _items[_idx+2]
-		{ // do_test "walmode-7." + tn
+		{ // do_test "walmode-7.0"
+			os.Remove("test.db")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec(sql)
+			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 			}
 		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-	{ // "walmode-8.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
-		}
-	}
-	{ // "walmode-8.2"
-		r = db.Query(" PRAGMA main.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.3"
-		r = db.Query(" PRAGMA two.journal_mode  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode  ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.4"
-		r = db.Query(" PRAGMA two.journal_mode = DELETE ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode = DELETE ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "walmode-8.5"
-		_res = db.Exec(" ATTACH 'test.db2' AS two ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS two ")
-		}
-	}
-	{ // "walmode-8.6"
-		r = db.Query(" PRAGMA main.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.7"
-		r = db.Query(" PRAGMA two.journal_mode  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode  ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.8"
-		_res = db.Exec(" INSERT INTO two.t2 DEFAULT VALUES ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO two.t2 DEFAULT VALUES ")
-		}
-	}
-	{ // "walmode-8.9"
-		r = db.Query(" PRAGMA two.journal_mode  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode  ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.10"
-		_res = db.Exec(" INSERT INTO t1 DEFAULT VALUES ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 DEFAULT VALUES ")
-		}
-	}
-	{ // "walmode-8.11"
-		r = db.Query(" PRAGMA main.journal_mode  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode  ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.12"
-		r = db.Query(" PRAGMA journal_mode  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode  ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // do_test "walmode-8.x1"
-		r = db.Query("\n     PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;\n  ")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "walmode-8.13"
-		r = db.Query(" PRAGMA journal_mode = WAL ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.14"
-		_res = db.Exec(" ATTACH 'test.db2' AS two  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS two  ")
-		}
-	}
-	{ // "walmode-8.15"
-		r = db.Query(" PRAGMA main.journal_mode  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode  ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.16"
-		r = db.Query(" PRAGMA two.journal_mode   ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode   ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.17"
-		_res = db.Exec(" INSERT INTO two.t2 DEFAULT VALUES ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO two.t2 DEFAULT VALUES ")
-		}
-	}
-	{ // "walmode-8.18"
-		r = db.Query(" PRAGMA two.journal_mode   ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode   ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db2, err := frigolite.Open("test.db2")
-	defer db2.Close()
-	if err != nil { t.Fatal(err) }
-	{ // do_test "walmode-8.19"
-		r = db.Query(" PRAGMA main.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
-		}
-	}
-	db2.Close()
-	{ // "walmode-8.20"
-		r = db.Query(" PRAGMA journal_mode = DELETE ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = DELETE ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.21"
-		r = db.Query(" PRAGMA main.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.22"
-		r = db.Query(" PRAGMA two.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode ")
-			return
-		}
-		got := flatten(r)
-		want := "delete"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.21"
-		r = db.Query(" PRAGMA journal_mode = WAL ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.21"
-		r = db.Query(" PRAGMA main.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "walmode-8.22"
-		r = db.Query(" PRAGMA two.journal_mode ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode ")
-			return
-		}
-		got := flatten(r)
-		want := "wal"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// foreach {tn sql result} "\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n"
+		_items := tclSplitList("\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			result := _items[_idx+2]
+			_ = _idx
+				{ // do_test "walmode-7." + tn
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec(sql)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					}
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			{ // "walmode-8.1"
+				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
+				}
+			}
+			{ // "walmode-8.2"
+				r = db.Query(" PRAGMA main.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.3"
+				r = db.Query(" PRAGMA two.journal_mode  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode  ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.4"
+				r = db.Query(" PRAGMA two.journal_mode = DELETE ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode = DELETE ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "walmode-8.5"
+				_res = db.Exec(" ATTACH 'test.db2' AS two ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS two ")
+				}
+			}
+			{ // "walmode-8.6"
+				r = db.Query(" PRAGMA main.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.7"
+				r = db.Query(" PRAGMA two.journal_mode  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode  ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.8"
+				_res = db.Exec(" INSERT INTO two.t2 DEFAULT VALUES ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO two.t2 DEFAULT VALUES ")
+				}
+			}
+			{ // "walmode-8.9"
+				r = db.Query(" PRAGMA two.journal_mode  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode  ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.10"
+				_res = db.Exec(" INSERT INTO t1 DEFAULT VALUES ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 DEFAULT VALUES ")
+				}
+			}
+			{ // "walmode-8.11"
+				r = db.Query(" PRAGMA main.journal_mode  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode  ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.12"
+				r = db.Query(" PRAGMA journal_mode  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode  ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "walmode-8.x1"
+				r = db.Query("\n     PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     PRAGMA two.journal_mode=WAL;\n     PRAGMA two.journal_mode;\n  ")
+				}
+			}
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			{ // "walmode-8.13"
+				r = db.Query(" PRAGMA journal_mode = WAL ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.14"
+				_res = db.Exec(" ATTACH 'test.db2' AS two  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS two  ")
+				}
+			}
+			{ // "walmode-8.15"
+				r = db.Query(" PRAGMA main.journal_mode  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode  ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.16"
+				r = db.Query(" PRAGMA two.journal_mode   ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode   ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.17"
+				_res = db.Exec(" INSERT INTO two.t2 DEFAULT VALUES ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO two.t2 DEFAULT VALUES ")
+				}
+			}
+			{ // "walmode-8.18"
+				r = db.Query(" PRAGMA two.journal_mode   ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode   ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db2, err := frigolite.Open("test.db2")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			{ // do_test "walmode-8.19"
+				r = db.Query(" PRAGMA main.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
+				}
+			}
+			db2.Close()
+			{ // "walmode-8.20"
+				r = db.Query(" PRAGMA journal_mode = DELETE ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = DELETE ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.21"
+				r = db.Query(" PRAGMA main.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.22"
+				r = db.Query(" PRAGMA two.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode ")
+					return
+				}
+				got := flatten(r)
+				want := "delete"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.21"
+				r = db.Query(" PRAGMA journal_mode = WAL ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.21"
+				r = db.Query(" PRAGMA main.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA main.journal_mode ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "walmode-8.22"
+				r = db.Query(" PRAGMA two.journal_mode ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA two.journal_mode ")
+					return
+				}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

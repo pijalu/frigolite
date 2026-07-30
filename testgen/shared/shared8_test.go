@@ -96,7 +96,7 @@ func Test_shared8(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM v1 ")
 		_ = _res // catchsql
 	}
-	for _, db := range []string{"db1 db2 db3 db4"} {
+	for _, db := range tclSplitList("db1 db2 db3 db4") {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

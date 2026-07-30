@@ -180,35 +180,35 @@ func Test_subtype1(t *testing.T) {
 		}
 	}
 	// foreach {tn expr st} "\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n"
-	_items := []string{"\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n"}
+	_items := tclSplitList("\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	expr := _items[_idx+1]
-	st := _items[_idx+2]
-		{ // "subtype1-" + tn + ".1"
-			r = db.Query("\n    SELECT id, subtype( " + expr + " ) FROM t1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, subtype( " + expr + " ) FROM t1;\n  ")
-				return
+		tn := _items[_idx+0]
+		expr := _items[_idx+1]
+		st := _items[_idx+2]
+		_ = _idx
+			{ // "subtype1-" + tn + ".1"
+				r = db.Query("\n    SELECT id, subtype( " + expr + " ) FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, subtype( " + expr + " ) FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list 1 $st 2 0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			got := flatten(r)
-			want := "list 1 $st 2 0"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "subtype1-" + tn + ".2"
+				r = db.Query("\n    DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( " + expr + " );\n    SELECT id, subtype( " + expr + " ) FROM t1 INDEXED BY i1 ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( " + expr + " );\n    SELECT id, subtype( " + expr + " ) FROM t1 INDEXED BY i1 ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list 1 $st 2 0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "subtype1-" + tn + ".2"
-			r = db.Query("\n    DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( " + expr + " );\n    SELECT id, subtype( " + expr + " ) FROM t1 INDEXED BY i1 ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DROP INDEX IF EXISTS i1;\n    CREATE INDEX i1 ON t1( " + expr + " );\n    SELECT id, subtype( " + expr + " ) FROM t1 INDEXED BY i1 ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list 1 $st 2 0"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

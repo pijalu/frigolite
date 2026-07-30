@@ -65,7 +65,7 @@ func Test_savepoint6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
 		}
 	}
-	for _, zSetup := range []string{"list {\n  set testname normal\n  sqlite3 db test.db\n} {\n  if {[wal_is_wal_mode]} continue\n  set testname tempdb\n  sqlite3 db \"\"\n} {\n  if {[permutation] eq \"journaltest\"} {\n    continue\n  }\n  set testname nosync\n  sqlite3 db test.db\n  sql { PRAGMA synchronous = off }\n} {\n  set testname smallcache\n  sqlite3 db test.db\n  sql { PRAGMA cache_size = 10 }\n}"} {
+	for _, zSetup := range tclSplitList("list {\n  set testname normal\n  sqlite3 db test.db\n} {\n  if {[wal_is_wal_mode]} continue\n  set testname tempdb\n  sqlite3 db \"\"\n} {\n  if {[permutation] eq \"journaltest\"} {\n    continue\n  }\n  set testname nosync\n  sqlite3 db test.db\n  sql { PRAGMA synchronous = off }\n} {\n  set testname smallcache\n  sqlite3 db test.db\n  sql { PRAGMA cache_size = 10 }\n}") {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

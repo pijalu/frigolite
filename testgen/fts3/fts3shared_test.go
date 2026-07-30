@@ -151,68 +151,68 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n"
-	_items := []string{"\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n"}
+	_items := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "2.4." + tn
-			_res = db.Exec("BEGIN")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			{ // do_test "2.4." + tn
+				_res = db.Exec("BEGIN")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				}
+				_res = db.Exec(_sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+				}
+				_res = db.Exec("BEGIN")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				}
+				_res = db.Exec("INSERT INTO t1 VALUES('p q r')")
+				_ = _res // catchsql
 			}
-			_res = db.Exec(_sql)
+			_res = db.Exec("ROLLBACK")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 			}
-			_res = db.Exec("BEGIN")
+			_res = db.Exec("ROLLBACK")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 			}
-			_res = db.Exec("INSERT INTO t1 VALUES('p q r')")
-			_ = _res // catchsql
 		}
-		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-		}
-		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-		}
-	}
-	}
-	// foreach {tn sql} "\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n"
-	_items := []string{"\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "2.5." + tn
-			_res = db.Exec("BEGIN")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		// foreach {tn sql} "\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n"
+		_items := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			_ = _idx
+				{ // do_test "2.5." + tn
+					_res = db.Exec("BEGIN")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+					}
+					_res = db.Exec(_sql)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+					}
+					_res = db.Exec("BEGIN")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+					}
+					_res = db.Exec("INSERT INTO t2(rowid, a, b) VALUES(3, 's t u', 'v w x')")
+					_ = _res // catchsql
+				}
+				_res = db.Exec("ROLLBACK")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+				}
+				_res = db.Exec("ROLLBACK")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+				}
 			}
-			_res = db.Exec(_sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
-			}
-			_res = db.Exec("BEGIN")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-			}
-			_res = db.Exec("INSERT INTO t2(rowid, a, b) VALUES(3, 's t u', 'v w x')")
-			_ = _res // catchsql
-		}
-		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-		}
-		_res = db.Exec("ROLLBACK")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "dbW close")
-	t.Skipf("TODO: %s not implemented in frigolite", "dbR close")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+			t.Skipf("TODO: %s not implemented in frigolite", "dbW close")
+			t.Skipf("TODO: %s not implemented in frigolite", "dbR close")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

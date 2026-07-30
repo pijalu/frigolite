@@ -44,29 +44,58 @@ func Test_vacuum6(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// foreach {tn sz} "1 400 2 4000 3 9999"
-	_items := []string{"1 400 2 4000 3 9999"}
+	_items := tclSplitList("1 400 2 4000 3 9999")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sz := _items[_idx+1]
+		tn := _items[_idx+0]
+		sz := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "2." + tn + ".1"
+				r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob($sz) FROM s;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob($sz) FROM s;\n  ")
+				}
+			}
+			{ // "2." + tn + ".2"
+				_res = db.Exec("\n    vacuum;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    vacuum;\n  ")
+				}
+			}
+			{ // "2." + tn + ".3"
+				r = db.Query("\n    PRAGMA integrity_check;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		{ // "2." + tn + ".1"
-			r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob($sz) FROM s;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n    )\n    INSERT INTO t1 SELECT i, randomblob($sz) FROM s;\n  ")
-			}
-		}
-		{ // "2." + tn + ".2"
-			_res = db.Exec("\n    vacuum;\n  ")
+		{ // "3.0"
+			_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    vacuum;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
 			}
 		}
-		{ // "2." + tn + ".3"
-			r = db.Query("\n    PRAGMA integrity_check;\n  ")
+		{ // "3.1"
+			_res = db.Exec("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 512;\n  VACUUM;\n")
+			}
+		}
+		{ // "3.2"
+			r = db.Query("\n  PRAGMA integrity_check\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check\n")
 				return
 			}
 			got := flatten(r)
@@ -75,70 +104,41 @@ func Test_vacuum6(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(2, randomblob(1200));\n")
-		}
-	}
-	{ // "3.1"
-		_res = db.Exec("\n  PRAGMA page_size = 512;\n  VACUUM;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 512;\n  VACUUM;\n")
-		}
-	}
-	{ // "3.2"
-		r = db.Query("\n  PRAGMA integrity_check\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.0"
-		r = db.Query("\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
-			return
-		}
-		got := flatten(r)
-		want := "18009000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// foreach {tn pgsz av} "\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n"
-	_items := []string{"\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	pgsz := _items[_idx+1]
-	av := _items[_idx+2]
-		{ // "4.1." + tn + ".1"
-			r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "4.0"
+			r = db.Query("\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE tx(a, b);\n  CREATE INDEX i1 ON tx(b);\n  WITH s(i) AS (\n      SELECT 8000 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  )\n  INSERT INTO tx SELECT i, randomblob(i) FROM s;\n\n  SELECT sum(length(b)) FROM tx;\n")
+				return
+			}
+			got := flatten(r)
+			want := "18009000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "4.1." + tn + ".2"
-			_res = db.Exec("VACUUM")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+		// foreach {tn pgsz av} "\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n"
+		_items := tclSplitList("\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			pgsz := _items[_idx+1]
+			av := _items[_idx+2]
+			_ = _idx
+				{ // "4.1." + tn + ".1"
+					r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
+					}
+				}
+				{ // "4.1." + tn + ".2"
+					_res = db.Exec("VACUUM")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
+					}
+				}
+				_res = db.Exec("PRAGMA integrity_check")
+				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 			}
-		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	}
-	}
 }

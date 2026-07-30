@@ -29,55 +29,55 @@ func Test_shell7(t *testing.T) {
 		}
 	}
 	// foreach {tn l x} "db eval { SELECT tn, length(x) AS l, x FROM f1 }"
-	_items := []string{"db eval { SELECT tn, length(x) AS l, x FROM f1 }"}
+	_items := tclSplitList("db eval { SELECT tn, length(x) AS l, x FROM f1 }")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	l := _items[_idx+1]
-	x := _items[_idx+2]
-		os.Remove("shell7_test.bin")
-		var fd = "open shell7_test.bin w"
-		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Log("-nonewline")
-		// close $fd
-		{ // do_test "1." + tn + ".1"
-			// file size shell7_test.bin
-		}
-		{ // do_test "1." + tn + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db INSERT INTO f2 VALUES($tn, readfile('shell7_test.b...")
-		}
-		{ // "1." + tn + ".3"
-			r = db.Query(" \n    SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)\n  ")
-				return
+		tn := _items[_idx+0]
+		l := _items[_idx+1]
+		x := _items[_idx+2]
+		_ = _idx
+			os.Remove("shell7_test.bin")
+			var fd = "open shell7_test.bin w"
+			_ = fd // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+			t.Log("-nonewline")
+			// close $fd
+			{ // do_test "1." + tn + ".1"
+				// file size shell7_test.bin
 			}
-			got := flatten(r)
-			want := "1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "1." + tn + ".2"
+				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db INSERT INTO f2 VALUES($tn, readfile('shell7_test.b...")
 			}
-		}
-	}
-	}
-	if tclBool("0" + "==0") {
-		{ // "2.0"
-			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
+			{ // "1." + tn + ".3"
+				r = db.Query(" \n    SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT (SELECT x FROM f1 WHERE tn=1)==(SELECT x FROM f2 WHERE tn=1)\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // do_test "2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
-		}
-		{ // "2.2"
-			_res = db.Exec("\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
+		if tclBool("0" + "==0") {
+			{ // "2.0"
+				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(b);\n    INSERT INTO t1 VALUES(1, 1), (2, 2);\n  ")
+				}
+			}
+			{ // do_test "2.1"
+				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
+			}
+			{ // "2.2"
+				_res = db.Exec("\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
+				}
+			}
+			{ // do_test "2.3"
+				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
 			}
 		}
-		{ // do_test "2.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
-		}
-	}
 }

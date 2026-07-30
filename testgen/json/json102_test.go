@@ -2126,216 +2126,216 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	// foreach {id j x0 x5} "\n  1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1\n"
-	_items := []string{"\n  1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1\n"}
+	_items := tclSplitList("\n  1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	id := _items[_idx+0]
-	j := _items[_idx+1]
-	x0 := _items[_idx+2]
-	x5 := _items[_idx+3]
-		{ // "json102-" + id
-			r = db.Query("\n     SELECT json_valid(" + j + "), NOT json_error_position(" + j + ");\n  ")
+		id := _items[_idx+0]
+		j := _items[_idx+1]
+		x0 := _items[_idx+2]
+		x5 := _items[_idx+3]
+		_ = _idx
+			{ // "json102-" + id
+				r = db.Query("\n     SELECT json_valid(" + j + "), NOT json_error_position(" + j + ");\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT json_valid(" + j + "), NOT json_error_position(" + j + ");\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list $x0 $x5"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "json102-1500"
+			r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n     SELECT json_valid(" + j + "), NOT json_error_position(" + j + ");\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
 				return
 			}
 			got := flatten(r)
-			want := "list $x0 $x5"
+			want := "32"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "json102-1500"
-		r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x20)\n  SELECT x FROM c WHERE json_valid(printf('{\"a\":\"x%sz\"}', char(x))) ORDER BY x;\n")
-			return
+		{ // "json102-1501"
+			r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
+				return
+			}
+			got := flatten(r)
+			want := "31"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "32"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "json102-1600"
+			r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
+				return
+			}
+			got := flatten(r)
+			want := "list \\\n  1 null      json {}        null     {}        null          \\\n  2 123       json 123       integer  123       integer       \\\n  3 4.5       json 4.5       real     4.5       real          \\\n  4 {\"six\"}   json six       text     six       text          \\\n  5 {[7,8]}   json {[7,8]}   text     {[7,8]}   json          \\\n  6 {{\"b\":9}} json {{\"b\":9}} text     {{\"b\":9}} json          \\\n  7 {}        null {}        null     {}        null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json102-1501"
-		r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<0x1f)\n  SELECT sum(json_valid(json_quote('a'||char(x)||'z'))) FROM c ORDER BY x;\n")
-			return
+		{ // "json102-1610"
+			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+				return
+			}
+			got := flatten(r)
+			want := "list \\\n  0 null      json {}        null    {}        null       \\\n  1 123       json 123       integer 123       integer    \\\n  2 4.5       json 4.5       real    4.5       real       \\\n  3 {\"six\"}   json six       text    six       text       \\\n  4 {[7,8]}   json {[7,8]}   text    {[7,8]}   json       \\\n  5 {{\"b\":9}} json {{\"b\":9}} text    {{\"b\":9}} json       \\\n  6 {}        null {}        null    {}        null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "31"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json102-1620"
+			r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
+				return
+			}
+			got := flatten(r)
+			want := "list \\\n  0 null      json {}        null    {}        null       \\\n  1 123       json 123       integer 123       integer    \\\n  2 4.5       json 4.5       real    4.5       real       \\\n  3 {\"six\"}   json six       text    six       text       \\\n  4 {[7,8]}   json {[7,8]}   text    {[7,8]}   json       \\\n  5 {{\"b\":9}} json {{\"b\":9}} text    {{\"b\":9}} json       \\\n  6 {}        null {}        null    {}        null"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "json102-1600"
-		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, x JSON);\n  INSERT INTO t1(id,x) VALUES\n   (1, '{\"a\":null}'),\n   (2, '{\"a\":123}'),\n   (3, '{\"a\":4.5}'),\n   (4, '{\"a\":\"six\"}'),\n   (5, '{\"a\":[7,8]}'),\n   (6, '{\"a\":{\"b\":9}}'),\n   (7, '{\"b\":999}');\n  SELECT\n    id,\n    x->'a' AS '->',\n    CASE WHEN subtype(x->'a') THEN 'json' ELSE typeof(x->'a') END AS 'type',\n    x->>'a' AS '->>',\n    CASE WHEN subtype(x->>'a') THEN 'json' ELSE typeof(x->>'a') END AS 'type',\n    json_extract(x,'$.a') AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,'$.a'))\n         THEN 'json' ELSE typeof(json_extract(x,'$.a')) END AS 'type'\n    FROM t1 ORDER BY id;\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "json102-1700"
+			_res = db.Exec("\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
+			}
 		}
-		got := flatten(r)
-		want := "list \\\n  1 null      json {}        null     {}        null          \\\n  2 123       json 123       integer  123       integer       \\\n  3 4.5       json 4.5       real     4.5       real          \\\n  4 {\"six\"}   json six       text     six       text          \\\n  5 {[7,8]}   json {[7,8]}   text     {[7,8]}   json          \\\n  6 {{\"b\":9}} json {{\"b\":9}} text     {{\"b\":9}} json          \\\n  7 {}        null {}        null     {}        null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json102-1710"
+			r = db.Query("\n  UPDATE t1 SET memo = JSON_REMOVE(memo, '$.y');\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET memo = JSON_REMOVE(memo, '$.y');\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok 2023-08-03 876 5 {{\"x\":77}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json102-1610"
-		r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(x->y) THEN 'json' ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
-			return
+		{ // "json102-1720"
+			r = db.Query("\n  UPDATE t1 SET memo = JSON_SET(memo, '$.y', 6)\n    WHERE a2 IN (876) AND JSON_TYPE(memo, '$.y') IS NULL;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET memo = JSON_SET(memo, '$.y', 6)\n    WHERE a2 IN (876) AND JSON_TYPE(memo, '$.y') IS NULL;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok 2023-08-03 876 5 {{\"x\":77,\"y\":6}}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "list \\\n  0 null      json {}        null    {}        null       \\\n  1 123       json 123       integer 123       integer    \\\n  2 4.5       json 4.5       real    4.5       real       \\\n  3 {\"six\"}   json six       text    six       text       \\\n  4 {[7,8]}   json {[7,8]}   text    {[7,8]}   json       \\\n  5 {{\"b\":9}} json {{\"b\":9}} text    {{\"b\":9}} json       \\\n  6 {}        null {}        null    {}        null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json102-1800"
+			r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>'2';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>'2';\n")
+				return
+			}
+			got := flatten(r)
+			want := "two"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json102-1620"
-		r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1(x) VALUES('[null,123,4.5,\"six\",[7,8],{\"b\":9}]');\n  WITH c(y) AS (VALUES(0),(1),(2),(3),(4),(5),(6))\n  SELECT\n    y,\n    x->y AS '->',\n    CASE WHEN subtype(if(json_valid(x),x->y)) THEN 'json'\n         ELSE typeof(x->y) END AS 'type',\n    x->>y AS '->>',\n    CASE WHEN subtype(x->>y) THEN 'json' ELSE typeof(x->>y) END AS 'type',\n    json_extract(x,format('$[%d]',y)) AS 'json_extract',\n    CASE WHEN subtype(json_extract(x,format('$[%d]',y)))\n      THEN 'json' ELSE typeof(json_extract(x,format('$[%d]',y))) END AS 'type'\n  FROM c, t1 ORDER BY y;    \n")
-			return
+		{ // "json102-1801"
+			r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>2;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>2;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "list \\\n  0 null      json {}        null    {}        null       \\\n  1 123       json 123       integer 123       integer    \\\n  2 4.5       json 4.5       real    4.5       real       \\\n  3 {\"six\"}   json six       text    six       text       \\\n  4 {[7,8]}   json {[7,8]}   text    {[7,8]}   json       \\\n  5 {{\"b\":9}} json {{\"b\":9}} text    {{\"b\":9}} json       \\\n  6 {}        null {}        null    {}        null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json102-1810"
+			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->>'1';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->>'1';\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "json102-1700"
-		_res = db.Exec("\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a1 DATE, a2 INTEGER PRIMARY KEY, a3 INTEGER, memo TEXT);\n  CREATE INDEX t1x1 ON t1(a3, a1, memo->>'y');\n  INSERT INTO t1(a2,a1,a3,memo) VALUES (876, '2023-08-03', 5, '{\"x\":77,\"y\":4}');\n")
+		{ // "json102-1811"
+			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->>1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->>1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "one"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json102-1710"
-		r = db.Query("\n  UPDATE t1 SET memo = JSON_REMOVE(memo, '$.y');\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET memo = JSON_REMOVE(memo, '$.y');\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
-			return
+		{ // "json102-1820"
+			r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->'2';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->'2';\n")
+				return
+			}
+			got := flatten(r)
+			want := "{\"two\"}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "ok 2023-08-03 876 5 {{\"x\":77}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json102-1821"
+			r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->2;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->2;\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json102-1720"
-		r = db.Query("\n  UPDATE t1 SET memo = JSON_SET(memo, '$.y', 6)\n    WHERE a2 IN (876) AND JSON_TYPE(memo, '$.y') IS NULL;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t1 SET memo = JSON_SET(memo, '$.y', 6)\n    WHERE a2 IN (876) AND JSON_TYPE(memo, '$.y') IS NULL;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")
-			return
+		{ // "json102-1830"
+			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->'1';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->'1';\n")
+				return
+			}
+			got := flatten(r)
+			want := "NULL"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "ok 2023-08-03 876 5 {{\"x\":77,\"y\":6}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "json102-1831"
+			r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{\"one\"}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "json102-1800"
-		r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>'2';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>'2';\n")
-			return
-		}
-		got := flatten(r)
-		want := "two"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1801"
-		r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->>2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1810"
-		r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->>'1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->>'1';\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1811"
-		r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->>1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->>1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "one"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1820"
-		r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->'2';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->'2';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{\"two\"}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1821"
-		r = db.Query("\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '{\"1\":\"one\",\"2\":\"two\",\"3\":\"three\"}'->2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1830"
-		r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->'1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->'1';\n")
-			return
-		}
-		got := flatten(r)
-		want := "NULL"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "json102-1831"
-		r = db.Query("\n  SELECT '[\"zero\",\"one\",\"two\"]'->1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT '[\"zero\",\"one\",\"two\"]'->1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{\"one\"}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

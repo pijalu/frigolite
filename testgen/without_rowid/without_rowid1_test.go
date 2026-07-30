@@ -385,237 +385,237 @@ func Test_without_rowid1(t *testing.T) {
 	var queries = "\n  1    2    \"c = 5 AND a = 1\"          {i46 (c=? AND a=?)}\n  2    6    \"c = 4 AND a < 3\"          {i46 (c=? AND a<?)}\n  3    4    \"c = 2 AND a >= 3\"         {i46 (c=? AND a>?)}\n  4    1    \"c = 2 AND a = 1 AND b<10\" {i46 (c=? AND a=? AND b<?)}\n  5    1    \"c = 0 AND a = 0 AND b>5\"  {i46 (c=? AND a=? AND b>?)}\n"
 	_ = queries // suppress unused warning
 	// foreach {tn cnt where eqp} queries
-	_items := []string{queries}
+	_items := tclSplitList(queries)
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	cnt := _items[_idx+1]
-	where := _items[_idx+2]
-	eqp := _items[_idx+3]
-		{ // "5.5." + tn + ".1"
-			r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t46 WHERE " + where)
-				return
-			}
-			got := flatten(r)
-			want := cnt
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "5.6"
-		_res = db.Exec("\n  CREATE INDEX i46 ON t46(c);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i46 ON t46(c);\n")
-		}
-	}
-	// foreach {tn cnt where eqp} queries
-	_items := []string{queries}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	cnt := _items[_idx+1]
-	where := _items[_idx+2]
-	eqp := _items[_idx+3]
-		{ // "5.7." + tn + ".1"
-			r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t46 WHERE " + where)
-				return
-			}
-			got := flatten(r)
-			want := cnt
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		tn := _items[_idx+0]
+		cnt := _items[_idx+1]
+		where := _items[_idx+2]
+		eqp := _items[_idx+3]
+		_ = _idx
+			{ // "5.5." + tn + ".1"
+				r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t46 WHERE " + where)
+					return
+				}
+				got := flatten(r)
+				want := cnt
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "5.7." + tn + ".2"
-			r = db.Query("EXPLAIN QUERY PLAN " + "SELECT count(*) FROM t46 WHERE " + where)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SELECT count(*) FROM t46 WHERE " + where)
+		{ // "5.6"
+			_res = db.Exec("\n  CREATE INDEX i46 ON t46(c);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i46 ON t46(c);\n")
 			}
 		}
-	}
-	}
-	{ // "6.0"
-		r = db.Query("\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok t47 i47"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  ok  t48   sqlite_autoindex_t48_2\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.1"
-		_res = db.Exec("\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
-		}
-	}
-	{ // "7.2"
-		_res = db.Exec("\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: rowid!=33") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: rowid!=33", _res.Error, "\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
-		}
-	}
-	{ // "7.3"
-		_res = db.Exec("\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
-		}
-	}
-	db, err = frigolite.Open(":memory:")
-	if err != nil { t.Fatal(err) }
-	{ // "8.1"
-		r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;\n")
-			return
-		}
-		got := flatten(r)
-		want := "table t1 | index t1x |"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.0"
-		_res = db.Exec("\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
-		}
-	}
-	{ // "10.1"
-		_res = db.Exec("\n  DELETE FROM t2 WHERE b=1\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2 WHERE b=1\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "10.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
-		}
-	}
-	{ // "10.1"
-		_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
-		}
-	}
-	{ // "10.2"
-		_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
-		}
-	}
-	{ // "10.3"
-		_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
-		}
-	}
-	{ // "10.4"
-		_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
-		}
-	}
-	{ // "10.5"
-		_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
-		}
-	}
-	{ // "10.6"
-		r = db.Query("\n  CREATE TRIGGER t1_tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t1 WHERE a = new.a;\n  END;\n  UPDATE t1 SET c = c+1 WHERE a = 'a';\n  SELECT * FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TRIGGER t1_tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t1 WHERE a = new.a;\n  END;\n  UPDATE t1 SET c = c+1 WHERE a = 'a';\n  SELECT * FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "b a 3  b b 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "11.1"
-		r = db.Query("\n  CREATE TABLE t11(a TEXT PRIMARY KEY, b INT) WITHOUT ROWID;\n  CREATE INDEX t11a ON t11(a COLLATE NOCASE);\n  INSERT INTO t11(a,b) VALUES ('A',1),('a',2);\n  PRAGMA integrity_check;\n  SELECT a FROM t11 ORDER BY a COLLATE binary;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t11(a TEXT PRIMARY KEY, b INT) WITHOUT ROWID;\n  CREATE INDEX t11a ON t11(a COLLATE NOCASE);\n  INSERT INTO t11(a,b) VALUES ('A',1),('a',2);\n  PRAGMA integrity_check;\n  SELECT a FROM t11 ORDER BY a COLLATE binary;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok A a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "12.1"
-		r = db.Query("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0 (c0 INTEGER PRIMARY KEY DESC, c1 UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  INSERT INTO t0(c0) VALUES (1), (2), (3), (4), (5);\n  REINDEX;\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0 (c0 INTEGER PRIMARY KEY DESC, c1 UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  INSERT INTO t0(c0) VALUES (1), (2), (3), (4), (5);\n  REINDEX;\n  PRAGMA integrity_check;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "13.10"
-		r = db.Query("\n  DROP TABLE IF EXISTS t0;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t0(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t0(c0,c1) VALUES('abc','xyz');\n  CREATE TABLE t1(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t1 SELECT * FROM t0;\n  PRAGMA integrity_check;\n  SELECT * FROM t0, t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t0;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t0(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t0(c0,c1) VALUES('abc','xyz');\n  CREATE TABLE t1(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t1 SELECT * FROM t0;\n  PRAGMA integrity_check;\n  SELECT * FROM t0, t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "ok abc xyz abc xyz"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 8")
-	{ // "16.1"
-		_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
-		}
-	}
-	{ // "16.2"
-		_res = db.Exec("\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
-		}
-	}
-	{ // "16.3"
-		_res = db.Exec("\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
-		}
-	}
+		// foreach {tn cnt where eqp} queries
+		_items := tclSplitList(queries)
+		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+			tn := _items[_idx+0]
+			cnt := _items[_idx+1]
+			where := _items[_idx+2]
+			eqp := _items[_idx+3]
+			_ = _idx
+				{ // "5.7." + tn + ".1"
+					r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t46 WHERE " + where)
+						return
+					}
+					got := flatten(r)
+					want := cnt
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "5.7." + tn + ".2"
+					r = db.Query("EXPLAIN QUERY PLAN " + "SELECT count(*) FROM t46 WHERE " + where)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"SELECT count(*) FROM t46 WHERE " + where)
+					}
+				}
+			}
+			{ // "6.0"
+				r = db.Query("\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t47(a, b UNIQUE PRIMARY KEY) WITHOUT ROWID;\n  CREATE INDEX i47 ON t47(a);\n  INSERT INTO t47 VALUES(1, 2);\n  INSERT INTO t47 VALUES(2, 4);\n  INSERT INTO t47 VALUES(3, 6);\n  INSERT INTO t47 VALUES(4, 8);\n\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't47';\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok t47 i47"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "6.1"
+				r = db.Query("\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t48(\n    a UNIQUE UNIQUE, \n    b UNIQUE, \n    PRIMARY KEY(a), \n    UNIQUE(a)\n  ) WITHOUT ROWID;\n  INSERT INTO t48 VALUES('a', 'b'), ('c', 'd'), ('e', 'f');\n  VACUUM;\n  PRAGMA integrity_check;\n  SELECT name FROM sqlite_master WHERE tbl_name = 't48';\n")
+					return
+				}
+				got := flatten(r)
+				want := "\n  ok  t48   sqlite_autoindex_t48_2\n"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "7.1"
+				_res = db.Exec("\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t70a(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  );\n  INSERT INTO t70a(a,b) VALUES(99,'hello');\n")
+				}
+			}
+			{ // "7.2"
+				_res = db.Exec("\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: rowid!=33") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: rowid!=33", _res.Error, "\n  INSERT INTO t70a(rowid,a,b) VALUES(33,99,'xyzzy');\n")
+				}
+			}
+			{ // "7.3"
+				_res = db.Exec("\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: rowid") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
+				}
+			}
+			db, err = frigolite.Open(":memory:")
+			if err != nil { t.Fatal(err) }
+			{ // "8.1"
+				r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;\n")
+					return
+				}
+				got := flatten(r)
+				want := "table t1 | index t1x |"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "9.0"
+				_res = db.Exec("\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(b, c, PRIMARY KEY(b,c)) WITHOUT ROWID;\n  CREATE UNIQUE INDEX t2b ON t2(b);\n  UPDATE t2 SET b=1 WHERE b='';\n")
+				}
+			}
+			{ // "10.1"
+				_res = db.Exec("\n  DELETE FROM t2 WHERE b=1\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2 WHERE b=1\n")
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "10.0"
+				_res = db.Exec("\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('a', 'a', 1);\n  INSERT INTO t1 VALUES('a', 'b', 2);\n  INSERT INTO t1 VALUES('b', 'a', 3);\n  INSERT INTO t1 VALUES('b', 'b', 4);\n")
+				}
+			}
+			{ // "10.1"
+				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'a');\n")
+				}
+			}
+			{ // "10.2"
+				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('a', 'b');\n")
+				}
+			}
+			{ // "10.3"
+				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'a');\n")
+				}
+			}
+			{ // "10.4"
+				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.c") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t1.c", _res.Error, "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('b', 'b');\n")
+				}
+			}
+			{ // "10.5"
+				_res = db.Exec("\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE t1 SET c=1 WHERE (a, b) = ('c', 'c');\n")
+				}
+			}
+			{ // "10.6"
+				r = db.Query("\n  CREATE TRIGGER t1_tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t1 WHERE a = new.a;\n  END;\n  UPDATE t1 SET c = c+1 WHERE a = 'a';\n  SELECT * FROM t1;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TRIGGER t1_tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t1 WHERE a = new.a;\n  END;\n  UPDATE t1 SET c = c+1 WHERE a = 'a';\n  SELECT * FROM t1;\n")
+					return
+				}
+				got := flatten(r)
+				want := "b a 3  b b 4"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "11.1"
+				r = db.Query("\n  CREATE TABLE t11(a TEXT PRIMARY KEY, b INT) WITHOUT ROWID;\n  CREATE INDEX t11a ON t11(a COLLATE NOCASE);\n  INSERT INTO t11(a,b) VALUES ('A',1),('a',2);\n  PRAGMA integrity_check;\n  SELECT a FROM t11 ORDER BY a COLLATE binary;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t11(a TEXT PRIMARY KEY, b INT) WITHOUT ROWID;\n  CREATE INDEX t11a ON t11(a COLLATE NOCASE);\n  INSERT INTO t11(a,b) VALUES ('A',1),('a',2);\n  PRAGMA integrity_check;\n  SELECT a FROM t11 ORDER BY a COLLATE binary;\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok A a"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "12.1"
+				r = db.Query("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0 (c0 INTEGER PRIMARY KEY DESC, c1 UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  INSERT INTO t0(c0) VALUES (1), (2), (3), (4), (5);\n  REINDEX;\n  PRAGMA integrity_check;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0 (c0 INTEGER PRIMARY KEY DESC, c1 UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  INSERT INTO t0(c0) VALUES (1), (2), (3), (4), (5);\n  REINDEX;\n  PRAGMA integrity_check;\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "13.10"
+				r = db.Query("\n  DROP TABLE IF EXISTS t0;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t0(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t0(c0,c1) VALUES('abc','xyz');\n  CREATE TABLE t1(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t1 SELECT * FROM t0;\n  PRAGMA integrity_check;\n  SELECT * FROM t0, t1;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t0;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t0(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t0(c0,c1) VALUES('abc','xyz');\n  CREATE TABLE t1(\n    c0,\n    c1 UNIQUE,\n    PRIMARY KEY(c1, c1)\n  ) WITHOUT ROWID;\n  INSERT INTO t1 SELECT * FROM t0;\n  PRAGMA integrity_check;\n  SELECT * FROM t0, t1;\n")
+					return
+				}
+				got := flatten(r)
+				want := "ok abc xyz abc xyz"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 8")
+			{ // "16.1"
+				_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
+				}
+			}
+			{ // "16.2"
+				_res = db.Exec("\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1 COLLATE nocase,c1 COLLATE rtrim,\n                c2 COLLATE nocase,c2 COLLATE rtrim,\n                c3 COLLATE nocase,c3 COLLATE rtrim,\n                c4 COLLATE nocase,c4 COLLATE rtrim)\n  ) WITHOUT ROWID;\n")
+				}
+			}
+			{ // "16.3"
+				_res = db.Exec("\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2),\n    UNIQUE(c3,c4,c5,c6,c7,c8,c3 COLLATE nocase)\n  ) WITHOUT ROWID;\n")
+				}
+			}
 }

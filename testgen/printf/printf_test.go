@@ -3621,7 +3621,7 @@ func Test_printf(t *testing.T) {
 	{ // do_test "printf-15.3"
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snprintf_int 0 {} 0")
 	}
-	for _, var := range []string{"a b c d"} {
+	for _, var := range tclSplitList("a b c d") {
 		var var = "$var 400"
 		_ = var // suppress unused warning
 	}
@@ -3631,7 +3631,7 @@ func Test_printf(t *testing.T) {
 	_ = str2 // suppress unused warning
 	var zSuccess = "A 360" + "11" + "B 5000"
 	_ = zSuccess // suppress unused warning
-	for _, _iRepeat := range []string{"0 1"} {
+	for _, _iRepeat := range tclSplitList("0 1") {
 		var nTestNum = "1"
 		_ = nTestNum // suppress unused warning
 		for true {

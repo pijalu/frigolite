@@ -51,30 +51,30 @@ func Test_fts3corrupt5(t *testing.T) {
 		}
 	}
 	// foreach {tn val q bCorrupt} "\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n"
-	_items := []string{"\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n"}
+	_items := tclSplitList("\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	val := _items[_idx+1]
-	q := _items[_idx+2]
-	bCorrupt := _items[_idx+3]
-		{ // "1.3." + tn + ".1"
-			_res = db.Exec("UPDATE ft_segdir SET root = " + val)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE ft_segdir SET root = " + val)
+		tn := _items[_idx+0]
+		val := _items[_idx+1]
+		q := _items[_idx+2]
+		bCorrupt := _items[_idx+3]
+		_ = _idx
+			{ // "1.3." + tn + ".1"
+				_res = db.Exec("UPDATE ft_segdir SET root = " + val)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE ft_segdir SET root = " + val)
+				}
 			}
-		}
-		var res = "0 {}"
-		_ = res // suppress unused warning
-		if tclBool(bCorrupt) {
-			var res = "1 {database disk image is malformed}"
+			var res = "0 {}"
 			_ = res // suppress unused warning
-		}
-		{ // "1.3." + tn + ".2"
-			_res = db.Exec("\n    SELECT * FROM ft WHERE ft MATCH $q\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT * FROM ft WHERE ft MATCH $q\n  ")
+			if tclBool(bCorrupt) {
+				var res = "1 {database disk image is malformed}"
+				_ = res // suppress unused warning
+			}
+			{ // "1.3." + tn + ".2"
+				_res = db.Exec("\n    SELECT * FROM ft WHERE ft MATCH $q\n  ")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "\n    SELECT * FROM ft WHERE ft MATCH $q\n  ")
+				}
 			}
 		}
-	}
-	}
 }

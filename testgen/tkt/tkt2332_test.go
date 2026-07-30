@@ -26,7 +26,7 @@ func Test_tkt2332(t *testing.T) {
 	}
 	var _iKey = "1" // TCL namespace variable
 	_ = _iKey // suppress unused warning
-	for _, Len := range []string{"list 10000 100000 1000000"} {
+	for _, Len := range tclSplitList("list 10000 100000 1000000") {
 		{ // do_test "tkt2332." + Len + ".1"
 			val := "6.099e-320"
 			var _blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable

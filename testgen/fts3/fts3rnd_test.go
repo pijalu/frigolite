@@ -67,218 +67,95 @@ func Test_fts3rnd(t *testing.T) {
 	var NUM_TRIALS = "100"
 	_ = NUM_TRIALS // suppress unused warning
 	// foreach {nodesize order} "\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n"
-	_items := []string{"\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n"}
+	_items := tclSplitList("\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	nodesize := _items[_idx+0]
-	order := _items[_idx+1]
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		var testname = nodesize + "/" + order
-		_ = testname // suppress unused warning
-		_res = db.Exec(" DROP TABLE t1 ")
-		_ = _res // catchsql
-		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, order=" + order + ")")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, order=" + order + ")")
-		}
-		_res = db.Exec("INSERT INTO t1(t1) VALUES('nodesize=" + nodesize + "')")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(t1) VALUES('nodesize=" + nodesize + "')")
-		}
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "insert_row $i")
-			// incr i 1
+		nodesize := _items[_idx+0]
+		order := _items[_idx+1]
+		_ = _idx
 			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
 			}
-		}
-		var iTest = "1"
-		_ = iTest // suppress unused warning
-		for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; NUM_TRIALS_n, _NUM_TRIALS_e := strconv.Atoi(NUM_TRIALS); if _NUM_TRIALS_e != nil { return false }; return iTest_n <= NUM_TRIALS_n }() {
-			_res = db.Exec("COMMIT")
+			var testname = nodesize + "/" + order
+			_ = testname // suppress unused warning
+			_res = db.Exec(" DROP TABLE t1 ")
 			_ = _res // catchsql
-			var DO_MALLOC_TEST = "0"
-			_ = DO_MALLOC_TEST // suppress unused warning
-			var nRep = "10"
-			_ = nRep // suppress unused warning
-			if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; nodesize_n, _nodesize_e := strconv.Atoi(nodesize); if _nodesize_e != nil { return false }; return iTest_n == 100 && nodesize_n==50 }() {
-				var DO_MALLOC_TEST = "1"
-				_ = DO_MALLOC_TEST // suppress unused warning
-				var nRep = "2"
-				_ = nRep // suppress unused warning
-			}
-			var _testprefix = "fts3rnd-1." + testname + "." + iTest // TCL namespace variable
-			_ = _testprefix // suppress unused warning
-			var rows = "array names ::t1"
-			_ = rows // suppress unused warning
-			var nRow = "llength $rows"
-			_ = nRow // suppress unused warning
-			var iUpdate = "lindex $rows [expr {int(rand()*$nRow)}]"
-			_ = iUpdate // suppress unused warning
-			var iDelete = iUpdate
-			_ = iDelete // suppress unused warning
-			for func() bool { iDelete_n, _iDelete_e := strconv.Atoi(iDelete); if _iDelete_e != nil { return false }; iUpdate_n, _iUpdate_e := strconv.Atoi(iUpdate); if _iUpdate_e != nil { return false }; return iDelete_n == iUpdate_n }() {
-				var iDelete = "lindex $rows [expr {int(rand()*$nRow)}]"
-				_ = iDelete // suppress unused warning
-			}
-			var iInsert = iUpdate
-			_ = iInsert // suppress unused warning
-			for tclBool("info exists ::t1($iInsert)") {
-				iInsert := "0"
-			}
-			_res = db.Exec("BEGIN")
+			_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, order=" + order + ")")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, order=" + order + ")")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "insert_row $iInsert")
-			t.Skipf("TODO: %s not implemented in frigolite", "update_row $iUpdate")
-			t.Skipf("TODO: %s not implemented in frigolite", "delete_row $iDelete")
-			if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
+			_res = db.Exec("INSERT INTO t1(t1) VALUES('nodesize=" + nodesize + "')")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(t1) VALUES('nodesize=" + nodesize + "')")
+			}
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+				t.Skipf("TODO: %s not implemented in frigolite", "insert_row $i")
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			var iTest = "1"
+			_ = iTest // suppress unused warning
+			for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; NUM_TRIALS_n, _NUM_TRIALS_e := strconv.Atoi(NUM_TRIALS); if _NUM_TRIALS_e != nil { return false }; return iTest_n <= NUM_TRIALS_n }() {
 				_res = db.Exec("COMMIT")
+				_ = _res // catchsql
+				var DO_MALLOC_TEST = "0"
+				_ = DO_MALLOC_TEST // suppress unused warning
+				var nRep = "10"
+				_ = nRep // suppress unused warning
+				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; nodesize_n, _nodesize_e := strconv.Atoi(nodesize); if _nodesize_e != nil { return false }; return iTest_n == 100 && nodesize_n==50 }() {
+					var DO_MALLOC_TEST = "1"
+					_ = DO_MALLOC_TEST // suppress unused warning
+					var nRep = "2"
+					_ = nRep // suppress unused warning
+				}
+				var _testprefix = "fts3rnd-1." + testname + "." + iTest // TCL namespace variable
+				_ = _testprefix // suppress unused warning
+				var rows = "array names ::t1"
+				_ = rows // suppress unused warning
+				var nRow = "llength $rows"
+				_ = nRow // suppress unused warning
+				var iUpdate = "lindex $rows [expr {int(rand()*$nRow)}]"
+				_ = iUpdate // suppress unused warning
+				var iDelete = iUpdate
+				_ = iDelete // suppress unused warning
+				for func() bool { iDelete_n, _iDelete_e := strconv.Atoi(iDelete); if _iDelete_e != nil { return false }; iUpdate_n, _iUpdate_e := strconv.Atoi(iUpdate); if _iUpdate_e != nil { return false }; return iDelete_n == iUpdate_n }() {
+					var iDelete = "lindex $rows [expr {int(rand()*$nRow)}]"
+					_ = iDelete // suppress unused warning
+				}
+				var iInsert = iUpdate
+				_ = iInsert // suppress unused warning
+				for tclBool("info exists ::t1($iInsert)") {
+					iInsert := "0"
+				}
+				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-			}
-			if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-				var term = "random_term"
-				_ = term // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.asc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0]")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.desc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
+				t.Skipf("TODO: %s not implemented in frigolite", "insert_row $iInsert")
+				t.Skipf("TODO: %s not implemented in frigolite", "update_row $iUpdate")
+				t.Skipf("TODO: %s not implemented in frigolite", "delete_row $iDelete")
+				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
+					_res = db.Exec("COMMIT")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 					}
 				}
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-				var prefix = "[random_term] 0 end-1"
-				_ = prefix // suppress unused warning
-				var match = prefix + "*"
-				_ = match // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 2.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
 				}
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-				var term = "list [random_term] [random_term]"
-				_ = term // suppress unused warning
-				var match = "\\\"" + term + "\\\""
-				_ = match // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-				var term = "list [random_term] [random_term] [random_term]"
-				_ = term // suppress unused warning
-				var match = "\\\"" + term + "\\\""
-				_ = match // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-				var query = "[random_term] 0 end-1" + "* "
-				_ = query // suppress unused warning
-				query += "[random_term] 0 end-1" + "* "
-				query += "[random_term] 0 end-1" + "*"
-				var match = "\\\"" + query + "\\\""
-				_ = match // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-				var terms = "list [random_term] [random_term]"
-				_ = terms // suppress unused warning
-				var match = "join $terms \" NEAR \""
-				_ = match // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-				var terms = "list [random_term] [random_term] [random_term]"
-				_ = terms // suppress unused warning
-				var nNear = "11"
-				_ = nNear // suppress unused warning
-				var match = "join $terms \" NEAR/$nNear \""
-				_ = match // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear]")
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			// foreach {tn op proc} "\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    "
-			_items := []string{"\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    "}
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
-			op := _items[_idx+1]
-			proc := _items[_idx+2]
 				var i = "0"
 				_ = i // suppress unused warning
-				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var term1 = "random_term"
-					_ = term1 // suppress unused warning
-					var term2 = "random_term"
-					_ = term2 // suppress unused warning
-					var match = term1 + " " + op + " " + term2
-					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term...")
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
+					var term = "random_term"
+					_ = term // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.asc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0]")
+					t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.desc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -287,28 +164,14 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-			}
-			}
-			// foreach {tn op proc} "\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    "
-			_items := []string{"\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    "}
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
-			op := _items[_idx+1]
-			proc := _items[_idx+2]
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var term1 = "random_term"
-					_ = term1 // suppress unused warning
-					var term2 = "random_term"
-					_ = term2 // suppress unused warning
-					var term3 = "random_term"
-					_ = term3 // suppress unused warning
-					var term4 = "random_term"
-					_ = term4 // suppress unused warning
-					var match = term1 + " NEAR " + term2 + " " + op + " " + term3 + " NEAR " + term4
+					var prefix = "[random_term] 0 end-1"
+					_ = prefix // suppress unused warning
+					var match = prefix + "*"
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \\\n        ...")
+					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 2.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -317,18 +180,155 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-			}
-			}
-			_res = db.Exec("COMMIT")
-			_ = _res // catchsql
-			// incr iTest 1
-			{
-				_n, _err := strconv.Atoi(iTest)
-				if _err == nil {
-					iTest = strconv.Itoa(_n + 1)
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+					var term = "list [random_term] [random_term]"
+					_ = term // suppress unused warning
+					var match = "\\\"" + term + "\\\""
+					_ = match // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
 				}
-			}
-		}
-	}
-	}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+					var term = "list [random_term] [random_term] [random_term]"
+					_ = term // suppress unused warning
+					var match = "\\\"" + term + "\\\""
+					_ = match // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+					var query = "[random_term] 0 end-1" + "* "
+					_ = query // suppress unused warning
+					query += "[random_term] 0 end-1" + "* "
+					query += "[random_term] 0 end-1" + "*"
+					var match = "\\\"" + query + "\\\""
+					_ = match // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query]")
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+					var terms = "list [random_term] [random_term]"
+					_ = terms // suppress unused warning
+					var match = "join $terms \" NEAR \""
+					_ = match // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10]")
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+					var terms = "list [random_term] [random_term] [random_term]"
+					_ = terms // suppress unused warning
+					var nNear = "11"
+					_ = nNear // suppress unused warning
+					var match = "join $terms \" NEAR/$nNear \""
+					_ = match // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear]")
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				// foreach {tn op proc} "\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    "
+				_items := tclSplitList("\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    ")
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					op := _items[_idx+1]
+					proc := _items[_idx+2]
+					_ = _idx
+						var i = "0"
+						_ = i // suppress unused warning
+						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+							var term1 = "random_term"
+							_ = term1 // suppress unused warning
+							var term2 = "random_term"
+							_ = term2 // suppress unused warning
+							var match = term1 + " " + op + " " + term2
+							_ = match // suppress unused warning
+							t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term...")
+							// incr i 1
+							{
+								_n, _err := strconv.Atoi(i)
+								if _err == nil {
+									i = strconv.Itoa(_n + 1)
+								}
+							}
+						}
+					}
+					// foreach {tn op proc} "\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    "
+					_items := tclSplitList("\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    ")
+					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+						tn := _items[_idx+0]
+						op := _items[_idx+1]
+						proc := _items[_idx+2]
+						_ = _idx
+							var i = "0"
+							_ = i // suppress unused warning
+							for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
+								var term1 = "random_term"
+								_ = term1 // suppress unused warning
+								var term2 = "random_term"
+								_ = term2 // suppress unused warning
+								var term3 = "random_term"
+								_ = term3 // suppress unused warning
+								var term4 = "random_term"
+								_ = term4 // suppress unused warning
+								var match = term1 + " NEAR " + term2 + " " + op + " " + term3 + " NEAR " + term4
+								_ = match // suppress unused warning
+								t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \\\n        ...")
+								// incr i 1
+								{
+									_n, _err := strconv.Atoi(i)
+									if _err == nil {
+										i = strconv.Itoa(_n + 1)
+									}
+								}
+							}
+						}
+						_res = db.Exec("COMMIT")
+						_ = _res // catchsql
+						// incr iTest 1
+						{
+							_n, _err := strconv.Atoi(iTest)
+							if _err == nil {
+								iTest = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+				}
 }

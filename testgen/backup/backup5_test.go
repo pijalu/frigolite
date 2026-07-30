@@ -65,7 +65,7 @@ func Test_backup5(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	for _, n := range []string{"test2.db test3.db test4.db test5.db test6.db test7.db test8.db"} {
+	for _, n := range tclSplitList("test2.db test3.db test4.db test5.db test6.db test7.db test8.db") {
 		os.Remove(n)
 	}
 	{ // "2.0"

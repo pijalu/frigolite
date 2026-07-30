@@ -25,7 +25,7 @@ func Test_unordered(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1, 'xxx');\n  INSERT INTO t1 SELECT a+1, b FROM t1;\n  INSERT INTO t1 SELECT a+2, b FROM t1;\n  INSERT INTO t1 SELECT a+4, b FROM t1;\n  INSERT INTO t1 SELECT a+8, b FROM t1;\n  INSERT INTO t1 SELECT a+16, b FROM t1;\n  INSERT INTO t1 SELECT a+32, b FROM t1;\n  INSERT INTO t1 SELECT a+64, b FROM t1;\n  ANALYZE;\n")
 		}
 	}
-	for _, idxmode := range []string{"ordered unordered"} {
+	for _, idxmode := range tclSplitList("ordered unordered") {
 		_res = db.Exec(" DELETE FROM sqlite_stat2 ")
 		_ = _res // catchsql
 		_res = db.Exec(" DELETE FROM sqlite_stat3 ")
@@ -40,19 +40,19 @@ func Test_unordered(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 		// foreach {tn sql r(ordered) r(unordered)} "\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  "
-		_items := []string{"\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  "}
+		_items := tclSplitList("\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  ")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
-		sql := _items[_idx+1]
-		r_ordered := _items[_idx+2]
-		r_unordered := _items[_idx+3]
-			{ // "1." + idxmode + "." + tn
-				r = db.Query("EXPLAIN QUERY PLAN " + sql)
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			r_ordered := _items[_idx+2]
+			r_unordered := _items[_idx+3]
+			_ = _idx
+				{ // "1." + idxmode + "." + tn
+					r = db.Query("EXPLAIN QUERY PLAN " + sql)
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
+					}
 				}
 			}
 		}
-		}
-	}
 }

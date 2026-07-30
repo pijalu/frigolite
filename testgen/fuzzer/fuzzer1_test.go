@@ -348,280 +348,280 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n"
-	_items := []string{"\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n"}
+	_items := tclSplitList("\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // "7.2." + tn + ".1"
-			_res = db.Exec(" DROP TABLE IF EXISTS x2 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS x2 ")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			{ // "7.2." + tn + ".1"
+				_res = db.Exec(" DROP TABLE IF EXISTS x2 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS x2 ")
+				}
+			}
+			{ // "7.2." + tn + ".2"
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+			}
+			{ // "7.2." + tn + ".3"
+				r = db.Query(" \n    SELECT word FROM x2 WHERE word MATCH 'aaa' \n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT word FROM x2 WHERE word MATCH 'aaa' \n  ")
+					return
+				}
+				got := flatten(r)
+				want := "aaa baa aba aab bab abb bba bbb"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "7.2." + tn + ".2"
-			_res = db.Exec(sql)
+		{ // "8.1"
+			_res = db.Exec("\n  CREATE TABLE x3_rules(rule_set, cFrom, cTo, cost);\n  INSERT INTO x3_rules VALUES(2, 'a', 'x', 10);\n  INSERT INTO x3_rules VALUES(2, 'a', 'y',  9);\n  INSERT INTO x3_rules VALUES(2, 'a', 'z',  8);\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x3_rules(rule_set, cFrom, cTo, cost);\n  INSERT INTO x3_rules VALUES(2, 'a', 'x', 10);\n  INSERT INTO x3_rules VALUES(2, 'a', 'y',  9);\n  INSERT INTO x3_rules VALUES(2, 'a', 'z',  8);\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n")
 			}
 		}
-		{ // "7.2." + tn + ".3"
-			r = db.Query(" \n    SELECT word FROM x2 WHERE word MATCH 'aaa' \n  ")
+		{ // "8.2.1"
+			r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3_rules CROSS JOIN x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT word FROM x2 WHERE word MATCH 'aaa' \n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3_rules CROSS JOIN x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo;\n")
 				return
 			}
 			got := flatten(r)
-			want := "aaa baa aba aab bab abb bba bbb"
+			want := "a x x a y y a z z"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "8.1"
-		_res = db.Exec("\n  CREATE TABLE x3_rules(rule_set, cFrom, cTo, cost);\n  INSERT INTO x3_rules VALUES(2, 'a', 'x', 10);\n  INSERT INTO x3_rules VALUES(2, 'a', 'y',  9);\n  INSERT INTO x3_rules VALUES(2, 'a', 'z',  8);\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x3_rules(rule_set, cFrom, cTo, cost);\n  INSERT INTO x3_rules VALUES(2, 'a', 'x', 10);\n  INSERT INTO x3_rules VALUES(2, 'a', 'y',  9);\n  INSERT INTO x3_rules VALUES(2, 'a', 'z',  8);\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n")
+		{ // "8.2.2"
+			r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3 CROSS JOIN x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3 CROSS JOIN x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC\n")
+				return
+			}
+			got := flatten(r)
+			want := "a z z a y y a x x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2.1"
-		r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3_rules CROSS JOIN x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3_rules CROSS JOIN x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo;\n")
-			return
+		{ // "8.2.3"
+			r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a z z a y y a x x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a x x a y y a z z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.4"
+			r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3, x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3, x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a z z a y y a x x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2.2"
-		r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3 CROSS JOIN x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3 CROSS JOIN x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC\n")
-			return
+		{ // "8.2.5"
+			r = db.Query("\n  CREATE INDEX i1 ON x3_rules(cost);\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX i1 ON x3_rules(cost);\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a z z a y y a x x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a z z a y y a x x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.5"
+			r = db.Query("\n  SELECT word FROM x3_rules, x3 WHERE word MATCH x3_rules.cFrom AND ruleset=2\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3_rules, x3 WHERE word MATCH x3_rules.cFrom AND ruleset=2\n")
+				return
+			}
+			got := flatten(r)
+			want := "a z y x a z y x a z y x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2.3"
-		r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
-			return
+		{ // "8.2.6"
+			r = db.Query("\n  SELECT word FROM x3_rules, x3 \n  WHERE word MATCH x3_rules.cFrom \n    AND ruleset=2 \n    AND x3_rules.cost=8;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3_rules, x3 \n  WHERE word MATCH x3_rules.cFrom \n    AND ruleset=2 \n    AND x3_rules.cost=8;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a z y x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a z z a y y a x x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.7"
+			r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i2 ON t1(b);\n  SELECT word, distance FROM x3, t1 \n    WHERE x3.word MATCH t1.a AND ruleset=2 AND distance=t1.b;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i2 ON t1(b);\n  SELECT word, distance FROM x3, t1 \n    WHERE x3.word MATCH t1.a AND ruleset=2 AND distance=t1.b;\n")
+			}
 		}
-	}
-	{ // "8.2.4"
-		r = db.Query("\n  SELECT cFrom, cTo, word \n    FROM x3, x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT cFrom, cTo, word \n    FROM x3, x3_rules\n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
-			return
+		{ // "8.2.8"
+			r = db.Query("\n  INSERT INTO x3_rules VALUES(1, 'a', 't',  5);\n  INSERT INTO x3_rules VALUES(1, 'a', 'u',  4);\n  INSERT INTO x3_rules VALUES(1, 'a', 'v',  3);\n  DROP TABLE x3;\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n  SELECT * FROM x3_rules;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x3_rules VALUES(1, 'a', 't',  5);\n  INSERT INTO x3_rules VALUES(1, 'a', 'u',  4);\n  INSERT INTO x3_rules VALUES(1, 'a', 'v',  3);\n  DROP TABLE x3;\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n  SELECT * FROM x3_rules;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  2 a x 10 \n  2 a y 9 \n  2 a z 8 \n  1 a t 5 \n  1 a u 4 \n  1 a v 3\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a z z a y y a x x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.9"
+			_res = db.Exec("\n  SELECT word FROM x3 WHERE ruleset=2 AND word MATCH 'a' AND WORD MATCH 'b';\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, "\n  SELECT word FROM x3 WHERE ruleset=2 AND word MATCH 'a' AND WORD MATCH 'b';\n")
+			}
 		}
-	}
-	{ // "8.2.5"
-		r = db.Query("\n  CREATE INDEX i1 ON x3_rules(cost);\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE INDEX i1 ON x3_rules(cost);\n  SELECT cFrom, cTo, word \n    FROM x3_rules, x3 \n    WHERE word MATCH 'a' AND cost=distance AND ruleset=2\n    ORDER BY +cTo DESC;\n")
-			return
+		{ // "8.2.10"
+			r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a'\n")
+				return
+			}
+			got := flatten(r)
+			want := "a v u t"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a z z a y y a x x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.11"
+			r = db.Query("\n  SELECT word FROM x3 WHERE ruleset<=1 AND word MATCH 'a'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset<=1 AND word MATCH 'a'\n")
+			}
 		}
-	}
-	{ // "8.2.5"
-		r = db.Query("\n  SELECT word FROM x3_rules, x3 WHERE word MATCH x3_rules.cFrom AND ruleset=2\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3_rules, x3 WHERE word MATCH x3_rules.cFrom AND ruleset=2\n")
-			return
+		{ // "8.2.12"
+			r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance ASC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance ASC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a v u t"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a z y x a z y x a z y x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.13"
+			r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance DESC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance DESC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "t u v a"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2.6"
-		r = db.Query("\n  SELECT word FROM x3_rules, x3 \n  WHERE word MATCH x3_rules.cFrom \n    AND ruleset=2 \n    AND x3_rules.cost=8;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3_rules, x3 \n  WHERE word MATCH x3_rules.cFrom \n    AND ruleset=2 \n    AND x3_rules.cost=8;\n")
-			return
+		{ // "8.2.13"
+			r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word ASC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word ASC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "a t u v"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a z y x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.2.14"
+			r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word DESC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word DESC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "v u t a"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2.7"
-		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i2 ON t1(b);\n  SELECT word, distance FROM x3, t1 \n    WHERE x3.word MATCH t1.a AND ruleset=2 AND distance=t1.b;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i2 ON t1(b);\n  SELECT word, distance FROM x3, t1 \n    WHERE x3.word MATCH t1.a AND ruleset=2 AND distance=t1.b;\n")
+		{ // "9.1"
+			_res = db.Exec("\n  CREATE TABLE x4_rules(a, b, c, d);\n  INSERT INTO x4_rules VALUES(0, 'a', 'b', 10);\n  INSERT INTO x4_rules VALUES(0, 'a', 'c', 11);\n  INSERT INTO x4_rules VALUES(0, 'bx', 'zz', 20);\n  INSERT INTO x4_rules VALUES(0, 'cx', 'yy', 15);\n  INSERT INTO x4_rules VALUES(0, 'zz', '!!', 50);\n  CREATE VIRTUAL TABLE x4 USING fuzzer(x4_rules);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x4_rules(a, b, c, d);\n  INSERT INTO x4_rules VALUES(0, 'a', 'b', 10);\n  INSERT INTO x4_rules VALUES(0, 'a', 'c', 11);\n  INSERT INTO x4_rules VALUES(0, 'bx', 'zz', 20);\n  INSERT INTO x4_rules VALUES(0, 'cx', 'yy', 15);\n  INSERT INTO x4_rules VALUES(0, 'zz', '!!', 50);\n  CREATE VIRTUAL TABLE x4 USING fuzzer(x4_rules);\n")
+			}
 		}
-	}
-	{ // "8.2.8"
-		r = db.Query("\n  INSERT INTO x3_rules VALUES(1, 'a', 't',  5);\n  INSERT INTO x3_rules VALUES(1, 'a', 'u',  4);\n  INSERT INTO x3_rules VALUES(1, 'a', 'v',  3);\n  DROP TABLE x3;\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n  SELECT * FROM x3_rules;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x3_rules VALUES(1, 'a', 't',  5);\n  INSERT INTO x3_rules VALUES(1, 'a', 'u',  4);\n  INSERT INTO x3_rules VALUES(1, 'a', 'v',  3);\n  DROP TABLE x3;\n  CREATE VIRTUAL TABLE x3 USING fuzzer(x3_rules);\n  SELECT * FROM x3_rules;\n")
-			return
+		{ // "9.2"
+			r = db.Query("\n  SELECT word, distance FROM x4 WHERE word MATCH 'ax';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM x4 WHERE word MATCH 'ax';\n")
+				return
+			}
+			got := flatten(r)
+			want := "ax 0 bx 10 cx 11 yy 26 zz 30 !! 80"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  2 a x 10 \n  2 a y 9 \n  2 a z 8 \n  1 a t 5 \n  1 a u 4 \n  1 a v 3\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "10.1"
+			_res = db.Exec("\n  CREATE TABLE x5_rules(a, b, c, d);\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x5_rules(a, b, c, d);\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n")
+			}
 		}
-	}
-	{ // "8.2.9"
-		_res = db.Exec("\n  SELECT word FROM x3 WHERE ruleset=2 AND word MATCH 'a' AND WORD MATCH 'b';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unable to use function MATCH in the requested context") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unable to use function MATCH in the requested context", _res.Error, "\n  SELECT word FROM x3 WHERE ruleset=2 AND word MATCH 'a' AND WORD MATCH 'b';\n")
+		{ // "10.2"
+			r = db.Query("\n  SELECT word, distance FROM x5 WHERE word MATCH \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM x5 WHERE word MATCH \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa'\n")
+			}
 		}
-	}
-	{ // "8.2.10"
-		r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a'\n")
-			return
+		{ // "10.3"
+			r = db.Query("\n  INSERT INTO x5_rules VALUES(0, 'a', '0.1.2.3.4.5.6.7.8.9.a', 1);\n  DROP TABLE x5;\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n  SELECT length(word) FROM x5 WHERE word MATCH 'a' LIMIT 50;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x5_rules VALUES(0, 'a', '0.1.2.3.4.5.6.7.8.9.a', 1);\n  DROP TABLE x5;\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n  SELECT length(word) FROM x5 WHERE word MATCH 'a' LIMIT 50;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 21 41 61 81"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "a v u t"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "11.1"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS f1;\n  CREATE VIRTUAL TABLE f1 USING fuzzer('aaaaaaaaaaaaaaaa'bbbbbbbbbbbbbbbb);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb", _res.Error, "\n  DROP TABLE IF EXISTS f1;\n  CREATE VIRTUAL TABLE f1 USING fuzzer('aaaaaaaaaaaaaaaa'bbbbbbbbbbbbbbbb);\n")
+			}
 		}
-	}
-	{ // "8.2.11"
-		r = db.Query("\n  SELECT word FROM x3 WHERE ruleset<=1 AND word MATCH 'a'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset<=1 AND word MATCH 'a'\n")
+		{ // "11.2"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS f2;\n  CREATE VIRTUAL TABLE f2 USING fuzzer(\"xxxxxxxxxxxxxxxx\"yyyyyyyyyyyyyyyy);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.xxxxxxxxxxxxxxxxyyyyyyyyyyyyyyyy") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.xxxxxxxxxxxxxxxxyyyyyyyyyyyyyyyy", _res.Error, "\n  DROP TABLE IF EXISTS f2;\n  CREATE VIRTUAL TABLE f2 USING fuzzer(\"xxxxxxxxxxxxxxxx\"yyyyyyyyyyyyyyyy);\n")
+			}
 		}
-	}
-	{ // "8.2.12"
-		r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance ASC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance ASC;\n")
-			return
+		{ // "11.3"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb", _res.Error, "\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);\n")
+			}
 		}
-		got := flatten(r)
-		want := "a v u t"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "11.4"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS f4;\n  CREATE VIRTUAL TABLE f4 USING fuzzer('a'b);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.ab") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.ab", _res.Error, "\n  DROP TABLE IF EXISTS f4;\n  CREATE VIRTUAL TABLE f4 USING fuzzer('a'b);\n")
+			}
 		}
-	}
-	{ // "8.2.13"
-		r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY distance DESC;\n")
-			return
-		}
-		got := flatten(r)
-		want := "t u v a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.2.13"
-		r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word ASC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word ASC;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a t u v"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.2.14"
-		r = db.Query("\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word FROM x3 WHERE ruleset=1 AND word MATCH 'a' ORDER BY word DESC;\n")
-			return
-		}
-		got := flatten(r)
-		want := "v u t a"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.1"
-		_res = db.Exec("\n  CREATE TABLE x4_rules(a, b, c, d);\n  INSERT INTO x4_rules VALUES(0, 'a', 'b', 10);\n  INSERT INTO x4_rules VALUES(0, 'a', 'c', 11);\n  INSERT INTO x4_rules VALUES(0, 'bx', 'zz', 20);\n  INSERT INTO x4_rules VALUES(0, 'cx', 'yy', 15);\n  INSERT INTO x4_rules VALUES(0, 'zz', '!!', 50);\n  CREATE VIRTUAL TABLE x4 USING fuzzer(x4_rules);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x4_rules(a, b, c, d);\n  INSERT INTO x4_rules VALUES(0, 'a', 'b', 10);\n  INSERT INTO x4_rules VALUES(0, 'a', 'c', 11);\n  INSERT INTO x4_rules VALUES(0, 'bx', 'zz', 20);\n  INSERT INTO x4_rules VALUES(0, 'cx', 'yy', 15);\n  INSERT INTO x4_rules VALUES(0, 'zz', '!!', 50);\n  CREATE VIRTUAL TABLE x4 USING fuzzer(x4_rules);\n")
-		}
-	}
-	{ // "9.2"
-		r = db.Query("\n  SELECT word, distance FROM x4 WHERE word MATCH 'ax';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM x4 WHERE word MATCH 'ax';\n")
-			return
-		}
-		got := flatten(r)
-		want := "ax 0 bx 10 cx 11 yy 26 zz 30 !! 80"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.1"
-		_res = db.Exec("\n  CREATE TABLE x5_rules(a, b, c, d);\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x5_rules(a, b, c, d);\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n")
-		}
-	}
-	{ // "10.2"
-		r = db.Query("\n  SELECT word, distance FROM x5 WHERE word MATCH \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT word, distance FROM x5 WHERE word MATCH \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa' || \n    'aaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaaXaaaaaaaaa'\n")
-		}
-	}
-	{ // "10.3"
-		r = db.Query("\n  INSERT INTO x5_rules VALUES(0, 'a', '0.1.2.3.4.5.6.7.8.9.a', 1);\n  DROP TABLE x5;\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n  SELECT length(word) FROM x5 WHERE word MATCH 'a' LIMIT 50;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO x5_rules VALUES(0, 'a', '0.1.2.3.4.5.6.7.8.9.a', 1);\n  DROP TABLE x5;\n  CREATE VIRTUAL TABLE x5 USING fuzzer(x5_rules);\n  SELECT length(word) FROM x5 WHERE word MATCH 'a' LIMIT 50;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 21 41 61 81"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "11.1"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS f1;\n  CREATE VIRTUAL TABLE f1 USING fuzzer('aaaaaaaaaaaaaaaa'bbbbbbbbbbbbbbbb);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb", _res.Error, "\n  DROP TABLE IF EXISTS f1;\n  CREATE VIRTUAL TABLE f1 USING fuzzer('aaaaaaaaaaaaaaaa'bbbbbbbbbbbbbbbb);\n")
-		}
-	}
-	{ // "11.2"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS f2;\n  CREATE VIRTUAL TABLE f2 USING fuzzer(\"xxxxxxxxxxxxxxxx\"yyyyyyyyyyyyyyyy);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.xxxxxxxxxxxxxxxxyyyyyyyyyyyyyyyy") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.xxxxxxxxxxxxxxxxyyyyyyyyyyyyyyyy", _res.Error, "\n  DROP TABLE IF EXISTS f2;\n  CREATE VIRTUAL TABLE f2 USING fuzzer(\"xxxxxxxxxxxxxxxx\"yyyyyyyyyyyyyyyy);\n")
-		}
-	}
-	{ // "11.3"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbb", _res.Error, "\n  DROP TABLE IF EXISTS f3;\n  CREATE VIRTUAL TABLE f3 USING fuzzer([aaaaaaaaaaaaaaaa]bbbbbbbbbbbbbbbb);\n")
-		}
-	}
-	{ // "11.4"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS f4;\n  CREATE VIRTUAL TABLE f4 USING fuzzer('a'b);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: no such table: main.ab") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "fuzzer: no such table: main.ab", _res.Error, "\n  DROP TABLE IF EXISTS f4;\n  CREATE VIRTUAL TABLE f4 USING fuzzer('a'b);\n")
-		}
-	}
 }

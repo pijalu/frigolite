@@ -183,7 +183,7 @@ func Test_where3(t *testing.T) {
 	}
 	var cnt = "0"
 	_ = cnt // suppress unused warning
-	for _, predicate := range []string{"\n   {}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}\n"} {
+	for _, predicate := range tclSplitList("\n   {}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}\n") {
 		// incr cnt 1
 		{
 			_n, _err := strconv.Atoi(cnt)
@@ -278,7 +278,7 @@ func Test_where3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t71(x1 INTEGER PRIMARY KEY, y1);\n  CREATE TABLE t72(x2 INTEGER PRIMARY KEY, y2);\n  CREATE TABLE t73(x3, y3);\n  CREATE TABLE t74(x4, y4);\n  INSERT INTO t71 VALUES(123,234);\n  INSERT INTO t72 VALUES(234,345);\n  INSERT INTO t73 VALUES(123,234);\n  INSERT INTO t74 VALUES(234,345);\n  INSERT INTO t74 VALUES(234,678);\n")
 		}
 	}
-	for _, disabled_opt := range []string{"none omit-noop-join all"} {
+	for _, disabled_opt := range tclSplitList("none omit-noop-join all") {
 		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db $disabled_opt 0")
 		{ // "where3-7." + disabled_opt + ".1"

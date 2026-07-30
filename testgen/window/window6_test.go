@@ -23,421 +23,421 @@ func Test_window6(t *testing.T) {
 	var setup = "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n"
 	_ = setup // suppress unused warning
 	// foreach {tn vars} "\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n"
-	_items := []string{"\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n"}
+	_items := tclSplitList("\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	vars := _items[_idx+1]
-		var A_%t1 = "t1"
-		_ = A_%t1 // suppress unused warning
-		var A_%x = "x"
-		_ = A_%x // suppress unused warning
-		var A_%y = "y"
-		_ = A_%y // suppress unused warning
-		var A_%w = "w"
-		_ = A_%w // suppress unused warning
-		var A_%alias = "alias"
-		_ = A_%alias // suppress unused warning
-		var A_%typename = "integer"
-		_ = A_%typename // suppress unused warning
-		// eval $vars
-		var MAP = "array get A"
-		_ = MAP // suppress unused warning
-		var setup_sql = "$MAP $setup"
-		_ = setup_sql // suppress unused warning
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec(setup_sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, setup_sql)
-		}
-		{ // "1." + tn + ".1"
-			_res = db.Exec("$MAP {\n    SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1\n  }")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1.2 1.2.3 1.2.3.4 1.2.3.4.5") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1.2 1.2.3 1.2.3.4 1.2.3.4.5", _res.Error, "$MAP {\n    SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1\n  }")
-			}
-		}
-		{ // "1." + tn + ".2"
-			_res = db.Exec("$MAP {\n    SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)\n  }")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6 10 15") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "$MAP {\n    SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)\n  }")
-			}
-		}
-		{ // "1." + tn + ".3"
-			_res = db.Exec("$MAP {\n    SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)\n  }")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6 10 15") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "$MAP {\n    SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)\n  }")
-			}
-		}
-		{ // "1." + tn + ".4"
-			_res = db.Exec("$MAP {\n    SELECT sum(%x) %alias FROM %t1\n  }")
+		tn := _items[_idx+0]
+		vars := _items[_idx+1]
+		_ = _idx
+			var A_%t1 = "t1"
+			_ = A_%t1 // suppress unused warning
+			var A_%x = "x"
+			_ = A_%x // suppress unused warning
+			var A_%y = "y"
+			_ = A_%y // suppress unused warning
+			var A_%w = "w"
+			_ = A_%w // suppress unused warning
+			var A_%alias = "alias"
+			_ = A_%alias // suppress unused warning
+			var A_%typename = "integer"
+			_ = A_%typename // suppress unused warning
+			// eval $vars
+			var MAP = "array get A"
+			_ = MAP // suppress unused warning
+			var setup_sql = "$MAP $setup"
+			_ = setup_sql // suppress unused warning
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec(setup_sql)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "$MAP {\n    SELECT sum(%x) %alias FROM %t1\n  }")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, setup_sql)
+			}
+			{ // "1." + tn + ".1"
+				_res = db.Exec("$MAP {\n    SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1\n  }")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1.2 1.2.3 1.2.3.4 1.2.3.4.5") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1.2 1.2.3 1.2.3.4 1.2.3.4.5", _res.Error, "$MAP {\n    SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1\n  }")
+				}
+			}
+			{ // "1." + tn + ".2"
+				_res = db.Exec("$MAP {\n    SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)\n  }")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6 10 15") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "$MAP {\n    SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)\n  }")
+				}
+			}
+			{ // "1." + tn + ".3"
+				_res = db.Exec("$MAP {\n    SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)\n  }")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6 10 15") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "$MAP {\n    SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)\n  }")
+				}
+			}
+			{ // "1." + tn + ".4"
+				_res = db.Exec("$MAP {\n    SELECT sum(%x) %alias FROM %t1\n  }")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "$MAP {\n    SELECT sum(%x) %alias FROM %t1\n  }")
+				}
 			}
 		}
-	}
-	}
-	// proc definition (not transpiled)
-	{ // "2.0"
-		r = db.Query("\n  SELECT window('hello world');\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT window('hello world');\n")
-			return
-		}
-		got := flatten(r)
-		want := "{window: {hello world}}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// proc definition (not transpiled)
-	{ // "3.0"
-		r = db.Query("\n  CREATE TABLE window(x COLLATE window);\n  INSERT INTO window VALUES('bob'), ('alice'), ('cate');\n  SELECT * FROM window ORDER BY x COLLATE window;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE window(x COLLATE window);\n  INSERT INTO window VALUES('bob'), ('alice'), ('cate');\n  SELECT * FROM window ORDER BY x COLLATE window;\n")
-			return
-		}
-		got := flatten(r)
-		want := "cate bob alice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.1"
-		r = db.Query("\n  DROP TABLE window;\n  CREATE TABLE x1(x);\n  INSERT INTO x1 VALUES('bob'), ('alice'), ('cate');\n  CREATE INDEX window ON x1(x COLLATE window);\n  SELECT * FROM x1 ORDER BY x COLLATE window;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE window;\n  CREATE TABLE x1(x);\n  INSERT INTO x1 VALUES('bob'), ('alice'), ('cate');\n  CREATE INDEX window ON x1(x COLLATE window);\n  SELECT * FROM x1 ORDER BY x COLLATE window;\n")
-			return
-		}
-		got := flatten(r)
-		want := "cate bob alice"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.0"
-		_res = db.Exec(" CREATE TABLE t4(x, y); ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t4(x, y); ")
-		}
-	}
-	{ // "4.1"
-		r = db.Query(" \n  SELECT * FROM t4 window, t4;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM t4 window, t4;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		r = db.Query("\n  CREATE TABLE over(x, over);\n  CREATE TABLE window(x, window);\n  INSERT INTO over VALUES(1, 2), (3, 4), (5, 6);\n  INSERT INTO window VALUES(1, 2), (3, 4), (5, 6);\n  SELECT sum(x) over FROM over\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE over(x, over);\n  CREATE TABLE window(x, window);\n  INSERT INTO over VALUES(1, 2), (3, 4), (5, 6);\n  INSERT INTO window VALUES(1, 2), (3, 4), (5, 6);\n  SELECT sum(x) over FROM over\n")
-			return
-		}
-		got := flatten(r)
-		want := "9"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT sum(x) over over FROM over WINDOW over AS ()\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(x) over over FROM over WINDOW over AS ()\n")
-			return
-		}
-		got := flatten(r)
-		want := "9 9 9"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.2"
-		r = db.Query("\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over)\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 6 12"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.3"
-		r = db.Query("\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over);\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 6 12"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.4"
-		r = db.Query("\n  SELECT sum(window) OVER window window FROM window window window window AS (ORDER BY window);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(window) OVER window window FROM window window window window AS (ORDER BY window);\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 6 12"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.5"
-		r = db.Query("\n  SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 0 0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "7.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
-		}
-	}
-	{ // "8.0"
-		_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
-		}
-	}
-	{ // "8.1"
-		r = db.Query("\n  SELECT \"counter\", \"value\", RANK() OVER w AS \"rank\" \n  FROM \"sample\"\n  WINDOW w AS (PARTITION BY \"counter\" ORDER BY \"value\" DESC) \n  ORDER BY \"counter\", RANK() OVER w\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"counter\", \"value\", RANK() OVER w AS \"rank\" \n  FROM \"sample\"\n  WINDOW w AS (PARTITION BY \"counter\" ORDER BY \"value\" DESC) \n  ORDER BY \"counter\", RANK() OVER w\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 20.0 1   1 10.0 2   2 3.0 1   2 1.0 2  3 100.0 1\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.2"
-		r = db.Query("\n  SELECT \"counter\", \"value\", SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS 2 PRECEDING) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"counter\", \"value\", SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS 2 PRECEDING) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 10.0 10.0   1 20.0 30.0   2 1.0 31.0   2 3.0 24.0   3 100.0 104.0\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.3"
-		r = db.Query("\n  SELECT SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  10.0   30.0   31.0   24.0   104.0\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.0"
-		r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 1  2 1,2  3 1,2,3  4 2,3,4  5 3,4,5\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.3"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT is not supported for window functions") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT is not supported for window functions", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
-		}
-	}
-	{ // "9.4"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FOLLOWING\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FOLLOWING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
-		}
-	}
-	{ // "9.5"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FOLLOWING\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FOLLOWING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
-		}
-	}
-	{ // "9.6"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"PRECEDING\\\": syntax error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"PRECEDING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
-		}
-	}
-	// foreach {tn frame} "\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n"
-	_items := []string{"\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	frame := _items[_idx+1]
-		{ // "9.7." + tn
-			_res = db.Exec("\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported frame specification") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported frame specification", _res.Error, "\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
-			}
-		}
-	}
-	}
-	{ // "9.8.1"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame starting offset must be a non-negative integer") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame starting offset must be a non-negative integer", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
-		}
-	}
-	{ // "9.8.2"
-		_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame ending offset must be a non-negative integer") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative integer", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
-		}
-	}
-	{ // "10.0"
-		r = db.Query("\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// foreach {tn stmt} "\n  1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"\n"
-	_items := []string{"\n  1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	stmt := _items[_idx+1]
-		{ // "10.1." + tn
-			_res = db.Exec("\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to nth_value must be a positive integer") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to nth_value must be a positive integer", _res.Error, "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
-			}
-		}
-	}
-	}
-	// foreach {tn stmt res} "\n  1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}\n"
-	_items := []string{"\n  1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	stmt := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "10.2." + tn
-			r = db.Query("\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+		// proc definition (not transpiled)
+		{ // "2.0"
+			r = db.Query("\n  SELECT window('hello world');\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT window('hello world');\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "{window: {hello world}}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "11.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
+		// proc definition (not transpiled)
+		{ // "3.0"
+			r = db.Query("\n  CREATE TABLE window(x COLLATE window);\n  INSERT INTO window VALUES('bob'), ('alice'), ('cate');\n  SELECT * FROM window ORDER BY x COLLATE window;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE window(x COLLATE window);\n  INSERT INTO window VALUES('bob'), ('alice'), ('cate');\n  SELECT * FROM window ORDER BY x COLLATE window;\n")
+				return
+			}
+			got := flatten(r)
+			want := "cate bob alice"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "11.1"
-		r = db.Query("\n  SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;\n")
-			return
+		{ // "3.1"
+			r = db.Query("\n  DROP TABLE window;\n  CREATE TABLE x1(x);\n  INSERT INTO x1 VALUES('bob'), ('alice'), ('cate');\n  CREATE INDEX window ON x1(x COLLATE window);\n  SELECT * FROM x1 ORDER BY x COLLATE window;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE window;\n  CREATE TABLE x1(x);\n  INSERT INTO x1 VALUES('bob'), ('alice'), ('cate');\n  CREATE INDEX window ON x1(x COLLATE window);\n  SELECT * FROM x1 ORDER BY x COLLATE window;\n")
+				return
+			}
+			got := flatten(r)
+			want := "cate bob alice"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  10 ten 15 fifteen 20 {} 20 {} 25 {} 30 thirty 30 thirty 50 {}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "4.0"
+			_res = db.Exec(" CREATE TABLE t4(x, y); ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t4(x, y); ")
+			}
 		}
-	}
-	{ // "11.2"
-		r = db.Query("\n  SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)\n    FROM t1 ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)\n    FROM t1 ORDER BY a;\n")
-			return
+		{ // "4.1"
+			r = db.Query(" \n  SELECT * FROM t4 window, t4;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  SELECT * FROM t4 window, t4;\n")
+			}
 		}
-		got := flatten(r)
-		want := "\n  10 ten 10   15 fifteen 25   20 {} 65        20 {} 65   \n  25 {} 90    30 thirty 150   30 thirty 150   50 {} 200\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "5.0"
+			r = db.Query("\n  CREATE TABLE over(x, over);\n  CREATE TABLE window(x, window);\n  INSERT INTO over VALUES(1, 2), (3, 4), (5, 6);\n  INSERT INTO window VALUES(1, 2), (3, 4), (5, 6);\n  SELECT sum(x) over FROM over\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE over(x, over);\n  CREATE TABLE window(x, window);\n  INSERT INTO over VALUES(1, 2), (3, 4), (5, 6);\n  INSERT INTO window VALUES(1, 2), (3, 4), (5, 6);\n  SELECT sum(x) over FROM over\n")
+				return
+			}
+			got := flatten(r)
+			want := "9"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "11.3.1"
-		r = db.Query("\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)\n")
-			return
+		{ // "5.1"
+			r = db.Query("\n  SELECT sum(x) over over FROM over WINDOW over AS ()\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(x) over over FROM over WINDOW over AS ()\n")
+				return
+			}
+			got := flatten(r)
+			want := "9 9 9"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "5.2"
+			r = db.Query("\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over)\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 6 12"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "11.3.2"
-		r = db.Query("\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 FOLLOWING)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 FOLLOWING)\n")
-			return
+		{ // "5.3"
+			r = db.Query("\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(over) over over over FROM over over WINDOW over AS (ORDER BY over);\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 6 12"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "5.4"
+			r = db.Query("\n  SELECT sum(window) OVER window window FROM window window window window AS (ORDER BY window);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sum(window) OVER window window FROM window window window window AS (ORDER BY window);\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 6 12"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "11.3.3"
-		r = db.Query("\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 PRECEDING)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 PRECEDING)\n")
-			return
+		{ // "5.5"
+			r = db.Query("\n  SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(*) OVER win FROM over\n  WINDOW win AS (ORDER BY x ROWS BETWEEN +2 FOLLOWING AND +3 FOLLOWING)\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 0 0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "7.0"
+			_res = db.Exec("\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x TEXT);\n  CREATE INDEX i1 ON t1(x COLLATE nocase);\n  INSERT INTO t1 VALUES('');\n")
+			}
 		}
-	}
-	{ // "11.4.1"
-		r = db.Query("\n  SELECT y, group_concat(y, '.') OVER win FROM t3\n  WINDOW win AS (\n    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y, group_concat(y, '.') OVER win FROM t3\n  WINDOW win AS (\n    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING\n  );\n")
-			return
+		{ // "8.0"
+			_res = db.Exec("\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE IF NOT EXISTS \"sample\" (\n      \"id\" INTEGER NOT NULL PRIMARY KEY, \n      \"counter\" INTEGER NOT NULL, \n      \"value\" REAL NOT NULL\n  );\n\n  INSERT INTO \"sample\" (counter, value) \n  VALUES (1, 10.), (1, 20.), (2, 1.), (2, 3.), (3, 100.);\n")
+			}
 		}
-		got := flatten(r)
-		want := "\n  fifteen fifteen \n  ten     fifteen.ten \n  thirty  fifteen.ten.thirty\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.1"
+			r = db.Query("\n  SELECT \"counter\", \"value\", RANK() OVER w AS \"rank\" \n  FROM \"sample\"\n  WINDOW w AS (PARTITION BY \"counter\" ORDER BY \"value\" DESC) \n  ORDER BY \"counter\", RANK() OVER w\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"counter\", \"value\", RANK() OVER w AS \"rank\" \n  FROM \"sample\"\n  WINDOW w AS (PARTITION BY \"counter\" ORDER BY \"value\" DESC) \n  ORDER BY \"counter\", RANK() OVER w\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 20.0 1   1 10.0 2   2 3.0 1   2 1.0 2  3 100.0 1\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
+		{ // "8.2"
+			r = db.Query("\n  SELECT \"counter\", \"value\", SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS 2 PRECEDING) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT \"counter\", \"value\", SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS 2 PRECEDING) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 10.0 10.0   1 20.0 30.0   2 1.0 31.0   2 3.0 24.0   3 100.0 104.0\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "8.3"
+			r = db.Query("\n  SELECT SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT SUM(\"value\") OVER \n  (ORDER BY \"id\" ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) \n    FROM \"sample\" \n  ORDER BY \"id\"\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  10.0   30.0   31.0   24.0   104.0\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "9.0"
+			r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT x, group_concat(x) OVER (ORDER BY x ROWS 2 PRECEDING)\n  FROM c;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 1  2 1,2  3 1,2,3  4 2,3,4  5 3,4,5\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "9.3"
+			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "DISTINCT is not supported for window functions") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "DISTINCT is not supported for window functions", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count(DISTINCT x) OVER (ORDER BY x) FROM c;\n")
+			}
+		}
+		{ // "9.4"
+			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FOLLOWING\\\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FOLLOWING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE UNBOUNDED FOLLOWING) FROM c;\n")
+			}
+		}
+		{ // "9.5"
+			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"FOLLOWING\\\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"FOLLOWING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED FOLLOWING AND UNBOUNDED FOLLOWING) FROM c;\n")
+			}
+		}
+		{ // "9.6"
+			_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"PRECEDING\\\": syntax error") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"PRECEDING\\\": syntax error", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (ORDER BY x RANGE BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED PRECEDING) FROM c;\n")
+			}
+		}
+		// foreach {tn frame} "\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n"
+		_items := tclSplitList("\n  1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			frame := _items[_idx+1]
+			_ = _idx
+				{ // "9.7." + tn
+					_res = db.Exec("\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported frame specification") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported frame specification", _res.Error, "\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n    SELECT count() OVER (\n        ORDER BY x ROWS " + frame + " \n    ) FROM c;\n  ")
+					}
+				}
+			}
+			{ // "9.8.1"
+				_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame starting offset must be a non-negative integer") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame starting offset must be a non-negative integer", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN a PRECEDING AND 2 FOLLOWING\n  ) FROM c;\n")
+				}
+			}
+			{ // "9.8.2"
+				_res = db.Exec("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame ending offset must be a non-negative integer") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative integer", _res.Error, "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<5)\n  SELECT count() OVER (\n      ORDER BY x ROWS BETWEEN 2 PRECEDING AND a FOLLOWING\n  ) FROM c;\n")
+				}
+			}
+			{ // "10.0"
+				r = db.Query("\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH t1(a,b) AS (VALUES(1,2))\n  SELECT count() FILTER (where b<>5) OVER w1\n    FROM t1\n    WINDOW w1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING);\n")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			// foreach {tn stmt} "\n  1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"\n"
+			_items := tclSplitList("\n  1 \"SELECT nth_value(b, 0) OVER (ORDER BY a) FROM t1\"\n  2 \"SELECT nth_value(b, -1) OVER (ORDER BY a) FROM t1\"\n  3 \"SELECT nth_value(b, '4ab') OVER (ORDER BY a) FROM t1\"\n  4 \"SELECT nth_value(b, NULL) OVER (ORDER BY a) FROM t1\"\n  5 \"SELECT nth_value(b, 8.5) OVER (ORDER BY a) FROM t1\"\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				stmt := _items[_idx+1]
+				_ = _idx
+					{ // "10.1." + tn
+						_res = db.Exec("\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "second argument to nth_value must be a positive integer") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "second argument to nth_value must be a positive integer", _res.Error, "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+						}
+					}
+				}
+				// foreach {tn stmt res} "\n  1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}\n"
+				_items := tclSplitList("\n  1 \"SELECT nth_value(b, 1) OVER (ORDER BY a) FROM t1\"         {2 2 2}\n  2 \"SELECT nth_value(b, 2) OVER (ORDER BY a) FROM t1\"         {{} 3 3}\n  3 \"SELECT nth_value(b, '2') OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  4 \"SELECT nth_value(b, 2.0) OVER (ORDER BY a) FROM t1\"       {{} 3 3}\n  5 \"SELECT nth_value(b, '2.0') OVER (ORDER BY a) FROM t1\"     {{} 3 3}\n  6 \"SELECT nth_value(b, 10000000) OVER (ORDER BY a) FROM t1\"  {{} {} {}}\n")
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					stmt := _items[_idx+1]
+					res := _items[_idx+2]
+					_ = _idx
+						{ // "10.2." + tn
+							r = db.Query("\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t1(a,b) AS ( VALUES(1, 2), (2, 3), (3, 4) )\n    " + stmt + "\n  ")
+								return
+							}
+							got := flatten(r)
+							want := res
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
+						}
+					}
+					db.Close()
+					db, err = frigolite.Open("")
+					if err != nil { t.Fatal(err) }
+					{ // "11.0"
+						_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(10),(15),(20),(20),(25),(30),(30),(50);\n  CREATE TABLE t3(x INT, y VARCHAR);\n  INSERT INTO t3(x,y) VALUES(10,'ten'),('15','fifteen'),(30,'thirty');\n")
+						}
+					}
+					{ // "11.1"
+						r = db.Query("\n  SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, (SELECT y FROM t3 WHERE x=a) FROM t1 ORDER BY a;\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  10 ten 15 fifteen 20 {} 20 {} 25 {} 30 thirty 30 thirty 50 {}\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "11.2"
+						r = db.Query("\n  SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)\n    FROM t1 ORDER BY a;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, (SELECT y FROM t3 WHERE x=a), sum(a) OVER (ORDER BY a)\n    FROM t1 ORDER BY a;\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  10 ten 10   15 fifteen 25   20 {} 65        20 {} 65   \n  25 {} 90    30 thirty 150   30 thirty 150   50 {} 200\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "11.3.1"
+						r = db.Query("\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "11.3.2"
+						r = db.Query("\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 FOLLOWING)\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 FOLLOWING)\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "11.3.3"
+						r = db.Query("\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 PRECEDING)\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, sum(a) OVER win FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN UNBOUNDED PRECEDING AND 0 PRECEDING)\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  10 10 15 25 20 45 20 65 25 90 30 120 30 150 50 200\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "11.4.1"
+						r = db.Query("\n  SELECT y, group_concat(y, '.') OVER win FROM t3\n  WINDOW win AS (\n    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING\n  );\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT y, group_concat(y, '.') OVER win FROM t3\n  WINDOW win AS (\n    ORDER BY y RANGE BETWEEN UNBOUNDED PRECEDING AND 10 PRECEDING\n  );\n")
+							return
+						}
+						got := flatten(r)
+						want := "\n  fifteen fifteen \n  ten     fifteen.ten \n  thirty  fifteen.ten.thirty\n"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
 }

@@ -18,367 +18,367 @@ func Test_join9(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// foreach {id schema} "\n  1 {\n    CREATE TABLE t3(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n  }\n  2 {\n    CREATE TABLE t3(id INT PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t4(id INT PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5(id INT PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6(id INT PRIMARY KEY, z INT) WITHOUT ROWID;\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n  }\n  3 {\n    CREATE TABLE t3x(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4x(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5x(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6x(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3x(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4x(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5x(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6x(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3x LIMIT 1000;\n    CREATE VIEW t4 AS SELECT * FROM t4x LIMIT 1000;\n    CREATE VIEW t5 AS SELECT * FROM t5x LIMIT 1000;\n    CREATE VIEW t6 AS SELECT * FROM t6x LIMIT 1000;\n  }\n  4 {\n    CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;\n  }\n  5 {\n    CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b LIMIT 50;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b LIMIT 100;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;\n  }\n"
-	_items := []string{"\n  1 {\n    CREATE TABLE t3(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n  }\n  2 {\n    CREATE TABLE t3(id INT PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t4(id INT PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5(id INT PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6(id INT PRIMARY KEY, z INT) WITHOUT ROWID;\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n  }\n  3 {\n    CREATE TABLE t3x(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4x(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5x(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6x(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3x(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4x(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5x(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6x(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3x LIMIT 1000;\n    CREATE VIEW t4 AS SELECT * FROM t4x LIMIT 1000;\n    CREATE VIEW t5 AS SELECT * FROM t5x LIMIT 1000;\n    CREATE VIEW t6 AS SELECT * FROM t6x LIMIT 1000;\n  }\n  4 {\n    CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;\n  }\n  5 {\n    CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b LIMIT 50;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b LIMIT 100;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    CREATE TABLE t3(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n  }\n  2 {\n    CREATE TABLE t3(id INT PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t4(id INT PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5(id INT PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6(id INT PRIMARY KEY, z INT) WITHOUT ROWID;\n    CREATE TABLE dual(dummy TEXT);\n    INSERT INTO dual(dummy) VALUES('x');\n    INSERT INTO t3(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n  }\n  3 {\n    CREATE TABLE t3x(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4x(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5x(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6x(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3x(id,w) VALUES(2,'two'),(3,'three'),(6,'six'),(7,'seven');\n    INSERT INTO t4x(id,x) VALUES(2,'alice'),(4,'bob'),(6,'cindy'),(8,'dave');\n    INSERT INTO t5x(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow'),(4,'green'),\n                               (5,'blue');\n    INSERT INTO t6x(id,z) VALUES(3,333),(4,444),(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3x LIMIT 1000;\n    CREATE VIEW t4 AS SELECT * FROM t4x LIMIT 1000;\n    CREATE VIEW t5 AS SELECT * FROM t5x LIMIT 1000;\n    CREATE VIEW t6 AS SELECT * FROM t6x LIMIT 1000;\n  }\n  4 {\n    CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT);\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;\n  }\n  5 {\n    CREATE TABLE t3a(id INTEGER PRIMARY KEY, w TEXT) WITHOUT ROWID;\n    CREATE TABLE t3b(id INTEGER PRIMARY KEY, w TEXT);\n    CREATE TABLE t4a(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t4b(id INTEGER PRIMARY KEY, x TEXT) WITHOUT ROWID;\n    CREATE TABLE t5a(id INTEGER PRIMARY KEY, y TEXT);\n    CREATE TABLE t5b(id INTEGER PRIMARY KEY, y TEXT) WITHOUT ROWID;\n    CREATE TABLE t6a(id INTEGER PRIMARY KEY, z INT);\n    CREATE TABLE t6b(id INTEGER PRIMARY KEY, z INT);\n    CREATE VIEW dual(dummy) AS VALUES('x');\n    INSERT INTO t3a(id,w) VALUES(2,'two'),(3,'three');\n    INSERT INTO t3b(id,w) VALUES(6,'six'),(7,'seven');\n    INSERT INTO t4a(id,x) VALUES(2,'alice'),(4,'bob');\n    INSERT INTO t4b(id,x) VALUES(6,'cindy'),(8,'dave');\n    INSERT INTO t5a(id,y) VALUES(1,'red'),(2,'orange'),(3,'yellow');\n    INSERT INTO t5b(id,y) VALUES(4,'green'),(5,'blue');\n    INSERT INTO t6a(id,z) VALUES(3,333),(4,444);\n    INSERT INTO t6b(id,z) VALUES(5,555),(0,1000),(9,999);\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION ALL SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION ALL SELECT * FROM t4b LIMIT 50;\n    CREATE VIEW t5 AS SELECT * FROM t5a UNION ALL SELECT * FROM t5b LIMIT 100;\n    CREATE VIEW t6 AS SELECT * FROM t6a UNION ALL SELECT * FROM t6b;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	id := _items[_idx+0]
-	schema := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "join9-" + id + ".setup"
-			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+		id := _items[_idx+0]
+		schema := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "join9-" + id + ".setup"
+				_res = db.Exec(schema)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+				}
+			}
+			{ // "join9-" + id + ".100"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".101"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".102"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".200"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".201"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".300"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".301"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".400"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".401"
+				r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".402"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".403"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".404"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".405"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".406"
+				r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".500"
+				r = db.Query("\n    SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".600"
+				r = db.Query("\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".700"
+				r = db.Query("\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x<>'bob' OR x IS NULL\n      ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x<>'bob' OR x IS NULL\n      ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".800"
+				r = db.Query("\n    WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".900"
+				r = db.Query("\n    SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".910"
+				r = db.Query("\n    SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".920"
+				r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".920"
+				r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".930"
+				r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".940"
+				r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".950"
+				r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".1000"
+				r = db.Query("\n    WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".1010"
+				r = db.Query("\n    SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".1020"
+				r = db.Query("\n    SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "join9-" + id + ".1030"
+				r = db.Query("\n    WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "join9-" + id + ".100"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".101"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL LEFT JOIN t5 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".102"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 LEFT JOIN t5 USING(id) LEFT JOIN t6 USING(id)\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".200"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".201"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL RIGHT JOIN t4 NATURAL LEFT JOIN t6\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -    2   2   - \n    4   bob    green   444  4   4   4 \n    6   cindy  -       -    6   -   - \n    8   dave   -       -    8   -   - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".300"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".301"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL RIGHT JOIN t5 NATURAL RIGHT JOIN t6\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -    -       1000  -   -   0 \n    3   -    yellow  333   -   3   3 \n    4   bob  green   444   4   4   4 \n    5   -    blue    555   -   5   5 \n    9   -    -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".400"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".401"
-			r = db.Query("\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t5 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".402"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t4 NATURAL FULL JOIN t6 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".403"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t4 NATURAL FULL JOIN t6\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".404"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t5 NATURAL FULL JOIN t6 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".405"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t4 NATURAL FULL JOIN t5\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".406"
-			r = db.Query("\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, x, y, z, t4.id, t5.id, t6.id\n      FROM t6 NATURAL FULL JOIN t5 NATURAL FULL JOIN t4\n     ORDER BY id;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0    -      -       1000  -   -   0 \n    1    -      red     -     -   1   - \n    2    alice  orange  -     2   2   - \n    3    -      yellow  333   -   3   3 \n    4    bob    green   444   4   4   4 \n    5    -      blue    555   -   5   5 \n    6    cindy  -       -     6   -   - \n    8    dave   -       -     8   -   - \n    9    -      -       999   -   -   9 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".500"
-			r = db.Query("\n    SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, w, x, y, z\n      FROM t3 FULL JOIN t4 USING(id)\n              NATURAL FULL JOIN t5\n              FULL JOIN t6 USING(id)\n      ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".600"
-			r = db.Query("\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".700"
-			r = db.Query("\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x<>'bob' OR x IS NULL\n      ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id, w, x, y, z\n       FROM t3 JOIN dual AS d1 ON true\n               FULL JOIN t4 USING(id)\n               JOIN dual AS d2 ON true\n               NATURAL FULL JOIN t5\n               JOIN dual AS d3 ON true\n               FULL JOIN t6 USING(id)\n               CROSS JOIN dual AS d4\n      WHERE x<>'bob' OR x IS NULL\n      ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".800"
-			r = db.Query("\n    WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t7(id,a) AS MATERIALIZED (SELECT * FROM t4 WHERE false)\n    SELECT *\n      FROM t7 \n           JOIN t7 AS t7b USING(id)\n           FULL JOIN t3 USING(id);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   -  -  two  \n    3   -  -  three\n    6   -  -  six  \n    7   -  -  seven\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".900"
-			r = db.Query("\n    SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM (t3 NATURAL FULL JOIN t4)\n           NATURAL FULL JOIN\n           (t5 NATURAL FULL JOIN t6)\n    ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".910"
-			r = db.Query("\n    SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 NATURAL FULL JOIN \n           (t4 NATURAL FULL JOIN\n            (t5 NATURAL FULL JOIN t6))\n    ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".920"
-			r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".920"
-			r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 FULL JOIN (\n                    t5 FULL JOIN t6 USING (id)\n                ) USING(id)\n           ) USING(id)\n    ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    0   -      -      -       1000\n    1   -      -      red     -   \n    2   two    alice  orange  -   \n    3   three  -      yellow  333 \n    4   -      bob    green   444 \n    5   -      -      blue    555 \n    6   six    cindy  -       -   \n    7   seven  -      -       -   \n    8   -      dave   -       -   \n    9   -      -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".930"
-			r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n               t4 FULL JOIN (\n                   t5 FULL JOIN t6 USING(id)\n               ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    6   cindy  -       -   \n    7   seven  -   -      -       -   \n    -   -      8   dave   -       -   \n    -   -      9   -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".940"
-			r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 RIGHT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    -   -      0   -      -       1000\n    -   -      1   -      red     -   \n    2   two    2   alice  orange  -   \n    3   three  3   -      yellow  333 \n    -   -      4   bob    green   444 \n    -   -      5   -      blue    555 \n    6   six    -   -      -       -   \n    7   seven  -   -      -       -   \n    -   -      9   -      -       999 \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".950"
-			r = db.Query("\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT *\n      FROM t3 FULL JOIN (\n                t4 LEFT JOIN (\n                    t5 FULL JOIN t6 USING(id)\n                ) USING(id)\n           ) AS j1 ON j1.id=t3.id\n     ORDER BY coalesce(t3.id,j1.id);\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   two    2   alice  orange  -  \n    3   three  -   -      -       -  \n    -   -      4   bob    green   444\n    6   six    6   cindy  -       -  \n    7   seven  -   -      -       -  \n    -   -      8   dave   -       -  \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".1000"
-			r = db.Query("\n    WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t56(id,y,z) AS (SELECT * FROM t5 FULL JOIN t6 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t4 JOIN t56 USING(id)\n    ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".1010"
-			r = db.Query("\n    SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id,x,y,z\n      FROM t4 INNER JOIN (t5 FULL JOIN t6 USING(id)) USING(id)\n     ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    2   alice  orange  -  \n    4   bob    green   444\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".1020"
-			r = db.Query("\n    SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id,x,y,z\n      FROM t4 FULL JOIN t5 USING(id) INNER JOIN t6 USING(id)\n     ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "join9-" + id + ".1030"
-			r = db.Query("\n    WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    WITH t45(id,x,y) AS (SELECT * FROM t4 FULL JOIN t5 USING(id) LIMIT 50)\n    SELECT id,x,y,z FROM t45 JOIN t6 USING(id)\n    ORDER BY 1;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    3   -    yellow  333\n    4   bob  green   444\n    5   -    blue    555\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

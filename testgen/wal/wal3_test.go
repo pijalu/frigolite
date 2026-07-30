@@ -113,375 +113,342 @@ func Test_wal3(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn syncmode synccount} "\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n"
-	_items := []string{"\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n"}
+	_items := tclSplitList("\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	syncmode := _items[_idx+1]
-	synccount := _items[_idx+2]
+		tn := _items[_idx+0]
+		syncmode := _items[_idx+1]
+		synccount := _items[_idx+2]
+		_ = _idx
+			// proc definition (not transpiled)
+			{ // do_test "wal3-3." + tn
+				os.Remove("test.db")
+				t.Skipf("TODO: %s not implemented in frigolite", "testvfs T")
+				t.Skipf("TODO: %s not implemented in frigolite", "T filter {}")
+				t.Skipf("TODO: %s not implemented in frigolite", "T script sync_counter")
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query("PRAGMA synchronous = " + syncmode)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA synchronous = " + syncmode)
+				}
+				r = db.Query("PRAGMA checkpoint_fullfsync = 0")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA checkpoint_fullfsync = 0")
+				}
+				r = db.Query(" PRAGMA journal_mode = WAL ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+				}
+				_res = db.Exec(" CREATE TABLE filler(a,b,c); ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE filler(a,b,c); ")
+				}
+				var _syncs = "list" // TCL namespace variable
+				_ = _syncs // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "T filter xSync")
+				r = db.Query("\n      CREATE TABLE x(y);\n      INSERT INTO x VALUES('z');\n      PRAGMA wal_checkpoint;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE x(y);\n      INSERT INTO x VALUES('z');\n      PRAGMA wal_checkpoint;\n    ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "T filter {}")
+				_ = _syncs // TCL namespace variable (query)
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "T delete")
+		}
+		{ // do_test "wal3-5.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
+		t.Skipf("TODO: %s not implemented in frigolite", "T script method_callback")
 		// proc definition (not transpiled)
-		{ // do_test "wal3-3." + tn
+		t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmBarrier")
+		var testrc = ""
+		_ = testrc // suppress unused warning
+		var testmsg = ""
+		_ = testmsg // suppress unused warning
+		var barrier_count = "0"
+		_ = barrier_count // suppress unused warning
+		var wal3_do_lockfailure = "0"
+		_ = wal3_do_lockfailure // suppress unused warning
+		{ // do_test "wal3-5.2"
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+			r = db.Query(" SELECT * FROM t1 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "wal3-5.3"
+			_list := tclList([]string{_testrc, _testmsg})
+			_ = _list
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmBarrier")
+		var barrier_count = "0"
+		_ = barrier_count // suppress unused warning
+		var wal3_do_lockfailure = "1"
+		_ = wal3_do_lockfailure // suppress unused warning
+		var testrc = ""
+		_ = testrc // suppress unused warning
+		var testmsg = ""
+		_ = testmsg // suppress unused warning
+		{ // do_test "wal3-5.4"
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+			r = db.Query(" SELECT * FROM t1 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "wal3-5.5"
+			_list := tclList([]string{_testrc, _testmsg})
+			_ = _list
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "T delete")
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
+		{ // do_test "wal3-6.1.1"
 			os.Remove("test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "testvfs T")
-			t.Skipf("TODO: %s not implemented in frigolite", "T filter {}")
-			t.Skipf("TODO: %s not implemented in frigolite", "T script sync_counter")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			r = db.Query("PRAGMA synchronous = " + syncmode)
+			r = db.Query(" PRAGMA auto_vacuum = off ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA synchronous = " + syncmode)
-			}
-			r = db.Query("PRAGMA checkpoint_fullfsync = 0")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA checkpoint_fullfsync = 0")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = off ")
 			}
 			r = db.Query(" PRAGMA journal_mode = WAL ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
 			}
-			_res = db.Exec(" CREATE TABLE filler(a,b,c); ")
+			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('o', 't');\n    INSERT INTO t1 VALUES('t', 'f');\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE filler(a,b,c); ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('o', 't');\n    INSERT INTO t1 VALUES('t', 'f');\n  ")
 			}
-			var _syncs = "list" // TCL namespace variable
-			_ = _syncs // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "T filter xSync")
-			r = db.Query("\n      CREATE TABLE x(y);\n      INSERT INTO x VALUES('z');\n      PRAGMA wal_checkpoint;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE x(y);\n      INSERT INTO x VALUES('z');\n      PRAGMA wal_checkpoint;\n    ")
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "T filter {}")
-			_ = _syncs // TCL namespace variable (query)
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "T delete")
-	}
-	}
-	{ // do_test "wal3-5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "T script method_callback")
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmBarrier")
-	var testrc = ""
-	_ = testrc // suppress unused warning
-	var testmsg = ""
-	_ = testmsg // suppress unused warning
-	var barrier_count = "0"
-	_ = barrier_count // suppress unused warning
-	var wal3_do_lockfailure = "0"
-	_ = wal3_do_lockfailure // suppress unused warning
-	{ // do_test "wal3-5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-		}
-	}
-	{ // do_test "wal3-5.3"
-		_list := tclList([]string{_testrc, _testmsg})
-		_ = _list
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmBarrier")
-	var barrier_count = "0"
-	_ = barrier_count // suppress unused warning
-	var wal3_do_lockfailure = "1"
-	_ = wal3_do_lockfailure // suppress unused warning
-	var testrc = ""
-	_ = testrc // suppress unused warning
-	var testmsg = ""
-	_ = testmsg // suppress unused warning
-	{ // do_test "wal3-5.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-		}
-	}
-	{ // do_test "wal3-5.5"
-		_list := tclList([]string{_testrc, _testmsg})
-		_ = _list
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "T delete")
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
-	{ // do_test "wal3-6.1.1"
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" PRAGMA auto_vacuum = off ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = off ")
-		}
-		r = db.Query(" PRAGMA journal_mode = WAL ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
-		}
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('o', 't');\n    INSERT INTO t1 VALUES('t', 'f');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('o', 't');\n    INSERT INTO t1 VALUES('t', 'f');\n  ")
-		}
-	}
-	{ // do_test "wal3-6.1.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		db3, err := frigolite.Open("test.db")
-		defer db3.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" BEGIN ; SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT * FROM t1 ")
-		}
-	}
-	{ // do_test "wal3-6.1.3"
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	t.Skipf("TODO: %s not implemented in frigolite", "T script lock_callback")
-	// proc definition (not transpiled)
-	{ // do_test "wal3-6.1.4"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "wal3-6.1.5"
-		db3.Exec("COMMIT")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2.Exec(" PRAGMA wal_checkpoint ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var sz1 = "file size test.db-wal"
-		_ = sz1 // suppress unused warning
-		db2.Exec(" INSERT INTO t1 VALUES('s', 'e') ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var sz2 = "file size test.db-wal"
-		_ = sz2 // suppress unused warning
-		// expr $sz2>$sz1 → "$sz2>$sz1"
-	}
-	{ // do_test "wal3-6.1.6"
-		_res = db.Exec(" COMMIT ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
-		}
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-		}
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
-		}
-	}
-	{ // do_test "wal3-6.1.7"
-		db2.Exec(" PRAGMA wal_checkpoint ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var sz1 = "file size test.db-wal"
-		_ = sz1 // suppress unused warning
-		db2.Exec(" INSERT INTO t1 VALUES('n', 't') ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var sz2 = "file size test.db-wal"
-		_ = sz2 // suppress unused warning
-		// expr $sz2==$sz1 → "$sz2==$sz1"
-	}
-	db3.Close()
-	db2.Close()
-	{ // do_test "wal3-6.2.1"
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" PRAGMA auto_vacuum = off ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = off ")
-		}
-		r = db.Query(" PRAGMA journal_mode = WAL ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
-		}
-		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('h', 'h');\n    INSERT INTO t1 VALUES('l', 'b');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('h', 'h');\n    INSERT INTO t1 VALUES('l', 'b');\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	t.Skipf("TODO: %s not implemented in frigolite", "T script lock_callback")
-	// proc definition (not transpiled)
-	{ // do_test "wal3-6.2.2"
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-		}
-	}
-	{ // do_test "wal3-6.2.3"
-		_ = _R // TCL namespace variable (query)
-	}
-	{ // do_test "wal3-6.2.4"
-		var sz1 = "file size test.db-wal"
-		_ = sz1 // suppress unused warning
-		_res = db.Exec(" INSERT INTO t1 VALUES('b', 'c'); ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('b', 'c'); ")
-		}
-		var sz2 = "file size test.db-wal"
-		_ = sz2 // suppress unused warning
-		// expr $sz2 > $sz1 → "$sz2 > $sz1"
-	}
-	{ // do_test "wal3-6.2.5"
-		db2.Exec(" COMMIT ")
-		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-		}
-		var sz1 = "file size test.db-wal"
-		_ = sz1 // suppress unused warning
-		_res = db.Exec(" INSERT INTO t1 VALUES('n', 'o'); ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('n', 'o'); ")
-		}
-		var sz2 = "file size test.db-wal"
-		_ = sz2 // suppress unused warning
-		// expr $sz2 == $sz1 → "$sz2 == $sz1"
-	}
-	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "T delete")
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
-	{ // do_test "wal3-7.1.1"
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "T script method_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xOpen")
-	// proc definition (not transpiled)
-	{ // do_test "wal3-7.1.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT * FROM blue ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	var _locks = "list" // TCL namespace variable
-	_ = _locks // suppress unused warning
-	// proc definition (not transpiled)
-	{ // do_test "wal3-7.1.3"
-		r = db.Query(" SELECT * FROM blue ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
-		}
-	}
-	{ // do_test "wal3-7.1.4"
-		_ = _locks // TCL namespace variable (query)
-	}
-	var _locks = "list" // TCL namespace variable
-	_ = _locks // suppress unused warning
-	// proc definition (not transpiled)
-	{ // do_test "wal3-7.2.1"
-		r = db.Query(" SELECT * FROM blue ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
-		}
-	}
-	{ // do_test "wal3-7.2.2"
-		_ = _locks // TCL namespace variable (query)
-	}
-	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "T delete")
-	var nConn = "50"
-	_ = nConn // suppress unused warning
-	if tclBool("*BSD $tcl_platform(os)") {
-		var nConn = "25"
-		_ = nConn // suppress unused warning
-	}
-	{ // do_test "wal3-9.0"
-		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
-		}
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < nConn_n }() {
-		var c = "db" + i
-		_ = c // suppress unused warning
-		{ // do_test "wal3-9.1." + i
-			c, err := frigolite.Open("test.db")
-			defer c.Close()
+		{ // do_test "wal3-6.1.2"
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
 			if err != nil { t.Fatal(err) }
-			_res = db.Exec(" UPDATE whoami SET x = $c ")
+			db3, err := frigolite.Open("test.db")
+			defer db3.Close()
+			if err != nil { t.Fatal(err) }
+			r = db.Query(" BEGIN ; SELECT * FROM t1 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "wal3-6.1.3"
+			r = db.Query(" PRAGMA wal_checkpoint ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
+		t.Skipf("TODO: %s not implemented in frigolite", "T script lock_callback")
+		// proc definition (not transpiled)
+		{ // do_test "wal3-6.1.4"
+			r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
+			}
+		}
+		{ // do_test "wal3-6.1.5"
+			db3.Exec("COMMIT")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			db2.Exec(" PRAGMA wal_checkpoint ")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			var sz1 = "file size test.db-wal"
+			_ = sz1 // suppress unused warning
+			db2.Exec(" INSERT INTO t1 VALUES('s', 'e') ")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			var sz2 = "file size test.db-wal"
+			_ = sz2 // suppress unused warning
+			// expr $sz2>$sz1 → "$sz2>$sz1"
+		}
+		{ // do_test "wal3-6.1.6"
+			_res = db.Exec(" COMMIT ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE whoami SET x = $c ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
-			r = db.Query("\n      BEGIN;\n      SELECT * FROM whoami\n    ")
+			r = db.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      SELECT * FROM whoami\n    ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 			}
-		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < nConn_n }() {
-		var c = "db" + i
-		_ = c // suppress unused warning
-		{ // do_test "wal3-9.2." + i
-			r = db.Query(" SELECT * FROM whoami ")
+			r = db.Query("\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM whoami ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1;\n  ")
 			}
 		}
-		// incr i 1
+		{ // do_test "wal3-6.1.7"
+			db2.Exec(" PRAGMA wal_checkpoint ")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			var sz1 = "file size test.db-wal"
+			_ = sz1 // suppress unused warning
+			db2.Exec(" INSERT INTO t1 VALUES('n', 't') ")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			var sz2 = "file size test.db-wal"
+			_ = sz2 // suppress unused warning
+			// expr $sz2==$sz1 → "$sz2==$sz1"
+		}
+		db3.Close()
+		db2.Close()
+		{ // do_test "wal3-6.2.1"
+			os.Remove("test.db")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			r = db.Query(" PRAGMA auto_vacuum = off ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = off ")
+			}
+			r = db.Query(" PRAGMA journal_mode = WAL ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+			}
+			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('h', 'h');\n    INSERT INTO t1 VALUES('l', 'b');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('h', 'h');\n    INSERT INTO t1 VALUES('l', 'b');\n  ")
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
+		t.Skipf("TODO: %s not implemented in frigolite", "T script lock_callback")
+		// proc definition (not transpiled)
+		{ // do_test "wal3-6.2.2"
+			r = db.Query(" PRAGMA wal_checkpoint ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			}
+		}
+		{ // do_test "wal3-6.2.3"
+			_ = _R // TCL namespace variable (query)
+		}
+		{ // do_test "wal3-6.2.4"
+			var sz1 = "file size test.db-wal"
+			_ = sz1 // suppress unused warning
+			_res = db.Exec(" INSERT INTO t1 VALUES('b', 'c'); ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('b', 'c'); ")
+			}
+			var sz2 = "file size test.db-wal"
+			_ = sz2 // suppress unused warning
+			// expr $sz2 > $sz1 → "$sz2 > $sz1"
+		}
+		{ // do_test "wal3-6.2.5"
+			db2.Exec(" COMMIT ")
+			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			r = db.Query(" PRAGMA wal_checkpoint ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			}
+			var sz1 = "file size test.db-wal"
+			_ = sz1 // suppress unused warning
+			_res = db.Exec(" INSERT INTO t1 VALUES('n', 'o'); ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('n', 'o'); ")
+			}
+			var sz2 = "file size test.db-wal"
+			_ = sz2 // suppress unused warning
+			// expr $sz2 == $sz1 → "$sz2 == $sz1"
+		}
+		db2.Close()
+		t.Skipf("TODO: %s not implemented in frigolite", "T delete")
 		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
+		{ // do_test "wal3-7.1.1"
+			os.Remove("test.db")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE blue(red PRIMARY KEY, green);\n  ")
 			}
 		}
-	}
-	sz := "1024 * (2+$AUTOVACUUM)"
-	{ // do_test "wal3-9.3"
+		t.Skipf("TODO: %s not implemented in frigolite", "T script method_callback")
+		t.Skipf("TODO: %s not implemented in frigolite", "T filter xOpen")
+		// proc definition (not transpiled)
+		{ // do_test "wal3-7.1.2"
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			r = db.Query(" SELECT * FROM blue ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
+		var _locks = "list" // TCL namespace variable
+		_ = _locks // suppress unused warning
+		// proc definition (not transpiled)
+		{ // do_test "wal3-7.1.3"
+			r = db.Query(" SELECT * FROM blue ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
+			}
+		}
+		{ // do_test "wal3-7.1.4"
+			_ = _locks // TCL namespace variable (query)
+		}
+		var _locks = "list" // TCL namespace variable
+		_ = _locks // suppress unused warning
+		// proc definition (not transpiled)
+		{ // do_test "wal3-7.2.1"
+			r = db.Query(" SELECT * FROM blue ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM blue ")
+			}
+		}
+		{ // do_test "wal3-7.2.2"
+			_ = _locks // TCL namespace variable (query)
+		}
+		db2.Close()
+		t.Skipf("TODO: %s not implemented in frigolite", "T delete")
+		var nConn = "50"
+		_ = nConn // suppress unused warning
+		if tclBool("*BSD $tcl_platform(os)") {
+			var nConn = "25"
+			_ = nConn // suppress unused warning
+		}
+		{ // do_test "wal3-9.0"
+			os.Remove("test.db")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
+			}
+		}
 		var i = "0"
 		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < (nConn_n-1) }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < nConn_n }() {
+			var c = "db" + i
+			_ = c // suppress unused warning
+			{ // do_test "wal3-9.1." + i
+				c, err := frigolite.Open("test.db")
+				defer c.Close()
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec(" UPDATE whoami SET x = $c ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE whoami SET x = $c ")
+				}
+				r = db.Query("\n      BEGIN;\n      SELECT * FROM whoami\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      BEGIN;\n      SELECT * FROM whoami\n    ")
+				}
+			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -490,21 +457,54 @@ func Test_wal3(t *testing.T) {
 				}
 			}
 		}
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+		var i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < nConn_n }() {
+			var c = "db" + i
+			_ = c // suppress unused warning
+			{ // do_test "wal3-9.2." + i
+				r = db.Query(" SELECT * FROM whoami ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM whoami ")
+				}
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "byte_is_zero test.db [expr $sz-1024]")
-	}
-	{ // do_test "wal3-9.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "db[expr $nConn-1] close")
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+		sz := "1024 * (2+$AUTOVACUUM)"
+		{ // do_test "wal3-9.3"
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < (nConn_n-1) }() {
+				t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+			r = db.Query(" PRAGMA wal_checkpoint ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "byte_is_zero test.db [expr $sz-1024]")
 		}
-		var sz2 = "file size test.db"
-		_ = sz2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "byte_is_zero test.db [expr $sz-1024]")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test wal3-10.$tn.1 {\n    sql1 {\n      PRAGMA...}")
+		{ // do_test "wal3-9.4"
+			t.Skipf("TODO: %s not implemented in frigolite", "db[expr $nConn-1] close")
+			r = db.Query(" PRAGMA wal_checkpoint ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+			}
+			var sz2 = "file size test.db"
+			_ = sz2 // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "byte_is_zero test.db [expr $sz-1024]")
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test wal3-10.$tn.1 {\n    sql1 {\n      PRAGMA...}")
 }

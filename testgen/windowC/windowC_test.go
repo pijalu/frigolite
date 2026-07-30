@@ -26,75 +26,75 @@ func Test_windowC(t *testing.T) {
 		}
 	}
 	// foreach {tn bBlob seps} "\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n"
-	_items := []string{"\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n"}
+	_items := tclSplitList("\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	bBlob := _items[_idx+1]
-	seps := _items[_idx+2]
-		for _, _type := range []string{"text blob"} {
-			{ // do_test "1." + _type + "." + tn + ".1"
-				_res = db.Exec(" DELETE FROM x1 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x1 ")
-				}
-				for _, s := range []string{seps} {
-					if _type == "text" {
-						_res = db.Exec("INSERT INTO x1 VALUES(NULL, $s)")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, $s)")
-						}
-					} else {
-						_res = db.Exec("INSERT INTO x1 VALUES(NULL, CAST ($s AS blob))")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, CAST ($s AS blob))")
-						}
-					}
-				}
-			}
-			// foreach {tn2 win} "\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    "
-			_items := []string{"\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    "}
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn2 := _items[_idx+0]
-			win := _items[_idx+1]
-				{ // do_test "1." + _type + "." + tn + ".2." + tn2
-					_res = db.Exec("\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
+		tn := _items[_idx+0]
+		bBlob := _items[_idx+1]
+		seps := _items[_idx+2]
+		_ = _idx
+			for _, _type := range tclSplitList("text blob") {
+				{ // do_test "1." + _type + "." + tn + ".1"
+					_res = db.Exec(" DELETE FROM x1 ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x1 ")
+					}
+					for _, s := range tclSplitList(seps) {
+						if _type == "text" {
+							_res = db.Exec("INSERT INTO x1 VALUES(NULL, $s)")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, $s)")
+							}
+						} else {
+							_res = db.Exec("INSERT INTO x1 VALUES(NULL, CAST ($s AS blob))")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1 VALUES(NULL, CAST ($s AS blob))")
+							}
+						}
+					}
+				}
+				// foreach {tn2 win} "\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    "
+				_items := tclSplitList("\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    ")
+				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+					tn2 := _items[_idx+0]
+					win := _items[_idx+1]
+					_ = _idx
+						{ // do_test "1." + _type + "." + tn + ".2." + tn2
+							_res = db.Exec("\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
+							}
+						}
 					}
 				}
 			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "2.0"
+				r = db.Query("\n  PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
+					return
+				}
+				got := flatten(r)
+				want := "{} 1 蕕郐䔓硑ᇍ䫎 1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.0"
-		r = db.Query("\n  PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding=UTF16le;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} 1 蕕郐䔓硑ᇍ䫎 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.1"
-		r = db.Query("\n  PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} 1 喅킐ፅ典촑칊 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "2.1"
+				r = db.Query("\n  PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA encoding=UTF16be;\n  WITH separator(x) AS (VALUES(',a,'),(',bc,')),\n       value(y) AS (VALUES(1),(x'5585d09013455178cd11ce4a'))\n  SELECT group_concat(y,x) OVER (ORDER BY x ROWS BETWEEN 1 PRECEDING AND 1 PRECEDING)\n  FROM separator, value;\n")
+					return
+				}
+				got := flatten(r)
+				want := "{} 1 喅킐ፅ典촑칊 1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

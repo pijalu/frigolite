@@ -28,205 +28,205 @@ func Test_fkey8(t *testing.T) {
 		}
 	}
 	// foreach {tn use_stmt sql schema} "\n  1   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1);\n  }\n\n  2.1     0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n  }\n  2.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET NULL);\n  }\n  2.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET DEFAULT);\n  }\n\n  3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n    CREATE TRIGGER ct1 AFTER DELETE ON c1 BEGIN\n      INSERT INTO p1 VALUES('x');\n    END;\n  }\n\n  4   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1);\n  }\n\n  5.1   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE CASCADE);\n  }\n  5.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET NULL);\n  }\n  5.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET DEFAULT);\n  }\n\n  6.1   1 \"UPDATE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.2   0 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.3   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE CASCADE, c);\n  }\n  6.4   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b NOT NULL REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n\n"
-	_items := []string{"\n  1   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1);\n  }\n\n  2.1     0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n  }\n  2.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET NULL);\n  }\n  2.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET DEFAULT);\n  }\n\n  3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n    CREATE TRIGGER ct1 AFTER DELETE ON c1 BEGIN\n      INSERT INTO p1 VALUES('x');\n    END;\n  }\n\n  4   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1);\n  }\n\n  5.1   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE CASCADE);\n  }\n  5.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET NULL);\n  }\n  5.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET DEFAULT);\n  }\n\n  6.1   1 \"UPDATE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.2   0 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.3   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE CASCADE, c);\n  }\n  6.4   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b NOT NULL REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n\n"}
+	_items := tclSplitList("\n  1   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1);\n  }\n\n  2.1     0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n  }\n  2.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET NULL);\n  }\n  2.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET DEFAULT);\n  }\n\n  3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n    CREATE TRIGGER ct1 AFTER DELETE ON c1 BEGIN\n      INSERT INTO p1 VALUES('x');\n    END;\n  }\n\n  4   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1);\n  }\n\n  5.1   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE CASCADE);\n  }\n  5.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET NULL);\n  }\n  5.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET DEFAULT);\n  }\n\n  6.1   1 \"UPDATE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.2   0 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.3   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE CASCADE, c);\n  }\n  6.4   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b NOT NULL REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	use_stmt := _items[_idx+1]
-	sql := _items[_idx+2]
-	schema := _items[_idx+3]
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		{ // do_test "1." + tn
-			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+		tn := _items[_idx+0]
+		use_stmt := _items[_idx+1]
+		sql := _items[_idx+2]
+		schema := _items[_idx+3]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			{ // do_test "1." + tn
+				_res = db.Exec(schema)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+				}
+				var stmt = ""
+				_ = stmt // suppress unused warning
+				var ret = "uses_stmt_journal $stmt"
+				_ = ret // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 			}
-			var stmt = ""
-			_ = stmt // suppress unused warning
-			var ret = "uses_stmt_journal $stmt"
-			_ = ret // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.1.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "2.1.0"
+			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p1(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c1(x REFERENCES p1 DEFERRABLE INITIALLY DEFERRED);\n\n  INSERT INTO p1 VALUES(1, 'one');\n  INSERT INTO p1 VALUES(2, 'two');\n  INSERT INTO c1 VALUES(1);\n  INSERT INTO c1 VALUES(2);\n")
+			}
 		}
-	}
-	{ // "2.1.2"
-		_res = db.Exec("\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
+		{ // "2.1.2"
+			_res = db.Exec("\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  BEGIN;\n    DELETE FROM p1 WHERE a=1;\n    INSERT OR REPLACE INTO p1 VALUES(2, 'two');\n  COMMIT;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.2.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "2.2.0"
+			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p2(a PRIMARY KEY, b);\n  CREATE TABLE c2(\n    x PRIMARY KEY,\n    y REFERENCES p2 DEFERRABLE INITIALLY DEFERRED\n  ) WITHOUT ROWID;\n")
+			}
 		}
-	}
-	{ // "2.2.1"
-		_res = db.Exec("\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
+		{ // "2.2.1"
+			_res = db.Exec("\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  BEGIN;\n    INSERT INTO c2 VALUES(13, 13);\n    INSERT OR REPLACE INTO c2 VALUES(13, 13);\n    DELETE FROM c2;\n  COMMIT;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.3.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "2.3.0"
+			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE p3(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE TABLE c3(x REFERENCES p3);\n\n  INSERT INTO p3 VALUES(1, 'one');\n  INSERT INTO p3 VALUES(2, 'two');\n  INSERT INTO c3 VALUES(1);\n  INSERT INTO c3 VALUES(2);\n\n  CREATE TRIGGER p3d AFTER DELETE ON p3 WHEN old.a=1 BEGIN\n    INSERT OR REPLACE INTO p3 VALUES(2, 'three');\n  END;\n")
+			}
 		}
-	}
-	{ // "2.3.1"
-		_res = db.Exec("\n  DELETE FROM p3 WHERE a=1\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  DELETE FROM p3 WHERE a=1\n")
+		{ // "2.3.1"
+			_res = db.Exec("\n  DELETE FROM p3 WHERE a=1\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  DELETE FROM p3 WHERE a=1\n")
+			}
 		}
-	}
-	{ // "3.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
+		{ // "3.0"
+			_res = db.Exec("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t2(\n    a PRIMARY KEY, b, c, d, e,\n      FOREIGN KEY(b, c) REFERENCES t2(d, e)\n  ) WITHOUT ROWID;\n  CREATE UNIQUE INDEX idx ON t2(d, e);\n\n  INSERT INTO t2 VALUES(1, 'one', 'one', 'one', 'one'); -- row is parent of self\n  INSERT INTO t2 VALUES(2, 'one', 'one', 'one', NULL);  -- parent is row 1\n")
+			}
 		}
-	}
-	{ // "3.1"
-		_res = db.Exec("\n  DELETE FROM t2 WHERE a=1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  DELETE FROM t2 WHERE a=1;\n")
+		{ // "3.1"
+			_res = db.Exec("\n  DELETE FROM t2 WHERE a=1;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  DELETE FROM t2 WHERE a=1;\n")
+			}
 		}
-	}
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
+		{ // "4.0"
+			_res = db.Exec("\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (\n      c1 PRIMARY KEY,\n      c2 NUMERIC,\n      FOREIGN KEY(c1) REFERENCES t1(c2)\n      ) WITHOUT ROWID ;\n  CREATE INDEX t1c1 ON t1(c1);\n  CREATE UNIQUE INDEX t1c1unique ON t1(c2);\n")
+			}
 		}
-	}
-	{ // "4.1"
-		_res = db.Exec("\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
+		{ // "4.1"
+			_res = db.Exec("\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FOREIGN KEY constraint failed") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t1 VALUES(10000, 20000);\n")
+			}
 		}
-	}
-	{ // "4.2"
-		_res = db.Exec("\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
+		{ // "4.2"
+			_res = db.Exec("\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT OR REPLACE INTO t1 VALUES(20000, 20000);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "5.0"
+			_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p TEXT PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c INTEGER UNIQUE, \n    FOREIGN KEY(c) REFERENCES parent(p) DEFERRABLE INITIALLY DEFERRED\n  );\n  BEGIN;\n    INSERT INTO child VALUES(123);\n    INSERT INTO parent VALUES('123');\n  COMMIT;\n")
+			}
 		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
-			return
+		{ // "5.1"
+			r = db.Query("\n  PRAGMA integrity_check;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "5.2"
+			_res = db.Exec("\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
+			}
 		}
-	}
-	{ // "5.2"
-		_res = db.Exec("\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO parent VALUES(1200);\n  BEGIN;\n    INSERT INTO child VALUES(456);\n    UPDATE parent SET p = '456' WHERE p=1200;\n  COMMIT;\n")
+		{ // "5.3"
+			r = db.Query("\n  PRAGMA integrity_check;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "5.3"
-		r = db.Query("\n  PRAGMA integrity_check;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		os.Remove("test.db2")
+		{ // "6.1"
+			_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
+			}
 		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "6.2"
+			_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	os.Remove("test.db2")
-	{ // "6.1"
-		_res = db.Exec("\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE c1(b);\n  INSERT INTO c1 VALUES(123);\n")
+		{ // "6.3"
+			_res = db.Exec("\n  DELETE FROM aux.p1 WHERE a=123;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM aux.p1 WHERE a=123;\n")
+			}
 		}
-	}
-	{ // "6.2"
-		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.p1(a INTEGER PRIMARY KEY);\n  CREATE TABLE aux.c1(b REFERENCES p1(a) ON DELETE RESTRICT);\n\n  INSERT INTO aux.p1 VALUES(123);\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "7.0"
+			_res = db.Exec("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
+			}
 		}
-	}
-	{ // "6.3"
-		_res = db.Exec("\n  DELETE FROM aux.p1 WHERE a=123;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM aux.p1 WHERE a=123;\n")
+		{ // "7.1"
+			_res = db.Exec("\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "7.0"
-		_res = db.Exec("\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA foreign_keys = ON;\n  CREATE TABLE p1 (pid PRIMARY KEY);\n  CREATE TABLE c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE\n  );\n")
+		{ // "7.2"
+			_res = db.Exec("\n  UPDATE aux.p1 SET pid = pid * 10;\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE aux.p1 SET pid = pid * 10;\n")
+			}
 		}
-	}
-	{ // "7.1"
-		_res = db.Exec("\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.p1 (pid PRIMARY KEY);\n  CREATE TABLE aux.c1 (cid PRIMARY KEY,\n      pid REFERENCES p1(pid) ON UPDATE CASCADE);\n\n  INSERT INTO aux.p1 VALUES (10);\n  INSERT INTO aux.p1 VALUES (20);\n\n  INSERT INTO aux.c1 VALUES(11, 10);\n  INSERT INTO aux.c1 VALUES(12, 10);\n  INSERT INTO aux.c1 VALUES(21, 20);\n  INSERT INTO aux.c1 VALUES(22, 20);\n")
+		{ // "7.3"
+			r = db.Query("\n  SELECT * FROM aux.p1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM aux.p1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "100 200"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "7.2"
-		_res = db.Exec("\n  UPDATE aux.p1 SET pid = pid * 10;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE aux.p1 SET pid = pid * 10;\n")
+		{ // "7.4"
+			r = db.Query("\n  SELECT * FROM aux.c1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM aux.c1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "11 100 12 100 21 200 22 200"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "7.3"
-		r = db.Query("\n  SELECT * FROM aux.p1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM aux.p1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "100 200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.4"
-		r = db.Query("\n  SELECT * FROM aux.c1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM aux.c1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "11 100 12 100 21 200 22 200"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

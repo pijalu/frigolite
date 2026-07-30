@@ -20,42 +20,42 @@ func Test_triggerF(t *testing.T) {
 	var testprefix = "triggerF"
 	_ = testprefix // suppress unused warning
 	// foreach {tn sql log} "\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n"
-	_items := []string{"\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n"}
+	_items := tclSplitList("\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	log := _items[_idx+2]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "1." + tn + ".0"
-			_res = db.Exec("\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		log := _items[_idx+2]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "1." + tn + ".0"
+				_res = db.Exec("\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
+				}
+			}
+			_res = db.Exec(sql)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = on;\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    CREATE TABLE log(t);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			}
+			{ // "1." + tn + ".1"
+				_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    SELECT * FROM log ORDER BY rowid;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log ORDER BY rowid;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := log
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		{ // "1." + tn + ".1"
-			_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n\n    DELETE FROM t1 WHERE a=1;\n    INSERT OR REPLACE INTO t1 VALUES(2, 'three');\n    UPDATE OR REPLACE t1 SET a=3 WHERE a=2;\n  ")
-			}
-		}
-		{ // "1." + tn + ".2"
-			r = db.Query("\n    SELECT * FROM log ORDER BY rowid;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM log ORDER BY rowid;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := log
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

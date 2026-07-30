@@ -61,120 +61,120 @@ func Test_distinctagg(t *testing.T) {
 		}
 	}
 	// foreach {tn use_eph sql res} "\n  1  0  \"SELECT count(DISTINCT a) FROM t1\"                5\n  2  0  \"SELECT count(DISTINCT b) FROM t1\"                3\n  3  1  \"SELECT count(DISTINCT c) FROM t1\"                4\n  4  0  \"SELECT count(DISTINCT c) FROM t1 WHERE b=3\"      3\n  5  0  \"SELECT count(DISTINCT rowid) FROM t1\"           10\n  6  0  \"SELECT count(DISTINCT a) FROM t1, t2\"            5\n  7  0  \"SELECT count(DISTINCT a) FROM t2, t1\"            5\n  8  1  \"SELECT count(DISTINCT a+b) FROM t1, t2, t2, t2\"  6\n  9  0  \"SELECT count(DISTINCT c) FROM t1 WHERE c=2\"      1\n 10  0  \"SELECT count(DISTINCT t1.rowid) FROM t1, t2\"    10\n"
-	_items := []string{"\n  1  0  \"SELECT count(DISTINCT a) FROM t1\"                5\n  2  0  \"SELECT count(DISTINCT b) FROM t1\"                3\n  3  1  \"SELECT count(DISTINCT c) FROM t1\"                4\n  4  0  \"SELECT count(DISTINCT c) FROM t1 WHERE b=3\"      3\n  5  0  \"SELECT count(DISTINCT rowid) FROM t1\"           10\n  6  0  \"SELECT count(DISTINCT a) FROM t1, t2\"            5\n  7  0  \"SELECT count(DISTINCT a) FROM t2, t1\"            5\n  8  1  \"SELECT count(DISTINCT a+b) FROM t1, t2, t2, t2\"  6\n  9  0  \"SELECT count(DISTINCT c) FROM t1 WHERE c=2\"      1\n 10  0  \"SELECT count(DISTINCT t1.rowid) FROM t1, t2\"    10\n"}
+	_items := tclSplitList("\n  1  0  \"SELECT count(DISTINCT a) FROM t1\"                5\n  2  0  \"SELECT count(DISTINCT b) FROM t1\"                3\n  3  1  \"SELECT count(DISTINCT c) FROM t1\"                4\n  4  0  \"SELECT count(DISTINCT c) FROM t1 WHERE b=3\"      3\n  5  0  \"SELECT count(DISTINCT rowid) FROM t1\"           10\n  6  0  \"SELECT count(DISTINCT a) FROM t1, t2\"            5\n  7  0  \"SELECT count(DISTINCT a) FROM t2, t1\"            5\n  8  1  \"SELECT count(DISTINCT a+b) FROM t1, t2, t2, t2\"  6\n  9  0  \"SELECT count(DISTINCT c) FROM t1 WHERE c=2\"      1\n 10  0  \"SELECT count(DISTINCT t1.rowid) FROM t1, t2\"    10\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	use_eph := _items[_idx+1]
-	sql := _items[_idx+2]
-	res := _items[_idx+3]
-		{ // do_test "3." + tn + ".1"
-			var prg = "db eval \"EXPLAIN $sql\""
-			_ = prg // suppress unused warning
-			var idx = "lsearch $prg OpenEphemeral"
-			_ = idx // suppress unused warning
-			// expr $idx>=0 → "$idx>=0"
-		}
-		{ // "3." + tn + ".2"
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		tn := _items[_idx+0]
+		use_eph := _items[_idx+1]
+		sql := _items[_idx+2]
+		res := _items[_idx+3]
+		_ = _idx
+			{ // do_test "3." + tn + ".1"
+				var prg = "db eval \"EXPLAIN $sql\""
+				_ = prg // suppress unused warning
+				var idx = "lsearch $prg OpenEphemeral"
+				_ = idx // suppress unused warning
+				// expr $idx>=0 → "$idx>=0"
+			}
+			{ // "3." + tn + ".2"
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
 			}
 		}
-	}
-	}
-	{ // "3.10"
-		r = db.Query("\n  SELECT a, count(DISTINCT b) FROM t1 GROUP BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, count(DISTINCT b) FROM t1 GROUP BY a;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 1  2 2  3 2  4 1  5 2\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "3.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
-		}
-	}
-	// foreach {tn use_eph sql res} "\n  1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}\n"
-	_items := []string{"\n  1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	use_eph := _items[_idx+1]
-	sql := _items[_idx+2]
-	res := _items[_idx+3]
-		{ // do_test "4." + tn + ".1"
-			var prg = "db eval \"EXPLAIN $sql\""
-			_ = prg // suppress unused warning
-			var idx = "lsearch $prg OpenEphemeral"
-			_ = idx // suppress unused warning
-			// expr $idx>=0 → "$idx>=0"
-		}
-		{ // "4." + tn + ".2"
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		{ // "3.10"
+			r = db.Query("\n  SELECT a, count(DISTINCT b) FROM t1 GROUP BY a;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, count(DISTINCT b) FROM t1 GROUP BY a;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 1  2 2  3 2  4 1  5 2\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	var t3root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t3'}"
-	_ = t3root // suppress unused warning
-	// foreach {tn use_t3 sql res} "\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n"
-	_items := []string{"\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	use_t3 := _items[_idx+1]
-	sql := _items[_idx+2]
-	res := _items[_idx+3]
-		{ // do_test "5." + tn + ".1"
-			var bUse = "0"
-			_ = bUse // suppress unused warning
-			_res = db.Exec("EXPLAIN " + sql)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "3.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN " + sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b, c);\n\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(1, 'A', 1);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(2, 'A', 2);\n  INSERT INTO t1 VALUES(1, 'B', 1);\n  INSERT INTO t1 VALUES(2, 'B', 2);\n  INSERT INTO t1 VALUES(3, 'B', 3);\n  INSERT INTO t1 VALUES(NULL, 'B', NULL);\n  INSERT INTO t1 VALUES(NULL, 'C', NULL);\n  INSERT INTO t1 VALUES('d', 'D', 'd');\n\n  CREATE TABLE t2(d, e, f);\n  CREATE INDEX t2def ON t2(d, e, f);\n\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 1, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'a');\n  INSERT INTO t2 VALUES(1, 2, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(1, 3, 'a');\n  INSERT INTO t2 VALUES(1, 3, 'b');\n  INSERT INTO t2 VALUES(2, 3, 'x');\n  INSERT INTO t2 VALUES(2, 3, 'y');\n  INSERT INTO t2 VALUES(2, 3, 'z');\n\n  CREATE TABLE t3(x, y, z);\n  INSERT INTO t3 VALUES(1,1,1);\n  INSERT INTO t3 VALUES(2,2,2);\n\n  CREATE TABLE t4(a);\n  CREATE INDEX t4a ON t4(a);\n  INSERT INTO t4 VALUES(1), (2), (2), (3), (1);\n")
 			}
 		}
-		{ // "5." + tn + ".2"
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		// foreach {tn use_eph sql res} "\n  1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}\n"
+		_items := tclSplitList("\n  1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}\n")
+		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+			tn := _items[_idx+0]
+			use_eph := _items[_idx+1]
+			sql := _items[_idx+2]
+			res := _items[_idx+3]
+			_ = _idx
+				{ // do_test "4." + tn + ".1"
+					var prg = "db eval \"EXPLAIN $sql\""
+					_ = prg // suppress unused warning
+					var idx = "lsearch $prg OpenEphemeral"
+					_ = idx // suppress unused warning
+					// expr $idx>=0 → "$idx>=0"
+				}
+				{ // "4." + tn + ".2"
+					_res = db.Exec(sql)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+					}
+				}
 			}
-		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
-		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  SELECT count(DISTINCT c) FROM t1 LEFT JOIN t2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(DISTINCT c) FROM t1 LEFT JOIN t2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.0"
-		r = db.Query("\n  CREATE TABLE v1 ( v2 UNIQUE, v3 AS( TYPEOF ( NULL ) ) UNIQUE ); \n  SELECT COUNT ( DISTINCT TRUE ) FROM v1 GROUP BY likelihood ( v3 , 0.100000 );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE v1 ( v2 UNIQUE, v3 AS( TYPEOF ( NULL ) ) UNIQUE ); \n  SELECT COUNT ( DISTINCT TRUE ) FROM v1 GROUP BY likelihood ( v3 , 0.100000 );\n")
-		}
-	}
+			var t3root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t3'}"
+			_ = t3root // suppress unused warning
+			// foreach {tn use_t3 sql res} "\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n"
+			_items := tclSplitList("\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n")
+			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+				tn := _items[_idx+0]
+				use_t3 := _items[_idx+1]
+				sql := _items[_idx+2]
+				res := _items[_idx+3]
+				_ = _idx
+					{ // do_test "5." + tn + ".1"
+						var bUse = "0"
+						_ = bUse // suppress unused warning
+						_res = db.Exec("EXPLAIN " + sql)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "EXPLAIN " + sql)
+						}
+					}
+					{ // "5." + tn + ".2"
+						_res = db.Exec(sql)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+						}
+					}
+				}
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				{ // "6.0"
+					_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES(123,456);\n  INSERT INTO t2 VALUES(123,456);\n")
+					}
+				}
+				{ // "6.1"
+					r = db.Query("\n  SELECT count(DISTINCT c) FROM t1 LEFT JOIN t2;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT count(DISTINCT c) FROM t1 LEFT JOIN t2;\n")
+						return
+					}
+					got := flatten(r)
+					want := "1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.0"
+					r = db.Query("\n  CREATE TABLE v1 ( v2 UNIQUE, v3 AS( TYPEOF ( NULL ) ) UNIQUE ); \n  SELECT COUNT ( DISTINCT TRUE ) FROM v1 GROUP BY likelihood ( v3 , 0.100000 );\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE v1 ( v2 UNIQUE, v3 AS( TYPEOF ( NULL ) ) UNIQUE ); \n  SELECT COUNT ( DISTINCT TRUE ) FROM v1 GROUP BY likelihood ( v3 , 0.100000 );\n")
+					}
+				}
 }

@@ -39,101 +39,101 @@ func Test_e_select2(t *testing.T) {
 		}
 	}
 	// foreach {tn indexes} "\n  e_select-2.1.1 { }\n  e_select-2.1.2 { CREATE INDEX i1 ON t1(a) }\n  e_select-2.1.3 { CREATE INDEX i1 ON t2(a) }\n  e_select-2.1.4 { CREATE INDEX i1 ON t3(b) }\n"
-	_items := []string{"\n  e_select-2.1.1 { }\n  e_select-2.1.2 { CREATE INDEX i1 ON t1(a) }\n  e_select-2.1.3 { CREATE INDEX i1 ON t2(a) }\n  e_select-2.1.4 { CREATE INDEX i1 ON t3(b) }\n"}
+	_items := tclSplitList("\n  e_select-2.1.1 { }\n  e_select-2.1.2 { CREATE INDEX i1 ON t1(a) }\n  e_select-2.1.3 { CREATE INDEX i1 ON t2(a) }\n  e_select-2.1.4 { CREATE INDEX i1 ON t3(b) }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	indexes := _items[_idx+1]
-		_res = db.Exec(" DROP INDEX i1 ")
-		_ = _res // catchsql
-		_res = db.Exec(" DROP INDEX i2 ")
-		_ = _res // catchsql
-		_res = db.Exec(" DROP INDEX i3 ")
-		_ = _res // catchsql
-		_res = db.Exec(indexes)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, indexes)
+		tn := _items[_idx+0]
+		indexes := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(" DROP INDEX i1 ")
+			_ = _res // catchsql
+			_res = db.Exec(" DROP INDEX i2 ")
+			_ = _res // catchsql
+			_res = db.Exec(" DROP INDEX i3 ")
+			_ = _res // catchsql
+			_res = db.Exec(indexes)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, indexes)
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.1 t1, t2 {t1 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.2 t1 INNER JOIN t2 {t1 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.3 t1 CROSS JOIN t2 {t1 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.4 t1 JOIN t2 {t1 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.5 t2, t3 {t2 t3}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.6 t2 INNER JOIN t3 {t2 t3}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.7 t2 CROSS JOIN t3 {t2 t3}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.8 t2 JOIN t3 {t2 t3}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.9 t2, t2 AS x {t2 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.10 t2 INNER JOIN t2 AS x {t2 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.11 t2 CROSS JOIN t2 AS x {t2 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.12 t2 JOIN t2 AS x {t2 t2}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.1 t1, t2 ON (t1.a=t2.a) {t1 t2 -on {te_equals a a}}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.2 t2, t1 ON (t1.a=t2.a) {t2 t1 -on {te_equals a a}}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.3 t2, t1 ON (1) {t2 t1 -on te_true}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.4 t2, t1 ON (NULL) {t2 t1 -on te_false}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.5 t2, t1 ON (1.1-1.1) {t2 t1 -on te_false}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.6 t1, t2 ON (1.1-1.0) {t1 t2 -on te_true}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.3 t1 LEFT JOIN t2 ON (t1.a=t2.a) {t1 t2 -left -on {te_equals a a}}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.4 t1 LEFT JOIN t2 USING (a) {\n    t1 t2 -left -using a -on {te_equals a a}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.5 t1 CROSS JOIN t2 USING(b, a) {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.6 t1 NATURAL JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.7 t1 NATURAL INNER JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.8 t1 NATURAL CROSS JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.9 t1 NATURAL INNER JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.10 t1 NATURAL LEFT JOIN t2 {\n    t1 t2 -left -using {a b} -on {te_and {te_equa...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.11 t1 NATURAL LEFT OUTER JOIN t2 {\n    t1 t2 -left -using {a b} -on {te_and {te_equa...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.12 t2 NATURAL JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.13 t2 NATURAL INNER JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.14 t2 NATURAL CROSS JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.15 t2 NATURAL INNER JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.16 t2 NATURAL LEFT JOIN t1 {\n    t2 t1 -left -using {a b} -on {te_and {te_equa...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.17 t2 NATURAL LEFT OUTER JOIN t1 {\n    t2 t1 -left -using {a b} -on {te_and {te_equa...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.18 t1 LEFT JOIN t2 USING (b) {\n    t1 t2 -left -using b -on {te_equals b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.19 t1 JOIN t3 USING(b) {t1 t3 -using b -on {te_equals b b}}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.20 t3 JOIN t1 USING(b) {\n    t3 t1 -using b -on {te_equals -nocase b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.21 t1 NATURAL JOIN t3 {\n    t1 t3 -using b -on {te_equals b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.22 t3 NATURAL JOIN t1 {\n    t3 t1 -using b -on {te_equals -nocase b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.23 t1 NATURAL LEFT JOIN t3 {\n    t1 t3 -left -using b -on {te_equals b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.24 t3 NATURAL LEFT JOIN t1 {\n    t3 t1 -left -using b -on {te_equals -nocase b...}")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.25 t1 LEFT JOIN t3 ON (t3.b=t1.b) {\n    t1 t3 -left -on {te_equals -nocase b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.26 t1 LEFT JOIN t3 ON (t1.b=t3.b) {\n    t1 t3 -left -on {te_equals b b}\n  }")
+			t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.27 t1 JOIN t3 ON (t1.b=t3.b) { t1 t3 -on {te_equals b b} }")
+			var t3_natural_left_join_t2 = "te_tbljoin db t3 t2 -left -using {b} -on {te_equals -nocase b b}"
+			_ = t3_natural_left_join_t2 // suppress unused warning
+			var t1 = "te_read_tbl db t1"
+			_ = t1 // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered $tn.28a [\n    te_read_sql db \"SELECT * FROM t3 NATURAL LEF... [te_join $t3_natural_left_join_t2 $t1             ...")
+			t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered $tn.28b [\n    te_read_sql db \"SELECT * FROM (t3 NATURAL LE... [te_join $t3_natural_left_join_t2 $t1             ...")
+			t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_ne_unordered $tn.28c [\n    te_read_sql db \"SELECT * FROM (t3 NATURAL LE... [\n    te_read_sql db \"SELECT * FROM t3 NATURAL LEF...")
+			var t2_natural_join_t1 = "te_tbljoin db t2 t1 -using {a b}                 \\\n        -using {a b} -on {te_and {te_equals a a} {te_equals -nocase b b}}  \\"
+			_ = t2_natural_join_t1 // suppress unused warning
+			var t3 = "te_read_tbl db t3"
+			_ = t3 // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered $tn.28d [\n    te_read_sql db \"SELECT * FROM t3 NATURAL LEF... [te_join $t3 $t2_natural_join_t1                  ...")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.1 t1, t2 {t1 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.2 t1 INNER JOIN t2 {t1 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.3 t1 CROSS JOIN t2 {t1 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.4 t1 JOIN t2 {t1 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.5 t2, t3 {t2 t3}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.6 t2 INNER JOIN t3 {t2 t3}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.7 t2 CROSS JOIN t3 {t2 t3}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.8 t2 JOIN t3 {t2 t3}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.9 t2, t2 AS x {t2 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.10 t2 INNER JOIN t2 AS x {t2 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.11 t2 CROSS JOIN t2 AS x {t2 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.1.12 t2 JOIN t2 AS x {t2 t2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.1 t1, t2 ON (t1.a=t2.a) {t1 t2 -on {te_equals a a}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.2 t2, t1 ON (t1.a=t2.a) {t2 t1 -on {te_equals a a}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.3 t2, t1 ON (1) {t2 t1 -on te_true}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.4 t2, t1 ON (NULL) {t2 t1 -on te_false}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.5 t2, t1 ON (1.1-1.1) {t2 t1 -on te_false}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.2.6 t1, t2 ON (1.1-1.0) {t1 t2 -on te_true}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.3 t1 LEFT JOIN t2 ON (t1.a=t2.a) {t1 t2 -left -on {te_equals a a}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.4 t1 LEFT JOIN t2 USING (a) {\n    t1 t2 -left -using a -on {te_equals a a}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.5 t1 CROSS JOIN t2 USING(b, a) {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.6 t1 NATURAL JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.7 t1 NATURAL INNER JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.8 t1 NATURAL CROSS JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.9 t1 NATURAL INNER JOIN t2 {\n    t1 t2 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.10 t1 NATURAL LEFT JOIN t2 {\n    t1 t2 -left -using {a b} -on {te_and {te_equa...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.11 t1 NATURAL LEFT OUTER JOIN t2 {\n    t1 t2 -left -using {a b} -on {te_and {te_equa...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.12 t2 NATURAL JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.13 t2 NATURAL INNER JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.14 t2 NATURAL CROSS JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.15 t2 NATURAL INNER JOIN t1 {\n    t2 t1 -using {a b} -on {te_and {te_equals a a...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.16 t2 NATURAL LEFT JOIN t1 {\n    t2 t1 -left -using {a b} -on {te_and {te_equa...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.17 t2 NATURAL LEFT OUTER JOIN t1 {\n    t2 t1 -left -using {a b} -on {te_and {te_equa...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.18 t1 LEFT JOIN t2 USING (b) {\n    t1 t2 -left -using b -on {te_equals b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.19 t1 JOIN t3 USING(b) {t1 t3 -using b -on {te_equals b b}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.20 t3 JOIN t1 USING(b) {\n    t3 t1 -using b -on {te_equals -nocase b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.21 t1 NATURAL JOIN t3 {\n    t1 t3 -using b -on {te_equals b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.22 t3 NATURAL JOIN t1 {\n    t3 t1 -using b -on {te_equals -nocase b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.23 t1 NATURAL LEFT JOIN t3 {\n    t1 t3 -left -using b -on {te_equals b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.24 t3 NATURAL LEFT JOIN t1 {\n    t3 t1 -left -using b -on {te_equals -nocase b...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.25 t1 LEFT JOIN t3 ON (t3.b=t1.b) {\n    t1 t3 -left -on {te_equals -nocase b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.26 t1 LEFT JOIN t3 ON (t1.b=t3.b) {\n    t1 t3 -left -on {te_equals b b}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_join $tn.27 t1 JOIN t3 ON (t1.b=t3.b) { t1 t3 -on {te_equals b b} }")
-		var t3_natural_left_join_t2 = "te_tbljoin db t3 t2 -left -using {b} -on {te_equals -nocase b b}"
-		_ = t3_natural_left_join_t2 // suppress unused warning
-		var t1 = "te_read_tbl db t1"
-		_ = t1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered $tn.28a [\n    te_read_sql db \"SELECT * FROM t3 NATURAL LEF... [te_join $t3_natural_left_join_t2 $t1             ...")
-		t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered $tn.28b [\n    te_read_sql db \"SELECT * FROM (t3 NATURAL LE... [te_join $t3_natural_left_join_t2 $t1             ...")
-		t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_ne_unordered $tn.28c [\n    te_read_sql db \"SELECT * FROM (t3 NATURAL LE... [\n    te_read_sql db \"SELECT * FROM t3 NATURAL LEF...")
-		var t2_natural_join_t1 = "te_tbljoin db t2 t1 -using {a b}                 \\\n        -using {a b} -on {te_and {te_equals a a} {te_equals -nocase b b}}  \\"
-		_ = t2_natural_join_t1 // suppress unused warning
-		var t3 = "te_read_tbl db t3"
-		_ = t3 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered $tn.28d [\n    te_read_sql db \"SELECT * FROM t3 NATURAL LEF... [te_join $t3 $t2_natural_join_t1                  ...")
-	}
-	}
-	{ // "e_select-2.2.0"
-		_res = db.Exec("\n  CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');\n")
+		{ // "e_select-2.2.0"
+			_res = db.Exec("\n  CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x TEXT COLLATE nocase);\n  CREATE TABLE t5(y INTEGER, z TEXT COLLATE binary);\n\n  INSERT INTO t4 VALUES('2.0');\n  INSERT INTO t4 VALUES('TWO');\n  INSERT INTO t5 VALUES(2, 'two');\n")
+			}
 		}
-	}
-	// foreach {tn subselect select spec} "\n  1   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss%\" \n      {t1 %ss%}\n\n  2   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss% AS x ON (t1.a=x.a)\" \n      {t1 %ss% -on {te_equals 0 0}}\n\n  3   \"SELECT * FROM t2\"   \"SELECT * FROM %ss% AS x JOIN t1 ON (t1.a=x.a)\" \n      {%ss% t1 -on {te_equals 0 0}}\n\n  4   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% AS x JOIN t3\"\n      {%ss% t3}\n\n  5   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% NATURAL JOIN t3\"\n      {%ss% t3 -using b -on {te_equals 1 0}}\n\n  6   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL JOIN %ss%\"\n      {t3 %ss% -using b -on {te_equals -nocase 0 1}}\n\n  7   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL LEFT JOIN %ss%\"\n      {t3 %ss% -left -using b -on {te_equals -nocase 0 1}}\n\n  8   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM t5, %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -affinity text 0 0}}\n\n  9   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM %ss%, t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -affinity text 0 0}}\n\n  10  \"SELECT x AS y FROM t4\"   \"SELECT * FROM %ss% JOIN t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  11  \"SELECT x AS y FROM t4\"   \"SELECT * FROM t5 JOIN %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  12  \"SELECT y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  13  \"SELECT y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  14  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity text 0 0}}\n\n  15  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity text 0 0}}\n"
-	_items := []string{"\n  1   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss%\" \n      {t1 %ss%}\n\n  2   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss% AS x ON (t1.a=x.a)\" \n      {t1 %ss% -on {te_equals 0 0}}\n\n  3   \"SELECT * FROM t2\"   \"SELECT * FROM %ss% AS x JOIN t1 ON (t1.a=x.a)\" \n      {%ss% t1 -on {te_equals 0 0}}\n\n  4   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% AS x JOIN t3\"\n      {%ss% t3}\n\n  5   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% NATURAL JOIN t3\"\n      {%ss% t3 -using b -on {te_equals 1 0}}\n\n  6   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL JOIN %ss%\"\n      {t3 %ss% -using b -on {te_equals -nocase 0 1}}\n\n  7   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL LEFT JOIN %ss%\"\n      {t3 %ss% -left -using b -on {te_equals -nocase 0 1}}\n\n  8   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM t5, %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -affinity text 0 0}}\n\n  9   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM %ss%, t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -affinity text 0 0}}\n\n  10  \"SELECT x AS y FROM t4\"   \"SELECT * FROM %ss% JOIN t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  11  \"SELECT x AS y FROM t4\"   \"SELECT * FROM t5 JOIN %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  12  \"SELECT y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  13  \"SELECT y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  14  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity text 0 0}}\n\n  15  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity text 0 0}}\n"}
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	subselect := _items[_idx+1]
-	_select := _items[_idx+2]
-	spec := _items[_idx+3]
-		_res = db.Exec("CREATE TEMP TABLE '%ss%' AS " + subselect)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TEMP TABLE '%ss%' AS " + subselect)
-		}
-		var te = "eval te_tbljoin db $spec"
-		_ = te // suppress unused warning
-		_res = db.Exec("DROP TABLE '%ss%'")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE '%ss%'")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered e_select-2.2.1.$tn [\n    te_read_sql db [string map [list %ss% \"($sub... $te")
-	}
-	}
+		// foreach {tn subselect select spec} "\n  1   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss%\" \n      {t1 %ss%}\n\n  2   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss% AS x ON (t1.a=x.a)\" \n      {t1 %ss% -on {te_equals 0 0}}\n\n  3   \"SELECT * FROM t2\"   \"SELECT * FROM %ss% AS x JOIN t1 ON (t1.a=x.a)\" \n      {%ss% t1 -on {te_equals 0 0}}\n\n  4   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% AS x JOIN t3\"\n      {%ss% t3}\n\n  5   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% NATURAL JOIN t3\"\n      {%ss% t3 -using b -on {te_equals 1 0}}\n\n  6   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL JOIN %ss%\"\n      {t3 %ss% -using b -on {te_equals -nocase 0 1}}\n\n  7   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL LEFT JOIN %ss%\"\n      {t3 %ss% -left -using b -on {te_equals -nocase 0 1}}\n\n  8   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM t5, %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -affinity text 0 0}}\n\n  9   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM %ss%, t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -affinity text 0 0}}\n\n  10  \"SELECT x AS y FROM t4\"   \"SELECT * FROM %ss% JOIN t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  11  \"SELECT x AS y FROM t4\"   \"SELECT * FROM t5 JOIN %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  12  \"SELECT y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  13  \"SELECT y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  14  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity text 0 0}}\n\n  15  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity text 0 0}}\n"
+		_items := tclSplitList("\n  1   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss%\" \n      {t1 %ss%}\n\n  2   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss% AS x ON (t1.a=x.a)\" \n      {t1 %ss% -on {te_equals 0 0}}\n\n  3   \"SELECT * FROM t2\"   \"SELECT * FROM %ss% AS x JOIN t1 ON (t1.a=x.a)\" \n      {%ss% t1 -on {te_equals 0 0}}\n\n  4   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% AS x JOIN t3\"\n      {%ss% t3}\n\n  5   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% NATURAL JOIN t3\"\n      {%ss% t3 -using b -on {te_equals 1 0}}\n\n  6   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL JOIN %ss%\"\n      {t3 %ss% -using b -on {te_equals -nocase 0 1}}\n\n  7   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL LEFT JOIN %ss%\"\n      {t3 %ss% -left -using b -on {te_equals -nocase 0 1}}\n\n  8   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM t5, %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -affinity text 0 0}}\n\n  9   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM %ss%, t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -affinity text 0 0}}\n\n  10  \"SELECT x AS y FROM t4\"   \"SELECT * FROM %ss% JOIN t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  11  \"SELECT x AS y FROM t4\"   \"SELECT * FROM t5 JOIN %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  12  \"SELECT y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  13  \"SELECT y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  14  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity text 0 0}}\n\n  15  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity text 0 0}}\n")
+		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
+			tn := _items[_idx+0]
+			subselect := _items[_idx+1]
+			_select := _items[_idx+2]
+			spec := _items[_idx+3]
+			_ = _idx
+				_res = db.Exec("CREATE TEMP TABLE '%ss%' AS " + subselect)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TEMP TABLE '%ss%' AS " + subselect)
+				}
+				var te = "eval te_tbljoin db $spec"
+				_ = te // suppress unused warning
+				_res = db.Exec("DROP TABLE '%ss%'")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE '%ss%'")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "te_dataset_eq_unordered e_select-2.2.1.$tn [\n    te_read_sql db [string map [list %ss% \"($sub... $te")
+			}
 }

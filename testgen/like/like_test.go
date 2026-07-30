@@ -24,7 +24,7 @@ func Test_like(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x TEXT);\n  ")
 		}
-		for _, str := range []string{"\n    a\n    ab\n    abc\n    abcd\n\n    acd\n    abd\n    bc\n    bcd\n\n    xyz\n    ABC\n    CDE\n    {ABC abc xyz}\n  "} {
+		for _, str := range tclSplitList("\n    a\n    ab\n    abc\n    abcd\n\n    acd\n    abd\n    bc\n    bcd\n\n    xyz\n    ABC\n    CDE\n    {ABC abc xyz}\n  ") {
 			_res = db.Exec("INSERT INTO t1 VALUES(:str)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(:str)")
@@ -429,7 +429,7 @@ func Test_like(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'ZZ%';\n  }")
 	}
 	{ // do_test "like-6.1"
-		for _, x := range []string{" 'abc 'bcd 'def 'ax "} {
+		for _, x := range tclSplitList(" 'abc 'bcd 'def 'ax ") {
 			var x2 = "'" + "{' ''} $x" + "'"
 			_ = x2 // suppress unused warning
 			_res = db.Exec("INSERT INTO t2 VALUES(" + x2 + ")")

@@ -23,39 +23,39 @@ func Test_chunksize(t *testing.T) {
 		return
 	}
 	// foreach {tn jrnlmode} "\n  1 delete\n  2 wal\n"
-	_items := []string{"\n  1 delete\n  2 wal\n"}
+	_items := tclSplitList("\n  1 delete\n  2 wal\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	jrnlmode := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 32768")
-		{ // tn + ".0"
-			r = db.Query(" PRAGMA journal_mode = " + jrnlmode + " ")
+		tn := _items[_idx+0]
+		jrnlmode := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 32768")
+			{ // tn + ".0"
+				r = db.Query(" PRAGMA journal_mode = " + jrnlmode + " ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = " + jrnlmode + " ")
+					return
+				}
+				got := flatten(r)
+				want := jrnlmode
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // tn + ".1"
+				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
+				}
+			}
+			r = db.Query(" PRAGMA wal_checkpoint ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = " + jrnlmode + " ")
-				return
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 			}
-			got := flatten(r)
-			want := jrnlmode
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test tn + ".2"
+				// file size test.db
 			}
 		}
-		{ // tn + ".1"
-			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
-			}
-		}
-		r = db.Query(" PRAGMA wal_checkpoint ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-		}
-		{ // do_test tn + ".2"
-			// file size test.db
-		}
-	}
-	}
 }

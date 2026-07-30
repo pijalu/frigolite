@@ -89,64 +89,64 @@ func Test_tkt3718(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// foreach {tn io ii results} "\n  1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}\n"
-	_items := []string{"\n  1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}\n"}
+	_items := tclSplitList("\n  1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	io := _items[_idx+1]
-	ii := _items[_idx+2]
-	results := _items[_idx+3]
-		{ // do_test "tkt3718-3." + tn
-			_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n    ")
+		tn := _items[_idx+0]
+		io := _items[_idx+1]
+		ii := _items[_idx+2]
+		results := _items[_idx+3]
+		_ = _idx
+			{ // do_test "tkt3718-3." + tn
+				_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n    ")
+				}
+				_res = db.Exec("\n      BEGIN;\n      INSERT INTO t2 SELECT a+" + io + ", sql(a==3,\n          'INSERT INTO t2 SELECT a+" + ii + ", b FROM t1'\n      ) FROM t1;\n    ")
+				_ = _res // catchsql
+				_res = db.Exec(" COMMIT ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+				}
+				r = db.Query(" SELECT a FROM t2 ORDER BY a+0")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t2 ORDER BY a+0")
+				}
 			}
-			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t2 SELECT a+" + io + ", sql(a==3,\n          'INSERT INTO t2 SELECT a+" + ii + ", b FROM t1'\n      ) FROM t1;\n    ")
-			_ = _res // catchsql
-			_res = db.Exec(" COMMIT ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
-			}
-			r = db.Query(" SELECT a FROM t2 ORDER BY a+0")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t2 ORDER BY a+0")
-			}
+			_res = db.Exec("PRAGMA integrity_check")
+			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	}
-	}
-	// foreach {tn i1 i2 i3 results} "\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n"
-	_items := []string{"\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n"}
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	tn := _items[_idx+0]
-	i1 := _items[_idx+1]
-	i2 := _items[_idx+2]
-	i3 := _items[_idx+3]
-	results := _items[_idx+4]
-		{ // do_test "tkt3718-4." + tn
-			_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;\n    ")
+		// foreach {tn i1 i2 i3 results} "\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n"
+		_items := tclSplitList("\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n")
+		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
+			tn := _items[_idx+0]
+			i1 := _items[_idx+1]
+			i2 := _items[_idx+2]
+			i3 := _items[_idx+3]
+			results := _items[_idx+4]
+			_ = _idx
+				{ // do_test "tkt3718-4." + tn
+					_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;\n    ")
+					}
+					_res = db.Exec("\n      BEGIN;\n      INSERT INTO t2 SELECT a+" + i1 + ", sql(a==3,\n          'INSERT INTO t2 SELECT a+" + i2 + ", sql(a==3, \n             ''INSERT INTO t2 SELECT a+" + i3 + ", b FROM t1''\n           ) FROM t1'\n      ) FROM t1;\n    ")
+					_ = _res // catchsql
+					_res = db.Exec(" COMMIT ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
+					}
+					r = db.Query(" SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0")
+					}
+				}
+				{ // do_test "tkt3718-4." + tn + ".extra"
+					r = db.Query("\n      SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)\n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)\n    ")
+					}
+				}
+				_res = db.Exec("PRAGMA integrity_check")
+				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 			}
-			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t2 SELECT a+" + i1 + ", sql(a==3,\n          'INSERT INTO t2 SELECT a+" + i2 + ", sql(a==3, \n             ''INSERT INTO t2 SELECT a+" + i3 + ", b FROM t1''\n           ) FROM t1'\n      ) FROM t1;\n    ")
-			_ = _res // catchsql
-			_res = db.Exec(" COMMIT ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
-			}
-			r = db.Query(" SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM t2 WHERE (a%5)==0 ORDER BY a+0")
-			}
-		}
-		{ // do_test "tkt3718-4." + tn + ".extra"
-			r = db.Query("\n      SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT \n        (SELECT sum(a) FROM t2)==(SELECT sum(a*5-10) FROM t2 WHERE (a%5)==0)\n    ")
-			}
-		}
-		_res = db.Exec("PRAGMA integrity_check")
-		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	}
-	}
 }

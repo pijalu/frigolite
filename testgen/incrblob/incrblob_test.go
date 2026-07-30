@@ -78,7 +78,7 @@ func Test_incrblob(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
-	for _, AutoVacuumMode := range []string{"list 0 1"} {
+	for _, AutoVacuumMode := range tclSplitList("list 0 1") {
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
 		}
 		os.Remove("test.db")
@@ -585,32 +585,139 @@ func Test_incrblob(t *testing.T) {
 		}
 	}
 	// foreach {tn arg} "1 \"\" 2 -readonly"
-	_items := []string{"1 \"\" 2 -readonly"}
+	_items := tclSplitList("1 \"\" 2 -readonly")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	arg := _items[_idx+1]
-		_res = db.Exec("\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
-		}
-		{ // do_test "incrblob-7.1." + tn + ".1"
-			var _b = "eval db incrblob $arg t1 d 1" // TCL namespace variable
-			_ = _b // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "binary scan [sqlite3_blob_read $::b 5000 5] c* c")
-		}
-		{ // do_test "incrblob-7.1." + tn + ".2"
-			_res = db.Exec("\n      UPDATE t1 SET d = 15;\n    ")
+		tn := _items[_idx+0]
+		arg := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec("\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET d = 15;\n    ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
+			}
+			{ // do_test "incrblob-7.1." + tn + ".1"
+				var _b = "eval db incrblob $arg t1 d 1" // TCL namespace variable
+				_ = _b // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "binary scan [sqlite3_blob_read $::b 5000 5] c* c")
+			}
+			{ // do_test "incrblob-7.1." + tn + ".2"
+				_res = db.Exec("\n      UPDATE t1 SET d = 15;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      UPDATE t1 SET d = 15;\n    ")
+				}
+			}
+			{ // do_test "incrblob-7.1." + tn + ".3"
+				var rc string
+				var msg string
+				_ = msg // suppress unused warning
+				{ // catch block
+					var _catchErr error
+					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $::b 5000 5")
+					if _catchErr != nil {
+						rc = "1"
+						msg = _catchErr.Error()
+					} else {
+						rc = "0"
+						msg = ""
+					}
+				}
+				_list := tclList([]string{rc, msg})
+				_ = _list
+			}
+			{ // do_test "incrblob-7.1." + tn + ".4"
+				r = db.Query("\n      SELECT d FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t1;\n    ")
+				}
+			}
+			{ // do_test "incrblob-7.1." + tn + ".5"
+				var rc string
+				var msg string
+				_ = msg // suppress unused warning
+				{ // catch block
+					var _catchErr error
+					// close $::b
+					if _catchErr != nil {
+						rc = "1"
+						msg = _catchErr.Error()
+					} else {
+						rc = "0"
+						msg = ""
+					}
+				}
+				_list := tclList([]string{rc, msg})
+				_ = _list
+			}
+			{ // do_test "incrblob-7.1." + tn + ".6"
+				r = db.Query("\n      SELECT d FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t1;\n    ")
+				}
 			}
 		}
-		{ // do_test "incrblob-7.1." + tn + ".3"
+		var fd = "open $::cmdlinearg(INFO_SCRIPT)"
+		_ = fd // suppress unused warning
+		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		var _data = "read $fd 14000" // TCL namespace variable
+		_ = _data // suppress unused warning
+		// close $fd
+		os.Remove("test.db")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // do_test "incrblob-7.2.1"
+			_res = db.Exec("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, $::data);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, $::data);\n  ")
+			}
+			var _b = "db incrblob -readonly t1 b 123" // TCL namespace variable
+			_ = _b // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
+		}
+		{ // do_test "incrblob-7.2.2"
+			_res = db.Exec("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);        -- root@page4\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);        -- root@page4\n  ")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "seek $::b 0")
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
+		}
+		{ // do_test "incrblob-7.2.3"
+			// close $::b
+			r = db.Query("\n    SELECT rootpage FROM sqlite_master;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master;\n  ")
+			}
+		}
+		var _otherdata = "$::data 0 1000" + "$::data 1001 end" // TCL namespace variable
+		_ = _otherdata // suppress unused warning
+		{ // do_test "incrblob-7.3.1"
+			_res = db.Exec("\n    INSERT INTO t2 VALUES(456, $::otherdata);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(456, $::otherdata);\n  ")
+			}
+			var _b = "db incrblob -readonly t2 b 456" // TCL namespace variable
+			_ = _b // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
+		}
+		{ // do_test "incrblob-7.3.2"
+			// expr [file size test.db]/1024 → "[file size test.db]/1024"
+		}
+		{ // do_test "incrblob-7.3.3"
+			r = db.Query("\n    DELETE FROM t1 WHERE a = 123;\n    PRAGMA INCREMENTAL_VACUUM(0);\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a = 123;\n    PRAGMA INCREMENTAL_VACUUM(0);\n  ")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "seek $::b 0")
+			t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
+		}
+		{ // do_test "incrblob-7.4"
 			var rc string
 			var msg string
 			_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $::b 5000 5")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 10 HELLO")
 				if _catchErr != nil {
 					rc = "1"
 					msg = _catchErr.Error()
@@ -619,22 +726,28 @@ func Test_incrblob(t *testing.T) {
 					msg = ""
 				}
 			}
-			_list := tclList([]string{rc, msg})
-			_ = _list
+			rc = tclListAppend(rc, msg)
 		}
-		{ // do_test "incrblob-7.1." + tn + ".4"
-			r = db.Query("\n      SELECT d FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t1;\n    ")
+		{ // do_test "incrblob-7.5"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		}
+		{ // do_test "incrblob-7.6"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		}
+		{ // do_test "incrblob-8.1"
+			_res = db.Exec(" INSERT INTO t1 VALUES(314159, 'sqlite') ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(314159, 'sqlite') ")
 			}
-		}
-		{ // do_test "incrblob-7.1." + tn + ".5"
+			var _b = "db incrblob t1 b 314159" // TCL namespace variable
+			_ = _b // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
 			var rc string
 			var msg string
 			_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				// close $::b
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 10 HELLO -1")
 				if _catchErr != nil {
 					rc = "1"
 					msg = _catchErr.Error()
@@ -643,175 +756,62 @@ func Test_incrblob(t *testing.T) {
 					msg = ""
 				}
 			}
-			_list := tclList([]string{rc, msg})
+			rc = tclListAppend(rc, msg)
+		}
+		{ // do_test "incrblob-8.2"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		}
+		{ // do_test "incrblob-8.3"
+			var rc string
+			var msg string
+			_ = msg // suppress unused warning
+			{ // catch block
+				var _catchErr error
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b -1 HELLO 5")
+				if _catchErr != nil {
+					rc = "1"
+					msg = _catchErr.Error()
+				} else {
+					rc = "0"
+					msg = ""
+				}
+			}
+			rc = tclListAppend(rc, msg)
+		}
+		{ // do_test "incrblob-8.4"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		}
+		{ // do_test "incrblob-8.5"
+			r = db.Query("SELECT b FROM t1 WHERE a = 314159")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a = 314159")
+			}
+		}
+		{ // do_test "incrblob-8.6"
+			var rc string
+			var msg string
+			_ = msg // suppress unused warning
+			{ // catch block
+				var _catchErr error
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 0 etilqs 6")
+				if _catchErr != nil {
+					rc = "1"
+					msg = _catchErr.Error()
+				} else {
+					rc = "0"
+					msg = ""
+				}
+			}
+			rc = tclListAppend(rc, msg)
+		}
+		{ // do_test "incrblob-8.7"
+			r = db.Query("SELECT b FROM t1 WHERE a = 314159")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a = 314159")
+			}
+		}
+		{ // do_test "incrblob-9.1"
+			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
-		{ // do_test "incrblob-7.1." + tn + ".6"
-			r = db.Query("\n      SELECT d FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT d FROM t1;\n    ")
-			}
-		}
-	}
-	}
-	var fd = "open $::cmdlinearg(INFO_SCRIPT)"
-	_ = fd // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-	var _data = "read $fd 14000" // TCL namespace variable
-	_ = _data // suppress unused warning
-	// close $fd
-	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // do_test "incrblob-7.2.1"
-		_res = db.Exec("\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, $::data);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = \"incremental\";\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);        -- root@page3\n    INSERT INTO t1 VALUES(123, $::data);\n  ")
-		}
-		var _b = "db incrblob -readonly t1 b 123" // TCL namespace variable
-		_ = _b // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
-	}
-	{ // do_test "incrblob-7.2.2"
-		_res = db.Exec("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);        -- root@page4\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);        -- root@page4\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $::b 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
-	}
-	{ // do_test "incrblob-7.2.3"
-		// close $::b
-		r = db.Query("\n    SELECT rootpage FROM sqlite_master;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rootpage FROM sqlite_master;\n  ")
-		}
-	}
-	var _otherdata = "$::data 0 1000" + "$::data 1001 end" // TCL namespace variable
-	_ = _otherdata // suppress unused warning
-	{ // do_test "incrblob-7.3.1"
-		_res = db.Exec("\n    INSERT INTO t2 VALUES(456, $::otherdata);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(456, $::otherdata);\n  ")
-		}
-		var _b = "db incrblob -readonly t2 b 456" // TCL namespace variable
-		_ = _b // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
-	}
-	{ // do_test "incrblob-7.3.2"
-		// expr [file size test.db]/1024 → "[file size test.db]/1024"
-	}
-	{ // do_test "incrblob-7.3.3"
-		r = db.Query("\n    DELETE FROM t1 WHERE a = 123;\n    PRAGMA INCREMENTAL_VACUUM(0);\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1 WHERE a = 123;\n    PRAGMA INCREMENTAL_VACUUM(0);\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $::b 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
-	}
-	{ // do_test "incrblob-7.4"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 10 HELLO")
-			if _catchErr != nil {
-				rc = "1"
-				msg = _catchErr.Error()
-			} else {
-				rc = "0"
-				msg = ""
-			}
-		}
-		rc = tclListAppend(rc, msg)
-	}
-	{ // do_test "incrblob-7.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
-	}
-	{ // do_test "incrblob-7.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
-	}
-	{ // do_test "incrblob-8.1"
-		_res = db.Exec(" INSERT INTO t1 VALUES(314159, 'sqlite') ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(314159, 'sqlite') ")
-		}
-		var _b = "db incrblob t1 b 314159" // TCL namespace variable
-		_ = _b // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 10 HELLO -1")
-			if _catchErr != nil {
-				rc = "1"
-				msg = _catchErr.Error()
-			} else {
-				rc = "0"
-				msg = ""
-			}
-		}
-		rc = tclListAppend(rc, msg)
-	}
-	{ // do_test "incrblob-8.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
-	}
-	{ // do_test "incrblob-8.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b -1 HELLO 5")
-			if _catchErr != nil {
-				rc = "1"
-				msg = _catchErr.Error()
-			} else {
-				rc = "0"
-				msg = ""
-			}
-		}
-		rc = tclListAppend(rc, msg)
-	}
-	{ // do_test "incrblob-8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
-	}
-	{ // do_test "incrblob-8.5"
-		r = db.Query("SELECT b FROM t1 WHERE a = 314159")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a = 314159")
-		}
-	}
-	{ // do_test "incrblob-8.6"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
-		{ // catch block
-			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 0 etilqs 6")
-			if _catchErr != nil {
-				rc = "1"
-				msg = _catchErr.Error()
-			} else {
-				rc = "0"
-				msg = ""
-			}
-		}
-		rc = tclListAppend(rc, msg)
-	}
-	{ // do_test "incrblob-8.7"
-		r = db.Query("SELECT b FROM t1 WHERE a = 314159")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a = 314159")
-		}
-	}
-	{ // do_test "incrblob-9.1"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
 }

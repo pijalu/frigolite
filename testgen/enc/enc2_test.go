@@ -29,7 +29,7 @@ func Test_enc2(t *testing.T) {
 	_ = sqlite_os_trace // suppress unused warning
 	var i = "1"
 	_ = i // suppress unused warning
-	for _, enc := range []string{encodings} {
+	for _, enc := range tclSplitList(encodings) {
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()

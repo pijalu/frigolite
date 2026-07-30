@@ -317,135 +317,135 @@ func Test_temptable2(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "tmp close")
 	// foreach {tn mode} "\n  1 delete\n  2 wal\n"
-	_items := []string{"\n  1 delete\n  2 wal\n"}
+	_items := tclSplitList("\n  1 delete\n  2 wal\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	mode := _items[_idx+1]
-		db.Close()
+		tn := _items[_idx+0]
+		mode := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			db, err := frigolite.Open("")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			{ // "9." + tn + ".1.1"
+				r = db.Query("\n    PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;\n  ")
+				}
+			}
+			r = db.Query("PRAGMA journal_mode = " + mode)
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = " + mode)
+			}
+			{ // "9." + tn + ".1.2"
+				r = db.Query("\n    CREATE TABLE tx(a, b);\n    CREATE INDEX i1 ON tx(a);\n    CREATE INDEX i2 ON tx(b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n      INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(a, b);\n    CREATE INDEX i1 ON tx(a);\n    CREATE INDEX i2 ON tx(b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n      INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n  ")
+				}
+			}
+			var i = "2"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
+				{ // "9." + tn + "." + i + ".1"
+					_res = db.Exec(" DELETE FROM tx WHERE (random()%3)==0 ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM tx WHERE (random()%3)==0 ")
+					}
+				}
+				{ // "9." + tn + "." + i + ".2"
+					r = db.Query(" PRAGMA integrity_check ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+						return
+					}
+					got := flatten(r)
+					want := "ok"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "9." + tn + "." + i + ".3"
+					r = db.Query(" \n        WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<400 )\n          INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n        WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<400 )\n          INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      ")
+					}
+				}
+				{ // "9." + tn + "." + i + ".4"
+					r = db.Query(" PRAGMA integrity_check ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+						return
+					}
+					got := flatten(r)
+					want := "ok"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "9." + tn + "." + i + ".5"
+					_res = db.Exec(" \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
+					}
+				}
+				{ // "9." + tn + "." + i + ".6"
+					r = db.Query(" PRAGMA integrity_check ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+						return
+					}
+					got := flatten(r)
+					want := "ok"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+		}
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		db, err := frigolite.Open("")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		{ // "9." + tn + ".1.1"
-			r = db.Query("\n    PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;\n  ")
+		{ // "10.0"
+			_res = db.Exec("\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
+			}
+		}
+		{ // "10.1"
+			_res = db.Exec("\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
+			}
+		}
+		{ // "10.3"
+			r = db.Query(" SELECT * FROM t2 ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		r = db.Query("PRAGMA journal_mode = " + mode)
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = " + mode)
-		}
-		{ // "9." + tn + ".1.2"
-			r = db.Query("\n    CREATE TABLE tx(a, b);\n    CREATE INDEX i1 ON tx(a);\n    CREATE INDEX i2 ON tx(b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n      INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n  ")
+		{ // "10.4"
+			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(a, b);\n    CREATE INDEX i1 ON tx(a);\n    CREATE INDEX i2 ON tx(b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n      INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+				return
+			}
+			got := flatten(r)
+			want := "ok"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var i = "2"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			{ // "9." + tn + "." + i + ".1"
-				_res = db.Exec(" DELETE FROM tx WHERE (random()%3)==0 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM tx WHERE (random()%3)==0 ")
-				}
-			}
-			{ // "9." + tn + "." + i + ".2"
-				r = db.Query(" PRAGMA integrity_check ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-					return
-				}
-				got := flatten(r)
-				want := "ok"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			{ // "9." + tn + "." + i + ".3"
-				r = db.Query(" \n        WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<400 )\n          INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n        WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<400 )\n          INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      ")
-				}
-			}
-			{ // "9." + tn + "." + i + ".4"
-				r = db.Query(" PRAGMA integrity_check ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-					return
-				}
-				got := flatten(r)
-				want := "ok"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			{ // "9." + tn + "." + i + ".5"
-				_res = db.Exec(" \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN;\n      DELETE FROM tx WHERE (random()%3)==0;\n      WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n        INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n      COMMIT;\n    ")
-				}
-			}
-			{ // "9." + tn + "." + i + ".6"
-				r = db.Query(" PRAGMA integrity_check ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-					return
-				}
-				got := flatten(r)
-				want := "ok"
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
-			}
-		}
-	}
-	}
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "10.0"
-		_res = db.Exec("\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")
-		}
-	}
-	{ // "10.1"
-		_res = db.Exec("\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<500 )\n      INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM x;\n  COMMIT;\n  INSERT INTO t2 VALUES(3, 4);\n")
-		}
-	}
-	{ // "10.3"
-		r = db.Query(" SELECT * FROM t2 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.4"
-		r = db.Query(" PRAGMA integrity_check ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-			return
-		}
-		got := flatten(r)
-		want := "ok"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

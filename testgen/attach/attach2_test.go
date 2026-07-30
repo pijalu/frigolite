@@ -291,7 +291,7 @@ func Test_attach2(t *testing.T) {
 	db2.Close()
 	os.Remove("test2.db")
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $soft_limit")
-	for _, f := range []string{"glob test.db*"} {
+	for _, f := range tclSplitList("glob test.db*") {
 		os.Remove(f)
 	}
 	{ // do_test "attach2-5.1"

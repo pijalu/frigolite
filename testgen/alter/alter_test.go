@@ -154,7 +154,7 @@ func Test_alter(t *testing.T) {
 	{ // do_test "alter-5.3"
 		db2.Close()
 	}
-	for _, tblname := range []string{"execsql {\n  SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'\n}"} {
+	for _, tblname := range tclSplitList("execsql {\n  SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'\n}") {
 		_res = db.Exec("DROP TABLE \\\"" + tblname + "\\\"")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \\\"" + tblname + "\\\"")
@@ -257,344 +257,344 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n"
-	_items := []string{"\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n"}
+	_items := tclSplitList("\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "alter-9.2." + tn
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-				_res = db.Exec(sql)
-				if _res.Error != nil { _catchErr = _res.Error }
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			{ // do_test "alter-9.2." + tn
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					_res = db.Exec(sql)
+					if _res.Error != nil { _catchErr = _res.Error }
+				}
 			}
 		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
-	{ // "alter-9.3"
-		_res = db.Exec("\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_table") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_rename_table", _res.Error, "\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+		{ // "alter-9.3"
+			_res = db.Exec("\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_table") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: sqlite_rename_table", _res.Error, "\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
+			}
 		}
-	}
-	{ // do_test "alter-10.1"
-		_res = db.Exec("CREATE TABLE xyz(x UNIQUE)")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xyz(x UNIQUE)")
-		}
-		_res = db.Exec("ALTER TABLE xyz RENAME TO xyz\\u1234abc")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz RENAME TO xyz\\u1234abc")
-		}
-		r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
-		}
-	}
-	{ // do_test "alter-10.2"
-		r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
-		}
-	}
-	{ // do_test "alter-10.3"
-		_res = db.Exec("ALTER TABLE xyz\\u1234abc RENAME TO xyzabc")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz\\u1234abc RENAME TO xyzabc")
-		}
-		r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
-		}
-	}
-	{ // do_test "alter-10.4"
-		r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
-		}
-	}
-	{ // do_test "alter-11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11(%c6%c6)}")
-		_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
-		}
-		_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
-		_ = _res // catchsql
-	}
-	var isutf16 = "regexp 16 [db one {PRAGMA encoding}]"
-	_ = isutf16 // suppress unused warning
-	if tclBool("!" + isutf16) {
-		{ // do_test "alter-11.2"
-			_res = db.Exec("INSERT INTO t11 VALUES(1,2)")
+		{ // do_test "alter-10.1"
+			_res = db.Exec("CREATE TABLE xyz(x UNIQUE)")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11 VALUES(1,2)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xyz(x UNIQUE)")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %c6%c6 AS xyz, abc FROM t11}")
-		}
-	}
-	{ // do_test "alter-11.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11b(\"%81%82%83\" text)}")
-		_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
-		}
-		_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
-		_ = _res // catchsql
-	}
-	if tclBool("!" + isutf16) {
-		{ // do_test "alter-11.4"
-			_res = db.Exec("INSERT INTO t11b VALUES(3,4)")
+			_res = db.Exec("ALTER TABLE xyz RENAME TO xyz\\u1234abc")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11b VALUES(3,4)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz RENAME TO xyz\\u1234abc")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11b}")
+			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
+			}
 		}
-		{ // do_test "alter-11.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11b}")
+		{ // do_test "alter-10.2"
+			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
+			}
 		}
-		{ // do_test "alter-11.6"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11b}")
-		}
-	}
-	{ // do_test "alter-11.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11c(%81%82%83 text)}")
-		_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
-		}
-		_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
-		_ = _res // catchsql
-	}
-	if tclBool("!" + isutf16) {
-		{ // do_test "alter-11.8"
-			_res = db.Exec("INSERT INTO t11c VALUES(5,6)")
+		{ // do_test "alter-10.3"
+			_res = db.Exec("ALTER TABLE xyz\\u1234abc RENAME TO xyzabc")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11c VALUES(5,6)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ALTER TABLE xyz\\u1234abc RENAME TO xyzabc")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11c}")
+			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'xyz*'")
+			}
 		}
-		{ // do_test "alter-11.9"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11c}")
+		{ // do_test "alter-10.4"
+			r = db.Query("SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE name GLOB 'sqlite_autoindex*'")
+			}
 		}
-		{ // do_test "alter-11.10"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11c}")
-		}
-	}
-	{ // do_test "alter-12.1"
-		_res = db.Exec("\n    CREATE TABLE t12(a, b, c);\n    CREATE VIEW v1 AS SELECT * FROM t12;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t12(a, b, c);\n    CREATE VIEW v1 AS SELECT * FROM t12;\n  ")
-		}
-	}
-	{ // do_test "alter-12.2"
-		_res = db.Exec("\n    ALTER TABLE v1 RENAME TO v2;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "alter-12.3"
-		r = db.Query(" SELECT * FROM v1; ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1; ")
-		}
-	}
-	{ // do_test "alter-12.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" SELECT * FROM v1; ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1; ")
-		}
-	}
-	{ // do_test "alter-12.5"
-		_res = db.Exec(" \n    ALTER TABLE v1 ADD COLUMN new_column;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "alter-13.1"
-		r = db.Query("\n    CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
-		}
-	}
-	{ // do_test "alter-13.2"
-		r = db.Query("\n    ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
-		}
-	}
-	{ // do_test "alter-13.3"
-		r = db.Query("\n    ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
-		}
-	}
-	{ // do_test "alter-14.1"
-		_res = db.Exec("\n    CREATE TABLE t3651(a UNIQUE);\n    INSERT INTO t3651 VALUES(5);\n    ALTER TABLE t3651 ADD COLUMN b UNIQUE;\n  ")
-		_ = _res // catchsql
-	}
-	{ // do_test "alter-14.2"
-		_res = db.Exec("\n    ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n  ")
-		_ = _res // catchsql
-	}
-	var system_table_list = "1 sqlite_master"
-	_ = system_table_list // suppress unused warning
-	_res = db.Exec("ANALYZE")
-	_ = _res // catchsql
-	// foreach {tn tbl} system_table_list
-	_items := []string{system_table_list}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	tbl := _items[_idx+1]
-		{ // do_test "alter-15." + tn + ".1"
-			_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
+		{ // do_test "alter-11.1"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11(%c6%c6)}")
+			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
+			}
+			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
 			_ = _res // catchsql
 		}
-		{ // do_test "alter-15." + tn + ".2"
-			_res = db.Exec("ALTER TABLE " + tbl + " ADD COLUMN xyz")
+		var isutf16 = "regexp 16 [db one {PRAGMA encoding}]"
+		_ = isutf16 // suppress unused warning
+		if tclBool("!" + isutf16) {
+			{ // do_test "alter-11.2"
+				_res = db.Exec("INSERT INTO t11 VALUES(1,2)")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11 VALUES(1,2)")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %c6%c6 AS xyz, abc FROM t11}")
+			}
+		}
+		{ // do_test "alter-11.3"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11b(\"%81%82%83\" text)}")
+			_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
+			}
+			_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
 			_ = _res // catchsql
 		}
-	}
-	}
-	{ // "alter-16.1"
-		r = db.Query("\n  CREATE TABLE t16a(a TEXT, b REAL, c INT, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t16a VALUES('abc',1.25,99);\n  ALTER TABLE t16a ADD COLUMN d TEXT DEFAULT 'xyzzy';\n  INSERT INTO t16a VALUES('cba',5.5,98,'fizzle');\n  SELECT * FROM t16a ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t16a(a TEXT, b REAL, c INT, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t16a VALUES('abc',1.25,99);\n  ALTER TABLE t16a ADD COLUMN d TEXT DEFAULT 'xyzzy';\n  INSERT INTO t16a VALUES('cba',5.5,98,'fizzle');\n  SELECT * FROM t16a ORDER BY a;\n")
-			return
+		if tclBool("!" + isutf16) {
+			{ // do_test "alter-11.4"
+				_res = db.Exec("INSERT INTO t11b VALUES(3,4)")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11b VALUES(3,4)")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11b}")
+			}
+			{ // do_test "alter-11.5"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11b}")
+			}
+			{ // do_test "alter-11.6"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11b}")
+			}
 		}
-		got := flatten(r)
-		want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "alter-11.7"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11c(%81%82%83 text)}")
+			_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
+			}
+			_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
+			_ = _res // catchsql
 		}
-	}
-	{ // "alter-16.2"
-		r = db.Query("\n  ALTER TABLE t16a RENAME TO t16a_rn;\n  SELECT * FROM t16a_rn ORDER BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t16a RENAME TO t16a_rn;\n  SELECT * FROM t16a_rn ORDER BY a;\n")
-			return
+		if tclBool("!" + isutf16) {
+			{ // do_test "alter-11.8"
+				_res = db.Exec("INSERT INTO t11c VALUES(5,6)")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11c VALUES(5,6)")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11c}")
+			}
+			{ // do_test "alter-11.9"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11c}")
+			}
+			{ // do_test "alter-11.10"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11c}")
+			}
 		}
-		got := flatten(r)
-		want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "alter-12.1"
+			_res = db.Exec("\n    CREATE TABLE t12(a, b, c);\n    CREATE VIEW v1 AS SELECT * FROM t12;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t12(a, b, c);\n    CREATE VIEW v1 AS SELECT * FROM t12;\n  ")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "alter-18.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: no such table: main.logx") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: no such table: main.logx", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
+		{ // do_test "alter-12.2"
+			_res = db.Exec("\n    ALTER TABLE v1 RENAME TO v2;\n  ")
+			_ = _res // catchsql
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "alter-19.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
+		{ // do_test "alter-12.3"
+			r = db.Query(" SELECT * FROM v1; ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1; ")
+			}
 		}
-	}
-	{ // "alter-19.2"
-		r = db.Query("\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t2%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t2%';\n")
+		{ // do_test "alter-12.4"
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			r = db.Query(" SELECT * FROM v1; ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM v1; ")
+			}
 		}
-	}
-	{ // "alter-19.3"
-		r = db.Query("\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t3%' ORDER BY name;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t3%' ORDER BY name;\n")
-			return
+		{ // do_test "alter-12.5"
+			_res = db.Exec(" \n    ALTER TABLE v1 ADD COLUMN new_column;\n  ")
+			_ = _res // catchsql
 		}
-		got := flatten(r)
-		want := "r1 t3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // do_test "alter-13.1"
+			r = db.Query("\n    CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE /* hi */ t3102a(x);\n    CREATE TABLE t3102b -- comment\n    (y);\n    CREATE INDEX t3102c ON t3102a(x);\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "alter-20.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
+		{ // do_test "alter-13.2"
+			r = db.Query("\n    ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t3102a RENAME TO t3102a_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+			}
 		}
-	}
-	{ // "alter-20.2"
-		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "type mismatch on DEFAULT") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "type mismatch on DEFAULT", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+		{ // do_test "alter-13.3"
+			r = db.Query("\n    ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    ALTER TABLE t3102b RENAME TO t3102b_rename;\n    SELECT name FROM sqlite_master WHERE name GLOB 't3102*' ORDER BY 1;\n  ")
+			}
 		}
-	}
-	{ // "alter-20.2"
-		_res = db.Exec("\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+		{ // do_test "alter-14.1"
+			_res = db.Exec("\n    CREATE TABLE t3651(a UNIQUE);\n    INSERT INTO t3651 VALUES(5);\n    ALTER TABLE t3651 ADD COLUMN b UNIQUE;\n  ")
+			_ = _res // catchsql
 		}
-	}
-	{ // "alter-20.3"
-		_res = db.Exec("\n  INSERT INTO t1(a) VALUES(45);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column t1.b") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.b", _res.Error, "\n  INSERT INTO t1(a) VALUES(45);\n")
+		{ // do_test "alter-14.2"
+			_res = db.Exec("\n    ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n  ")
+			_ = _res // catchsql
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "alter-21.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
-		}
-	}
-	{ // "alter-21.2"
-		r = db.Query("\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
-			return
-		}
-		got := flatten(r)
-		want := "e table r1 trigger t1 table"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "alter-21.3"
-		_res = db.Exec("\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
-		}
-	}
-	{ // "alter-21.4"
-		r = db.Query("\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
-			return
-		}
-		got := flatten(r)
-		want := "r2 trigger t1 table t99 table"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "alter-22.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n")
-		}
-	}
-	{ // "alter-22.2"
-		_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t1 after add column: no such function: sqlite_fail") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1 after add column: no such function: sqlite_fail", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
-		}
-	}
+		var system_table_list = "1 sqlite_master"
+		_ = system_table_list // suppress unused warning
+		_res = db.Exec("ANALYZE")
+		_ = _res // catchsql
+		// foreach {tn tbl} system_table_list
+		_items := tclSplitList(system_table_list)
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			tbl := _items[_idx+1]
+			_ = _idx
+				{ // do_test "alter-15." + tn + ".1"
+					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
+					_ = _res // catchsql
+				}
+				{ // do_test "alter-15." + tn + ".2"
+					_res = db.Exec("ALTER TABLE " + tbl + " ADD COLUMN xyz")
+					_ = _res // catchsql
+				}
+			}
+			{ // "alter-16.1"
+				r = db.Query("\n  CREATE TABLE t16a(a TEXT, b REAL, c INT, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t16a VALUES('abc',1.25,99);\n  ALTER TABLE t16a ADD COLUMN d TEXT DEFAULT 'xyzzy';\n  INSERT INTO t16a VALUES('cba',5.5,98,'fizzle');\n  SELECT * FROM t16a ORDER BY a;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t16a(a TEXT, b REAL, c INT, PRIMARY KEY(a,b)) WITHOUT rowid;\n  INSERT INTO t16a VALUES('abc',1.25,99);\n  ALTER TABLE t16a ADD COLUMN d TEXT DEFAULT 'xyzzy';\n  INSERT INTO t16a VALUES('cba',5.5,98,'fizzle');\n  SELECT * FROM t16a ORDER BY a;\n")
+					return
+				}
+				got := flatten(r)
+				want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "alter-16.2"
+				r = db.Query("\n  ALTER TABLE t16a RENAME TO t16a_rn;\n  SELECT * FROM t16a_rn ORDER BY a;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t16a RENAME TO t16a_rn;\n  SELECT * FROM t16a_rn ORDER BY a;\n")
+					return
+				}
+				got := flatten(r)
+				want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "alter-18.1"
+				_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: no such table: main.logx") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: no such table: main.logx", _res.Error, "\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE log(a INTEGER PRIMARY KEY,b,c);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO logx(a,b,c) VALUES(new.a,new.b,new.c)\n    ON CONFLICT(a) DO UPDATE SET c=excluded.c, b=new.b;\n  END;\n  ALTER TABLE log RENAME COLUMN a TO x;\n")
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "alter-19.1"
+				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(c);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (c)=(\n       EXISTS(SELECT 1 WHERE (WITH cte1(a) AS (SELECT 1 FROM t1 WHERE (SELECT 1 WHERE (WITH cte2(b) AS (VALUES(1))SELECT b FROM cte2)))SELECT a FROM cte1))\n    );\n  END;\n  ALTER TABLE t2 RENAME TO t3;\n")
+				}
+			}
+			{ // "alter-19.2"
+				r = db.Query("\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t2%';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t2%';\n")
+				}
+			}
+			{ // "alter-19.3"
+				r = db.Query("\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t3%' ORDER BY name;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_schema WHERE sql LIKE '%t3%' ORDER BY name;\n")
+					return
+				}
+				got := flatten(r)
+				want := "r1 t3"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "alter-20.1"
+				_res = db.Exec("\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT) STRICT;\n  INSERT INTO t1(a) VALUES(45);\n")
+				}
+			}
+			{ // "alter-20.2"
+				_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "type mismatch on DEFAULT") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "type mismatch on DEFAULT", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+				}
+			}
+			{ // "alter-20.2"
+				_res = db.Exec("\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  ALTER TABLE t1 ADD COLUMN b TEXT DEFAULT x'313233';\n")
+				}
+			}
+			{ // "alter-20.3"
+				_res = db.Exec("\n  INSERT INTO t1(a) VALUES(45);\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot store BLOB value in TEXT column t1.b") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot store BLOB value in TEXT column t1.b", _res.Error, "\n  INSERT INTO t1(a) VALUES(45);\n")
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "alter-21.1"
+				_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TABLE t2(a,b,c,d,x);\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(DISTINCT a ORDER BY a) FROM t1)) FROM t1;\n  END;\n  ALTER TABLE t2 RENAME TO e;\n")
+				}
+			}
+			{ // "alter-21.2"
+				r = db.Query("\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
+					return
+				}
+				got := flatten(r)
+				want := "e table r1 trigger t1 table"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "alter-21.3"
+				_res = db.Exec("\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER r1;\n  CREATE TRIGGER r2 AFTER INSERT ON e BEGIN\n    SELECT unknown_function(a ORDER BY (SELECT group_concat(a ORDER BY a) FROM (SELECT b FROM t1))) FROM t1;\n  END;\n  ALTER TABLE e RENAME TO t99;\n")
+				}
+			}
+			{ // "alter-21.4"
+				r = db.Query("\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name, type FROM sqlite_schema ORDER BY name;\n")
+					return
+				}
+				got := flatten(r)
+				want := "r2 trigger t1 table t99 table"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "alter-22.1"
+				_res = db.Exec("\n  CREATE TABLE t1(a,b);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n")
+				}
+			}
+			{ // "alter-22.2"
+				_res = db.Exec("\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in table t1 after add column: no such function: sqlite_fail") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in table t1 after add column: no such function: sqlite_fail", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN c CHECK( if(c<10,1,sqlite_fail('bummer',1)));\n")
+				}
+			}
 }

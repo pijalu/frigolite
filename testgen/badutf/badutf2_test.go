@@ -39,37 +39,37 @@ func Test_badutf2(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
 	}
 	// foreach {i len uval xstr ustr u2u} "\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"
-	_items := []string{"\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"}
+	_items := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
 	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-	i := _items[_idx+0]
-	len := _items[_idx+1]
-	uval := _items[_idx+2]
-	xstr := _items[_idx+3]
-	ustr := _items[_idx+4]
-	u2u := _items[_idx+5]
-		var hstr = "utf8_to_hstr $uval"
-		_ = hstr // suppress unused warning
-		if hstr != "%00" {
-			{ // do_test "badutf2-3.1." + i
-				var sql = "SELECT hex('" + hstr + "') AS x;"
-				_ = sql // suppress unused warning
-				var res = "sqlite3_exec db $sql"
-				_ = res // suppress unused warning
-				tclLIndex("lindex $res 1", "1")
+		i := _items[_idx+0]
+		len := _items[_idx+1]
+		uval := _items[_idx+2]
+		xstr := _items[_idx+3]
+		ustr := _items[_idx+4]
+		u2u := _items[_idx+5]
+		_ = _idx
+			var hstr = "utf8_to_hstr $uval"
+			_ = hstr // suppress unused warning
+			if hstr != "%00" {
+				{ // do_test "badutf2-3.1." + i
+					var sql = "SELECT hex('" + hstr + "') AS x;"
+					_ = sql // suppress unused warning
+					var res = "sqlite3_exec db $sql"
+					_ = res // suppress unused warning
+					tclLIndex("lindex $res 1", "1")
+				}
+			}
+			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return i_n==5 && tcl_version_n >= 8.7 }() {
+			} else {
+				{ // do_test "badutf2-4.1." + i
+					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
+					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 $xstr $len")
+					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+					t.Skipf("TODO: %s not implemented in frigolite", "utf8_to_ustr2 [ sqlite3_column_text $S 0 ]")
+				}
 			}
 		}
-		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return i_n==5 && tcl_version_n >= 8.7 }() {
-		} else {
-			{ // do_test "badutf2-4.1." + i
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 $xstr $len")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-				t.Skipf("TODO: %s not implemented in frigolite", "utf8_to_ustr2 [ sqlite3_column_text $S 0 ]")
-			}
+		{ // do_test "badutf2-4.2"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 		}
-	}
-	}
-	{ // do_test "badutf2-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
-	}
 }

@@ -83,68 +83,68 @@ func Test_altercons3(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// foreach {tn before after} "\n  1 \"CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\"\n    \"CREATE TABLE c1(b)\"\n\n  2 \"CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\"\n    \"CREATE TABLE c1(b, c)\"\n\n  3 \"CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\"\n    \"CREATE TABLE c1(b, generated)\"\n\n  4 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\"\n    \"CREATE TABLE c1(b, generated NOT NULL)\"\n\n  5 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\"\n    \"CREATE TABLE c1(b, generated)\"\n"
-	_items := []string{"\n  1 \"CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\"\n    \"CREATE TABLE c1(b)\"\n\n  2 \"CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\"\n    \"CREATE TABLE c1(b, c)\"\n\n  3 \"CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\"\n    \"CREATE TABLE c1(b, generated)\"\n\n  4 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\"\n    \"CREATE TABLE c1(b, generated NOT NULL)\"\n\n  5 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\"\n    \"CREATE TABLE c1(b, generated)\"\n"}
+	_items := tclSplitList("\n  1 \"CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\"\n    \"CREATE TABLE c1(b)\"\n\n  2 \"CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\"\n    \"CREATE TABLE c1(b, c)\"\n\n  3 \"CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\"\n    \"CREATE TABLE c1(b, generated)\"\n\n  4 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\"\n    \"CREATE TABLE c1(b, generated NOT NULL)\"\n\n  5 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\"\n    \"CREATE TABLE c1(b, generated)\"\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	before := _items[_idx+1]
-	after := _items[_idx+2]
-		{ // "4." + tn + ".1"
-			_res = db.Exec(" DROP TABLE IF EXISTS c1 ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS c1 ")
+		tn := _items[_idx+0]
+		before := _items[_idx+1]
+		after := _items[_idx+2]
+		_ = _idx
+			{ // "4." + tn + ".1"
+				_res = db.Exec(" DROP TABLE IF EXISTS c1 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS c1 ")
+				}
+			}
+			{ // "4." + tn + ".2"
+				_res = db.Exec(before)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+				}
+			}
+			{ // "4." + tn + ".3"
+				_res = db.Exec(" ALTER TABLE c1 DROP CONSTRAINT fk ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE c1 DROP CONSTRAINT fk ")
+				}
+			}
+			{ // "4." + tn + ".4"
+				r = db.Query(" \n    SELECT sql FROM sqlite_schema WHERE name='c1' \n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT sql FROM sqlite_schema WHERE name='c1' \n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list $after"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "4." + tn + ".2"
-			_res = db.Exec(before)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, before)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
 			}
 		}
-		{ // "4." + tn + ".3"
-			_res = db.Exec(" ALTER TABLE c1 DROP CONSTRAINT fk ")
+		{ // "5.1"
+			_res = db.Exec("\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE c1 DROP CONSTRAINT fk ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
 			}
 		}
-		{ // "4." + tn + ".4"
-			r = db.Query(" \n    SELECT sql FROM sqlite_schema WHERE name='c1' \n  ")
+		{ // "5.2"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT sql FROM sqlite_schema WHERE name='c1' \n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema\n")
 				return
 			}
 			got := flatten(r)
-			want := "list $after"
+			want := "{CREATE TABLE x1(a, b }"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES x2);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET sql='CREATE TABLE x1(a, b CONSTRAINT ott REFERENCES';\n")
-		}
-	}
-	{ // "5.1"
-		_res = db.Exec("\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE x1 DROP CONSTRAINT ott;\n")
-		}
-	}
-	{ // "5.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE x1(a, b }"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

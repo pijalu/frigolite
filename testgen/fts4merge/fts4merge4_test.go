@@ -134,9 +134,9 @@ func Test_fts4merge4(t *testing.T) {
 	}
 	var doc = ""
 	_ = doc // suppress unused warning
-	for _, c1 := range []string{"a b c d e f g h i j"} {
-		for _, c2 := range []string{"a b c d e f g h i j"} {
-			for _, c3 := range []string{"a b c d e f g h i j"} {
+	for _, c1 := range tclSplitList("a b c d e f g h i j") {
+		for _, c2 := range tclSplitList("a b c d e f g h i j") {
+			for _, c3 := range tclSplitList("a b c d e f g h i j") {
 				doc = tclListAppend(doc, c1 + c2 + c3)
 			}
 		}
@@ -144,49 +144,49 @@ func Test_fts4merge4(t *testing.T) {
 	var doc = "$doc 10"
 	_ = doc // suppress unused warning
 	// foreach {tn am expected} "\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n"
-	_items := []string{"\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n"}
+	_items := tclSplitList("\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	am := _items[_idx+1]
-	expected := _items[_idx+2]
-		// foreach {tn2 openclose} "1 {} 2 { db close ; sqlite3 db test.db }"
-		_items := []string{"1 {} 2 { db close ; sqlite3 db test.db }"}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn2 := _items[_idx+0]
-		openclose := _items[_idx+1]
-			{ // do_test "2.2." + tn + "." + tn2
-				_res = db.Exec(" DELETE FROM t2 ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t2 ")
-				}
-				_res = db.Exec(" INSERT INTO t2(t2) VALUES($am) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES($am) ")
-				}
-				// eval $openclose
-				var i = "0"
-				_ = i // suppress unused warning
-				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					_res = db.Exec(" \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
-					}
-					// incr i 1
-					{
-						_n, _err := strconv.Atoi(i)
-						if _err == nil {
-							i = strconv.Itoa(_n + 1)
+		tn := _items[_idx+0]
+		am := _items[_idx+1]
+		expected := _items[_idx+2]
+		_ = _idx
+			// foreach {tn2 openclose} "1 {} 2 { db close ; sqlite3 db test.db }"
+			_items := tclSplitList("1 {} 2 { db close ; sqlite3 db test.db }")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn2 := _items[_idx+0]
+				openclose := _items[_idx+1]
+				_ = _idx
+					{ // do_test "2.2." + tn + "." + tn2
+						_res = db.Exec(" DELETE FROM t2 ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t2 ")
+						}
+						_res = db.Exec(" INSERT INTO t2(t2) VALUES($am) ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES($am) ")
+						}
+						// eval $openclose
+						var i = "0"
+						_ = i // suppress unused warning
+						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
+							_res = db.Exec(" \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
+							}
+							// incr i 1
+							{
+								_n, _err := strconv.Atoi(i)
+								if _err == nil {
+									i = strconv.Itoa(_n + 1)
+								}
+							}
+						}
+						r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
 						}
 					}
 				}
-				r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
-				}
 			}
-		}
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

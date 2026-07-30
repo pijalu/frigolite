@@ -32,10 +32,10 @@ func Test_fuzzer2(t *testing.T) {
 		_ = LETTERS // suppress unused warning
 		var cost = "1"
 		_ = cost // suppress unused warning
-		for _, c1 := range []string{LETTERS} {
-			for _, c2 := range []string{LETTERS} {
-				for _, c3 := range []string{LETTERS} {
-					for _, c4 := range []string{LETTERS} {
+		for _, c1 := range tclSplitList(LETTERS) {
+			for _, c2 := range tclSplitList(LETTERS) {
+				for _, c3 := range tclSplitList(LETTERS) {
+					for _, c4 := range tclSplitList(LETTERS) {
 						_res = db.Exec("INSERT INTO x1_rules VALUES(0, $c1||$c2, $c3||$c4, $cost)")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, $c1||$c2, $c3||$c4, $cost)")

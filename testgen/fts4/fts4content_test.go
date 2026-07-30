@@ -123,929 +123,929 @@ func Test_fts4content(t *testing.T) {
 		}
 	}
 	// foreach {tn match rowidlist} "\n  1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}\n"
-	_items := []string{"\n  1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}\n"}
+	_items := tclSplitList("\n  1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	rowidlist := _items[_idx+2]
-		{ // "2.2.1." + tn
-			r = db.Query("\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
-				return
+		tn := _items[_idx+0]
+		match := _items[_idx+1]
+		rowidlist := _items[_idx+2]
+		_ = _idx
+			{ // "2.2.1." + tn
+				r = db.Query("\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
+					return
+				}
+				got := flatten(r)
+				want := rowidlist
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			got := flatten(r)
-			want := rowidlist
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "2.2.2." + tn
-			r = db.Query("\n    SELECT docid FROM ft2 WHERE ft2 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM ft2 WHERE ft2 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := rowidlist
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	// foreach {tn match result} "\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n"
-	_items := []string{"\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	result := _items[_idx+2]
-		{ // "2.3." + tn
-			r = db.Query("\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := result
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "2.2.2." + tn
+				r = db.Query("\n    SELECT docid FROM ft2 WHERE ft2 MATCH $match\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM ft2 WHERE ft2 MATCH $match\n  ")
+					return
+				}
+				got := flatten(r)
+				want := rowidlist
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-	}
-	}
-	// foreach {tn match result} "\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n"
-	_items := []string{"\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	result := _items[_idx+2]
-		{ // "2.4." + tn
-			r = db.Query("\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
-				return
+		// foreach {tn match result} "\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n"
+		_items := tclSplitList("\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			match := _items[_idx+1]
+			result := _items[_idx+2]
+			_ = _idx
+				{ // "2.3." + tn
+					r = db.Query("\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
+						return
+					}
+					got := flatten(r)
+					want := result
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
-			got := flatten(r)
-			want := result
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	// foreach {tn match result} "\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n"
-	_items := []string{"\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	result := _items[_idx+2]
-		{ // "2.5." + tn
-			r = db.Query("\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := result
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "3.1"
-		_res = db.Exec("\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
-		}
-	}
-	{ // "3.1.1"
-		_res = db.Exec("\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
-		}
-	}
-	{ // "3.1.2"
-		r = db.Query("\n  INSERT INTO ft3(docid, x, y) VALUES(21, 'a b c', 'd e f');\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft3(docid, x, y) VALUES(21, 'a b c', 'd e f');\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
-			return
-		}
-		got := flatten(r)
-		want := "21"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.1.3"
-		r = db.Query(" SELECT * FROM t3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
-		}
-	}
-	{ // "3.1.4"
-		r = db.Query(" \n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
-			return
-		}
-		got := flatten(r)
-		want := "21"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.1.5"
-		r = db.Query("\n  INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
-		}
-	}
-	{ // "3.1.6"
-		r = db.Query(" SELECT rowid FROM t3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t3 ")
-			return
-		}
-		got := flatten(r)
-		want := "21"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.2.1"
-		_res = db.Exec("\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
-		}
-	}
-	// foreach {tn match rowidlist} "\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n"
-	_items := []string{"\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	rowidlist := _items[_idx+2]
-		var res = "list"
-		_ = res // suppress unused warning
-		for _, rowid := range []string{rowidlist} {
-			res = tclListAppend(res, rowid, "", "")
-		}
-		{ // "3.2.2." + tn
-			r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "3.2.3." + tn
-			r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "3.3.1"
-		_res = db.Exec("\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
-		}
-	}
-	// foreach {tn match rowidlist} "\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n"
-	_items := []string{"\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	rowidlist := _items[_idx+2]
-		var res = "list"
-		_ = res // suppress unused warning
-		for _, rowid := range []string{rowidlist} {
-			res = tclListAppend(res, rowid, "", "")
-		}
-		{ // "3.3.2." + tn
-			r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "3.3.3." + tn
-			r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "3.3.1"
-		_res = db.Exec("\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
-		}
-	}
-	// foreach {tn match rowidlist} "\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n"
-	_items := []string{"\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	match := _items[_idx+1]
-	rowidlist := _items[_idx+2]
-		var res = "list"
-		_ = res // suppress unused warning
-		for _, rowid := range []string{rowidlist} {
-			res = tclListAppend(res, rowid, "", "")
-		}
-		{ // "3.3.2." + tn
-			r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "3.3.3." + tn
-			r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
-		}
-	}
-	{ // "4.1.1"
-		_res = db.Exec("\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
-		}
-	}
-	{ // "4.1.2"
-		r = db.Query("\n  SELECT id, quote(value) FROM ft4_stat\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, quote(value) FROM ft4_stat\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'000000'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.1.3"
-		r = db.Query("\n  SELECT id, quote(value) FROM ft4x_stat\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, quote(value) FROM ft4x_stat\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'000000'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.1"
-		r = db.Query("\n  INSERT INTO ft4x VALUES('M G M F T');\n  INSERT INTO ft4x VALUES('Z Q C A U');\n  INSERT INTO ft4x VALUES('N L L V');\n  INSERT INTO ft4x VALUES('T F D X D');\n  INSERT INTO ft4x VALUES('Z H I S D');\n\n  SELECT id, quote(value) FROM ft4x_stat\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4x VALUES('M G M F T');\n  INSERT INTO ft4x VALUES('Z Q C A U');\n  INSERT INTO ft4x VALUES('N L L V');\n  INSERT INTO ft4x VALUES('T F D X D');\n  INSERT INTO ft4x VALUES('Z H I S D');\n\n  SELECT id, quote(value) FROM ft4x_stat\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'05182B'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.2"
-		r = db.Query("\n  INSERT INTO ft4(rowid, x) SELECT rowid, * FROM ft4x;\n  SELECT id, quote(value) FROM ft4_stat\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4(rowid, x) SELECT rowid, * FROM ft4x;\n  SELECT id, quote(value) FROM ft4_stat\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'05182B'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.3"
-		r = db.Query("\n  SELECT docid, quote(size) FROM ft4_docsize\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid, quote(size) FROM ft4_docsize\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.4"
-		r = db.Query("\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4x_stat;\n  SELECT docid, quote(size) FROM ft4x_docsize\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4x_stat;\n  SELECT docid, quote(size) FROM ft4x_docsize\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'05182B' 1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.5"
-		r = db.Query("\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'000000'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "4.2.6"
-		r = db.Query("\n  INSERT INTO t4(rowid, x) SELECT rowid, x FROM ft4x;\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t4(rowid, x) SELECT rowid, x FROM ft4x;\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 X'05182B' 1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.1"
-		r = db.Query("\n  CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  t5 ft5 ft5_segments ft5_segdir \n  sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.2"
-		r = db.Query("\n  ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  t5\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.3"
-		r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  ft6 ft6_segments ft6_segdir \n  sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.4"
-		r = db.Query("\n  INSERT INTO t5 VALUES('a', 'b', 'c', 'd');\n  INSERT INTO ft6(ft6) VALUES('rebuild');\n  SELECT rowid FROM ft6 WHERE ft6 MATCH 'b';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5 VALUES('a', 'b', 'c', 'd');\n  INSERT INTO ft6(ft6) VALUES('rebuild');\n  SELECT rowid FROM ft6 WHERE ft6 MATCH 'b';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.5"
-		r = db.Query("\n  DROP TABLE ft6;\n  SELECT * FROM t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE ft6;\n  SELECT * FROM t5;\n")
-			return
-		}
-		got := flatten(r)
-		want := "a b c d"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.6"
-		r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "5.1.7"
-		r = db.Query("\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  t5 t5_content\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.1.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t7") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", _res.Error, "\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
-		}
-	}
-	{ // "6.2.1"
-		r = db.Query("\n  CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {A B} {B A} {C D} {A A}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2.2"
-		_res = db.Exec("\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "6.2.3"
-		r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 \n  ft7_docsize ft7_stat\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2.4"
-		_res = db.Exec("\n  SELECT * FROM ft7;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t7") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", _res.Error, "\n  SELECT * FROM ft7;\n")
-		}
-	}
-	{ // "6.2.5"
-		r = db.Query("\n  CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {A B} {B A} {C D} {A A}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2.6"
-		r = db.Query("\n  INSERT INTO ft7(ft7) VALUES('rebuild');\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft7(ft7) VALUES('rebuild');\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-			return
-		}
-		got := flatten(r)
-		want := "2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2.7"
-		_res = db.Exec("\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
-		}
-	}
-	{ // "6.2.8"
-		_res = db.Exec("\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		}
-	}
-	{ // "6.2.9"
-		_res = db.Exec("\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "6.2.10"
-		_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		}
-	}
-	{ // "6.2.11"
-		_res = db.Exec("\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
-		}
-	}
-	{ // "7.1.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
-		}
-	}
-	{ // "7.1.2"
-		r = db.Query("\n  SELECT docid FROM ft8 WHERE ft8 MATCH 'N';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM ft8 WHERE ft8 MATCH 'N';\n")
-			return
-		}
-		got := flatten(r)
-		want := "13 15"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
-		}
-	}
-	{ // "7.2.2"
-		r = db.Query("\n  SELECT docid FROM ft9 WHERE ft9 MATCH 'N';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM ft9 WHERE ft9 MATCH 'N';\n")
-			return
-		}
-		got := flatten(r)
-		want := "13 15"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2.3"
-		r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE 'ft9_%';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE 'ft9_%';\n")
-			return
-		}
-		got := flatten(r)
-		want := "ft9_segments ft9_segdir ft9_docsize ft9_stat"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2.4"
-		_res = db.Exec("\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
-		}
-	}
-	{ // "8.1"
-		_res = db.Exec("\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
-		}
-	}
-	{ // "8.2"
-		r = db.Query(" SELECT * FROM ft10 WHERE a MATCH 'ab*';          ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ft10 WHERE a MATCH 'ab*';          ")
-		}
-	}
-	{ // "8.3"
-		_res = db.Exec(" INSERT INTO ft10(ft10) VALUES('rebuild');        ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft10(ft10) VALUES('rebuild');        ")
-		}
-	}
-	{ // "8.4"
-		r = db.Query(" SELECT rowid FROM ft10 WHERE a MATCH 'ab*';      ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft10 WHERE a MATCH 'ab*';      ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.5"
-		r = db.Query(" SELECT rowid FROM ft10 WHERE b MATCH 'abav*';    ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft10 WHERE b MATCH 'abav*';    ")
-			return
-		}
-		got := flatten(r)
-		want := "3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "8.6"
-		r = db.Query(" SELECT rowid FROM ft10 WHERE ft10 MATCH 'abas*'; ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft10 WHERE ft10 MATCH 'abas*'; ")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-	{ // "9.1"
-		_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
-		}
-	}
-	{ // "9.2"
-		r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'e'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'e'\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 {e f} {a b}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.3"
-		r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {a b} {c d} 2 {e f} {a b}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.4"
-		_res = db.Exec(" \n  DELETE FROM ft1 WHERE docid=1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DELETE FROM ft1 WHERE docid=1;\n")
-		}
-	}
-	{ // "9.5"
-		r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 {e f} {a b}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "9.6"
-		r = db.Query("\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 {a b} {c d} 2 {e f} {a b}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_fs_module [sqlite3_connection_pointer db]")
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...}")
-	{ // "10.1"
-		r = db.Query("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} \n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n  3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.2"
-		r = db.Query("\n  SELECT path, data FROM vt WHERE rowid = 2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT path, data FROM vt WHERE rowid = 2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.3"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts4(content=vt);\n  INSERT INTO ft(ft) VALUES('rebuild');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts4(content=vt);\n  INSERT INTO ft(ft) VALUES('rebuild');\n")
-		}
-	}
-	{ // "10.4"
-		r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {...c d [e] f g...} {...c d [e] f g...}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.5"
-		r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {...r s [t] u v...} {...r s [t] u v...}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.6"
-		_res = db.Exec(" DELETE FROM ft WHERE docid=2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM ft WHERE docid=2 ")
-		}
-	}
-	{ // "10.7"
-		r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {...c d [e] f g...}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "11.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor called recursively: x1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor called recursively: x1", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "12.1.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
-		}
-	}
-	{ // "12.1.2"
-		_res = db.Exec(" \n  SELECT * FROM t1; \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1; \n")
-		}
-	}
-	{ // "12.1.3"
-		_res = db.Exec(" \n  SELECT * FROM t1('abc'); \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1('abc'); \n")
-		}
-	}
-	{ // "12.1.4"
-		_res = db.Exec(" \n  SELECT count(*) FROM t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT count(*) FROM t1;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "12.2.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
-		}
-	}
-	{ // "12.2.2"
-		_res = db.Exec(" \n  SELECT * FROM t1; \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1; \n")
-		}
-	}
-	{ // "12.2.3"
-		_res = db.Exec(" \n  SELECT * FROM t1('abc'); \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1('abc'); \n")
-		}
-	}
-	{ // "12.2.4"
-		_res = db.Exec(" \n  SELECT count(*) FROM t1;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT count(*) FROM t1;\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "13.0"
-		_res = db.Exec("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
-		}
-	}
-	{ // "13.1"
-		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
-		}
-	}
-	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db xyz")
-	{ // "13.2.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
-		}
-	}
-	{ // "13.2.1"
-		_res = db.Exec("\n  INSERT INTO aa VALUES('one two three');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO aa VALUES('one two three');\n")
-		}
-	}
-	{ // do_test "13.2.2"
-		var _stmt = "sqlite3_prepare_v3 db \\\n    \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
-		_ = _stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
-	}
-	{ // do_test "13.2.2"
-		_list := tclList([]string{"0", msg})
-		_ = _list
-	}
+			// foreach {tn match result} "\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n"
+			_items := tclSplitList("\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				match := _items[_idx+1]
+				result := _items[_idx+2]
+				_ = _idx
+					{ // "2.4." + tn
+						r = db.Query("\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
+							return
+						}
+						got := flatten(r)
+						want := result
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+				// foreach {tn match result} "\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n"
+				_items := tclSplitList("\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n")
+				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+					tn := _items[_idx+0]
+					match := _items[_idx+1]
+					result := _items[_idx+2]
+					_ = _idx
+						{ // "2.5." + tn
+							r = db.Query("\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
+								return
+							}
+							got := flatten(r)
+							want := result
+							if got != want {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							}
+						}
+					}
+					{ // "3.1"
+						_res = db.Exec("\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(x, y);\n  CREATE VIRTUAL TABLE ft3 USING fts4(content=t3);\n")
+						}
+					}
+					{ // "3.1.1"
+						_res = db.Exec("\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  INSERT INTO ft3 VALUES('a b c', 'd e f');\n")
+						}
+					}
+					{ // "3.1.2"
+						r = db.Query("\n  INSERT INTO ft3(docid, x, y) VALUES(21, 'a b c', 'd e f');\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft3(docid, x, y) VALUES(21, 'a b c', 'd e f');\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+							return
+						}
+						got := flatten(r)
+						want := "21"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "3.1.3"
+						r = db.Query(" SELECT * FROM t3 ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+						}
+					}
+					{ // "3.1.4"
+						r = db.Query(" \n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+							return
+						}
+						got := flatten(r)
+						want := "21"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "3.1.5"
+						r = db.Query("\n  INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(21, 'a b c', 'd e f');\n  DELETE FROM ft3;\n  SELECT rowid FROM ft3 WHERE ft3 MATCH '\"a b c\"';\n")
+						}
+					}
+					{ // "3.1.6"
+						r = db.Query(" SELECT rowid FROM t3 ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t3 ")
+							return
+						}
+						got := flatten(r)
+						want := "21"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "3.2.1"
+						_res = db.Exec("\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO ft3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO ft3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO ft3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO ft3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  INSERT INTO ft3(rowid, x, y) VALUES(6, 'I Q I S P', 'D R O Q B');\n  INSERT INTO ft3(rowid, x, y) VALUES(7, 'T K T Z J', 'B W D G O');\n  INSERT INTO ft3(rowid, x, y) VALUES(8, 'Y K F X T', 'D F G V G');\n  INSERT INTO ft3(rowid, x, y) VALUES(9, 'E L E T L', 'P W N F Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(10, 'O G J G X', 'G J F E P');\n  INSERT INTO ft3(rowid, x, y) VALUES(11, 'O L N N Z', 'K E Z F D');\n  INSERT INTO ft3(rowid, x, y) VALUES(12, 'R Z M R J', 'X G I M Z');\n  INSERT INTO ft3(rowid, x, y) VALUES(13, 'L X N N X', 'R R N S T');\n  INSERT INTO ft3(rowid, x, y) VALUES(14, 'F L B J H', 'K W F L C');\n  INSERT INTO ft3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO ft3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO ft3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO ft3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO ft3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n")
+						}
+					}
+					// foreach {tn match rowidlist} "\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n"
+					_items := tclSplitList("\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n")
+					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+						tn := _items[_idx+0]
+						match := _items[_idx+1]
+						rowidlist := _items[_idx+2]
+						_ = _idx
+							var res = "list"
+							_ = res // suppress unused warning
+							for _, rowid := range tclSplitList(rowidlist) {
+								res = tclListAppend(res, rowid, "", "")
+							}
+							{ // "3.2.2." + tn
+								r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									return
+								}
+								got := flatten(r)
+								want := res
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "3.2.3." + tn
+								r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									return
+								}
+								got := flatten(r)
+								want := res
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+						}
+						{ // "3.3.1"
+							_res = db.Exec("\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(0, 'R T M S M', 'A F O K H');\n  INSERT INTO t3(rowid, x, y) VALUES(1, 'C Z J O X', 'U S Q D K');\n  INSERT INTO t3(rowid, x, y) VALUES(2, 'N G H P O', 'N O P O C');\n  INSERT INTO t3(rowid, x, y) VALUES(3, 'V H S D R', 'K N G E C');\n  INSERT INTO t3(rowid, x, y) VALUES(4, 'J T R V U', 'U X S L C');\n  INSERT INTO t3(rowid, x, y) VALUES(5, 'N A Y N G', 'X D G P Y');\n  UPDATE ft3 SET x = y, y = x;\n  DELETE FROM t3;\n")
+							}
+						}
+						// foreach {tn match rowidlist} "\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n"
+						_items := tclSplitList("\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n")
+						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+							tn := _items[_idx+0]
+							match := _items[_idx+1]
+							rowidlist := _items[_idx+2]
+							_ = _idx
+								var res = "list"
+								_ = res // suppress unused warning
+								for _, rowid := range tclSplitList(rowidlist) {
+									res = tclListAppend(res, rowid, "", "")
+								}
+								{ // "3.3.2." + tn
+									r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										return
+									}
+									got := flatten(r)
+									want := res
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "3.3.3." + tn
+									r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										return
+									}
+									got := flatten(r)
+									want := res
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+							}
+							{ // "3.3.1"
+								_res = db.Exec("\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(rowid, x, y) VALUES(15, 'P E B M V', 'E A A B U');\n  INSERT INTO t3(rowid, x, y) VALUES(16, 'V E C F P', 'L U T V K');\n  INSERT INTO t3(rowid, x, y) VALUES(17, 'T N O Z N', 'T P Q X N');\n  INSERT INTO t3(rowid, x, y) VALUES(18, 'V W U W R', 'H O A A V');\n  INSERT INTO t3(rowid, x, y) VALUES(19, 'A H N L F', 'I G H B O');\n  DELETE FROM ft3;\n")
+								}
+							}
+							// foreach {tn match rowidlist} "\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n"
+							_items := tclSplitList("\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n")
+							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+								tn := _items[_idx+0]
+								match := _items[_idx+1]
+								rowidlist := _items[_idx+2]
+								_ = _idx
+									var res = "list"
+									_ = res // suppress unused warning
+									for _, rowid := range tclSplitList(rowidlist) {
+										res = tclListAppend(res, rowid, "", "")
+									}
+									{ // "3.3.2." + tn
+										r = db.Query("\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+											return
+										}
+										got := flatten(r)
+										want := res
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										}
+									}
+									{ // "3.3.3." + tn
+										r = db.Query("\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+										if r.Error != nil {
+											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, * FROM ft3 WHERE ft3 MATCH $match\n  ")
+											return
+										}
+										got := flatten(r)
+										want := res
+										if got != want {
+											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+										}
+									}
+								}
+								{ // "4.0"
+									_res = db.Exec("\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(x);\n  CREATE VIRTUAL TABLE ft4 USING fts4(content=t4);\n  CREATE VIRTUAL TABLE ft4x USING fts4(x);\n")
+									}
+								}
+								{ // "4.1.1"
+									_res = db.Exec("\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n")
+									}
+								}
+								{ // "4.1.2"
+									r = db.Query("\n  SELECT id, quote(value) FROM ft4_stat\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, quote(value) FROM ft4_stat\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'000000'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.1.3"
+									r = db.Query("\n  SELECT id, quote(value) FROM ft4x_stat\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT id, quote(value) FROM ft4x_stat\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'000000'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.2.1"
+									r = db.Query("\n  INSERT INTO ft4x VALUES('M G M F T');\n  INSERT INTO ft4x VALUES('Z Q C A U');\n  INSERT INTO ft4x VALUES('N L L V');\n  INSERT INTO ft4x VALUES('T F D X D');\n  INSERT INTO ft4x VALUES('Z H I S D');\n\n  SELECT id, quote(value) FROM ft4x_stat\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4x VALUES('M G M F T');\n  INSERT INTO ft4x VALUES('Z Q C A U');\n  INSERT INTO ft4x VALUES('N L L V');\n  INSERT INTO ft4x VALUES('T F D X D');\n  INSERT INTO ft4x VALUES('Z H I S D');\n\n  SELECT id, quote(value) FROM ft4x_stat\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'05182B'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.2.2"
+									r = db.Query("\n  INSERT INTO ft4(rowid, x) SELECT rowid, * FROM ft4x;\n  SELECT id, quote(value) FROM ft4_stat\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4(rowid, x) SELECT rowid, * FROM ft4x;\n  SELECT id, quote(value) FROM ft4_stat\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'05182B'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.2.3"
+									r = db.Query("\n  SELECT docid, quote(size) FROM ft4_docsize\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid, quote(size) FROM ft4_docsize\n")
+										return
+									}
+									got := flatten(r)
+									want := "1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.2.4"
+									r = db.Query("\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4x_stat;\n  SELECT docid, quote(size) FROM ft4x_docsize\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4x(ft4x) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4x_stat;\n  SELECT docid, quote(size) FROM ft4x_docsize\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'05182B' 1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.2.5"
+									r = db.Query("\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'000000'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "4.2.6"
+									r = db.Query("\n  INSERT INTO t4(rowid, x) SELECT rowid, x FROM ft4x;\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t4(rowid, x) SELECT rowid, x FROM ft4x;\n  INSERT INTO ft4(ft4) VALUES('rebuild');\n  SELECT id, quote(value) FROM ft4_stat;\n  SELECT docid, quote(size) FROM ft4_docsize\n")
+										return
+									}
+									got := flatten(r)
+									want := "0 X'05182B' 1 X'05' 2 X'05' 3 X'04' 4 X'05' 5 X'05'"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.1"
+									r = db.Query("\n  CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(a, b, c, d);\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  t5 ft5 ft5_segments ft5_segdir \n  sqlite_autoindex_ft5_segdir_1 ft5_docsize ft5_stat\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.2"
+									r = db.Query("\n  ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE ft5 RENAME TO ft6;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  t5\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.3"
+									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  ft6 ft6_segments ft6_segdir \n  sqlite_autoindex_ft6_segdir_1 ft6_docsize ft6_stat\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.4"
+									r = db.Query("\n  INSERT INTO t5 VALUES('a', 'b', 'c', 'd');\n  INSERT INTO ft6(ft6) VALUES('rebuild');\n  SELECT rowid FROM ft6 WHERE ft6 MATCH 'b';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t5 VALUES('a', 'b', 'c', 'd');\n  INSERT INTO ft6(ft6) VALUES('rebuild');\n  SELECT rowid FROM ft6 WHERE ft6 MATCH 'b';\n")
+										return
+									}
+									got := flatten(r)
+									want := "1"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.5"
+									r = db.Query("\n  DROP TABLE ft6;\n  SELECT * FROM t5;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE ft6;\n  SELECT * FROM t5;\n")
+										return
+									}
+									got := flatten(r)
+									want := "a b c d"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.6"
+									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t6%';\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "5.1.7"
+									r = db.Query("\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE ft5 USING fts4(content=t5);\n  CREATE TABLE t5_content(a, b);\n  DROP TABLE ft5;\n  SELECT name FROM sqlite_master WHERE name LIKE '%t5%';\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  t5 t5_content\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "6.1.1"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t7") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", _res.Error, "\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n")
+									}
+								}
+								{ // "6.2.1"
+									r = db.Query("\n  CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t7(one, two);\n  CREATE VIRTUAL TABLE ft7 USING fts4(content=t7);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  {A B} {B A} {C D} {A A}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "6.2.2"
+									_res = db.Exec("\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
+									}
+								}
+								db, err = frigolite.Open("test.db")
+								if err != nil { t.Fatal(err) }
+								{ // "6.2.3"
+									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  ft7 ft7_segments ft7_segdir sqlite_autoindex_ft7_segdir_1 \n  ft7_docsize ft7_stat\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "6.2.4"
+									_res = db.Exec("\n  SELECT * FROM ft7;\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: main.t7") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: main.t7", _res.Error, "\n  SELECT * FROM ft7;\n")
+									}
+								}
+								{ // "6.2.5"
+									r = db.Query("\n  CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t7(x, y);\n  INSERT INTO t7 VALUES('A B', 'B A');\n  INSERT INTO t7 VALUES('C D', 'A A');\n  SELECT * FROM ft7;\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  {A B} {B A} {C D} {A A}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "6.2.6"
+									r = db.Query("\n  INSERT INTO ft7(ft7) VALUES('rebuild');\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft7(ft7) VALUES('rebuild');\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+										return
+									}
+									got := flatten(r)
+									want := "2"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "6.2.7"
+									_res = db.Exec("\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t7;\n  CREATE TABLE t7(x);\n")
+									}
+								}
+								{ // "6.2.8"
+									_res = db.Exec("\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									}
+								}
+								{ // "6.2.9"
+									_res = db.Exec("\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									}
+								}
+								db, err = frigolite.Open("test.db")
+								if err != nil { t.Fatal(err) }
+								{ // "6.2.10"
+									_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if _res.Error == nil {
+										t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									}
+								}
+								{ // "6.2.11"
+									_res = db.Exec("\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									if _res.Error == nil {
+										t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid, * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
+									}
+								}
+								{ // "7.1.1"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft8 USING fts4(content=nosuchtable, x);\n  INSERT INTO ft8(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft8(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft8(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft8(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft8(docid, x) VALUES(17, 'I Y T Q O');\n")
+									}
+								}
+								{ // "7.1.2"
+									r = db.Query("\n  SELECT docid FROM ft8 WHERE ft8 MATCH 'N';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM ft8 WHERE ft8 MATCH 'N';\n")
+										return
+									}
+									got := flatten(r)
+									want := "13 15"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "7.2.1"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft9 USING fts4(content=, x);\n  INSERT INTO ft9(docid, x) VALUES(13, 'U O N X G');\n  INSERT INTO ft9(docid, x) VALUES(14, 'C J J U B');\n  INSERT INTO ft9(docid, x) VALUES(15, 'N J Y G X');\n  INSERT INTO ft9(docid, x) VALUES(16, 'R Y D O R');\n  INSERT INTO ft9(docid, x) VALUES(17, 'I Y T Q O');\n")
+									}
+								}
+								{ // "7.2.2"
+									r = db.Query("\n  SELECT docid FROM ft9 WHERE ft9 MATCH 'N';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM ft9 WHERE ft9 MATCH 'N';\n")
+										return
+									}
+									got := flatten(r)
+									want := "13 15"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "7.2.3"
+									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE 'ft9_%';\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT name FROM sqlite_master WHERE name LIKE 'ft9_%';\n")
+										return
+									}
+									got := flatten(r)
+									want := "ft9_segments ft9_segdir ft9_docsize ft9_stat"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "7.2.4"
+									_res = db.Exec("\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft9 WHERE ft9 MATCH 'N';\n")
+									}
+								}
+								{ // "8.1"
+									_res = db.Exec("\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES(\n      'abasia abasic abask', 'Abassin abastardize abatable');\n  INSERT INTO t10 VALUES(\n      'abate abatement abater', 'abatis abatised abaton');\n  INSERT INTO t10 VALUES(\n      'abator abattoir Abatua', 'abature abave abaxial');\n\n  CREATE VIRTUAL TABLE ft10 USING fts4(content=t10, prefix=\"2,4\", a, b);\n")
+									}
+								}
+								{ // "8.2"
+									r = db.Query(" SELECT * FROM ft10 WHERE a MATCH 'ab*';          ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ft10 WHERE a MATCH 'ab*';          ")
+									}
+								}
+								{ // "8.3"
+									_res = db.Exec(" INSERT INTO ft10(ft10) VALUES('rebuild');        ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft10(ft10) VALUES('rebuild');        ")
+									}
+								}
+								{ // "8.4"
+									r = db.Query(" SELECT rowid FROM ft10 WHERE a MATCH 'ab*';      ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft10 WHERE a MATCH 'ab*';      ")
+										return
+									}
+									got := flatten(r)
+									want := "1 2 3"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "8.5"
+									r = db.Query(" SELECT rowid FROM ft10 WHERE b MATCH 'abav*';    ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft10 WHERE b MATCH 'abav*';    ")
+										return
+									}
+									got := flatten(r)
+									want := "3"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "8.6"
+									r = db.Query(" SELECT rowid FROM ft10 WHERE ft10 MATCH 'abas*'; ")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM ft10 WHERE ft10 MATCH 'abas*'; ")
+										return
+									}
+									got := flatten(r)
+									want := "1"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								db.Close()
+								db, err = frigolite.Open("")
+								if err != nil { t.Fatal(err) }
+								t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+								{ // "9.1"
+									_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
+									}
+								}
+								{ // "9.2"
+									r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'e'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'e'\n")
+										return
+									}
+									got := flatten(r)
+									want := "2 {e f} {a b}"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "9.3"
+									r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+										return
+									}
+									got := flatten(r)
+									want := "1 {a b} {c d} 2 {e f} {a b}"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "9.4"
+									_res = db.Exec(" \n  DELETE FROM ft1 WHERE docid=1;\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DELETE FROM ft1 WHERE docid=1;\n")
+									}
+								}
+								{ // "9.5"
+									r = db.Query("\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+										return
+									}
+									got := flatten(r)
+									want := "2 {e f} {a b}"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "9.6"
+									r = db.Query("\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n  SELECT rowid, * FROM ft1 WHERE ft1 MATCH 'a'\n")
+										return
+									}
+									got := flatten(r)
+									want := "1 {a b} {c d} 2 {e f} {a b}"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								db.Close()
+								db, err = frigolite.Open("")
+								if err != nil { t.Fatal(err) }
+								t.Skipf("TODO: %s not implemented in frigolite", "register_fs_module [sqlite3_connection_pointer db]")
+								// proc definition (not transpiled)
+								t.Skipf("TODO: %s not implemented in frigolite", "write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...}")
+								t.Skipf("TODO: %s not implemented in frigolite", "write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...}")
+								t.Skipf("TODO: %s not implemented in frigolite", "write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...}")
+								{ // "10.1"
+									r = db.Query("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  1 {a b c d e f g h i j k l m n o p q r s t u v w x y z} \n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n  3 {n o p q r s t u v w x y z n o p q r s t u v w x y z}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "10.2"
+									r = db.Query("\n  SELECT path, data FROM vt WHERE rowid = 2;\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT path, data FROM vt WHERE rowid = 2;\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  2 {a b c d e f g h i j k l m a b c d e f g h i j k l m}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "10.3"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts4(content=vt);\n  INSERT INTO ft(ft) VALUES('rebuild');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft USING fts4(content=vt);\n  INSERT INTO ft(ft) VALUES('rebuild');\n")
+									}
+								}
+								{ // "10.4"
+									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  {...c d [e] f g...} {...c d [e] f g...}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "10.5"
+									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 't'\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  {...r s [t] u v...} {...r s [t] u v...}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								{ // "10.6"
+									_res = db.Exec(" DELETE FROM ft WHERE docid=2 ")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM ft WHERE docid=2 ")
+									}
+								}
+								{ // "10.7"
+									r = db.Query("\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+									if r.Error != nil {
+										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT snippet(ft, '[', ']', '...', -1, 5) FROM ft WHERE ft MATCH 'e'\n")
+										return
+									}
+									got := flatten(r)
+									want := "\n  {...c d [e] f g...}\n"
+									if got != want {
+										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+									}
+								}
+								db.Close()
+								db, err = frigolite.Open("")
+								if err != nil { t.Fatal(err) }
+								{ // "11.1"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "vtable constructor called recursively: x1") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "vtable constructor called recursively: x1", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING fts4(content=x1);\n")
+									}
+								}
+								db.Close()
+								db, err = frigolite.Open("")
+								if err != nil { t.Fatal(err) }
+								{ // "12.1.1"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
+									}
+								}
+								{ // "12.1.2"
+									_res = db.Exec(" \n  SELECT * FROM t1; \n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1; \n")
+									}
+								}
+								{ // "12.1.3"
+									_res = db.Exec(" \n  SELECT * FROM t1('abc'); \n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1('abc'); \n")
+									}
+								}
+								{ // "12.1.4"
+									_res = db.Exec(" \n  SELECT count(*) FROM t1;\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT count(*) FROM t1;\n")
+									}
+								}
+								db.Close()
+								db, err = frigolite.Open("")
+								if err != nil { t.Fatal(err) }
+								{ // "12.2.1"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts4(a, content=t2 );\n  CREATE VIRTUAL TABLE t2 USING fts4(a, content=t1 );\n  INSERT INTO t1(rowid, a) VALUES(1, 'abc');\n")
+									}
+								}
+								{ // "12.2.2"
+									_res = db.Exec(" \n  SELECT * FROM t1; \n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1; \n")
+									}
+								}
+								{ // "12.2.3"
+									_res = db.Exec(" \n  SELECT * FROM t1('abc'); \n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT * FROM t1('abc'); \n")
+									}
+								}
+								{ // "12.2.4"
+									_res = db.Exec(" \n  SELECT count(*) FROM t1;\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, " \n  SELECT count(*) FROM t1;\n")
+									}
+								}
+								db.Close()
+								db, err = frigolite.Open("")
+								if err != nil { t.Fatal(err) }
+								{ // "13.0"
+									_res = db.Exec("\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA trusted_schema = off;\n  CREATE VIRTUAL TABLE t1 USING fts4(data, content=sqlite_dbpage);\n")
+									}
+								}
+								{ // "13.1"
+									_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
+									if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
+										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  INSERT INTO t1(t1) VALUES('rebuild');\n")
+									}
+								}
+								// proc definition (not transpiled)
+								t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db xyz")
+								{ // "13.2.0"
+									_res = db.Exec("\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
+									}
+								}
+								{ // "13.2.1"
+									_res = db.Exec("\n  INSERT INTO aa VALUES('one two three');\n")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO aa VALUES('one two three');\n")
+									}
+								}
+								{ // do_test "13.2.2"
+									var _stmt = "sqlite3_prepare_v3 db \\\n    \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
+									_ = _stmt // suppress unused warning
+									t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+								}
+								{ // do_test "13.2.2"
+									_list := tclList([]string{"0", msg})
+									_ = _list
+								}
 }

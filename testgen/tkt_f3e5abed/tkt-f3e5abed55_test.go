@@ -18,7 +18,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	var r *frigolite.Result
 
 	// set testdir: test directory (not used in Go test context)
-	for _, f := range []string{"glob -nocomplain test.db*mj*"} {
+	for _, f := range tclSplitList("glob -nocomplain test.db*mj*") {
 		os.Remove(f)
 	}
 	os.Remove("test.db2")
@@ -61,7 +61,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	{ // do_test "tkt-f3e5abed55-1.6"
 		tclGlob("-nocomplain")
 	}
-	for _, f := range []string{"glob -nocomplain test.db*mj*"} {
+	for _, f := range tclSplitList("glob -nocomplain test.db*mj*") {
 		os.Remove(f)
 	}
 	db2.Close()

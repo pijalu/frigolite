@@ -83,122 +83,122 @@ func Test_fts3malloc(t *testing.T) {
 		}
 	}
 	// foreach {tn sql result} "\n  1 \"SELECT count(*) FROM sqlite_master\" {5}\n  2 \"SELECT * FROM ft WHERE docid = 1\"   {one neung}\n  3 \"SELECT * FROM ft WHERE docid = 2\"   {two song}\n  4 \"SELECT * FROM ft WHERE docid = 3\"   {{one two} {neung song}}\n\n  5 \"SELECT a FROM ft\" {\n    {one}                     {two}                 {one two}\n    {three}                   {one three}           {two three}     \n    {one two three}           {four}                {one four} \n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {five}                    {one five}            {two five}            \n    {one two five}            {three five}          {one three five} \n    {two three five}          {one two three five}  {four five}\n    {one four five}           {two four five}       {one two four five}\n    {three four five}         {one three four five} {two three four five}\n    {one two three four five}\n  }\n\n  6 \"SELECT a FROM ft WHERE a MATCH 'one'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  7 \"SELECT a FROM ft WHERE a MATCH 'o*'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  8 \"SELECT a FROM ft WHERE a MATCH 'o* t*'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  9 \"SELECT a FROM ft WHERE a MATCH '\\\"o* t*\\\"'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  10 {SELECT a FROM ft WHERE a MATCH '\"o* f*\"'} {\n    {one four}            {one five}            {one four five}\n  }\n\n  11 {SELECT a FROM ft WHERE a MATCH '\"one two three\"'} {\n    {one two three}\n    {one two three four}  \n    {one two three five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three four\"'} {\n    {two three four}\n    {one two three four}\n    {two three four five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three\" five'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  13 {SELECT a FROM ft WHERE ft MATCH '\"song sahm\" hah'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  14 {SELECT a FROM ft WHERE b MATCH 'neung'} {\n    {one}                    {one two} \n    {one three}              {one two three}\n    {one four}               {one two four} \n    {one three four}         {one two three four}\n    {one five}               {one two five} \n    {one three five}         {one two three five}\n    {one four five}          {one two four five} \n    {one three four five}    {one two three four five}\n  }\n\n  15 {SELECT a FROM ft WHERE b MATCH '\"neung song sahm\"'} {\n    {one two three}          {one two three four}  \n    {one two three five}     {one two three four five}\n  }\n\n  16 {SELECT a FROM ft WHERE b MATCH 'hah \"song sahm\"'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  17 {SELECT a FROM ft WHERE b MATCH 'song OR sahm'} {\n    {two}                     {one two}             {three}\n    {one three}               {two three}           {one two three}\n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {two five}                {one two five}        {three five}\n    {one three five}          {two three five}      {one two three five}\n    {two four five}           {one two four five}   {three four five}\n    {one three four five}     {two three four five} {one two three four five}\n  }\n\n  18 {SELECT a FROM ft WHERE a MATCH 'three NOT two'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  19 {SELECT a FROM ft WHERE b MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  20 {SELECT a FROM ft WHERE ft MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  21 {SELECT a FROM ft WHERE b MATCH 'neung NEAR song NEAR sahm'} {\n    {one two three}           {one two three four}  \n    {one two three five}      {one two three four five}\n  }\n\n"
-	_items := []string{"\n  1 \"SELECT count(*) FROM sqlite_master\" {5}\n  2 \"SELECT * FROM ft WHERE docid = 1\"   {one neung}\n  3 \"SELECT * FROM ft WHERE docid = 2\"   {two song}\n  4 \"SELECT * FROM ft WHERE docid = 3\"   {{one two} {neung song}}\n\n  5 \"SELECT a FROM ft\" {\n    {one}                     {two}                 {one two}\n    {three}                   {one three}           {two three}     \n    {one two three}           {four}                {one four} \n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {five}                    {one five}            {two five}            \n    {one two five}            {three five}          {one three five} \n    {two three five}          {one two three five}  {four five}\n    {one four five}           {two four five}       {one two four five}\n    {three four five}         {one three four five} {two three four five}\n    {one two three four five}\n  }\n\n  6 \"SELECT a FROM ft WHERE a MATCH 'one'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  7 \"SELECT a FROM ft WHERE a MATCH 'o*'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  8 \"SELECT a FROM ft WHERE a MATCH 'o* t*'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  9 \"SELECT a FROM ft WHERE a MATCH '\\\"o* t*\\\"'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  10 {SELECT a FROM ft WHERE a MATCH '\"o* f*\"'} {\n    {one four}            {one five}            {one four five}\n  }\n\n  11 {SELECT a FROM ft WHERE a MATCH '\"one two three\"'} {\n    {one two three}\n    {one two three four}  \n    {one two three five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three four\"'} {\n    {two three four}\n    {one two three four}\n    {two three four five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three\" five'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  13 {SELECT a FROM ft WHERE ft MATCH '\"song sahm\" hah'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  14 {SELECT a FROM ft WHERE b MATCH 'neung'} {\n    {one}                    {one two} \n    {one three}              {one two three}\n    {one four}               {one two four} \n    {one three four}         {one two three four}\n    {one five}               {one two five} \n    {one three five}         {one two three five}\n    {one four five}          {one two four five} \n    {one three four five}    {one two three four five}\n  }\n\n  15 {SELECT a FROM ft WHERE b MATCH '\"neung song sahm\"'} {\n    {one two three}          {one two three four}  \n    {one two three five}     {one two three four five}\n  }\n\n  16 {SELECT a FROM ft WHERE b MATCH 'hah \"song sahm\"'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  17 {SELECT a FROM ft WHERE b MATCH 'song OR sahm'} {\n    {two}                     {one two}             {three}\n    {one three}               {two three}           {one two three}\n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {two five}                {one two five}        {three five}\n    {one three five}          {two three five}      {one two three five}\n    {two four five}           {one two four five}   {three four five}\n    {one three four five}     {two three four five} {one two three four five}\n  }\n\n  18 {SELECT a FROM ft WHERE a MATCH 'three NOT two'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  19 {SELECT a FROM ft WHERE b MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  20 {SELECT a FROM ft WHERE ft MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  21 {SELECT a FROM ft WHERE b MATCH 'neung NEAR song NEAR sahm'} {\n    {one two three}           {one two three four}  \n    {one two three five}      {one two three four five}\n  }\n\n"}
+	_items := tclSplitList("\n  1 \"SELECT count(*) FROM sqlite_master\" {5}\n  2 \"SELECT * FROM ft WHERE docid = 1\"   {one neung}\n  3 \"SELECT * FROM ft WHERE docid = 2\"   {two song}\n  4 \"SELECT * FROM ft WHERE docid = 3\"   {{one two} {neung song}}\n\n  5 \"SELECT a FROM ft\" {\n    {one}                     {two}                 {one two}\n    {three}                   {one three}           {two three}     \n    {one two three}           {four}                {one four} \n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {five}                    {one five}            {two five}            \n    {one two five}            {three five}          {one three five} \n    {two three five}          {one two three five}  {four five}\n    {one four five}           {two four five}       {one two four five}\n    {three four five}         {one three four five} {two three four five}\n    {one two three four five}\n  }\n\n  6 \"SELECT a FROM ft WHERE a MATCH 'one'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  7 \"SELECT a FROM ft WHERE a MATCH 'o*'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  8 \"SELECT a FROM ft WHERE a MATCH 'o* t*'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  9 \"SELECT a FROM ft WHERE a MATCH '\\\"o* t*\\\"'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  10 {SELECT a FROM ft WHERE a MATCH '\"o* f*\"'} {\n    {one four}            {one five}            {one four five}\n  }\n\n  11 {SELECT a FROM ft WHERE a MATCH '\"one two three\"'} {\n    {one two three}\n    {one two three four}  \n    {one two three five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three four\"'} {\n    {two three four}\n    {one two three four}\n    {two three four five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three\" five'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  13 {SELECT a FROM ft WHERE ft MATCH '\"song sahm\" hah'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  14 {SELECT a FROM ft WHERE b MATCH 'neung'} {\n    {one}                    {one two} \n    {one three}              {one two three}\n    {one four}               {one two four} \n    {one three four}         {one two three four}\n    {one five}               {one two five} \n    {one three five}         {one two three five}\n    {one four five}          {one two four five} \n    {one three four five}    {one two three four five}\n  }\n\n  15 {SELECT a FROM ft WHERE b MATCH '\"neung song sahm\"'} {\n    {one two three}          {one two three four}  \n    {one two three five}     {one two three four five}\n  }\n\n  16 {SELECT a FROM ft WHERE b MATCH 'hah \"song sahm\"'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  17 {SELECT a FROM ft WHERE b MATCH 'song OR sahm'} {\n    {two}                     {one two}             {three}\n    {one three}               {two three}           {one two three}\n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {two five}                {one two five}        {three five}\n    {one three five}          {two three five}      {one two three five}\n    {two four five}           {one two four five}   {three four five}\n    {one three four five}     {two three four five} {one two three four five}\n  }\n\n  18 {SELECT a FROM ft WHERE a MATCH 'three NOT two'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  19 {SELECT a FROM ft WHERE b MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  20 {SELECT a FROM ft WHERE ft MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  21 {SELECT a FROM ft WHERE b MATCH 'neung NEAR song NEAR sahm'} {\n    {one two three}           {one two three four}  \n    {one two three five}      {one two three four five}\n  }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	result := _items[_idx+2]
-		var result = "normal_list $result"
-		_ = result // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-2.$tn $sql $result")
-	}
-	}
-	{ // do_test "fts3_malloc-3.0"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		result := _items[_idx+2]
+		_ = _idx
+			var result = "normal_list $result"
+			_ = result // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-2.$tn $sql $result")
 		}
-		var ii = "32"
-		_ = ii // suppress unused warning
-		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 1024 }() {
-			var a = "list"
-			_ = a // suppress unused warning
-			var b = "list"
-			_ = b // suppress unused warning
-			if tclBool(ii + " & 0x0001") {
-				a = tclListAppend(a, "one")
-				b = tclListAppend(b, "neung")
-			}
-			if tclBool(ii + " & 0x0002") {
-				a = tclListAppend(a, "two")
-				b = tclListAppend(b, "song")
-			}
-			if tclBool(ii + " & 0x0004") {
-				a = tclListAppend(a, "three")
-				b = tclListAppend(b, "sahm")
-			}
-			if tclBool(ii + " & 0x0008") {
-				a = tclListAppend(a, "four")
-				b = tclListAppend(b, "see")
-			}
-			if tclBool(ii + " & 0x0010") {
-				a = tclListAppend(a, "five")
-				b = tclListAppend(b, "hah")
-			}
-			if tclBool(ii + " & 0x0020") {
-				a = tclListAppend(a, "six")
-				b = tclListAppend(b, "hok")
-			}
-			if tclBool(ii + " & 0x0040") {
-				a = tclListAppend(a, "seven")
-				b = tclListAppend(b, "jet")
-			}
-			if tclBool(ii + " & 0x0080") {
-				a = tclListAppend(a, "eight")
-				b = tclListAppend(b, "bairt")
-			}
-			if tclBool(ii + " & 0x0100") {
-				a = tclListAppend(a, "nine")
-				b = tclListAppend(b, "gow")
-			}
-			if tclBool(ii + " & 0x0200") {
-				a = tclListAppend(a, "ten")
-				b = tclListAppend(b, "sip")
-			}
-			_res = db.Exec(" INSERT INTO ft VALUES($a, $b) ")
+		{ // do_test "fts3_malloc-3.0"
+			_res = db.Exec("BEGIN")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES($a, $b) ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			// incr ii 1
-			{
-				_n, _err := strconv.Atoi(ii)
-				if _err == nil {
-					ii = strconv.Itoa(_n + 1)
+			var ii = "32"
+			_ = ii // suppress unused warning
+			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 1024 }() {
+				var a = "list"
+				_ = a // suppress unused warning
+				var b = "list"
+				_ = b // suppress unused warning
+				if tclBool(ii + " & 0x0001") {
+					a = tclListAppend(a, "one")
+					b = tclListAppend(b, "neung")
+				}
+				if tclBool(ii + " & 0x0002") {
+					a = tclListAppend(a, "two")
+					b = tclListAppend(b, "song")
+				}
+				if tclBool(ii + " & 0x0004") {
+					a = tclListAppend(a, "three")
+					b = tclListAppend(b, "sahm")
+				}
+				if tclBool(ii + " & 0x0008") {
+					a = tclListAppend(a, "four")
+					b = tclListAppend(b, "see")
+				}
+				if tclBool(ii + " & 0x0010") {
+					a = tclListAppend(a, "five")
+					b = tclListAppend(b, "hah")
+				}
+				if tclBool(ii + " & 0x0020") {
+					a = tclListAppend(a, "six")
+					b = tclListAppend(b, "hok")
+				}
+				if tclBool(ii + " & 0x0040") {
+					a = tclListAppend(a, "seven")
+					b = tclListAppend(b, "jet")
+				}
+				if tclBool(ii + " & 0x0080") {
+					a = tclListAppend(a, "eight")
+					b = tclListAppend(b, "bairt")
+				}
+				if tclBool(ii + " & 0x0100") {
+					a = tclListAppend(a, "nine")
+					b = tclListAppend(b, "gow")
+				}
+				if tclBool(ii + " & 0x0200") {
+					a = tclListAppend(a, "ten")
+					b = tclListAppend(b, "sip")
+				}
+				_res = db.Exec(" INSERT INTO ft VALUES($a, $b) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft VALUES($a, $b) ")
+				}
+				// incr ii 1
+				{
+					_n, _err := strconv.Atoi(ii)
+					if _err == nil {
+						ii = strconv.Itoa(_n + 1)
+					}
 				}
 			}
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
 		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	// foreach {tn sql result} "\n  1 \"SELECT count(*) FROM ft\" {1023}\n\n  2 \"SELECT a FROM ft WHERE a MATCH 'one two three four five six seven eight'\" {\n     {one two three four five six seven eight}\n     {one two three four five six seven eight nine}\n     {one two three four five six seven eight ten}\n     {one two three four five six seven eight nine ten}\n  }\n\n  3 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH 'o*'} {\n    512 262144\n  }\n\n  4 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH '\"two three four\"'} {\n    128 66368\n  }\n"
-	_items := []string{"\n  1 \"SELECT count(*) FROM ft\" {1023}\n\n  2 \"SELECT a FROM ft WHERE a MATCH 'one two three four five six seven eight'\" {\n     {one two three four five six seven eight}\n     {one two three four five six seven eight nine}\n     {one two three four five six seven eight ten}\n     {one two three four five six seven eight nine ten}\n  }\n\n  3 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH 'o*'} {\n    512 262144\n  }\n\n  4 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH '\"two three four\"'} {\n    128 66368\n  }\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	result := _items[_idx+2]
-		var result = "normal_list $result"
-		_ = result // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-3.$tn $sql $result")
-	}
-	}
-	{ // do_test "fts3_malloc-4.0"
-		_res = db.Exec(" DELETE FROM ft WHERE docid>=32 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM ft WHERE docid>=32 ")
-		}
-	}
-	// foreach {tn sql} "\n  1 \"DELETE FROM ft WHERE ft MATCH 'one'\"\n  2 \"DELETE FROM ft WHERE ft MATCH 'three'\"\n  3 \"DELETE FROM ft WHERE ft MATCH 'five'\"\n"
-	_items := []string{"\n  1 \"DELETE FROM ft WHERE ft MATCH 'one'\"\n  2 \"DELETE FROM ft WHERE ft MATCH 'three'\"\n  3 \"DELETE FROM ft WHERE ft MATCH 'five'\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-4.1.$tn ft_content $sql")
-	}
-	}
-	{ // do_test "fts3_malloc-4.2"
-		r = db.Query(" SELECT a FROM ft ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM ft ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.1 ft_content {\n  INSERT INTO ft VALUES('short alongertoken reall...}")
-	{ // do_test "fts3_malloc-5.2"
-		_res = db.Exec(" CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter) ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.3 ft_content {\n  INSERT INTO ft8 VALUES('short alongertoken real...}")
+		// foreach {tn sql result} "\n  1 \"SELECT count(*) FROM ft\" {1023}\n\n  2 \"SELECT a FROM ft WHERE a MATCH 'one two three four five six seven eight'\" {\n     {one two three four five six seven eight}\n     {one two three four five six seven eight nine}\n     {one two three four five six seven eight ten}\n     {one two three four five six seven eight nine ten}\n  }\n\n  3 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH 'o*'} {\n    512 262144\n  }\n\n  4 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH '\"two three four\"'} {\n    128 66368\n  }\n"
+		_items := tclSplitList("\n  1 \"SELECT count(*) FROM ft\" {1023}\n\n  2 \"SELECT a FROM ft WHERE a MATCH 'one two three four five six seven eight'\" {\n     {one two three four five six seven eight}\n     {one two three four five six seven eight nine}\n     {one two three four five six seven eight ten}\n     {one two three four five six seven eight nine ten}\n  }\n\n  3 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH 'o*'} {\n    512 262144\n  }\n\n  4 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH '\"two three four\"'} {\n    128 66368\n  }\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			result := _items[_idx+2]
+			_ = _idx
+				var result = "normal_list $result"
+				_ = result // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-3.$tn $sql $result")
+			}
+			{ // do_test "fts3_malloc-4.0"
+				_res = db.Exec(" DELETE FROM ft WHERE docid>=32 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM ft WHERE docid>=32 ")
+				}
+			}
+			// foreach {tn sql} "\n  1 \"DELETE FROM ft WHERE ft MATCH 'one'\"\n  2 \"DELETE FROM ft WHERE ft MATCH 'three'\"\n  3 \"DELETE FROM ft WHERE ft MATCH 'five'\"\n"
+			_items := tclSplitList("\n  1 \"DELETE FROM ft WHERE ft MATCH 'one'\"\n  2 \"DELETE FROM ft WHERE ft MATCH 'three'\"\n  3 \"DELETE FROM ft WHERE ft MATCH 'five'\"\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				sql := _items[_idx+1]
+				_ = _idx
+					t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-4.1.$tn ft_content $sql")
+				}
+				{ // do_test "fts3_malloc-4.2"
+					r = db.Query(" SELECT a FROM ft ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM ft ")
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.1 ft_content {\n  INSERT INTO ft VALUES('short alongertoken reall...}")
+				{ // do_test "fts3_malloc-5.2"
+					_res = db.Exec(" CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter) ")
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.3 ft_content {\n  INSERT INTO ft8 VALUES('short alongertoken real...}")
 }

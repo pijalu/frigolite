@@ -39,64 +39,64 @@ func Test_bestindex4(t *testing.T) {
 				}
 			}
 			// foreach {tn sql} "\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    "
-			_items := []string{"\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    "}
+			_items := tclSplitList("\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
-			sql := _items[_idx+1]
-				if func() bool { param1_n, _param1_e := strconv.Atoi(param1); if _param1_e != nil { return false }; param2_n, _param2_e := strconv.Atoi(param2); if _param2_e != nil { return false }; return (param1_n & 0x08) == 0 && (param2_n & 0x08)==0 }() {
-					{ // "1." + param1 + "." + param2 + "." + tn + ".a"
-						_res = db.Exec(sql)
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				tn := _items[_idx+0]
+				sql := _items[_idx+1]
+				_ = _idx
+					if func() bool { param1_n, _param1_e := strconv.Atoi(param1); if _param1_e != nil { return false }; param2_n, _param2_e := strconv.Atoi(param2); if _param2_e != nil { return false }; return (param1_n & 0x08) == 0 && (param2_n & 0x08)==0 }() {
+						{ // "1." + param1 + "." + param2 + "." + tn + ".a"
+							_res = db.Exec(sql)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+							}
+						}
+					} else {
+						{ // do_test "1." + param1 + "." + param2 + "." + tn + ".b"
+							_res = db.Exec(sql)
+							_ = _res // catchsql
+							var  = ""
+							_ =  // suppress unused warning
 						}
 					}
-				} else {
-					{ // do_test "1." + param1 + "." + param2 + "." + tn + ".b"
-						_res = db.Exec(sql)
-						_ = _res // catchsql
-						var  = ""
-						_ =  // suppress unused warning
+				}
+				// incr param2 1
+				{
+					_n, _err := strconv.Atoi(param2)
+					if _err == nil {
+						param2 = strconv.Itoa(_n + 1)
 					}
 				}
 			}
-			}
-			// incr param2 1
+			// incr param1 1
 			{
-				_n, _err := strconv.Atoi(param2)
+				_n, _err := strconv.Atoi(param1)
 				if _err == nil {
-					param2 = strconv.Itoa(_n + 1)
+					param1 = strconv.Itoa(_n + 1)
 				}
 			}
 		}
-		// incr param1 1
-		{
-			_n, _err := strconv.Atoi(param1)
-			if _err == nil {
-				param1 = strconv.Itoa(_n + 1)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		// proc definition (not transpiled)
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  CREATE TABLE t1 (x INT PRIMARY KEY);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  CREATE TABLE t1 (x INT PRIMARY KEY);\n")
 			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
-	// proc definition (not transpiled)
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  CREATE TABLE t1 (x INT PRIMARY KEY);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  CREATE TABLE t1 (x INT PRIMARY KEY);\n")
+		{ // "2.1"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, x1 WHERE x1.d=t1.x;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1, x1 WHERE x1.d=t1.x;\n")
+			}
 		}
-	}
-	{ // "2.1"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, x1 WHERE x1.d=t1.x;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1, x1 WHERE x1.d=t1.x;\n")
+		{ // "2.2"
+			r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, x1(t1.x)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1, x1(t1.x)\n")
+			}
 		}
-	}
-	{ // "2.2"
-		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, x1(t1.x)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1, x1(t1.x)\n")
-		}
-	}
 }

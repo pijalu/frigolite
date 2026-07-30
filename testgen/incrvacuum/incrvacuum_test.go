@@ -227,7 +227,7 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	var tn = "1"
 	_ = tn // suppress unused warning
-	for _, sql := range []string{_TestScriptList} {
+	for _, sql := range tclSplitList(_TestScriptList) {
 		_res = db.Exec(sql)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)

@@ -85,52 +85,52 @@ func Test_between(t *testing.T) {
 		}
 	}
 	// foreach {tn expr res} "\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n"
-	_items := []string{"\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n"}
+	_items := tclSplitList("\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	expr := _items[_idx+1]
-	res := _items[_idx+2]
-		var sql = "SELECT " + expr + " FROM t1"
-		_ = sql // suppress unused warning
-		{ // "between-2.1." + tn
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		tn := _items[_idx+0]
+		expr := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			var sql = "SELECT " + expr + " FROM t1"
+			_ = sql // suppress unused warning
+			{ // "between-2.1." + tn
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "between-3.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "between-3.0"
+			_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(4, 4);\n  CREATE TABLE t2(a, b);\n")
+			}
 		}
-	}
-	{ // "between-3.1"
-		r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 1 AND 3);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 1 AND 3);\n")
-			return
+		{ // "between-3.1"
+			r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 1 AND 3);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 1 AND 3);\n")
+				return
+			}
+			got := flatten(r)
+			want := "4 4 {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "4 4 {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "between-3.2"
+			r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 5 AND 7);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 5 AND 7);\n")
+				return
+			}
+			got := flatten(r)
+			want := "4 4 {} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "between-3.2"
-		r = db.Query("\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 5 AND 7);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1 LEFT JOIN t2 ON (x BETWEEN 5 AND 7);\n")
-			return
-		}
-		got := flatten(r)
-		want := "4 4 {} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

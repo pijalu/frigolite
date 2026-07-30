@@ -862,617 +862,617 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	// foreach {tn where res} "\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n"
-	_items := []string{"\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n"}
+	_items := tclSplitList("\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	where := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // tn
-			r = db.Query("\n    SELECT value FROM generate_series(1, 5) " + where + "\n  ")
+		tn := _items[_idx+0]
+		where := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // tn
+				r = db.Query("\n    SELECT value FROM generate_series(1, 5) " + where + "\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT value FROM generate_series(1, 5) " + where + "\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "1100"
+			r = db.Query("\n  select 1 as c_0\n    from        \n    generate_series(1, 1) as ref_3\n    where (ref_3.value) in (select 1);\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT value FROM generate_series(1, 5) " + where + "\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  select 1 as c_0\n    from        \n    generate_series(1, 1) as ref_3\n    where (ref_3.value) in (select 1);\n")
 				return
 			}
 			got := flatten(r)
-			want := res
+			want := "1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "1100"
-		r = db.Query("\n  select 1 as c_0\n    from        \n    generate_series(1, 1) as ref_3\n    where (ref_3.value) in (select 1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  select 1 as c_0\n    from        \n    generate_series(1, 1) as ref_3\n    where (ref_3.value) in (select 1);\n")
-			return
+		{ // "1200"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(value INT);\n  INSERT INTO t1 VALUES (1),(2),(3);\n  SELECT t1.value, t2.value\n    FROM t1 RIGHT JOIN generate_series(1,3,1) AS t2 USING(value);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(value INT);\n  INSERT INTO t1 VALUES (1),(2),(3);\n  SELECT t1.value, t2.value\n    FROM t1 RIGHT JOIN generate_series(1,3,1) AS t2 USING(value);\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1 2 2 3 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1300"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 1 AND 5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 1 AND 5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1200"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(value INT);\n  INSERT INTO t1 VALUES (1),(2),(3);\n  SELECT t1.value, t2.value\n    FROM t1 RIGHT JOIN generate_series(1,3,1) AS t2 USING(value);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(value INT);\n  INSERT INTO t1 VALUES (1),(2),(3);\n  SELECT t1.value, t2.value\n    FROM t1 RIGHT JOIN generate_series(1,3,1) AS t2 USING(value);\n")
-			return
+		{ // "1301"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0 AND 6;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0 AND 6;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0 2 4 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 1 2 2 3 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1302"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0.5 AND 6.25;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0.5 AND 6.25;\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 4 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1300"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 1 AND 5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 1 AND 5;\n")
-			return
+		{ // "1303"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775804 9223372036854775806"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "2 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1304"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n   ORDER BY value DESC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n   ORDER BY value DESC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775806 9223372036854775804"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1301"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0 AND 6;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0 AND 6;\n")
-			return
+		{ // "1310"
+			r = db.Query("\n  SELECT value FROM generate_series(0) LIMIT 5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0) LIMIT 5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0 1 2 3 4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "0 2 4 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1311"
+			r = db.Query("\n  SELECT value FROM generate_series(5) LIMIT 5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(5) LIMIT 5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "5 6 7 8 9"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1302"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0.5 AND 6.25;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 0.5 AND 6.25;\n")
-			return
+		{ // "1312"
+			r = db.Query("\n  SELECT value FROM generate_series(0) WHERE stop=6;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0) WHERE stop=6;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0 1 2 3 4 5 6"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "2 4 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1313"
+			r = db.Query("\n  SELECT value FROM generate_series(1,10) WHERE step IS NULL;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,10) WHERE step IS NULL;\n")
+			}
 		}
-	}
-	{ // "1303"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n")
-			return
+		{ // "1314"
+			r = db.Query("\n  SELECT value FROM generate_series(0xfffffffd);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0xfffffffd);\n")
+				return
+			}
+			got := flatten(r)
+			want := "4294967293 4294967294 4294967295"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "9223372036854775804 9223372036854775806"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1315"
+			r = db.Query("\n  SELECT value FROM generate_series(4,3,1);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(4,3,1);\n")
+			}
 		}
-	}
-	{ // "1304"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n   ORDER BY value DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854775808, 9223372036854775807, 2)\n   WHERE value BETWEEN 9223372036854775803 AND 9223372036854775807\n   ORDER BY value DESC;\n")
-			return
+		{ // "1316"
+			r = db.Query("\n  SELECT value FROM generate_series(3,4,-1);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(3,4,-1);\n")
+			}
 		}
-		got := flatten(r)
-		want := "9223372036854775806 9223372036854775804"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1320"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;\n")
+			}
 		}
-	}
-	{ // "1310"
-		r = db.Query("\n  SELECT value FROM generate_series(0) LIMIT 5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0) LIMIT 5;\n")
-			return
+		{ // "1321"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;\n")
+			}
 		}
-		got := flatten(r)
-		want := "0 1 2 3 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1322"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;\n")
+			}
 		}
-	}
-	{ // "1311"
-		r = db.Query("\n  SELECT value FROM generate_series(5) LIMIT 5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(5) LIMIT 5;\n")
-			return
+		{ // "1323"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775806;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775806;\n")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775807"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "5 6 7 8 9"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1324"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>=9223372036854775807;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>=9223372036854775807;\n")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854775807"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1312"
-		r = db.Query("\n  SELECT value FROM generate_series(0) WHERE stop=6;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0) WHERE stop=6;\n")
-			return
+		{ // "1330"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;\n")
+			}
 		}
-		got := flatten(r)
-		want := "0 1 2 3 4 5 6"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1331"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<=-9223372036854775808;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<=-9223372036854775808;\n")
+				return
+			}
+			got := flatten(r)
+			want := "-9223372036854775808"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1313"
-		r = db.Query("\n  SELECT value FROM generate_series(1,10) WHERE step IS NULL;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,10) WHERE step IS NULL;\n")
+		{ // "1332"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775807;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775807;\n")
+				return
+			}
+			got := flatten(r)
+			want := "-9223372036854775808"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1314"
-		r = db.Query("\n  SELECT value FROM generate_series(0xfffffffd);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0xfffffffd);\n")
-			return
+		{ // "1333"
+			r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;\n")
+			}
 		}
-		got := flatten(r)
-		want := "4294967293 4294967294 4294967295"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1340"
+			r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 66;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 66;\n")
+				return
+			}
+			got := flatten(r)
+			want := "60 50 40"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1315"
-		r = db.Query("\n  SELECT value FROM generate_series(4,3,1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(4,3,1);\n")
+		{ // "1341"
+			r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 60;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 60;\n")
+				return
+			}
+			got := flatten(r)
+			want := "60 50 40"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1316"
-		r = db.Query("\n  SELECT value FROM generate_series(3,4,-1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(3,4,-1);\n")
+		{ // "1342"
+			r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 59;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 59;\n")
+				return
+			}
+			got := flatten(r)
+			want := "50 40"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1320"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=9.2234e18;\n")
+		{ // "1343"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000);\n")
+				return
+			}
+			got := flatten(r)
+			want := "-9223372036854760000 -9223372036854770000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1321"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value=-9.2234e18;\n")
+		{ // "1344"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;\n")
+			}
 		}
-	}
-	{ // "1322"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775807;\n")
+		{ // "1345"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000);\n")
+				return
+			}
+			got := flatten(r)
+			want := "9223372036854760000 9223372036854770000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1323"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775806;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>9223372036854775806;\n")
-			return
+		{ // "1346"
+			r = db.Query("\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;\n")
+			}
 		}
-		got := flatten(r)
-		want := "9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1350"
+			r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;\n")
+			}
 		}
-	}
-	{ // "1324"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>=9223372036854775807;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value>=9223372036854775807;\n")
-			return
+		{ // "1351"
+			r = db.Query("\n  SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;\n")
+			}
 		}
-		got := flatten(r)
-		want := "9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1360"
+			r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808);\n")
+				return
+			}
+			got := flatten(r)
+			want := "0 -9223372036854775808"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1330"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775808;\n")
+		{ // "1361"
+			r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n  LIMIT 1 OFFSET 0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n  LIMIT 1 OFFSET 0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1331"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<=-9223372036854775808;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<=-9223372036854775808;\n")
-			return
+		{ // "1362"
+			r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC;\n")
+				return
+			}
+			got := flatten(r)
+			want := "-9223372036854775808 0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "-9223372036854775808"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1363"
+			r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "1332"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775807;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value<-9223372036854775807;\n")
-			return
+		{ // "1364"
+			r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;\n")
+			}
 		}
-		got := flatten(r)
-		want := "-9223372036854775808"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "1370"
+			r = db.Query("\n  SELECT * FROM generate_series(0,0,0);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,0,0);\n")
+			}
 		}
-	}
-	{ // "1333"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,+9223372036854775807)\n   WHERE value BETWEEN 4 AND 1;\n")
-		}
-	}
-	{ // "1340"
-		r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 66;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 66;\n")
-			return
-		}
-		got := flatten(r)
-		want := "60 50 40"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1341"
-		r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 60;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 60;\n")
-			return
-		}
-		got := flatten(r)
-		want := "60 50 40"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1342"
-		r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 59;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 59;\n")
-			return
-		}
-		got := flatten(r)
-		want := "50 40"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1343"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000);\n")
-			return
-		}
-		got := flatten(r)
-		want := "-9223372036854760000 -9223372036854770000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1344"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(-9223372036854760000,-9223372036854775808,-10000)\n   WHERE value < -9223372036854770001;\n")
-		}
-	}
-	{ // "1345"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000);\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854760000 9223372036854770000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1346"
-		r = db.Query("\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value\n    FROM generate_series(9223372036854760000,9223372036854775807,10000)\n   WHERE value > 9223372036854770001;\n")
-		}
-	}
-	{ // "1350"
-		r = db.Query("\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(100,0,-10)\n   WHERE value BETWEEN 33 AND 38;\n")
-		}
-	}
-	{ // "1351"
-		r = db.Query("\n  SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(0,100,+10)\n   WHERE value BETWEEN 33 AND 38;\n")
-		}
-	}
-	{ // "1360"
-		r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808);\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 -9223372036854775808"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1361"
-		r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n  LIMIT 1 OFFSET 0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n  LIMIT 1 OFFSET 0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1362"
-		r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC;\n")
-			return
-		}
-		got := flatten(r)
-		want := "-9223372036854775808 0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1363"
-		r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1364"
-		r = db.Query("\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,-9223372036854775808,-9223372036854775808)\n   ORDER BY value ASC LIMIT 10 OFFSET 40000000;\n")
-		}
-	}
-	{ // "1370"
-		r = db.Query("\n  SELECT * FROM generate_series(0,0,0);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,0,0);\n")
-		}
-	}
-	var subtest = "1"
-	_ = subtest // suppress unused warning
-	for _, bound := range []string{"\n  9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5\n"} {
-		// foreach {range boundsign} "\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  "
-		_items := []string{"\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		_range := _items[_idx+0]
-		boundsign := _items[_idx+1]
-			var bx = boundsign + bound
-			_ = bx // suppress unused warning
-			for _, op := range []string{"< > <= >="} {
-				{ // "1380." + subtest
-					r = db.Query("\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
-					}
-				}
-				// incr subtest 1
-				{
-					_n, _err := strconv.Atoi(subtest)
-					if _err == nil {
-						subtest = strconv.Itoa(_n + 1)
+		var subtest = "1"
+		_ = subtest // suppress unused warning
+		for _, bound := range tclSplitList("\n  9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5\n") {
+			// foreach {range boundsign} "\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  "
+			_items := tclSplitList("\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  ")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				_range := _items[_idx+0]
+				boundsign := _items[_idx+1]
+				_ = _idx
+					var bx = boundsign + bound
+					_ = bx // suppress unused warning
+					for _, op := range tclSplitList("< > <= >=") {
+						{ // "1380." + subtest
+							r = db.Query("\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
+							if r.Error != nil {
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
+							}
+						}
+						// incr subtest 1
+						{
+							_n, _err := strconv.Atoi(subtest)
+							if _err == nil {
+								subtest = strconv.Itoa(_n + 1)
+							}
+						}
 					}
 				}
 			}
-		}
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db series")
-	{ // "1400"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
-		}
-	}
-	{ // "1410"
-		_res = db.Exec("\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table-function argument references tables to its right") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table-function argument references tables to its right", _res.Error, "\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
-		}
-	}
-	{ // "1420"
-		_res = db.Exec("\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.y") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.y", _res.Error, "\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
-		}
-	}
-	{ // "1500"
-		r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;\n")
-		}
-	}
-	{ // "1501"
-		r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;\n")
-		}
-	}
-	{ // "1502"
-		r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;\n")
-		}
-	}
-	{ // "1503"
-		r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;\n")
-		}
-	}
-	{ // "1504"
-		r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775807.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775807.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1505"
-		r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;\n")
-		}
-	}
-	{ // "1506"
-		r = db.Query("\n  SELECT 9223372036854774784 = 9223372036854775000.0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 9223372036854774784 = 9223372036854775000.0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1507"
-		r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775000.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775000.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854774784 9223372036854774785 9223372036854774786"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1508"
-		r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775000.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775000.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854774785 9223372036854774786 9223372036854774787"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1510"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>=-9223372036854775000.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>=-9223372036854775000.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "-9223372036854774784 -9223372036854774783 -9223372036854774782"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1511"
-		r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>-9223372036854775000.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>-9223372036854775000.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "-9223372036854774783 -9223372036854774782 -9223372036854774781"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1520"
-		r = db.Query("\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<=9223372036854775000.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<=9223372036854775000.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854774784"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1521"
-		r = db.Query("\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;\n")
-		}
-	}
-	{ // "1522"
-		r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<=9223372036854775807.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<=9223372036854775807.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854775805 9223372036854775806 9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1522ck"
-		r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<=9223372036854775807.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<=9223372036854775807.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854775805 9223372036854775806 9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1523"
-		r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<9223372036854775807.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<9223372036854775807.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854775805 9223372036854775806 9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "1523ck"
-		r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<9223372036854775807.0\n   LIMIT 3;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<9223372036854775807.0\n   LIMIT 3;\n")
-			return
-		}
-		got := flatten(r)
-		want := "9223372036854775805 9223372036854775806 9223372036854775807"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "intarray_addr")
-	t.Skipf("TODO: %s not implemented in frigolite", "int64array_addr")
-	t.Skipf("TODO: %s not implemented in frigolite", "doublearray_addr")
-	t.Skipf("TODO: %s not implemented in frigolite", "textarray_addr")
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db series")
+			{ // "1400"
+				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
+				}
+			}
+			{ // "1410"
+				_res = db.Exec("\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table-function argument references tables to its right") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "table-function argument references tables to its right", _res.Error, "\n  SELECT x, y, value\n  FROM (t1 RIGHT JOIN generate_series(t2.y,5) AS value) JOIN t2;\n")
+				}
+			}
+			{ // "1420"
+				_res = db.Exec("\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: t2.y") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: t2.y", _res.Error, "\n  SELECT x, y, value \n  FROM t2 JOIN (t1 RIGHT JOIN generate_series(t2.y,5) AS value) \n")
+				}
+			}
+			{ // "1500"
+				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value>1e19 LIMIT 3;\n")
+				}
+			}
+			{ // "1501"
+				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value>=1e19 LIMIT 3;\n")
+				}
+			}
+			{ // "1502"
+				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value<-1e19 LIMIT 3;\n")
+				}
+			}
+			{ // "1503"
+				r = db.Query("\n  SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1) WHERE value<=-1e19 LIMIT 3;\n")
+				}
+			}
+			{ // "1504"
+				r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775807.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775807.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854775807"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1505"
+				r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775807.0\n   LIMIT 3;\n")
+				}
+			}
+			{ // "1506"
+				r = db.Query("\n  SELECT 9223372036854774784 = 9223372036854775000.0;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 9223372036854774784 = 9223372036854775000.0;\n")
+					return
+				}
+				got := flatten(r)
+				want := "1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1507"
+				r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775000.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>=9223372036854775000.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854774784 9223372036854774785 9223372036854774786"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1508"
+				r = db.Query("\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775000.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(1,9223372036854775807)\n   WHERE value>9223372036854775000.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854774785 9223372036854774786 9223372036854774787"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1510"
+				r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>=-9223372036854775000.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>=-9223372036854775000.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "-9223372036854774784 -9223372036854774783 -9223372036854774782"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1511"
+				r = db.Query("\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>-9223372036854775000.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(-9223372036854775808,1)\n   WHERE value>-9223372036854775000.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "-9223372036854774783 -9223372036854774782 -9223372036854774781"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1520"
+				r = db.Query("\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<=9223372036854775000.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<=9223372036854775000.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854774784"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1521"
+				r = db.Query("\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854774784)\n   WHERE value<9223372036854775000.0\n   LIMIT 3;\n")
+				}
+			}
+			{ // "1522"
+				r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<=9223372036854775807.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<=9223372036854775807.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854775805 9223372036854775806 9223372036854775807"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1522ck"
+				r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<=9223372036854775807.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<=9223372036854775807.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854775805 9223372036854775806 9223372036854775807"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1523"
+				r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<9223372036854775807.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE value<9223372036854775807.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854775805 9223372036854775806 9223372036854775807"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1523ck"
+				r = db.Query("\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<9223372036854775807.0\n   LIMIT 3;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT value FROM generate_series(9223372036854775805,9223372036854775807)\n   WHERE +value<9223372036854775807.0\n   LIMIT 3;\n")
+					return
+				}
+				got := flatten(r)
+				want := "9223372036854775805 9223372036854775806 9223372036854775807"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "intarray_addr")
+			t.Skipf("TODO: %s not implemented in frigolite", "int64array_addr")
+			t.Skipf("TODO: %s not implemented in frigolite", "doublearray_addr")
+			t.Skipf("TODO: %s not implemented in frigolite", "textarray_addr")
 }

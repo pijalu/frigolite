@@ -21,43 +21,43 @@ func Test_init(t *testing.T) {
 		return
 	}
 	// foreach {t failed rc started} "\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n"
-	_items := []string{"\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n"}
+	_items := tclSplitList("\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	t := _items[_idx+0]
-	failed := _items[_idx+1]
-	rc := _items[_idx+2]
-	started := _items[_idx+3]
-		{ // do_test "init-" + t + ".1"
-			// eval init_wrapper_install $failed
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t := _items[_idx+0]
+		failed := _items[_idx+1]
+		rc := _items[_idx+2]
+		started := _items[_idx+3]
+		_ = _idx
+			{ // do_test "init-" + t + ".1"
+				// eval init_wrapper_install $failed
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+			}
+			{ // do_test "init-" + t + ".2"
+				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+			}
+			{ // do_test "init-" + t + ".3"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+			}
+			{ // do_test "init-" + t + ".4"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+			}
+			{ // do_test "init-" + t + ".5"
+				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+			}
+			{ // do_test "init-" + t + ".6"
+				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_clear")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+			}
+			{ // do_test "init-" + t + ".7"
+				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+			}
+			{ // do_test "init-" + t + ".8"
+				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_uninstall")
+			}
 		}
-		{ // do_test "init-" + t + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+		if tclBool(MEMDEBUG) {
+			t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test init-2 -tclprep {\n    db close\n    init_wrapper_install\n  } -tclbody {\n    set rc [sqlite3_initialize]\n    if {[string m...} -cleanup {\n    set zRepeat \"transient\"\n    if {$::iRepeat} {...}")
 		}
-		{ // do_test "init-" + t + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-			t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
-		}
-		{ // do_test "init-" + t + ".4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		}
-		{ // do_test "init-" + t + ".5"
-			t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
-		}
-		{ // do_test "init-" + t + ".6"
-			t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_clear")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		}
-		{ // do_test "init-" + t + ".7"
-			t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
-		}
-		{ // do_test "init-" + t + ".8"
-			t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_uninstall")
-		}
-	}
-	}
-	if tclBool(MEMDEBUG) {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test init-2 -tclprep {\n    db close\n    init_wrapper_install\n  } -tclbody {\n    set rc [sqlite3_initialize]\n    if {[string m...} -cleanup {\n    set zRepeat \"transient\"\n    if {$::iRepeat} {...}")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

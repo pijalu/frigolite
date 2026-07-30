@@ -40,24 +40,24 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 	var sort = "USE TEMP B-TREE FOR ORDER BY"
 	_ = sort // suppress unused warning
 	// foreach {tn q res eqp} "-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}"
-	_items := []string{"-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}"}
+	_items := tclSplitList("-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	q := _items[_idx+1]
-	res := _items[_idx+2]
-	eqp := _items[_idx+3]
-		{ // "1." + tn + ".1"
-			_res = db.Exec(q)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+		tn := _items[_idx+0]
+		q := _items[_idx+1]
+		res := _items[_idx+2]
+		eqp := _items[_idx+3]
+		_ = _idx
+			{ // "1." + tn + ".1"
+				_res = db.Exec(q)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db.Query("EXPLAIN QUERY PLAN " + q)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+q)
+				}
 			}
 		}
-		{ // "1." + tn + ".2"
-			r = db.Query("EXPLAIN QUERY PLAN " + q)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+q)
-			}
-		}
-	}
-	}
 }

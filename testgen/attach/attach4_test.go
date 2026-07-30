@@ -41,175 +41,175 @@ func Test_attach4(t *testing.T) {
 	}
 	{ // do_test "1.2.1"
 		// foreach {name f} files
-		_items := []string{files}
+		_items := tclSplitList(files)
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			os.Remove(f)
-		}
-		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		// foreach {name f} files
-		_items := []string{files}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			if name == "main" {
+			name := _items[_idx+0]
+			f := _items[_idx+1]
+			_ = _idx
+				os.Remove(f)
 			}
-			_res = db.Exec("ATTACH '" + f + "' AS " + name)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH '" + f + "' AS " + name)
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			// foreach {name f} files
+			_items := tclSplitList(files)
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				name := _items[_idx+0]
+				f := _items[_idx+1]
+				_ = _idx
+					if name == "main" {
+					}
+					_res = db.Exec("ATTACH '" + f + "' AS " + name)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH '" + f + "' AS " + name)
+					}
+				}
+				_res = db.Exec("PRAGMA database_list")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA database_list")
+				}
 			}
-		}
-		}
-		_res = db.Exec("PRAGMA database_list")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA database_list")
-		}
-	}
-	{ // "1.2.2"
-		_res = db.Exec("\n  ATTACH 'x.db' AS next;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  ATTACH 'x.db' AS next;\n")
-		}
-	}
-	{ // do_test "1.3"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		// foreach {name f} files
-		_items := []string{files}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			_res = db.Exec("CREATE TABLE " + name + ".tbl(x)")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + name + ".tbl(x)")
+			{ // "1.2.2"
+				_res = db.Exec("\n  ATTACH 'x.db' AS next;\n")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "\n  ATTACH 'x.db' AS next;\n")
+				}
 			}
-			_res = db.Exec("INSERT INTO " + name + ".tbl VALUES('" + f + "')")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO " + name + ".tbl VALUES('" + f + "')")
-			}
-		}
-		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	{ // do_test "1.4"
-		var L = "list"
-		_ = L // suppress unused warning
-		// foreach {name f} files
-		_items := []string{files}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
-		}
-		}
-	}
-	var L = "list"
-	_ = L // suppress unused warning
-	var S = ""
-	_ = S // suppress unused warning
-	// foreach {name f} files
-	_items := []string{files}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	name := _items[_idx+0]
-	f := _items[_idx+1]
-		if tclBool("permutation" + " == \"journaltest\"") {
-			var mode = "delete"
-			_ = mode // suppress unused warning
-		} else {
-			var mode = "wal"
-			_ = mode // suppress unused warning
-		}
-		L = tclListAppend(L, mode)
-		S += "\n    PRAGMA " + name + ".journal_mode = WAL;\n    UPDATE " + name + ".tbl SET x = '" + name + "';\n  "
-	}
-	}
-	{ // "1.5"
-		_res = db.Exec(S)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, S)
-		}
-	}
-	{ // do_test "1.6"
-		var L = "list"
-		_ = L // suppress unused warning
-		// foreach {name f} files
-		_items := []string{files}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			L = tclListAppend(L, "execsql \"SELECT x FROM $name.tbl\"", f)
-		}
-		}
-	}
-	{ // do_test "1.7"
-		_res = db.Exec("BEGIN")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
-		}
-		// foreach {name f} files
-		_items := []string{files}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			_res = db.Exec("UPDATE " + name + ".tbl SET x = '" + f + "'")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + name + ".tbl SET x = '" + f + "'")
-			}
-		}
-		}
-		_res = db.Exec("COMMIT")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-		}
-	}
-	{ // do_test "1.8"
-		var L = "list"
-		_ = L // suppress unused warning
-		// foreach {name f} files
-		_items := []string{files}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		f := _items[_idx+1]
-			L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
-		}
-		}
-	}
-	// foreach {name f} files
-	_items := []string{files}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	name := _items[_idx+0]
-	f := _items[_idx+1]
-		os.Remove(f)
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.0"
-		_res = db.Exec("\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
-		}
-	}
-	{ // "2.1"
-		_res = db.Exec("\n  DETACH DATABASE aux;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH DATABASE aux;\n")
-		}
-	}
-	{ // "2.2"
-		_res = db.Exec("\n  DROP TRIGGER tr1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER tr1;\n")
-		}
-	}
+			{ // do_test "1.3"
+				_res = db.Exec("BEGIN")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				}
+				// foreach {name f} files
+				_items := tclSplitList(files)
+				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+					name := _items[_idx+0]
+					f := _items[_idx+1]
+					_ = _idx
+						_res = db.Exec("CREATE TABLE " + name + ".tbl(x)")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + name + ".tbl(x)")
+						}
+						_res = db.Exec("INSERT INTO " + name + ".tbl VALUES('" + f + "')")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO " + name + ".tbl VALUES('" + f + "')")
+						}
+					}
+					_res = db.Exec("COMMIT")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+					}
+				}
+				{ // do_test "1.4"
+					var L = "list"
+					_ = L // suppress unused warning
+					// foreach {name f} files
+					_items := tclSplitList(files)
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						name := _items[_idx+0]
+						f := _items[_idx+1]
+						_ = _idx
+							L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
+						}
+					}
+					var L = "list"
+					_ = L // suppress unused warning
+					var S = ""
+					_ = S // suppress unused warning
+					// foreach {name f} files
+					_items := tclSplitList(files)
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						name := _items[_idx+0]
+						f := _items[_idx+1]
+						_ = _idx
+							if tclBool("permutation" + " == \"journaltest\"") {
+								var mode = "delete"
+								_ = mode // suppress unused warning
+							} else {
+								var mode = "wal"
+								_ = mode // suppress unused warning
+							}
+							L = tclListAppend(L, mode)
+							S += "\n    PRAGMA " + name + ".journal_mode = WAL;\n    UPDATE " + name + ".tbl SET x = '" + name + "';\n  "
+						}
+						{ // "1.5"
+							_res = db.Exec(S)
+							if _res.Error != nil {
+								t.Errorf("exec error: %v\n  sql: %s", _res.Error, S)
+							}
+						}
+						{ // do_test "1.6"
+							var L = "list"
+							_ = L // suppress unused warning
+							// foreach {name f} files
+							_items := tclSplitList(files)
+							for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+								name := _items[_idx+0]
+								f := _items[_idx+1]
+								_ = _idx
+									L = tclListAppend(L, "execsql \"SELECT x FROM $name.tbl\"", f)
+								}
+							}
+							{ // do_test "1.7"
+								_res = db.Exec("BEGIN")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+								}
+								// foreach {name f} files
+								_items := tclSplitList(files)
+								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+									name := _items[_idx+0]
+									f := _items[_idx+1]
+									_ = _idx
+										_res = db.Exec("UPDATE " + name + ".tbl SET x = '" + f + "'")
+										if _res.Error != nil {
+											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + name + ".tbl SET x = '" + f + "'")
+										}
+									}
+									_res = db.Exec("COMMIT")
+									if _res.Error != nil {
+										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+									}
+								}
+								{ // do_test "1.8"
+									var L = "list"
+									_ = L // suppress unused warning
+									// foreach {name f} files
+									_items := tclSplitList(files)
+									for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+										name := _items[_idx+0]
+										f := _items[_idx+1]
+										_ = _idx
+											L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
+										}
+									}
+									// foreach {name f} files
+									_items := tclSplitList(files)
+									for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+										name := _items[_idx+0]
+										f := _items[_idx+1]
+										_ = _idx
+											os.Remove(f)
+										}
+										db.Close()
+										db, err = frigolite.Open("")
+										if err != nil { t.Fatal(err) }
+										{ // "2.0"
+											_res = db.Exec("\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH DATABASE '' AS aux;\n  CREATE TABLE IF NOT EXISTS aux.t1(a, b);\n  CREATE TEMPORARY TRIGGER tr1 DELETE ON t1 BEGIN \n    DELETE FROM t1; \n  END;\n  CREATE TABLE temp.t1(a, b);\n")
+											}
+										}
+										{ // "2.1"
+											_res = db.Exec("\n  DETACH DATABASE aux;\n")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH DATABASE aux;\n")
+											}
+										}
+										{ // "2.2"
+											_res = db.Exec("\n  DROP TRIGGER tr1;\n")
+											if _res.Error != nil {
+												t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER tr1;\n")
+											}
+										}
 }

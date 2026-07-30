@@ -23,7 +23,7 @@ func Test_crashM(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	for _, f := range []string{"glob -nocomplain test1.* test2.*"} {
+	for _, f := range tclSplitList("glob -nocomplain test1.* test2.*") {
 		os.Remove(f)
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")

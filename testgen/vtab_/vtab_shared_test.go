@@ -92,122 +92,122 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	// foreach {iTest dbSelect dbClose} "\n  1 db  db2\n  2 db  db2\n  3 db2 db\n"
-	_items := []string{"\n  1 db  db2\n  2 db  db2\n  3 db2 db\n"}
+	_items := tclSplitList("\n  1 db  db2\n  2 db  db2\n  3 db2 db\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	iTest := _items[_idx+0]
-	dbSelect := _items[_idx+1]
-	dbClose := _items[_idx+2]
-		{ // do_test "vtab_shared-1.9." + iTest
-			var res = "list"
-			_ = res // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "$dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappend...}")
-			dbClose, err := frigolite.Open("test.db")
-			defer dbClose.Close()
+		iTest := _items[_idx+0]
+		dbSelect := _items[_idx+1]
+		dbClose := _items[_idx+2]
+		_ = _idx
+			{ // do_test "vtab_shared-1.9." + iTest
+				var res = "list"
+				_ = res // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "$dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappend...}")
+				dbClose, err := frigolite.Open("test.db")
+				defer dbClose.Close()
+				if err != nil { t.Fatal(err) }
+				t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer $dbClose]")
+			}
+		}
+		{ // do_test "vtab_shared-1.10"
+			_res = db.Exec(" SELECT * FROM t1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+			}
+		}
+		{ // do_test "vtab_shared-1.11"
+			_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);\n  ")
+			}
+			r = db.Query(" SELECT * FROM t3 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+			}
+		}
+		{ // do_test "vtab_shared_1.14.1"
+			db2.Close()
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer $dbClose]")
+			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			r = db.Query(" SELECT * FROM t3 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+			}
 		}
-	}
-	}
-	{ // do_test "vtab_shared-1.10"
-		_res = db.Exec(" SELECT * FROM t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
+		{ // do_test "vtab_shared_1.14.2"
+			r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			}
 		}
-	}
-	{ // do_test "vtab_shared-1.11"
-		_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);\n  ")
+		{ // do_test "vtab_shared_1.14.3"
+			db2.Close()
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			r = db.Query(" SELECT * FROM t3 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+			}
 		}
-		r = db.Query(" SELECT * FROM t3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+		{ // do_test "vtab_shared_1.14.4"
+			r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			}
 		}
-	}
-	{ // do_test "vtab_shared_1.14.1"
+		{ // do_test "vtab_shared_1.14.5"
+			db2.Close()
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			r = db.Query(" SELECT * FROM t3 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
+			}
+		}
+		{ // do_test "vtab_shared_1.14.6"
+			r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			}
+		}
+		{ // do_test "vtab_shared_1.15.1"
+			db2.Close()
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			}
+		}
+		{ // do_test "vtab_shared_1.15.2"
+			db2.Close()
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			}
+		}
+		{ // do_test "vtab_shared_1.15.3"
+			db2.Close()
+			db2, err := frigolite.Open("test.db")
+			defer db2.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			}
+		}
 		db2.Close()
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
-		r = db.Query(" SELECT * FROM t3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
-		}
-	}
-	{ // do_test "vtab_shared_1.14.2"
-		r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "vtab_shared_1.14.3"
-		db2.Close()
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
-		r = db.Query(" SELECT * FROM t3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
-		}
-	}
-	{ // do_test "vtab_shared_1.14.4"
-		r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "vtab_shared_1.14.5"
-		db2.Close()
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
-		r = db.Query(" SELECT * FROM t3 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
-		}
-	}
-	{ // do_test "vtab_shared_1.14.6"
-		r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "vtab_shared_1.15.1"
-		db2.Close()
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
-		r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "vtab_shared_1.15.2"
-		db2.Close()
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
-		r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	{ // do_test "vtab_shared_1.15.3"
-		db2.Close()
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
-		r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
-		}
-	}
-	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 0")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 0")
 }

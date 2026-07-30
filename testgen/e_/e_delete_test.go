@@ -28,7 +28,7 @@ func Test_e_delete(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-0.1 {\n  1  \"DELETE FROM t1\"                            ...}")
 	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // do_test "e_delete-1.0"
-		for _, t := range []string{"t1 t2 t3 t4 t5 t6"} {
+		for _, t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
 			_res = db.Exec("[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")

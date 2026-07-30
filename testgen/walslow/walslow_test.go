@@ -130,7 +130,7 @@ func Test_walslow(t *testing.T) {
 	}
 	db2.Close()
 	tclFileCopy("test.db", "test2.db")
-	for _, incr := range []string{"1 2 3 20 40 60 80 100 120 140 160 180 200 220 240 253 254 255"} {
+	for _, incr := range tclSplitList("1 2 3 20 40 60 80 100 120 140 160 180 200 220 240 253 254 255") {
 		{ // do_test "3.3." + incr
 			var FAIL = "0"
 			_ = FAIL // suppress unused warning

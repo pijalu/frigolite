@@ -18,169 +18,169 @@ func Test_joinA(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// foreach {id schema} "\n  1 {\n    CREATE TABLE t1(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4(a INT, c INT, d INT, f INT);\n    INSERT INTO t1 VALUES(11,21,31,41),(12,22,32,42),(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2 VALUES(12,22,32,42),(13,23,33,43),(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3 VALUES(14,24,34,44),(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4 VALUES(11,21,31,41),(13,23,33,43),(16,26,36,46),(19,29,39,49);\n  }\n  2 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT, d INT);\n    CREATE TABLE t2(c INT, d INTEGER PRIMARY KEY, e INT, f INT);\n    CREATE TABLE t3(a INT, b INT, e INTEGER PRIMARY KEY, f INT);\n    CREATE TABLE t4(a INT, c INT, d INT, f INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(11,21,31,41),(12,22,32,42),(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2 VALUES(12,22,32,42),(13,23,33,43),(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3 VALUES(14,24,34,44),(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4 VALUES(11,21,31,41),(13,23,33,43),(16,26,36,46),(19,29,39,49);\n  }\n  3 {\n    CREATE TABLE t1a(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2a(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3a(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4a(a INT, c INT, d INT, f INT);\n    INSERT INTO t1a VALUES(11,21,31,41),(12,22,32,42);\n    INSERT INTO t2a VALUES(12,22,32,42),(13,23,33,43);\n    INSERT INTO t3a VALUES(14,24,34,44),(15,25,35,45);\n    INSERT INTO t4a VALUES(11,21,31,41),(13,23,33,43);\n    CREATE TABLE t1b(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2b(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3b(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4b(a INT, c INT, d INT, f INT);\n    INSERT INTO t1b VALUES(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2b VALUES(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3b VALUES(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4b VALUES(16,26,36,46),(19,29,39,49);\n    CREATE VIEW t1 AS SELECT * FROM t1a UNION SELECT * FROM t1b;\n    CREATE VIEW t2 AS SELECT * FROM t2a UNION SELECT * FROM t2b;\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION SELECT * FROM t4b;\n  }\n"
-	_items := []string{"\n  1 {\n    CREATE TABLE t1(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4(a INT, c INT, d INT, f INT);\n    INSERT INTO t1 VALUES(11,21,31,41),(12,22,32,42),(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2 VALUES(12,22,32,42),(13,23,33,43),(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3 VALUES(14,24,34,44),(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4 VALUES(11,21,31,41),(13,23,33,43),(16,26,36,46),(19,29,39,49);\n  }\n  2 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT, d INT);\n    CREATE TABLE t2(c INT, d INTEGER PRIMARY KEY, e INT, f INT);\n    CREATE TABLE t3(a INT, b INT, e INTEGER PRIMARY KEY, f INT);\n    CREATE TABLE t4(a INT, c INT, d INT, f INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(11,21,31,41),(12,22,32,42),(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2 VALUES(12,22,32,42),(13,23,33,43),(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3 VALUES(14,24,34,44),(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4 VALUES(11,21,31,41),(13,23,33,43),(16,26,36,46),(19,29,39,49);\n  }\n  3 {\n    CREATE TABLE t1a(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2a(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3a(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4a(a INT, c INT, d INT, f INT);\n    INSERT INTO t1a VALUES(11,21,31,41),(12,22,32,42);\n    INSERT INTO t2a VALUES(12,22,32,42),(13,23,33,43);\n    INSERT INTO t3a VALUES(14,24,34,44),(15,25,35,45);\n    INSERT INTO t4a VALUES(11,21,31,41),(13,23,33,43);\n    CREATE TABLE t1b(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2b(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3b(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4b(a INT, c INT, d INT, f INT);\n    INSERT INTO t1b VALUES(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2b VALUES(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3b VALUES(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4b VALUES(16,26,36,46),(19,29,39,49);\n    CREATE VIEW t1 AS SELECT * FROM t1a UNION SELECT * FROM t1b;\n    CREATE VIEW t2 AS SELECT * FROM t2a UNION SELECT * FROM t2b;\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION SELECT * FROM t4b;\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4(a INT, c INT, d INT, f INT);\n    INSERT INTO t1 VALUES(11,21,31,41),(12,22,32,42),(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2 VALUES(12,22,32,42),(13,23,33,43),(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3 VALUES(14,24,34,44),(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4 VALUES(11,21,31,41),(13,23,33,43),(16,26,36,46),(19,29,39,49);\n  }\n  2 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT, c INT, d INT);\n    CREATE TABLE t2(c INT, d INTEGER PRIMARY KEY, e INT, f INT);\n    CREATE TABLE t3(a INT, b INT, e INTEGER PRIMARY KEY, f INT);\n    CREATE TABLE t4(a INT, c INT, d INT, f INT PRIMARY KEY) WITHOUT ROWID;\n    INSERT INTO t1 VALUES(11,21,31,41),(12,22,32,42),(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2 VALUES(12,22,32,42),(13,23,33,43),(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3 VALUES(14,24,34,44),(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4 VALUES(11,21,31,41),(13,23,33,43),(16,26,36,46),(19,29,39,49);\n  }\n  3 {\n    CREATE TABLE t1a(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2a(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3a(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4a(a INT, c INT, d INT, f INT);\n    INSERT INTO t1a VALUES(11,21,31,41),(12,22,32,42);\n    INSERT INTO t2a VALUES(12,22,32,42),(13,23,33,43);\n    INSERT INTO t3a VALUES(14,24,34,44),(15,25,35,45);\n    INSERT INTO t4a VALUES(11,21,31,41),(13,23,33,43);\n    CREATE TABLE t1b(a INT, b INT, c INT, d INT);\n    CREATE TABLE t2b(c INT, d INT, e INT, f INT);\n    CREATE TABLE t3b(a INT, b INT, e INT, f INT);\n    CREATE TABLE t4b(a INT, c INT, d INT, f INT);\n    INSERT INTO t1b VALUES(15,25,35,45),(18,28,38,48);\n    INSERT INTO t2b VALUES(15,25,35,45),(17,27,37,47);\n    INSERT INTO t3b VALUES(15,25,35,45),(16,26,36,46);\n    INSERT INTO t4b VALUES(16,26,36,46),(19,29,39,49);\n    CREATE VIEW t1 AS SELECT * FROM t1a UNION SELECT * FROM t1b;\n    CREATE VIEW t2 AS SELECT * FROM t2a UNION SELECT * FROM t2b;\n    CREATE VIEW t3 AS SELECT * FROM t3a UNION SELECT * FROM t3b;\n    CREATE VIEW t4 AS SELECT * FROM t4a UNION SELECT * FROM t4b;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	id := _items[_idx+0]
-	schema := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "joinA-" + id + ".setup"
-			_res = db.Exec(schema)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+		id := _items[_idx+0]
+		schema := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "joinA-" + id + ".setup"
+				_res = db.Exec(schema)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
+				}
+			}
+			{ // "joinA-" + id + ".100"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				}
+			}
+			{ // "joinA-" + id + ".110"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  21  31  41  -  -  -\n    12  22  32  42  -  -  -\n    15  25  35  45  -  -  -\n    18  28  38  48  -  -  -\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".120"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    14  24  -  -  -  44  34\n    15  25  -  -  -  45  35\n    16  26  -  -  -  46  36\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".130"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".140"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".150"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".160"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    -   -  12  22  32  42  -\n    -   -  13  23  33  43  -\n    -   -  15  25  35  45  -\n    -   -  17  27  37  47  -\n    11  -  21  31  -   41  -\n    13  -  23  33  -   43  -\n    16  -  26  36  -   46  -\n    19  -  29  39  -   49  -\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".170"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  -   21  31  -  41  - \n    13  -   23  33  -  43  - \n    14  24  -   -   -  44  34\n    15  25  -   -   -  45  35\n    16  26  -   -   -  46  36\n    16  -   26  36  -  46  - \n    19  -   29  39  -  49  - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".200"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    -   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n    11  -   21  31  -   41  - \n    11  21  31  41  -   -   - \n    12  22  32  42  -   -   - \n    13  -   23  33  -   43  - \n    14  24  -   -   -   44  34\n    15  25  -   -   -   45  35\n    15  25  35  45  -   -   - \n    16  26  -   -   -   46  36\n    16  -   26  36  -   46  - \n    18  28  38  48  -   -   - \n    19  -   29  39  -   49  - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".201"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e,t1.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t1.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e,t1.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t1.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  21  31  41  -   -   -  11\n    12  22  32  42  -   -   -  12\n    15  25  35  45  -   -   -  15\n    18  28  38  48  -   -   -  18\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".202"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e,t3.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t3.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e,t3.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t3.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    14  24  -   -   -   44  34  14\n    15  25  -   -   -   45  35  15\n    16  26  -   -   -   46  36  16\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".203"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e,t4.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t4.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e,t4.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t4.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    11  -   21  31  -   41  -  11\n    13  -   23  33  -   43  -  13\n    16  -   26  36  -   46  -  16\n    19  -   29  39  -   49  -  19\n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "joinA-" + id + ".204"
+				r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t2.e!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t2.e!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "\n    -   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n  "
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // "joinA-" + id + ".100"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           INNER JOIN t2 USING(c,d)\n           INNER JOIN t3 USING(a,b,f)\n           INNER JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			}
-		}
-		{ // "joinA-" + id + ".110"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  21  31  41  -  -  -\n    12  22  32  42  -  -  -\n    15  25  35  45  -  -  -\n    18  28  38  48  -  -  -\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".120"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           LEFT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    14  24  -  -  -  44  34\n    15  25  -  -  -  45  35\n    16  26  -  -  -  46  36\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".130"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".140"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".150"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           RIGHT JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  -  21  31  -  41  -\n    13  -  23  33  -  43  -\n    16  -  26  36  -  46  -\n    19  -  29  39  -  49  -\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".160"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           RIGHT JOIN t2 USING(c,d)\n           LEFT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    -   -  12  22  32  42  -\n    -   -  13  23  33  43  -\n    -   -  15  25  35  45  -\n    -   -  17  27  37  47  -\n    11  -  21  31  -   41  -\n    13  -  23  33  -   43  -\n    16  -  26  36  -   46  -\n    19  -  29  39  -   49  -\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".170"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           LEFT JOIN t2 USING(c,d)\n           RIGHT JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  -   21  31  -  41  - \n    13  -   23  33  -  43  - \n    14  24  -   -   -  44  34\n    15  25  -   -   -  45  35\n    16  26  -   -   -  46  36\n    16  -   26  36  -  46  - \n    19  -   29  39  -  49  - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".200"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    -   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n    11  -   21  31  -   41  - \n    11  21  31  41  -   -   - \n    12  22  32  42  -   -   - \n    13  -   23  33  -   43  - \n    14  24  -   -   -   44  34\n    15  25  -   -   -   45  35\n    15  25  35  45  -   -   - \n    16  26  -   -   -   46  36\n    16  -   26  36  -   46  - \n    18  28  38  48  -   -   - \n    19  -   29  39  -   49  - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".201"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e,t1.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t1.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e,t1.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t1.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  21  31  41  -   -   -  11\n    12  22  32  42  -   -   -  12\n    15  25  35  45  -   -   -  15\n    18  28  38  48  -   -   -  18\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".202"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e,t3.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t3.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e,t3.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t3.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    14  24  -   -   -   44  34  14\n    15  25  -   -   -   45  35  15\n    16  26  -   -   -   46  36  16\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".203"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e,t4.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t4.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e,t4.a\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t4.a!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    11  -   21  31  -   41  -  11\n    13  -   23  33  -   43  -  13\n    16  -   26  36  -   46  -  16\n    19  -   29  39  -   49  -  19\n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "joinA-" + id + ".204"
-			r = db.Query("\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t2.e!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a,b,c,d,t2.e,f,t3.e\n      FROM t1\n           FULL JOIN t2 USING(c,d)\n           FULL JOIN t3 USING(a,b,f)\n           FULL JOIN t4 USING(a,c,d,f)\n     WHERE t2.e!=0\n    ORDER BY 1 nulls first, 3 nulls first;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "\n    -   -   12  22  32  42  - \n    -   -   13  23  33  43  - \n    -   -   15  25  35  45  - \n    -   -   17  27  37  47  - \n  "
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
 }

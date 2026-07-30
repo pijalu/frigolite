@@ -26,185 +26,185 @@ func Test_in7(t *testing.T) {
 		}
 	}
 	// foreach {tn nNext idx sql} "\n  1 1 {\n    CREATE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  2 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  3 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  3 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IS ?\n  } \n\n  4 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (?, ?, ?);\n  } \n\n  5 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b, c);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  6 0 {\n  } {\n    SELECT * FROM t1 WHERE c IN (SELECT z FROM t2)\n  } \n\n  7 0 {\n  } {\n    SELECT * FROM t1 WHERE (a, c) IN (SELECT z, x FROM t2)\n  } \n\n  8 1 {\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2)\n  } \n\n  9 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b IS ?\n  } \n  10 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b = ?\n  } \n  11 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IS NULL AND b IN (SELECT z FROM t2)\n  } \n  12 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (SELECT z FROM t2)\n  } \n"
-	_items := []string{"\n  1 1 {\n    CREATE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  2 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  3 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  3 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IS ?\n  } \n\n  4 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (?, ?, ?);\n  } \n\n  5 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b, c);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  6 0 {\n  } {\n    SELECT * FROM t1 WHERE c IN (SELECT z FROM t2)\n  } \n\n  7 0 {\n  } {\n    SELECT * FROM t1 WHERE (a, c) IN (SELECT z, x FROM t2)\n  } \n\n  8 1 {\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2)\n  } \n\n  9 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b IS ?\n  } \n  10 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b = ?\n  } \n  11 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IS NULL AND b IN (SELECT z FROM t2)\n  } \n  12 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (SELECT z FROM t2)\n  } \n"}
+	_items := tclSplitList("\n  1 1 {\n    CREATE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  2 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  3 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  3 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IS ?\n  } \n\n  4 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (?, ?, ?);\n  } \n\n  5 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b, c);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  6 0 {\n  } {\n    SELECT * FROM t1 WHERE c IN (SELECT z FROM t2)\n  } \n\n  7 0 {\n  } {\n    SELECT * FROM t1 WHERE (a, c) IN (SELECT z, x FROM t2)\n  } \n\n  8 1 {\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2)\n  } \n\n  9 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b IS ?\n  } \n  10 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b = ?\n  } \n  11 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IS NULL AND b IN (SELECT z FROM t2)\n  } \n  12 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (SELECT z FROM t2)\n  } \n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	nNext := _items[_idx+1]
-	idx := _items[_idx+2]
-	sql := _items[_idx+3]
-		{ // do_test "1.1." + tn
-			_res = db.Exec("BEGIN")
+		tn := _items[_idx+0]
+		nNext := _items[_idx+1]
+		idx := _items[_idx+2]
+		sql := _items[_idx+3]
+		_ = _idx
+			{ // do_test "1.1." + tn
+				_res = db.Exec("BEGIN")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				}
+				_res = db.Exec(idx)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				_res = db.Exec("SELECT rootpage, tbl_name FROM sqlite_schema")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rootpage, tbl_name FROM sqlite_schema")
+				}
+				var nSeen = "0"
+				_ = nSeen // suppress unused warning
+				_res = db.Exec("explain " + sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "explain " + sql)
+				}
+				_res = db.Exec("ROLLBACK")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+				}
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
 			}
-			_res = db.Exec(idx)
+		}
+		{ // "2.1"
+			r = db.Query("\n  SELECT b FROM t1 WHERE a IN (1,2,3) ORDER BY b ASC NULLS LAST;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM t1 WHERE a IN (1,2,3) ORDER BY b ASC NULLS LAST;\n")
+				return
+			}
+			got := flatten(r)
+			want := "one three {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "3.0"
+			_res = db.Exec("\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-			}
-			_res = db.Exec("SELECT rootpage, tbl_name FROM sqlite_schema")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rootpage, tbl_name FROM sqlite_schema")
-			}
-			var nSeen = "0"
-			_ = nSeen // suppress unused warning
-			_res = db.Exec("explain " + sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "explain " + sql)
-			}
-			_res = db.Exec("ROLLBACK")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT PRIMARY KEY, b TEXT) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('1', 'one');\n  INSERT INTO t1 VALUES('2', NULL);\n  INSERT INTO t1 VALUES('3', 'three');\n")
+		{ // "3.1"
+			r = db.Query("\n  SELECT * FROM v1\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v1\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 2 3\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "2.1"
-		r = db.Query("\n  SELECT b FROM t1 WHERE a IN (1,2,3) ORDER BY b ASC NULLS LAST;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT b FROM t1 WHERE a IN (1,2,3) ORDER BY b ASC NULLS LAST;\n")
-			return
+		{ // "3.2"
+			r = db.Query("\n  SELECT * FROM v2\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v2\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  4 5 6 \n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "one three {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.3"
+			r = db.Query("\n  SELECT * FROM v2\n  UNION ALL\n  SELECT * FROM v1\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v2\n  UNION ALL\n  SELECT * FROM v1\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  4 5 6\n  1 2 3 \n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "3.0"
-		_res = db.Exec("\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a);\n  INSERT INTO x1 VALUES(1), (2), (3);\n\n  CREATE TABLE x2(b);\n  INSERT INTO x2 VALUES(4), (5), (6);\n\n  CREATE TABLE t1(u);\n  INSERT INTO t1 VALUES(1), (2), (3), (4), (5), (6);\n\n  CREATE VIEW v1 AS SELECT u FROM t1 WHERE u IN (\n    SELECT a FROM x1\n  );\n  CREATE VIEW v2 AS SELECT u FROM t1 WHERE u IN (\n    SELECT b FROM x2\n  );\n")
+		{ // "3.4"
+			r = db.Query("\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 2 3 4 5 6\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "3.1"
-		r = db.Query("\n  SELECT * FROM v1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v1\n")
-			return
+		{ // "3.5"
+			r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (a int UNIQUE);\n  CREATE TABLE t2 (b int UNIQUE);\n  INSERT INTO t1 VALUES (1);\n  INSERT INTO t2 VALUES (1), (2);\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 1);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (a int UNIQUE);\n  CREATE TABLE t2 (b int UNIQUE);\n  INSERT INTO t1 VALUES (1);\n  INSERT INTO t2 VALUES (1), (2);\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 1);\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  1 2 3\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.6"
+			r = db.Query("\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 1));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 1));\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "3.2"
-		r = db.Query("\n  SELECT * FROM v2\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v2\n")
-			return
+		{ // "3.7"
+			r = db.Query("\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 2);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 2);\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  4 5 6 \n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "3.8"
+			r = db.Query("\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 2));\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 2));\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "3.3"
-		r = db.Query("\n  SELECT * FROM v2\n  UNION ALL\n  SELECT * FROM v1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v2\n  UNION ALL\n  SELECT * FROM v1\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "4.0"
+			r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "X'3333'"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  4 5 6\n  1 2 3 \n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.4"
-		r = db.Query("\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  WITH w1 AS (\n    SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3\n  ),\n  w2 AS (\n    SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6\n  )\n  SELECT * FROM v1 WHERE u IN w1\n  UNION ALL\n  SELECT * FROM v2 WHERE u IN w2\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 2 3 4 5 6\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.5"
-		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (a int UNIQUE);\n  CREATE TABLE t2 (b int UNIQUE);\n  INSERT INTO t1 VALUES (1);\n  INSERT INTO t2 VALUES (1), (2);\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 1);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1 (a int UNIQUE);\n  CREATE TABLE t2 (b int UNIQUE);\n  INSERT INTO t1 VALUES (1);\n  INSERT INTO t2 VALUES (1), (2);\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 1);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.6"
-		r = db.Query("\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 1));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 1));\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.7"
-		r = db.Query("\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 2);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) = (1, 2);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.8"
-		r = db.Query("\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 2));\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT t1.a, t2.b FROM t1, t2 WHERE (t1.a, t2.b) IN ((1, 2));\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.0"
-		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1,x'1111');\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(d);\n  CREATE TRIGGER t1tr UPDATE ON t1 BEGIN\n    UPDATE t1 SET b=x'2222' FROM t2;\n    UPDATE t1\n       SET b = (SELECT a IN (SELECT a\n                               FROM t1\n                              WHERE (b,a) IN (SELECT rowid, d\n                                                FROM t3\n                                             )\n                            )\n                  FROM t1 NATURAL RIGHT JOIN t1\n               );\n  END;\n  UPDATE t1 SET b=x'3333';\n  SELECT quote(b) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "X'3333'"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

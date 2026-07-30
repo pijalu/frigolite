@@ -183,7 +183,7 @@ func Test_zipfile2(t *testing.T) {
 	_ = L // suppress unused warning
 	var a = archive2
 	_ = a // suppress unused warning
-	for _, i := range []string{L} {
+	for _, i := range tclSplitList(L) {
 		var a = "$a $i [expr $i+7] 16000000"
 		_ = a // suppress unused warning
 	}
@@ -210,100 +210,100 @@ func Test_zipfile2(t *testing.T) {
 		}
 	}
 	// foreach {tn sub} "\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n"
-	_items := []string{"\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n"}
+	_items := tclSplitList("\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sub := _items[_idx+1]
-		var blob = "blob [string map [list 504B0506 $sub] $archive2]"
-		_ = blob // suppress unused warning
-		{ // "4.3." + tn
-			_res = db.Exec("\n    SELECT * FROM zipfile($blob)\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot find end of central directory record") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot find end of central directory record", _res.Error, "\n    SELECT * FROM zipfile($blob)\n  ")
+		tn := _items[_idx+0]
+		sub := _items[_idx+1]
+		_ = _idx
+			var blob = "blob [string map [list 504B0506 $sub] $archive2]"
+			_ = blob // suppress unused warning
+			{ // "4.3." + tn
+				_res = db.Exec("\n    SELECT * FROM zipfile($blob)\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "cannot find end of central directory record") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "cannot find end of central directory record", _res.Error, "\n    SELECT * FROM zipfile($blob)\n  ")
+				}
 			}
 		}
-	}
-	}
-	{ // do_test "5.0"
-		var blob = "db one {\n    WITH c(n, d) AS (\n      SELECT 'notadir', ''\n    )\n    SELECT zipfile(n, d) FROM c\n }"
-		_ = blob // suppress unused warning
-		var hex = "binary encode hex $blob"
-		_ = hex // suppress unused warning
-		var hex = "{6e6f7461646972 6e6f746164692f} $hex"
-		_ = hex // suppress unused warning
-		var blob2 = "binary decode hex $hex"
-		_ = blob2 // suppress unused warning
-		r = db.Query(" SELECT name, data IS NULL FROM zipfile($blob2) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name, data IS NULL FROM zipfile($blob2) ")
+		{ // do_test "5.0"
+			var blob = "db one {\n    WITH c(n, d) AS (\n      SELECT 'notadir', ''\n    )\n    SELECT zipfile(n, d) FROM c\n }"
+			_ = blob // suppress unused warning
+			var hex = "binary encode hex $blob"
+			_ = hex // suppress unused warning
+			var hex = "{6e6f7461646972 6e6f746164692f} $hex"
+			_ = hex // suppress unused warning
+			var blob2 = "binary decode hex $hex"
+			_ = blob2 // suppress unused warning
+			r = db.Query(" SELECT name, data IS NULL FROM zipfile($blob2) ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name, data IS NULL FROM zipfile($blob2) ")
+			}
 		}
-	}
-	os.Remove("test.zip")
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
-		}
-	}
-	{ // "6.1"
-		_res = db.Exec("\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"test1\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"test1\\\"", _res.Error, "\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
-		}
-	}
-	os.Remove("test.zip")
-	{ // "6.2"
-		_res = db.Exec("\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"testnew\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"testnew\\\"", _res.Error, "\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
-		}
-	}
-	os.Remove("test.zip")
-	{ // "6.3"
-		r = db.Query("\n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;\n")
-			return
-		}
-		got := flatten(r)
-		want := "test2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// proc definition (not transpiled)
-	os.Remove("test.zip")
-	t.Skipf("TODO: %s not implemented in frigolite", "make_corrupt_file test.zip")
-	{ // "7.0"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
-		}
-	}
-	{ // "7.1"
-		r = db.Query("\n  SELECT length(name) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(name) FROM t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "60000"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	if tclBool("0" + "==0") {
 		os.Remove("test.zip")
-		var fd = "open test.zip wb"
-		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Log("-nonewline")
-		// close $fd
-		{ // "8.0"
-			_res = db.Exec("\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
-			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "failed to read LFH at offset 0") {
-				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "failed to read LFH at offset 0", _res.Error, "\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
+		{ // "6.0"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n")
 			}
 		}
-	}
+		{ // "6.1"
+			_res = db.Exec("\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"test1\\\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"test1\\\"", _res.Error, "\n  UPDATE temp.zip SET name='test1' WHERE name='test2'\n")
+			}
+		}
+		os.Remove("test.zip")
+		{ // "6.2"
+			_res = db.Exec("\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "duplicate name: \\\"testnew\\\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "duplicate name: \\\"testnew\\\"", _res.Error, "\n  DROP TABLE zip;\n  CREATE VIRTUAL TABLE temp.zip USING zipfile('test.zip'); \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n  INSERT INTO temp.zip (name,data) VALUES ('test','test'); \n  UPDATE  temp.zip set name=name||'new' where name='test'; \n")
+			}
+		}
+		os.Remove("test.zip")
+		{ // "6.3"
+			r = db.Query("\n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO temp.zip (name,data) VALUES ('test1','test'); \n  INSERT INTO temp.zip (name,data) VALUES ('test2','test'); \n  UPDATE OR REPLACE zip SET name='test2' WHERE name='test1';\n  SELECT name FROM zip;\n")
+				return
+			}
+			got := flatten(r)
+			want := "test2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		// proc definition (not transpiled)
+		os.Remove("test.zip")
+		t.Skipf("TODO: %s not implemented in frigolite", "make_corrupt_file test.zip")
+		{ // "7.0"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
+			}
+		}
+		{ // "7.1"
+			r = db.Query("\n  SELECT length(name) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT length(name) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "60000"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		if tclBool("0" + "==0") {
+			os.Remove("test.zip")
+			var fd = "open test.zip wb"
+			_ = fd // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+			t.Log("-nonewline")
+			// close $fd
+			{ // "8.0"
+				_res = db.Exec("\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "failed to read LFH at offset 0") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "failed to read LFH at offset 0", _res.Error, "\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")
+				}
+			}
+		}
 }

@@ -483,139 +483,139 @@ func Test_returning1(t *testing.T) {
 		}
 	}
 	// foreach {tn temp} "\n  1 \"\"\n  2 TEMP\n"
-	_items := []string{"\n  1 \"\"\n  2 TEMP\n"}
+	_items := tclSplitList("\n  1 \"\"\n  2 TEMP\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	temp := _items[_idx+1]
+		tn := _items[_idx+0]
+		temp := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "17." + tn + ".0"
+				_res = db.Exec("\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
+				}
+			}
+			{ // "17." + tn + ".1"
+				_res = db.Exec("\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+				}
+			}
+		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		{ // "17." + tn + ".0"
-			_res = db.Exec("\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
+		{ // "17.0"
+			_res = db.Exec("\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE " + temp + " TABLE foo (\n      fooid INTEGER PRIMARY KEY,\n      fooval INTEGER NOT NULL UNIQUE,\n      refcnt INTEGER NOT NULL DEFAULT 1\n    );\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
 			}
 		}
-		{ // "17." + tn + ".1"
-			_res = db.Exec("\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+		{ // "18.0"
+			_res = db.Exec("\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO foo (fooval) VALUES (17), (4711), (17)\n      ON CONFLICT DO\n      UPDATE SET refcnt = refcnt+1\n    RETURNING fooid;\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "17.0"
-		_res = db.Exec("\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE bug(id INTEGER PRIMARY KEY NOT NULL, x);\n  INSERT INTO bug(id,x) VALUES(20, NULL);\n  UPDATE bug SET x=NULL WHERE id = 20 RETURNING quote(x), x IS NULL;\n")
+		{ // "18.1"
+			_res = db.Exec("\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: TRUE") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: TRUE", _res.Error, "\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
+			}
 		}
-	}
-	{ // "18.0"
-		_res = db.Exec("\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0(c1 INT);\n  CREATE VIEW view_2(c1) AS SELECT CASE WHEN c1 COLLATE TRUE THEN TRUE ELSE TRUE END FROM v0;\n  CREATE TRIGGER x1 INSTEAD OF INSERT ON view_2 BEGIN SELECT true; END;\n")
+		{ // "19.0"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
+			}
 		}
-	}
-	{ // "18.1"
-		_res = db.Exec("\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such collation sequence: TRUE") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: TRUE", _res.Error, "\n  INSERT INTO view_2 DEFAULT VALUES RETURNING *;\n")
+		{ // "19.1"
+			_res = db.Exec("\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
+			}
 		}
-	}
-	{ // "19.0"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;CREATE TABLE t1(a);\n  CREATE TRIGGER r1 AFTER UPDATE ON t1 BEGIN VALUES(0); END;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "20.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			}
 		}
-	}
-	{ // "19.1"
-		_res = db.Exec("\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  CREATE TRIGGER IF NOT EXISTS r1 AFTER DELETE ON t1 BEGIN\n    INSERT  INTO t1(a) VALUES (1) RETURNING FALSE;\n    INSERT  INTO t1(a) VALUES (2) RETURNING TRUE;\n  END;\n")
+		{ // "20.2"
+			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "20.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n  INSERT INTO t1 VALUES(1,10),(2,20),(3,30),(4,40),(6,60),(8,80);\n  BEGIN;\n  DELETE FROM t1 WHERE a<>3\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+		{ // "20.3"
+			_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+			}
 		}
-	}
-	{ // "20.2"
-		_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(a) FROM t1),\n              (SELECT max(a) FROM t1),\n              (SELECT round(avg(a),2) FROM t1);\n  ROLLBACK;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "21.0"
+			_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
+			}
 		}
-	}
-	{ // "20.3"
-		_res = db.Exec("\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  DELETE FROM t1\n    RETURNING a,\n              (SELECT min(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT max(t2.a)+t1.a*100 FROM t1 AS t2),\n              (SELECT round(avg(t2.a),2)+t1.a*100 FROM t1 AS t2);\n  ROLLBACK;\n")
+		{ // "21.1"
+			_res = db.Exec("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "21.0"
-		_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  INSERT INTO sqlite_schema DEFAULT VALUES RETURNING sqlite_schema.name;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "22.0"
+			_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
+			}
 		}
-	}
-	{ // "21.1"
-		_res = db.Exec("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES RETURNING sqlite_temp_schema.name;\n")
+		{ // "22.1"
+			_res = db.Exec("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: sqlite_master.name") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: sqlite_master.name", _res.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "22.0"
-		_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema=ON;\n  CREATE TABLE xyz (a);\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "23.0"
+			_res = db.Exec("\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
+			}
 		}
-	}
-	{ // "22.1"
-		_res = db.Exec("\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: sqlite_master.name") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: sqlite_master.name", _res.Error, "\n  INSERT INTO sqlite_temp_schema DEFAULT VALUES \n    RETURNING\n    (SELECT * FROM xyz AS sqlite_master WHERE a=sqlite_master.name);\n")
+		{ // "23.1"
+			_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "one") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "one", _res.Error, "\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "23.0"
-		_res = db.Exec("\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA recursive_triggers = 1;\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER t1insert AFTER INSERT ON t1 WHEN new.x<5 BEGIN\n    INSERT INTO t1 VALUES(new.x+1, new.y);\n  END;\n")
+		{ // "23.2"
+			r = db.Query("\n  SELECT * FROM t1\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 one 2 one 3 one 4 one 5 one"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "23.1"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "one") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "one", _res.Error, "\n  INSERT INTO t1 VALUES(1, 'one') RETURNING *;\n")
-		}
-	}
-	{ // "23.2"
-		r = db.Query("\n  SELECT * FROM t1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 one 2 one 3 one 4 one 5 one"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
 }

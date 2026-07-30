@@ -184,7 +184,7 @@ func Test_filter2(t *testing.T) {
 	{ // do_test "1.14"
 		var myres = ""
 		_ = myres // suppress unused warning
-		for _, r := range []string{"db eval {SELECT \n    avg(b) FILTER (WHERE b>a),\n    avg(b) FILTER (WHERE b<a)\n  FROM t1 GROUP BY (a%2) ORDER BY 1,2;}"} {
+		for _, r := range tclSplitList("db eval {SELECT \n    avg(b) FILTER (WHERE b>a),\n    avg(b) FILTER (WHERE b<a)\n  FROM t1 GROUP BY (a%2) ORDER BY 1,2;}") {
 			myres = tclListAppend(myres, "format %.4f [set r]")
 		}
 		var res2 = "30.8333 13.7273 31.4167 13.0000"

@@ -210,223 +210,223 @@ func Test_window9(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }\n"
-	_items := []string{"\n  1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    SELECT \n      sum(e) OVER (),\n      sum(e) OVER (ORDER BY a),\n      sum(e) OVER (PARTITION BY a ORDER BY b),\n      sum(e) OVER (PARTITION BY a, b ORDER BY c),\n      sum(e) OVER (PARTITION BY a, b, c ORDER BY d)\n    FROM t1;\n  }\n  2 {\n    SELECT sum(e) OVER (PARTITION BY a ORDER BY b) FROM t1 ORDER BY a;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // do_test "5.1." + tn
-			r = db.Query("EXPLAIN QUERY PLAN " + sql)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			{ // do_test "5.1." + tn
+				r = db.Query("EXPLAIN QUERY PLAN " + sql)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN " + sql)
+				}
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "6.0"
+			_res = db.Exec("\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n")
+			}
 		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  SELECT * FROM t0 WHERE \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) >=1 AND \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) <=1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) >=1 AND \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) <=1;\n")
-			return
+		{ // "6.1"
+			r = db.Query("\n  SELECT * FROM t0 WHERE \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) >=1 AND \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) <=1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) >=1 AND \n  EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) <=1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "6.2"
+			r = db.Query("\n  SELECT * FROM t0 WHERE EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \n  BETWEEN 1 AND 1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \n  BETWEEN 1 AND 1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.2"
-		r = db.Query("\n  SELECT * FROM t0 WHERE EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \n  BETWEEN 1 AND 1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t0 WHERE EXISTS (\n    SELECT MIN(c0) OVER (), CUME_DIST() OVER () FROM t0\n  ) \n  BETWEEN 1 AND 1;\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "7.0"
+			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
+			}
 		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "7.1"
+			r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  7.2 8.75 10.0 11.0 15.0\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "7.0"
-		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(10, 1);\n  INSERT INTO t1 VALUES(20, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n")
+		{ // "7.2"
+			r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (z IS y);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (z IS y);\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  10.0 15.0 11.0 8.75 7.2\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "7.1"
-		r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z\n")
-			return
+		{ // "7.3"
+			r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (y IS z);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (y IS z);\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  10.0 15.0 11.0 8.75 7.2\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  7.2 8.75 10.0 11.0 15.0\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "7.4"
+			r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY z + 0.0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY z + 0.0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  7.2 8.75 10.0 11.0 15.0\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "7.2"
-		r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (z IS y);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (z IS y);\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "8.1.1"
+			r = db.Query("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  SELECT min( sum(a) ) OVER () FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  SELECT min( sum(a) ) OVER () FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "4"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  10.0 15.0 11.0 8.75 7.2\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.1.2"
+			r = db.Query("\n  SELECT min( sum(a) ) OVER () FROM t1 GROUP BY a;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min( sum(a) ) OVER () FROM t1 GROUP BY a;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "7.3"
-		r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (y IS z);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY (y IS z);\n")
-			return
+		{ // "8.2"
+			_res = db.Exec("\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
+			}
 		}
-		got := flatten(r)
-		want := "\n  10.0 15.0 11.0 8.75 7.2\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "8.3"
+			_res = db.Exec("\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
+			if _res.Error == nil {
+				t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
+			}
 		}
-	}
-	{ // "7.4"
-		r = db.Query("\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY z + 0.0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT avg(x) OVER (ORDER BY y) z FROM t1 ORDER BY z + 0.0;\n")
-			return
+		{ // "8.4"
+			r = db.Query("\n  SELECT(\n      SELECT x UNION \n      SELECT sum( avg((SELECT x FROM v1)) ) OVER()\n  )\n  FROM v1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT(\n      SELECT x UNION \n      SELECT sum( avg((SELECT x FROM v1)) ) OVER()\n  )\n  FROM v1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0.0 0.0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "\n  7.2 8.75 10.0 11.0 15.0\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "9.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "8.1.1"
-		r = db.Query("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  SELECT min( sum(a) ) OVER () FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n  SELECT min( sum(a) ) OVER () FROM t1;\n")
-			return
+		{ // "9.1"
+			_res = db.Exec("\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame ending offset must be a non-negative number") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative number", _res.Error, "\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
+			}
 		}
-		got := flatten(r)
-		want := "4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "10.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
+			}
 		}
-	}
-	{ // "8.1.2"
-		r = db.Query("\n  SELECT min( sum(a) ) OVER () FROM t1 GROUP BY a;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min( sum(a) ) OVER () FROM t1 GROUP BY a;\n")
-			return
+		{ // "10.1"
+			r = db.Query("\n  SELECT a, min(b) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, min(b) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 a\n  2 a\n  3 a\n  4 b\n  5 c\n  6 d\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "10.2"
+			r = db.Query("\n  SELECT a, min(b) FILTER (WHERE a%2) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, min(b) FILTER (WHERE a%2) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 a\n  2 a\n  3 a\n  4 c\n  5 c\n  6 e\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.2"
-		_res = db.Exec("\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIEW v1 AS \n    SELECT 0 AS x\n      UNION \n    SELECT count() OVER() FROM (SELECT 0) \n    ORDER BY 1\n  ;\n")
+		{ // "10.3"
+			r = db.Query("\n  SELECT a, min(b) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, min(b) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  1 b\n  2 b\n  3 b\n  4 b\n  5 d\n  6 d\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "8.3"
-		_res = db.Exec("\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT min( max((SELECT x FROM v1)) ) OVER()\n")
+		{ // "10.4"
+			_res = db.Exec("\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FILTER clause may only be used with aggregate window functions") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FILTER clause may only be used with aggregate window functions", _res.Error, "\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
+			}
 		}
-	}
-	{ // "8.4"
-		r = db.Query("\n  SELECT(\n      SELECT x UNION \n      SELECT sum( avg((SELECT x FROM v1)) ) OVER()\n  )\n  FROM v1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT(\n      SELECT x UNION \n      SELECT sum( avg((SELECT x FROM v1)) ) OVER()\n  )\n  FROM v1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0.0 0.0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "9.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL,'bb',356);\n  INSERT INTO t1 VALUES('CB','aa',158);\n  INSERT INTO t1 VALUES('BB','aa',399);\n  INSERT INTO t1 VALUES('FF','bb',938);\n")
-		}
-	}
-	{ // "9.1"
-		_res = db.Exec("\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "frame ending offset must be a non-negative number") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "frame ending offset must be a non-negative number", _res.Error, "\n  SELECT sum(c) OVER (\n    ORDER BY c RANGE BETWEEN 0 PRECEDING AND '-700' PRECEDING\n  )\n  FROM t1\n")
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "10.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'a');\n  INSERT INTO t1 VALUES(2, 'b');\n  INSERT INTO t1 VALUES(3, 'c');\n  INSERT INTO t1 VALUES(4, 'd');\n  INSERT INTO t1 VALUES(5, 'e');\n  INSERT INTO t1 VALUES(6, 'f');\n")
-		}
-	}
-	{ // "10.1"
-		r = db.Query("\n  SELECT a, min(b) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, min(b) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 a\n  2 a\n  3 a\n  4 b\n  5 c\n  6 d\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.2"
-		r = db.Query("\n  SELECT a, min(b) FILTER (WHERE a%2) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, min(b) FILTER (WHERE a%2) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 a\n  2 a\n  3 a\n  4 c\n  5 c\n  6 e\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.3"
-		r = db.Query("\n  SELECT a, min(b) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, min(b) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  1 b\n  2 b\n  3 b\n  4 b\n  5 d\n  6 d\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "10.4"
-		_res = db.Exec("\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "FILTER clause may only be used with aggregate window functions") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FILTER clause may only be used with aggregate window functions", _res.Error, "\n  SELECT a, nth_value(b, 1) FILTER (WHERE (a%2)=0) OVER win\n  FROM t1\n  WINDOW win AS (ORDER BY a ROWS BETWEEN 2 PRECEDING AND 1 FOLLOWING)\n")
-		}
-	}
 }

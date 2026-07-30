@@ -24,29 +24,61 @@ func Test_manydb(t *testing.T) {
 	var using_proxy = "0"
 	_ = using_proxy // suppress unused warning
 	// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-	_items := []string{"array get env SQLITE_FORCE_PROXY_LOCKING"}
+	_items := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	name := _items[_idx+0]
-	value := _items[_idx+1]
-		var using_proxy = "value"
-		_ = using_proxy // suppress unused warning
-	}
-	}
-	var num_fd_per_openwrite_db = "3"
-	_ = num_fd_per_openwrite_db // suppress unused warning
-	if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n > 0 }() {
-		var num_fd_per_openwrite_db = "5"
+		name := _items[_idx+0]
+		value := _items[_idx+1]
+		_ = _idx
+			var using_proxy = "value"
+			_ = using_proxy // suppress unused warning
+		}
+		var num_fd_per_openwrite_db = "3"
 		_ = num_fd_per_openwrite_db // suppress unused warning
-	}
-	var filehandles = ""
-	_ = filehandles // suppress unused warning
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
+		if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n > 0 }() {
+			var num_fd_per_openwrite_db = "5"
+			_ = num_fd_per_openwrite_db // suppress unused warning
+		}
+		var filehandles = ""
+		_ = filehandles // suppress unused warning
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			var i = "0"
+			_ = i // suppress unused warning
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < (N_n * 3) }() {
+				filehandles = tclListAppend(filehandles, "open testfile.1 w")
+				// incr i 1
+				{
+					_n, _err := strconv.Atoi(i)
+					if _err == nil {
+						i = strconv.Itoa(_n + 1)
+					}
+				}
+			}
+		}
+		for _, fd := range tclSplitList(filehandles) {
+			// close $fd
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			os.Remove("testfile.1")
+		}
+		N := "$i / $num_fd_per_openwrite_db"
 		var i = "0"
 		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < (N_n * 3) }() {
-			filehandles = tclListAppend(filehandles, "open testfile.1 w")
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
+			for true {
+				var name = "test-" + "format %08x [expr {int(rand()*0x7fffffff)}]" + ".db"
+				_ = name // suppress unused warning
+				if tclBool("info exists used($name)") {
+				}
+				var dbname_$i = name
+				_ = dbname_$i // suppress unused warning
+				var used_$name = i
+				_ = used_$name // suppress unused warning
+				break
+			}
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -55,88 +87,56 @@ func Test_manydb(t *testing.T) {
 				}
 			}
 		}
-	}
-	for _, fd := range []string{filehandles} {
-		// close $fd
-	}
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-		os.Remove("testfile.1")
-	}
-	N := "$i / $num_fd_per_openwrite_db"
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
-		for true {
-			var name = "test-" + "format %08x [expr {int(rand()*0x7fffffff)}]" + ".db"
-			_ = name // suppress unused warning
-			if tclBool("info exists used($name)") {
+		var i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
+			{ // do_test "manydb-1." + i
+				db$i, err := frigolite.Open(dbname + "(" + i + ")")
+				defer db$i.Close()
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
+				}
 			}
-			var dbname_$i = name
-			_ = dbname_$i // suppress unused warning
-			var used_$name = i
-			_ = used_$name // suppress unused warning
-			break
-		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
 			}
 		}
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
-		{ // do_test "manydb-1." + i
-			db$i, err := frigolite.Open(dbname + "(" + i + ")")
-			defer db$i.Close()
-			if err != nil { t.Fatal(err) }
-			_res = db.Exec("\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
+		var i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
+			{ // do_test "manydb-2." + i
+				r = db.Query("\n       COMMIT;\n       SELECT * FROM t1;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n       COMMIT;\n       SELECT * FROM t1;\n    ")
+				}
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
 			}
 		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
+		var i = "0"
+		_ = i // suppress unused warning
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
+			{ // do_test "manydb-3." + i
+				t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+				os.Remove(dbname + "(" + i + ")")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
 			}
 		}
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
-		{ // do_test "manydb-2." + i
-			r = db.Query("\n       COMMIT;\n       SELECT * FROM t1;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n       COMMIT;\n       SELECT * FROM t1;\n    ")
-			}
-		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
-		}
-	}
-	var i = "0"
-	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
-		{ // do_test "manydb-3." + i
-			t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
-			os.Remove(dbname + "(" + i + ")")
-		}
-		// incr i 1
-		{
-			_n, _err := strconv.Atoi(i)
-			if _err == nil {
-				i = strconv.Itoa(_n + 1)
-			}
-		}
-	}
 }

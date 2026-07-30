@@ -30,222 +30,222 @@ func Test_e_walauto(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn code} "\n  1 {\n    proc autocheckpoint {db value} {\n      uplevel [list $db eval \"PRAGMA wal_autocheckpoint = $value\"]\n    }\n  }\n\n  2 {\n    proc autocheckpoint {db value} {\n      uplevel [list sqlite3_wal_autocheckpoint $db $value]\n      return $value\n    }\n  }\n"
-	_items := []string{"\n  1 {\n    proc autocheckpoint {db value} {\n      uplevel [list $db eval \"PRAGMA wal_autocheckpoint = $value\"]\n    }\n  }\n\n  2 {\n    proc autocheckpoint {db value} {\n      uplevel [list sqlite3_wal_autocheckpoint $db $value]\n      return $value\n    }\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    proc autocheckpoint {db value} {\n      uplevel [list $db eval \"PRAGMA wal_autocheckpoint = $value\"]\n    }\n  }\n\n  2 {\n    proc autocheckpoint {db value} {\n      uplevel [list sqlite3_wal_autocheckpoint $db $value]\n      return $value\n    }\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	code := _items[_idx+1]
-		// eval $code
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		r = db.Query(" PRAGMA auto_vacuum = 0 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0 ")
-		}
-		{ // "1." + tn + ".0"
-			r = db.Query(" PRAGMA journal_mode = WAL ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
-				return
-			}
-			got := flatten(r)
-			want := "wal"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "1." + tn + ".1"
-			_res = db.Exec(" CREATE TABLE t1(a, b) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
-			}
-		}
-		var shmfd = "open \"test.db-shm\" rb"
-		_ = shmfd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.2 1000")
-		_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.3 1000")
-		{ // do_test "1." + tn + ".4"
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.5 100")
-		{ // do_test "1." + tn + ".6"
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 500")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.7 500")
-		{ // do_test "1." + tn + ".7"
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 0")
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			// expr [file size test.db-wal] > (5 * 1024 * 1024) → "[file size test.db-wal] > (5 * 1024 * 1024)"
-		}
-		{ // do_test "1." + tn + ".8"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db truncate")
-			// file size test.db-wal
-		}
-		{ // do_test "1." + tn + ".9"
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db -4")
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			// expr [file size test.db-wal] > (5 * 1024 * 1024) → "[file size test.db-wal] > (5 * 1024 * 1024)"
-		}
-		var _wal_hook_callback = "0" // TCL namespace variable
-		_ = _wal_hook_callback // suppress unused warning
-		// proc definition (not transpiled)
-		{ // do_test "1." + tn + ".10.1"
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			_ = _wal_hook_callback // TCL namespace variable (query)
-		}
-		{ // do_test "1." + tn + ".10.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			_ = _wal_hook_callback // TCL namespace variable (query)
-		}
-		{ // do_test "1." + tn + ".11.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db truncate")
-			// file size test.db-wal
-		}
-		{ // do_test "1." + tn + ".11.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			// expr [file size test.db-wal] < (1 * 1024 * 1024) → "[file size test.db-wal] < (1 * 1024 * 1024)"
-		}
-		{ // do_test "1." + tn + ".11.3"
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			// expr [file size test.db-wal] < (1 * 1024 * 1024) → "[file size test.db-wal] < (1 * 1024 * 1024)"
-		}
-		var _busy_callback_count = "0" // TCL namespace variable
-		_ = _busy_callback_count // suppress unused warning
-		// proc definition (not transpiled)
-		{ // do_test "1." + tn + ".12.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db truncate")
-			t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-			}
-		}
-		{ // do_test "1." + tn + ".12.2"
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+		tn := _items[_idx+0]
+		code := _items[_idx+1]
+		_ = _idx
+			// eval $code
+			db.Close()
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			db2.Exec(" BEGIN; SELECT * FROM t1 LIMIT 10; ")
-			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "read_nbackfill")
-		}
-		{ // do_test "1." + tn + ".12.3"
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+			r = db.Query(" PRAGMA auto_vacuum = 0 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 0 ")
+			}
+			{ // "1." + tn + ".0"
+				r = db.Query(" PRAGMA journal_mode = WAL ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
+					return
 				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+				got := flatten(r)
+				want := "wal"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "read_nbackfill")
-		}
-		{ // do_test "1." + tn + ".12.4"
-			_ = _busy_callback_count // TCL namespace variable (query)
-		}
-		db2.Close()
-		{ // do_test "1." + tn + ".12.5"
+			{ // "1." + tn + ".1"
+				_res = db.Exec(" CREATE TABLE t1(a, b) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
+				}
+			}
+			var shmfd = "open \"test.db-shm\" rb"
+			_ = shmfd // suppress unused warning
+			t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.2 1000")
 			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "read_nbackfill")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.3 1000")
+			{ // do_test "1." + tn + ".4"
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.5 100")
+			{ // do_test "1." + tn + ".6"
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 500")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_autocommit_threshold_test 1.$tn.7 500")
+			{ // do_test "1." + tn + ".7"
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 0")
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				// expr [file size test.db-wal] > (5 * 1024 * 1024) → "[file size test.db-wal] > (5 * 1024 * 1024)"
+			}
+			{ // do_test "1." + tn + ".8"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db truncate")
+				// file size test.db-wal
+			}
+			{ // do_test "1." + tn + ".9"
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db -4")
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				// expr [file size test.db-wal] > (5 * 1024 * 1024) → "[file size test.db-wal] > (5 * 1024 * 1024)"
+			}
+			var _wal_hook_callback = "0" // TCL namespace variable
+			_ = _wal_hook_callback // suppress unused warning
+			// proc definition (not transpiled)
+			{ // do_test "1." + tn + ".10.1"
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				_ = _wal_hook_callback // TCL namespace variable (query)
+			}
+			{ // do_test "1." + tn + ".10.2"
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				_ = _wal_hook_callback // TCL namespace variable (query)
+			}
+			{ // do_test "1." + tn + ".11.1"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db truncate")
+				// file size test.db-wal
+			}
+			{ // do_test "1." + tn + ".11.2"
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				// expr [file size test.db-wal] < (1 * 1024 * 1024) → "[file size test.db-wal] < (1 * 1024 * 1024)"
+			}
+			{ // do_test "1." + tn + ".11.3"
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				// expr [file size test.db-wal] < (1 * 1024 * 1024) → "[file size test.db-wal] < (1 * 1024 * 1024)"
+			}
+			var _busy_callback_count = "0" // TCL namespace variable
+			_ = _busy_callback_count // suppress unused warning
+			// proc definition (not transpiled)
+			{ // do_test "1." + tn + ".12.1"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db truncate")
+				t.Skipf("TODO: %s not implemented in frigolite", "autocheckpoint db 100")
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+			}
+			{ // do_test "1." + tn + ".12.2"
+				db2, err := frigolite.Open("test.db")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				db2.Exec(" BEGIN; SELECT * FROM t1 LIMIT 10; ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				t.Skipf("TODO: %s not implemented in frigolite", "read_nbackfill")
+			}
+			{ // do_test "1." + tn + ".12.3"
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
+					_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "read_nbackfill")
+			}
+			{ // do_test "1." + tn + ".12.4"
+				_ = _busy_callback_count // TCL namespace variable (query)
+			}
+			db2.Close()
+			{ // do_test "1." + tn + ".12.5"
+				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(randomblob(100), randomblob(100)) ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "read_nbackfill")
+			}
+			// close $shmfd
 		}
-		// close $shmfd
-	}
-	}
 }

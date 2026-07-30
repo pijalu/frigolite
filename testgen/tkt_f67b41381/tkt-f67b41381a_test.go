@@ -32,31 +32,31 @@ func Test_tkt_f67b41381a(t *testing.T) {
 		}
 	}
 	// foreach {tn tbls xfer} "\n  1 { CREATE TABLE t1(a, b); CREATE TABLE t2(a, b)             }             1\n  2 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b) }             0\n  3 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b DEFAULT 'x') } 1\n  4 { CREATE TABLE t1(a, b DEFAULT NULL); CREATE TABLE t2(a, b) }            0\n  5 { CREATE TABLE t1(a DEFAULT 2, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  6 { CREATE TABLE t1(a DEFAULT 1, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  7 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 1) }                            1\n  8 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 3) }                            0\n\n"
-	_items := []string{"\n  1 { CREATE TABLE t1(a, b); CREATE TABLE t2(a, b)             }             1\n  2 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b) }             0\n  3 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b DEFAULT 'x') } 1\n  4 { CREATE TABLE t1(a, b DEFAULT NULL); CREATE TABLE t2(a, b) }            0\n  5 { CREATE TABLE t1(a DEFAULT 2, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  6 { CREATE TABLE t1(a DEFAULT 1, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  7 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 1) }                            1\n  8 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 3) }                            0\n\n"}
+	_items := tclSplitList("\n  1 { CREATE TABLE t1(a, b); CREATE TABLE t2(a, b)             }             1\n  2 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b) }             0\n  3 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b DEFAULT 'x') } 1\n  4 { CREATE TABLE t1(a, b DEFAULT NULL); CREATE TABLE t2(a, b) }            0\n  5 { CREATE TABLE t1(a DEFAULT 2, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  6 { CREATE TABLE t1(a DEFAULT 1, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  7 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 1) }                            1\n  8 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 3) }                            0\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	tbls := _items[_idx+1]
-	xfer := _items[_idx+2]
-		_res = db.Exec(" DROP TABLE t1; DROP TABLE t2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1; DROP TABLE t2 ")
-		}
-		_res = db.Exec(tbls)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, tbls)
-		}
-		var res = "1"
-		_ = res // suppress unused warning
-		_res = db.Exec(" EXPLAIN INSERT INTO t1 SELECT * FROM t2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " EXPLAIN INSERT INTO t1 SELECT * FROM t2 ")
-		}
-		{ // do_test "2." + tn
-			_res = db.Exec("list set res")
+		tn := _items[_idx+0]
+		tbls := _items[_idx+1]
+		xfer := _items[_idx+2]
+		_ = _idx
+			_res = db.Exec(" DROP TABLE t1; DROP TABLE t2 ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list set res")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1; DROP TABLE t2 ")
+			}
+			_res = db.Exec(tbls)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, tbls)
+			}
+			var res = "1"
+			_ = res // suppress unused warning
+			_res = db.Exec(" EXPLAIN INSERT INTO t1 SELECT * FROM t2 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " EXPLAIN INSERT INTO t1 SELECT * FROM t2 ")
+			}
+			{ // do_test "2." + tn
+				_res = db.Exec("list set res")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list set res")
+				}
 			}
 		}
-	}
-	}
 }

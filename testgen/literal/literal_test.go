@@ -49,18 +49,18 @@ func Test_literal(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "test_literal 3.7 9_223_372_036_854_775_808 real 9.22337203685478e+18")
 	t.Skipf("TODO: %s not implemented in frigolite", "test_literal 3.8 -9_223_372_036_854_775_808 integer -9223372036854775808")
 	// foreach {tn lit unrec} "\n  0    123a456       123a456\n  1    1_            1_\n  2    1_.4          1_.4\n  3    1e_4          1e_4\n  4    1_e4          1_e4\n  5    1.4_e4        1.4_e4\n  6    1.4e+_4       1.4e\n  7    1.4e-_4       1.4e\n  8    1.4e4_        1.4e4_\n  9    1.4_e4        1.4_e4\n  10   1.4e_4        1.4e_4\n  11   12__34        12__34\n  12   1234_         1234_\n  13   12._34        12._34\n  14   12_.34        12_.34\n  15   12.34_        12.34_\n  16   1.0e1_______2 1.0e1_______2 \n"
-	_items := []string{"\n  0    123a456       123a456\n  1    1_            1_\n  2    1_.4          1_.4\n  3    1e_4          1e_4\n  4    1_e4          1_e4\n  5    1.4_e4        1.4_e4\n  6    1.4e+_4       1.4e\n  7    1.4e-_4       1.4e\n  8    1.4e4_        1.4e4_\n  9    1.4_e4        1.4_e4\n  10   1.4e_4        1.4e_4\n  11   12__34        12__34\n  12   1234_         1234_\n  13   12._34        12._34\n  14   12_.34        12_.34\n  15   12.34_        12.34_\n  16   1.0e1_______2 1.0e1_______2 \n"}
+	_items := tclSplitList("\n  0    123a456       123a456\n  1    1_            1_\n  2    1_.4          1_.4\n  3    1e_4          1e_4\n  4    1_e4          1_e4\n  5    1.4_e4        1.4_e4\n  6    1.4e+_4       1.4e\n  7    1.4e-_4       1.4e\n  8    1.4e4_        1.4e4_\n  9    1.4_e4        1.4_e4\n  10   1.4e_4        1.4e_4\n  11   12__34        12__34\n  12   1234_         1234_\n  13   12._34        12._34\n  14   12_.34        12_.34\n  15   12.34_        12.34_\n  16   1.0e1_______2 1.0e1_______2 \n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	lit := _items[_idx+1]
-	unrec := _items[_idx+2]
-		t.Skipf("TODO: %s not implemented in frigolite", "test_literal_error 4.$tn $lit $unrec")
-	}
-	}
-	{ // "5.1"
-		_res = db.Exec("\n  SELECT 1 ORDER BY 2_3;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term out of range - should be between 1 and 1") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 1", _res.Error, "\n  SELECT 1 ORDER BY 2_3;\n")
+		tn := _items[_idx+0]
+		lit := _items[_idx+1]
+		unrec := _items[_idx+2]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "test_literal_error 4.$tn $lit $unrec")
 		}
-	}
+		{ // "5.1"
+			_res = db.Exec("\n  SELECT 1 ORDER BY 2_3;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term out of range - should be between 1 and 1") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1st ORDER BY term out of range - should be between 1 and 1", _res.Error, "\n  SELECT 1 ORDER BY 2_3;\n")
+			}
+		}
 }

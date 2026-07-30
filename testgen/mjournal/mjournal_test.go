@@ -125,7 +125,7 @@ func Test_mjournal(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $mjname c* bytes")
 		var cksum = "0"
 		_ = cksum // suppress unused warning
-		for _, b := range []string{bytes} {
+		for _, b := range tclSplitList(bytes) {
 			// incr cksum b
 			{
 				_n, _err := strconv.Atoi(cksum)
@@ -184,62 +184,62 @@ func Test_mjournal(t *testing.T) {
 	var tests = "1 notamasterjournal   0\n  2 master.9FF          " + c + "\n  3 master-mj1234569AA  1\n  4 master-mj123456_AA  0\n  5 abc                 0\n  6 masterr9FF          0\n  7 master-fj123456_AA  0\n  8 -mj1234569AA        1\n  9 1-mj1234569AA       1\n  10 .9AB               0\n  11 master.9X2         0\n  12 master.92X         0\n  13 master-mj12G4569AA 0"
 	_ = tests // suppress unused warning
 	// foreach {tn mjname bDel} tests
-	_items := []string{tests}
+	_items := tclSplitList(tests)
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	mjname := _items[_idx+1]
-	bDel := _items[_idx+2]
-		var content = "0"
-		_ = content // suppress unused warning
-		for func() bool { content_n, _content_e := strconv.Atoi(content); if _content_e != nil { return false }; return content_n < 2 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-			_res = db.Exec("\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-			t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
-			t.Skipf("TODO: %s not implemented in frigolite", "append_super_journal test.db-journal $mjname")
-			var fd = "open $mjname w"
-			_ = fd // suppress unused warning
-			if tclBool(content) {
-				var jname = "file normalize test.db-journal"
-				_ = jname // suppress unused warning
-				if _tcl_platform(platform) == "windows" {
-					var jname = "[list / \\\\] $jname"
+		tn := _items[_idx+0]
+		mjname := _items[_idx+1]
+		bDel := _items[_idx+2]
+		_ = _idx
+			var content = "0"
+			_ = content // suppress unused warning
+			for func() bool { content_n, _content_e := strconv.Atoi(content); if _content_e != nil { return false }; return content_n < 2 }() {
+				t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+				_res = db.Exec("\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
+				t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
+				t.Skipf("TODO: %s not implemented in frigolite", "append_super_journal test.db-journal $mjname")
+				var fd = "open $mjname w"
+				_ = fd // suppress unused warning
+				if tclBool(content) {
+					var jname = "file normalize test.db-journal"
 					_ = jname // suppress unused warning
+					if _tcl_platform(platform) == "windows" {
+						var jname = "[list / \\\\] $jname"
+						_ = jname // suppress unused warning
+					}
+					t.Log("-nonewline")
+					t.Log("-nonewline")
+					mjexists := "!$bDel"
+				} else {
+					t.Log("-nonewline")
+					var mjexists = "1"
+					_ = mjexists // suppress unused warning
 				}
-				t.Log("-nonewline")
-				t.Log("-nonewline")
-				mjexists := "!$bDel"
-			} else {
-				t.Log("-nonewline")
-				var mjexists = "1"
-				_ = mjexists // suppress unused warning
-			}
-			// close $fd
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-			{ // do_test "4." + tn + "." + content + ".1"
-				r = db.Query(" SELECT * FROM t1 ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				// close $fd
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				{ // do_test "4." + tn + "." + content + ".1"
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+					// file exists mjname
 				}
-				// file exists mjname
-			}
-			{ // do_test "4." + tn + "." + content + ".2"
-				// file exists "test.db-journal"
-			}
-			os.Remove(mjname)
-			// incr content 1
-			{
-				_n, _err := strconv.Atoi(content)
-				if _err == nil {
-					content = strconv.Itoa(_n + 1)
+				{ // do_test "4." + tn + "." + content + ".2"
+					// file exists "test.db-journal"
+				}
+				os.Remove(mjname)
+				// incr content 1
+				{
+					_n, _err := strconv.Atoi(content)
+					if _err == nil {
+						content = strconv.Itoa(_n + 1)
+					}
 				}
 			}
 		}
-	}
-	}
 }

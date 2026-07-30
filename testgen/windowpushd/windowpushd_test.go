@@ -71,7 +71,7 @@ func Test_windowpushd(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES('A', 'C', 1,  0.1);\n  INSERT INTO t1 VALUES('A', 'D', 2,  0.2);\n  INSERT INTO t1 VALUES('A', 'E', 3,  0.3);\n  INSERT INTO t1 VALUES('A', 'C', 4,  0.4);\n  INSERT INTO t1 VALUES('B', 'D', 5,  0.5);\n  INSERT INTO t1 VALUES('B', 'E', 6,  0.6);\n  INSERT INTO t1 VALUES('B', 'C', 7,  0.7);\n  INSERT INTO t1 VALUES('B', 'D', 8,  0.8);\n  INSERT INTO t1 VALUES('C', 'E', 9,  0.9);\n  INSERT INTO t1 VALUES('C', 'C', 10, 1.0);\n  INSERT INTO t1 VALUES('C', 'D', 11, 1.1);\n  INSERT INTO t1 VALUES('C', 'E', 12, 1.2);\n\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n\n  CREATE VIEW v1 AS SELECT a, c, max(c) OVER (PARTITION BY a) FROM t1;\n\n  CREATE VIEW v2 AS SELECT a, c, \n      max(c) OVER (PARTITION BY a),\n      row_number() OVER ()\n  FROM t1;\n\n  CREATE VIEW v3 AS SELECT b, d, \n      max(d) OVER (PARTITION BY b),\n      row_number() OVER (PARTITION BY b)\n  FROM t1;\n\n  CREATE TABLE t2(x, y, z);\n  INSERT INTO t2 VALUES('W', 3, 1);\n  INSERT INTO t2 VALUES('W', 2, 2);\n  INSERT INTO t2 VALUES('X', 1, 4);\n  INSERT INTO t2 VALUES('X', 5, 7);\n  INSERT INTO t2 VALUES('Y', 1, 9);\n  INSERT INTO t2 VALUES('Y', 4, 2);\n  INSERT INTO t2 VALUES('Z', 3, 3);\n  INSERT INTO t2 VALUES('Z', 3, 4);\n")
 		}
 	}
-	for _, tn := range []string{"0 1"} {
+	for _, tn := range tclSplitList("0 1") {
 		if tclBool(tn) {
 			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all on")
 		} else {

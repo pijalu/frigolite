@@ -83,38 +83,38 @@ func Test_sort5(t *testing.T) {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp_store = 1 ")
 	}
 	// foreach {tn pgsz cachesz bTemp} "\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n"
-	_items := []string{"\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n"}
+	_items := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	pgsz := _items[_idx+1]
-	cachesz := _items[_idx+2]
-	bTemp := _items[_idx+3]
-		if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n > 2 }() {
-			var bTemp = "0"
-			_ = bTemp // suppress unused warning
-		}
-		{ // "2." + tn + ".0"
-			r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    VACUUM;\n    PRAGMA cache_size = " + cachesz + ";\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = " + pgsz + ";\n    VACUUM;\n    PRAGMA cache_size = " + cachesz + ";\n  ")
+		tn := _items[_idx+0]
+		pgsz := _items[_idx+1]
+		cachesz := _items[_idx+2]
+		bTemp := _items[_idx+3]
+		_ = _idx
+			if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n > 2 }() {
+				var bTemp = "0"
+				_ = bTemp // suppress unused warning
+			}
+			{ // "2." + tn + ".0"
+				r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    VACUUM;\n    PRAGMA cache_size = " + cachesz + ";\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = " + pgsz + ";\n    VACUUM;\n    PRAGMA cache_size = " + cachesz + ";\n  ")
+				}
+			}
+			if tclBool("db one {PRAGMA page_size}" + "!=" + pgsz) {
+				continue
+			}
+			{ // do_test "2." + tn + ".1"
+				var _iTemp = "0" // TCL namespace variable
+				_ = _iTemp // suppress unused warning
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				r = db.Query("\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
+				}
+				// expr [array names F]!="" → "[array names F]!=\"\""
 			}
 		}
-		if tclBool("db one {PRAGMA page_size}" + "!=" + pgsz) {
-			continue
-		}
-		{ // do_test "2." + tn + ".1"
-			var _iTemp = "0" // TCL namespace variable
-			_ = _iTemp // suppress unused warning
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-			}
-			r = db.Query("\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
-			}
-			// expr [array names F]!="" → "[array names F]!=\"\""
-		}
-	}
-	}
 }

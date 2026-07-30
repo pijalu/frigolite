@@ -45,7 +45,7 @@ func Test_trans2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
 		}
-		for _, rec := range []string{"scramble $data"} {
+		for _, rec := range tclSplitList("scramble $data") {
 			// foreach id,u1,z,u2 rec (no body)
 			_res = db.Exec("INSERT INTO t1 VALUES($id,$u1,zeroblob($z),$u2)")
 			if _res.Error != nil {
@@ -65,14 +65,14 @@ func Test_trans2(t *testing.T) {
 		n := "[llength $data]/10"
 		var data = "scramble $data"
 		_ = data // suppress unused warning
-		for _, rec := range []string{"lrange $data 0 $n"} {
+		for _, rec := range tclSplitList("lrange $data 0 $n") {
 			todel = tclListAppend(todel, "lindex $rec 0")
 		}
 		var data = "lrange $data [expr {$n+1}] end"
 		_ = data // suppress unused warning
 		var max1 = "lindex [lindex $data 0] 0"
 		_ = max1 // suppress unused warning
-		for _, rec := range []string{data} {
+		for _, rec := range tclSplitList(data) {
 			var id = "lindex $rec 0"
 			_ = id // suppress unused warning
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; max1_n, _max1_e := strconv.Atoi(max1); if _max1_e != nil { return false }; return id_n > max1_n }() {
@@ -96,7 +96,7 @@ func Test_trans2(t *testing.T) {
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		var newdata = ""
 		_ = newdata // suppress unused warning
-		for _, id := range []string{todel} {
+		for _, id := range tclSplitList(todel) {
 			var rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
@@ -131,7 +131,7 @@ func Test_trans2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			for _, rec := range []string{"scramble $newdata"} {
+			for _, rec := range tclSplitList("scramble $newdata") {
 				// foreach id,u1,z,u2 rec (no body)
 				var s = "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');"
 				_ = s // suppress unused warning

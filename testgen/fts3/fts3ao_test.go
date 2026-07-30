@@ -251,39 +251,39 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n"
-	_items := []string{"\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n"}
+	_items := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "6." + tn + ".1"
-			_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
-			}
-		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		{ // "6." + tn + ".2"
-			r = db.Query(" SELECT * FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-			}
-		}
-		{ // do_test "6." + tn + ".3"
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			db2.Exec(" DROP TABLE t1 ")
-			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			db2.Close()
-			var stmt = "sqlite3_prepare db { SELECT * FROM ft } -1 dummy"
-			_ = stmt // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+			{ // "6." + tn + ".1"
+				_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
+				}
+			}
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			{ // "6." + tn + ".2"
+				r = db.Query(" SELECT * FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				}
+			}
+			{ // do_test "6." + tn + ".3"
+				db2, err := frigolite.Open("test.db")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				db2.Exec(" DROP TABLE t1 ")
+				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+				db2.Close()
+				var stmt = "sqlite3_prepare db { SELECT * FROM ft } -1 dummy"
+				_ = stmt // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+			}
 		}
-	}
-	}
 }

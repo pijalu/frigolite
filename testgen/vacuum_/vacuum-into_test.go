@@ -195,21 +195,21 @@ func Test_vacuum_into(t *testing.T) {
 		}
 	}
 	// foreach {tn pragma res} "\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n"
-	_items := []string{"\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n"}
+	_items := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	pragma := _items[_idx+1]
-	res := _items[_idx+2]
-		os.Remove("test.db2")
-		{ // "vacuum-into-" + tn + ".1"
-			_res = db.Exec("\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")
+		tn := _items[_idx+0]
+		pragma := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			os.Remove("test.db2")
+			{ // "vacuum-into-" + tn + ".1"
+				_res = db.Exec("\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")
+				}
+			}
+			{ // do_test "vacuum-into-" + tn + ".2"
 			}
 		}
-		{ // do_test "vacuum-into-" + tn + ".2"
-		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
 }

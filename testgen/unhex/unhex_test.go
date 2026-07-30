@@ -21,189 +21,189 @@ func Test_unhex(t *testing.T) {
 	var testprefix = "unhex"
 	_ = testprefix // suppress unused warning
 	// foreach {tn hex} "\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n"
-	_items := []string{"\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n"}
+	_items := tclSplitList("\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	hex := _items[_idx+1]
-		{ // "1." + tn + ".1"
-			r = db.Query("\n    SELECT hex( unhex( $hex ) );\n  ")
+		tn := _items[_idx+0]
+		hex := _items[_idx+1]
+		_ = _idx
+			{ // "1." + tn + ".1"
+				r = db.Query("\n    SELECT hex( unhex( $hex ) );\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT hex( unhex( $hex ) );\n  ")
+					return
+				}
+				got := flatten(r)
+				want := hex
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "1." + tn + ".2"
+				r = db.Query("\n    SELECT hex( unhex( lower( $hex ) ) );\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT hex( unhex( lower( $hex ) ) );\n  ")
+					return
+				}
+				got := flatten(r)
+				want := hex
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+		{ // "2.0"
+			r = db.Query("\n  SELECT typeof( unhex('') ), length( unhex('') );\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT hex( unhex( $hex ) );\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('') ), length( unhex('') );\n")
 				return
 			}
 			got := flatten(r)
-			want := hex
+			want := "blob 0"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "1." + tn + ".2"
-			r = db.Query("\n    SELECT hex( unhex( lower( $hex ) ) );\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT hex( unhex( lower( $hex ) ) );\n  ")
-				return
+		// foreach {tn hex} "\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n"
+		_items := tclSplitList("\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			hex := _items[_idx+1]
+			_ = _idx
+				{ // "2." + tn
+					r = db.Query("\n    SELECT unhex( $hex ) IS NULL;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT unhex( $hex ) IS NULL;\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
-			got := flatten(r)
-			want := hex
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "3.0"
+				_res = db.Exec("\n  SELECT unhex();\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function unhex()") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", _res.Error, "\n  SELECT unhex();\n")
+				}
 			}
-		}
-	}
-	}
-	{ // "2.0"
-		r = db.Query("\n  SELECT typeof( unhex('') ), length( unhex('') );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('') ), length( unhex('') );\n")
-			return
-		}
-		got := flatten(r)
-		want := "blob 0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	// foreach {tn hex} "\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n"
-	_items := []string{"\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	hex := _items[_idx+1]
-		{ // "2." + tn
-			r = db.Query("\n    SELECT unhex( $hex ) IS NULL;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT unhex( $hex ) IS NULL;\n  ")
-				return
+			{ // "3.1"
+				_res = db.Exec("\n  SELECT unhex('ABCD', '1234', '');\n")
+				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function unhex()") {
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", _res.Error, "\n  SELECT unhex('ABCD', '1234', '');\n")
+				}
 			}
-			got := flatten(r)
-			want := "1"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			if tclBool("array exists x") {
 			}
-		}
-	}
-	}
-	{ // "3.0"
-		_res = db.Exec("\n  SELECT unhex();\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function unhex()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", _res.Error, "\n  SELECT unhex();\n")
-		}
-	}
-	{ // "3.1"
-		_res = db.Exec("\n  SELECT unhex('ABCD', '1234', '');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "wrong number of arguments to function unhex()") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "wrong number of arguments to function unhex()", _res.Error, "\n  SELECT unhex('ABCD', '1234', '');\n")
-		}
-	}
-	if tclBool("array exists x") {
-	}
-	// foreach {tn hex} "\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n"
-	_items := []string{"\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	hex := _items[_idx+1]
-		var out = ""
-		_ = out // suppress unused warning
-		for _, x := range []string{"split $hex \"\""} {
-			if tclBool("xdigit $x") {
-				out += x
-			}
-		}
-		{ // "5." + tn + ".1"
-			r = db.Query("\n    SELECT hex( unhex($hex, ' -') );\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT hex( unhex($hex, ' -') );\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list $out"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "6.0"
-		r = db.Query("\n  SELECT typeof( unhex(' ', ' -') ), length( unhex('-', ' -') );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex(' ', ' -') ), length( unhex('-', ' -') );\n")
-			return
-		}
-		got := flatten(r)
-		want := "blob 0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  SELECT hex( unhex('\\u0E01ABCD\\u0E02', '\\uE01\\uE02') )\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('\\u0E01ABCD\\u0E02', '\\uE01\\uE02') )\n")
-			return
-		}
-		got := flatten(r)
-		want := "ABCD"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2"
-		r = db.Query("\n  SELECT typeof( unhex('\\u0E01ABCD\\u0E02', '\\uE03\\uE02') )\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('\\u0E01ABCD\\u0E02', '\\uE03\\uE02') )\n")
-			return
-		}
-		got := flatten(r)
-		want := "null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.3"
-		r = db.Query("\n  SELECT hex( unhex('\\u0E01AB CD\\uE02\\uE01', '\\uE01 \\uE02') )\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('\\u0E01AB CD\\uE02\\uE01', '\\uE01 \\uE02') )\n")
-			return
-		}
-		got := flatten(r)
-		want := "ABCD"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.4.1"
-		r = db.Query(" SELECT typeof(unhex(NULL)) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(unhex(NULL)) ")
-			return
-		}
-		got := flatten(r)
-		want := "null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.4.2"
-		r = db.Query(" SELECT typeof(unhex(NULL, ' ')) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(unhex(NULL, ' ')) ")
-			return
-		}
-		got := flatten(r)
-		want := "null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.4.3"
-		r = db.Query(" SELECT typeof(unhex('1234', NULL)) ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(unhex('1234', NULL)) ")
-			return
-		}
-		got := flatten(r)
-		want := "null"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			// foreach {tn hex} "\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n"
+			_items := tclSplitList("\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				hex := _items[_idx+1]
+				_ = _idx
+					var out = ""
+					_ = out // suppress unused warning
+					for _, x := range tclSplitList("split $hex \"\"") {
+						if tclBool("xdigit $x") {
+							out += x
+						}
+					}
+					{ // "5." + tn + ".1"
+						r = db.Query("\n    SELECT hex( unhex($hex, ' -') );\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT hex( unhex($hex, ' -') );\n  ")
+							return
+						}
+						got := flatten(r)
+						want := "list $out"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+				{ // "6.0"
+					r = db.Query("\n  SELECT typeof( unhex(' ', ' -') ), length( unhex('-', ' -') );\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex(' ', ' -') ), length( unhex('-', ' -') );\n")
+						return
+					}
+					got := flatten(r)
+					want := "blob 0"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.1"
+					r = db.Query("\n  SELECT hex( unhex('\\u0E01ABCD\\u0E02', '\\uE01\\uE02') )\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('\\u0E01ABCD\\u0E02', '\\uE01\\uE02') )\n")
+						return
+					}
+					got := flatten(r)
+					want := "ABCD"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.2"
+					r = db.Query("\n  SELECT typeof( unhex('\\u0E01ABCD\\u0E02', '\\uE03\\uE02') )\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT typeof( unhex('\\u0E01ABCD\\u0E02', '\\uE03\\uE02') )\n")
+						return
+					}
+					got := flatten(r)
+					want := "null"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.3"
+					r = db.Query("\n  SELECT hex( unhex('\\u0E01AB CD\\uE02\\uE01', '\\uE01 \\uE02') )\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT hex( unhex('\\u0E01AB CD\\uE02\\uE01', '\\uE01 \\uE02') )\n")
+						return
+					}
+					got := flatten(r)
+					want := "ABCD"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.4.1"
+					r = db.Query(" SELECT typeof(unhex(NULL)) ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(unhex(NULL)) ")
+						return
+					}
+					got := flatten(r)
+					want := "null"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.4.2"
+					r = db.Query(" SELECT typeof(unhex(NULL, ' ')) ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(unhex(NULL, ' ')) ")
+						return
+					}
+					got := flatten(r)
+					want := "null"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "6.4.3"
+					r = db.Query(" SELECT typeof(unhex('1234', NULL)) ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT typeof(unhex('1234', NULL)) ")
+						return
+					}
+					got := flatten(r)
+					want := "null"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 }

@@ -249,125 +249,125 @@ func Test_exclusive(t *testing.T) {
 		var using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items := []string{"array get env SQLITE_FORCE_PROXY_LOCKING"}
+		_items := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		value := _items[_idx+1]
-			var using_proxy = value
-			_ = using_proxy // suppress unused warning
-		}
-		}
-		var extrafds = "0"
-		_ = extrafds // suppress unused warning
-		if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n != 0 }() {
-			var extrafds = "2"
+			name := _items[_idx+0]
+			value := _items[_idx+1]
+			_ = _idx
+				var using_proxy = value
+				_ = using_proxy // suppress unused warning
+			}
+			var extrafds = "0"
 			_ = extrafds // suppress unused warning
-		}
-		{ // do_test "exclusive-5.0"
-			_res = db.Exec("\n    CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;\n  ")
+			if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n != 0 }() {
+				var extrafds = "2"
+				_ = extrafds // suppress unused warning
 			}
-		}
-		{ // do_test "exclusive-5.1"
-			// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
-		}
-		{ // do_test "exclusive-5.2"
-			_res = db.Exec("\n    COMMIT;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+			{ // do_test "exclusive-5.0"
+				_res = db.Exec("\n    CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a UNIQUE, b UNIQUE, c UNIQUE);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc SELECT a+1, b+1, c+1 FROM abc;\n  ")
+				}
 			}
-			// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
-		}
-		{ // do_test "exclusive-5.3"
-			_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+			{ // do_test "exclusive-5.1"
+				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
 			}
-			// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
-		}
-		{ // do_test "exclusive-5.4"
-			_res = db.Exec("\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
+			{ // do_test "exclusive-5.2"
+				_res = db.Exec("\n    COMMIT;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
 			}
-			// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
-		}
-		{ // do_test "exclusive-5.5"
-			_res = db.Exec("\n    COMMIT;\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+			{ // do_test "exclusive-5.3"
+				_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n    INSERT INTO abc VALUES(5, 6, 7);\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
 			}
-			// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
-		}
-		{ // do_test "exclusive-5.6"
-			r = db.Query("\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
+			{ // do_test "exclusive-5.4"
+				_res = db.Exec("\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc SELECT a+10, b+10, c+10 FROM abc;\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
 			}
-		}
-		{ // do_test "exclusive-5.7"
-			// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
-		}
-		{ // "exclusive-6.1"
-			_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")
+			{ // do_test "exclusive-5.5"
+				_res = db.Exec("\n    COMMIT;\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
+				}
+				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
 			}
-		}
-		{ // do_test "exclusive-6.2"
-			os.Remove("test2.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
-			db, err := frigolite.Open("test2.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-		}
-		{ // "exclusive-6.3"
-			r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;\n")
-				return
+			{ // do_test "exclusive-5.6"
+				r = db.Query("\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode = normal;\n    SELECT * FROM abc;\n  ")
+				}
 			}
-			got := flatten(r)
-			want := "exclusive Eden 1955"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "exclusive-5.7"
+				// expr $sqlite_open_file_count-$extrafds → "$sqlite_open_file_count-$extrafds"
 			}
-		}
-		{ // do_test "exclusive-6.4"
-			os.Remove("test.db")
-			var fd = "open test.db-journal w"
-			_ = fd // suppress unused warning
-			t.Log(fd)
-			// close $fd
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
-			if err != nil { t.Fatal(err) }
-		}
-		{ // "exclusive-6.5"
-			r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;\n")
-				return
+			{ // "exclusive-6.1"
+				_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('Eden', 1955);\n  BEGIN;\n    INSERT INTO t4 VALUES('Macmillan', 1957);\n    INSERT INTO t4 VALUES('Douglas-Home', 1963);\n    INSERT INTO t4 VALUES('Wilson', 1964);\n")
+				}
 			}
-			got := flatten(r)
-			want := "exclusive"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "exclusive-6.2"
+				os.Remove("test2.db")
+				t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
+				t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
+				db, err := frigolite.Open("test2.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
 			}
-		}
-		if tclBool("permutation" + "!=\"journaltest\"") {
-			{ // do_test "exclusive-7.1"
+			{ // "exclusive-6.3"
+				r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t4;\n")
+					return
+				}
+				got := flatten(r)
+				want := "exclusive Eden 1955"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "exclusive-6.4"
 				os.Remove("test.db")
+				var fd = "open test.db-journal w"
+				_ = fd // suppress unused warning
+				t.Log(fd)
+				// close $fd
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
+			}
+			{ // "exclusive-6.5"
+				r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM sqlite_master;\n")
+					return
+				}
+				got := flatten(r)
+				want := "exclusive"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			if tclBool("permutation" + "!=\"journaltest\"") {
+				{ // do_test "exclusive-7.1"
+					os.Remove("test.db")
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec("\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
+					}
 				}
 			}
 		}
-	}
 }

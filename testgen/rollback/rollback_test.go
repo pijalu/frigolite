@@ -58,7 +58,7 @@ func Test_rollback(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $mj c* a")
 		var cksum = "0"
 		_ = cksum // suppress unused warning
-		for _, i := range []string{a} {
+		for _, i := range tclSplitList(a) {
 			// incr cksum i
 			{
 				_n, _err := strconv.Atoi(cksum)

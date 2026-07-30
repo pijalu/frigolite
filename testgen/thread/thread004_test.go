@@ -41,7 +41,7 @@ func Test_thread004(t *testing.T) {
 		_ = ThreadTwo // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) $thread_procs $ThreadOne")
 		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(2) $thread_procs $ThreadTwo")
-		for _, t := range []string{"1 2"} {
+		for _, t := range tclSplitList("1 2") {
 			if tclBool("!" + "info exists finished($t)") {
 			}
 		}

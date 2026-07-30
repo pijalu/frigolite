@@ -123,7 +123,7 @@ func Test_pagerfault(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-9.1 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n    BE...} -body {\n  execsql {\n    ROLLBACK TO abc;\n    COMMIT;\n    ...} -test {\n  faultsim_test_result {0 2}\n  faultsim_integrity...}")
-	for _, v := range []string{"a b"} {
+	for _, v := range tclSplitList("a b") {
 		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-10$v -prep {\n    sqlite3 db \"\"\n    db func a_string a_string;\n...} -body {\n    execsql { UPDATE xx SET a = a_string(300) }\n ...} -test {\n    faultsim_test_result {0 {}}\n    if {$::v == \"...}")
 	}
 	{ // do_test "pagerfault-9-pre1"
@@ -333,75 +333,75 @@ func Test_pagerfault(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	// foreach {tn tt} "\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"
-	_items := []string{"\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"}
+	_items := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	tt := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db func a_s...} -body {\n    catchsql ROLLBACK\n    catchsql ROLLBACK\n    c...} -test {\n    eval $::tt\n    if {\"ok\" != [db one {PRAGMA in...}")
-	}
-	}
-	{ // do_test "pagerfault-31-pre"
+		tn := _items[_idx+0]
+		tt := _items[_idx+1]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db func a_s...} -body {\n    catchsql ROLLBACK\n    catchsql ROLLBACK\n    c...} -test {\n    eval $::tt\n    if {\"ok\" != [db one {PRAGMA in...}")
+		}
+		{ // do_test "pagerfault-31-pre"
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-31 -faults oom* -body {\n  sqlite3 db {file:one?mode=memory&cache=shared}\n...} -test {\n  faultsim_test_result {0 1} {1 {}}\n  catch { db ...}")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
+		{ // do_test "pagerfault-32-pre"
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');\n  ")
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-32 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql { SELECT * FROM t1; }\n} -test {\n  faultsim_test_result {0 one}\n}")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-33a -prep {\n  sqlite3 db :memory:\n  execsql {\n    CREATE TABL...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-33b -prep {\n  sqlite3 db \"\"\n  execsql {\n    CREATE TABLE t1(a...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		{ // do_test "pagerfault-34-pre"
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-34 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    BEG...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		{ // do_test "pagerfault-35-pre"
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
+		t.Skipf("TODO: %s not implemented in frigolite", "tv sectorsize 8192")
+		t.Skipf("TODO: %s not implemented in frigolite", "tv devchar [list]")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-35 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { UPDATE t1 SET x=randomblob(200) }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "tv delete")
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-31 -faults oom* -body {\n  sqlite3 db {file:one?mode=memory&cache=shared}\n...} -test {\n  faultsim_test_result {0 1} {1 {}}\n  catch { db ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
-	{ // do_test "pagerfault-32-pre"
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');\n  ")
+		{ // do_test "pagerfault-36-pre"
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-32 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql { SELECT * FROM t1; }\n} -test {\n  faultsim_test_result {0 one}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-33a -prep {\n  sqlite3 db :memory:\n  execsql {\n    CREATE TABL...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-33b -prep {\n  sqlite3 db \"\"\n  execsql {\n    CREATE TABLE t1(a...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n}")
-	{ // do_test "pagerfault-34-pre"
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-34 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    BEG...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n}")
-	{ // do_test "pagerfault-35-pre"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tv sectorsize 8192")
-	t.Skipf("TODO: %s not implemented in frigolite", "tv devchar [list]")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-35 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { UPDATE t1 SET x=randomblob(200) }\n} -test {\n  faultsim_test_result {0 {}}\n}")
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tv delete")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	{ // do_test "pagerfault-36-pre"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-		_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
-		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-36 -prep {\n  faultsim_restore\n  sqlite3 db file:test.db?cach...} -body {\n  execsql ROLLBACK db\n} -test {\n  catch { db eval {UPDATE t1 SET x = randomblob(2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-36 -prep {\n  faultsim_restore\n  sqlite3 db file:test.db?cach...} -body {\n  execsql ROLLBACK db\n} -test {\n  catch { db eval {UPDATE t1 SET x = randomblob(2...}")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 }

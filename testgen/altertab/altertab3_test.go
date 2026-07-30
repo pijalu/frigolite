@@ -416,440 +416,440 @@ func Test_altertab3(t *testing.T) {
 		}
 	}
 	// foreach {tn v res} "\n  1 {\n    CREATE VIEW q AS SELECT 123\n    \n      WINDOW x AS (\n        RANGE BETWEEN UNBOUNDED PRECEDING AND INDEXED() OVER(\n          PARTITION BY ( WITH x AS(VALUES(col1)) VALUES(453) )\n        )\n      FOLLOWING\n    ) \n  } {1 {error in view q: no such column: col1}}\n\n  2 {\n    CREATE VIEW q AS SELECT\n    CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(RIGHT\n    AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)WINDOW x AS(RANGE BETWEEN UNBOUNDED\n    PRECEDING AND INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,NATURAL,sqlite_master(*)OVER a,(WITH a AS(VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT))VALUES(LEFT))IN\n    STORED,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT)*LEFT FOLLOWING)ORDER BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT LIMIT\n    LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS,LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS),INDEXED(*)OVER(PARTITION BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT),\n    LEFT,LEFT,INNER,CROSS,CROSS,CROSS,INNER,NATURAL ORDER BY\n    OUTER,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,INNER,\n    INNER,INNER NULLS LAST GROUPS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED\n    FOLLOWING); \n  } {1 {error in view q: no such column: LEFT}}\n\n  3 {\n    CREATE VIEW q AS SELECT 99 WINDOW x AS (RANGE BETWEEN UNBOUNDED PRECEDING\n    AND count(*)OVER(PARTITION BY (WITH a AS(VALUES(2),(x3))VALUES(0)))\n    FOLLOWING)ORDER BY x2,sum(1)OVER(PARTITION BY avg(5)OVER(PARTITION BY x1));\n  } {1 {error in view q: no such column: x3}}\n"
-	_items := []string{"\n  1 {\n    CREATE VIEW q AS SELECT 123\n    \n      WINDOW x AS (\n        RANGE BETWEEN UNBOUNDED PRECEDING AND INDEXED() OVER(\n          PARTITION BY ( WITH x AS(VALUES(col1)) VALUES(453) )\n        )\n      FOLLOWING\n    ) \n  } {1 {error in view q: no such column: col1}}\n\n  2 {\n    CREATE VIEW q AS SELECT\n    CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(RIGHT\n    AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)WINDOW x AS(RANGE BETWEEN UNBOUNDED\n    PRECEDING AND INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,NATURAL,sqlite_master(*)OVER a,(WITH a AS(VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT))VALUES(LEFT))IN\n    STORED,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT)*LEFT FOLLOWING)ORDER BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT LIMIT\n    LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS,LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS),INDEXED(*)OVER(PARTITION BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT),\n    LEFT,LEFT,INNER,CROSS,CROSS,CROSS,INNER,NATURAL ORDER BY\n    OUTER,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,INNER,\n    INNER,INNER NULLS LAST GROUPS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED\n    FOLLOWING); \n  } {1 {error in view q: no such column: LEFT}}\n\n  3 {\n    CREATE VIEW q AS SELECT 99 WINDOW x AS (RANGE BETWEEN UNBOUNDED PRECEDING\n    AND count(*)OVER(PARTITION BY (WITH a AS(VALUES(2),(x3))VALUES(0)))\n    FOLLOWING)ORDER BY x2,sum(1)OVER(PARTITION BY avg(5)OVER(PARTITION BY x1));\n  } {1 {error in view q: no such column: x3}}\n"}
+	_items := tclSplitList("\n  1 {\n    CREATE VIEW q AS SELECT 123\n    \n      WINDOW x AS (\n        RANGE BETWEEN UNBOUNDED PRECEDING AND INDEXED() OVER(\n          PARTITION BY ( WITH x AS(VALUES(col1)) VALUES(453) )\n        )\n      FOLLOWING\n    ) \n  } {1 {error in view q: no such column: col1}}\n\n  2 {\n    CREATE VIEW q AS SELECT\n    CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(RIGHT\n    AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)WINDOW x AS(RANGE BETWEEN UNBOUNDED\n    PRECEDING AND INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,NATURAL,sqlite_master(*)OVER a,(WITH a AS(VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT))VALUES(LEFT))IN\n    STORED,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT)*LEFT FOLLOWING)ORDER BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT LIMIT\n    LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS,LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS),INDEXED(*)OVER(PARTITION BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT),\n    LEFT,LEFT,INNER,CROSS,CROSS,CROSS,INNER,NATURAL ORDER BY\n    OUTER,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,INNER,\n    INNER,INNER NULLS LAST GROUPS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED\n    FOLLOWING); \n  } {1 {error in view q: no such column: LEFT}}\n\n  3 {\n    CREATE VIEW q AS SELECT 99 WINDOW x AS (RANGE BETWEEN UNBOUNDED PRECEDING\n    AND count(*)OVER(PARTITION BY (WITH a AS(VALUES(2),(x3))VALUES(0)))\n    FOLLOWING)ORDER BY x2,sum(1)OVER(PARTITION BY avg(5)OVER(PARTITION BY x1));\n  } {1 {error in view q: no such column: x3}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	v := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "19." + tn + ".1"
-			_res = db.Exec("\n    DROP VIEW IF EXISTS q;\n    " + v + "\n  ")
+		tn := _items[_idx+0]
+		v := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // "19." + tn + ".1"
+				_res = db.Exec("\n    DROP VIEW IF EXISTS q;\n    " + v + "\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW IF EXISTS q;\n    " + v + "\n  ")
+				}
+			}
+			{ // "19." + tn + ".2"
+				_res = db.Exec("\n    ALTER TABLE a RENAME TO g;\n  ")
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "\n    ALTER TABLE a RENAME TO g;\n  ")
+				}
+			}
+		}
+		db, err = frigolite.Open(":memory:")
+		if err != nil { t.Fatal(err) }
+		{ // "20.10"
+			_res = db.Exec("\n  CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index k: no tables specified") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index k: no tables specified", _res.Error, "\n  CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;\n")
+			}
+		}
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "21.1"
+			_res = db.Exec("\n  CREATE TABLE s(col);\n  CREATE VIEW v AS SELECT ( \n    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) \n  ) IN() ; \n  CREATE TABLE a(a);\n  ALTER TABLE a RENAME a TO b;\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW IF EXISTS q;\n    " + v + "\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s(col);\n  CREATE VIEW v AS SELECT ( \n    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) \n  ) IN() ; \n  CREATE TABLE a(a);\n  ALTER TABLE a RENAME a TO b;\n")
 			}
 		}
-		{ // "19." + tn + ".2"
-			_res = db.Exec("\n    ALTER TABLE a RENAME TO g;\n  ")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "22.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE VIEW v2(b) AS SELECT * FROM v2;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE VIEW v2(b) AS SELECT * FROM v2;\n")
+			}
+		}
+		{ // "22.2"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v2: view v2 is circularly defined") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v2: view v2 is circularly defined", _res.Error, "\n  ALTER TABLE t1 RENAME TO t4;\n")
+			}
+		}
+		{ // "22.3"
+			_res = db.Exec("\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) SELECT * FROM t3;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) SELECT * FROM t3;\n")
+			}
+		}
+		{ // "22.4"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v2: view v2 is circularly defined") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v2: view v2 is circularly defined", _res.Error, "\n  ALTER TABLE t1 RENAME TO t4;\n")
+			}
+		}
+		{ // "22.5"
+			_res = db.Exec("\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) VALUES(1);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) VALUES(1);\n")
+			}
+		}
+		{ // "22.6"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
 			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    ALTER TABLE a RENAME TO g;\n  ")
+				t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE t1 RENAME TO t4;\n")
 			}
 		}
-	}
-	}
-	db, err = frigolite.Open(":memory:")
-	if err != nil { t.Fatal(err) }
-	{ // "20.10"
-		_res = db.Exec("\n  CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in index k: no tables specified") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in index k: no tables specified", _res.Error, "\n  CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "23.1"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=((SELECT 1 FROM t1 JOIN t2 ON b=x),1);\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=((SELECT 1 FROM t1 JOIN t2 ON b=x),1);\n  END;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "21.1"
-		_res = db.Exec("\n  CREATE TABLE s(col);\n  CREATE VIEW v AS SELECT ( \n    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) \n  ) IN() ; \n  CREATE TABLE a(a);\n  ALTER TABLE a RENAME a TO b;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE s(col);\n  CREATE VIEW v AS SELECT ( \n    WITH x(a) AS(SELECT * FROM s) VALUES(RIGHT) \n  ) IN() ; \n  CREATE TABLE a(a);\n  ALTER TABLE a RENAME a TO b;\n")
+		{ // "23.2"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t1x;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger r1: no such table: main.t2") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger r1: no such table: main.t2", _res.Error, "\n  ALTER TABLE t1 RENAME TO t1x;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "22.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE VIEW v2(b) AS SELECT * FROM v2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  CREATE VIEW v2(b) AS SELECT * FROM v2;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "23.1"
+			_res = db.Exec("\n  CREATE TABLE v0 (a);\n  CREATE VIEW v2 (v3) AS \n    WITH x1 AS (SELECT * FROM v2) \n    SELECT v3 AS x, v3 AS y FROM v2; \n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0 (a);\n  CREATE VIEW v2 (v3) AS \n    WITH x1 AS (SELECT * FROM v2) \n    SELECT v3 AS x, v3 AS y FROM v2; \n")
+			}
 		}
-	}
-	{ // "22.2"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v2: view v2 is circularly defined") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v2: view v2 is circularly defined", _res.Error, "\n  ALTER TABLE t1 RENAME TO t4;\n")
+		{ // "23.2"
+			_res = db.Exec("\n  SELECT * FROM v2\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view v2 is circularly defined") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v2 is circularly defined", _res.Error, "\n  SELECT * FROM v2\n")
+			}
 		}
-	}
-	{ // "22.3"
-		_res = db.Exec("\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) SELECT * FROM t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) SELECT * FROM t3;\n")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "23.3"
+			_res = db.Exec("\n  ALTER TABLE v0 RENAME TO t3 ;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v2: view v2 is circularly defined") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v2: view v2 is circularly defined", _res.Error, "\n  ALTER TABLE v0 RENAME TO t3 ;\n")
+			}
 		}
-	}
-	{ // "22.4"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v2: view v2 is circularly defined") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v2: view v2 is circularly defined", _res.Error, "\n  ALTER TABLE t1 RENAME TO t4;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "24.1"
+			_res = db.Exec("\n  CREATE TABLE v0 (v1); \n  CREATE TABLE v2 (v3 INTEGER UNIQUE ON CONFLICT ABORT); \n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( \n      ( SELECT v1 AS PROMO_REVENUE FROM v2 JOIN v0 USING ( VALUE ) ) AND 0 ) \n  BEGIN \n    DELETE FROM v2; \n  END; \n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0 (v1); \n  CREATE TABLE v2 (v3 INTEGER UNIQUE ON CONFLICT ABORT); \n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( \n      ( SELECT v1 AS PROMO_REVENUE FROM v2 JOIN v0 USING ( VALUE ) ) AND 0 ) \n  BEGIN \n    DELETE FROM v2; \n  END; \n")
+			}
 		}
-	}
-	{ // "22.5"
-		_res = db.Exec("\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) VALUES(1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP VIEW v2;\n  CREATE VIEW v2(b) AS WITH t3 AS (SELECT b FROM v2) VALUES(1);\n")
+		{ // "24.2"
+			_res = db.Exec("\n  ALTER TABLE v0 RENAME TO x ;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger x: cannot join using column VALUE - column not present in both tables") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger x: cannot join using column VALUE - column not present in both tables", _res.Error, "\n  ALTER TABLE v0 RENAME TO x ;\n")
+			}
 		}
-	}
-	{ // "22.6"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t4;\n")
-		if _res.Error == nil {
-			t.Errorf("expected error, got none\n  sql: %s", "\n  ALTER TABLE t1 RENAME TO t4;\n")
+		{ // "24.3"
+			_res = db.Exec("\n  DROP TRIGGER x;\n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM v0)\n  ) BEGIN\n    DELETE FROM v2;\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER x;\n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM v0)\n  ) BEGIN\n    DELETE FROM v2;\n  END;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "23.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=((SELECT 1 FROM t1 JOIN t2 ON b=x),1);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=((SELECT 1 FROM t1 JOIN t2 ON b=x),1);\n  END;\n")
+		{ // "24.4"
+			r = db.Query("\n  ALTER TABLE v0 RENAME TO xyz;\n  SELECT sql FROM sqlite_master WHERE type='trigger'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE v0 RENAME TO xyz;\n  SELECT sql FROM sqlite_master WHERE type='trigger'\n")
+				return
+			}
+			got := flatten(r)
+			want := "{CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM \"xyz\")\n  ) BEGIN\n    DELETE FROM v2;\n  END}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "23.2"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t1x;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger r1: no such table: main.t2") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger r1: no such table: main.t2", _res.Error, "\n  ALTER TABLE t1 RENAME TO t1x;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "25.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  CREATE TRIGGER ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=t2.a FROM t2 WHERE t1.a=t2.a; \n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  CREATE TRIGGER ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=t2.a FROM t2 WHERE t1.a=t2.a; \n  END;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "23.1"
-		_res = db.Exec("\n  CREATE TABLE v0 (a);\n  CREATE VIEW v2 (v3) AS \n    WITH x1 AS (SELECT * FROM v2) \n    SELECT v3 AS x, v3 AS y FROM v2; \n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0 (a);\n  CREATE VIEW v2 (v3) AS \n    WITH x1 AS (SELECT * FROM v2) \n    SELECT v3 AS x, v3 AS y FROM v2; \n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "26.1"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n\n  CREATE TABLE t3(y);\n  CREATE TABLE t4(z);\n\n  CREATE TRIGGER tr1 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=z FROM (SELECT z FROM t4);\n  END;\n\n  CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT x AS abc FROM t1);\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n\n  CREATE TABLE t3(y);\n  CREATE TABLE t4(z);\n\n  CREATE TRIGGER tr1 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=z FROM (SELECT z FROM t4);\n  END;\n\n  CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT x AS abc FROM t1);\n  END;\n")
+			}
 		}
-	}
-	{ // "23.2"
-		_res = db.Exec("\n  SELECT * FROM v2\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "view v2 is circularly defined") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v2 is circularly defined", _res.Error, "\n  SELECT * FROM v2\n")
+		{ // "26.2"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+			}
 		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "23.3"
-		_res = db.Exec("\n  ALTER TABLE v0 RENAME TO t3 ;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in view v2: view v2 is circularly defined") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in view v2: view v2 is circularly defined", _res.Error, "\n  ALTER TABLE v0 RENAME TO t3 ;\n")
+		{ // "26.3"
+			_res = db.Exec("\n  ALTER TABLE t2 RENAME x TO xx;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME x TO xx;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "24.1"
-		_res = db.Exec("\n  CREATE TABLE v0 (v1); \n  CREATE TABLE v2 (v3 INTEGER UNIQUE ON CONFLICT ABORT); \n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( \n      ( SELECT v1 AS PROMO_REVENUE FROM v2 JOIN v0 USING ( VALUE ) ) AND 0 ) \n  BEGIN \n    DELETE FROM v2; \n  END; \n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE v0 (v1); \n  CREATE TABLE v2 (v3 INTEGER UNIQUE ON CONFLICT ABORT); \n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN ( \n      ( SELECT v1 AS PROMO_REVENUE FROM v2 JOIN v0 USING ( VALUE ) ) AND 0 ) \n  BEGIN \n    DELETE FROM v2; \n  END; \n")
+		{ // "26.4"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE name='tr2'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE name='tr2'\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n{CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT xx AS abc FROM \"t2\");\n  END}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "24.2"
-		_res = db.Exec("\n  ALTER TABLE v0 RENAME TO x ;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger x: cannot join using column VALUE - column not present in both tables") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger x: cannot join using column VALUE - column not present in both tables", _res.Error, "\n  ALTER TABLE v0 RENAME TO x ;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "26.5"
+			_res = db.Exec("\n  CREATE TABLE t1(xx);\n  CREATE TRIGGER xx INSERT ON t1 BEGIN\n     UPDATE t1 SET xx=xx FROM(SELECT xx);\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(xx);\n  CREATE TRIGGER xx INSERT ON t1 BEGIN\n     UPDATE t1 SET xx=xx FROM(SELECT xx);\n  END;\n")
+			}
 		}
-	}
-	{ // "24.3"
-		_res = db.Exec("\n  DROP TRIGGER x;\n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM v0)\n  ) BEGIN\n    DELETE FROM v2;\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER x;\n  CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM v0)\n  ) BEGIN\n    DELETE FROM v2;\n  END;\n")
+		{ // "26.6"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger xx: no such column: xx") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger xx: no such column: xx", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+			}
 		}
-	}
-	{ // "24.4"
-		r = db.Query("\n  ALTER TABLE v0 RENAME TO xyz;\n  SELECT sql FROM sqlite_master WHERE type='trigger'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE v0 RENAME TO xyz;\n  SELECT sql FROM sqlite_master WHERE type='trigger'\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "27.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()), c);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()), c);\n")
+			}
 		}
-		got := flatten(r)
-		want := "{CREATE TRIGGER x AFTER INSERT ON v2 WHEN (\n    0 AND (SELECT rowid FROM \"xyz\")\n  ) BEGIN\n    DELETE FROM v2;\n  END}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "27.2"
+			r = db.Query("\n  ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  {CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "25.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  CREATE TRIGGER ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=t2.a FROM t2 WHERE t1.a=t2.a; \n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, b, c);\n  CREATE TRIGGER ttt AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=t2.a FROM t2 WHERE t1.a=t2.a; \n  END;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "28.1"
+			_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n  ALTER TABLE t1 RENAME TO t2;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n  ALTER TABLE t1 RENAME TO t2;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "26.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n\n  CREATE TABLE t3(y);\n  CREATE TABLE t4(z);\n\n  CREATE TRIGGER tr1 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=z FROM (SELECT z FROM t4);\n  END;\n\n  CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT x AS abc FROM t1);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n\n  CREATE TABLE t3(y);\n  CREATE TABLE t4(z);\n\n  CREATE TRIGGER tr1 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=z FROM (SELECT z FROM t4);\n  END;\n\n  CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT x AS abc FROM t1);\n  END;\n")
+		{ // "28.2"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
+				return
+			}
+			got := flatten(r)
+			want := "{CREATE TRIGGER AFTER INSERT ON \"t2\" BEGIN\n    UPDATE \"t2\" SET (c,d)=(a,b);\n  END}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "26.2"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "29.1"
+			_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER Trigger1 DELETE ON t1 \n  BEGIN \n    SELECT t1.*, t1.x FROM t1 ORDER BY t1.x;\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER Trigger1 DELETE ON t1 \n  BEGIN \n    SELECT t1.*, t1.x FROM t1 ORDER BY t1.x;\n  END;\n")
+			}
 		}
-	}
-	{ // "26.3"
-		_res = db.Exec("\n  ALTER TABLE t2 RENAME x TO xx;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME x TO xx;\n")
+		{ // "29.2"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME x TO z;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME x TO z;\n")
+			}
 		}
-	}
-	{ // "26.4"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE name='tr2'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE name='tr2'\n")
-			return
+		{ // "29.3"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+			}
 		}
-		got := flatten(r)
-		want := "\n{CREATE TRIGGER tr2 INSERT ON t3 BEGIN\n    UPDATE t3 SET y=abc FROM (SELECT xx AS abc FROM \"t2\");\n  END}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "29.4"
+			_res = db.Exec("\n  CREATE TRIGGER tr2 AFTER DELETE ON t2 BEGIN\n    SELECT z, y FROM (\n      SELECT t2.* FROM t2\n    );\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr2 AFTER DELETE ON t2 BEGIN\n    SELECT z, y FROM (\n      SELECT t2.* FROM t2\n    );\n  END;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "26.5"
-		_res = db.Exec("\n  CREATE TABLE t1(xx);\n  CREATE TRIGGER xx INSERT ON t1 BEGIN\n     UPDATE t1 SET xx=xx FROM(SELECT xx);\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(xx);\n  CREATE TRIGGER xx INSERT ON t1 BEGIN\n     UPDATE t1 SET xx=xx FROM(SELECT xx);\n  END;\n")
+		{ // "29.5"
+			_res = db.Exec("\n  DELETE FROM t2\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2\n")
+			}
 		}
-	}
-	{ // "26.6"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger xx: no such column: xx") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger xx: no such column: xx", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+		{ // "29.6"
+			_res = db.Exec("\n  ALTER TABLE t2 RENAME TO t3;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME TO t3;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "27.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()), c);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()), c);\n")
+		{ // "29.7"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  {CREATE TRIGGER Trigger1 DELETE ON \"t3\" \n  BEGIN \n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\n  END}\n  {CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y FROM (\n      SELECT \"t3\".* FROM \"t3\"\n    );\n  END}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "27.2"
-		r = db.Query("\n  ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE t1 DROP COLUMN c;\n  SELECT sql FROM sqlite_schema WHERE name = 't1';\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "30.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM t1\n      )\n  ;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM t1\n      )\n  ;\n")
+			}
 		}
-		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(a, b AS ((WITH w1 (xyz) AS  ( SELECT t1.b FROM t1 )  SELECT 123) IN ()))}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "30.1"
+			r = db.Query("\n  SELECT * FROM v1\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v1\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "28.1"
-		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n  ALTER TABLE t1 RENAME TO t2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d);\n  CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET (c,d)=(a,b);\n  END;\n  ALTER TABLE t1 RENAME TO t2;\n")
+		{ // "30.1"
+			_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+			}
 		}
-	}
-	{ // "28.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
-			return
+		{ // "30.2"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE type='view'\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE type='view'\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  {CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "{CREATE TRIGGER AFTER INSERT ON \"t2\" BEGIN\n    UPDATE \"t2\" SET (c,d)=(a,b);\n  END}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "31.0"
+			r = db.Query("\n  CREATE TABLE t1(ii INTEGER PRIMARY KEY, tt INTEGER, rr REAL);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t1 SELECT NULL, i, 5.0 FROM s;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(ii INTEGER PRIMARY KEY, tt INTEGER, rr REAL);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t1 SELECT NULL, i, 5.0 FROM s;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "29.1"
-		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER Trigger1 DELETE ON t1 \n  BEGIN \n    SELECT t1.*, t1.x FROM t1 ORDER BY t1.x;\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE TRIGGER Trigger1 DELETE ON t1 \n  BEGIN \n    SELECT t1.*, t1.x FROM t1 ORDER BY t1.x;\n  END;\n")
+		{ // do_test "31.1"
+			var pg = "db one {PRAGMA page_count}"
+			_ = pg // suppress unused warning
+			_res = db.Exec("\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
+			}
+			var pg2 = "db one {PRAGMA page_count}"
+			_ = pg2 // suppress unused warning
+			// expr $pg==$pg2 → "$pg==$pg2"
 		}
-	}
-	{ // "29.2"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME x TO z;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME x TO z;\n")
+		{ // "31.2"
+			r = db.Query("\n  SELECT rr FROM t1 LIMIT 1\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rr FROM t1 LIMIT 1\n")
+				return
+			}
+			got := flatten(r)
+			want := "5.0"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "29.3"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "32.1.0"
+			_res = db.Exec("\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with comma\n      c INT\n  );\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with comma\n      c INT\n  );\n")
+			}
 		}
-	}
-	{ // "29.4"
-		_res = db.Exec("\n  CREATE TRIGGER tr2 AFTER DELETE ON t2 BEGIN\n    SELECT z, y FROM (\n      SELECT t2.* FROM t2\n    );\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr2 AFTER DELETE ON t2 BEGIN\n    SELECT z, y FROM (\n      SELECT t2.* FROM t2\n    );\n  END;\n")
+		{ // "32.1.1"
+			_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN c;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN c;\n")
+			}
 		}
-	}
-	{ // "29.5"
-		_res = db.Exec("\n  DELETE FROM t2\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2\n")
+		{ // "32.1.2"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema\n")
+				return
+			}
+			got := flatten(r)
+			want := "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "29.6"
-		_res = db.Exec("\n  ALTER TABLE t2 RENAME TO t3;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME TO t3;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "32.2.0"
+			_res = db.Exec("\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with, comma\n      c INT\n  );\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with, comma\n      c INT\n  );\n")
+			}
 		}
-	}
-	{ // "29.7"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE type='trigger'\n")
-			return
+		{ // "32.2.1"
+			_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN c;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN c;\n")
+			}
 		}
-		got := flatten(r)
-		want := "\n  {CREATE TRIGGER Trigger1 DELETE ON \"t3\" \n  BEGIN \n    SELECT \"t3\".*, \"t3\".z FROM \"t3\" ORDER BY \"t3\".z;\n  END}\n  {CREATE TRIGGER tr2 AFTER DELETE ON \"t3\" BEGIN\n    SELECT z, y FROM (\n      SELECT \"t3\".* FROM \"t3\"\n    );\n  END}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "32.2.2"
+			r = db.Query("\n  SELECT sql FROM sqlite_schema\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema\n")
+				return
+			}
+			got := flatten(r)
+			want := "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "30.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM t1\n      )\n  ;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM t1\n      )\n  ;\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "33.1"
+			_res = db.Exec("\n  CREATE TABLE x1(a TEXT, b INTEGER, c CHECK(c!=0));\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a TEXT, b INTEGER, c CHECK(c!=0));\n")
+			}
 		}
-	}
-	{ // "30.1"
-		r = db.Query("\n  SELECT * FROM v1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM v1\n")
+		{ // "33.2"
+			r = db.Query("\n  ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{CREATE TABLE x1(a TEXT, c CHECK(c!=0))}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "30.1"
-		_res = db.Exec("\n  ALTER TABLE t1 RENAME TO t2;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 RENAME TO t2;\n")
-		}
-	}
-	{ // "30.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema WHERE type='view'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema WHERE type='view'\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {CREATE VIEW v1 AS \n      SELECT ( VALUES(a), (b) ) FROM (\n        SELECT a, b FROM \"t2\"\n      )}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "31.0"
-		r = db.Query("\n  CREATE TABLE t1(ii INTEGER PRIMARY KEY, tt INTEGER, rr REAL);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t1 SELECT NULL, i, 5.0 FROM s;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(ii INTEGER PRIMARY KEY, tt INTEGER, rr REAL);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50000\n  )\n  INSERT INTO t1 SELECT NULL, i, 5.0 FROM s;\n")
-		}
-	}
-	{ // do_test "31.1"
-		var pg = "db one {PRAGMA page_count}"
-		_ = pg // suppress unused warning
-		_res = db.Exec("\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
-		}
-		var pg2 = "db one {PRAGMA page_count}"
-		_ = pg2 // suppress unused warning
-		// expr $pg==$pg2 → "$pg==$pg2"
-	}
-	{ // "31.2"
-		r = db.Query("\n  SELECT rr FROM t1 LIMIT 1\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rr FROM t1 LIMIT 1\n")
-			return
-		}
-		got := flatten(r)
-		want := "5.0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "32.1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with comma\n      c INT\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with comma\n      c INT\n  );\n")
-		}
-	}
-	{ // "32.1.1"
-		_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN c;\n")
-		}
-	}
-	{ // "32.1.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "32.2.0"
-		_res = db.Exec("\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with, comma\n      c INT\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n      a INT,\n      b INT,\n      -- comment with, comma\n      c INT\n  );\n")
-		}
-	}
-	{ // "32.2.1"
-		_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN c;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 DROP COLUMN c;\n")
-		}
-	}
-	{ // "32.2.2"
-		r = db.Query("\n  SELECT sql FROM sqlite_schema\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_schema\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE t1(\n      a INT,\n      b INT)}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "33.1"
-		_res = db.Exec("\n  CREATE TABLE x1(a TEXT, b INTEGER, c CHECK(c!=0));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a TEXT, b INTEGER, c CHECK(c!=0));\n")
-		}
-	}
-	{ // "33.2"
-		r = db.Query("\n  ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ALTER TABLE x1 DROP COLUMN b;\n  SELECT sql FROM sqlite_schema;\n")
-			return
-		}
-		got := flatten(r)
-		want := "{CREATE TABLE x1(a TEXT, c CHECK(c!=0))}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

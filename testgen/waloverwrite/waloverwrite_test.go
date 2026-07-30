@@ -22,187 +22,187 @@ func Test_waloverwrite(t *testing.T) {
 	var testprefix = "waloverwrite"
 	_ = testprefix // suppress unused warning
 	// foreach {tn xtra} "\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n"
-	_items := []string{"\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n"}
+	_items := tclSplitList("\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	xtra := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		{ // "1." + tn + ".0"
-			r = db.Query("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
-			}
-		}
-		{ // do_test "1." + tn + ".1"
-			var nPg = "db one { PRAGMA page_count }"
-			_ = nPg // suppress unused warning
-			// expr $nPg>40 → "$nPg>40"
-		}
-		{ // do_test "1." + tn + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+		tn := _items[_idx+0]
+		xtra := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			r = db.Query("PRAGMA journal_mode = wal")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = wal")
-			}
-			r = db.Query("PRAGMA cache_size = 5")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = 5")
-			}
-			_res = db.Exec(xtra)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, xtra)
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
-				for _, x := range []string{"db eval {SELECT x FROM t1}"} {
-					_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=$x ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=$x ")
-					}
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+			{ // "1." + tn + ".0"
+				r = db.Query("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    CREATE INDEX i1y ON t1(y);\n  \n    WITH cnt(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20\n    )\n    INSERT INTO t1 SELECT i, randomblob(800) FROM cnt;\n  ")
 				}
 			}
-			var nPg = "wal_frame_count test.db-wal 1024"
-			_ = nPg // suppress unused warning
-			// expr $nPg>40 → "$nPg>40"
-		}
-		{ // "1." + tn + ".3"
-			r = db.Query(" PRAGMA integrity_check ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-				return
+			{ // do_test "1." + tn + ".1"
+				var nPg = "db one { PRAGMA page_count }"
+				_ = nPg // suppress unused warning
+				// expr $nPg>40 → "$nPg>40"
 			}
-			got := flatten(r)
-			want := "ok"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // do_test "1." + tn + ".2"
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query("PRAGMA journal_mode = wal")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA journal_mode = wal")
+				}
+				r = db.Query("PRAGMA cache_size = 5")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = 5")
+				}
+				_res = db.Exec(xtra)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, xtra)
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
+					for _, x := range tclSplitList("db eval {SELECT x FROM t1}") {
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(799) WHERE x=$x ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(799) WHERE x=$x ")
+						}
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				var nPg = "wal_frame_count test.db-wal 1024"
+				_ = nPg // suppress unused warning
+				// expr $nPg>40 → "$nPg>40"
 			}
-		}
-		{ // do_test "1." + tn + ".4"
-			os.Remove("test.db2")
-			tclFileCopy("test.db", "test.db2")
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
-			if err != nil { t.Fatal(err) }
-			r = db.Query(" SELECT sum(length(y)) FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
+			{ // "1." + tn + ".3"
+				r = db.Query(" PRAGMA integrity_check ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					return
+				}
+				got := flatten(r)
+				want := "ok"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-		}
-		{ // do_test "1." + tn + ".5"
+			{ // do_test "1." + tn + ".4"
+				os.Remove("test.db2")
+				tclFileCopy("test.db", "test.db2")
+				db2, err := frigolite.Open("test.db2")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
+				}
+			}
+			{ // do_test "1." + tn + ".5"
+				db2.Close()
+				tclFileCopy("test.db", "test.db2")
+				tclFileCopy("test.db-wal", "test.db2-wal")
+				db2, err := frigolite.Open("test.db2")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
+				}
+			}
+			{ // do_test "1." + tn + ".6"
+				r = db.Query(" PRAGMA integrity_check ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+				}
+			}
 			db2.Close()
-			tclFileCopy("test.db", "test.db2")
-			tclFileCopy("test.db-wal", "test.db2-wal")
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
-			if err != nil { t.Fatal(err) }
-			r = db.Query(" SELECT sum(length(y)) FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
-			}
-		}
-		{ // do_test "1." + tn + ".6"
-			r = db.Query(" PRAGMA integrity_check ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-			}
-		}
-		db2.Close()
-		{ // do_test "1." + tn + ".7"
-			r = db.Query(" PRAGMA wal_checkpoint ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1 }() {
-				for _, x := range []string{"db eval {SELECT x FROM t1}"} {
-					_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=$x ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=$x ")
+			{ // do_test "1." + tn + ".7"
+				r = db.Query(" PRAGMA wal_checkpoint ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1 }() {
+					for _, x := range tclSplitList("db eval {SELECT x FROM t1}") {
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(798) WHERE x=$x ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(798) WHERE x=$x ")
+						}
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
 					}
 				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
+				r = db.Query("\n        WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;\n      ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;\n      ")
+				}
+				_res = db.Exec("SAVEPOINT abc")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT abc")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
+					for _, x := range tclSplitList("db eval {SELECT x FROM t1}") {
+						_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=$x ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=$x ")
+						}
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
 					}
 				}
-			}
-			r = db.Query("\n        WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;\n      ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        WITH cnt(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM cnt WHERE i<20)\n        INSERT INTO t2 SELECT i, randomblob(800) FROM cnt;\n      ")
-			}
-			_res = db.Exec("SAVEPOINT abc")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT abc")
-			}
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
-				for _, x := range []string{"db eval {SELECT x FROM t1}"} {
-					_res = db.Exec(" UPDATE t1 SET y = randomblob(797) WHERE x=$x ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET y = randomblob(797) WHERE x=$x ")
-					}
+				_res = db.Exec("ROLLBACK TO abc")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO abc")
 				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
-					}
+				var nPg = "wal_frame_count test.db-wal 1024"
+				_ = nPg // suppress unused warning
+				// expr $nPg>55 → "$nPg>55"
+			}
+			{ // do_test "1." + tn + ".8"
+				os.Remove("test.db2")
+				tclFileCopy("test.db", "test.db2")
+				db2, err := frigolite.Open("test.db2")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
 				}
 			}
-			_res = db.Exec("ROLLBACK TO abc")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO abc")
+			{ // do_test "1." + tn + ".9"
+				db2.Close()
+				tclFileCopy("test.db-wal", "test.db2-wal")
+				db2, err := frigolite.Open("test.db2")
+				defer db2.Close()
+				if err != nil { t.Fatal(err) }
+				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
+				}
 			}
-			var nPg = "wal_frame_count test.db-wal 1024"
-			_ = nPg // suppress unused warning
-			// expr $nPg>55 → "$nPg>55"
-		}
-		{ // do_test "1." + tn + ".8"
-			os.Remove("test.db2")
-			tclFileCopy("test.db", "test.db2")
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
-			if err != nil { t.Fatal(err) }
-			r = db.Query(" SELECT sum(length(y)) FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
+			{ // do_test "1." + tn + ".10"
+				r = db.Query(" PRAGMA integrity_check ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+				}
 			}
-		}
-		{ // do_test "1." + tn + ".9"
 			db2.Close()
-			tclFileCopy("test.db-wal", "test.db2-wal")
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
-			if err != nil { t.Fatal(err) }
-			r = db.Query(" SELECT sum(length(y)) FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(length(y)) FROM t1 ")
-			}
 		}
-		{ // do_test "1." + tn + ".10"
-			r = db.Query(" PRAGMA integrity_check ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-			}
-		}
-		db2.Close()
-	}
-	}
 }

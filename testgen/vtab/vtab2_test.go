@@ -67,7 +67,7 @@ func Test_vtab2(t *testing.T) {
 	}
 	var result = ""
 	_ = result // suppress unused warning
-	for _, var := range []string{"lsort [info vars tcl_*]"} {
+	for _, var := range tclSplitList("lsort [info vars tcl_*]") {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

@@ -140,61 +140,61 @@ func Test_quote(t *testing.T) {
 		}
 	}
 	// foreach {tn sql errname} "\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n"
-	_items := []string{"\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n"}
+	_items := tclSplitList("\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	errname := _items[_idx+2]
-		{ // "2.1." + tn
-			_res = db.Exec(sql)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		errname := _items[_idx+2]
+		_ = _idx
+			{ // "2.1." + tn
+				_res = db.Exec(sql)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", sql)
+				}
 			}
 		}
-	}
-	}
-	{ // "2.2"
-		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";\n")
+		{ // "2.2"
+			_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";\n")
+			}
 		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "2.3.1"
-		_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "2.3.1"
+			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
+			}
 		}
-	}
-	{ // "2.3.2"
-		_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c!=\\\"null\\\"") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c!=\\\"null\\\"", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
+		{ // "2.3.2"
+			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: c!=\\\"null\\\"") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: c!=\\\"null\\\"", _res.Error, "\n  INSERT INTO xyz VALUES(1, 2, 'null');\n")
+			}
 		}
-	}
-	{ // "2.4"
-		r = db.Query("\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 'w');\n  SELECT * FROM t1 WHERE z='w';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 'w');\n  SELECT * FROM t1 WHERE z='w';\n")
-			return
+		{ // "2.4"
+			r = db.Query("\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 'w');\n  SELECT * FROM t1 WHERE z='w';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 'w');\n  SELECT * FROM t1 WHERE z='w';\n")
+				return
+			}
+			got := flatten(r)
+			want := "4 5 w"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "4 5 w"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "2.5"
+			r = db.Query("\n  SELECT sql FROM sqlite_master;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_master;\n")
+				return
+			}
+			got := flatten(r)
+			want := "\n  {CREATE TABLE t1(x, y, z)}\n  {CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") )}\n  {CREATE INDEX i2 ON t1(x, y, z||\"abc\")}\n  {CREATE INDEX i3 ON t1(\"w\"||\"\")}\n  {CREATE INDEX i4 ON t1(x) WHERE z=\"w\"}\n"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "2.5"
-		r = db.Query("\n  SELECT sql FROM sqlite_master;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT sql FROM sqlite_master;\n")
-			return
-		}
-		got := flatten(r)
-		want := "\n  {CREATE TABLE t1(x, y, z)}\n  {CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") )}\n  {CREATE INDEX i2 ON t1(x, y, z||\"abc\")}\n  {CREATE INDEX i3 ON t1(\"w\"||\"\")}\n  {CREATE INDEX i4 ON t1(x) WHERE z=\"w\"}\n"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

@@ -28,77 +28,77 @@ func Test_triggerE(t *testing.T) {
 	var errmsg = "trigger cannot use variables"
 	_ = errmsg // suppress unused warning
 	// foreach {tn defn} "\n  1 { AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END; }\n  2 { BEFORE DELETE ON t1 BEGIN SELECT ?; END; }\n  3 { BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END; }\n  5 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END; }\n  6 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END; }\n  7 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END; }\n  8 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END; }\n  9 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END; }\n 10 { AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END; }\n 11 { BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END }\n"
-	_items := []string{"\n  1 { AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END; }\n  2 { BEFORE DELETE ON t1 BEGIN SELECT ?; END; }\n  3 { BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END; }\n  5 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END; }\n  6 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END; }\n  7 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END; }\n  8 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END; }\n  9 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END; }\n 10 { AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END; }\n 11 { BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END }\n"}
+	_items := tclSplitList("\n  1 { AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END; }\n  2 { BEFORE DELETE ON t1 BEGIN SELECT ?; END; }\n  3 { BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END; }\n  5 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END; }\n  6 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END; }\n  7 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END; }\n  8 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END; }\n  9 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END; }\n 10 { AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END; }\n 11 { BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	defn := _items[_idx+1]
-		_res = db.Exec("drop trigger tr1")
-		_ = _res // catchsql
-		{ // "1.1." + tn
-			_res = db.Exec("CREATE TRIGGER tr1 " + defn)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "CREATE TRIGGER tr1 " + defn)
+		tn := _items[_idx+0]
+		defn := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec("drop trigger tr1")
+			_ = _res // catchsql
+			{ // "1.1." + tn
+				_res = db.Exec("CREATE TRIGGER tr1 " + defn)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "CREATE TRIGGER tr1 " + defn)
+				}
+			}
+			{ // "1.2." + tn
+				_res = db.Exec("CREATE TEMP TRIGGER tr1 " + defn)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", "CREATE TEMP TRIGGER tr1 " + defn)
+				}
 			}
 		}
-		{ // "1.2." + tn
-			_res = db.Exec("CREATE TEMP TRIGGER tr1 " + defn)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "CREATE TEMP TRIGGER tr1 " + defn)
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		{ // "2.1"
+			_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			}
 		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
-	{ // "2.1"
-		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		{ // "2.2.1"
+			r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")
+				return
+			}
+			got := flatten(r)
+			want := "{} {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	db, err = frigolite.Open("test.db")
-	if err != nil { t.Fatal(err) }
-	{ // "2.2.1"
-		r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")
-			return
+		{ // do_test "2.2.2"
+			var one = "3"
+			_ = one // suppress unused warning
+			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
+			}
 		}
-		got := flatten(r)
-		want := "{} {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "2.2.3"
+			r = db.Query(" SELECT * FROM t1 ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 3 3"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // do_test "2.2.2"
-		var one = "3"
-		_ = one // suppress unused warning
-		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
+		{ // "2.3"
+			r = db.Query("\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES(NULL, 'z');\n  INSERT INTO t3 VALUES(1, 2);\n  SELECT * FROM t3;\n  SELECT * FROM t2;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES(NULL, 'z');\n  INSERT INTO t3 VALUES(1, 2);\n  SELECT * FROM t3;\n  SELECT * FROM t2;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 x y z z"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "2.2.3"
-		r = db.Query(" SELECT * FROM t1 ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.3"
-		r = db.Query("\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES(NULL, 'z');\n  INSERT INTO t3 VALUES(1, 2);\n  SELECT * FROM t3;\n  SELECT * FROM t2;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES(NULL, 'z');\n  INSERT INTO t3 VALUES(1, 2);\n  SELECT * FROM t3;\n  SELECT * FROM t2;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 x y z z"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

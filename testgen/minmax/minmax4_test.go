@@ -146,27 +146,92 @@ func Test_minmax4(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }\n"
-	_items := []string{"\n  1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }\n"}
+	_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			{ // "3." + tn + ".0"
+				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
+				}
+			}
+			_res = db.Exec(sql)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+			}
+			{ // "3." + tn + ".1"
+				r = db.Query("\n    SELECT min(a), b FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{} 1"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3." + tn + ".2"
+				r = db.Query("\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "{} {}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3." + tn + ".3"
+				_res = db.Exec("\n    INSERT INTO t1 VALUES(2, 2);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 2);\n  ")
+				}
+			}
+			{ // "3." + tn + ".4"
+				r = db.Query("\n    SELECT min(a), b FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "3." + tn + ".5"
+				r = db.Query("\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "2 2"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		{ // "3." + tn + ".0"
-			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
+		{ // "4.0"
+			_res = db.Exec("\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(NULL, 1);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
 			}
 		}
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		{ // "3." + tn + ".1"
-			r = db.Query("\n    SELECT min(a), b FROM t1;\n  ")
+		{ // "4.1"
+			r = db.Query("\n  SELECT MIN(t0.c1), t0.c0 FROM t0 WHERE t0.c1 ISNULL; \n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT MIN(t0.c1), t0.c0 FROM t0 WHERE t0.c1 ISNULL; \n")
 				return
 			}
 			got := flatten(r)
@@ -175,159 +240,94 @@ func Test_minmax4(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "3." + tn + ".2"
-			r = db.Query("\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "{} {}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "3." + tn + ".3"
-			_res = db.Exec("\n    INSERT INTO t1 VALUES(2, 2);\n  ")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 2);\n  ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
 			}
 		}
-		{ // "3." + tn + ".4"
-			r = db.Query("\n    SELECT min(a), b FROM t1;\n  ")
+		{ // "5.1"
+			r = db.Query("\n  SELECT MIN(a) FROM t1 WHERE a=123;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT MIN(a) FROM t1 WHERE a=123;\n")
 				return
 			}
 			got := flatten(r)
-			want := "2 2"
+			want := "123"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "3." + tn + ".5"
-			r = db.Query("\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "6.1.0"
+			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
+			}
+		}
+		{ // "6.1.1"
+			r = db.Query("\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT min(a), b FROM t1 WHERE a<50;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
 				return
 			}
 			got := flatten(r)
-			want := "2 2"
+			want := "{} 1 x"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "4.0"
-		_res = db.Exec("\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0, c1);\n  CREATE INDEX i0 ON t0(c1, c1 + 1 DESC);\n  INSERT INTO t0(c0) VALUES (1);\n")
+		{ // "6.1.2"
+			_res = db.Exec("\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
+			}
 		}
-	}
-	{ // "4.1"
-		r = db.Query("\n  SELECT MIN(t0.c1), t0.c0 FROM t0 WHERE t0.c1 ISNULL; \n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT MIN(t0.c1), t0.c0 FROM t0 WHERE t0.c1 ISNULL; \n")
-			return
+		{ // "6.1.3"
+			r = db.Query("\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
+				return
+			}
+			got := flatten(r)
+			want := "{} 1 x"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "{} 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "6.2.0"
+			_res = db.Exec("\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (a, b);\n  INSERT INTO t1 VALUES(123, NULL);\n  CREATE INDEX i1 ON t1(a, b DESC);\n")
+		{ // "6.2.1"
+			r = db.Query("\n  SELECT c0, c1 FROM v0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT c0, c1 FROM v0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0 {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT MIN(a) FROM t1 WHERE a=123;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT MIN(a) FROM t1 WHERE a=123;\n")
-			return
+		{ // "6.2.2"
+			r = db.Query("\n  SELECT v0.c0, MIN(v0.c1) FROM v0;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT v0.c0, MIN(v0.c1) FROM v0;\n")
+				return
+			}
+			got := flatten(r)
+			want := "0 {}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "123"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "6.1.0"
-		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(NULL, 1, 'x');\n  CREATE INDEX i1 ON t1(a);\n")
-		}
-	}
-	{ // "6.1.1"
-		r = db.Query("\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} 1 x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.1.2"
-		_res = db.Exec("\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1,    2, 'y');\n")
-		}
-	}
-	{ // "6.1.3"
-		r = db.Query("\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT min(a), b, c FROM t1 WHERE c='x';\n")
-			return
-		}
-		got := flatten(r)
-		want := "{} 1 x"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2.0"
-		_res = db.Exec("\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0 UNIQUE, c1);\n  INSERT INTO t0(c1) VALUES (0);\n  INSERT INTO t0(c0) VALUES (0);\n  CREATE VIEW v0(c0, c1) AS \n      SELECT t0.c1, t0.c0 FROM t0 WHERE CAST(t0.rowid AS INT) = 1;\n")
-		}
-	}
-	{ // "6.2.1"
-		r = db.Query("\n  SELECT c0, c1 FROM v0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT c0, c1 FROM v0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "6.2.2"
-		r = db.Query("\n  SELECT v0.c0, MIN(v0.c1) FROM v0;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT v0.c0, MIN(v0.c1) FROM v0;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0 {}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

@@ -27,7 +27,7 @@ func Test_count(t *testing.T) {
 	}
 	var iTest = "0"
 	_ = iTest // suppress unused warning
-	for _, zIndex := range []string{"list {\n  /* no-op */\n} {\n  CREATE INDEX i1 ON t1(a);\n}"} {
+	for _, zIndex := range tclSplitList("list {\n  /* no-op */\n} {\n  CREATE INDEX i1 ON t1(a);\n}") {
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)

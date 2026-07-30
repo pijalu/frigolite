@@ -32,7 +32,7 @@ func Test_walcksum(t *testing.T) {
 		var native = "little"
 		_ = native // suppress unused warning
 	}
-	for _, endian := range []string{"big little"} {
+	for _, endian := range tclSplitList("big little") {
 		{ // do_test "walcksum-1." + endian + ".1"
 			{
 				var _catchErr error

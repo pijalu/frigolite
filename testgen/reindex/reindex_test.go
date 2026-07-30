@@ -133,15 +133,15 @@ func Test_reindex(t *testing.T) {
 		db2.Close()
 	}
 	// foreach {tn wo} "1 \"\" 2 \"WITHOUT ROWID\""
-	_items := []string{"1 \"\" 2 \"WITHOUT ROWID\""}
+	_items := tclSplitList("1 \"\" 2 \"WITHOUT ROWID\"")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	wo := _items[_idx+1]
-		db.Close()
-		db, err = frigolite.Open("")
-		if err != nil { t.Fatal(err) }
-		// eval [string map [list %without_rowid% $wo] {
+		tn := _items[_idx+0]
+		wo := _items[_idx+1]
+		_ = _idx
+			db.Close()
+			db, err = frigolite.Open("")
+			if err != nil { t.Fatal(err) }
+			// eval [string map [list %without_rowid% $wo] {
     do_ex...
-	}
-	}
+		}
 }

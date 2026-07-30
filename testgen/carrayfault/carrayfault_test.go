@@ -30,16 +30,16 @@ func Test_carrayfault(t *testing.T) {
 	var STMT = ""
 	_ = STMT // suppress unused warning
 	// foreach {tn mem} "\n  1 -static\n  2 -transient\n  3 -malloc\n"
-	_items := []string{"\n  1 -static\n  2 -transient\n  3 -malloc\n"}
+	_items := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	mem := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n  } -body {\n    sqlite3_carray_bind $::mem -int64 $::STMT 1  ...} -test {\n    faultsim_test_result {0 {}} {1 {out of memory...}")
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n} -body {\n    sqlite3_carray_bind -transient -text $::STMT ...} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom* -prep {\n  set ::STMT [sqlite3_prepare_v2 db \"SELECT value...} -body {\n    set myres [list]\n    while { \"SQLITE_ROW\"==[s...} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql \"SELECT value FROM carray(?)\"\n} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind")
+		tn := _items[_idx+0]
+		mem := _items[_idx+1]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n  } -body {\n    sqlite3_carray_bind $::mem -int64 $::STMT 1  ...} -test {\n    faultsim_test_result {0 {}} {1 {out of memory...}")
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n} -body {\n    sqlite3_carray_bind -transient -text $::STMT ...} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom* -prep {\n  set ::STMT [sqlite3_prepare_v2 db \"SELECT value...} -body {\n    set myres [list]\n    while { \"SQLITE_ROW\"==[s...} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql \"SELECT value FROM carray(?)\"\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind")
 }

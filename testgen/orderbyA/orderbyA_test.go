@@ -28,64 +28,64 @@ func Test_orderbyA(t *testing.T) {
 		}
 	}
 	// foreach {tn idx} "\n  1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}\n"
-	_items := []string{"\n  1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}\n"}
+	_items := tclSplitList("\n  1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	idx := _items[_idx+1]
-		_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1 ")
-		}
-		_res = db.Exec(idx)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-		}
-		var match = "1"
-		_ = match // suppress unused warning
-		var nomatch = "2"
-		_ = nomatch // suppress unused warning
-		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n >= 2 }() {
-			var match = "0"
+		tn := _items[_idx+0]
+		idx := _items[_idx+1]
+		_ = _idx
+			_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1 ")
+			}
+			_res = db.Exec(idx)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+			}
+			var match = "1"
 			_ = match // suppress unused warning
-			var nomatch = "1"
+			var nomatch = "2"
 			_ = nomatch // suppress unused warning
+			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n >= 2 }() {
+				var match = "0"
+				_ = match // suppress unused warning
+				var nomatch = "1"
+				_ = nomatch // suppress unused warning
+			}
+			t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.1.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {one 6 three 24 two 15}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.1.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {two 15 three 24 one 6}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.2.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.2.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.3.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15}")
+			t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.3.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6}")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.1.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {one 6 three 24 two 15}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.1.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {two 15 three 24 one 6}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.2.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.2.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.3.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.3.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6}")
-	}
-	}
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
+			}
 		}
-	}
-	// foreach {tn idx} "\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n"
-	_items := []string{"\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	idx := _items[_idx+1]
-		_res = db.Exec(" DROP INDEX IF EXISTS i2 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i2 ")
-		}
-		_res = db.Exec(idx)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
-		}
-		nSort := "($tn==2 || $tn==3) ? 0 : 1"
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...}")
-		nSort := "($tn==4 || $tn==5) ? 0 : 1"
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
-		nSort := "$tn==1 ? 2 : 1"
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
-	}
-	}
+		// foreach {tn idx} "\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n"
+		_items := tclSplitList("\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			idx := _items[_idx+1]
+			_ = _idx
+				_res = db.Exec(" DROP INDEX IF EXISTS i2 ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i2 ")
+				}
+				_res = db.Exec(idx)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
+				}
+				nSort := "($tn==2 || $tn==3) ? 0 : 1"
+				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...}")
+				nSort := "($tn==4 || $tn==5) ? 0 : 1"
+				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
+				nSort := "$tn==1 ? 2 : 1"
+				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
+				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
+			}
 }

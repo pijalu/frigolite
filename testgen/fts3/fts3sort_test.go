@@ -21,157 +21,157 @@ func Test_fts3sort(t *testing.T) {
 	var testprefix = "fts3sort"
 	_ = testprefix // suppress unused warning
 	// foreach {t param} "\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n"
-	_items := []string{"\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n"}
+	_items := tclSplitList("\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	t := _items[_idx+0]
-	param := _items[_idx+1]
-		var testprefix = "fts3sort-1." + t
-		_ = testprefix // suppress unused warning
-		var nRow = "1000"
-		_ = nRow // suppress unused warning
-		{ // do_test "1.0"
-			t.Skipf("TODO: %s not implemented in frigolite", "build_database $nRow $param")
-			r = db.Query(" SELECT count(*) FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
-			}
-		}
-		// foreach {tn query} "\n  1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\"\n  "
-		_items := []string{"\n  1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\"\n  "}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
-		query := _items[_idx+1]
-			var A_list = "list"
-			_ = A_list // suppress unused warning
-			var B_list = "list"
-			_ = B_list // suppress unused warning
-			var C_list = "list"
-			_ = C_list // suppress unused warning
-			var D_list = "list"
-			_ = D_list // suppress unused warning
-			_res = db.Exec(query + " ORDER BY rowid ASC")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY rowid ASC")
-			}
-			_res = db.Exec(query + " ORDER BY rowid DESC")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY rowid DESC")
-			}
-			_res = db.Exec(query + " ORDER BY docid ASC")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY docid ASC")
-			}
-			_res = db.Exec(query + " ORDER BY docid DESC")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY docid DESC")
-			}
-			{ // do_test tn + ".1"
-			}
-			{ // do_test tn + ".2"
-			}
-			{ // do_test tn + ".3"
-			}
-			{ // do_test tn + ".4"
-			}
-			_res = db.Exec(query)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
-			}
-			{ // do_test tn + ".5"
-				tclSort("array get A")
-			}
-			{ // do_test tn + ".6"
-				tclSort("array get B")
-			}
-			{ // do_test tn + ".7"
-				tclSort("array get C")
-			}
-			{ // do_test tn + ".8"
-				tclSort("array get D")
-			}
-			if tclBool("info exists CONTROL($tn)") {
-				{ // do_test tn + ".9"
+		t := _items[_idx+0]
+		param := _items[_idx+1]
+		_ = _idx
+			var testprefix = "fts3sort-1." + t
+			_ = testprefix // suppress unused warning
+			var nRow = "1000"
+			_ = nRow // suppress unused warning
+			{ // do_test "1.0"
+				t.Skipf("TODO: %s not implemented in frigolite", "build_database $nRow $param")
+				r = db.Query(" SELECT count(*) FROM t1 ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 				}
-			} else {
-				var CONTROL_$tn = "lsort [array get DATA]"
-				_ = CONTROL_$tn // suppress unused warning
 			}
-		}
-		}
-	}
-	}
-	var testprefix = "fts3sort"
-	_ = testprefix // suppress unused warning
-	// foreach {tn param res} "\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n"
-	_items := []string{"\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	param := _items[_idx+1]
-	res := _items[_idx+2]
-		_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
-		}
-		{ // "2.1." + tn
-			_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", "\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
+			// foreach {tn query} "\n  1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\"\n  "
+			_items := tclSplitList("\n  1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\"\n  ")
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				tn := _items[_idx+0]
+				query := _items[_idx+1]
+				_ = _idx
+					var A_list = "list"
+					_ = A_list // suppress unused warning
+					var B_list = "list"
+					_ = B_list // suppress unused warning
+					var C_list = "list"
+					_ = C_list // suppress unused warning
+					var D_list = "list"
+					_ = D_list // suppress unused warning
+					_res = db.Exec(query + " ORDER BY rowid ASC")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY rowid ASC")
+					}
+					_res = db.Exec(query + " ORDER BY rowid DESC")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY rowid DESC")
+					}
+					_res = db.Exec(query + " ORDER BY docid ASC")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY docid ASC")
+					}
+					_res = db.Exec(query + " ORDER BY docid DESC")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query + " ORDER BY docid DESC")
+					}
+					{ // do_test tn + ".1"
+					}
+					{ // do_test tn + ".2"
+					}
+					{ // do_test tn + ".3"
+					}
+					{ // do_test tn + ".4"
+					}
+					_res = db.Exec(query)
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
+					}
+					{ // do_test tn + ".5"
+						tclSort("array get A")
+					}
+					{ // do_test tn + ".6"
+						tclSort("array get B")
+					}
+					{ // do_test tn + ".7"
+						tclSort("array get C")
+					}
+					{ // do_test tn + ".8"
+						tclSort("array get D")
+					}
+					if tclBool("info exists CONTROL($tn)") {
+						{ // do_test tn + ".9"
+						}
+					} else {
+						var CONTROL_$tn = "lsort [array get DATA]"
+						_ = CONTROL_$tn // suppress unused warning
+					}
+				}
 			}
-		}
-	}
-	}
-	{ // "2.2"
-		_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
-		}
-	}
-	{ // "2.3"
-		r = db.Query("\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n")
-			return
-		}
-		got := flatten(r)
-		want := "3 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.4"
-		r = db.Query("\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa' ORDER BY content;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa' ORDER BY content;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.1"
-		r = db.Query("\n  CREATE VIRTUAL TABLE t3 USING fts4(x, order=DESC);\n  INSERT INTO t3(docid, x) VALUES(113382409004785664, 'aa');\n  INSERT INTO t3(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t3 WHERE x MATCH 'a*' ORDER BY docid DESC;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(x, order=DESC);\n  INSERT INTO t3(docid, x) VALUES(113382409004785664, 'aa');\n  INSERT INTO t3(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t3 WHERE x MATCH 'a*' ORDER BY docid DESC;\n")
-			return
-		}
-		got := flatten(r)
-		want := "113382409004785664 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "3.2"
-		r = db.Query("\n  CREATE VIRTUAL TABLE t4 USING fts4(x);\n  INSERT INTO t4(docid, x) VALUES(-113382409004785664, 'aa');\n  INSERT INTO t4(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t4 WHERE x MATCH 'a*';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(x);\n  INSERT INTO t4(docid, x) VALUES(-113382409004785664, 'aa');\n  INSERT INTO t4(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t4 WHERE x MATCH 'a*';\n")
-			return
-		}
-		got := flatten(r)
-		want := "-113382409004785664 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+			var testprefix = "fts3sort"
+			_ = testprefix // suppress unused warning
+			// foreach {tn param res} "\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n"
+			_items := tclSplitList("\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				param := _items[_idx+1]
+				res := _items[_idx+2]
+				_ = _idx
+					_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
+					}
+					{ // "2.1." + tn
+						_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
+						if _res.Error == nil {
+							t.Errorf("expected error, got none\n  sql: %s", "\n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, " + param + ")\n  ")
+						}
+					}
+				}
+				{ // "2.2"
+					_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE VIRTUAL TABLE t2 USING fts4(order=desc);\n    INSERT INTO t2 VALUES('aa bb');\n    INSERT INTO t2 VALUES('bb cc');\n    INSERT INTO t2 VALUES('cc aa');\n    SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n  END;\n")
+					}
+				}
+				{ // "2.3"
+					r = db.Query("\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa';\n")
+						return
+					}
+					got := flatten(r)
+					want := "3 1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "2.4"
+					r = db.Query("\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa' ORDER BY content;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT docid FROM t2 WHERE t2 MATCH 'aa' ORDER BY content;\n")
+						return
+					}
+					got := flatten(r)
+					want := "1 3"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "3.1"
+					r = db.Query("\n  CREATE VIRTUAL TABLE t3 USING fts4(x, order=DESC);\n  INSERT INTO t3(docid, x) VALUES(113382409004785664, 'aa');\n  INSERT INTO t3(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t3 WHERE x MATCH 'a*' ORDER BY docid DESC;\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4(x, order=DESC);\n  INSERT INTO t3(docid, x) VALUES(113382409004785664, 'aa');\n  INSERT INTO t3(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t3 WHERE x MATCH 'a*' ORDER BY docid DESC;\n")
+						return
+					}
+					got := flatten(r)
+					want := "113382409004785664 1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "3.2"
+					r = db.Query("\n  CREATE VIRTUAL TABLE t4 USING fts4(x);\n  INSERT INTO t4(docid, x) VALUES(-113382409004785664, 'aa');\n  INSERT INTO t4(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t4 WHERE x MATCH 'a*';\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(x);\n  INSERT INTO t4(docid, x) VALUES(-113382409004785664, 'aa');\n  INSERT INTO t4(docid, x) VALUES(1, 'ab');\n  SELECT rowid FROM t4 WHERE x MATCH 'a*';\n")
+						return
+					}
+					got := flatten(r)
+					want := "-113382409004785664 1"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 }

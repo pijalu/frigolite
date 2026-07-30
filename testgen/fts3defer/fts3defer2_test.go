@@ -136,193 +136,193 @@ func Test_fts3defer2(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"
-	_items := []string{"\n  1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"}
+	_items := tclSplitList("\n  1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		{ // "2.2." + tn + ".1"
-			r = db.Query("\n    SELECT mit(matchinfo(t2, 'pcxnal')) FROM t2 WHERE t2 MATCH 'a b';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'pcxnal')) FROM t2 WHERE t2 MATCH 'a b';\n  ")
-				return
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			_res = db.Exec(sql)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
-			got := flatten(r)
-			want := "list                                          \\\n    [list 2 1  1 54 54  1 3 3  54 372 8]        \\\n    [list 2 1  1 54 54  1 3 3  54 372 7]        \\"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			{ // "2.2." + tn + ".1"
+				r = db.Query("\n    SELECT mit(matchinfo(t2, 'pcxnal')) FROM t2 WHERE t2 MATCH 'a b';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'pcxnal')) FROM t2 WHERE t2 MATCH 'a b';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list                                          \\\n    [list 2 1  1 54 54  1 3 3  54 372 8]        \\\n    [list 2 1  1 54 54  1 3 3  54 372 7]        \\"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-		}
-		{ // "2.2." + tn + ".2"
-			r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g z';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g z';\n  ")
-				return
+			{ // "2.2." + tn + ".2"
+				r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g z';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g z';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list                                       \\\n    [list 1 2 2  1 54 54]                       \\"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-			got := flatten(r)
-			want := "list                                       \\\n    [list 1 2 2  1 54 54]                       \\"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			var sqlite_fts3_enable_parentheses = "1"
+			_ = sqlite_fts3_enable_parentheses // suppress unused warning
+			{ // "2.2." + tn + ".3"
+				r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list                                       \\\n    [list 1 2 2  1 2 2   1 54 54]               \\\n    [list 1 2 2  1 2 2   0 54 54]               \\"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
-		}
-		var sqlite_fts3_enable_parentheses = "1"
-		_ = sqlite_fts3_enable_parentheses // suppress unused warning
-		{ // "2.2." + tn + ".3"
-			r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list                                       \\\n    [list 1 2 2  1 2 2   1 54 54]               \\\n    [list 1 2 2  1 2 2   0 54 54]               \\"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		var sqlite_fts3_enable_parentheses = "0"
-		_ = sqlite_fts3_enable_parentheses // suppress unused warning
-		{ // "2.2." + tn + ".4"
-			r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'e \"g z\"';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'e \"g z\"';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "list                                       \\\n    [list 1 2 2  1 2 2]                         \\"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	{ // "2.3.1"
-		_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
-		}
-	}
-	{ // "2.3.2"
-		_res = db.Exec("\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
-		}
-	}
-	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"
-	_items := []string{"\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"}
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
-		_res = db.Exec(sql)
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
-		}
-		{ // "2.4." + tn
-			r = db.Query("\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
-				return
-			}
-			got := flatten(r)
-			want := "1 {1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6}"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			var sqlite_fts3_enable_parentheses = "0"
+			_ = sqlite_fts3_enable_parentheses // suppress unused warning
+			{ // "2.2." + tn + ".4"
+				r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'e \"g z\"';\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'e \"g z\"';\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "list                                       \\\n    [list 1 2 2  1 2 2]                         \\"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-	}
-	}
-	{ // "2.5"
-		_res = db.Exec("\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
+		{ // "2.3.1"
+			_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING fts4;\n  INSERT INTO t3 VALUES('a b c d e f');\n  INSERT INTO t3 VALUES('x b c d e f');\n  INSERT INTO t3 VALUES('d e f a b c');\n  INSERT INTO t3 VALUES('b c d e f');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n  INSERT INTO t3 VALUES('');\n")
+			}
 		}
-	}
-	{ // "2.6"
-		r = db.Query("\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
-			return
+		{ // "2.3.2"
+			_res = db.Exec("\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3 VALUES('f e d c b " + "{a } 10000" + "')\n")
+			}
 		}
-		got := flatten(r)
-		want := "11 228929"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.7"
-		r = db.Query("\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 23 3 23 11 205"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.8"
-		r = db.Query("\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 15 3 15 11 106"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.9"
-		r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "11 32"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.10"
-		r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)'\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 44 3 44 11 44"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.11"
-		r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 32 3 32 11 32"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "2.12"
-		r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 \n  WHERE t3 MATCH '(a NEAR b NEAR a NEAR b NEAR a)'\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 \n  WHERE t3 MATCH '(a NEAR b NEAR a NEAR b NEAR a)'\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 68 3 68 11 68"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n"
+		_items := tclSplitList("\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			_ = _idx
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+				{ // "2.4." + tn
+					r = db.Query("\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid, mit(matchinfo(t3, 'pcxnal')) FROM t3 WHERE t3 MATCH '\"a b c\"';\n  ")
+						return
+					}
+					got := flatten(r)
+					want := "1 {1 1 1 4 4 11 912 6} 3 {1 1 1 4 4 11 912 6}"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+			}
+			{ // "2.5"
+				_res = db.Exec("\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t3(t3) VALUES('rebuild');\n")
+				}
+			}
+			{ // "2.6"
+				r = db.Query("\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
+					return
+				}
+				got := flatten(r)
+				want := "11 228929"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.7"
+				r = db.Query("\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)';\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 23 3 23 11 205"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.8"
+				r = db.Query("\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(offsets(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 15 3 15 11 106"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.9"
+				r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR a)';\n")
+					return
+				}
+				got := flatten(r)
+				want := "11 32"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.10"
+				r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)'\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b NEAR a)'\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 44 3 44 11 44"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.11"
+				r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 WHERE t3 MATCH '(a NEAR b)';\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 32 3 32 11 32"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "2.12"
+				r = db.Query("\n  SELECT rowid, length(matchinfo(t3)) FROM t3 \n  WHERE t3 MATCH '(a NEAR b NEAR a NEAR b NEAR a)'\n")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid, length(matchinfo(t3)) FROM t3 \n  WHERE t3 MATCH '(a NEAR b NEAR a NEAR b NEAR a)'\n")
+					return
+				}
+				got := flatten(r)
+				want := "1 68 3 68 11 68"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
 }

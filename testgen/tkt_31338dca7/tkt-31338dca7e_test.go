@@ -42,7 +42,7 @@ func Test_tkt_31338dca7e(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-31338-3.1"
-		for _, x := range []string{"db eval {SELECT name FROM sqlite_master WHERE type='table'}"} {
+		for _, x := range tclSplitList("db eval {SELECT name FROM sqlite_master WHERE type='table'}") {
 			_res = db.Exec("DROP TABLE " + x)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + x)

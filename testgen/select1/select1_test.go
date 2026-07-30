@@ -1790,7 +1790,7 @@ func Test_select1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 VALUES(1,2);\n  ")
 		}
 	}
-	for _, tab := range []string{"db eval {SELECT name FROM sqlite_master WHERE type = 'table'}"} {
+	for _, tab := range tclSplitList("db eval {SELECT name FROM sqlite_master WHERE type = 'table'}") {
 		_res = db.Exec("DROP TABLE " + tab)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE " + tab)

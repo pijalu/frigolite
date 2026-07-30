@@ -157,121 +157,121 @@ func Test_fts3query(t *testing.T) {
 	_ = LARGEINT // suppress unused warning
 	{ // do_test "7.2"
 		// foreach {iFirst nEntry} "0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100"
-		_items := []string{"0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100"}
+		_items := tclSplitList("0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		iFirst := _items[_idx+0]
-		nEntry := _items[_idx+1]
-			var i = "0"
-			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
-				iRowid := "$i + $iFirst"
-				_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
-				}
-				// incr i 1
-				{
-					_n, _err := strconv.Atoi(i)
-					if _err == nil {
-						i = strconv.Itoa(_n + 1)
+			iFirst := _items[_idx+0]
+			nEntry := _items[_idx+1]
+			_ = _idx
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
+					iRowid := "$i + $iFirst"
+					_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
 					}
 				}
 			}
 		}
-		}
-	}
-	// foreach {tn iFirst iLast} "1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT
-	_items := []string{"1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	iFirst := _items[_idx+1]
-	iLast := _items[_idx+2]
-		var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
-		_ = res // suppress unused warning
-		{ // "7.2." + tn + ".1." + "llength $res"
-			r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n  ")
-				return
+		// foreach {tn iFirst iLast} "1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT
+		_items := tclSplitList("1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT)
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			iFirst := _items[_idx+1]
+			iLast := _items[_idx+2]
+			_ = _idx
+				var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
+				_ = res // suppress unused warning
+				{ // "7.2." + tn + ".1." + "llength $res"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n     ORDER BY +rowid DESC\n  }"
+				_ = res // suppress unused warning
+				{ // "7.2." + tn + ".2." + "llength $res"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n    ORDER BY rowid DESC\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n    ORDER BY rowid DESC\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			for _, ii := range tclSplitList("db eval {SELECT rowid FROM t4}") {
+				var res1 = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii}"
+				_ = res1 // suppress unused warning
+				var res2 = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii}"
+				_ = res2 // suppress unused warning
+				var res1s = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii ORDER BY +rowid DESC}"
+				_ = res1s // suppress unused warning
+				var res2s = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii ORDER BY +rowid DESC}"
+				_ = res2s // suppress unused warning
+				{ // "7.3." + ii + ".1"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > $ii\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > $ii\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res1
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3." + ii + ".2"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < $ii\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < $ii\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res2
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3." + ii + ".3"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res1s
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				{ // "7.3." + ii + ".4"
+					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC\n  ")
+						return
+					}
+					got := flatten(r)
+					want := res2s
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
 			}
-		}
-		var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n     ORDER BY +rowid DESC\n  }"
-		_ = res // suppress unused warning
-		{ // "7.2." + tn + ".2." + "llength $res"
-			r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n    ORDER BY rowid DESC\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n    ORDER BY rowid DESC\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	for _, ii := range []string{"db eval {SELECT rowid FROM t4}"} {
-		var res1 = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii}"
-		_ = res1 // suppress unused warning
-		var res2 = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii}"
-		_ = res2 // suppress unused warning
-		var res1s = "db eval {SELECT rowid FROM t4 WHERE rowid > $ii ORDER BY +rowid DESC}"
-		_ = res1s // suppress unused warning
-		var res2s = "db eval {SELECT rowid FROM t4 WHERE rowid < $ii ORDER BY +rowid DESC}"
-		_ = res2s // suppress unused warning
-		{ // "7.3." + ii + ".1"
-			r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > $ii\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > $ii\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res1
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "7.3." + ii + ".2"
-			r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < $ii\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < $ii\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res2
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "7.3." + ii + ".3"
-			r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid > $ii ORDER BY rowid DESC\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res1s
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "7.3." + ii + ".4"
-			r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM ft4 WHERE rowid < $ii ORDER BY rowid DESC\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res2s
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
 }

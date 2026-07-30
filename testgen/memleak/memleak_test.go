@@ -41,7 +41,7 @@ func Test_memleak(t *testing.T) {
 		var FILELIST = "lsort -dictionary [glob $testdir/*.test]"
 		_ = FILELIST // suppress unused warning
 	}
-	for _, testfile := range []string{FILELIST} {
+	for _, testfile := range tclSplitList(FILELIST) {
 		var tail = "file tail $testfile"
 		_ = tail // suppress unused warning
 		if tclBool("lsearch -exact $EXCLUDE $tail" + ">=0") {
@@ -64,7 +64,7 @@ func Test_memleak(t *testing.T) {
 		}
 		if LeakList != "" {
 			t.Log("-nonewline")
-			for _, x := range []string{LeakList} {
+			for _, x := range tclSplitList(LeakList) {
 				if tclBool(x + "!=" + "lindex $LeakList 0") {
 					t.Log(" failed! (" + LeakList + ")")
 					t.Skipf("TODO: %s not implemented in frigolite", "fail_test memory-leak-test-$tail")

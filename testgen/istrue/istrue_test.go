@@ -255,40 +255,108 @@ func Test_istrue(t *testing.T) {
 		}
 	}
 	// foreach {tn val} "list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"
-	_items := []string{"list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"}
+	_items := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	val := _items[_idx+1]
-		{ // "istrue-600." + tn + ".1"
-			_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
+		tn := _items[_idx+0]
+		val := _items[_idx+1]
+		_ = _idx
+			{ // "istrue-600." + tn + ".1"
+				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")
+				}
+			}
+			{ // do_test "istrue-600." + tn + ".2"
+				var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
+				_ = _STMT // suppress unused warning
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+			}
+			{ // "istrue-600." + tn + ".3"
+				r = db.Query("\n    SELECT x IS TRUE FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x IS TRUE FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "$tn in [list 5 6] ? {1} : {0}"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // "istrue-600." + tn + ".4"
+				r = db.Query("\n    SELECT x IS FALSE FROM t1;\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x IS FALSE FROM t1;\n  ")
+					return
+				}
+				got := flatten(r)
+				want := "0"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-		{ // do_test "istrue-600." + tn + ".2"
-			var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
-			_ = _STMT // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
-		}
-		{ // "istrue-600." + tn + ".3"
-			r = db.Query("\n    SELECT x IS TRUE FROM t1;\n  ")
+		{ // "istrue-710"
+			r = db.Query("\n  SELECT 0.5 IS TRUE COLLATE NOCASE;\n  SELECT 0.5 IS TRUE COLLATE RTRIM;\n  SELECT 0.5 IS TRUE COLLATE BINARY;\n\n  SELECT 0.5 IS TRUE;\n  SELECT 0.5 COLLATE NOCASE IS TRUE;\n  SELECT 0.0 IS FALSE;\n\n  SELECT 0.0 IS FALSE COLLATE NOCASE;\n  SELECT 0.0 IS FALSE COLLATE RTRIM;\n  SELECT 0.0 IS FALSE COLLATE BINARY;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x IS TRUE FROM t1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 0.5 IS TRUE COLLATE NOCASE;\n  SELECT 0.5 IS TRUE COLLATE RTRIM;\n  SELECT 0.5 IS TRUE COLLATE BINARY;\n\n  SELECT 0.5 IS TRUE;\n  SELECT 0.5 COLLATE NOCASE IS TRUE;\n  SELECT 0.0 IS FALSE;\n\n  SELECT 0.0 IS FALSE COLLATE NOCASE;\n  SELECT 0.0 IS FALSE COLLATE RTRIM;\n  SELECT 0.0 IS FALSE COLLATE BINARY;\n")
 				return
 			}
 			got := flatten(r)
-			want := "$tn in [list 5 6] ? {1} : {0}"
+			want := "1 1 1   1 1 1  1 1 1"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "istrue-600." + tn + ".4"
-			r = db.Query("\n    SELECT x IS FALSE FROM t1;\n  ")
+		{ // "istrue-800"
+			_res = db.Exec("\n  SELECT 9 IN (false.false);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: false.false") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", _res.Error, "\n  SELECT 9 IN (false.false);\n")
+			}
+		}
+		{ // "istrue-810"
+			r = db.Query("\n  CREATE TABLE t8(a INT, true INT, false INT, d INT);\n  INSERT INTO t8(a,true,false,d) VALUES(5,6,7,8),(4,3,2,1),('a','b','c','d');\n  SELECT * FROM t8 ORDER BY false;\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT x IS FALSE FROM t1;\n  ")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t8(a INT, true INT, false INT, d INT);\n  INSERT INTO t8(a,true,false,d) VALUES(5,6,7,8),(4,3,2,1),('a','b','c','d');\n  SELECT * FROM t8 ORDER BY false;\n")
+				return
+			}
+			got := flatten(r)
+			want := "4 3 2 1 5 6 7 8 a b c d"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+		{ // "istrue-820"
+			_res = db.Exec("\n  SELECT 9 IN (false.false) FROM t8;\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: false.false") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", _res.Error, "\n  SELECT 9 IN (false.false) FROM t8;\n")
+			}
+		}
+		{ // "istrue-830"
+			_res = db.Exec("\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
+			}
+		}
+		{ // "istrue-840"
+			_res = db.Exec("\n  INSERT INTO False VALUES(4,5,6);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO False VALUES(4,5,6);\n")
+			}
+		}
+		{ // "istrue-841"
+			_res = db.Exec("\n  INSERT INTO False VALUES(5,6,7);\n")
+			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: 5 IN (false.false)") {
+				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: 5 IN (false.false)", _res.Error, "\n  INSERT INTO False VALUES(5,6,7);\n")
+			}
+		}
+		{ // "istrue-850"
+			r = db.Query("\n  SELECT 9 IN (false.false) FROM false;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 9 IN (false.false) FROM false;\n")
 				return
 			}
 			got := flatten(r)
@@ -297,84 +365,16 @@ func Test_istrue(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-	}
-	}
-	{ // "istrue-710"
-		r = db.Query("\n  SELECT 0.5 IS TRUE COLLATE NOCASE;\n  SELECT 0.5 IS TRUE COLLATE RTRIM;\n  SELECT 0.5 IS TRUE COLLATE BINARY;\n\n  SELECT 0.5 IS TRUE;\n  SELECT 0.5 COLLATE NOCASE IS TRUE;\n  SELECT 0.0 IS FALSE;\n\n  SELECT 0.0 IS FALSE COLLATE NOCASE;\n  SELECT 0.0 IS FALSE COLLATE RTRIM;\n  SELECT 0.0 IS FALSE COLLATE BINARY;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 0.5 IS TRUE COLLATE NOCASE;\n  SELECT 0.5 IS TRUE COLLATE RTRIM;\n  SELECT 0.5 IS TRUE COLLATE BINARY;\n\n  SELECT 0.5 IS TRUE;\n  SELECT 0.5 COLLATE NOCASE IS TRUE;\n  SELECT 0.0 IS FALSE;\n\n  SELECT 0.0 IS FALSE COLLATE NOCASE;\n  SELECT 0.0 IS FALSE COLLATE RTRIM;\n  SELECT 0.0 IS FALSE COLLATE BINARY;\n")
-			return
+		{ // "istrue-851"
+			r = db.Query("\n  SELECT 5 IN (false.false) FROM false;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 5 IN (false.false) FROM false;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "1 1 1   1 1 1  1 1 1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "istrue-800"
-		_res = db.Exec("\n  SELECT 9 IN (false.false);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: false.false") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", _res.Error, "\n  SELECT 9 IN (false.false);\n")
-		}
-	}
-	{ // "istrue-810"
-		r = db.Query("\n  CREATE TABLE t8(a INT, true INT, false INT, d INT);\n  INSERT INTO t8(a,true,false,d) VALUES(5,6,7,8),(4,3,2,1),('a','b','c','d');\n  SELECT * FROM t8 ORDER BY false;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t8(a INT, true INT, false INT, d INT);\n  INSERT INTO t8(a,true,false,d) VALUES(5,6,7,8),(4,3,2,1),('a','b','c','d');\n  SELECT * FROM t8 ORDER BY false;\n")
-			return
-		}
-		got := flatten(r)
-		want := "4 3 2 1 5 6 7 8 a b c d"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "istrue-820"
-		_res = db.Exec("\n  SELECT 9 IN (false.false) FROM t8;\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: false.false") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: false.false", _res.Error, "\n  SELECT 9 IN (false.false) FROM t8;\n")
-		}
-	}
-	{ // "istrue-830"
-		_res = db.Exec("\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE false(true INT, false INT, x INT CHECK (5 IN (false.false)));\n")
-		}
-	}
-	{ // "istrue-840"
-		_res = db.Exec("\n  INSERT INTO False VALUES(4,5,6);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO False VALUES(4,5,6);\n")
-		}
-	}
-	{ // "istrue-841"
-		_res = db.Exec("\n  INSERT INTO False VALUES(5,6,7);\n")
-		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "CHECK constraint failed: 5 IN (false.false)") {
-			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "CHECK constraint failed: 5 IN (false.false)", _res.Error, "\n  INSERT INTO False VALUES(5,6,7);\n")
-		}
-	}
-	{ // "istrue-850"
-		r = db.Query("\n  SELECT 9 IN (false.false) FROM false;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 9 IN (false.false) FROM false;\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "istrue-851"
-		r = db.Query("\n  SELECT 5 IN (false.false) FROM false;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 5 IN (false.false) FROM false;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

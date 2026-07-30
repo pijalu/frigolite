@@ -57,7 +57,7 @@ func Test_bestindex3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE ttt(a, b, c);\n\n  INSERT INTO ttt VALUES(1, 'two',   'three');\n  INSERT INTO ttt VALUES(2, 'one',   'two');\n  INSERT INTO ttt VALUES(3, 'three', 'one');\n  INSERT INTO ttt VALUES(4, 'y',     'one');\n  INSERT INTO ttt VALUES(5, 'x',     'two');\n  INSERT INTO ttt VALUES(6, 'y',     'three');\n")
 		}
 	}
-	for _, omit := range []string{"0 1"} {
+	for _, omit := range tclSplitList("0 1") {
 		{ // "1.6." + omit + ".0"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd " + omit + "');\n  ")
 			if _res.Error != nil {

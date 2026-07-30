@@ -77,97 +77,97 @@ func Test_e_update(t *testing.T) {
 		}
 	}
 	// foreach {tn sql error ac data} "\n  1  \"UPDATE t3 SET b='one' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {1 one 2 two 3 three 4 four}\n\n  2  \"UPDATE OR REPLACE t3 SET b='one' WHERE a=3\" \n     {} 1 {2 two 3 one 4 four}\n\n  3  \"UPDATE OR FAIL t3 SET b='three'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  4  \"UPDATE OR IGNORE t3 SET b='three' WHERE a=3\" \n     {} 1 {2 three 3 one 4 four}\n\n  5  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  6  \"BEGIN\" {} 0 {2 three 3 one 4 four}\n\n  7  \"UPDATE t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  8  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  9  \"UPDATE OR FAIL t3 SET b='two'\"\n     {UNIQUE constraint failed: t3.b} 0 {2 two 3 one 4 four}\n\n  10 \"UPDATE OR IGNORE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 one 4 four}\n\n  11 \"UPDATE OR REPLACE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 four}\n\n  12 \"UPDATE OR ROLLBACK t3 SET b='four'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n"
-	_items := []string{"\n  1  \"UPDATE t3 SET b='one' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {1 one 2 two 3 three 4 four}\n\n  2  \"UPDATE OR REPLACE t3 SET b='one' WHERE a=3\" \n     {} 1 {2 two 3 one 4 four}\n\n  3  \"UPDATE OR FAIL t3 SET b='three'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  4  \"UPDATE OR IGNORE t3 SET b='three' WHERE a=3\" \n     {} 1 {2 three 3 one 4 four}\n\n  5  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  6  \"BEGIN\" {} 0 {2 three 3 one 4 four}\n\n  7  \"UPDATE t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  8  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  9  \"UPDATE OR FAIL t3 SET b='two'\"\n     {UNIQUE constraint failed: t3.b} 0 {2 two 3 one 4 four}\n\n  10 \"UPDATE OR IGNORE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 one 4 four}\n\n  11 \"UPDATE OR REPLACE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 four}\n\n  12 \"UPDATE OR ROLLBACK t3 SET b='four'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n"}
+	_items := tclSplitList("\n  1  \"UPDATE t3 SET b='one' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {1 one 2 two 3 three 4 four}\n\n  2  \"UPDATE OR REPLACE t3 SET b='one' WHERE a=3\" \n     {} 1 {2 two 3 one 4 four}\n\n  3  \"UPDATE OR FAIL t3 SET b='three'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  4  \"UPDATE OR IGNORE t3 SET b='three' WHERE a=3\" \n     {} 1 {2 three 3 one 4 four}\n\n  5  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  6  \"BEGIN\" {} 0 {2 three 3 one 4 four}\n\n  7  \"UPDATE t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  8  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  9  \"UPDATE OR FAIL t3 SET b='two'\"\n     {UNIQUE constraint failed: t3.b} 0 {2 two 3 one 4 four}\n\n  10 \"UPDATE OR IGNORE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 one 4 four}\n\n  11 \"UPDATE OR REPLACE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 four}\n\n  12 \"UPDATE OR ROLLBACK t3 SET b='four'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	error := _items[_idx+2]
-	ac := _items[_idx+3]
-	data := _items[_idx+4]
-		{ // "e_update-1.8." + tn + ".1"
-			_res = db.Exec(sql)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		error := _items[_idx+2]
+		ac := _items[_idx+3]
+		data := _items[_idx+4]
+		_ = _idx
+			{ // "e_update-1.8." + tn + ".1"
+				_res = db.Exec(sql)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", sql)
+				}
+			}
+			{ // "e_update-1.8." + tn + ".2"
+				r = db.Query("SELECT * FROM t3")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+					return
+				}
+				got := flatten(r)
+				want := "list {*}$data"
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+			{ // do_test "e_update-1.8." + tn + ".3"
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 			}
 		}
-		{ // "e_update-1.8." + tn + ".2"
-			r = db.Query("SELECT * FROM t3")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.1 -error {\n  qualified table names are not allowed on INSERT...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
+		{ // "e_update-2.1.3"
+			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.2 -error {\n  no such table: %s\n} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
+		{ // "e_update-2.2.X"
+			_res = db.Exec("\n  DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;\n")
+			}
+		}
+		{ // "e_update-2.3.0"
+			r = db.Query("\n  SELECT 'main', tbl_name FROM main.sqlite_master WHERE type = 'table';\n  SELECT 'temp', tbl_name FROM sqlite_temp_master WHERE type = 'table';\n  SELECT 'aux', tbl_name FROM aux.sqlite_master WHERE type = 'table';\n")
 			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t3")
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 'main', tbl_name FROM main.sqlite_master WHERE type = 'table';\n  SELECT 'temp', tbl_name FROM sqlite_temp_master WHERE type = 'table';\n  SELECT 'aux', tbl_name FROM aux.sqlite_master WHERE type = 'table';\n")
 				return
 			}
 			got := flatten(r)
-			want := "list {*}$data"
+			want := "list {*}{\n    main t1\n    main t2\n    main t3\n    main t6\n    temp t4\n    temp t6\n    aux  t1\n    aux  t5\n}"
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // do_test "e_update-1.8." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		{ // "e_update-2.3.1"
+			r = db.Query("\n  DELETE FROM main.t6;\n  DELETE FROM temp.t6;\n  INSERT INTO main.t6 VALUES(1, 2);\n  INSERT INTO temp.t6 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr1 AFTER INSERT ON t4 BEGIN\n    UPDATE t6 SET x=x+1;\n  END;\n\n  INSERT INTO t4 VALUES(1, 2);\n  SELECT * FROM main.t6;\n  SELECT * FROM temp.t6;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM main.t6;\n  DELETE FROM temp.t6;\n  INSERT INTO main.t6 VALUES(1, 2);\n  INSERT INTO temp.t6 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr1 AFTER INSERT ON t4 BEGIN\n    UPDATE t6 SET x=x+1;\n  END;\n\n  INSERT INTO t4 VALUES(1, 2);\n  SELECT * FROM main.t6;\n  SELECT * FROM temp.t6;\n")
+				return
+			}
+			got := flatten(r)
+			want := "1 2 2 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.1 -error {\n  qualified table names are not allowed on INSERT...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
-	{ // "e_update-2.1.3"
-		_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
+		{ // "e_update-2.3.2"
+			r = db.Query("\n  DELETE FROM main.t1;\n  DELETE FROM aux.t1;\n  INSERT INTO main.t1 VALUES(1, 2);\n  INSERT INTO aux.t1 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr2 AFTER DELETE ON t4 BEGIN\n    UPDATE t1 SET a=a+1;\n  END;\n\n  DELETE FROM t4;\n  SELECT * FROM main.t1;\n  SELECT * FROM aux.t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM main.t1;\n  DELETE FROM aux.t1;\n  INSERT INTO main.t1 VALUES(1, 2);\n  INSERT INTO aux.t1 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr2 AFTER DELETE ON t4 BEGIN\n    UPDATE t1 SET a=a+1;\n  END;\n\n  DELETE FROM t4;\n  SELECT * FROM main.t1;\n  SELECT * FROM aux.t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 2 1 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.2 -error {\n  no such table: %s\n} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
-	{ // "e_update-2.2.X"
-		_res = db.Exec("\n  DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;\n")
+		{ // "e_update-2.3.3"
+			r = db.Query("\n  DELETE FROM aux.t5;\n  INSERT INTO aux.t5 VALUES(1, 2);\n\n  INSERT INTO t4 VALUES('x', 'y');\n  CREATE TRIGGER temp.tr3 AFTER UPDATE ON t4 BEGIN\n    UPDATE t5 SET a=a+1;\n  END;\n\n  UPDATE t4 SET x=10;\n  SELECT * FROM aux.t5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM aux.t5;\n  INSERT INTO aux.t5 VALUES(1, 2);\n\n  INSERT INTO t4 VALUES('x', 'y');\n  CREATE TRIGGER temp.tr3 AFTER UPDATE ON t4 BEGIN\n    UPDATE t5 SET a=a+1;\n  END;\n\n  UPDATE t4 SET x=10;\n  SELECT * FROM aux.t5;\n")
+				return
+			}
+			got := flatten(r)
+			want := "2 2"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "e_update-2.3.0"
-		r = db.Query("\n  SELECT 'main', tbl_name FROM main.sqlite_master WHERE type = 'table';\n  SELECT 'temp', tbl_name FROM sqlite_temp_master WHERE type = 'table';\n  SELECT 'aux', tbl_name FROM aux.sqlite_master WHERE type = 'table';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT 'main', tbl_name FROM main.sqlite_master WHERE type = 'table';\n  SELECT 'temp', tbl_name FROM sqlite_temp_master WHERE type = 'table';\n  SELECT 'aux', tbl_name FROM aux.sqlite_master WHERE type = 'table';\n")
-			return
-		}
-		got := flatten(r)
-		want := "list {*}{\n    main t1\n    main t2\n    main t3\n    main t6\n    temp t4\n    temp t6\n    aux  t1\n    aux  t5\n}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "e_update-2.3.1"
-		r = db.Query("\n  DELETE FROM main.t6;\n  DELETE FROM temp.t6;\n  INSERT INTO main.t6 VALUES(1, 2);\n  INSERT INTO temp.t6 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr1 AFTER INSERT ON t4 BEGIN\n    UPDATE t6 SET x=x+1;\n  END;\n\n  INSERT INTO t4 VALUES(1, 2);\n  SELECT * FROM main.t6;\n  SELECT * FROM temp.t6;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM main.t6;\n  DELETE FROM temp.t6;\n  INSERT INTO main.t6 VALUES(1, 2);\n  INSERT INTO temp.t6 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr1 AFTER INSERT ON t4 BEGIN\n    UPDATE t6 SET x=x+1;\n  END;\n\n  INSERT INTO t4 VALUES(1, 2);\n  SELECT * FROM main.t6;\n  SELECT * FROM temp.t6;\n")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 2 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "e_update-2.3.2"
-		r = db.Query("\n  DELETE FROM main.t1;\n  DELETE FROM aux.t1;\n  INSERT INTO main.t1 VALUES(1, 2);\n  INSERT INTO aux.t1 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr2 AFTER DELETE ON t4 BEGIN\n    UPDATE t1 SET a=a+1;\n  END;\n\n  DELETE FROM t4;\n  SELECT * FROM main.t1;\n  SELECT * FROM aux.t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM main.t1;\n  DELETE FROM aux.t1;\n  INSERT INTO main.t1 VALUES(1, 2);\n  INSERT INTO aux.t1 VALUES(1, 2);\n\n  CREATE TRIGGER temp.tr2 AFTER DELETE ON t4 BEGIN\n    UPDATE t1 SET a=a+1;\n  END;\n\n  DELETE FROM t4;\n  SELECT * FROM main.t1;\n  SELECT * FROM aux.t1;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 2 1 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "e_update-2.3.3"
-		r = db.Query("\n  DELETE FROM aux.t5;\n  INSERT INTO aux.t5 VALUES(1, 2);\n\n  INSERT INTO t4 VALUES('x', 'y');\n  CREATE TRIGGER temp.tr3 AFTER UPDATE ON t4 BEGIN\n    UPDATE t5 SET a=a+1;\n  END;\n\n  UPDATE t4 SET x=10;\n  SELECT * FROM aux.t5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM aux.t5;\n  INSERT INTO aux.t5 VALUES(1, 2);\n\n  INSERT INTO t4 VALUES('x', 'y');\n  CREATE TRIGGER temp.tr3 AFTER UPDATE ON t4 BEGIN\n    UPDATE t5 SET a=a+1;\n  END;\n\n  UPDATE t4 SET x=10;\n  SELECT * FROM aux.t5;\n")
-			return
-		}
-		got := flatten(r)
-		want := "2 2"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or DE...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t2...}")
+		t.Skipf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or DE...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t2...}")
 }

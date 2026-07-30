@@ -58,7 +58,7 @@ func Test_syscall(t *testing.T) {
 	{ // do_test "2.1.2"
 		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall exists nosuchcall")
 	}
-	for _, s := range []string{"\n    open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl\n"} {
+	for _, s := range tclSplitList("\n    open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl\n") {
 		if tclBool("test_syscall exists $s") {
 			syscall_list = tclListAppend(syscall_list, s)
 		}
@@ -76,7 +76,7 @@ func Test_syscall(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
 	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall install open")
-	for _, jrnl := range []string{"list wal delete"} {
+	for _, jrnl := range tclSplitList("list wal delete") {
 		var i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
@@ -167,64 +167,64 @@ func Test_syscall(t *testing.T) {
 	os.Remove("test.db")
 	// proc definition (not transpiled)
 	// foreach {nByte res} "\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n"
-	_items := []string{"\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n"}
+	_items := tclSplitList("\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	nByte := _items[_idx+0]
-	res := _items[_idx+1]
-		{ // do_test "7." + nByte
-			t.Skipf("TODO: %s not implemented in frigolite", "create_db_file $nByte")
-			_list := tclList([]string{"0", msg})
-			_ = _list
+		nByte := _items[_idx+0]
+		res := _items[_idx+1]
+		_ = _idx
+			{ // do_test "7." + nByte
+				t.Skipf("TODO: %s not implemented in frigolite", "create_db_file $nByte")
+				_list := tclList([]string{"0", msg})
+				_ = _list
+			}
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+			}
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-	}
-	}
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
-	os.Remove("test.db")
-	{ // do_test "8.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 4096")
-		// file size test.db
-	}
-	// foreach {tn hint size} "\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n"
-	_items := []string{"\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	hint := _items[_idx+1]
-	size := _items[_idx+2]
-		{ // do_test "8.2." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
-			// file size test.db
-		}
-	}
-	}
-	{ // do_test "8.3"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
-		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 16")
-		// file size test.db
-	}
-	// foreach {tn hint size} "\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n"
-	_items := []string{"\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	hint := _items[_idx+1]
-	size := _items[_idx+2]
-		{ // do_test "8.4." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+		{ // do_test "8.1"
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 4096")
 			// file size test.db
 		}
-	}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
+		// foreach {tn hint size} "\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n"
+		_items := tclSplitList("\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			hint := _items[_idx+1]
+			size := _items[_idx+2]
+			_ = _idx
+				{ // do_test "8.2." + tn
+					t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+					// file size test.db
+				}
+			}
+			{ // do_test "8.3"
+				os.Remove("test.db")
+				db, err := frigolite.Open("test.db")
+				defer db.Close()
+				if err != nil { t.Fatal(err) }
+				t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 16")
+				// file size test.db
+			}
+			// foreach {tn hint size} "\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n"
+			_items := tclSplitList("\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				hint := _items[_idx+1]
+				size := _items[_idx+2]
+				_ = _idx
+					{ // do_test "8.4." + tn
+						t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+						// file size test.db
+					}
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
 }

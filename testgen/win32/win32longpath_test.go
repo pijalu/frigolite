@@ -100,7 +100,7 @@ func Test_win32longpath(t *testing.T) {
 	db3.Close()
 	var lUri = "list 1a 1b 1c 1d 1e 1f"
 	_ = lUri // suppress unused warning
-	for _, tn := range []string{lUri} {
+	for _, tn := range tclSplitList(lUri) {
 		db3, err := frigolite.Open(uri + "(" + tn + ")")
 		defer db3.Close()
 		if err != nil { t.Fatal(err) }

@@ -120,163 +120,163 @@ func Test_subquery2(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n"
-	_items := []string{"\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n"}
+	_items := tclSplitList("\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-		{ // "4." + tn
-			_res = db.Exec(sql)
-			if _res.Error == nil {
-				t.Errorf("expected error, got none\n  sql: %s", sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		_ = _idx
+			{ // "4." + tn
+				_res = db.Exec(sql)
+				if _res.Error == nil {
+					t.Errorf("expected error, got none\n  sql: %s", sql)
+				}
 			}
 		}
-	}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "5.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "5.0"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('ALFKI');\n  INSERT INTO t1 VALUES('ANATR');\n\n  CREATE TABLE t2(y, z);\n  CREATE INDEX t2y ON t2 (y);\n  INSERT INTO t2 VALUES('ANATR', '1997-08-08 00:00:00');\n  INSERT INTO t2 VALUES('ALFKI', '1997-08-25 00:00:00');\n")
+			}
 		}
-	}
-	{ // "5.1"
-		r = db.Query("\n  SELECT ( SELECT y FROM t2 WHERE x = y ORDER BY y, z) FROM t1;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT ( SELECT y FROM t2 WHERE x = y ORDER BY y, z) FROM t1;\n")
-			return
+		{ // "5.1"
+			r = db.Query("\n  SELECT ( SELECT y FROM t2 WHERE x = y ORDER BY y, z) FROM t1;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT ( SELECT y FROM t2 WHERE x = y ORDER BY y, z) FROM t1;\n")
+				return
+			}
+			got := flatten(r)
+			want := "ALFKI ANATR"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "ALFKI ANATR"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "6.0"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+			}
 		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "6.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+		{ // "6.1"
+			r = db.Query("\n  SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5;\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5;\n")
+			}
 		}
-	}
-	{ // "6.1"
-		r = db.Query("\n  SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5;\n")
+		{ // "6.2"
+			r = db.Query("\n  SELECT (\n      SELECT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.2"
-		r = db.Query("\n  SELECT (\n      SELECT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
-			return
+		{ // "6.3"
+			r = db.Query("\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "6.4"
+			r = db.Query("\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.3"
-		r = db.Query("\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 LIMIT 1 OFFSET 5\n  );\n")
-			return
+		{ // "6.5"
+			r = db.Query("\n  SELECT (\n      SELECT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "6.6"
+			r = db.Query("\n  SELECT (SELECT DISTINCT x, x FROM t1 LIMIT 1 OFFSET 5)==(1234, 1234)\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (SELECT DISTINCT x, x FROM t1 LIMIT 1 OFFSET 5)==(1234, 1234)\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.4"
-		r = db.Query("\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT DISTINCT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
-			return
+		db.Close()
+		db, err = frigolite.Open("")
+		if err != nil { t.Fatal(err) }
+		{ // "7.0"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
+			}
 		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "7.1"
+			r = db.Query("\n  SELECT (\n    SELECT DISTINCT 'string' FROM t1 ORDER BY x LIMIT 1 OFFSET 5\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n    SELECT DISTINCT 'string' FROM t1 ORDER BY x LIMIT 1 OFFSET 5\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.5"
-		r = db.Query("\n  SELECT (\n      SELECT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n      SELECT 'string' FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
-			return
+		{ // "7.2"
+			_res = db.Exec("\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
+			}
 		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		{ // "7.3"
+			r = db.Query("\n  SELECT (\n    SELECT DISTINCT x FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n    SELECT DISTINCT x FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
+				return
+			}
+			got := flatten(r)
+			want := "{}"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-	}
-	{ // "6.6"
-		r = db.Query("\n  SELECT (SELECT DISTINCT x, x FROM t1 LIMIT 1 OFFSET 5)==(1234, 1234)\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (SELECT DISTINCT x, x FROM t1 LIMIT 1 OFFSET 5)==(1234, 1234)\n")
-			return
+		{ // "7.4"
+			r = db.Query("\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 0);\n")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 0);\n")
+				return
+			}
+			got := flatten(r)
+			want := "1234"
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
 		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // "7.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n  INSERT INTO t1 VALUES(1234);\n")
-		}
-	}
-	{ // "7.1"
-		r = db.Query("\n  SELECT (\n    SELECT DISTINCT 'string' FROM t1 ORDER BY x LIMIT 1 OFFSET 5\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n    SELECT DISTINCT 'string' FROM t1 ORDER BY x LIMIT 1 OFFSET 5\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.2"
-		_res = db.Exec("\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX i1;\n  CREATE UNIQUE INDEX i1 ON t1(x);\n")
-		}
-	}
-	{ // "7.3"
-		r = db.Query("\n  SELECT (\n    SELECT DISTINCT x FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (\n    SELECT DISTINCT x FROM t1 ORDER BY 1 LIMIT 1 OFFSET 5\n  );\n")
-			return
-		}
-		got := flatten(r)
-		want := "{}"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	{ // "7.4"
-		r = db.Query("\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 0);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT (SELECT DISTINCT x FROM t1 ORDER BY +x LIMIT 1 OFFSET 0);\n")
-			return
-		}
-		got := flatten(r)
-		want := "1234"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
 }

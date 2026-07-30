@@ -408,109 +408,109 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	// foreach {tn expr res} "\n  1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }\n\n"
-	_items := []string{"\n  1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }\n\n"}
+	_items := tclSplitList("\n  1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	expr := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "11.1." + tn + ".1"
-			r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		var r2 = "list"
-		_ = r2 // suppress unused warning
-		// foreach {rowid L} res
-		_items := []string{res}
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		rowid := _items[_idx+0]
-		L := _items[_idx+1]
-			r2 = tclListAppend(r2, rowid)
-			var M = "list"
-			_ = M // suppress unused warning
-			// foreach {a b} L
-			_items := []string{L}
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			a := _items[_idx+0]
-			b := _items[_idx+1]
-				M = tclListAppend(M, "($a ? 1 : 0) + ($b ? 2 : 0)")
-			}
-			}
-			r2 = tclListAppend(r2, M)
-		}
-		}
-		{ // "11.1." + tn + ".2"
-			r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
-				return
-			}
-			got := flatten(r)
-			want := r2
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-		{ // "11.1." + tn + ".2"
-			r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
-				return
-			}
-			got := flatten(r)
-			want := r2
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
-		}
-	}
-	}
-	var sqlite_fts3_enable_parentheses = "0"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	db.Close()
-	db, err = frigolite.Open("")
-	if err != nil { t.Fatal(err) }
-	{ // do_test "12.0"
-		var cols = "list"
-		_ = cols // suppress unused warning
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-			cols = tclListAppend(cols, "c" + i)
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
+		tn := _items[_idx+0]
+		expr := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // "11.1." + tn + ".1"
+				r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-		}
-		_res = db.Exec("CREATE VIRTUAL TABLE tt USING fts3(" + "join $cols ," + ")")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE tt USING fts3(" + "join $cols ," + ")")
-		}
-	}
-	{ // "12.1"
-		r = db.Query("\n  INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';\n")
-			return
-		}
-		got := flatten(r)
-		want := "list [list [expr 1<<4] [expr 1<<(45-32)]]"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
-	var sqlite_fts3_enable_parentheses = "0"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
+			var r2 = "list"
+			_ = r2 // suppress unused warning
+			// foreach {rowid L} res
+			_items := tclSplitList(res)
+			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+				rowid := _items[_idx+0]
+				L := _items[_idx+1]
+				_ = _idx
+					r2 = tclListAppend(r2, rowid)
+					var M = "list"
+					_ = M // suppress unused warning
+					// foreach {a b} L
+					_items := tclSplitList(L)
+					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+						a := _items[_idx+0]
+						b := _items[_idx+1]
+						_ = _idx
+							M = tclListAppend(M, "($a ? 1 : 0) + ($b ? 2 : 0)")
+						}
+						r2 = tclListAppend(r2, M)
+					}
+					{ // "11.1." + tn + ".2"
+						r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+							return
+						}
+						got := flatten(r)
+						want := r2
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+					{ // "11.1." + tn + ".2"
+						r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid, mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH $expr\n  ")
+							return
+						}
+						got := flatten(r)
+						want := r2
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
+				}
+				var sqlite_fts3_enable_parentheses = "0"
+				_ = sqlite_fts3_enable_parentheses // suppress unused warning
+				var sqlite_fts3_enable_parentheses = "1"
+				_ = sqlite_fts3_enable_parentheses // suppress unused warning
+				db.Close()
+				db, err = frigolite.Open("")
+				if err != nil { t.Fatal(err) }
+				{ // do_test "12.0"
+					var cols = "list"
+					_ = cols // suppress unused warning
+					var i = "0"
+					_ = i // suppress unused warning
+					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
+						cols = tclListAppend(cols, "c" + i)
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					_res = db.Exec("CREATE VIRTUAL TABLE tt USING fts3(" + "join $cols ," + ")")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE tt USING fts3(" + "join $cols ," + ")")
+					}
+				}
+				{ // "12.1"
+					r = db.Query("\n  INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';\n")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO tt (rowid, c4, c45) VALUES(1, 'abc', 'abc');\n  SELECT mit(matchinfo(tt, 'b')) FROM tt WHERE tt MATCH 'abc';\n")
+						return
+					}
+					got := flatten(r)
+					want := "list [list [expr 1<<4] [expr 1<<(45-32)]]"
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+					}
+				}
+				var sqlite_fts3_enable_parentheses = "0"
+				_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

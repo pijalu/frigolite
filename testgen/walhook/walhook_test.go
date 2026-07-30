@@ -89,29 +89,29 @@ func Test_walhook(t *testing.T) {
 		}
 	}
 	// foreach {tn sql dbpages logpages} "\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n"
-	_items := []string{"\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n"}
+	_items := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	dbpages := _items[_idx+2]
-	logpages := _items[_idx+3]
-		{ // do_test "walhook-2." + tn
-			_res = db.Exec(sql)
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+		tn := _items[_idx+0]
+		sql := _items[_idx+1]
+		dbpages := _items[_idx+2]
+		logpages := _items[_idx+3]
+		_ = _idx
+			{ // do_test "walhook-2." + tn
+				_res = db.Exec(sql)
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
+				}
+				_list := tclList([]string{"file size test.db", "file size test.db-wal"})
+				_ = _list
 			}
-			_list := tclList([]string{"file size test.db", "file size test.db-wal"})
-			_ = _list
 		}
-	}
-	}
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-		db2.Close()
-	}
-	{
-		var _catchErr error
-		_ = _catchErr // suppress unused warning
-	}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+			db2.Close()
+		}
+		{
+			var _catchErr error
+			_ = _catchErr // suppress unused warning
+		}
 }

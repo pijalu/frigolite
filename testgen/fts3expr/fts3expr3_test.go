@@ -154,16 +154,16 @@ func Test_fts3expr3(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3expr3-fault-1 -faults oom-* -body {\n  test_fts3expr2 $::query\n} -test {\n  faultsim_test_result [list 0 $::result]\n}")
 	}
 	// foreach {tn expr res} "\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n"
-	_items := []string{"\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n"}
+	_items := tclSplitList("\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	expr := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // do_test "5.1." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
+		tn := _items[_idx+0]
+		expr := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // do_test "5.1." + tn
+				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
+			}
 		}
-	}
-	}
-	var sqlite_fts3_enable_parentheses = "0"
-	_ = sqlite_fts3_enable_parentheses // suppress unused warning
+		var sqlite_fts3_enable_parentheses = "0"
+		_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

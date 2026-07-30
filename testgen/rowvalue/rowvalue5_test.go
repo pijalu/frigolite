@@ -28,23 +28,23 @@ func Test_rowvalue5(t *testing.T) {
 		}
 	}
 	// foreach {tn where res} "\n  1 \"1\"                              {{}}\n  2 \"a=1\"                            {{a = 1}}\n  3 \"a=1 AND 4 = b\"                  {{a = 1 AND b = 4}}\n  4 \"c>'hello'\"                      {{c > 'hello'}}\n  5 \"c<='hel''lo'\"                   {{c <= 'hel''lo'}}\n  6 \"(a, b) = (SELECT 9, 10)\"        {{a = 9 AND b = 10}}\n  7 \"(+a, b) = (SELECT 'a', 'b')\"    {{b = 'b'}}\n  8 \"(a, +b) = (SELECT 'a', 'b')\"    {{a = 'a'}}\n  11 \"(+a, b) IN (SELECT 'a', 'b')\"  {{b = 'b'}}\n  12 \"(a, +b) IN (SELECT 'a', 'b')\"  {{a = 'a'}}\n\n  13 \"(a, b) < ('d', 'e')\"           {{a <= 'd'}}\n  14 \"(a, b) < ('a', 'c')\"           {{a <= 'a'}}\n  15 \"(a, b) <= ('a', 'b')\"          {{a <= 'a'}}\n  16 \"(a, b) < ('a', 'b')\"           {}\n"
-	_items := []string{"\n  1 \"1\"                              {{}}\n  2 \"a=1\"                            {{a = 1}}\n  3 \"a=1 AND 4 = b\"                  {{a = 1 AND b = 4}}\n  4 \"c>'hello'\"                      {{c > 'hello'}}\n  5 \"c<='hel''lo'\"                   {{c <= 'hel''lo'}}\n  6 \"(a, b) = (SELECT 9, 10)\"        {{a = 9 AND b = 10}}\n  7 \"(+a, b) = (SELECT 'a', 'b')\"    {{b = 'b'}}\n  8 \"(a, +b) = (SELECT 'a', 'b')\"    {{a = 'a'}}\n  11 \"(+a, b) IN (SELECT 'a', 'b')\"  {{b = 'b'}}\n  12 \"(a, +b) IN (SELECT 'a', 'b')\"  {{a = 'a'}}\n\n  13 \"(a, b) < ('d', 'e')\"           {{a <= 'd'}}\n  14 \"(a, b) < ('a', 'c')\"           {{a <= 'a'}}\n  15 \"(a, b) <= ('a', 'b')\"          {{a <= 'a'}}\n  16 \"(a, b) < ('a', 'b')\"           {}\n"}
+	_items := tclSplitList("\n  1 \"1\"                              {{}}\n  2 \"a=1\"                            {{a = 1}}\n  3 \"a=1 AND 4 = b\"                  {{a = 1 AND b = 4}}\n  4 \"c>'hello'\"                      {{c > 'hello'}}\n  5 \"c<='hel''lo'\"                   {{c <= 'hel''lo'}}\n  6 \"(a, b) = (SELECT 9, 10)\"        {{a = 9 AND b = 10}}\n  7 \"(+a, b) = (SELECT 'a', 'b')\"    {{b = 'b'}}\n  8 \"(a, +b) = (SELECT 'a', 'b')\"    {{a = 'a'}}\n  11 \"(+a, b) IN (SELECT 'a', 'b')\"  {{b = 'b'}}\n  12 \"(a, +b) IN (SELECT 'a', 'b')\"  {{a = 'a'}}\n\n  13 \"(a, b) < ('d', 'e')\"           {{a <= 'd'}}\n  14 \"(a, b) < ('a', 'c')\"           {{a <= 'a'}}\n  15 \"(a, b) <= ('a', 'b')\"          {{a <= 'a'}}\n  16 \"(a, b) < ('a', 'b')\"           {}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	where := _items[_idx+1]
-	res := _items[_idx+2]
-		{ // "1." + tn
-			r = db.Query("SELECT expr FROM x1 WHERE " + where)
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT expr FROM x1 WHERE " + where)
-				return
-			}
-			got := flatten(r)
-			want := res
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		tn := _items[_idx+0]
+		where := _items[_idx+1]
+		res := _items[_idx+2]
+		_ = _idx
+			{ // "1." + tn
+				r = db.Query("SELECT expr FROM x1 WHERE " + where)
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT expr FROM x1 WHERE " + where)
+					return
+				}
+				got := flatten(r)
+				want := res
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
 			}
 		}
-	}
-	}
 }

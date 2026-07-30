@@ -27,91 +27,91 @@ func Test_fts4onepass(t *testing.T) {
 		}
 	}
 	// foreach {tn sql uses} "\n  1.1 { DELETE FROM ft } 1\n  1.2 { DELETE FROM ft WHERE docid=? } 0\n  1.3 { DELETE FROM ft WHERE rowid=? } 0\n  1.4 { DELETE FROM ft WHERE ft MATCH '1' } 1\n  1.5 { DELETE FROM ft WHERE ft MATCH '1' AND docid=? } 1\n  1.6 { DELETE FROM ft WHERE ft MATCH '1' AND rowid=? } 1\n\n  2.1 { UPDATE ft SET content='a b c' } 1\n  2.2 { UPDATE ft SET content='a b c' WHERE docid=? } 0\n  2.3 { UPDATE ft SET content='a b c' WHERE rowid=? } 0\n  2.4 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' } 1\n  2.5 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND docid=? } 1\n  2.6 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND rowid=? } 1\n"
-	_items := []string{"\n  1.1 { DELETE FROM ft } 1\n  1.2 { DELETE FROM ft WHERE docid=? } 0\n  1.3 { DELETE FROM ft WHERE rowid=? } 0\n  1.4 { DELETE FROM ft WHERE ft MATCH '1' } 1\n  1.5 { DELETE FROM ft WHERE ft MATCH '1' AND docid=? } 1\n  1.6 { DELETE FROM ft WHERE ft MATCH '1' AND rowid=? } 1\n\n  2.1 { UPDATE ft SET content='a b c' } 1\n  2.2 { UPDATE ft SET content='a b c' WHERE docid=? } 0\n  2.3 { UPDATE ft SET content='a b c' WHERE rowid=? } 0\n  2.4 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' } 1\n  2.5 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND docid=? } 1\n  2.6 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND rowid=? } 1\n"}
+	_items := tclSplitList("\n  1.1 { DELETE FROM ft } 1\n  1.2 { DELETE FROM ft WHERE docid=? } 0\n  1.3 { DELETE FROM ft WHERE rowid=? } 0\n  1.4 { DELETE FROM ft WHERE ft MATCH '1' } 1\n  1.5 { DELETE FROM ft WHERE ft MATCH '1' AND docid=? } 1\n  1.6 { DELETE FROM ft WHERE ft MATCH '1' AND rowid=? } 1\n\n  2.1 { UPDATE ft SET content='a b c' } 1\n  2.2 { UPDATE ft SET content='a b c' WHERE docid=? } 0\n  2.3 { UPDATE ft SET content='a b c' WHERE rowid=? } 0\n  2.4 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' } 1\n  2.5 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND docid=? } 1\n  2.6 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND rowid=? } 1\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	uses := _items[_idx+2]
-		{ // do_test "1." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
-		}
-	}
-	}
-	{ // "2.0"
-		_res = db.Exec("\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
-		}
-	}
-	// foreach {tn sql uses} "\n  1 { INSERT INTO t1 VALUES(1)      } 1\n  2 { DELETE FROM t1 WHERE x=4      } 1\n  3 { UPDATE t1 SET x=10 WHERE x=11 } 1\n"
-	_items := []string{"\n  1 { INSERT INTO t1 VALUES(1)      } 1\n  2 { DELETE FROM t1 WHERE x=4      } 1\n  3 { UPDATE t1 SET x=10 WHERE x=11 } 1\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	sql := _items[_idx+1]
-	uses := _items[_idx+2]
-		{ // do_test "2." + tn
-			t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
-		}
-	}
-	}
-	// foreach {tn tcl1 tcl2} "\n  1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }\n"
-	_items := []string{"\n  1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }\n"}
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	tn := _items[_idx+0]
-	tcl1 := _items[_idx+1]
-	tcl2 := _items[_idx+2]
-		{ // "3." + tn + ".0"
-			_res = db.Exec("\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
-			}
-		}
-		// eval $tcl1
-		// foreach {tn2 sql content} "\n    1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n  "
-		_items := []string{"\n    1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n  "}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn2 := _items[_idx+0]
+		tn := _items[_idx+0]
 		sql := _items[_idx+1]
-		content := _items[_idx+2]
-			{ // "3." + tn + "." + tn2 + ".a"
-				_res = db.Exec(sql)
-				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, sql)
-				}
-			}
-			{ // "3." + tn + "." + tn2 + ".b"
-				r = db.Query(" SELECT rowid, content FROM ft2 ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, content FROM ft2 ")
-					return
-				}
-				got := flatten(r)
-				want := content
-				if got != want {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-				}
-			}
-			{ // "3." + tn + "." + tn2 + ".c"
-				_res = db.Exec(" \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
-				}
+		uses := _items[_idx+2]
+		_ = _idx
+			{ // do_test "1." + tn
+				t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
 			}
 		}
+		{ // "2.0"
+			_res = db.Exec("\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n\n  CREATE TRIGGER t1_ai AFTER INSERT ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=new.x;\n  END;\n\n  CREATE TRIGGER t1_ad AFTER DELETE ON t1 BEGIN\n    UPDATE ft SET content = 'a b c' WHERE rowid=old.x;\n  END;\n\n  CREATE TRIGGER t1_bu BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM ft WHERE rowid=old.x;\n  END;\n")
+			}
 		}
-		// eval $tcl2
-	}
-	}
-	{ // "4.0"
-		r = db.Query("\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")
-			return
-		}
-		got := flatten(r)
-		want := "3"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
-	}
+		// foreach {tn sql uses} "\n  1 { INSERT INTO t1 VALUES(1)      } 1\n  2 { DELETE FROM t1 WHERE x=4      } 1\n  3 { UPDATE t1 SET x=10 WHERE x=11 } 1\n"
+		_items := tclSplitList("\n  1 { INSERT INTO t1 VALUES(1)      } 1\n  2 { DELETE FROM t1 WHERE x=4      } 1\n  3 { UPDATE t1 SET x=10 WHERE x=11 } 1\n")
+		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+			tn := _items[_idx+0]
+			sql := _items[_idx+1]
+			uses := _items[_idx+2]
+			_ = _idx
+				{ // do_test "2." + tn
+					t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
+				}
+			}
+			// foreach {tn tcl1 tcl2} "\n  1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }\n"
+			_items := tclSplitList("\n  1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				tcl1 := _items[_idx+1]
+				tcl2 := _items[_idx+2]
+				_ = _idx
+					{ // "3." + tn + ".0"
+						_res = db.Exec("\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
+						}
+					}
+					// eval $tcl1
+					// foreach {tn2 sql content} "\n    1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n  "
+					_items := tclSplitList("\n    1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n  ")
+					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+						tn2 := _items[_idx+0]
+						sql := _items[_idx+1]
+						content := _items[_idx+2]
+						_ = _idx
+							{ // "3." + tn + "." + tn2 + ".a"
+								_res = db.Exec(sql)
+								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+									t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, sql)
+								}
+							}
+							{ // "3." + tn + "." + tn2 + ".b"
+								r = db.Query(" SELECT rowid, content FROM ft2 ")
+								if r.Error != nil {
+									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, content FROM ft2 ")
+									return
+								}
+								got := flatten(r)
+								want := content
+								if got != want {
+									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+								}
+							}
+							{ // "3." + tn + "." + tn2 + ".c"
+								_res = db.Exec(" \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
+								if _res.Error != nil {
+									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO ft2(ft2) VALUES('integrity-check');\n    ")
+								}
+							}
+						}
+						// eval $tcl2
+					}
+					{ // "4.0"
+						r = db.Query("\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE zt USING fts4(a, b);\n  INSERT INTO zt(rowid, a, b) VALUES(1, 'unus duo', NULL);\n  INSERT INTO zt(rowid, a, b) VALUES(2, NULL, NULL);\n\n  BEGIN;\n    UPDATE zt SET b='septum' WHERE rowid = 1;\n    UPDATE zt SET b='octo' WHERE rowid = 1;\n  COMMIT;\n\n  SELECT count(*) FROM zt_segdir;\n")
+							return
+						}
+						got := flatten(r)
+						want := "3"
+						if got != want {
+							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+						}
+					}
 }

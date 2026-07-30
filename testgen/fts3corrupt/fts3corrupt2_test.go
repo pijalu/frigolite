@@ -38,7 +38,7 @@ func Test_fts3corrupt2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('nodesize=32') ")
 		}
-		for _, d := range []string{data} {
+		for _, d := range tclSplitList(data) {
 			_res = db.Exec(" INSERT INTO t2 VALUES($d, $d) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($d, $d) ")
@@ -59,55 +59,12 @@ func Test_fts3corrupt2(t *testing.T) {
 	var c = "256"
 	_ = c // suppress unused warning
 	// foreach {rowid sz blob} "db eval {SELECT rowid, length(block), block FROM t2_segments}"
-	_items := []string{"db eval {SELECT rowid, length(block), block FROM t2_segments}"}
+	_items := tclSplitList("db eval {SELECT rowid, length(block), block FROM t2_segments}")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-	rowid := _items[_idx+0]
-	sz := _items[_idx+1]
-	blob := _items[_idx+2]
-		// incr tn 1
-		{
-			_n, _err := strconv.Atoi(tn)
-			if _err == nil {
-				tn = strconv.Itoa(_n + 1)
-			}
-		}
-		c := "(($c+255)%256)"
-		var i = "0"
-		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return i_n < sz_n }() {
-			var b2 = "set_byte $blob $i $c"
-			_ = b2 // suppress unused warning
-			_res = db.Exec(" UPDATE t2_segments SET block = $b2 WHERE rowid = $rowid ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segments SET block = $b2 WHERE rowid = $rowid ")
-			}
-			{ // do_test "fts3corrupt2-1." + tn + "." + i
-				_res = db.Exec(" SELECT * FROM t2 WHERE t2 MATCH 'a*' ")
-				_ = _res // catchsql
-				var  = ""
-				_ =  // suppress unused warning
-			}
-			// incr i 1
-			{
-				_n, _err := strconv.Atoi(i)
-				if _err == nil {
-					i = strconv.Itoa(_n + 1)
-				}
-			}
-		}
-		_res = db.Exec(" UPDATE t2_segments SET block = $blob WHERE rowid = $rowid ")
-		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segments SET block = $blob WHERE rowid = $rowid ")
-		}
-	}
-	}
-	for _, c := range []string{"50 100 150 200 250"} {
-		// foreach {rowid sz blob} "db eval {SELECT rowid, length(root), root FROM t2_segdir}"
-		_items := []string{"db eval {SELECT rowid, length(root), root FROM t2_segdir}"}
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		rowid := _items[_idx+0]
 		sz := _items[_idx+1]
 		blob := _items[_idx+2]
+		_ = _idx
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
@@ -115,16 +72,17 @@ func Test_fts3corrupt2(t *testing.T) {
 					tn = strconv.Itoa(_n + 1)
 				}
 			}
+			c := "(($c+255)%256)"
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return i_n < sz_n }() {
 				var b2 = "set_byte $blob $i $c"
 				_ = b2 // suppress unused warning
-				_res = db.Exec(" UPDATE t2_segdir SET root = $b2 WHERE rowid = $rowid ")
+				_res = db.Exec(" UPDATE t2_segments SET block = $b2 WHERE rowid = $rowid ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segdir SET root = $b2 WHERE rowid = $rowid ")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segments SET block = $b2 WHERE rowid = $rowid ")
 				}
-				{ // do_test "fts3corrupt2-2." + c + "." + tn + "." + i
+				{ // do_test "fts3corrupt2-1." + tn + "." + i
 					_res = db.Exec(" SELECT * FROM t2 WHERE t2 MATCH 'a*' ")
 					_ = _res // catchsql
 					var  = ""
@@ -138,11 +96,53 @@ func Test_fts3corrupt2(t *testing.T) {
 					}
 				}
 			}
-			_res = db.Exec(" UPDATE t2_segdir SET root = $blob WHERE rowid = $rowid ")
+			_res = db.Exec(" UPDATE t2_segments SET block = $blob WHERE rowid = $rowid ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segdir SET root = $blob WHERE rowid = $rowid ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segments SET block = $blob WHERE rowid = $rowid ")
 			}
 		}
-		}
-	}
+		for _, c := range tclSplitList("50 100 150 200 250") {
+			// foreach {rowid sz blob} "db eval {SELECT rowid, length(root), root FROM t2_segdir}"
+			_items := tclSplitList("db eval {SELECT rowid, length(root), root FROM t2_segdir}")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				rowid := _items[_idx+0]
+				sz := _items[_idx+1]
+				blob := _items[_idx+2]
+				_ = _idx
+					// incr tn 1
+					{
+						_n, _err := strconv.Atoi(tn)
+						if _err == nil {
+							tn = strconv.Itoa(_n + 1)
+						}
+					}
+					var i = "0"
+					_ = i // suppress unused warning
+					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return i_n < sz_n }() {
+						var b2 = "set_byte $blob $i $c"
+						_ = b2 // suppress unused warning
+						_res = db.Exec(" UPDATE t2_segdir SET root = $b2 WHERE rowid = $rowid ")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segdir SET root = $b2 WHERE rowid = $rowid ")
+						}
+						{ // do_test "fts3corrupt2-2." + c + "." + tn + "." + i
+							_res = db.Exec(" SELECT * FROM t2 WHERE t2 MATCH 'a*' ")
+							_ = _res // catchsql
+							var  = ""
+							_ =  // suppress unused warning
+						}
+						// incr i 1
+						{
+							_n, _err := strconv.Atoi(i)
+							if _err == nil {
+								i = strconv.Itoa(_n + 1)
+							}
+						}
+					}
+					_res = db.Exec(" UPDATE t2_segdir SET root = $blob WHERE rowid = $rowid ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_segdir SET root = $blob WHERE rowid = $rowid ")
+					}
+				}
+			}
 }

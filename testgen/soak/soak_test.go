@@ -23,46 +23,46 @@ func Test_soak(t *testing.T) {
 	_ = TIMEOUT // suppress unused warning
 	if tclBool("llength $argv" + ">0") {
 		// foreach {name value} argv
-		_items := []string{argv}
+		_items := tclSplitList(argv)
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		name := _items[_idx+0]
-		value := _items[_idx+1]
-			t.Skipf("TODO: %s not implemented in frigolite", "switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n     ...}")
-		}
-		}
-	}
-	var argv = "list"
-	_ = argv // suppress unused warning
-	var SOAKTESTS = "\n  fuzz.test\n  fuzz_malloc.test\n  trans.test\n  corruptC.test\n"
-	_ = SOAKTESTS // suppress unused warning
-	var G_isquick = "1"
-	_ = G_isquick // suppress unused warning
-	var soak_starttime = "clock_seconds"
-	_ = soak_starttime // suppress unused warning
-	soak_finishtime := "$soak_starttime + $TIMEOUT"
-	var iRun = "0"
-	_ = iRun // suppress unused warning
-	for tclBool("clock_seconds" + " < " + soak_finishtime) {
-		iIdx := "$iRun % [llength $SOAKTESTS]"
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {
-			t.Log(tail + " did not close all files: " + sqlite_open_file_count)
-			t.Skipf("TODO: %s not implemented in frigolite", "fail_test $tail")
-			var sqlite_open_file_count = "0"
-			_ = sqlite_open_file_count // suppress unused warning
-		}
-		if tclBool("set_test_counter errors" + ">0") {
-		}
-		// incr iRun 1
-		{
-			_n, _err := strconv.Atoi(iRun)
-			if _err == nil {
-				iRun = strconv.Itoa(_n + 1)
+			name := _items[_idx+0]
+			value := _items[_idx+1]
+			_ = _idx
+				t.Skipf("TODO: %s not implemented in frigolite", "switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n     ...}")
 			}
 		}
-	}
-	t.Skipf("TODO: %s not implemented in frigolite", "really_finish_test")
+		var argv = "list"
+		_ = argv // suppress unused warning
+		var SOAKTESTS = "\n  fuzz.test\n  fuzz_malloc.test\n  trans.test\n  corruptC.test\n"
+		_ = SOAKTESTS // suppress unused warning
+		var G_isquick = "1"
+		_ = G_isquick // suppress unused warning
+		var soak_starttime = "clock_seconds"
+		_ = soak_starttime // suppress unused warning
+		soak_finishtime := "$soak_starttime + $TIMEOUT"
+		var iRun = "0"
+		_ = iRun // suppress unused warning
+		for tclBool("clock_seconds" + " < " + soak_finishtime) {
+			iIdx := "$iRun % [llength $SOAKTESTS]"
+			{
+				var _catchErr error
+				_ = _catchErr // suppress unused warning
+			}
+			if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {
+				t.Log(tail + " did not close all files: " + sqlite_open_file_count)
+				t.Skipf("TODO: %s not implemented in frigolite", "fail_test $tail")
+				var sqlite_open_file_count = "0"
+				_ = sqlite_open_file_count // suppress unused warning
+			}
+			if tclBool("set_test_counter errors" + ">0") {
+			}
+			// incr iRun 1
+			{
+				_n, _err := strconv.Atoi(iRun)
+				if _err == nil {
+					iRun = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "really_finish_test")
 }

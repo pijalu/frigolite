@@ -50,8 +50,8 @@ func Test_jrnlmode3(t *testing.T) {
 	_ = all_journal_modes // suppress unused warning
 	var cnt = "0"
 	_ = cnt // suppress unused warning
-	for _, fromjmode := range []string{all_journal_modes} {
-		for _, tojmode := range []string{all_journal_modes} {
+	for _, fromjmode := range tclSplitList(all_journal_modes) {
+		for _, tojmode := range tclSplitList(all_journal_modes) {
 			if func() bool { fromjmode_n, _fromjmode_e := strconv.Atoi(fromjmode); if _fromjmode_e != nil { return false }; tojmode_n, _tojmode_e := strconv.Atoi(tojmode); if _tojmode_e != nil { return false }; return fromjmode_n == tojmode_n }() {
 			}
 			// incr cnt 1
